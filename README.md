@@ -5,7 +5,7 @@
 ```bash
 git clone <actual URL>
 cd simpleapi_library
-mkdir -p build && cd $_
+mkdir -p <build_dir> && cd $_
 cmake ../
 make -j$(nproc)
 ```
