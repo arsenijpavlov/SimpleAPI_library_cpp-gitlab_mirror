@@ -35,34 +35,42 @@ bool Json::readFile(const std::string path)
     bool isString = false;
     uint8_t innerLvl = 0;
     uint8_t pointCounter = 0; //если в числе больше 1 точки
-    while(file.get(c)) {
-        //счётчик строк и символов, для вывода ошибки
-        if (c == '\n') {
-            stringCounter++;
-            symbolCounter = 0;
-        } else
-            symbolCounter++;
-        //обработка символов
-        if(c != '\t'
-            && c != ' '
-            ) {
-            //проверка на соотвествие синтаксису:
-            switch(c) {
-            case '{':   innerLvl++;             break;
-            case '}':   innerLvl--;             break;
-            case '"':   isString = !isString;   break;
-            case '.':   pointCounter++;         break;
-            }
-            if(innerLvl < 0
-                || pointCounter > 1
-                ) {
-                return_code = false;
-                break;
-            }
+//    while(file.get(c)) {
+//        //счётчик строк и символов, для вывода ошибки
+//        if (c == '\n') {
+//            stringCounter++;
+//            symbolCounter = 0;
+//        } else
+//            symbolCounter++;
+//        //обработка символов
+//        if(c != '\t'
+//            && c != ' '
+//            ) {
+//            //проверка на соотвествие синтаксису:
+//            switch(c) {
+//            case '{':   innerLvl++;             break;
+//            case '}':   innerLvl--;             break;
+//            case '"':   isString = !isString;   break;
+//            case '.':   pointCounter++;         break;
+//            }
+//            if(innerLvl < 0
+//                || pointCounter > 1
+//                ) {
+//                return_code = false;
+//                break;
+//            }
 
-            if (c != '\n')
-                json_str += c;
-        }
+//            if (c != '\n')
+//                json_str += c;
+//        }
+//    }
+    std::string temp_string;
+    bool nextStrStartFromComment = false;
+    while(getline(file, temp_string)) {
+        std::cout << "string: " << stringCounter++ << " = ";
+        utils::removeComments(temp_string, nextStrStartFromComment);
+        std::cout << std::endl;
+        json_str += temp_string;
     }
     std::cout << json_str << std::endl;
 

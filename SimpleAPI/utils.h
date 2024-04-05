@@ -13,6 +13,7 @@ inline std::string tab(uint8_t tabs_counter) {
         ret += "\t";
     return ret;
 }
+void removeComments(std::string& str, bool& startComment);
 
 }
 
