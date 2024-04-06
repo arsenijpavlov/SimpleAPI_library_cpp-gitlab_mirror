@@ -13,16 +13,14 @@ enum ValueType {
     eJson,
     eArray
 };
-
 enum NextReadState {
     eKey,
     eValue,
     eColon,
-    eComma,
-    eJsonStart,
-    eJsonEnd
+    eComma
 };
 static std::string ToString(const NextReadState state);
+static std::string ToString(const ValueType type);
 static void ChangeNextState(NextReadState &state, const NextReadState nextState);
 
 class Json
@@ -32,10 +30,10 @@ class Json
 //    std::map<std::string, std::vector<int>> arrays;
 public:
     Json();
-    void put(std::string key, Json json);
-    void put(std::string key, std::string value);
-    void add(std::string key, Json json)            { this->put(key, json); };
-    void add(std::string key, std::string value)    { this->put(key, value); };
+    bool put(std::string key, Json json);
+    bool put(std::string key, std::string value);
+    bool add(std::string key, Json json)            { this->put(key, json); };
+    bool add(std::string key, std::string value)    { this->put(key, value); };
     bool readFile(const std::string path);
     bool writeFile(const std::string path);
     std::string to_string(uint8_t tabulation_level = 0);
