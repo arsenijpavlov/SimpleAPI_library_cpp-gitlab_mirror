@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
     std::cout << "File is read: " << (ret ? "true" : "false") << std::endl;
     std::cout << std::endl;
     std::cout << "Json3:" << std::endl;
-    std::cout << json3.to_string() << std::endl;
+    std::cout << json3.to_string(-1) << std::endl;
 
     return 0;
 }

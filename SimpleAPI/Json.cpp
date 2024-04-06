@@ -39,6 +39,32 @@ void ChangeNextState(NextReadState &state, const NextReadState nextState)
     state = nextState;
 }
 
+// ArrayElement
+ArrayElement::~ArrayElement()
+{
+    delete string;
+    delete number;
+    delete json;
+    delete array;
+}
+
+std::string ArrayElement::getString()
+{
+    switch(this->type) {
+    case eString:   return (string  ? *this->string                 : "");
+    case eNumber:   return (number  ? std::to_string(*this->number) : "");
+    case eJson:     return (json    ? this->json->to_string(-1)     : "");
+//    case eArray:    return (array   ? *this-> : "");
+    case eNull:     return "";
+    }
+}
+
+double      getNumber();
+Json        getJson();
+std::vector<ArrayElement> getArray();
+/// ArrayElement
+
+// Json
 Json::Json()
 {
 
@@ -86,34 +112,40 @@ bool Json::writeFile(const std::string path)
     return true;
 }
 
-std::string Json::to_string(uint8_t tabulation_level)
+std::string Json::to_string(int16_t tabulation_level)
 {
     std::string ret;
-    ret += "{\n"; //start of json
+    bool withoutSpaces = tabulation_level < 0;
+    ret += "{"; //start of json
+    if(!withoutSpaces) ret += "\n";
 
-    tabulation_level++;
-    std::string tabs_str = utils::tab(tabulation_level);
+    if(!withoutSpaces) tabulation_level++;
+    std::string tabs_str = !withoutSpaces ? utils::tab(tabulation_level) : "";
     //strings/numbers
     std::map<std::string, std::string>::iterator it = this->values.begin();
     for(int i = 0; it != values.end(); i++, it++) {
-        ret += tabs_str + "\"" + it->first + "\" : "
-               + (utils::isNumber(it->second) ? "" : "\"")
+        ret += tabs_str + "\"" + it->first + "\"";
+        if(!withoutSpaces) ret += " ";
+        ret += ":";
+        if(!withoutSpaces) ret += " ";
+        ret += (utils::isNumber(it->second) ? "" : "\"")
                + it->second
                + (utils::isNumber(it->second) ? "" : "\"")
-               + ((i < values.size() - 1) || (containers.size() > 0) ? "," : "")
-               + "\n";
+               + ((i < values.size() - 1) || (containers.size() > 0) ? "," : "");
+        if(!withoutSpaces) ret += "\n";
     }
     //jsons
     std::map<std::string, Json>::iterator it_js = this->containers.begin();
     for(int i = 0; it_js != containers.end(); i++, it_js++) {
         ret += tabs_str + "\"" + it_js->first + "\" : "
-               + it_js->second.to_string(tabulation_level + 2)
-               + ((i < containers.size() - 1) ? "," : "")
-               + "\n";
+               + it_js->second.to_string(tabulation_level + (!withoutSpaces ? 2 : 0))
+               + ((i < containers.size() - 1) ? "," : "");
+        if(!withoutSpaces) ret += "\n";
     }
 
-    tabulation_level--;
-    ret += utils::tab(tabulation_level) + "}"; //end of json
+    if(!withoutSpaces) tabulation_level--;
+    if(!withoutSpaces) ret += utils::tab(tabulation_level);
+    ret += "}"; //end of json
     return ret;
 }
 
@@ -200,7 +232,7 @@ bool Json::ParseJson(const std::vector<std::string>& str, Json* json)
 
                 //считываем значение
                 switch(valueType) {
-                case eString: {
+                case eString:   {
                     if(isString) {
                         if(isValue) value += temp_string[i];
                     } else {
@@ -213,7 +245,7 @@ bool Json::ParseJson(const std::vector<std::string>& str, Json* json)
                     }
                     break;
                 }
-                case eNumber: {
+                case eNumber:   {
                     if(!utils::isNumber(temp_string[i])) {
 //                        std::cout << "value(num): " << value << std::endl;
                         isValue = false;
@@ -224,7 +256,7 @@ bool Json::ParseJson(const std::vector<std::string>& str, Json* json)
                     if(isValue) value += temp_string[i];
                     break;
                 }
-                case eJson: {
+                case eJson:     {
                     if(isValue) value += temp_string[i];
                     if(temp_string[i] == '}') {
 //                        std::cout << "inner Json: " << value << std::endl;
@@ -232,15 +264,22 @@ bool Json::ParseJson(const std::vector<std::string>& str, Json* json)
                     }
                     break;
                 }
-                case eArray:    //TODO:
+                case eArray:    {
+                    if(isValue) value += temp_string[i];
+                    if(temp_string[i] == ']') {
+//                        std::cout << "array: " << value << std::endl;
+                        isValue = false;
+                    }
+                    break;
+                }
                 default: break;
                 }
 
                 if(!isValue) {
                     switch(valueType) {
-                    case eString:   return_code = json->put(key, value); break;
-                    case eNumber:   return_code = json->put(key, value); break;
-                    case eJson: {
+                    case eString:   { return_code = json->put(key, value); break; }
+                    case eNumber:   { return_code = json->put(key, value); break; }
+                    case eJson:     {
                         Json _innerJson;
                         std::vector<std::string> _tempVector;
                         _tempVector.push_back(value);
@@ -252,10 +291,12 @@ bool Json::ParseJson(const std::vector<std::string>& str, Json* json)
                             exit = true;
                         } else
                             return_code = json->put(key, _innerJson);
+                        break;
+                    }
+                    case eArray:    {
 
                         break;
                     }
-                    case eArray: //TODO:
                     default: break;
                     }
 
@@ -303,5 +344,6 @@ bool Json::ParseJson(const std::vector<std::string>& str, Json* json)
 
     return return_code;
 }
+/// Json
 
 } /// namespace json
