@@ -32,8 +32,8 @@ public:
     Json();
     bool put(std::string key, Json json);
     bool put(std::string key, std::string value);
-    bool add(std::string key, Json json)            { this->put(key, json); };
-    bool add(std::string key, std::string value)    { this->put(key, value); };
+    bool add(std::string key, Json json)            { return this->put(key, json); };
+    bool add(std::string key, std::string value)    { return this->put(key, value); };
     bool readFile(const std::string path);
     bool writeFile(const std::string path);
     std::string to_string(uint8_t tabulation_level = 0);

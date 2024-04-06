@@ -46,14 +46,12 @@ Json::Json()
 
 bool Json::put(std::string key, Json json)
 {
-    this->containers.insert(std::pair<std::string, Json>(key, json));
-    return true; //TODO:
+    return this->containers.insert(std::pair<std::string, Json>(key, json)).second;
 }
 
 bool Json::put(std::string key, std::string value)
 {
-    this->values.insert(std::pair<std::string, std::string>(key, value));
-    return true; //TODO:
+    return this->values.insert(std::pair<std::string, std::string>(key, value)).second;
 }
 
 bool Json::readFile(const std::string path)
