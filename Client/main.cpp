@@ -3,6 +3,7 @@
 #include <iostream>
 
 int main(int argc, char **argv) {
+    using namespace json;
 //    Json json, json2;
 //    json.put("TestString", "TestValue");
 //    json.put("TestNum", "999");

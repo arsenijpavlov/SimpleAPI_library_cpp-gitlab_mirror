@@ -5,10 +5,12 @@
 bool utils::isNumber(const std::string &str)
 {
     for(int i = 0; i < str.size(); i++) {
-        if(!std::isdigit(str.data()[i]) && (str.data()[i] != '.'))
-            return false;
+        if(!isNumber(str[i])) return false;
     }
     return true;
+}
+bool utils::isNumber(const char ch) {
+    return (std::isdigit(ch) || (ch == '.'));
 }
 
 void utils::removeComments(std::string& str, bool& startComment)
@@ -21,11 +23,11 @@ void utils::removeComments(std::string& str, bool& startComment)
             if(str[i] == '/') {
                 if(i <= str.length() + 1) { //проверка на границы строки
                     if(str[i + 1] == '/' && !isComment) {
-                        std::cout << "comment(full):" << i << ". ";
+//                        std::cout << "comment(full):" << i << ". ";
                         break; //дальше только комментарии
                     } else if(str[i + 1] == '*'
                                && !isComment) { //дальше возможен конец комментария
-                        std::cout << "comment(+):" << i << ". ";
+//                        std::cout << "comment(+):" << i << ". ";
                         isComment = true;
                         continue;
                     }
@@ -33,7 +35,7 @@ void utils::removeComments(std::string& str, bool& startComment)
             } else if(str[i] == '*' && isComment) {
                 if(i <= str.length() + 1) { //проверка на границы строки
                     if(str[i + 1] == '/') {
-                        std::cout << "comment(-):" << (i + 1) << ". ";
+//                        std::cout << "comment(-):" << (i + 1) << ". ";
                         isComment = false;
                         //пропускаем конец комментария
                         i++;
