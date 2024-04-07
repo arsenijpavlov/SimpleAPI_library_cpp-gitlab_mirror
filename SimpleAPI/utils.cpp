@@ -54,3 +54,12 @@ void utils::removeComments(std::string& str, bool& startComment)
     str = tempString;
     startComment = isComment;
 }
+
+size_t utils::countSymInStr(const std::string &str, const char ch)
+{
+    size_t counter = 0;
+    for(char temp : str)
+        if(temp == ch) counter++;
+
+    return counter;
+}

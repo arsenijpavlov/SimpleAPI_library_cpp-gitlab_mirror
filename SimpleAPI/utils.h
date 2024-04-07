@@ -15,6 +15,7 @@ inline std::string tab(uint8_t tabs_counter) {
     return ret;
 }
 void removeComments(std::string& str, bool& startComment);
+size_t countSymInStr(const std::string& str, const char ch);
 
 }
 
