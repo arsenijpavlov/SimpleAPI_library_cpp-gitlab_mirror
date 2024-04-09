@@ -50,18 +50,38 @@ ArrayElement::~ArrayElement()
 
 std::string ArrayElement::getString()
 {
-    switch(this->type) {
-    case eString:   return (string  ? *this->string                 : "");
-    case eNumber:   return (number  ? std::to_string(*this->number) : "");
-    case eJson:     return (json    ? this->json->to_string(-1)     : "");
-//    case eArray:    return (array   ? *this-> : "");
-    case eNull:     return "";
-    }
+    return this->to_string();
 }
 
-double      getNumber();
-Json        getJson();
-std::vector<ArrayElement> getArray();
+double ArrayElement::getNumber()
+{
+    if(this->type != ValueType::eNumber || !this->number)
+        return 0;
+    else
+        return *this->number;
+}
+
+Json ArrayElement::getJson()
+{
+    if(this->json)
+        return *this->json;
+    else
+        return Json();
+}
+
+Array ArrayElement::getArray()
+{
+    if(this->array)
+        return *this->array;
+    else
+        return Array();
+}
+
+std::string ArrayElement::to_string()
+{
+    //TODO: ArrayElement::to_string()
+    return "";
+}
 /// ArrayElement
 
 // Json
@@ -70,14 +90,24 @@ Json::Json()
 
 }
 
+bool Json::put(std::string key, std::string value)
+{
+    return this->strings.insert(std::pair<std::string, std::string>(key, value)).second;
+}
+
+bool Json::put(std::string key, double value)
+{
+    return this->numbers.insert(std::pair<std::string, double>(key, value)).second;
+}
+
 bool Json::put(std::string key, Json json)
 {
     return this->containers.insert(std::pair<std::string, Json>(key, json)).second;
 }
 
-bool Json::put(std::string key, std::string value)
+bool Json::put(std::string key, Array value)
 {
-    return this->values.insert(std::pair<std::string, std::string>(key, value)).second;
+    return this->arrays.insert(std::pair<std::string, Array>(key, value)).second;
 }
 
 bool Json::readFile(const std::string path)
@@ -121,25 +151,48 @@ std::string Json::to_string(int16_t tabulation_level)
 
     if(!withoutSpaces) tabulation_level++;
     std::string tabs_str = !withoutSpaces ? utils::tab(tabulation_level) : "";
-    //strings/numbers
-    std::map<std::string, std::string>::iterator it = this->values.begin();
-    for(int i = 0; it != values.end(); i++, it++) {
-        ret += tabs_str + "\"" + it->first + "\"";
+    //numbers
+    std::map<std::string, double>::iterator it_num = this->numbers.begin();
+    for(int i = 0; it_num != numbers.end(); i++, it_num++) {
+        ret += tabs_str + "\"" + it_num->first + "\"";
         if(!withoutSpaces) ret += " ";
         ret += ":";
         if(!withoutSpaces) ret += " ";
-        ret += (utils::isNumber(it->second) ? "" : "\"")
-               + it->second
-               + (utils::isNumber(it->second) ? "" : "\"")
-               + ((i < values.size() - 1) || (containers.size() > 0) ? "," : "");
+        ret += std::to_string(it_num->second)
+               + (((i < numbers.size() - 1)
+                   || (strings.size() > 0)
+                   || (jsons.size() > 0)
+                   || (arrays.size() > 0)) ? "," : "");
+        if(!withoutSpaces) ret += "\n";
+    }
+    //strings
+    std::map<std::string, std::string>::iterator it_str = this->strings.begin();
+    for(int i = 0; it_str != strings.end(); i++, it_str++) {
+        ret += tabs_str + "\"" + it_str->first + "\"";
+        if(!withoutSpaces) ret += " ";
+        ret += ":";
+        if(!withoutSpaces) ret += " ";
+        ret += "\"" + it_str->second + "\""
+               + (((i < strings.size() - 1)
+                   || (jsons.size() > 0)
+                   || (arrays.size() > 0)) ? "," : "");
         if(!withoutSpaces) ret += "\n";
     }
     //jsons
-    std::map<std::string, Json>::iterator it_js = this->containers.begin();
-    for(int i = 0; it_js != containers.end(); i++, it_js++) {
+    std::map<std::string, Json>::iterator it_js = this->jsons.begin();
+    for(int i = 0; it_js != jsons.end(); i++, it_js++) {
         ret += tabs_str + "\"" + it_js->first + "\" : "
                + it_js->second.to_string(tabulation_level + (!withoutSpaces ? 2 : 0))
-               + ((i < containers.size() - 1) ? "," : "");
+               + (((i < jsons.size() - 1)
+                   || (arrays.size() > 0)) ? "," : "");
+        if(!withoutSpaces) ret += "\n";
+    }
+    //arrays
+    std::map<std::string, Array>::iterator it_ar = this->arrays.begin();
+    for(int i = 0; it_ar != arrays.end(); i++, it_ar++) {
+        ret += tabs_str + "\"" + it_ar->first + "\" : "
+               + ToString(it_ar->second, tabulation_level + (!withoutSpaces ? 2 : 0))
+               + ((i < arrays.size() - 1) ? "," : "");
         if(!withoutSpaces) ret += "\n";
     }
 
@@ -178,11 +231,13 @@ bool Json::ParseJson(const std::vector<std::string>& str, Json* json)
             } else
                 symbolCounter++;
             //пропуск избыточных символов
-            switch(temp_string[i]) {
-            case '\t':
-            case ' ':
-            case '\n':
-                continue;
+            if(!isKey && !isValue) { //
+                switch(temp_string[i]) {
+                case '\t':
+                case ' ':
+                case '\n':
+                    continue;
+                }
             }
 
             //поиск ошибок синтаксиса
@@ -232,6 +287,17 @@ bool Json::ParseJson(const std::vector<std::string>& str, Json* json)
 
                 //считываем значение
                 switch(valueType) {
+                case eNumber:   {
+                    if(!utils::isNumber(temp_string[i])) {
+//                        std::cout << "value(num): " << value << std::endl;
+                        isValue = false;
+
+                        i--;
+//                        continue;
+                    }
+                    if(isValue) value += temp_string[i];
+                    break;
+                }
                 case eString:   {
                     if(isString) {
                         if(isValue) value += temp_string[i];
@@ -243,17 +309,6 @@ bool Json::ParseJson(const std::vector<std::string>& str, Json* json)
                             isValue = false;
                         }
                     }
-                    break;
-                }
-                case eNumber:   {
-                    if(!utils::isNumber(temp_string[i])) {
-//                        std::cout << "value(num): " << value << std::endl;
-                        isValue = false;
-
-                        i--;
-//                        continue;
-                    }
-                    if(isValue) value += temp_string[i];
                     break;
                 }
                 case eJson:     {
@@ -315,8 +370,10 @@ bool Json::ParseJson(const std::vector<std::string>& str, Json* json)
                     return_code = false;
                     ch_err = temp_string[i];
                     exit = true;
-                } else
+                } else {
+                    isValue = true;
                     ChangeNextState(state, NextReadState::eValue);
+                }
                 break;
             }
             case eComma: {
