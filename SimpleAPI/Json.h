@@ -67,10 +67,11 @@ public:
     bool readFile(const std::string path);
     bool writeFile(const std::string path);
     std::string to_string(int16_t tabulation_level = 0);
-
-private:
-    bool ParseJson(const std::vector<std::string>& str, Json* json);
 };
+
+static ValueType CheckValue(std::string& value);
+static bool ParseJson(const std::vector<std::string>& str, Json* json);
+static bool ParseArray(const std::string& str, Array* array);
 
 } /// namespace json
 

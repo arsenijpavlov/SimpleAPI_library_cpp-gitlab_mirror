@@ -201,13 +201,31 @@ std::string Json::to_string(int16_t tabulation_level)
     ret += "}"; //end of json
     return ret;
 }
+/// Json
 
-//PRIVATE FUNCTIONS:
-bool Json::ParseJson(const std::vector<std::string>& str, Json* json)
+//STATIC:
+ValueType CheckValue(std::string& value)
 {
+//    //поиск ошибок синтаксиса
+//    switch(json_str[i]) {
+//    case '"':   isString = !isString;   break;
+//    case '.':   pointCounter++;         break;
+//    }
+//    if(pointCounter > 1) {
+//        std::cout << "point counter > 1" << std::endl;
+//        return_code = false;
+//        ch_err = json_str[i];
+//        exit = true;
+//        break;
+//    }
+    return ValueType::eNull;
+}
+
+bool ParseJson(const std::string& json_str, Json* json)
+{
+    if(!json) return false;
     bool return_code = true;
 
-    std::string temp_string;
     uint32_t stringCounter = 1;
     uint32_t symbolCounter = 0;
     bool isString = false;
@@ -221,174 +239,113 @@ bool Json::ParseJson(const std::vector<std::string>& str, Json* json)
     std::string key = "";
     std::string value = "";
     NextReadState state = NextReadState::eKey;
-    for(size_t j = 0; j < str.size() && !exit; j++) {
-        temp_string = str[j];
-        for(size_t i = 0; i < temp_string.length() && !exit; i++) {
-            //счётчик строк и символов, для вывода ошибки
-            if ((temp_string[i] == '\n') || (i == 0)) {
-                stringCounter++;
-                symbolCounter = 0;
-            } else
-                symbolCounter++;
-            //пропуск избыточных символов
-            if(!isKey && !isValue) { //
-                switch(temp_string[i]) {
-                case '\t':
-                case ' ':
-                case '\n':
-                    continue;
+    for(size_t i = 0; i < json_str.length() && !exit; i++) {
+        //счётчик строк и символов, для вывода ошибки
+        if ((json_str[i] == '\n') || (i == 0)) {
+            stringCounter++;
+            symbolCounter = 0;
+        } else
+            symbolCounter++;
+
+//        TODO: пропуск избыточных символов
+//        if(!isKey && !isValue) { //
+//            switch(json_str[i]) {
+//            case '\t':
+//            case ' ':
+//            case '\n':
+//                continue;
+//            }
+//        }
+
+        //чтение данных
+        switch(state) {
+        case eKey: {
+            if(isString) {
+                if(key.empty()) isKey = true;
+                if(isKey)       key += temp_string[i];
+            } else {
+                if(isKey) {
+                    //удаленение лишней кавычки
+                    key.erase(0, 1);
+//                    std::cout << "key: " << key << std::endl;
+                    isKey = false;
+                    ChangeNextState(state, NextReadState::eColon);
                 }
             }
+            break;
+        }
+        case eValue: { //может быть числом, строкой, Json или Array
+            if(value.empty())   isValue = true;
 
-            //поиск ошибок синтаксиса
-            switch(temp_string[i]) {
-            case '"':   isString = !isString;   break;
-            case '.':   pointCounter++;         break;
-            }
-            if(pointCounter > 1) {
-                std::cout << "point counter > 1" << std::endl;
-                return_code = false;
-                ch_err = temp_string[i];
-                exit = true;
-                break;
-            }
+            value += json_str[i];
+            ValueType vType = CheckValue(value);
 
-            //чтение данных
-            switch(state) {
-            case eKey: {
-                if(isString) {
-                    if(key.empty()) isKey = true;
-                    if(isKey)       key += temp_string[i];
-                } else {
-                    if(isKey) {
-                        //удаленение лишней кавычки
-                        key.erase(0, 1);
-//                        std::cout << "key: " << key << std::endl;
-                        isKey = false;
-                        ChangeNextState(state, NextReadState::eColon);
-                    }
-                }
-                break;
-            }
-            case eValue: { //может быть строкой, числом или Json
-                if(value.empty())   isValue = true;
-
-                //определяем тип переменной
-                if(valueType == eNull) {
-                    if(utils::isNumber(temp_string[i]))
-                        valueType = ValueType::eNumber;
-                    else if(temp_string[i] == '"' || temp_string[i] == '\'')
-                        valueType = ValueType::eString;
-                    else if(temp_string[i] == '{')
-                        valueType = ValueType::eJson;
-                    else if(temp_string[i] == '[')
-                        valueType = ValueType::eArray;
-                }
-
-                //считываем значение
+            if(!isValue) {
                 switch(valueType) {
-                case eNumber:   {
-                    if(!utils::isNumber(temp_string[i])) {
-//                        std::cout << "value(num): " << value << std::endl;
-                        isValue = false;
-
-                        i--;
-//                        continue;
-                    }
-                    if(isValue) value += temp_string[i];
-                    break;
-                }
-                case eString:   {
-                    if(isString) {
-                        if(isValue) value += temp_string[i];
-                    } else {
-                        if(isValue) {
-                            //удаленение лишней кавычки
-                            value.erase(0, 1);
-//                            std::cout << "value(str): " << value << std::endl;
-                            isValue = false;
-                        }
-                    }
-                    break;
-                }
+                case eString:   { return_code = json->put(key, value); break; }
+                case eNumber:   { return_code = json->put(key, value); break; }
                 case eJson:     {
-                    if(isValue) value += temp_string[i];
-                    if(temp_string[i] == '}') {
-//                        std::cout << "inner Json: " << value << std::endl;
-                        isValue = false;
-                    }
+                    Json _innerJson;
+                    std::vector<std::string> _tempVector;
+                    _tempVector.push_back(value);
+                    return_code = ParseJson(_tempVector, &_innerJson);
+                    if(!return_code) {
+                        std::cout << "parse error in key:" << key
+                                  << "valueType:" << ToString(valueType)
+                                  << std::endl;
+                        exit = true;
+                    } else
+                        return_code = json->put(key, _innerJson);
                     break;
                 }
                 case eArray:    {
-                    if(isValue) value += temp_string[i];
-                    if(temp_string[i] == ']') {
-//                        std::cout << "array: " << value << std::endl;
-                        isValue = false;
-                    }
+                    Json _innerArray;
+                    return_code = ParseArray(value, &_innerArray);
+                    if(!return_code) {
+                        std::cout << "parse error in key:" << key
+                                  << "valueType:" << ToString(valueType)
+                                  << std::endl;
+                        exit = true;
+                    } else
+                        return_code = json->put(key, _innerArray);
                     break;
                 }
                 default: break;
                 }
 
-                if(!isValue) {
-                    switch(valueType) {
-                    case eString:   { return_code = json->put(key, value); break; }
-                    case eNumber:   { return_code = json->put(key, value); break; }
-                    case eJson:     {
-                        Json _innerJson;
-                        std::vector<std::string> _tempVector;
-                        _tempVector.push_back(value);
-                        return_code = ParseJson(_tempVector, &_innerJson);
-                        if(!return_code) {
-                            std::cout << "parse error in key:" << key
-                                      << "valueType:" << ToString(valueType)
-                                      << std::endl;
-                            exit = true;
-                        } else
-                            return_code = json->put(key, _innerJson);
-                        break;
-                    }
-                    case eArray:    {
 
-                        break;
-                    }
-                    default: break;
-                    }
-
-
-                    //обнуление временных переменных, переход к следующему элементу
-                    key = "";
-                    value = "";
-                    valueType = eNull;
-                    ChangeNextState(state, NextReadState::eComma);
-                }
-                break;
+                //обнуление временных переменных, переход к следующему элементу
+                key = "";
+                value = "";
+                valueType = eNull;
+                ChangeNextState(state, NextReadState::eComma);
             }
-            case eColon: {
-                if(temp_string[i] != ':') {
-                    std::cout << "exp: ':'" << std::endl;
+            break;
+        }
+        case eColon: {
+            if(json_str[i] != ':') {
+                std::cout << "exp: ':'" << std::endl;
+                return_code = false;
+                ch_err = json_str[i];
+                exit = true;
+            } else {
+                isValue = true;
+                ChangeNextState(state, NextReadState::eValue);
+            }
+            break;
+        }
+        case eComma: {
+            if(json_str[i] != ',') {
+                if(json_str[i] != '}') {
+                    std::cout << "exp: ','" << std::endl;
                     return_code = false;
-                    ch_err = temp_string[i];
-                    exit = true;
-                } else {
-                    isValue = true;
-                    ChangeNextState(state, NextReadState::eValue);
                 }
-                break;
-            }
-            case eComma: {
-                if(temp_string[i] != ',') {
-                    if(temp_string[i] != '}') {
-                        std::cout << "exp: ','" << std::endl;
-                        return_code = false;
-                    }
-                    ch_err = temp_string[i];
-                    exit = true;
-                } else
-                    ChangeNextState(state, NextReadState::eKey);
-                break;
-            }
-            }
+                ch_err = json_str[i];
+                exit = true;
+            } else
+                ChangeNextState(state, NextReadState::eKey);
+            break;
+        }
         }
     }
 
@@ -401,6 +358,11 @@ bool Json::ParseJson(const std::vector<std::string>& str, Json* json)
 
     return return_code;
 }
-/// Json
+
+bool ParseArray(const std::string& array_str, Array* array)
+{
+    return true; //TODO: ParseArray()
+}
+///STATIC
 
 } /// namespace json
