@@ -8,16 +8,21 @@ namespace json {
 
 enum ValueType {
     eNull,
-    eString,
+
     eNumber,
+    eString,
     eJson,
     eArray
 };
 enum NextReadState {
+    eUnknown,
+
+    eJsonStart,
     eKey,
     eValue,
     eColon,
-    eComma
+    eComma,
+    eJsonEnd
 };
 static std::string ToString(const NextReadState state);
 static std::string ToString(const ValueType type);
@@ -70,7 +75,8 @@ public:
 };
 
 static ValueType CheckValue(std::string& value);
-static bool ParseJson(const std::vector<std::string>& str, Json* json);
+static bool CutWord(std::string& word);
+static bool ParseJson(const std::string& str, Json* json);
 static bool ParseArray(const std::string& str, Array* array);
 
 } /// namespace json

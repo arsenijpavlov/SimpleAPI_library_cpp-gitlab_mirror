@@ -10,10 +10,12 @@ namespace json {
 std::string ToString(const NextReadState state)
 {
     switch(state) {
+    case eJsonStart:    return "JsonStart";
     case eKey:          return "Key";
     case eValue:        return "Value";
     case eColon:        return "Colon";
     case eComma:        return "Comma";
+    case eJsonEnd:      return "JsonEnd";
     default:            return "unexpected state";
     }
 }
@@ -31,15 +33,20 @@ std::string ToString(const ValueType type) {
 void ChangeNextState(NextReadState &state, const NextReadState nextState)
 {
     if(state == nextState) return;
-//    std::cout << "state changed: "
-//              << ToString(state)
-//              << "->"
-//              << ToString(nextState)
-//              << std::endl;
+    std::cout << "state changed: "
+              << ToString(state)
+              << "->"
+              << ToString(nextState)
+              << std::endl;
     state = nextState;
 }
 
 // ArrayElement
+std::string ToString(Array array, int16_t tabulation_level)
+{
+    return ""; // TODO: ToString(Array())
+}
+
 ArrayElement::~ArrayElement()
 {
     delete string;
@@ -102,7 +109,7 @@ bool Json::put(std::string key, double value)
 
 bool Json::put(std::string key, Json json)
 {
-    return this->containers.insert(std::pair<std::string, Json>(key, json)).second;
+    return this->jsons.insert(std::pair<std::string, Json>(key, json)).second;
 }
 
 bool Json::put(std::string key, Array value)
@@ -113,20 +120,22 @@ bool Json::put(std::string key, Array value)
 bool Json::readFile(const std::string path)
 {
     std::ifstream file(path);
-    if (!file.is_open())
+    if (!file.is_open()) {
+        std::cout << "File not found" << std::endl;
         return false;
+    }
 
     std::string temp_string;
     bool nextStrStartFromComment = false;
-    std::vector<std::string> strings;
+    std::string json_str;
     while(getline(file, temp_string)) {
         utils::removeComments(temp_string, nextStrStartFromComment);
-        strings.push_back(temp_string);
+        json_str += temp_string + '\n';
     }
     file.close();
 
     //обработка JSON
-    return ParseJson(strings, this);
+    return ParseJson(json_str, this);
 }
 
 bool Json::writeFile(const std::string path)
@@ -221,16 +230,46 @@ ValueType CheckValue(std::string& value)
     return ValueType::eNull;
 }
 
+bool CutWord(std::string& word)
+{
+    std::cout << "CutWord: " << word << std::endl;
+    char ch = 0;
+    std::string temp;
+    bool done = false;
+    for(size_t i = 0; i < word.length(); i++) {
+        if(ch == 0 && (word[i] == '"' || word[i] == '\''))
+            ch = word[i];
+        else { //начинаем запись слова
+            if(!done) {
+                if(word[i] != ch) //пока не встретили конец слова
+                    temp += word[i];
+                else {
+                    done = true;
+                }
+            } else { //замкнули слово, надо проверить оставшиеся символы
+                if(word[i] != ' '
+                    && word[i] != '\n'
+                    && word[i] != '\t') {
+                    std::cout << "Error with parse word in: " << word << std::endl;
+                    return false;
+                }
+            }
+        }
+    }
+
+    word = temp;
+    return true;
+}
+
 bool ParseJson(const std::string& json_str, Json* json)
 {
+//    std::cout << "ParseJson(): " << json_str << std::endl;
     if(!json) return false;
     bool return_code = true;
 
-    uint32_t stringCounter = 1;
-    uint32_t symbolCounter = 0;
-    bool isString = false;
+    uint32_t strCounter = 1;
+    uint32_t chCounter = 0;
     ValueType valueType = ValueType::eNull;
-    uint8_t pointCounter = 0; //если в числе больше 1 точки
     char ch_err;
 
     bool exit = false;
@@ -238,16 +277,23 @@ bool ParseJson(const std::string& json_str, Json* json)
     bool isValue = false;
     std::string key = "";
     std::string value = "";
-    NextReadState state = NextReadState::eKey;
+    NextReadState state = NextReadState::eJsonStart;
     for(size_t i = 0; i < json_str.length() && !exit; i++) {
+//        std::cout << "current [" << json_str[i] << "]: "
+//                  << "key: [" << key << "], "
+//                  << "value: [" << value << "], "
+//                  << "k:" << (isKey ? "+" : "-") << " "
+//                  << "v:" << (isValue ? "+" : "-")
+//                  << std::endl;
+
         //счётчик строк и символов, для вывода ошибки
         if ((json_str[i] == '\n') || (i == 0)) {
-            stringCounter++;
-            symbolCounter = 0;
+            strCounter++;
+            chCounter = 0;
         } else
-            symbolCounter++;
+            chCounter++;
 
-//        TODO: пропуск избыточных символов
+//        TODO: пропуск избыточных символов, move it!
 //        if(!isKey && !isValue) { //
 //            switch(json_str[i]) {
 //            case '\t':
@@ -259,16 +305,48 @@ bool ParseJson(const std::string& json_str, Json* json)
 
         //чтение данных
         switch(state) {
+        case eJsonStart: {
+            if(json_str[i] == ' '
+                || json_str[i] == '\n'
+                || json_str[i] == '\t')
+                continue;
+            else if(json_str[i] == '{')
+                ChangeNextState(state, NextReadState::eKey);
+            else {
+                ch_err = json_str[i];
+                exit = true;
+            }
+            break;
+        }
+        case eJsonEnd: {
+            if(json_str[i] == ' '
+                || json_str[i] == '\n'
+                || json_str[i] == '\t')
+                continue;
+            else if(json_str[i] == '}')
+                ChangeNextState(state, NextReadState::eUnknown);
+            else {
+                ch_err = json_str[i];
+                exit = true;
+            }
+            break;
+        }
         case eKey: {
-            if(isString) {
-                if(key.empty()) isKey = true;
-                if(isKey)       key += temp_string[i];
-            } else {
+            if(key.empty() && !isKey) {   //запись ключа не начата
+                if(json_str[i] == '"' || json_str[i] == '\'') //ищем начало строкового ключа
+                    isKey = true;
+            } else {            //запись ключа начата
                 if(isKey) {
-                    //удаленение лишней кавычки
-                    key.erase(0, 1);
-//                    std::cout << "key: " << key << std::endl;
-                    isKey = false;
+                    if(!key.empty() && (json_str[i] == '"' || json_str[i] == '\''))
+                        isKey = false;
+                    key += json_str[i];
+                }
+                if(!isKey) { //весь ключ записан
+                    if(!CutWord(key)) { //вычленяем по маске "?.*"? или '?.*'?
+                        std::cout << "Error with parse key: " << key << std::endl;
+                        return false;
+                    }
+                    std::cout << "key: " << key << std::endl;
                     ChangeNextState(state, NextReadState::eColon);
                 }
             }
@@ -278,28 +356,26 @@ bool ParseJson(const std::string& json_str, Json* json)
             if(value.empty())   isValue = true;
 
             value += json_str[i];
-            ValueType vType = CheckValue(value);
 
             if(!isValue) {
-                switch(valueType) {
+                ValueType vType = CheckValue(value);
+                switch(vType) {
                 case eString:   { return_code = json->put(key, value); break; }
                 case eNumber:   { return_code = json->put(key, value); break; }
                 case eJson:     {
                     Json _innerJson;
-                    std::vector<std::string> _tempVector;
-                    _tempVector.push_back(value);
-                    return_code = ParseJson(_tempVector, &_innerJson);
-                    if(!return_code) {
+                    if(!ParseJson(value, &_innerJson)) {
                         std::cout << "parse error in key:" << key
                                   << "valueType:" << ToString(valueType)
                                   << std::endl;
                         exit = true;
-                    } else
+                    } else {
                         return_code = json->put(key, _innerJson);
+                    }
                     break;
                 }
                 case eArray:    {
-                    Json _innerArray;
+                    Array _innerArray;
                     return_code = ParseArray(value, &_innerArray);
                     if(!return_code) {
                         std::cout << "parse error in key:" << key
@@ -313,7 +389,6 @@ bool ParseJson(const std::string& json_str, Json* json)
                 default: break;
                 }
 
-
                 //обнуление временных переменных, переход к следующему элементу
                 key = "";
                 value = "";
@@ -323,6 +398,10 @@ bool ParseJson(const std::string& json_str, Json* json)
             break;
         }
         case eColon: {
+            if(json_str[i] == ' '
+                || json_str[i] == '\''
+                || json_str[i] == '\n')
+                continue;
             if(json_str[i] != ':') {
                 std::cout << "exp: ':'" << std::endl;
                 return_code = false;
@@ -346,12 +425,17 @@ bool ParseJson(const std::string& json_str, Json* json)
                 ChangeNextState(state, NextReadState::eKey);
             break;
         }
+        case eUnknown: {
+            ch_err = json_str[i];
+            exit = true;
+            break;
+        }
         }
     }
 
     if(!return_code) {
-        std::cout << "Syntax error, line:" << stringCounter
-                  << " ch:" << symbolCounter
+        std::cout << "Syntax error, line:" << strCounter
+                  << " ch:" << chCounter
                   << " unexpected symbol: '" << ch_err << "'"
                   << std::endl;
     }
