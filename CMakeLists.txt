@@ -29,8 +29,10 @@ add_subdirectory(SimpleAPI)
 if(ENABLE_CLIENT)
     add_subdirectory(Client)
 endif()
+unset(ENABLE_CLIENT CACHE)
 
 #test server
 if(ENABLE_SERVER)
     add_subdirectory(Server)
 endif()
+unset(ENABLE_SERVER CACHE)
