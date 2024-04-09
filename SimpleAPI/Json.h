@@ -75,7 +75,8 @@ public:
 };
 
 static ValueType CheckValue(std::string& value);
-static bool CutWord(std::string& word);
+static bool CheckDouble(std::string& value);
+static bool CheckString(std::string& word);
 static bool ParseJson(const std::string& str, Json* json);
 static bool ParseArray(const std::string& str, Array* array);
 

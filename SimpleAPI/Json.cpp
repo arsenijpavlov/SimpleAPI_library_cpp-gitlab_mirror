@@ -227,10 +227,70 @@ ValueType CheckValue(std::string& value)
 //        exit = true;
 //        break;
 //    }
-    return ValueType::eNull;
+    bool isValue = false;
+    std::string _value;
+    char _ch;
+    ValueType vType = eNull;
+    for(size_t i = 0; i < value.length(); i++) {
+        if(!isValue
+            && value[i] != ' '
+            && value[i] != '\t'
+            && value[i] != '\n')
+            isValue = true;
+        else {
+            if(vType == ValueType::eNull) {
+                if(utils::isNumber(value[i]))
+                    vType = ValueType::eNumber;
+                else if(value[i] == '"' || value[i] == '\'') {
+                    vType = ValueType::eString;
+                    _ch = value[i]; //граница слова
+                } else if(value[i] == '{') {
+                    vType = ValueType::eJson;
+                } else if(value[i] == '[') {
+                    vType = ValueType::eArray;
+                }
+            }
+            if(vType != ValueType::eNumber)
+                _value += value[i];
+
+            switch(vType) {
+            case eNumber:   {
+
+                break;
+            }
+            case eString:   {
+                break;
+            }
+            case eJson:     {
+                break;
+            }
+            case eArray:    {
+                break;
+            }
+            default: break;
+            }
+        }
+    }
+
+    switch(vType) {
+    case ValueType::eNumber: {
+        return CheckDouble(_value) ? vType : ValueType::eNull;
+    case ValueType::eString: {
+        return CheckString(_value) ? vType : ValueType::eNull;
+    }
+    }
+    }
+
+    return vType;
 }
 
-bool CutWord(std::string& word)
+bool CheckDouble(std::string& value)
+{
+
+    return true;
+}
+
+bool CheckString(std::string& word)
 {
     std::cout << "CutWord: " << word << std::endl;
     char ch = 0;
@@ -293,16 +353,6 @@ bool ParseJson(const std::string& json_str, Json* json)
         } else
             chCounter++;
 
-//        TODO: пропуск избыточных символов, move it!
-//        if(!isKey && !isValue) { //
-//            switch(json_str[i]) {
-//            case '\t':
-//            case ' ':
-//            case '\n':
-//                continue;
-//            }
-//        }
-
         //чтение данных
         switch(state) {
         case eJsonStart: {
@@ -356,9 +406,14 @@ bool ParseJson(const std::string& json_str, Json* json)
             if(value.empty())   isValue = true;
 
             value += json_str[i];
+            if(i + 1 < value.length()) { //следующий символ существует
+                if(value[i] == ',' || value[i] == '}')
+                    isValue = false;
+            } else
+                isValue = false;
 
-            if(!isValue) {
-                ValueType vType = CheckValue(value);
+            if(!isValue) { //это конец значения?
+                ValueType vType = CheckValue(value); //NOTE: по-хорошему, надо избавиться от избыточного выполнения кода
                 switch(vType) {
                 case eString:   { return_code = json->put(key, value); break; }
                 case eNumber:   { return_code = json->put(key, value); break; }
@@ -386,6 +441,9 @@ bool ParseJson(const std::string& json_str, Json* json)
                         return_code = json->put(key, _innerArray);
                     break;
                 }
+                case eNull:     { //значение ещё не прочитано!
+                    continue;
+                }
                 default: break;
                 }
 
@@ -402,6 +460,7 @@ bool ParseJson(const std::string& json_str, Json* json)
                 || json_str[i] == '\''
                 || json_str[i] == '\n')
                 continue;
+
             if(json_str[i] != ':') {
                 std::cout << "exp: ':'" << std::endl;
                 return_code = false;
@@ -414,6 +473,11 @@ bool ParseJson(const std::string& json_str, Json* json)
             break;
         }
         case eComma: {
+            if(json_str[i] == ' '
+                || json_str[i] == '\''
+                || json_str[i] == '\n')
+                continue;
+
             if(json_str[i] != ',') {
                 if(json_str[i] != '}') {
                     std::cout << "exp: ','" << std::endl;
