@@ -230,8 +230,14 @@ ValueType CheckValue(std::string& value)
                 else if(value[i] == '"' || value[i] == '\'') {
                     vType = ValueType::eString;
                     _ch = value[i]; //граница слова
-                } else if(value[i] == '{')      vType = ValueType::eJson;
-                else if(value[i] == '[')        vType = ValueType::eArray;
+                } else if(value[i] == '{') {
+                    vType = ValueType::eJson;
+                    _ch = '}'; //граница слова
+                }
+                else if(value[i] == '[') {
+                    vType = ValueType::eArray;
+                    _ch = ']'; //граница слова
+                }
             }
             _value += value[i];
         }
@@ -257,68 +263,86 @@ bool CheckDouble(std::string& value)
     uint32_t pCounter = 0;
     for(char ch : value) {
         if(ch == '.') pCounter++;
-        if(!utils::IsNumber(ch) || pCounter > 1)
+        if(!utils::IsNumber(ch) || pCounter > 1) {
+            std::cout << "Error with parse Number in: " << value << std::endl;
             return false;
+        }
     }
     return true;
 }
 
-bool CheckString(std::string& word)
+bool CheckString(std::string& value)
 {
 //    std::cout << "CheckString(): " << word << std::endl;
     char ch = 0;
     std::string temp;
     bool done = false;
-    for(size_t i = 0; i < word.length(); i++) {
+    for(size_t i = 0; i < value.length(); i++) {
         if(ch != 0) { //начинаем запись слова
             if(!done) {
-                if(word[i] == ch) //пока не встретили конец слова
+                if(value[i] == ch) //пока не встретили конец слова
                     done = true;
                 else
-                    temp += word[i];
+                    temp += value[i];
             } else { //замкнули слово, надо проверить оставшиеся символы
-                if(!utils::CharsInString(word[i], " \t\n")) {
-                    std::cout << "Error with parse word in: " << word << std::endl;
+                if(!utils::CharsInString(value[i], " \t\n")) {
+                    std::cout << "Error with parse String in: " << value << std::endl;
                     return false;
                 }
             }
-        } else if(utils::CharsInString(word[i], "\"'"))
-            ch = word[i];
+        } else if(utils::CharsInString(value[i], "\"'"))
+            ch = value[i];
     }
 
-    word = temp;
+    value = temp;
     return true;
 }
 
-bool CheckJson(std::string& word)
+bool CheckJson(std::string& value)
 {
-    std::cout << "CheckJson(): " << word << std::endl;
+    std::cout << "CheckJson(): \"" << value << "\"" << std::endl;
     char ch = 0;
     std::string temp;
     bool done = false;
-    uint32_t innerLvlQuotes = 0;
-    for(size_t i = 0; i < word.length(); i++) {
+    bool innerWord = false;
+    uint32_t innerLvlFBrace = 0;
+    uint32_t innerLvlQBrace = 0;
+    for(size_t i = 0; i < value.length(); i++) {
+//        std::cout << "CheckJson(): current:[" << value[i] << "]" << std::endl;
         if(ch != 0) { //начинаем запись слова
             if(!done) {
-                if(word[i] == ch) //пока не встретили конец слова
+                temp += value[i];
+                if(value[i] == ch
+                    && innerLvlFBrace == 0
+                    && innerLvlQBrace == 0
+                    && !innerWord) //пока не встретили конец слова
                     done = true;
-                else
-                    temp += word[i];
-            } else { //замкнули слово, надо проверить оставшиеся символы
-                if(!utils::CharsInString(word[i], " \t\n")) {
-                    std::cout << "Error with parse word in: " << word << std::endl;
+                else {
+                    if(!innerWord) {
+                        if(value[i] == '{')  innerLvlFBrace++;
+                        if(value[i] == '}')  innerLvlFBrace--;
+                        if(value[i] == '[')  innerLvlQBrace++;
+                        if(value[i] == ']')  innerLvlQBrace--;
+                    }
+                }
+            }
+            if(done) { //замкнули слово, надо проверить оставшиеся символы
+                if(!utils::CharsInString(value[i], " \t\n")) {
+                    std::cout << "Error with parse Json in: " << value << std::endl;
                     return false;
                 }
             }
-        } else if(utils::CharsInString(word[i], "\"'"))
-            ch = word[i];
+        } else if(utils::CharsInString(value[i], "{")) {
+            ch = '}';
+            innerLvlFBrace++;
+        }
     }
 
-    word = temp;
+    value = temp;
     return true;
 }
 
-bool CheckArray(std::string& word)
+bool CheckArray(std::string& value)
 {
     //TODO: CheckArray()
     return true;
@@ -419,11 +443,17 @@ bool ParseJson(const std::string& json_str, Json* json)
 
             //значение считано полностью?
             if(i + 1 < json_str.length()) { //следующий символ существует
-                if(json_str[i + 1] == ',' || (json_str[i + 1] == '}' && (i + 1 == endIndex)))
+                if(json_str[i + 1] == ','
+                    || (json_str[i + 1] == '}' && ((i + 1) == endIndex))
+                    ) {
+                    //FIXME: реагирует на запятую посреди вложенного значения (String, Json, Array) любого уровня
+                    std::cout << "eIndex:" << endIndex << " i+1:" << (i+1) << "[" << json_str[i] << "]" << std::endl;
                     isValue = false;
+                }
             }
 
             if(!isValue) { //это конец значения?
+                std::cout << "bVALUE: \"" << value << "\"" << std::endl;
                 ValueType vType = CheckValue(value); //NOTE: по-хорошему, надо избавиться от избыточного выполнения кода
                 std::cout << "VALUE: \"" << value << "\", TYPE: " << ToString(vType) << std::endl;
                 switch(vType) {
