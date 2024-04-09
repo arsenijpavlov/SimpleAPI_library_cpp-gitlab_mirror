@@ -2,18 +2,18 @@
 
 #include <iostream>
 
-bool utils::isNumber(const std::string &str)
+bool utils::IsNumber(const std::string &str)
 {
     for(int i = 0; i < str.size(); i++) {
-        if(!isNumber(str[i])) return false;
+        if(!IsNumber(str[i])) return false;
     }
     return true;
 }
-bool utils::isNumber(const char ch) {
+bool utils::IsNumber(const char ch) {
     return (std::isdigit(ch) || (ch == '.'));
 }
 
-void utils::removeComments(std::string& str, bool& startComment)
+void utils::RemoveComments(std::string& str, bool& startComment)
 {
     std::string tempString;
     uint32_t quotesCounter = 0;
@@ -55,11 +55,18 @@ void utils::removeComments(std::string& str, bool& startComment)
     startComment = isComment;
 }
 
-size_t utils::countSymInStr(const std::string &str, const char ch)
+size_t utils::CountSymInStr(const std::string &str, const char ch)
 {
     size_t counter = 0;
     for(char temp : str)
         if(temp == ch) counter++;
 
     return counter;
+}
+
+bool utils::CharsInString(const char ch, std::string symbols)
+{
+    for(char c : symbols)
+        if(c == ch) return true;
+    return false;
 }
