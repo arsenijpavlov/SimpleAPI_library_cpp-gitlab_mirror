@@ -169,7 +169,7 @@ std::string Json::to_string(int16_t tabulation_level)
         if(!withoutSpaces) ret += " ";
         ret += ":";
         if(!withoutSpaces) ret += " ";
-        ret += std::to_string(it_num->second)
+        ret += utils::DoubleToString(it_num->second)
                + (((i < numbers.size() - 1)
                    || (strings.size() > 0)
                    || (jsons.size() > 0)
@@ -217,7 +217,7 @@ std::string Json::to_string(int16_t tabulation_level)
 //STATIC:
 ValueType CheckValue(std::string& value)
 {
-    std::cout << "CheckValue(): \"" << value << "\"" << std::endl;
+//    std::cout << "CheckValue(): \"" << value << "\"" << std::endl;
     bool isValue = false;
     std::string _value;
     char _ch;
@@ -263,13 +263,20 @@ ValueType CheckValue(std::string& value)
 bool CheckDouble(std::string& value)
 {
     uint32_t pCounter = 0;
-    for(char ch : value) {
+    //remove spaces
+    std::string temp;
+    for(char ch : value)
+        if(!utils::CharsInString(ch, " \t\n")) temp += ch;
+
+    for(char ch : temp) {
         if(ch == '.') pCounter++;
         if(!utils::IsNumber(ch) || pCounter > 1) {
             std::cout << "Error with parse Number in: " << value << std::endl;
             return false;
         }
     }
+
+    value = temp;
     return true;
 }
 
@@ -302,7 +309,7 @@ bool CheckString(std::string& value)
 
 bool CheckJson(std::string& value)
 {
-    std::cout << "CheckJson(): \"" << value << "\"" << std::endl;
+//    std::cout << "CheckJson(): \"" << value << "\"" << std::endl;
     char ch = 0;
     std::string temp;
     bool done = false;
@@ -479,7 +486,7 @@ bool ParseJson(const std::string& json_str, Json* json)
                 std::cout << "VALUE: \"" << value << "\", TYPE: " << ToString(vType) << std::endl;
                 switch(vType) {
                 case eString:   { return_code = json->put(key, value); break; }
-                case eNumber:   { return_code = json->put(key, value); break; }
+                case eNumber:   { return_code = json->put(key, std::stod(value)); break; }
                 case eJson:     {
                     Json _innerJson;
                     if(!ParseJson(value, &_innerJson)) {
