@@ -18,7 +18,7 @@ void RemoveComments(std::string& str, bool& startComment, char& quote);
 size_t CountSymInStr(const std::string& str, const char ch);
 bool CharsInString(const char ch, std::string symbols);
 //исключить лишние знаки при выводе чисел
-inline std::string DoubleToString(double d) {
+inline std::string ToString(double d) {
     std::ostringstream str;
     str << d;
     return str.str();

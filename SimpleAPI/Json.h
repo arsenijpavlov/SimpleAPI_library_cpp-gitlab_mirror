@@ -2,7 +2,9 @@
 #define JSON_H
 
 #include <map>
+#include <memory>
 #include <vector>
+#include <tuple>
 
 namespace json {
 
@@ -10,6 +12,7 @@ enum ValueType {
     eNull,
 
     eNumber,
+    eBool,
     eString,
     eJson,
     eArray
@@ -28,28 +31,21 @@ static std::string ToString(const NextReadState state);
 static std::string ToString(const ValueType type);
 static void ChangeNextState(NextReadState &state, const NextReadState nextState);
 
-class ArrayElement;
-typedef std::vector<ArrayElement> Array;
-std::string ToString(Array array, int16_t tabulation_level = 0);
-
 class Json;
-class ArrayElement {
-private:
-    std::string *string;
-    double      *number;
-    Json        *json;
-    Array       *array;
+//Массив - это упорядоченный список элементов
+//template<typename >
+class Array {
+    /*std::unique_ptr<*/std::tuple<double, bool, std::string, Json, Array> values;
 public:
-    ValueType type;
+    Array() : values(nullptr) {}
+    ~Array() {}
+    bool push_back(const double& d);
+    bool push_back(const bool& b);
+    bool push_back(const std::string string);
+    bool push_back(const Json& json);
+    bool push_back(const Array& array);
 
-    ArrayElement() : string(nullptr), number(nullptr), json(nullptr), array(nullptr), type(eNull)
-        {};
-    ~ArrayElement();
-    std::string getString();
-    double      getNumber();
-    Json        getJson();
-    Array       getArray();
-    std::string to_string();
+    std::string to_string(Array array, int16_t tabulation_level = 0);
 };
 
 class Json

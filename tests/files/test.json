@@ -2,9 +2,9 @@
   "code": "littlefigure",
   "class": "EntityAgent",
   "hitboxSize": {
-    "x": 0.4,//asd
+    "x": 0.4,
     "y": 0.5
-  }/*,
+  },
   "deadHitboxSize": {
     "x": 0.4,
     "y": 0.5
@@ -43,5 +43,5 @@
         "blendMode": "AddAverage"
       }
     ]
-  }*/
+  }
 }
