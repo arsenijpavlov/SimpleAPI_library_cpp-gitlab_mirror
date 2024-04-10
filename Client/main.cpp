@@ -19,9 +19,9 @@ void ParseParameter(std::string parameter) {
         return;
     }
 
-    if (parameter == "read") {
+    if (parameter == "read" || parameter == "-r" || parameter == "--read") {
         read = true;
-    } else if (parameter == "write") {
+    } else if (parameter == "write" || parameter == "-w" || parameter == "--write") {
         write = true;
     }
 }

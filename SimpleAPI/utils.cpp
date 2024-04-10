@@ -13,46 +13,46 @@ bool utils::IsNumber(const char ch) {
     return (std::isdigit(ch) || (ch == '.'));
 }
 
-void utils::RemoveComments(std::string& str, bool& startComment)
+void utils::RemoveComments(std::string& str, bool& startComment, char& quote)
 {
     std::string tempString;
-    uint32_t quotesCounter = 0;
-    bool isComment = startComment;
+    bool isOneComment = false;
+    bool isFullComment = startComment;
     for(size_t i = 0; i < str.length(); i++) {
-        if (quotesCounter % 2 == 0) {
-            if(str[i] == '/') {
-                if(i <= str.length() + 1) { //проверка на границы строки
-                    if(str[i + 1] == '/' && !isComment) {
-//                        std::cout << "comment(full):" << i << ". ";
-                        break; //дальше только комментарии
-                    } else if(str[i + 1] == '*'
-                               && !isComment) { //дальше возможен конец комментария
-//                        std::cout << "comment(+):" << i << ". ";
-                        isComment = true;
+        if (quote == 0) { //если не часть строкового значения
+            if(i <= str.length() + 1) { //проверка на границы строки
+                if(!isFullComment) { //многострочные комментарии имеют приоритет
+                    if(str[i] == '/' && str[i + 1] == '*') {
+                        isFullComment = true;
                         continue;
                     }
-                }
-            } else if(str[i] == '*' && isComment) {
-                if(i <= str.length() + 1) { //проверка на границы строки
-                    if(str[i + 1] == '/') {
-//                        std::cout << "comment(-):" << (i + 1) << ". ";
-                        isComment = false;
-                        //пропускаем конец комментария
-                        i++;
-                        continue; //чтобы не записать символ лишний и не выйти за границы
+                    if(!isOneComment) {
+                        if(str[i] == '/' && str[i+1] == '/') {
+                            isOneComment = true;
+                            continue;
+                        }
                     }
+                } else if(str[i] == '*' && str[i + 1] == '/') {
+                    isFullComment = false;
+                    i++;
+                    continue;
                 }
             }
+            if(!isFullComment && str[i] == '\n') //действует только до конца строки
+                isOneComment = false;
         }
-        if((str[i] == '"' || '\'') //TODO: обработать кавычки отдельно!
-            && !isComment)
-            quotesCounter++;
-        if(!isComment)
+
+        if(str[i] == '"' || str[i] == '\'') {
+            if(str[i] == quote) quote = 0;
+            else                quote = str[i];
+        }
+
+        if(!isOneComment && !isFullComment)
             tempString += str[i];
     }
 
     str = tempString;
-    startComment = isComment;
+    startComment = isFullComment;
 }
 
 size_t utils::CountSymInStr(const std::string &str, const char ch)

@@ -14,7 +14,7 @@ inline std::string Tab(uint8_t tabs_counter) {
         ret += "\t";
     return ret;
 }
-void RemoveComments(std::string& str, bool& startComment);
+void RemoveComments(std::string& str, bool& startComment, char& quote);
 size_t CountSymInStr(const std::string& str, const char ch);
 bool CharsInString(const char ch, std::string symbols);
 

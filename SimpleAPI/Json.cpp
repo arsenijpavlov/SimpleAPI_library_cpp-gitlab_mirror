@@ -127,10 +127,13 @@ bool Json::readFile(const std::string path)
 
     std::string temp_string;
     bool nextStrStartFromComment = false;
+    char quote = 0;
     std::string json_str;
     while(getline(file, temp_string)) {
-        utils::RemoveComments(temp_string, nextStrStartFromComment);
-        json_str += temp_string + '\n';
+        utils::RemoveComments(temp_string, nextStrStartFromComment, quote);
+//        std::cout << "without comments: " << temp_string << std::endl;
+        if(!temp_string.empty())
+            json_str += temp_string + '\n';
     }
     file.close();
 
@@ -215,7 +218,7 @@ std::string Json::to_string(int16_t tabulation_level)
 //STATIC:
 ValueType CheckValue(std::string& value)
 {
-    std::cout << "CheckValue(): " << value << std::endl;
+    std::cout << "CheckValue(): \"" << value << "\"" << std::endl;
     bool isValue = false;
     std::string _value;
     char _ch;
@@ -232,11 +235,11 @@ ValueType CheckValue(std::string& value)
                     _ch = value[i]; //граница слова
                 } else if(value[i] == '{') {
                     vType = ValueType::eJson;
-                    _ch = '}'; //граница слова
+                    _ch = '}';      //граница слова
                 }
                 else if(value[i] == '[') {
                     vType = ValueType::eArray;
-                    _ch = ']'; //граница слова
+                    _ch = ']';      //граница слова
                 }
             }
             _value += value[i];
@@ -304,21 +307,29 @@ bool CheckJson(std::string& value)
     char ch = 0;
     std::string temp;
     bool done = false;
-    bool innerWord = false;
+    char innerWord = 0;
     uint32_t innerLvlFBrace = 0;
     uint32_t innerLvlQBrace = 0;
     for(size_t i = 0; i < value.length(); i++) {
 //        std::cout << "CheckJson(): current:[" << value[i] << "]" << std::endl;
         if(ch != 0) { //начинаем запись слова
+            temp += value[i];
+            if(utils::CharsInString(value[i], "\"'")) {
+                if(innerWord == 0)
+                    innerWord = value[i];
+                else
+                    if(value[i] == innerWord)
+                        innerWord = 0;
+            }
+
             if(!done) {
-                temp += value[i];
                 if(value[i] == ch
                     && innerLvlFBrace == 0
                     && innerLvlQBrace == 0
-                    && !innerWord) //пока не встретили конец слова
+                    && innerWord == 0) //пока не встретили конец слова
                     done = true;
                 else {
-                    if(!innerWord) {
+                    if(innerWord == 0) {
                         if(value[i] == '{')  innerLvlFBrace++;
                         if(value[i] == '}')  innerLvlFBrace--;
                         if(value[i] == '[')  innerLvlQBrace++;
@@ -327,16 +338,28 @@ bool CheckJson(std::string& value)
                 }
             }
             if(done) { //замкнули слово, надо проверить оставшиеся символы
-                if(!utils::CharsInString(value[i], " \t\n")) {
+                if(!utils::CharsInString(value[i], " \n\t")) {
                     std::cout << "Error with parse Json in: " << value << std::endl;
                     return false;
                 }
             }
-        } else if(utils::CharsInString(value[i], "{")) {
-            ch = '}';
-            innerLvlFBrace++;
+        } else if(!utils::CharsInString(value[i], " \n\t")) {
+            if (value[i] == '{') {
+                temp += value[i];
+                ch = '}';
+                innerLvlFBrace++;
+            } else
+                return false;
         }
     }
+
+    std::cout << "~CheckJson()[" << (done ? "+" : "-") << "]:"
+              << " [" << "F:" << innerLvlFBrace << "]"
+              << " [" << "Q:" << innerLvlQBrace << "]"
+              << " [" << "W:" << innerWord << "]"
+              << " \"" << temp << "\""
+              << std::endl;
+    if(!done) return false;
 
     value = temp;
     return true;
@@ -351,7 +374,7 @@ bool CheckArray(std::string& value)
 
 bool ParseJson(const std::string& json_str, Json* json)
 {
-//    std::cout << "ParseJson(): " << json_str << std::endl;
+    std::cout << "ParseJson(): " << json_str << std::endl;
     bool return_code = true;
     if(!json) return false;
 
@@ -375,12 +398,12 @@ bool ParseJson(const std::string& json_str, Json* json)
     std::string value = "";
     NextReadState state = NextReadState::eJsonStart;
     for(size_t i = 0; i < json_str.length() && !exit; i++) {
-        std::cout << "current [" << json_str[i] << "]: "
+//        std::cout << "current [" << json_str[i] << "]: "
 //                  << "key: [" << key << "], "
 //                  << "value: [" << value << "], "
-                  << "k:" << (isKey ? "+" : "-") << " "
-                  << "v:" << (isValue ? "+" : "-")
-                  << std::endl;
+//                  << "k:" << (isKey ? "+" : "-") << " "
+//                  << "v:" << (isValue ? "+" : "-")
+//                  << std::endl;
 
         //счётчик строк и символов, для вывода ошибки
         if ((json_str[i] == '\n') || (i == 0)) {
@@ -446,14 +469,13 @@ bool ParseJson(const std::string& json_str, Json* json)
                 if(json_str[i + 1] == ','
                     || (json_str[i + 1] == '}' && ((i + 1) == endIndex))
                     ) {
-                    //FIXME: реагирует на запятую посреди вложенного значения (String, Json, Array) любого уровня
-                    std::cout << "eIndex:" << endIndex << " i+1:" << (i+1) << "[" << json_str[i] << "]" << std::endl;
+//                    std::cout << "eIndex:" << endIndex << " i+1:" << (i+1) << "[" << json_str[i] << "]" << std::endl;
                     isValue = false;
                 }
             }
 
             if(!isValue) { //это конец значения?
-                std::cout << "bVALUE: \"" << value << "\"" << std::endl;
+//                std::cout << "bVALUE: \"" << value << "\"" << std::endl;
                 ValueType vType = CheckValue(value); //NOTE: по-хорошему, надо избавиться от избыточного выполнения кода
                 std::cout << "VALUE: \"" << value << "\", TYPE: " << ToString(vType) << std::endl;
                 switch(vType) {
