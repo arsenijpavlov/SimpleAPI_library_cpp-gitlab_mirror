@@ -131,7 +131,6 @@ bool Json::readFile(const std::string path)
     std::string json_str;
     while(getline(file, temp_string)) {
         utils::RemoveComments(temp_string, nextStrStartFromComment, quote);
-//        std::cout << "without comments: " << temp_string << std::endl;
         if(!temp_string.empty())
             json_str += temp_string + '\n';
     }
@@ -311,35 +310,35 @@ bool CheckJson(std::string& value)
     uint32_t innerLvlFBrace = 0;
     uint32_t innerLvlQBrace = 0;
     for(size_t i = 0; i < value.length(); i++) {
-//        std::cout << "CheckJson(): current:[" << value[i] << "]" << std::endl;
+//        std::cout << "CheckJson(): current:[" << value[i] << "]"
+//                  << " done:" << (done ? "+" : "-")
+//                  << " [" << "F:" << innerLvlFBrace << "]"
+//                  << " [" << "Q:" << innerLvlQBrace << "]"
+//                  << " [" << "W:" << innerWord << "]"
+//                  << std::endl;
         if(ch != 0) { //начинаем запись слова
-            temp += value[i];
             if(utils::CharsInString(value[i], "\"'")) {
-                if(innerWord == 0)
-                    innerWord = value[i];
-                else
-                    if(value[i] == innerWord)
-                        innerWord = 0;
+                if(innerWord == 0)              innerWord = value[i];
+                else if(value[i] == innerWord)  innerWord = 0;
             }
 
             if(!done) {
+                if(innerWord == 0) {
+                    if(value[i] == '{')  innerLvlFBrace++;
+                    if(value[i] == '}')  innerLvlFBrace--;
+                    if(value[i] == '[')  innerLvlQBrace++;
+                    if(value[i] == ']')  innerLvlQBrace--;
+                }
                 if(value[i] == ch
                     && innerLvlFBrace == 0
                     && innerLvlQBrace == 0
-                    && innerWord == 0) //пока не встретили конец слова
+                    && innerWord == 0) { //пока не встретили конец слова
                     done = true;
-                else {
-                    if(innerWord == 0) {
-                        if(value[i] == '{')  innerLvlFBrace++;
-                        if(value[i] == '}')  innerLvlFBrace--;
-                        if(value[i] == '[')  innerLvlQBrace++;
-                        if(value[i] == ']')  innerLvlQBrace--;
-                    }
                 }
-            }
-            if(done) { //замкнули слово, надо проверить оставшиеся символы
+                temp += value[i];
+            } else { //замкнули слово, надо проверить оставшиеся символы
                 if(!utils::CharsInString(value[i], " \n\t")) {
-                    std::cout << "Error with parse Json in: " << value << std::endl;
+                    std::cout << "Error with parse Json in: [" << value[i] << "]" << std::endl;
                     return false;
                 }
             }
@@ -353,12 +352,12 @@ bool CheckJson(std::string& value)
         }
     }
 
-    std::cout << "~CheckJson()[" << (done ? "+" : "-") << "]:"
-              << " [" << "F:" << innerLvlFBrace << "]"
-              << " [" << "Q:" << innerLvlQBrace << "]"
-              << " [" << "W:" << innerWord << "]"
-              << " \"" << temp << "\""
-              << std::endl;
+//    std::cout << "~CheckJson()[" << (done ? "+" : "-") << "]:"
+//              << " [" << "F:" << innerLvlFBrace << "]"
+//              << " [" << "Q:" << innerLvlQBrace << "]"
+//              << " [" << "W:" << innerWord << "]"
+//              << " \"" << temp << "\""
+//              << std::endl;
     if(!done) return false;
 
     value = temp;
