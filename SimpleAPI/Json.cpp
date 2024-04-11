@@ -41,73 +41,44 @@ void ChangeNextState(NextReadState &state, const NextReadState nextState)
     state = nextState;
 }
 
-// ArrayElement
-std::string ToString(Array array, int16_t tabulation_level)
+//ARRAY
+Array::Array()
 {
-    std::string ret;
-
-    //TODO: исправить вывод без пробелов и с пробелами
-    ret += "[";
-    for(size_t i = 0; i < array.size(); i++) {
-        ret += array[i].to_string();
-        if(i < array.size() - 1)
-            ret += ",";
-    }
-    ret += "]";
-
-    return ret;
 }
 
-ArrayElement::~ArrayElement()
+Array::~Array()
 {
-    delete string;
-    delete number;
-    delete json;
-    delete array;
+    for(ArrayElement element : this->values)
+        if(element.second) free(element.second);
 }
 
-bool put()
-
-std::string ArrayElement::getString()
+void Array::push_back(const double d)
 {
-    return this->to_string();
+    this->values.push_back(std::make_pair(ValueType::eNumber, (void*)&d));
 }
 
-double ArrayElement::getNumber()
+void Array::push_back(const bool b)
 {
-    if(this->type != ValueType::eNumber || !this->number)
-        return 0;
-    else
-        return *this->number;
+    this->values.push_back(std::make_pair(ValueType::eBool, (void*)&b));
 }
 
-Json ArrayElement::getJson()
+void Array::push_back(const std::string string)
 {
-    if(this->json)
-        return *this->json;
-    else
-        return Json();
+    this->values.push_back(std::make_pair(ValueType::eString, (void*)&string));
 }
 
-Array ArrayElement::getArray()
+void Array::push_back(const Json json)
 {
-    if(this->array)
-        return *this->array;
-    else
-        return Array();
+    this->values.push_back(std::make_pair(ValueType::eJson, (void*)&json));
 }
 
-std::string ArrayElement::to_string()
+void Array::push_back(const Array array)
 {
-    switch(this->type) {
-    case ValueType::eNumber:    return utils::ToString(this->getNumber());
-    case ValueType::eString:    return ("\"" + this->getString() + "\"");
-    case ValueType::eJson:      return this->json->to_string();
-    case ValueType::eArray:     return ToString(*this->array);
-    default: return "";
-    }
+    this->values.push_back(std::make_pair(ValueType::eArray, (void*)&array));
 }
-/// ArrayElement
+
+
+///ARRAY
 
 // Json
 Json::Json()
@@ -189,6 +160,21 @@ std::string Json::to_string(int16_t tabulation_level)
         if(!withoutSpaces) ret += " ";
         ret += utils::ToString(it_num->second)
                + (((i < numbers.size() - 1)
+                   || (bools.size() > 0)
+                   || (strings.size() > 0)
+                   || (jsons.size() > 0)
+                   || (arrays.size() > 0)) ? "," : "");
+        if(!withoutSpaces) ret += "\n";
+    }
+    //bools
+    std::map<std::string, bool>::iterator it_b = this->bools.begin();
+    for(int i = 0; it_b != bools.end(); i++, it_b++) {
+        ret += tabs_str + "\"" + it_b->first + "\"";
+        if(!withoutSpaces) ret += " ";
+        ret += ":";
+        if(!withoutSpaces) ret += " ";
+        ret += utils::ToString(it_b->second)
+               + (((i < bools.size() - 1)
                    || (strings.size() > 0)
                    || (jsons.size() > 0)
                    || (arrays.size() > 0)) ? "," : "");
@@ -220,7 +206,7 @@ std::string Json::to_string(int16_t tabulation_level)
     std::map<std::string, Array>::iterator it_ar = this->arrays.begin();
     for(int i = 0; it_ar != arrays.end(); i++, it_ar++) {
         ret += tabs_str + "\"" + it_ar->first + "\" : "
-               + ToString(it_ar->second, tabulation_level + (!withoutSpaces ? 2 : 0))
+               + it_ar->second.to_string(tabulation_level + (!withoutSpaces ? 2 : 0))
                + ((i < arrays.size() - 1) ? "," : "");
         if(!withoutSpaces) ret += "\n";
     }
@@ -253,10 +239,11 @@ ValueType CheckValue(std::string& value)
                 } else if(value[i] == '{') {
                     vType = ValueType::eJson;
                     _ch = '}';      //граница слова
-                }
-                else if(value[i] == '[') {
+                } else if(value[i] == '[') {
                     vType = ValueType::eArray;
                     _ch = ']';      //граница слова
+                } else if(!utils::CharsInString(value[i], " \n\t")) {
+                    vType = ValueType::eBool;
                 }
             }
             _value += value[i];
@@ -265,6 +252,7 @@ ValueType CheckValue(std::string& value)
 
     switch(vType) {
     case ValueType::eNumber:    { isValue = CheckDouble(_value);    break; }
+    case ValueType::eBool:      { isValue = CheckBool(_value);      break; }
     case ValueType::eString:    { isValue = CheckString(_value);    break; }
     case ValueType::eJson:      { isValue = CheckJson(_value);      break; }
     case ValueType::eArray:     { isValue = CheckArray(_value);     break; }
@@ -292,6 +280,18 @@ bool CheckDouble(std::string& value)
             std::cout << "Error with parse Number in: " << value << std::endl;
             return false;
         }
+    }
+
+    value = temp;
+    return true;
+}
+
+bool CheckBool(std::string& value)
+{
+    std::string temp;
+    bool flag = false;
+    for(char c : value) {
+        //TODO: read "true" and "false"
     }
 
     value = temp;
@@ -554,8 +554,14 @@ bool ParseJson(const std::string& json_str, Json* json)
                 valueType = CheckValue(value);
 //                std::cout << "VALUE: \"" << value << "\", TYPE: " << ToString(valueType) << std::endl;
                 switch(valueType) {
-                case eString:   { return_code = json->put(key, value); break; }
                 case eNumber:   { return_code = json->put(key, std::stod(value)); break; }
+                case eBool:     {
+                    return_code = utils::isBool(value);
+                    if(!return_code)
+                        return_code = json->put(key, utils::ToBool(value));
+                    break;
+                }
+                case eString:   { return_code = json->put(key, value); break; }
                 case eJson:     {
                     Json _innerJson;
                     if(!ParseJson(value, &_innerJson)) {

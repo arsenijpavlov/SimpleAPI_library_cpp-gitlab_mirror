@@ -33,31 +33,34 @@ static void ChangeNextState(NextReadState &state, const NextReadState nextState)
 
 class Json;
 //Массив - это упорядоченный список элементов
-//template<typename >
+typedef std::pair<ValueType, void*> ArrayElement;
 class Array {
-    /*std::unique_ptr<*/std::tuple<double, bool, std::string, Json, Array> values;
+    std::vector<ArrayElement> values;
 public:
-    Array() : values(nullptr) {}
-    ~Array() {}
-    bool push_back(const double& d);
-    bool push_back(const bool& b);
-    bool push_back(const std::string string);
-    bool push_back(const Json& json);
-    bool push_back(const Array& array);
-
-    std::string to_string(Array array, int16_t tabulation_level = 0);
+    Array();
+    ~Array();
+    void push_back(const double d);
+    void push_back(const bool b);
+    void push_back(const std::string string);
+    void push_back(const Json json);
+    void push_back(const Array array);
+    void* getAt(size_t index);
+    void* operator[](size_t index);
+    std::string to_string(int16_t tabulation_level = 0);
 };
 
 class Json
 {
-    std::map<std::string, std::string>  strings;
     std::map<std::string, double>       numbers;
+    std::map<std::string, bool>         bools;
+    std::map<std::string, std::string>  strings;
     std::map<std::string, Json>         jsons;
     std::map<std::string, Array>        arrays;
 public:
     Json();
-    bool put(std::string key, std::string value);
     bool put(std::string key, double value);
+    bool put(std::string key, bool value);
+    bool put(std::string key, std::string value);
     bool put(std::string key, Json value);
     bool put(std::string key, Array value);
     bool add(std::string key, std::string value)    { return this->put(key, value); };
@@ -72,6 +75,7 @@ public:
 
 static ValueType CheckValue(std::string& value);
 static bool CheckDouble(std::string& value);
+static bool CheckBool(std::string& value);
 static bool CheckString(std::string& value);
 static bool CheckJson(std::string& value);
 static bool CheckArray(std::string& value);

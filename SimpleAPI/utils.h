@@ -23,6 +23,12 @@ inline std::string ToString(double d) {
     str << d;
     return str.str();
 }
+inline bool isBool(std::string& str) { //TODO:
+    return false;
+}
+inline bool ToBool(std::string& str) { //TODO:
+    return false;
+}
 
 }
 
