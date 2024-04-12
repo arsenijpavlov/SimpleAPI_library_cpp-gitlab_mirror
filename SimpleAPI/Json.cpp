@@ -6,24 +6,28 @@
 #include "utils.h"
 
 namespace json {
+#define SPACES " \n\t"
 
 std::string ToString(const NextReadState state)
 {
     switch(state) {
-    case eJsonStart:    return "JsonStart";
     case eKey:          return "Key";
     case eValue:        return "Value";
     case eColon:        return "Colon";
     case eComma:        return "Comma";
+    case eJsonStart:    return "JsonStart";
     case eJsonEnd:      return "JsonEnd";
+    case eArrayStart:   return "ArrayStart";
+    case eArrayEnd:     return "ArrayEnd";
     default:            return "unexpected state";
     }
 }
 
 std::string ToString(const ValueType type) {
     switch(type) {
-    case eString:       return "String"; break;
     case eNumber:       return "Number"; break;
+    case eBool:         return "Bool"; break;
+    case eString:       return "String"; break;
     case eJson:         return "Json"; break;
     case eArray:        return "Array"; break;
     default:            return "null"; break;
@@ -33,11 +37,11 @@ std::string ToString(const ValueType type) {
 void ChangeNextState(NextReadState &state, const NextReadState nextState)
 {
     if(state == nextState) return;
-    std::cout << "state changed: "
-              << ToString(state)
-              << "->"
-              << ToString(nextState)
-              << std::endl;
+//    std::cout << "state changed: "
+//              << ToString(state)
+//              << "->"
+//              << ToString(nextState)
+//              << std::endl;
     state = nextState;
 }
 
@@ -77,6 +81,20 @@ void Array::push_back(const Array array)
     this->values.push_back(std::make_pair(ValueType::eArray, (void*)&array));
 }
 
+void* Array::getAt(size_t index)
+{ //TODO: Array::getAt()
+    return nullptr;
+}
+
+void* Array::operator[](size_t index)
+{ //TODO: Array::operator[]()
+    return nullptr;
+}
+
+std::string Array::to_string(int16_t tabulation_level)
+{ //TODO: Array::to_string()
+    return "";
+}
 
 ///ARRAY
 
@@ -94,6 +112,11 @@ bool Json::put(std::string key, std::string value)
 bool Json::put(std::string key, double value)
 {
     return this->numbers.insert(std::pair<std::string, double>(key, value)).second;
+}
+
+bool Json::put(std::string key, bool value)
+{
+    return this->bools.insert(std::pair<std::string, bool>(key, value)).second;
 }
 
 bool Json::put(std::string key, Json json)
@@ -227,7 +250,7 @@ ValueType CheckValue(std::string& value)
     char _ch;
     ValueType vType = eNull;
     for(size_t i = 0; i < value.length(); i++) {
-        if(!isValue && !utils::CharsInString(value[i], " \t\n"))
+        if(!isValue && !utils::CharsInString(value[i], SPACES))
             isValue = true;
 
         if(isValue) {
@@ -242,7 +265,7 @@ ValueType CheckValue(std::string& value)
                 } else if(value[i] == '[') {
                     vType = ValueType::eArray;
                     _ch = ']';      //граница слова
-                } else if(!utils::CharsInString(value[i], " \n\t")) {
+                } else if(!utils::CharsInString(value[i], SPACES)) {
                     vType = ValueType::eBool;
                 }
             }
@@ -272,7 +295,7 @@ bool CheckDouble(std::string& value)
     //remove spaces
     std::string temp;
     for(char ch : value)
-        if(!utils::CharsInString(ch, " \t\n")) temp += ch;
+        if(!utils::CharsInString(ch, SPACES)) temp += ch;
 
     for(char ch : temp) {
         if(ch == '.') pCounter++;
@@ -288,12 +311,22 @@ bool CheckDouble(std::string& value)
 
 bool CheckBool(std::string& value)
 {
+//    std::cout << "CheckValue(): \"" << value << "\"" << std::endl;
     std::string temp;
     bool flag = false;
     for(char c : value) {
-        //TODO: read "true" and "false"
+        if(utils::CharsInString(c, SPACES)) {
+            if(flag) break;
+        } else {
+            if(!flag)   flag = true;
+            if(flag)    temp += std::tolower(c);
+        }
     }
 
+//    std::cout << "-CheckValue(): \"" << temp << "\"" << std::endl;
+    if(temp != "true" && temp != "false") return false;
+
+//    std::cout << "~CheckValue(): \"" << temp << "\"" << std::endl;
     value = temp;
     return true;
 }
@@ -312,7 +345,7 @@ bool CheckString(std::string& value)
                 else
                     temp += value[i];
             } else { //замкнули слово, надо проверить оставшиеся символы
-                if(!utils::CharsInString(value[i], " \t\n")) {
+                if(!utils::CharsInString(value[i], SPACES)) {
                     std::cout << "Error with parse String in: " << value << std::endl;
                     return false;
                 }
@@ -362,12 +395,12 @@ bool CheckJson(std::string& value)
                 }
                 temp += value[i];
             } else { //замкнули слово, надо проверить оставшиеся символы
-                if(!utils::CharsInString(value[i], " \n\t")) {
+                if(!utils::CharsInString(value[i], SPACES)) {
                     std::cout << "Error with parse Json in: [" << value[i] << "]" << std::endl;
                     return false;
                 }
             }
-        } else if(!utils::CharsInString(value[i], " \n\t")) {
+        } else if(!utils::CharsInString(value[i], SPACES)) {
             if (value[i] == '{') {
                 temp += value[i];
                 ch = '}';
@@ -426,12 +459,12 @@ bool CheckArray(std::string& value)
                 }
                 temp += value[i];
             } else { //замкнули слово, надо проверить оставшиеся символы
-                if(!utils::CharsInString(value[i], " \n\t")) {
-                    std::cout << "Error with parse Json in: [" << value[i] << "]" << std::endl;
+                if(!utils::CharsInString(value[i], SPACES)) {
+                    std::cout << "Error with parse Array in: [" << value[i] << "]" << std::endl;
                     return false;
                 }
             }
-        } else if(!utils::CharsInString(value[i], " \n\t")) {
+        } else if(!utils::CharsInString(value[i], SPACES)) {
             if (value[i] == '[') {
                 temp += value[i];
                 ch = ']';
@@ -455,7 +488,7 @@ bool CheckArray(std::string& value)
 
 bool ParseJson(const std::string& json_str, Json* json)
 {
-    std::cout << "ParseJson(): " << json_str << std::endl;
+//    std::cout << "ParseJson(): " << json_str << std::endl;
     bool return_code = true;
     if(!json) return false;
 
@@ -496,10 +529,7 @@ bool ParseJson(const std::string& json_str, Json* json)
         //чтение данных
         switch(state) {
         case eJsonStart: {
-            if(json_str[i] == ' '
-                || json_str[i] == '\n'
-                || json_str[i] == '\t')
-                continue;
+            if(utils::CharsInString(json_str[i], SPACES)) continue;
             else if(json_str[i] == '{')
                 ChangeNextState(state, NextReadState::eKey);
             else {
@@ -509,10 +539,7 @@ bool ParseJson(const std::string& json_str, Json* json)
             break;
         }
         case eJsonEnd: {
-            if(json_str[i] == ' '
-                || json_str[i] == '\n'
-                || json_str[i] == '\t')
-                continue;
+            if(utils::CharsInString(json_str[i], SPACES)) continue;
             else if(json_str[i] == '}')
                 ChangeNextState(state, NextReadState::eUnknown);
             else {
@@ -552,7 +579,8 @@ bool ParseJson(const std::string& json_str, Json* json)
 
             if(!isValue) { //это конец значения?
                 valueType = CheckValue(value);
-//                std::cout << "VALUE: \"" << value << "\", TYPE: " << ToString(valueType) << std::endl;
+                if(valueType != ValueType::eNull)
+                    std::cout << "JSON KEY:\"" << key << "\", VALUE(" << ToString(valueType) << "):\"" << value << "\"" << std::endl;
                 switch(valueType) {
                 case eNumber:   { return_code = json->put(key, std::stod(value)); break; }
                 case eBool:     {
@@ -602,7 +630,7 @@ bool ParseJson(const std::string& json_str, Json* json)
             break;
         }
         case eColon: {
-            if(utils::CharsInString(json_str[i], " \t\n"))
+            if(utils::CharsInString(json_str[i], SPACES))
                 continue;
 
             if(json_str[i] != ':') {
@@ -616,7 +644,7 @@ bool ParseJson(const std::string& json_str, Json* json)
             break;
         }
         case eComma: {
-            if(utils::CharsInString(json_str[i], " \t\n"))
+            if(utils::CharsInString(json_str[i], SPACES))
                 continue;
 
             if(json_str[i] != ',') {
@@ -630,6 +658,7 @@ bool ParseJson(const std::string& json_str, Json* json)
                 ChangeNextState(state, NextReadState::eKey);
             break;
         }
+        default:
         case eUnknown: {
             ch_err = json_str[i];
             exit = true;
@@ -638,10 +667,10 @@ bool ParseJson(const std::string& json_str, Json* json)
         }
     }
 
-    if(!return_code) {
+    if(!return_code)
         std::cout << "Syntax error, parse error value for key \"" << key << "\""
+                  << " readed VALUE:\"" << value << "\""
                   << std::endl;
-    }
 
     return return_code;
 }
@@ -652,7 +681,7 @@ bool ParseArray(const std::string& array_str, Array* array)
     bool return_code = true;
     if(!array) return false;
 
-    //ищем границы Json конструкции
+    //ищем границы Array конструкции
     size_t startIndex = array_str.find('[');
     size_t endIndex = array_str.find_last_of(']');
     if((startIndex == -1) || (endIndex == -1)) {
@@ -666,11 +695,9 @@ bool ParseArray(const std::string& array_str, Array* array)
     char ch_err;
 
     bool exit = false;
-    bool isKey = false;
     bool isValue = false;
-    std::string key = "";
     std::string value = "";
-    NextReadState state = NextReadState::eJsonStart;
+    NextReadState state = NextReadState::eArrayStart;
     for(size_t i = 0; i < array_str.length() && !exit; i++) {
 //        std::cout << "current [" << array_str[i] << "]: "
 //                  << "key: [" << key << "], "
@@ -688,25 +715,19 @@ bool ParseArray(const std::string& array_str, Array* array)
 
         //чтение данных
         switch(state) {
-        case eJsonStart: {
-            if(array_str[i] == ' '
-                || array_str[i] == '\n'
-                || array_str[i] == '\t')
-                continue;
-            else if(array_str[i] == '{')
-                ChangeNextState(state, NextReadState::eKey);
+        case eArrayStart: {
+            if(utils::CharsInString(array_str[i], SPACES)) continue;
+            else if(array_str[i] == '[')
+                ChangeNextState(state, NextReadState::eValue);
             else {
                 ch_err = array_str[i];
                 exit = true;
             }
             break;
         }
-        case eJsonEnd: {
-            if(array_str[i] == ' '
-                || array_str[i] == '\n'
-                || array_str[i] == '\t')
-                continue;
-            else if(array_str[i] == '}')
+        case eArrayEnd: {
+            if(utils::CharsInString(array_str[i], SPACES)) continue;
+            else if(array_str[i] == ']')
                 ChangeNextState(state, NextReadState::eUnknown);
             else {
                 ch_err = array_str[i];
@@ -714,50 +735,53 @@ bool ParseArray(const std::string& array_str, Array* array)
             }
             break;
         }
-        case eKey: {
-            if(key.empty()) isKey = true;
-            if(isKey)       key += array_str[i];
+/*
+//        case eKey: {
+//            if(key.empty()) isKey = true;
+//            if(isKey)       key += array_str[i];
 
-            //значение считано полностью?
-            if(i + 1 < array_str.length()) { //следующий символ существует
-                if(array_str[i + 1] == ':' || (array_str[i + 1] == '}' && (i + 1 == endIndex)))
-                    isKey = false;
-            }
+//            //значение считано полностью?
+//            if(i + 1 < array_str.length()) { //следующий символ существует
+//                if(array_str[i + 1] == ':' || (array_str[i + 1] == '}' && (i + 1 == endIndex)))
+//                    isKey = false;
+//            }
 
-            if(!isKey) {
-                if(!CheckString(key))
-                    isKey = true;
-                else {
-                    //                    std::cout << "KEY: \"" << key << "\"" << std::endl;
-                    ChangeNextState(state, NextReadState::eColon);
-                }
-            }
-            break;
-        }
-        case eValue: { //может быть числом, строкой, Json или Array
+//            if(!isKey) {
+//                if(!CheckString(key))
+//                    isKey = true;
+//                else {
+//                    //                    std::cout << "KEY: \"" << key << "\"" << std::endl;
+//                    ChangeNextState(state, NextReadState::eColon);
+//                }
+//            }
+//            break;
+//        }
+*/
+        case eValue: {
             if(value.empty())   isValue = true;
             if(isValue)         value += array_str[i];
 
             //значение считано полностью?
             if(i + 1 < array_str.length()) //следующий символ существует
-                if(array_str[i + 1] == ',' || (array_str[i + 1] == '}' && ((i + 1) == endIndex)))
+                if(array_str[i + 1] == ',' || (array_str[i + 1] == ']' && ((i + 1) == endIndex)))
                     isValue = false;
 
             if(!isValue) { //это конец значения?
                 valueType = CheckValue(value);
-//                std::cout << "VALUE: \"" << value << "\", TYPE: " << ToString(valueType) << std::endl;
+                if(valueType != ValueType::eNull)
+                    std::cout << "ARRAY VALUE(" << ToString(valueType) << "):\"" << value << "\"" << std::endl;
                 switch(valueType) {
-                case eString:   { return_code = array->put(key, value); break; }
-                case eNumber:   { return_code = array->put(key, std::stod(value)); break; }
+                case eNumber:   { return_code = /*array->put(key, std::stod(value));*/     true;  break; }
+                case eBool:     { return_code = /*array->put(key, utils::ToBool(value));*/ true;  break; }
+                case eString:   { return_code = /*array->put(key, value);*/                true;  break; }
                 case eJson:     {
                     Json _innerJson;
                     if(!ParseJson(value, &_innerJson)) {
-                        std::cout << "parse error in key:" << key
-                                  << "valueType:" << ToString(valueType)
-                                  << std::endl;
+                        std::cout << "parse error valueType:" << ToString(valueType) << std::endl;
                         exit = true;
                     } else {
-                        return_code = array->put(key, _innerJson);
+//                        return_code = array->put(key, _innerJson);
+                        return_code = true;
                     }
                     break;
                 }
@@ -765,12 +789,11 @@ bool ParseArray(const std::string& array_str, Array* array)
                     Array _innerArray;
                     return_code = ParseArray(value, &_innerArray);
                     if(!return_code) {
-                        std::cout << "parse error in key:" << key
-                                  << "valueType:" << ToString(valueType)
-                                  << std::endl;
+                        std::cout << "parse error valueType:" << ToString(valueType) << std::endl;
                         exit = true;
                     } else
-                        return_code = array->put(key, _innerArray);
+                        return_code = true;
+//                        return_code = array->put(key, _innerArray);
                     break;
                 }
                 case eNull:     { //значение ещё не прочитано!
@@ -782,41 +805,38 @@ bool ParseArray(const std::string& array_str, Array* array)
                 }
 
                 //обнуление временных переменных, переход к следующему элементу
-                key = "";
                 value = "";
                 ChangeNextState(state, NextReadState::eComma);
             }
             break;
         }
-        case eColon: {
-            if(utils::CharsInString(array_str[i], " \t\n"))
-                continue;
+/*
+//        case eColon: {
+//            if(utils::CharsInString(array_str[i], SPACES)) continue;
 
-            if(array_str[i] != ':') {
-                std::cout << "exp: ':'" << std::endl;
-                return_code = false;
-                ch_err = array_str[i];
-                exit = true;
-            } else {
-                ChangeNextState(state, NextReadState::eValue);
-            }
-            break;
-        }
+//            if(array_str[i] != ':') {
+//                std::cout << "exp: ':'" << std::endl;
+//                return_code = false;
+//                ch_err = array_str[i];
+//                exit = true;
+//            } else ChangeNextState(state, NextReadState::eValue);
+//            break;
+//        }
+*/
         case eComma: {
-            if(utils::CharsInString(array_str[i], " \t\n"))
-                continue;
+            if(utils::CharsInString(array_str[i], SPACES)) continue;
 
             if(array_str[i] != ',') {
-                if(array_str[i] != '}') {
+                if(array_str[i] != ']') {
                     std::cout << "exp: ','" << std::endl;
                     return_code = false;
                 }
                 ch_err = array_str[i];
                 exit = true;
-            } else
-                ChangeNextState(state, NextReadState::eKey);
+            } else ChangeNextState(state, NextReadState::eValue);
             break;
         }
+        default:
         case eUnknown: {
             ch_err = array_str[i];
             exit = true;
@@ -826,7 +846,7 @@ bool ParseArray(const std::string& array_str, Array* array)
     }
 
     if(!return_code) {
-        std::cout << "Syntax error, parse error value for key \"" << key << "\""
+        std::cout << "Syntax error, parse error value \"" << value << "\""
                   << std::endl;
     }
 

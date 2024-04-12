@@ -20,12 +20,14 @@ enum ValueType {
 enum NextReadState {
     eUnknown,
 
-    eJsonStart,
     eKey,
     eValue,
     eColon,
     eComma,
-    eJsonEnd
+    eJsonStart,
+    eJsonEnd,
+    eArrayStart,
+    eArrayEnd
 };
 static std::string ToString(const NextReadState state);
 static std::string ToString(const ValueType type);
