@@ -52,48 +52,97 @@ Array::Array()
 
 Array::~Array()
 {
-    for(ArrayElement element : this->values)
-        if(element.second) free(element.second);
+    for(ArrayElements element : this->values) {
+        std::cout << "free(" << ToString(element.first) << "), addr:" << element.second << std::endl;
+        switch(element.first) {
+        case eNumber:   delete reinterpret_cast<DoubleElement*>(element.second);break;
+        case eBool:     delete reinterpret_cast<BoolElement*>(element.second);  break;
+        case eString:   delete reinterpret_cast<StringElement*>(element.second);break;
+        case eJson:     delete reinterpret_cast<JsonElement*>(element.second);  break;
+        case eArray:    delete reinterpret_cast<ArrayElement*>(element.second); break;
+        default: break;
+        }
+    }
 }
 
 void Array::push_back(const double d)
 {
-    this->values.push_back(std::make_pair(ValueType::eNumber, (void*)&d));
+    this->values.push_back(ArrayElements(ValueType::eNumber, reinterpret_cast<BaseElement*>(new DoubleElement(d))));
 }
 
 void Array::push_back(const bool b)
 {
-    this->values.push_back(std::make_pair(ValueType::eBool, (void*)&b));
+    this->values.push_back(ArrayElements(ValueType::eBool, reinterpret_cast<BaseElement*>(new BoolElement(b))));
 }
 
 void Array::push_back(const std::string string)
 {
-    this->values.push_back(std::make_pair(ValueType::eString, (void*)&string));
+    this->values.push_back(ArrayElements(ValueType::eString, reinterpret_cast<BaseElement*>(new StringElement(string))));
 }
 
 void Array::push_back(const Json json)
 {
-    this->values.push_back(std::make_pair(ValueType::eJson, (void*)&json));
+    Json *pJ = new Json(json);
+    this->values.push_back(ArrayElements(ValueType::eJson, reinterpret_cast<BaseElement*>(pJ)));
 }
 
 void Array::push_back(const Array array)
 {
-    this->values.push_back(std::make_pair(ValueType::eArray, (void*)&array));
+    Array *pA = new Array(array);
+    this->values.push_back(ArrayElements(ValueType::eArray, reinterpret_cast<BaseElement*>(pA)));
+}
+
+void Array::push_front(const double d)
+{
+    this->values.push_back(ArrayElements(ValueType::eNumber, reinterpret_cast<BaseElement*>(new DoubleElement(d))));
+}
+
+void Array::push_front(const bool b)
+{
+    this->values.push_back(ArrayElements(ValueType::eBool, reinterpret_cast<BaseElement*>(new BoolElement(b))));
+}
+
+void Array::push_front(const std::string string)
+{
+    this->values.push_back(ArrayElements(ValueType::eString, reinterpret_cast<BaseElement*>(new StringElement(string))));
+}
+
+void Array::push_front(const Json json)
+{
+    Json *pJ = new Json(json);
+    this->values.push_back(ArrayElements(ValueType::eJson, reinterpret_cast<BaseElement*>(pJ)));
+}
+
+void Array::push_front(const Array array)
+{
+    Array *pA = new Array(array);
+    this->values.push_back(ArrayElements(ValueType::eArray, reinterpret_cast<BaseElement*>(pA)));
+}
+
+ValueType Array::getType(size_t index)
+{
+    return this->values[index].first;
 }
 
 void* Array::getAt(size_t index)
-{ //TODO: Array::getAt()
-    return nullptr;
+{
+    return this->values[index].second;
 }
 
 void* Array::operator[](size_t index)
-{ //TODO: Array::operator[]()
-    return nullptr;
+{
+    return this->values[index].second;
 }
 
 std::string Array::to_string(int16_t tabulation_level)
-{ //TODO: Array::to_string()
-    return "";
+{
+    std::string ret;
+    ret += "[";
+
+    //TODO: Array::to_string()
+
+    ret += "]";
+    return ret;
 }
 
 ///ARRAY
@@ -585,7 +634,7 @@ bool ParseJson(const std::string& json_str, Json* json)
                 case eNumber:   { return_code = json->put(key, std::stod(value)); break; }
                 case eBool:     {
                     return_code = utils::isBool(value);
-                    if(!return_code)
+                    if(return_code)
                         return_code = json->put(key, utils::ToBool(value));
                     break;
                 }
@@ -735,28 +784,6 @@ bool ParseArray(const std::string& array_str, Array* array)
             }
             break;
         }
-/*
-//        case eKey: {
-//            if(key.empty()) isKey = true;
-//            if(isKey)       key += array_str[i];
-
-//            //значение считано полностью?
-//            if(i + 1 < array_str.length()) { //следующий символ существует
-//                if(array_str[i + 1] == ':' || (array_str[i + 1] == '}' && (i + 1 == endIndex)))
-//                    isKey = false;
-//            }
-
-//            if(!isKey) {
-//                if(!CheckString(key))
-//                    isKey = true;
-//                else {
-//                    //                    std::cout << "KEY: \"" << key << "\"" << std::endl;
-//                    ChangeNextState(state, NextReadState::eColon);
-//                }
-//            }
-//            break;
-//        }
-*/
         case eValue: {
             if(value.empty())   isValue = true;
             if(isValue)         value += array_str[i];
@@ -770,30 +797,35 @@ bool ParseArray(const std::string& array_str, Array* array)
                 valueType = CheckValue(value);
                 if(valueType != ValueType::eNull)
                     std::cout << "ARRAY VALUE(" << ToString(valueType) << "):\"" << value << "\"" << std::endl;
+                return_code = valueType != ValueType::eNull;
                 switch(valueType) {
-                case eNumber:   { return_code = /*array->put(key, std::stod(value));*/     true;  break; }
-                case eBool:     { return_code = /*array->put(key, utils::ToBool(value));*/ true;  break; }
-                case eString:   { return_code = /*array->put(key, value);*/                true;  break; }
+                case eNumber:   { array->push_back(std::stod(value));       break; }
+                case eBool:     {
+                    return_code = utils::isBool(value);
+                    if(return_code) array->push_back(utils::ToBool(value));
+                    break;
+                }
+                case eString:   { array->push_back(value);                  break; }
                 case eJson:     {
                     Json _innerJson;
-                    if(!ParseJson(value, &_innerJson)) {
+                    return_code = ParseJson(value, &_innerJson);
+                    if(return_code)
+                        array->push_back(_innerJson);
+                    else {
                         std::cout << "parse error valueType:" << ToString(valueType) << std::endl;
                         exit = true;
-                    } else {
-//                        return_code = array->put(key, _innerJson);
-                        return_code = true;
                     }
                     break;
                 }
                 case eArray:    {
                     Array _innerArray;
                     return_code = ParseArray(value, &_innerArray);
-                    if(!return_code) {
+                    if(return_code)
+                        array->push_back(_innerArray);
+                    else {
                         std::cout << "parse error valueType:" << ToString(valueType) << std::endl;
                         exit = true;
-                    } else
-                        return_code = true;
-//                        return_code = array->put(key, _innerArray);
+                    }
                     break;
                 }
                 case eNull:     { //значение ещё не прочитано!
@@ -810,19 +842,6 @@ bool ParseArray(const std::string& array_str, Array* array)
             }
             break;
         }
-/*
-//        case eColon: {
-//            if(utils::CharsInString(array_str[i], SPACES)) continue;
-
-//            if(array_str[i] != ':') {
-//                std::cout << "exp: ':'" << std::endl;
-//                return_code = false;
-//                ch_err = array_str[i];
-//                exit = true;
-//            } else ChangeNextState(state, NextReadState::eValue);
-//            break;
-//        }
-*/
         case eComma: {
             if(utils::CharsInString(array_str[i], SPACES)) continue;
 

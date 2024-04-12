@@ -4,7 +4,6 @@
 #include <map>
 #include <memory>
 #include <vector>
-#include <tuple>
 
 namespace json {
 
@@ -34,10 +33,57 @@ static std::string ToString(const ValueType type);
 static void ChangeNextState(NextReadState &state, const NextReadState nextState);
 
 class Json;
-//Массив - это упорядоченный список элементов
-typedef std::pair<ValueType, void*> ArrayElement;
+class BaseElement {
+public:
+    virtual ~BaseElement(){};
+};
+class DoubleElement : BaseElement {
+public:
+    double value;
+
+    DoubleElement(){};
+    DoubleElement(double d) : value(d) {};
+};
+class BoolElement : BaseElement {
+public:
+    bool value;
+
+    BoolElement(){};
+    BoolElement(bool b) : value(b) {};
+};
+class StringElement : BaseElement {
+public:
+    std::string value;
+
+    StringElement(){};
+    StringElement(std::string s) : value(s) {};
+};
+class JsonElement : BaseElement {
+public:
+    Json *value;
+
+    JsonElement(){};
+    JsonElement(Json* j) : value(j) {};
+    ~JsonElement() {
+        if(value) delete value;
+    };
+};
+class Array;
+class ArrayElement : BaseElement {
+public:
+    Array *value;
+
+    ArrayElement(){};
+    ArrayElement(Array* a) : value(a) {};
+    ~ArrayElement() {
+        if(value) delete value;
+    };
+};
+
+typedef std::pair<ValueType, BaseElement*> ArrayElements;
+// Упорядоченный список значений
 class Array {
-    std::vector<ArrayElement> values;
+    std::vector<ArrayElements> values;
 public:
     Array();
     ~Array();
@@ -46,11 +92,22 @@ public:
     void push_back(const std::string string);
     void push_back(const Json json);
     void push_back(const Array array);
+    void push_front(const double d);
+    void push_front(const bool b);
+    void push_front(const std::string string);
+    void push_front(const Json json);
+    void push_front(const Array array);
+    ValueType getType(size_t index);
+    ValueType getFrontType(size_t index)    { return getType(0); }
+    ValueType getBackType(size_t index)     { return getType(this->values.size() - 1); }
     void* getAt(size_t index);
+    void* getFront()                        { return getAt(0); }
+    void* getBack()                         { return getAt(this->values.size() - 1); }
     void* operator[](size_t index);
     std::string to_string(int16_t tabulation_level = 0);
 };
 
+// Неупорядоченный список "ключ-значение"
 class Json
 {
     std::map<std::string, double>       numbers;
