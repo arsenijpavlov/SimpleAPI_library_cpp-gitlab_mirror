@@ -55,43 +55,57 @@ Array::~Array()
     for(ArrayElements element : this->values) {
         std::cout << "free(" << ToString(element.first) << "), addr:" << element.second << std::endl;
         switch(element.first) {
-        case eNumber:   delete reinterpret_cast<DoubleElement*>(element.second);break;
-        case eBool:     delete reinterpret_cast<BoolElement*>(element.second);  break;
-        case eString:   delete reinterpret_cast<StringElement*>(element.second);break;
-        case eJson:     delete reinterpret_cast<JsonElement*>(element.second);  break;
-        case eArray:    delete reinterpret_cast<ArrayElement*>(element.second); break;
+        case eNumber:
+            delete reinterpret_cast<DoubleElement*>(element.second);
+            break;
+        case eBool:
+            delete reinterpret_cast<BoolElement*>(element.second);
+            break;
+        case eString:
+            delete reinterpret_cast<StringElement*>(element.second);
+            break;
+        case eJson:
+            delete reinterpret_cast<JsonElement*>(element.second);
+            break;
+        case eArray:
+            delete reinterpret_cast<ArrayElement*>(element.second);
+            break;
         default: break;
         }
     }
 }
 
-void Array::push_back(const double d)
+void Array::push_back(double d)
 {
-    this->values.push_back(ArrayElements(ValueType::eNumber, reinterpret_cast<BaseElement*>(new DoubleElement(d))));
+    this->values.push_back(ArrayElements(
+        ValueType::eNumber, reinterpret_cast<BaseElement*>(new DoubleElement(d))));
 }
 
-void Array::push_back(const bool b)
+void Array::push_back(bool b)
 {
-    this->values.push_back(ArrayElements(ValueType::eBool, reinterpret_cast<BaseElement*>(new BoolElement(b))));
+    this->values.push_back(ArrayElements(
+        ValueType::eBool, reinterpret_cast<BaseElement*>(new BoolElement(b))));
 }
 
-void Array::push_back(const std::string string)
+void Array::push_back(std::string string)
 {
-    this->values.push_back(ArrayElements(ValueType::eString, reinterpret_cast<BaseElement*>(new StringElement(string))));
+    this->values.push_back(ArrayElements(
+        ValueType::eString, reinterpret_cast<BaseElement*>(new StringElement(string))));
 }
 
-void Array::push_back(const Json json)
+void Array::push_back(Json json)
 {
-    Json *pJ = new Json(json);
-    this->values.push_back(ArrayElements(ValueType::eJson, reinterpret_cast<BaseElement*>(pJ)));
+    this->values.push_back(ArrayElements(
+        ValueType::eJson, reinterpret_cast<BaseElement*>(new JsonElement(json))));
 }
 
-void Array::push_back(const Array array)
+void Array::push_back(Array array)
 {
-    Array *pA = new Array(array);
-    this->values.push_back(ArrayElements(ValueType::eArray, reinterpret_cast<BaseElement*>(pA)));
+    this->values.push_back(ArrayElements(
+        ValueType::eArray, reinterpret_cast<BaseElement*>(new ArrayElement(array))));
 }
 
+/*
 void Array::push_front(const double d)
 {
     this->values.push_back(ArrayElements(ValueType::eNumber, reinterpret_cast<BaseElement*>(new DoubleElement(d))));
@@ -118,6 +132,7 @@ void Array::push_front(const Array array)
     Array *pA = new Array(array);
     this->values.push_back(ArrayElements(ValueType::eArray, reinterpret_cast<BaseElement*>(pA)));
 }
+*/
 
 ValueType Array::getType(size_t index)
 {
@@ -148,32 +163,36 @@ std::string Array::to_string(int16_t tabulation_level)
 ///ARRAY
 
 // Json
-Json::Json()
+Json::~Json()
 {
-
+    this->numbers.clear();
+    this->bools.clear();
+    this->strings.clear();
+    this->jsons.clear();
+    this->arrays.clear();
 }
 
-bool Json::put(std::string key, std::string value)
+bool Json::put(const std::string key, const std::string value)
 {
     return this->strings.insert(std::pair<std::string, std::string>(key, value)).second;
 }
 
-bool Json::put(std::string key, double value)
+bool Json::put(const std::string key, const double value)
 {
     return this->numbers.insert(std::pair<std::string, double>(key, value)).second;
 }
 
-bool Json::put(std::string key, bool value)
+bool Json::put(const std::string key, const bool value)
 {
     return this->bools.insert(std::pair<std::string, bool>(key, value)).second;
 }
 
-bool Json::put(std::string key, Json json)
+bool Json::put(const std::string key, const Json json)
 {
     return this->jsons.insert(std::pair<std::string, Json>(key, json)).second;
 }
 
-bool Json::put(std::string key, Array value)
+bool Json::put(const std::string key, const Array value)
 {
     return this->arrays.insert(std::pair<std::string, Array>(key, value)).second;
 }

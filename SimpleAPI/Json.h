@@ -37,66 +37,24 @@ class BaseElement {
 public:
     virtual ~BaseElement(){};
 };
-class DoubleElement : BaseElement {
-public:
-    double value;
-
-    DoubleElement(){};
-    DoubleElement(double d) : value(d) {};
-};
-class BoolElement : BaseElement {
-public:
-    bool value;
-
-    BoolElement(){};
-    BoolElement(bool b) : value(b) {};
-};
-class StringElement : BaseElement {
-public:
-    std::string value;
-
-    StringElement(){};
-    StringElement(std::string s) : value(s) {};
-};
-class JsonElement : BaseElement {
-public:
-    Json *value;
-
-    JsonElement(){};
-    JsonElement(Json* j) : value(j) {};
-    ~JsonElement() {
-        if(value) delete value;
-    };
-};
-class Array;
-class ArrayElement : BaseElement {
-public:
-    Array *value;
-
-    ArrayElement(){};
-    ArrayElement(Array* a) : value(a) {};
-    ~ArrayElement() {
-        if(value) delete value;
-    };
-};
-
 typedef std::pair<ValueType, BaseElement*> ArrayElements;
+
 // Упорядоченный список значений
 class Array {
     std::vector<ArrayElements> values;
 public:
     Array();
     ~Array();
-    void push_back(const double d);
-    void push_back(const bool b);
-    void push_back(const std::string string);
-    void push_back(const Json json);
-    void push_back(const Array array);
-    void push_front(const double d);
-    void push_front(const bool b);
-    void push_front(const std::string string);
-    void push_front(const Json json);
-    void push_front(const Array array);
+    void push_back(double d);
+    void push_back(bool b);
+    void push_back(std::string string);
+    void push_back(Json json);
+    void push_back(Array array);
+//    void push_front(const double d);
+//    void push_front(const bool b);
+//    void push_front(const std::string string);
+//    void push_front(const Json json);
+//    void push_front(const Array array);
     ValueType getType(size_t index);
     ValueType getFrontType(size_t index)    { return getType(0); }
     ValueType getBackType(size_t index)     { return getType(this->values.size() - 1); }
@@ -116,16 +74,17 @@ class Json
     std::map<std::string, Json>         jsons;
     std::map<std::string, Array>        arrays;
 public:
-    Json();
-    bool put(std::string key, double value);
-    bool put(std::string key, bool value);
-    bool put(std::string key, std::string value);
-    bool put(std::string key, Json value);
-    bool put(std::string key, Array value);
-    bool add(std::string key, std::string value)    { return this->put(key, value); };
-    bool add(std::string key, double value)         { return this->put(key, value); };
-    bool add(std::string key, Json value)           { return this->put(key, value); };
-    bool add(std::string key, Array value)          { return this->put(key, value); };
+//    Json();
+    ~Json();
+    bool put(const std::string key, const double value);
+    bool put(const std::string key, const bool value);
+    bool put(const std::string key, const std::string value);
+    bool put(const std::string key, const Json value);
+    bool put(const std::string key, const Array value);
+    bool add(const std::string key, const std::string value)    { return this->put(key, value); };
+    bool add(const std::string key, const double value)         { return this->put(key, value); };
+    bool add(const std::string key, const Json value)           { return this->put(key, value); };
+    bool add(const std::string key, const Array value)          { return this->put(key, value); };
 
     bool readFile(const std::string path);
     bool writeFile(const std::string path);
@@ -140,6 +99,45 @@ static bool CheckJson(std::string& value);
 static bool CheckArray(std::string& value);
 static bool ParseJson(const std::string& str, Json* json);
 static bool ParseArray(const std::string& str, Array* array);
+
+class DoubleElement : BaseElement {
+public:
+    double value;
+
+    DoubleElement(){};
+    DoubleElement(double d) : value(d) {};
+};
+class BoolElement : BaseElement {
+public:
+    uint8_t value;
+
+    BoolElement(){};
+    BoolElement(bool b) : value(b) {};
+};
+class StringElement : BaseElement {
+public:
+    std::string value;
+
+    StringElement(){};
+    StringElement(std::string s) : value(s) {};
+};
+class JsonElement : BaseElement {
+public:
+    Json value;
+
+    JsonElement(){};
+    JsonElement(Json j) : value(j) {};
+//    ~JsonElement();
+};
+class Array;
+class ArrayElement : BaseElement {
+public:
+    Array value;
+
+    ArrayElement(){};
+    ArrayElement(Array a) : value(a) {};
+//    ~ArrayElement();
+};
 
 } /// namespace json
 

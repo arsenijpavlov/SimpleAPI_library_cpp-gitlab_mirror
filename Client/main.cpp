@@ -6,6 +6,7 @@ bool read = false;
 std::string readFilePath;
 bool write = false;
 std::string writeFilePath;
+bool test = false;
 
 void ParseParameter(std::string parameter) {
     if(read) {
@@ -23,6 +24,8 @@ void ParseParameter(std::string parameter) {
         read = true;
     } else if (parameter == "write" || parameter == "-w" || parameter == "--write") {
         write = true;
+    } else if (parameter == "--test") {
+        test = true;
     }
 }
 
@@ -45,6 +48,28 @@ int main(int argc, char **argv) {
         std::cout << json.to_string(-1) << std::endl;
     }
 
+    if(test) {
+        Json j;
+        j.put("a", (double)156);
+        j.put("b", true);
+
+        Array ja;
+        j.put("ja", ja);
+
+        Array a;
+//        a.push_back(true);
+        a.push_back(15.0);
+        a.push_back(ja);
+        std::cout << a.to_string(-1) << std::endl;
+
+        std::cout << reinterpret_cast<DoubleElement*>(a.getAt(0))->value << std::endl;
+
+//        Array aa;
+//        aa.push_back(j);
+//        aa.push_back(a);
+
+//        std::cout << aa.to_string(-1) << std::endl;
+    }
 //    Json json, json2;
 //    json.put("TestString", "TestValue");
 //    json.put("TestNum", "999");
