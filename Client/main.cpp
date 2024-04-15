@@ -57,12 +57,12 @@ int main(int argc, char **argv) {
         j.put("ja", ja);
 
         Array a;
-//        a.push_back(true);
+        a.push_back(true);
         a.push_back(15.0);
         a.push_back(ja);
         std::cout << a.to_string(-1) << std::endl;
 
-        std::cout << reinterpret_cast<DoubleElement*>(a.getAt(0))->value << std::endl;
+        std::cout << reinterpret_cast<BoolElement*>(a.getAt(0))->value << std::endl;
 
 //        Array aa;
 //        aa.push_back(j);

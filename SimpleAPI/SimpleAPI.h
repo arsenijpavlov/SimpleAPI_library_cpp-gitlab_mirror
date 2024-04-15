@@ -3,4 +3,6 @@
 
 #include "Json.h"
 
+#include "utils.h"
+
 #endif // SIMPLEAPI_H
