@@ -64,9 +64,9 @@ int main(int argc, char **argv) {
 
         std::cout << reinterpret_cast<BoolElement*>(a.getAt(0))->value << std::endl;
 
-//        Array aa;
+        Array aa;
 //        aa.push_back(j);
-//        aa.push_back(a);
+        aa.push_back(a);
 
 //        std::cout << aa.to_string(-1) << std::endl;
     }

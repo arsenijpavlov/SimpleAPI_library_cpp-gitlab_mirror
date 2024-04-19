@@ -46,9 +46,33 @@ void ChangeNextState(NextReadState &state, const NextReadState nextState)
 }
 
 //ARRAY
-/*
+
 Array::Array()
 {
+}
+
+Array::Array(Array& array)
+{
+    for(ArrayElements el : array.values) {
+        switch(el.first) {
+        case eNumber:
+            this->values.push_back(ArrayElements(
+                el.first,
+                reinterpret_cast<BaseElement*>(
+                    new DoubleElement(*reinterpret_cast<DoubleElement*>(el.second)))));
+            break;
+        case eBool:
+            this->values.push_back(ArrayElements(
+                el.first,
+                reinterpret_cast<BaseElement*>(
+                    new BoolElement(*reinterpret_cast<BoolElement*>(el.second)))));
+            break;
+        case eString:
+        case eJson:
+        case eArray:
+        case eNull:     break;
+        }
+    }
 }
 
 Array::~Array()
@@ -75,61 +99,62 @@ Array::~Array()
         }
     }
 }
-*/
+
 
 void Array::push_back(double d)
 {
-//    this->values.push_back(ArrayElements(
-//        ValueType::eNumber, reinterpret_cast<BaseElement*>(new DoubleElement(d))));
-    size_t index = this->values
-                       .insert(std::pair<size_t, ValueType>(this->values.size() + 1,
-                                                            ValueType::eNumber))
-                       .first->first;
-    this->numbers.insert(std::pair<size_t, double>(index, d));
+    this->values.push_back(ArrayElements(
+        ValueType::eNumber, reinterpret_cast<BaseElement*>(new DoubleElement(d))));
+//    size_t index = this->values
+//                       .insert(std::pair<size_t, ValueType>(this->values.size() + 1,
+//                                                            ValueType::eNumber))
+//                       .first->first;
+//    this->numbers.insert(std::pair<size_t, double>(index, d));
 }
 
 void Array::push_back(bool b)
 {
-//    this->values.push_back(ArrayElements(
-//        ValueType::eBool, reinterpret_cast<BaseElement*>(new BoolElement(b))));
-    size_t index = this->values
-                       .insert(std::pair<size_t, ValueType>(this->values.size() + 1,
-                                                            ValueType::eBool))
-                       .first->first;
-    this->bools.insert(std::pair<size_t, bool>(index, b));
+    this->values.push_back(ArrayElements(
+        ValueType::eBool, reinterpret_cast<BaseElement*>(new BoolElement(b))));
+//    size_t index = this->values
+//                       .insert(std::pair<size_t, ValueType>(this->values.size() + 1,
+//                                                            ValueType::eBool))
+//                       .first->first;
+//    this->bools.insert(std::pair<size_t, bool>(index, b));
 }
 
 void Array::push_back(std::string string)
 {
-//    this->values.push_back(ArrayElements(
-//        ValueType::eString, reinterpret_cast<BaseElement*>(new StringElement(string))));
-    size_t index = this->values
-                       .insert(std::pair<size_t, ValueType>(this->values.size() + 1,
-                                                            ValueType::eString))
-                       .first->first;
-    this->strings.insert(std::pair<size_t, std::string>(index, string));
+    this->values.push_back(ArrayElements(
+        ValueType::eString, reinterpret_cast<BaseElement*>(new StringElement(string))));
+//    size_t index = this->values
+//                       .insert(std::pair<size_t, ValueType>(this->values.size() + 1,
+//                                                            ValueType::eString))
+//                       .first->first;
+//    this->strings.insert(std::pair<size_t, std::string>(index, string));
 }
 
 void Array::push_back(Json json)
 {
-//    this->values.push_back(ArrayElements(
-//        ValueType::eJson, reinterpret_cast<BaseElement*>(new JsonElement(json))));
-    size_t index = this->values
-                       .insert(std::pair<size_t, ValueType>(this->values.size() + 1,
-                                                            ValueType::eJson))
-                       .first->first;
-    this->jsons.insert(std::pair<size_t, Json>(index, json));
+    this->values.push_back(ArrayElements(
+        ValueType::eJson, reinterpret_cast<BaseElement*>(new JsonElement(json))));
+//    size_t index = this->values
+//                       .insert(std::pair<size_t, ValueType>(this->values.size() + 1,
+//                                                            ValueType::eJson))
+//                       .first->first;
+//    this->jsons.insert(std::pair<size_t, Json>(index, json));
 }
 
-void Array::push_back(Array array)
+void Array::push_back(Array& array)
 {
-//    this->values.push_back(ArrayElements(
-//        ValueType::eArray, reinterpret_cast<BaseElement*>(new ArrayElement(array))));
-    size_t index = this->values
-                       .insert(std::pair<size_t, ValueType>(this->values.size() + 1,
-                                                            ValueType::eArray))
-                       .first->first;
-    this->arrays.insert(std::pair<size_t, Array>(index, array));
+    //TODO: скопировать(!) элементы массива из параметров функции и заново выделить память для них
+    this->values.push_back(ArrayElements(
+        ValueType::eArray, reinterpret_cast<BaseElement*>(new ArrayElement(array))));
+//    size_t index = this->values
+//                       .insert(std::pair<size_t, ValueType>(this->values.size() + 1,
+//                                                            ValueType::eArray))
+//                       .first->first;
+//    this->arrays.insert(std::pair<size_t, Array>(index, array));
 }
 
 /*
@@ -163,7 +188,7 @@ void Array::push_front(const Array array)
 
 ValueType Array::getType(size_t index)
 {
-    return this->values[index];
+    return this->values[index].first;
 }
 
 void* Array::getAt(size_t index)

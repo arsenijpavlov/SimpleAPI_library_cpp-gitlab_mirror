@@ -33,29 +33,30 @@ static std::string ToString(const ValueType type);
 static void ChangeNextState(NextReadState &state, const NextReadState nextState);
 
 class Json;
-//class BaseElement {
-//public:
-//    virtual ~BaseElement(){};
-//};
-//typedef std::pair<ValueType, BaseElement*> ArrayElements;
+class BaseElement {
+public:
+    virtual std::string to_string() = 0;
+};
+typedef std::pair<ValueType, BaseElement*> ArrayElements;
 
 // Упорядоченный список значений
 class Array {
-//    std::vector<ArrayElements> values; //NOTE: в данный момент идея нежизнеспособна!
-    std::map<size_t, ValueType>     values;
-    std::map<size_t, double>        numbers;
-    std::map<size_t, bool>          bools;
-    std::map<size_t, std::string>   strings;
-    std::map<size_t, Json>          jsons;
-    std::map<size_t, Array>         arrays;
+    std::vector<ArrayElements> values; //NOTE: в данный момент идея нежизнеспособна!
+//    std::map<size_t, ValueType>     values;
+//    std::map<size_t, double>        numbers;
+//    std::map<size_t, bool>          bools;
+//    std::map<size_t, std::string>   strings;
+//    std::map<size_t, Json>          jsons;
+//    std::map<size_t, Array>         arrays;
 public:
-//    Array();
-//    ~Array();
-    void push_back(const double d);
-    void push_back(const bool b);
-    void push_back(const std::string string);
-    void push_back(const Json json);
-    void push_back(const Array array);
+    Array();
+    Array(Array& array);
+    ~Array();
+    void push_back(double d);
+    void push_back(bool b);
+    void push_back(std::string string);
+    void push_back(Json json);
+    void push_back(Array& array);
 //    void push_front(const double d);
 //    void push_front(const bool b);
 //    void push_front(const std::string string);
@@ -106,44 +107,47 @@ static bool CheckArray(std::string& value);
 static bool ParseJson(const std::string& str, Json* json);
 static bool ParseArray(const std::string& str, Array* array);
 
-//class DoubleElement : BaseElement {
-//public:
-//    double value;
+class DoubleElement : BaseElement {
+public:
+    double value;
 
-//    DoubleElement(){};
-//    DoubleElement(double d) : value(d) {};
-//};
-//class BoolElement : BaseElement {
-//public:
-//    uint8_t value;
+    DoubleElement(){}
+    DoubleElement(double d) : value(d) {};
+    std::string to_string() { return std::to_string(value); }
+};
+class BoolElement : BaseElement {
+public:
+    uint8_t value;
 
-//    BoolElement(){};
-//    BoolElement(bool b) : value(b) {};
-//};
-//class StringElement : BaseElement {
-//public:
-//    std::string value;
+    BoolElement(){}
+    BoolElement(bool b) : value(b) {}
+    std::string to_string() { return ((bool)value) ? "true" : "or"; }
+};
+class StringElement : BaseElement {
+public:
+    std::string value;
 
-//    StringElement(){};
-//    StringElement(std::string s) : value(s) {};
-//};
-//class JsonElement : BaseElement {
-//public:
-//    Json value;
+    StringElement(){}
+    StringElement(std::string s) : value(s) {}
+    std::string to_string() { return "\"" + value + "\""; }
+};
+class JsonElement : BaseElement {
+public:
+    Json value;
 
-//    JsonElement(){};
-//    JsonElement(Json j) : value(j) {};
-////    ~JsonElement();
-//};
-//class Array;
-//class ArrayElement : BaseElement {
-//public:
-//    Array value;
+    JsonElement(){}
+    JsonElement(Json j) : value(j) {}
+    std::string to_string() { return value.to_string(-1); }
+};
+class Array;
+class ArrayElement : BaseElement {
+public:
+    Array value;
 
-//    ArrayElement(){};
-//    ArrayElement(Array a) : value(a) {};
-////    ~ArrayElement();
-//};
+    ArrayElement(){}
+    ArrayElement(Array a) : value(a) {}
+    std::string to_string() { return value.to_string(-1); }
+};
 
 } /// namespace json
 
