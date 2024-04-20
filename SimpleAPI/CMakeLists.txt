@@ -14,6 +14,7 @@ if(NOT WIN32)
 endif()
 
 project(project_SimpleAPI_library LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 11)
 message("${Bold}project: ${Green}project_SimpleAPI_library${Reset}")
 
 file(GLOB simpleAPI_sources "${PROJECT_SOURCE_DIR}/*.cpp" )

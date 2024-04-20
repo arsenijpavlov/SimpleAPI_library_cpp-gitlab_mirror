@@ -23,6 +23,11 @@ inline std::string ToString(double d) {
     str << d;
     return str.str();
 }
+//inline std::string ToString(bool b) {
+//    std::ostringstream str;
+//    str << (b ? "true" : "false");
+//    return str.str();
+//}
 inline bool isBool(std::string& str) {
     if(str == "true" || str == "false") return true;
     else                                return false;

@@ -52,8 +52,10 @@ int main(int argc, char **argv) {
         Json j;
         j.put("a", (double)156);
         j.put("b", true);
+//        std::cout << j.to_string(-1) << std::endl;
 
         Array ja;
+        ja.push_back(j);
         j.put("ja", ja);
 
         Array a;
@@ -62,13 +64,13 @@ int main(int argc, char **argv) {
         a.push_back(ja);
         std::cout << a.to_string(-1) << std::endl;
 
-        std::cout << reinterpret_cast<BoolElement*>(a.getAt(0))->value << std::endl;
+//        std::cout << reinterpret_cast<BoolElement*>(a.getAt(0))->value << std::endl;
 
         Array aa;
-//        aa.push_back(j);
+        aa.push_back(j);
         aa.push_back(a);
 
-//        std::cout << aa.to_string(-1) << std::endl;
+        std::cout << aa.to_string(-1) << std::endl;
     }
 //    Json json, json2;
 //    json.put("TestString", "TestValue");

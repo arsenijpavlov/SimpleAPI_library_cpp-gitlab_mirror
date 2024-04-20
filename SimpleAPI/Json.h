@@ -1,6 +1,7 @@
 #ifndef JSON_H
 #define JSON_H
 
+#include "utils.h"
 #include <map>
 #include <memory>
 #include <vector>
@@ -37,7 +38,8 @@ class BaseElement {
 public:
     virtual std::string to_string() = 0;
 };
-typedef std::pair<ValueType, BaseElement*> ArrayElements;
+//typedef std::pair<ValueType, BaseElement*> ArrayElements; //C
+using ArrayElements = std::pair<ValueType, BaseElement*>;   //C++
 
 // Упорядоченный список значений
 class Array {
@@ -49,8 +51,8 @@ class Array {
 //    std::map<size_t, Json>          jsons;
 //    std::map<size_t, Array>         arrays;
 public:
-    Array();
-    Array(Array& array);
+    Array(){};
+    Array(const Array& array);
     ~Array();
     void push_back(double d);
     void push_back(bool b);
@@ -87,11 +89,11 @@ public:
     bool put(const std::string key, const bool value);
     bool put(const std::string key, const std::string value);
     bool put(const std::string key, const Json value);
-    bool put(const std::string key, const Array value);
+    bool put(const std::string key, const Array& value);
     bool add(const std::string key, const std::string value)    { return this->put(key, value); };
     bool add(const std::string key, const double value)         { return this->put(key, value); };
     bool add(const std::string key, const Json value)           { return this->put(key, value); };
-    bool add(const std::string key, const Array value)          { return this->put(key, value); };
+    bool add(const std::string key, const Array& value)         { return this->put(key, value); };
 
     bool readFile(const std::string path);
     bool writeFile(const std::string path);
@@ -113,7 +115,7 @@ public:
 
     DoubleElement(){}
     DoubleElement(double d) : value(d) {};
-    std::string to_string() { return std::to_string(value); }
+    std::string to_string() { return utils::ToString(value); }
 };
 class BoolElement : BaseElement {
 public:
