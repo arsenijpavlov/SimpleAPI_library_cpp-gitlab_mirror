@@ -36,20 +36,14 @@ static void ChangeNextState(NextReadState &state, const NextReadState nextState)
 class Json;
 class BaseElement {
 public:
-    virtual std::string to_string() = 0;
+    virtual std::string to_string(uint8_t tabultation_level) = 0;
 };
 //typedef std::pair<ValueType, BaseElement*> ArrayElements; //C
 using ArrayElements = std::pair<ValueType, BaseElement*>;   //C++
 
 // Упорядоченный список значений
 class Array {
-    std::vector<ArrayElements> values; //NOTE: в данный момент идея нежизнеспособна!
-//    std::map<size_t, ValueType>     values;
-//    std::map<size_t, double>        numbers;
-//    std::map<size_t, bool>          bools;
-//    std::map<size_t, std::string>   strings;
-//    std::map<size_t, Json>          jsons;
-//    std::map<size_t, Array>         arrays;
+    std::vector<ArrayElements> values;
 public:
     Array(){};
     Array(const Array& array);
@@ -70,6 +64,8 @@ public:
     void* getAt(size_t index);
     void* getFront()                        { return getAt(0); }
     void* getBack()                         { return getAt(this->values.size() - 1); }
+//TODO:    void popFront();
+//TODO:    void popBack();
     void* operator[](size_t index);
     std::string to_string(int16_t tabulation_level = 0);
 };
@@ -115,7 +111,8 @@ public:
 
     DoubleElement(){}
     DoubleElement(double d) : value(d) {};
-    std::string to_string() { return utils::ToString(value); }
+    std::string to_string(uint8_t tabulation_level = 0)
+        { return utils::ToString(value); }
 };
 class BoolElement : BaseElement {
 public:
@@ -123,7 +120,8 @@ public:
 
     BoolElement(){}
     BoolElement(bool b) : value(b) {}
-    std::string to_string() { return ((bool)value) ? "true" : "or"; }
+    std::string to_string(uint8_t tabulation_level = 0)
+        { return ((bool)value) ? "true" : "or"; }
 };
 class StringElement : BaseElement {
 public:
@@ -131,7 +129,8 @@ public:
 
     StringElement(){}
     StringElement(std::string s) : value(s) {}
-    std::string to_string() { return "\"" + value + "\""; }
+    std::string to_string(uint8_t tabulation_level = 0)
+        { return "\"" + value + "\""; }
 };
 class JsonElement : BaseElement {
 public:
@@ -139,7 +138,8 @@ public:
 
     JsonElement(){}
     JsonElement(Json j) : value(j) {}
-    std::string to_string() { return value.to_string(-1); }
+    std::string to_string(uint8_t tabulation_level = 0)
+        { return value.to_string(tabulation_level); }
 };
 class Array;
 class ArrayElement : BaseElement {
@@ -148,7 +148,8 @@ public:
 
     ArrayElement(){}
     ArrayElement(Array a) : value(a) {}
-    std::string to_string() { return value.to_string(-1); }
+    std::string to_string(uint8_t tabulation_level = 0)
+        { return value.to_string(tabulation_level); }
 };
 
 } /// namespace json
