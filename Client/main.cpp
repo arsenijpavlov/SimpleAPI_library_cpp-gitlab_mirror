@@ -7,6 +7,8 @@ std::string readFilePath;
 bool write = false;
 std::string writeFilePath;
 bool test = false;
+bool isTabLvl = false;
+int8_t tabLvl = -1;
 
 void ParseParameter(std::string parameter) {
     if(read) {
@@ -19,6 +21,11 @@ void ParseParameter(std::string parameter) {
         write = false;
         return;
     }
+    if(isTabLvl) {
+        isTabLvl = false;
+        tabLvl = std::stoi(parameter);
+        return;
+    }
 
     if (parameter == "read" || parameter == "-r" || parameter == "--read") {
         read = true;
@@ -26,33 +33,37 @@ void ParseParameter(std::string parameter) {
         write = true;
     } else if (parameter == "--test") {
         test = true;
-    }
+    } else if (parameter == "--tablvl" || parameter == "-tl")
+        isTabLvl = true;
 }
 
 int main(int argc, char **argv) {
     using namespace json;
+    system("tabs 4");
 
     //parse arguments
     for(int _argc = 1; _argc < argc && argc > 0; _argc++) {
-//        std::cout << "argc[" << _argc << "]: " << argv[_argc] << std::endl;
+#ifdef __DEBUG__
+        std::cout << "argc[" << _argc << "]: " << argv[_argc] << std::endl;
+#endif
         ParseParameter(argv[_argc]);
     }
 
     bool ret;
+    Json json;
     if(!readFilePath.empty()) {
-        Json json;
         ret = json.readFile(readFilePath);
         std::cout << "File is read: " << (ret ? "true" : "false") << std::endl;
         std::cout << std::endl;
         std::cout << "Json \"" << readFilePath << "\":" << std::endl;
-        std::cout << json.to_string(-1) << std::endl;
+        std::cout << json.to_string(tabLvl) << std::endl;
     }
 
     if(test) {
         Json j;
         j.put("a", (double)156);
         j.put("b", true);
-//        std::cout << j.to_string(-1) << std::endl;
+//        std::cout << j.to_string(tabLvl) << std::endl;
 
         Array ja;
         ja.push_back(j);
@@ -62,7 +73,7 @@ int main(int argc, char **argv) {
         a.push_back(true);
         a.push_back(15.0);
         a.push_back(ja);
-        std::cout << a.to_string(-1) << std::endl;
+//        std::cout << a.to_string(tabLvl) << std::endl;
 
 //        std::cout << reinterpret_cast<BoolElement*>(a.getAt(0))->value << std::endl;
 
@@ -70,7 +81,11 @@ int main(int argc, char **argv) {
         aa.push_back(j);
         aa.push_back(a);
 
-        std::cout << aa.to_string(-1) << std::endl;
+//        std::cout << aa.to_string(tabLvl) << std::endl;
+        Json jj;
+        jj.put("aa", aa);
+        jj.put("jjInt", (double)42);
+        std::cout << jj.to_string(tabLvl) << std::endl;
     }
 //    Json json, json2;
 //    json.put("TestString", "TestValue");
@@ -79,13 +94,15 @@ int main(int argc, char **argv) {
 //    json2.put("Json2_2", "2");
 //    json.put("input_json", json2);
 
-//    ret = json.writeFile("./test.json");
-//    std::cout << "File is written: " << (ret ? "true" : "false") << std::endl;
+    if(!writeFilePath.empty()) {
+        std::cout << "File for write: " << writeFilePath << std::endl;
+        ret = json.writeFile(writeFilePath);
+        std::cout << "File is written: " << (ret ? "true" : "false") << std::endl;
 
 //    std::cout << std::endl;
 //    std::cout << json.to_string() << std::endl;
 //    std::cout << std::endl << std::endl;
-
+    }
 
     return 0;
 }
