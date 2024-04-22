@@ -35,6 +35,7 @@ void ParseParameter(std::string parameter) {
         test = true;
     } else if (parameter == "--tablvl" || parameter == "-tl")
         isTabLvl = true;
+    return;
 }
 
 int main(int argc, char **argv) {
@@ -87,21 +88,11 @@ int main(int argc, char **argv) {
         jj.put("jjInt", (double)42);
         std::cout << jj.to_string(tabLvl) << std::endl;
     }
-//    Json json, json2;
-//    json.put("TestString", "TestValue");
-//    json.put("TestNum", "999");
-//    json2.put("Json2_1", "1");
-//    json2.put("Json2_2", "2");
-//    json.put("input_json", json2);
 
     if(!writeFilePath.empty()) {
         std::cout << "File for write: " << writeFilePath << std::endl;
         ret = json.writeFile(writeFilePath);
         std::cout << "File is written: " << (ret ? "true" : "false") << std::endl;
-
-//    std::cout << std::endl;
-//    std::cout << json.to_string() << std::endl;
-//    std::cout << std::endl << std::endl;
     }
 
     return 0;
