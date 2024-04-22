@@ -126,7 +126,7 @@ public:
     BoolElement(){}
     BoolElement(bool b) : value(b) {}
     std::string to_string(uint8_t tabulation_level = 0)
-        { return ((bool)value) ? "true" : "or"; }
+        { return ((bool)value) ? "true" : "false"; }
 };
 class StringElement : BaseElement {
 public:
