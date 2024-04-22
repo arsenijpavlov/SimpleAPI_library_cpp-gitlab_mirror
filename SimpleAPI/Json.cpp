@@ -124,6 +124,7 @@ void Array::push_back(Array& array)
 }
 
 /*
+ * TODO: Array::push_front(...)
 void Array::push_front(const double d)
 {
     this->values.push_back(ArrayElements(ValueType::eNumber, reinterpret_cast<BaseElement*>(new DoubleElement(d))));
@@ -169,6 +170,8 @@ void* Array::operator[](size_t index)
 
 std::string Array::to_string(int16_t tabulation_level)
 {
+    if(this->values.empty()) return "[]";
+
     std::string ret;
     bool withoutSpaces = tabulation_level < 0;
     ret += "[";
@@ -341,10 +344,11 @@ std::string Json::to_string(int16_t tabulation_level)
 //STATIC:
 ValueType CheckValue(std::string& value)
 {
-//    std::cout << "CheckValue(): \"" << value << "\"" << std::endl;
+#ifdef __DEBUG__
+    std::cout << "CheckValue(): \"" << value << "\"" << std::endl;
+#endif
     bool isValue = false;
     std::string _value;
-    char _ch = 0;
     ValueType vType = eNull;
     for(size_t i = 0; i < value.length(); i++) {
         if(!isValue && !utils::CharsInString(value[i], SPACES))
@@ -356,21 +360,15 @@ ValueType CheckValue(std::string& value)
                     vType = ValueType::eNumber;
                 else if(value[i] == '"' || value[i] == '\'') {
                     vType = ValueType::eString;
-                    _ch = value[i]; //граница слова
                 } else if(value[i] == '{') {
                     vType = ValueType::eJson;
-                    _ch = '}';      //граница слова
                 } else if(value[i] == '[') {
                     vType = ValueType::eArray;
-                    _ch = ']';      //граница слова
                 } else if(!utils::CharsInString(value[i], SPACES)) {
                     vType = ValueType::eBool;
                 }
-            } else if(vType == ValueType::eNumber)
-                break;
+            }
             _value += value[i];
-            if(_ch != 0 && value[i] == _ch)
-                break;
         }
     }
 
@@ -676,8 +674,12 @@ bool ParseJson(const std::string& json_str, Json* json)
 
             if(!isValue) { //это конец значения?
                 valueType = CheckValue(value);
+#ifdef __DEBUG__
                 if(valueType != ValueType::eNull)
-//                    std::cout << "JSON KEY:\"" << key << "\", VALUE(" << ToString(valueType) << "):\"" << value << "\"" << std::endl;
+                    std::cout << "JSON KEY:\"" << key << "\", VALUE(" << ToString(valueType) << "):\"" << value << "\"" << std::endl;
+                else
+                    std::cout << "JSON(BROKEN) KEY:\"" << key << "\", VALUE(" << ToString(valueType) << "):\"" << value << "\"" << std::endl;
+#endif
                 switch(valueType) {
                 case eNumber:   { return_code = json->put(key, std::stod(value)); break; }
                 case eBool:     {
@@ -720,8 +722,10 @@ bool ParseJson(const std::string& json_str, Json* json)
                 }
 
                 //обнуление временных переменных, переход к следующему элементу
+#ifdef __DEBUG__
                 std::cout << "Json key: \"" << key << "\""
                           << ", value: \"" << value << "\"" << std::endl;
+#endif
                 key = "";
                 value = "";
                 ChangeNextState(state, NextReadState::eComma);
@@ -879,7 +883,9 @@ bool ParseArray(const std::string& array_str, Array* array)
                 }
 
                 //обнуление временных переменных, переход к следующему элементу
+#ifdef __DEBUG__
                 std::cout << "Array value: \"" << value << "\"" << std::endl;
+#endif
                 value = "";
                 ChangeNextState(state, NextReadState::eComma);
             }
