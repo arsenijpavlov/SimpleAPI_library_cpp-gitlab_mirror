@@ -1,0 +1,47 @@
+{
+  "code": "littlefigure",
+  "class": "EntityAgent",
+  "hitboxSize": {
+    "x": 0.4,
+    "y": 0.5
+  },
+  "deadHitboxSize": {
+    "x": 0.4,
+    "y": 0.5
+  },
+  "eyeHeight": 0.4,
+  "drops": [],
+  "client": {
+    "renderer": "Shape",
+    "shape": { "base": "entity/land/littlefigure" },
+    "texture": { "base": "game:block/wood/planks/birch1" },
+    "behaviors": [
+      { "code": "repulseagents" },
+      {
+        "code": "controlledphysics",
+        "stepHeight": 0.2
+      },
+      {
+        "code": "floatupwhenstuck",
+        "onlyWhenDead": true
+      },
+      { "code": "interpolateposition" }
+    ],
+    "animations": [
+      {
+        "code": "hurt",
+        "animation": "hurt",
+        "animationSpeed": 2.2,
+        "weight": 10,
+        "blendMode": "AddAverage"
+      },
+      {
+        "code": "die",
+        "animation": "die",
+        "animationSpeed": 1.25,
+        "weight": 10,
+        "blendMode": "AddAverage"
+      }
+    ]
+  }
+}
