@@ -53,11 +53,11 @@ public:
     void push_back(std::string string);
     void push_back(Json json);
     void push_back(Array& array);
-//    void push_front(const double d);
-//    void push_front(const bool b);
-//    void push_front(const std::string string);
-//    void push_front(const Json json);
-//    void push_front(const Array array);
+//TODO:    void push_front(const double d);
+//TODO:    void push_front(const bool b);
+//TODO:    void push_front(const std::string string);
+//TODO:    void push_front(const Json json);
+//TODO:    void push_front(const Array array);
     ValueType getType(size_t index);
     ValueType getFrontType(size_t index)    { return getType(0); }
     ValueType getBackType(size_t index)     { return getType(this->values.size() - 1); }
@@ -68,6 +68,7 @@ public:
 //TODO:    void popBack();
     void* operator[](size_t index);
     std::string to_string(int16_t tabulation_level = 0);
+    size_t size() { return values.size(); }
 };
 
 // Неупорядоченный список "ключ-значение"
@@ -94,6 +95,10 @@ public:
     bool readFile(const std::string path);
     bool writeFile(const std::string path);
     std::string to_string(int16_t tabulation_level = 0);
+    size_t size() {
+        return numbers.size() + bools.size() + strings.size()
+               + jsons.size() + arrays.size();
+    }
 };
 
 static ValueType CheckValue(std::string& value);

@@ -124,7 +124,6 @@ void Array::push_back(Array& array)
 }
 
 /*
- * TODO: Array::push_front(...)
 void Array::push_front(const double d)
 {
     this->values.push_back(ArrayElements(ValueType::eNumber, reinterpret_cast<BaseElement*>(new DoubleElement(d))));
@@ -358,15 +357,14 @@ ValueType CheckValue(std::string& value)
             if(vType == ValueType::eNull) {
                 if(utils::IsNumber(value[i]))
                     vType = ValueType::eNumber;
-                else if(value[i] == '"' || value[i] == '\'') {
+                else if(value[i] == '"' || value[i] == '\'')
                     vType = ValueType::eString;
-                } else if(value[i] == '{') {
+                else if(value[i] == '{')
                     vType = ValueType::eJson;
-                } else if(value[i] == '[') {
+                else if(value[i] == '[')
                     vType = ValueType::eArray;
-                } else if(!utils::CharsInString(value[i], SPACES)) {
+                else if(!utils::CharsInString(value[i], SPACES))
                     vType = ValueType::eBool;
-                }
             }
             _value += value[i];
         }
@@ -423,10 +421,7 @@ bool CheckBool(std::string& value)
         }
     }
 
-//    std::cout << "-CheckValue(): \"" << temp << "\"" << std::endl;
     if(temp != "true" && temp != "false") return false;
-
-//    std::cout << "~CheckValue(): \"" << temp << "\"" << std::endl;
     value = temp;
     return true;
 }
@@ -468,12 +463,6 @@ bool CheckJson(std::string& value)
     uint32_t innerLvlFBrace = 0;
     uint32_t innerLvlQBrace = 0;
     for(size_t i = 0; i < value.length(); i++) {
-//        std::cout << "CheckJson(): current:[" << value[i] << "]"
-//                  << " done:" << (done ? "+" : "-")
-//                  << " [" << "F:" << innerLvlFBrace << "]"
-//                  << " [" << "Q:" << innerLvlQBrace << "]"
-//                  << " [" << "W:" << innerWord << "]"
-//                  << std::endl;
         if(ch != 0) { //начинаем запись слова
             if(utils::CharsInString(value[i], "\"'")) {
                 if(innerWord == 0)              innerWord = value[i];
@@ -510,14 +499,7 @@ bool CheckJson(std::string& value)
         }
     }
 
-//    std::cout << "~CheckJson()[" << (done ? "+" : "-") << "]:"
-//              << " [" << "F:" << innerLvlFBrace << "]"
-//              << " [" << "Q:" << innerLvlQBrace << "]"
-//              << " [" << "W:" << innerWord << "]"
-//              << " \"" << temp << "\""
-//              << std::endl;
     if(!done) return false;
-
     value = temp;
     return true;
 }
@@ -532,12 +514,6 @@ bool CheckArray(std::string& value)
     uint32_t innerLvlFBrace = 0;
     uint32_t innerLvlQBrace = 0;
     for(size_t i = 0; i < value.length(); i++) {
-//        std::cout << "CheckJson(): current:[" << value[i] << "]"
-//                  << " done:" << (done ? "+" : "-")
-//                  << " [" << "F:" << innerLvlFBrace << "]"
-//                  << " [" << "Q:" << innerLvlQBrace << "]"
-//                  << " [" << "W:" << innerWord << "]"
-//                  << std::endl;
         if(ch != 0) { //начинаем запись слова
             if(utils::CharsInString(value[i], "\"'")) {
                 if(innerWord == 0)              innerWord = value[i];
@@ -574,14 +550,7 @@ bool CheckArray(std::string& value)
         }
     }
 
-//    std::cout << "~CheckArray()[" << (done ? "+" : "-") << "]:"
-//              << " [" << "F:" << innerLvlFBrace << "]"
-//              << " [" << "Q:" << innerLvlQBrace << "]"
-//              << " [" << "W:" << innerWord << "]"
-//              << " \"" << temp << "\""
-//              << std::endl;
     if(!done) return false;
-
     value = temp;
     return true;
 }
@@ -611,13 +580,6 @@ bool ParseJson(const std::string& json_str, Json* json)
     std::string value = "";
     NextReadState state = NextReadState::eJsonStart;
     for(size_t i = 0; i < json_str.length() && !exit; i++) {
-//        std::cout << "current [" << json_str[i] << "]: "
-//                  << "key: [" << key << "], "
-//                  << "value: [" << value << "], "
-//                  << "k:" << (isKey ? "+" : "-") << " "
-//                  << "v:" << (isValue ? "+" : "-")
-//                  << std::endl;
-
         //счётчик строк и символов, для вывода ошибки
         if ((json_str[i] == '\n') || (i == 0)) {
             strCounter++;
@@ -656,10 +618,8 @@ bool ParseJson(const std::string& json_str, Json* json)
             if(!isKey) {
                 if(!CheckString(key))
                     isKey = true;
-                else {
-//                    std::cout << "KEY: \"" << key << "\"" << std::endl;
+                else
                     ChangeNextState(state, NextReadState::eColon);
-                }
             }
             break;
         }
@@ -674,12 +634,7 @@ bool ParseJson(const std::string& json_str, Json* json)
 
             if(!isValue) { //это конец значения?
                 valueType = CheckValue(value);
-#ifdef __DEBUG__
-                if(valueType != ValueType::eNull)
-                    std::cout << "JSON KEY:\"" << key << "\", VALUE(" << ToString(valueType) << "):\"" << value << "\"" << std::endl;
-                else
-                    std::cout << "JSON(BROKEN) KEY:\"" << key << "\", VALUE(" << ToString(valueType) << "):\"" << value << "\"" << std::endl;
-#endif
+
                 switch(valueType) {
                 case eNumber:   { return_code = json->put(key, std::stod(value)); break; }
                 case eBool:     {
@@ -798,13 +753,6 @@ bool ParseArray(const std::string& array_str, Array* array)
     std::string value = "";
     NextReadState state = NextReadState::eArrayStart;
     for(size_t i = 0; i < array_str.length() && !exit; i++) {
-//        std::cout << "current [" << array_str[i] << "]: "
-//                  << "key: [" << key << "], "
-//                  << "value: [" << value << "], "
-//                  << "k:" << (isKey ? "+" : "-") << " "
-//                  << "v:" << (isValue ? "+" : "-")
-//                  << std::endl;
-
         //счётчик строк и символов, для вывода ошибки
         if ((array_str[i] == '\n') || (i == 0)) {
             strCounter++;
@@ -841,9 +789,8 @@ bool ParseArray(const std::string& array_str, Array* array)
 
             if(!isValue) { //это конец значения?
                 valueType = CheckValue(value);
-                if(valueType != ValueType::eNull)
-//                    std::cout << "ARRAY VALUE(" << ToString(valueType) << "):\"" << value << "\"" << std::endl;
                 return_code = valueType != ValueType::eNull;
+
                 switch(valueType) {
                 case eNumber:   { array->push_back(std::stod(value));       break; }
                 case eBool:     {
