@@ -17,21 +17,7 @@ enum ValueType {
     eJson,
     eArray
 };
-enum NextReadState {
-    eUnknown,
-
-    eKey,
-    eValue,
-    eColon,
-    eComma,
-    eJsonStart,
-    eJsonEnd,
-    eArrayStart,
-    eArrayEnd
-};
-static std::string ToString(const NextReadState state);
 static std::string ToString(const ValueType type);
-static void ChangeNextState(NextReadState &state, const NextReadState nextState);
 
 class Json;
 class BaseElement {
@@ -39,11 +25,11 @@ public:
     virtual std::string to_string(uint8_t tabultation_level) = 0;
 };
 //typedef std::pair<ValueType, BaseElement*> ArrayElements; //C
-using ArrayElements = std::pair<ValueType, BaseElement*>;   //C++
+using Element = std::pair<ValueType, BaseElement*>;   //C++
 
 // Упорядоченный список значений
 class Array {
-    std::vector<ArrayElements> values;
+    std::vector<Element> values;
 public:
     Array(){};
     Array(const Array& array);
@@ -74,13 +60,15 @@ public:
 // Неупорядоченный список "ключ-значение"
 class Json
 {
-    std::map<std::string, double>       numbers;
-    std::map<std::string, bool>         bools;
-    std::map<std::string, std::string>  strings;
-    std::map<std::string, Json>         jsons;
-    std::map<std::string, Array>        arrays;
+//    std::map<std::string, double>       numbers;
+//    std::map<std::string, bool>         bools;
+//    std::map<std::string, std::string>  strings;
+//    std::map<std::string, Json>         jsons;
+//    std::map<std::string, Array>        arrays;
+    std::map<std::string, Element> values;
 public:
 //    Json();
+    Json(const Json& json);
     ~Json();
     bool put(const std::string key, const double value);
     bool put(const std::string key, const bool value);
@@ -88,6 +76,7 @@ public:
     bool put(const std::string key, const Json value);
     bool put(const std::string key, const Array& value);
     bool add(const std::string key, const std::string value)    { return this->put(key, value); };
+    bool add(const std::string key, const bool value)           { return this->put(key, value); };
     bool add(const std::string key, const double value)         { return this->put(key, value); };
     bool add(const std::string key, const Json value)           { return this->put(key, value); };
     bool add(const std::string key, const Array& value)         { return this->put(key, value); };
@@ -96,9 +85,14 @@ public:
     bool writeFile(const std::string path);
     std::string to_string(int16_t tabulation_level = 0);
     size_t size() {
-        return numbers.size() + bools.size() + strings.size()
-               + jsons.size() + arrays.size();
+//        return numbers.size() + bools.size() + strings.size()
+//               + jsons.size() + arrays.size();
+        return values.size();
     }
+    std::map<std::string, Element>::iterator begin(){ return values.begin(); };
+    std::map<std::string, Element>::iterator end()  { return values.end(); };
+    std::map<std::string, Element>::const_iterator cbegin() const { return values.begin(); };
+    std::map<std::string, Element>::const_iterator cend()   const { return values.end(); };
 };
 
 static ValueType CheckValue(std::string& value);
