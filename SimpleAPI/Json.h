@@ -65,21 +65,21 @@ class Json
 //    std::map<std::string, std::string>  strings;
 //    std::map<std::string, Json>         jsons;
 //    std::map<std::string, Array>        arrays;
-    std::map<std::string, Element> values;
+    std::vector<std::pair<std::string, Element>> values;
 public:
-//    Json();
+    Json(){};
     Json(const Json& json);
     ~Json();
     bool put(const std::string key, const double value);
     bool put(const std::string key, const bool value);
     bool put(const std::string key, const std::string value);
-    bool put(const std::string key, const Json value);
+    bool put(const std::string key, const Json& value);
     bool put(const std::string key, const Array& value);
-    bool add(const std::string key, const std::string value)    { return this->put(key, value); };
-    bool add(const std::string key, const bool value)           { return this->put(key, value); };
-    bool add(const std::string key, const double value)         { return this->put(key, value); };
-    bool add(const std::string key, const Json value)           { return this->put(key, value); };
-    bool add(const std::string key, const Array& value)         { return this->put(key, value); };
+//    bool add(const std::string key, const std::string value)    { return this->put(key, value); };
+//    bool add(const std::string key, const bool value)           { return this->put(key, value); };
+//    bool add(const std::string key, const double value)         { return this->put(key, value); };
+//    bool add(const std::string key, const Json value)           { return this->put(key, value); };
+//    bool add(const std::string key, const Array& value)         { return this->put(key, value); };
 
     bool readFile(const std::string path);
     bool writeFile(const std::string path);
@@ -89,10 +89,15 @@ public:
 //               + jsons.size() + arrays.size();
         return values.size();
     }
-    std::map<std::string, Element>::iterator begin(){ return values.begin(); };
-    std::map<std::string, Element>::iterator end()  { return values.end(); };
-    std::map<std::string, Element>::const_iterator cbegin() const { return values.begin(); };
-    std::map<std::string, Element>::const_iterator cend()   const { return values.end(); };
+    std::vector<std::pair<std::string, Element>>::iterator begin()
+        { return values.begin(); };
+    std::vector<std::pair<std::string, Element>>::iterator end()
+        { return values.end(); };
+    std::vector<std::pair<std::string, Element>>::const_iterator cbegin()
+        const { return values.begin(); };
+    std::vector<std::pair<std::string, Element>>::const_iterator cend()
+        const { return values.end(); };
+//TODO:    void* operator[](size_t index);
 };
 
 static ValueType CheckValue(std::string& value);
@@ -109,7 +114,7 @@ public:
     double value;
 
     DoubleElement(){}
-    DoubleElement(double d) : value(d) {};
+    DoubleElement(const double& d) : value(d){};
     std::string to_string(uint8_t tabulation_level = 0)
         { return utils::ToString(value); }
 };
@@ -118,7 +123,7 @@ public:
     uint8_t value;
 
     BoolElement(){}
-    BoolElement(bool b) : value(b) {}
+    BoolElement(const bool& b) : value(b){};
     std::string to_string(uint8_t tabulation_level = 0)
         { return ((bool)value) ? "true" : "false"; }
 };
@@ -127,7 +132,7 @@ public:
     std::string value;
 
     StringElement(){}
-    StringElement(std::string s) : value(s) {}
+    StringElement(const std::string& s) : value(s){};
     std::string to_string(uint8_t tabulation_level = 0)
         { return "\"" + value + "\""; }
 };
@@ -136,7 +141,7 @@ public:
     Json value;
 
     JsonElement(){}
-    JsonElement(Json j) : value(j) {}
+    JsonElement(const Json& j) : value(j){};
     std::string to_string(uint8_t tabulation_level = 0)
         { return value.to_string(tabulation_level); }
 };
@@ -146,7 +151,7 @@ public:
     Array value;
 
     ArrayElement(){}
-    ArrayElement(Array a) : value(a) {}
+    ArrayElement(const Array& a) : value(a){};
     std::string to_string(uint8_t tabulation_level = 0)
         { return value.to_string(tabulation_level); }
 };

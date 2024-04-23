@@ -209,34 +209,44 @@ std::string Array::to_string(int16_t tabulation_level)
 // Json
 Json::Json(const Json& json)
 {
-    for(const std::pair<std::string, Element> &el : json) {
+    for(const std::pair<std::string, Element> &el : json.values) {
         switch(el.second.first) {
-        case eNumber:
-            this->put(el.first, Element(
-                el.first, reinterpret_cast<BaseElement*>(
-                    new DoubleElement(*reinterpret_cast<DoubleElement*>(el.second.second)))));
+        case eNumber: {
+            double value = reinterpret_cast<DoubleElement*>(el.second.second)->value;
+            this->values.push_back(std::make_pair(
+                el.first,
+                Element(el.second.first, reinterpret_cast<BaseElement*>(new DoubleElement(value)))));
             break;
-        case eBool:
-            this->values.push_back(Element(
-                el.first, reinterpret_cast<BaseElement*>(
-                    new BoolElement(*reinterpret_cast<BoolElement*>(el.second)))));
+        }
+        case eBool: {
+            bool value = reinterpret_cast<BoolElement*>(el.second.second)->value;
+            this->values.push_back(std::make_pair(
+                el.first,
+                Element(el.second.first, reinterpret_cast<BaseElement*>(new BoolElement(value)))));
             break;
-        case eString:
-            this->values.push_back(Element(
-                el.first, reinterpret_cast<BaseElement*>(
-                    new StringElement(*reinterpret_cast<StringElement*>(el.second)))));
+        }
+        case eString: {
+            std::string value = reinterpret_cast<StringElement*>(el.second.second)->value;
+            this->values.push_back(std::make_pair(
+                el.first,
+                Element(el.second.first, reinterpret_cast<BaseElement*>(new StringElement(value)))));
             break;
-        case eJson:
-            this->values.push_back(Element(
-                el.first, reinterpret_cast<BaseElement*>(
-                    new JsonElement(*reinterpret_cast<JsonElement*>(el.second)))));
+        }
+        case eJson: {
+            Json value = reinterpret_cast<JsonElement*>(el.second.second)->value;
+            this->values.push_back(std::make_pair(
+                el.first,
+                Element(el.second.first, reinterpret_cast<BaseElement*>(new JsonElement(value)))));
             break;
-        case eArray:
-            this->values.push_back(Element(
-                el.first, reinterpret_cast<BaseElement*>(
-                    new ArrayElement(*reinterpret_cast<ArrayElement*>(el.second)))));
+        }
+        case eArray: {
+            Array value = reinterpret_cast<ArrayElement*>(el.second.second)->value;
+            this->values.push_back(std::make_pair(
+                el.first,
+                Element(el.second.first, reinterpret_cast<BaseElement*>(new ArrayElement(value)))));
             break;
-        case eNull:     break;
+        }
+        case eNull: break;
         }
     }
 }
@@ -248,14 +258,14 @@ Json::~Json()
 //    this->strings.clear();
 //    this->jsons.clear();
 //    this->arrays.clear();
-    std::map<std::string, Element>::iterator it = this->values.begin();
-    while(it != this->values.end()) {
-        switch(it->second.first) {
-        case eNumber:   delete reinterpret_cast<DoubleElement*> (it->second.second);    break;
-        case eBool:     delete reinterpret_cast<BoolElement*>   (it->second.second);    break;
-        case eString:   delete reinterpret_cast<StringElement*> (it->second.second);    break;
-        case eJson:     delete reinterpret_cast<JsonElement*>   (it->second.second);    break;
-        case eArray:    delete reinterpret_cast<ArrayElement*>  (it->second.second);    break;
+//    for(std::map<std::string, Element>::iterator it = this->values.begin(); it != this->values.end(); it++) {
+    for(std::pair<std::string, Element> el : this->values) {
+        switch(el.second.first) {
+        case eNumber:   delete reinterpret_cast<DoubleElement*> (el.second.second);    break;
+        case eBool:     delete reinterpret_cast<BoolElement*>   (el.second.second);    break;
+        case eString:   delete reinterpret_cast<StringElement*> (el.second.second);    break;
+        case eJson:     delete reinterpret_cast<JsonElement*>   (el.second.second);    break;
+        case eArray:    delete reinterpret_cast<ArrayElement*>  (el.second.second);    break;
         default: break;
         }
     }
@@ -263,57 +273,51 @@ Json::~Json()
 
 bool Json::put(const std::string key, const std::string value)
 {
-//    return this->strings.insert(std::pair<std::string, std::string>(key, value)).second;
-    return this->values
-        .insert(std::pair<std::string, Element>(
-            key,
-            Element(ValueType::eString,
-                    reinterpret_cast<BaseElement*>(new StringElement(value)))))
-        .second;
+    this->values.push_back(std::pair<std::string, Element>(
+        key,
+        Element(ValueType::eString,
+                reinterpret_cast<BaseElement*>(new StringElement(value)))));
+    return true;
 }
 
 bool Json::put(const std::string key, const double value)
 {
-//    return this->numbers.insert(std::pair<std::string, double>(key, value)).second;
-    return this->values
-        .insert(std::pair<std::string, Element>(
-            key,
-            Element(ValueType::eNumber,
-                    reinterpret_cast<BaseElement*>(new DoubleElement(value)))))
-        .second;
+    bool ret = true;
+    this->values.push_back(std::pair<std::string, Element>(
+        key,
+        Element(ValueType::eNumber,
+                reinterpret_cast<BaseElement*>(new DoubleElement(value)))));
+    return ret;
 }
 
 bool Json::put(const std::string key, const bool value)
 {
-//    return this->bools.insert(std::pair<std::string, bool>(key, value)).second;
-    return this->values
-        .insert(std::pair<std::string, Element>(
-            key,
-            Element(ValueType::eBool,
-                    reinterpret_cast<BaseElement*>(new BoolElement(value)))))
-        .second;
+    bool ret = true;
+    this->values.push_back(std::pair<std::string, Element>(
+        key,
+        Element(ValueType::eBool,
+                reinterpret_cast<BaseElement*>(new BoolElement(value)))));
+    return ret;
 }
 
-bool Json::put(const std::string key, const Json value)
+bool Json::put(const std::string key, const Json& value)
 {
-//    return this->jsons.insert(std::pair<std::string, Json>(key, json)).second;
-    return this->values
-        .insert(std::pair<std::string, Element>(
-            key,
-            Element(ValueType::eJson,
-                    reinterpret_cast<BaseElement*>(new JsonElement(value)))))
-        .second;
+    bool ret = true;
+    this->values.push_back(std::pair<std::string, Element>(
+        key,
+        Element(ValueType::eJson,
+                reinterpret_cast<BaseElement*>(new JsonElement(value)))));
+    return ret;
 }
 
 bool Json::put(const std::string key, const Array& value)
 {
-//    return this->arrays.insert(std::pair<std::string, Array>(key, Array(value))).second;
-    return this->values
-        .insert(std::pair<std::string, Element>(
-            key,
-            Element(ValueType::eArray,
-                    reinterpret_cast<BaseElement*>(new ArrayElement(value)))))
-        .second;
+    bool ret = true;
+    this->values.push_back(std::pair<std::string, Element>(
+        key,
+        Element(ValueType::eArray,
+                reinterpret_cast<BaseElement*>(new ArrayElement(value)))));
+    return ret;
 }
 
 bool Json::readFile(const std::string path)
@@ -361,71 +365,14 @@ std::string Json::to_string(int16_t tabulation_level)
 
     if(!withoutSpaces) tabulation_level++;
     std::string tabs_str = !withoutSpaces ? utils::Tab(tabulation_level) : "";
-    //numbers
-//    std::map<std::string, double>::iterator it_num = this->numbers.begin();
-//    for(int i = 0; it_num != numbers.end(); i++, it_num++) {
-//        ret += tabs_str + "\"" + it_num->first + "\"";
-//        if(!withoutSpaces) ret += " ";
-//        ret += ":";
-//        if(!withoutSpaces) ret += " ";
-//        ret += utils::ToString(it_num->second)
-//               + (((i < numbers.size() - 1)
-//                   || (bools.size() > 0)
-//                   || (strings.size() > 0)
-//                   || (jsons.size() > 0)
-//                   || (arrays.size() > 0)) ? "," : "");
-//        if(!withoutSpaces) ret += "\n";
-//    }
-    //bools
-//    std::map<std::string, bool>::iterator it_b = this->bools.begin();
-//    for(int i = 0; it_b != bools.end(); i++, it_b++) {
-//        ret += tabs_str + "\"" + it_b->first + "\"";
-//        if(!withoutSpaces) ret += " ";
-//        ret += ":";
-//        if(!withoutSpaces) ret += " ";
-//        ret += BoolElement(it_b->second).to_string()
-//               + (((i < bools.size() - 1)
-//                   || (strings.size() > 0)
-//                   || (jsons.size() > 0)
-//                   || (arrays.size() > 0)) ? "," : "");
-//        if(!withoutSpaces) ret += "\n";
-//    }
-    //strings
-//    std::map<std::string, std::string>::iterator it_str = this->strings.begin();
-//    for(int i = 0; it_str != strings.end(); i++, it_str++) {
-//        ret += tabs_str + "\"" + it_str->first + "\"";
-//        if(!withoutSpaces) ret += " ";
-//        ret += ":";
-//        if(!withoutSpaces) ret += " ";
-//        ret += "\"" + it_str->second + "\""
-//               + (((i < strings.size() - 1)
-//                   || (jsons.size() > 0)
-//                   || (arrays.size() > 0)) ? "," : "");
-//        if(!withoutSpaces) ret += "\n";
-//    }
-    //jsons
-//    std::map<std::string, Json>::iterator it_js = this->jsons.begin();
-//    for(int i = 0; it_js != jsons.end(); i++, it_js++) {
-//        ret += tabs_str + "\"" + it_js->first + "\" : "
-//               + it_js->second.to_string(tabulation_level)
-//               + (((i < jsons.size() - 1)
-//                   || (arrays.size() > 0)) ? "," : "");
-//        if(!withoutSpaces) ret += "\n";
-//    }
-    //arrays
-//    std::map<std::string, Array>::iterator it_ar = this->arrays.begin();
-//    for(int i = 0; it_ar != arrays.end(); i++, it_ar++) {
-//        ret += tabs_str + "\"" + it_ar->first + "\" : "
-//               + it_ar->second.to_string(tabulation_level)
-//               + ((i < arrays.size() - 1) ? "," : "");
-//        if(!withoutSpaces) ret += "\n";
-//    }
-    std::map<std::string, Element>::iterator el = this->values.begin();
-    for(size_t i = 0; i < this->values.size() && el != this->values.end(); i++) {
-        ret += tabs_str + "\"" + el->first + "\" : "
-               + el->second.second->to_string(tabulation_level);
+
+    size_t i = 0;
+    for(std::pair<std::string, Element> el : this->values) {
+        ret += tabs_str + "\"" + el.first + "\" : "
+               + el.second.second->to_string(tabulation_level);
         if(i < this->values.size() - 1) ret += ",";
         if(!withoutSpaces) ret += "\n";
+        i++;
     }
 
     if(!withoutSpaces) tabulation_level--;
