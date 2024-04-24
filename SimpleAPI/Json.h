@@ -80,7 +80,14 @@ public:
 //    T* operator[](size_t index) {
 //        return reinterpret_cast<T*>(this->values[index].second);
 //    }
+    Element value(const size_t index) {
+        //TODO: exception для выхода из диапазона
+        return Element(
+            this->values[index].first,
+            this->values[index].second);
+    }
     Element operator[](const size_t index) {
+        //TODO: exception для выхода из диапазона
         return Element(
             this->values[index].first,
             this->values[index].second);
@@ -121,31 +128,34 @@ public:
     std::vector<std::pair<std::string, Element>>::const_iterator cend()
                     const { return values.end(); };
 
-//    template <typename T>
+//    template <typename T, typename = std::enable_if<std::is_base_of<BaseElement, T>::type>>
 //    T value(const size_t index) {
-//        //TODO: exception for index
+//    //TODO: exception для выхода из диапазона
 //        return reinterpret_cast<T>(this->values[index].second.second);
 //    }
-//    template <typename T>
+//    template <typename T, typename = std::enable_if<std::is_base_of<BaseElement, T>::type>>
 //    T value(const std::string name) {
-//        //TODO: exception for index
+//    //TODO: exception для выхода из диапазона
 //        for(size_t i = 0; i < this->values.size(); i++) {
 //            if(this->values[i].first == name)
 //                return reinterpret_cast<T>(this->values[i].second.second);
 //        }
 //        return nullptr;
 //    }
-//    Element value(const size_t index) {
-//        return std::make_pair(
-//            this->values[index].second.first,
-//            this->values[index].second.second);
-//    }
-    Element operator[](const size_t index) {
+    Element value(const size_t index) {
+        //TODO: exception для выхода из диапазона
         return Element(
             this->values[index].second.first,
             this->values[index].second.second);
     }
-    Element operator[](std::string name) {
+    Element operator[](const size_t index) {
+        //TODO: exception для выхода из диапазона
+        return Element(
+            this->values[index].second.first,
+            this->values[index].second.second);
+    }
+    Element operator[](std::string name) { //TODO: многосоставные (вложенные) элементы
+        //TODO: exception для выхода из диапазона
         for(size_t i = 0; i < this->values.size(); i++) {
             if(this->values[i].first == name)
                 return Element(

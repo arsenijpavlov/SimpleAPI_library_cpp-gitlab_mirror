@@ -410,6 +410,7 @@ std::string Json::to_string(int16_t tabulation_level)
         ret += this->values[0].second.second->to_string(tabulation_level);
         if(!withoutSpaces) ret += " ";
     } else {
+        //FIXME: некорректно выводит список c параметром -tl -1
         if(!withoutSpaces) ret += "\n";
 
         if(!withoutSpaces) tabulation_level++;
@@ -522,7 +523,10 @@ bool CheckBool(std::string& value)
 
 bool CheckString(std::string& value)
 {
-    //TODO: экранирование строк при распаковке
+    //TODO: проверить строки с обрамлением одинарными кавычками
+    /* TODO: экранирование строк при распаковке
+     *  skip \" \\ \'
+     */
 //    std::cout << "CheckString(): \"" << value << "\"" << std::endl;
     char ch = 0;
     std::string temp;

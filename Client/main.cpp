@@ -33,8 +33,10 @@ void ParseParameter(std::string parameter) {
         write = true;
     } else if (parameter == "--test") {
         test = true;
-    } else if (parameter == "--tablvl" || parameter == "-tl")
+    } else if (parameter == "--tablvl" || parameter == "-tl") {
         isTabLvl = true;
+    } //TODO: else if (parameter == "--inputJson" || parameter == "--iJ")
+
     return;
 }
 
@@ -76,22 +78,21 @@ int main(int argc, char **argv) {
         a.push_back(ja);
 //        std::cout << a.to_string(tabLvl) << std::endl;
 
-//        std::cout << reinterpret_cast<BoolElement*>(a.getAt(0))->value << std::endl;
 
         Array aa;
         aa.push_back(j);
         aa.push_back(a);
-        Element el = aa[0];
-        double d = *(*el.getJson())["a"].getNum();
-
 //        std::cout << aa.to_string(tabLvl) << std::endl;
+
+        Element el = aa[0];
+        double& d = *(*el.getJson())["a"].getNum();
+        std::cout << "aa.j.a: (double)" << d << std::endl;
+
         Json jj;
         jj.put("aa", aa);
         jj.put("jjInt", (double)42);
         std::cout << jj.to_string(tabLvl) << std::endl;
-
-//        Element p = ((reinterpret_cast<ArrayElement*>)jj["aa"].second)->value[0];
-//        std::vector<int> d = jj.value<std::vector<int>>(1);
+//WARNING:        double dd = j<double>(0); does not worked
     }
 
     if(!writeFilePath.empty()) {
