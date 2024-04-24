@@ -175,11 +175,6 @@ void* Array::getAt(size_t index)
     return this->values[index].second;
 }
 
-void* Array::operator[](size_t index)
-{
-    return this->values[index].second;
-}
-
 std::string Array::to_string(int16_t tabulation_level)
 {
     if(this->values.empty()) return "[]";

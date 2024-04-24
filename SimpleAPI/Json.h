@@ -45,26 +45,25 @@ public:
 //TODO:    void push_front(const Json json);
 //TODO:    void push_front(const Array array);
     ValueType getType(size_t index);
-    ValueType getFrontType(size_t index)    { return getType(0); }
-    ValueType getBackType(size_t index)     { return getType(this->values.size() - 1); }
+    ValueType getTypeFront(size_t index)    { return getType(0); }
+    ValueType getTypeBack(size_t index)     { return getType(this->values.size() - 1); }
     void* getAt(size_t index);
     void* getFront()                        { return getAt(0); }
     void* getBack()                         { return getAt(this->values.size() - 1); }
-//TODO:    void popFront();
-//TODO:    void popBack();
-    void* operator[](size_t index);
+//TODO:    void popFront()
+    void popBack()                          { this->values.pop_back(); }
     std::string to_string(int16_t tabulation_level = 0);
     size_t size() { return values.size(); }
+
+    template <typename T, typename = std::enable_if<std::is_base_of<BaseElement, T>::type>>
+    T* operator[](size_t index) {
+        return reinterpret_cast<T*>(this->values[index].second);
+    }
 };
 
 // Неупорядоченный список "ключ-значение"
 class Json
 {
-//    std::map<std::string, double>       numbers;
-//    std::map<std::string, bool>         bools;
-//    std::map<std::string, std::string>  strings;
-//    std::map<std::string, Json>         jsons;
-//    std::map<std::string, Array>        arrays;
     std::vector<std::pair<std::string, Element>> values;
 public:
     Json(){};
@@ -75,28 +74,26 @@ public:
     bool put(const std::string key, const std::string value);
     bool put(const std::string key, const Json& value);
     bool put(const std::string key, const Array& value);
-//    bool add(const std::string key, const std::string value)    { return this->put(key, value); };
-//    bool add(const std::string key, const bool value)           { return this->put(key, value); };
-//    bool add(const std::string key, const double value)         { return this->put(key, value); };
-//    bool add(const std::string key, const Json value)           { return this->put(key, value); };
-//    bool add(const std::string key, const Array& value)         { return this->put(key, value); };
+
+    bool add(const std::string key, const std::string value)    { return this->put(key, value); };
+    bool add(const std::string key, const bool value)           { return this->put(key, value); };
+    bool add(const std::string key, const double value)         { return this->put(key, value); };
+    bool add(const std::string key, const Json& value)          { return this->put(key, value); };
+    bool add(const std::string key, const Array& value)         { return this->put(key, value); };
 
     bool readFile(const std::string path);
     bool writeFile(const std::string path);
+
     std::string to_string(int16_t tabulation_level = 0);
-    size_t size() {
-//        return numbers.size() + bools.size() + strings.size()
-//               + jsons.size() + arrays.size();
-        return values.size();
-    }
+    size_t size()   { return values.size(); }
     std::vector<std::pair<std::string, Element>>::iterator begin()
-        { return values.begin(); };
+                    { return values.begin(); };
     std::vector<std::pair<std::string, Element>>::iterator end()
-        { return values.end(); };
+                    { return values.end(); };
     std::vector<std::pair<std::string, Element>>::const_iterator cbegin()
-        const { return values.begin(); };
+                    const { return values.begin(); };
     std::vector<std::pair<std::string, Element>>::const_iterator cend()
-        const { return values.end(); };
+                    const { return values.end(); };
 //TODO:    void* operator[](size_t index);
 };
 
