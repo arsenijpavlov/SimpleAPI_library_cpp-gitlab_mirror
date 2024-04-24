@@ -182,18 +182,26 @@ std::string Array::to_string(int16_t tabulation_level)
     std::string ret;
     bool withoutSpaces = tabulation_level < 0;
     ret += "[";
-    if(!withoutSpaces) ret += "\n";
-    if(!withoutSpaces) tabulation_level++;
-    std::string tabs_str = !withoutSpaces ? utils::Tab(tabulation_level) : "";
 
-    for(size_t i = 0; i < this->values.size(); i++) {
-        if(!withoutSpaces) ret += tabs_str;
-        ret += this->values[i].second->to_string(tabulation_level);
-        if(i < this->values.size() - 1) ret += ",";
+    if(this->values.size() == 1) {
+        if(!withoutSpaces) ret += " ";
+        ret += this->values[0].second->to_string(tabulation_level);
+        if(!withoutSpaces) ret += " ";
+    } else {
         if(!withoutSpaces) ret += "\n";
+        if(!withoutSpaces) tabulation_level++;
+        std::string tabs_str = !withoutSpaces ? utils::Tab(tabulation_level) : "";
+
+        for(size_t i = 0; i < this->values.size(); i++) {
+            if(!withoutSpaces) ret += tabs_str;
+            ret += this->values[i].second->to_string(tabulation_level);
+            if(i < this->values.size() - 1) ret += ",";
+            if(!withoutSpaces) ret += "\n";
+        }
+
+        if(!withoutSpaces) ret += utils::Tab(--tabulation_level);
     }
 
-    if(!withoutSpaces) ret += utils::Tab(--tabulation_level);
     ret += "]";
 
     return ret;
@@ -248,13 +256,7 @@ Json::Json(const Json& json)
 
 Json::~Json()
 {
-//    this->numbers.clear();
-//    this->bools.clear();
-//    this->strings.clear();
-//    this->jsons.clear();
-//    this->arrays.clear();
-//    for(std::map<std::string, Element>::iterator it = this->values.begin(); it != this->values.end(); it++) {
-    for(std::pair<std::string, Element> el : this->values) {
+    for(std::pair<std::string, Element>& el : this->values) {
         switch(el.second.first) {
         case eNumber:   delete reinterpret_cast<DoubleElement*> (el.second.second);    break;
         case eBool:     delete reinterpret_cast<BoolElement*>   (el.second.second);    break;
@@ -356,22 +358,37 @@ std::string Json::to_string(int16_t tabulation_level)
     std::string ret;
     bool withoutSpaces = tabulation_level < 0;
     ret += "{"; //start of json
-    if(!withoutSpaces) ret += "\n";
 
-    if(!withoutSpaces) tabulation_level++;
-    std::string tabs_str = !withoutSpaces ? utils::Tab(tabulation_level) : "";
-
-    size_t i = 0;
-    for(std::pair<std::string, Element> el : this->values) {
-        ret += tabs_str + "\"" + el.first + "\" : "
-               + el.second.second->to_string(tabulation_level);
-        if(i < this->values.size() - 1) ret += ",";
+    if(this->values.size() == 1) {
+        if(!withoutSpaces) ret += " ";
+        ret += "\"" + this->values[0].first + "\"";
+        if(!withoutSpaces) ret += " ";
+        ret += ":";
+        if(!withoutSpaces) ret += " ";
+        ret += this->values[0].second.second->to_string(tabulation_level);
+        if(!withoutSpaces) ret += " ";
+    } else {
         if(!withoutSpaces) ret += "\n";
-        i++;
+
+        if(!withoutSpaces) tabulation_level++;
+        std::string tabs_str = !withoutSpaces ? utils::Tab(tabulation_level) : "";
+
+        size_t i = 0;
+        for(std::pair<std::string, Element>& el : this->values) {
+            ret += tabs_str + "\"" + el.first + "\"";
+            if(!withoutSpaces) ret += " ";
+            ret += ":";
+            if(!withoutSpaces) ret += " ";
+            ret += el.second.second->to_string(tabulation_level);
+            if(i < this->values.size() - 1) ret += ",";
+            if(!withoutSpaces) ret += "\n";
+            i++;
+        }
+
+        if(!withoutSpaces) tabulation_level--;
+        if(!withoutSpaces) ret += utils::Tab(tabulation_level);
     }
 
-    if(!withoutSpaces) tabulation_level--;
-    if(!withoutSpaces) ret += utils::Tab(tabulation_level);
     ret += "}"; //end of json
     return ret;
 }
