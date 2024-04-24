@@ -9,6 +9,10 @@ std::string writeFilePath;
 bool test = false;
 bool isTabLvl = false;
 int8_t tabLvl = -1;
+bool isInputJsonString = false;
+std::string inputJsonString;
+bool isInputArrayString = false;
+std::string inputArrayString;
 
 void ParseParameter(std::string parameter) {
     if(read) {
@@ -26,6 +30,16 @@ void ParseParameter(std::string parameter) {
         tabLvl = std::stoi(parameter);
         return;
     }
+    if(isInputJsonString) {
+        isInputJsonString = false;
+        inputJsonString = parameter;
+        return;
+    }
+    if(isInputArrayString) {
+        isInputArrayString = false;
+        inputArrayString = parameter;
+        return;
+    }
 
     if (parameter == "read" || parameter == "-r" || parameter == "--read") {
         read = true;
@@ -35,7 +49,11 @@ void ParseParameter(std::string parameter) {
         test = true;
     } else if (parameter == "--tablvl" || parameter == "-tl") {
         isTabLvl = true;
-    } //TODO: else if (parameter == "--inputJson" || parameter == "--iJ")
+    } else if (parameter == "--inputJson" || parameter == "--iJ") {
+        isInputJsonString = true;
+    } else if (parameter == "--inputArray" || parameter == "--iA") {
+        isInputArrayString = true;
+    }
 
     return;
 }
