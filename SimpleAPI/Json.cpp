@@ -56,6 +56,45 @@ std::string ToString(const ValueType type) {
     }
 }
 
+
+//ELEMENT
+double* Element::getNum()
+{
+    if(first == ValueType::eNumber)
+        return &reinterpret_cast<DoubleElement*>(this->second)->value;
+    else return nullptr;
+}
+
+bool* Element::getBool()
+{
+    if(first == ValueType::eBool)
+        return &reinterpret_cast<BoolElement*>(this->second)->value;
+    else return nullptr;
+}
+
+std::string* Element::getString()
+{
+    if(first == ValueType::eString)
+        return &reinterpret_cast<StringElement*>(this->second)->value;
+    else return nullptr;
+}
+
+Json* Element::getJson()
+{
+    if(first == ValueType::eJson)
+        return &reinterpret_cast<JsonElement*>(this->second)->value;
+    else return nullptr;
+}
+
+Array* Element::getArray()
+{
+    if(first == ValueType::eArray)
+        return &reinterpret_cast<ArrayElement*>(this->second)->value;
+    else return nullptr;
+}
+///ELEMENT
+
+
 //ARRAY
 Array::Array(const Array& array)
 {

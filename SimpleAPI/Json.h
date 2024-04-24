@@ -25,11 +25,22 @@ public:
     virtual std::string to_string(uint8_t tabultation_level) = 0;
 };
 
+class Array;
+class DoubleElement;
+class BoolElement;
+class StringElement;
+class JsonElement;
+class ArrayElement;
 struct Element {
     ValueType first;
     BaseElement* second;
 
     Element(ValueType type, BaseElement* ptr) : first(type), second(ptr) {}
+    double* getNum();
+    bool*   getBool();
+    std::string* getString();
+    Json*   getJson();
+    Array*  getArray();
 };
 
 // Упорядоченный список значений
@@ -165,7 +176,8 @@ public:
 };
 class BoolElement : BaseElement {
 public:
-    uint8_t value;
+//    uint8_t value;
+    bool value;
 
     BoolElement(){}
     BoolElement(const bool& b) : value(b){};

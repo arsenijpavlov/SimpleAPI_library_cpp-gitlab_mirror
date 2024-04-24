@@ -81,12 +81,17 @@ int main(int argc, char **argv) {
         Array aa;
         aa.push_back(j);
         aa.push_back(a);
+        Element el = aa[0];
+        double d = *(*el.getJson())["a"].getNum();
 
 //        std::cout << aa.to_string(tabLvl) << std::endl;
         Json jj;
         jj.put("aa", aa);
         jj.put("jjInt", (double)42);
         std::cout << jj.to_string(tabLvl) << std::endl;
+
+//        Element p = ((reinterpret_cast<ArrayElement*>)jj["aa"].second)->value[0];
+//        std::vector<int> d = jj.value<std::vector<int>>(1);
     }
 
     if(!writeFilePath.empty()) {
