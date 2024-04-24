@@ -22,7 +22,7 @@ static std::string ToString(const ValueType type);
 class Json;
 class BaseElement {
 public:
-    virtual std::string to_string(uint8_t tabultation_level) = 0;
+    virtual std::string to_string(int16_t tabultation_level) = 0;
 };
 
 class Array;
@@ -115,7 +115,7 @@ public:
     bool add(const std::string key, const Array& value)         { return this->put(key, value); };
 
     bool readFile(const std::string path);
-    bool writeFile(const std::string path);
+    bool writeFile(const std::string path, int16_t tabulation_level = 0);
 
     std::string to_string(int16_t tabulation_level = 0);
     size_t size()   { return values.size(); }
@@ -181,7 +181,7 @@ public:
 
     DoubleElement(){}
     DoubleElement(const double& d) : value(d){};
-    std::string to_string(uint8_t tabulation_level = 0)
+    std::string to_string(int16_t tabulation_level = 0)
         { return utils::ToString(value); }
 };
 class BoolElement : BaseElement {
@@ -191,7 +191,7 @@ public:
 
     BoolElement(){}
     BoolElement(const bool& b) : value(b){};
-    std::string to_string(uint8_t tabulation_level = 0)
+    std::string to_string(int16_t tabulation_level = 0)
         { return ((bool)value) ? "true" : "false"; }
 };
 class StringElement : BaseElement {
@@ -200,7 +200,7 @@ public:
 
     StringElement(){}
     StringElement(const std::string& s) : value(s){};
-    std::string to_string(uint8_t tabulation_level = 0)
+    std::string to_string(int16_t tabulation_level = 0)
         { return "\"" + value + "\""; }
 };
 class JsonElement : BaseElement {
@@ -209,7 +209,7 @@ public:
 
     JsonElement(){}
     JsonElement(const Json& j) : value(j){};
-    std::string to_string(uint8_t tabulation_level = 0)
+    std::string to_string(int16_t tabulation_level = 0)
         { return value.to_string(tabulation_level); }
 };
 class Array;
@@ -219,7 +219,7 @@ public:
 
     ArrayElement(){}
     ArrayElement(const Array& a) : value(a){};
-    std::string to_string(uint8_t tabulation_level = 0)
+    std::string to_string(int16_t tabulation_level = 0)
         { return value.to_string(tabulation_level); }
 };
 

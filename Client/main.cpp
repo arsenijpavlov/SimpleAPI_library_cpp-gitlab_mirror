@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
 
     if(!writeFilePath.empty()) {
         std::cout << "File for write: " << writeFilePath << std::endl;
-        ret = json.writeFile(writeFilePath);
+        ret = json.writeFile(writeFilePath, tabLvl);
         std::cout << "File is written: " << (ret ? "true" : "false") << std::endl;
     }
 

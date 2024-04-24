@@ -230,8 +230,7 @@ std::string Array::to_string(int16_t tabulation_level)
         if(!withoutSpaces) ret += " ";
     } else {
         if(!withoutSpaces) ret += "\n";
-        if(!withoutSpaces) tabulation_level++;
-        std::string tabs_str = !withoutSpaces ? utils::Tab(tabulation_level) : "";
+        std::string tabs_str = !withoutSpaces ? utils::Tab(++tabulation_level) : "";
 
         for(size_t i = 0; i < this->values.size(); i++) {
             if(!withoutSpaces) ret += tabs_str;
@@ -382,13 +381,13 @@ bool Json::readFile(const std::string path)
     return ParseJson(json_str, this);
 }
 
-bool Json::writeFile(const std::string path)
+bool Json::writeFile(const std::string path, int16_t tabulation_level)
 {
     std::ofstream file(path);
     if (!file.is_open())
         return false;
 
-    file << this->to_string() << std::endl;
+    file << this->to_string(tabulation_level) << std::endl;
 
     file.flush();
     file.close();
@@ -410,11 +409,9 @@ std::string Json::to_string(int16_t tabulation_level)
         ret += this->values[0].second.second->to_string(tabulation_level);
         if(!withoutSpaces) ret += " ";
     } else {
-        //FIXME: некорректно выводит список c параметром -tl -1
         if(!withoutSpaces) ret += "\n";
 
-        if(!withoutSpaces) tabulation_level++;
-        std::string tabs_str = !withoutSpaces ? utils::Tab(tabulation_level) : "";
+        std::string tabs_str = !withoutSpaces ? utils::Tab(++tabulation_level) : "";
 
         size_t i = 0;
         for(std::pair<std::string, Element>& el : this->values) {
@@ -428,8 +425,7 @@ std::string Json::to_string(int16_t tabulation_level)
             i++;
         }
 
-        if(!withoutSpaces) tabulation_level--;
-        if(!withoutSpaces) ret += utils::Tab(tabulation_level);
+        if(!withoutSpaces) ret += utils::Tab(--tabulation_level);
     }
 
     ret += "}"; //end of json
