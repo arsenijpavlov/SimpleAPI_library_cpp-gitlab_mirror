@@ -124,7 +124,7 @@ void Array::push_back(std::string string)
         ValueType::eString, reinterpret_cast<BaseElement*>(new StringElement(string))));
 }
 
-void Array::push_back(Json json)
+void Array::push_back(Json& json)
 {
     this->values.push_back(Element(
         ValueType::eJson, reinterpret_cast<BaseElement*>(new JsonElement(json))));
@@ -136,34 +136,36 @@ void Array::push_back(Array& array)
         ValueType::eArray, reinterpret_cast<BaseElement*>(new ArrayElement(array))));
 }
 
-/*
-void Array::push_front(const double d)
-{
-    this->values.push_back(ArrayElements(ValueType::eNumber, reinterpret_cast<BaseElement*>(new DoubleElement(d))));
-}
+//void Array::push_front(double d)
+//{
+//    this->values.push_back(Element(
+//        ValueType::eNumber, reinterpret_cast<BaseElement*>(new DoubleElement(d))));
+//}
 
-void Array::push_front(const bool b)
-{
-    this->values.push_back(ArrayElements(ValueType::eBool, reinterpret_cast<BaseElement*>(new BoolElement(b))));
-}
+//void Array::push_front(bool b)
+//{
+//    this->values.push_back(Element(
+//        ValueType::eBool, reinterpret_cast<BaseElement*>(new BoolElement(b))));
+//}
 
-void Array::push_front(const std::string string)
-{
-    this->values.push_back(ArrayElements(ValueType::eString, reinterpret_cast<BaseElement*>(new StringElement(string))));
-}
+//void Array::push_front(std::string string)
+//{
+//    this->values.push_back(Element(
+//        ValueType::eString, reinterpret_cast<BaseElement*>(new StringElement(string))));
+//}
 
-void Array::push_front(const Json json)
-{
-    Json *pJ = new Json(json);
-    this->values.push_back(ArrayElements(ValueType::eJson, reinterpret_cast<BaseElement*>(pJ)));
-}
+//void Array::push_front(Json& json)
+//{
+//    this->values.push_back(Element(
+//        ValueType::eJson, reinterpret_cast<BaseElement*>(new JsonElement(json))));
+//}
 
-void Array::push_front(const Array array)
-{
-    Array *pA = new Array(array);
-    this->values.push_back(ArrayElements(ValueType::eArray, reinterpret_cast<BaseElement*>(pA)));
-}
-*/
+//void Array::push_front(Array& array)
+//{
+//    this->values.push_back(Element(
+//        ValueType::eArray, reinterpret_cast<BaseElement*>(new ArrayElement(array))));
+//}
+
 
 ValueType Array::getType(size_t index)
 {
@@ -309,6 +311,7 @@ bool Json::put(const std::string key, const Json& value)
 
 bool Json::put(const std::string key, const Array& value)
 {
+    //TODO: экранирование спецсимволов, как минимум кавычек
     bool ret = true;
     this->values.push_back(std::pair<std::string, Element>(
         key,
@@ -480,7 +483,7 @@ bool CheckBool(std::string& value)
 
 bool CheckString(std::string& value)
 {
-    //TODO: экранирование строк при распаковке и упаковке
+    //TODO: экранирование строк при распаковке
 //    std::cout << "CheckString(): \"" << value << "\"" << std::endl;
     char ch = 0;
     std::string temp;

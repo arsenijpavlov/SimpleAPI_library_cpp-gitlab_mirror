@@ -24,8 +24,13 @@ class BaseElement {
 public:
     virtual std::string to_string(uint8_t tabultation_level) = 0;
 };
-//typedef std::pair<ValueType, BaseElement*> ArrayElements; //C
-using Element = std::pair<ValueType, BaseElement*>;   //C++
+
+struct Element {
+    ValueType first;
+    BaseElement* second;
+
+    Element(ValueType type, BaseElement* ptr) : first(type), second(ptr) {}
+};
 
 // Упорядоченный список значений
 class Array {
@@ -37,27 +42,37 @@ public:
     void push_back(double d);
     void push_back(bool b);
     void push_back(std::string string);
-    void push_back(Json json);
+    void push_back(Json& json);
     void push_back(Array& array);
-//TODO:    void push_front(const double d);
-//TODO:    void push_front(const bool b);
-//TODO:    void push_front(const std::string string);
-//TODO:    void push_front(const Json json);
-//TODO:    void push_front(const Array array);
+
+//TODO:    void push_front(double d);
+//TODO:    void push_front(bool b);
+//TODO:    void push_front(std::string string);
+//TODO:    void push_front(Json& json);
+//TODO:    void push_front(Array& array);
+
     ValueType getType(size_t index);
     ValueType getTypeFront(size_t index)    { return getType(0); }
     ValueType getTypeBack(size_t index)     { return getType(this->values.size() - 1); }
+
     void* getAt(size_t index);
     void* getFront()                        { return getAt(0); }
     void* getBack()                         { return getAt(this->values.size() - 1); }
+
 //TODO:    void popFront()
     void popBack()                          { this->values.pop_back(); }
+
     std::string to_string(int16_t tabulation_level = 0);
     size_t size() { return values.size(); }
 
-    template <typename T, typename = std::enable_if<std::is_base_of<BaseElement, T>::type>>
-    T* operator[](size_t index) {
-        return reinterpret_cast<T*>(this->values[index].second);
+//    template <typename T, typename = std::enable_if<std::is_base_of<BaseElement, T>::type>>
+//    T* operator[](size_t index) {
+//        return reinterpret_cast<T*>(this->values[index].second);
+//    }
+    Element operator[](const size_t index) {
+        return Element(
+            this->values[index].first,
+            this->values[index].second);
     }
 };
 
@@ -94,7 +109,40 @@ public:
                     const { return values.begin(); };
     std::vector<std::pair<std::string, Element>>::const_iterator cend()
                     const { return values.end(); };
-//TODO:    void* operator[](size_t index);
+
+//    template <typename T>
+//    T value(const size_t index) {
+//        //TODO: exception for index
+//        return reinterpret_cast<T>(this->values[index].second.second);
+//    }
+//    template <typename T>
+//    T value(const std::string name) {
+//        //TODO: exception for index
+//        for(size_t i = 0; i < this->values.size(); i++) {
+//            if(this->values[i].first == name)
+//                return reinterpret_cast<T>(this->values[i].second.second);
+//        }
+//        return nullptr;
+//    }
+//    Element value(const size_t index) {
+//        return std::make_pair(
+//            this->values[index].second.first,
+//            this->values[index].second.second);
+//    }
+    Element operator[](const size_t index) {
+        return Element(
+            this->values[index].second.first,
+            this->values[index].second.second);
+    }
+    Element operator[](std::string name) {
+        for(size_t i = 0; i < this->values.size(); i++) {
+            if(this->values[i].first == name)
+                return Element(
+                    this->values[i].second.first,
+                    this->values[i].second.second);
+        }
+        return Element(ValueType::eNull, nullptr);
+    }
 };
 
 static ValueType CheckValue(std::string& value);
