@@ -192,25 +192,7 @@ public:
     //TODO: многосоставные (вложенные) элементы
     // "a.ab.abc"
     // "a.1.abc.4" сначала поиск по названиям, потом по индексам
-    Element operator[](std::vector<std::string> complex_name) {
-        if(this->values.empty()) return {};
-
-        Element el = (*this)[complex_name[0]]; //находим первый элемент списка
-        std::vector<std::string>::iterator it = complex_name.begin() + 1; //первый элемент пропускаем
-        while (el.first != ValueType::eNull && it != complex_name.end()) {
-            if(el.first != ValueType::eJson || el.first != ValueType::eArray)
-                return {}; //продолжать поиск можно только по двум структурам!
-
-            std::string str = *it;
-            //строка - число?
-            if(utils::IsNumber(str, false))
-
-            el = el.second[it];
-            it++;
-
-        }
-        return el;
-    }
+    Element operator[](std::vector<std::string> complex_name);
 };
 
 static ValueType CheckValue(std::string& value);
