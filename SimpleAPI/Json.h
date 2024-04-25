@@ -35,6 +35,7 @@ struct Element {
     ValueType first;
     BaseElement* second;
 
+    Element() : first(ValueType::eNull), second(nullptr) {}
     Element(ValueType type, BaseElement* ptr) : first(type), second(ptr) {}
     double* getNum();
     bool*   getBool();
@@ -46,6 +47,14 @@ struct Element {
 // Упорядоченный список значений
 class Array {
     std::vector<Element> values;
+
+    bool checkIndexes(const size_t index) {
+        if(index > values.size() - 1) {
+            throw "Going beyond Array boundaries";
+            return false;
+        }
+        return true;
+    }
 public:
     Array(){};
     Array(const Array& array);
@@ -81,16 +90,14 @@ public:
 //        return reinterpret_cast<T*>(this->values[index].second);
 //    }
     Element value(const size_t index) {
-        //TODO: exception для выхода из диапазона
-        return Element(
-            this->values[index].first,
-            this->values[index].second);
+        if(!checkIndexes(index))
+            return {};
+        return Element(this->values[index].first, this->values[index].second);
     }
     Element operator[](const size_t index) {
-        //TODO: exception для выхода из диапазона
-        return Element(
-            this->values[index].first,
-            this->values[index].second);
+        if(!checkIndexes(index))
+            return {};
+        return Element(this->values[index].first, this->values[index].second);
     }
 };
 
@@ -98,6 +105,14 @@ public:
 class Json
 {
     std::vector<std::pair<std::string, Element>> values;
+
+    bool checkIndexes(const size_t index) {
+        if(index > values.size() - 1) {
+            throw "Going beyond Json boundaries";
+            return false;
+        }
+        return true;
+    }
 public:
     Json(){};
     Json(const Json& json);
@@ -108,11 +123,11 @@ public:
     bool put(const std::string key, const Json& value);
     bool put(const std::string key, const Array& value);
 
-    bool add(const std::string key, const std::string value)    { return this->put(key, value); };
-    bool add(const std::string key, const bool value)           { return this->put(key, value); };
-    bool add(const std::string key, const double value)         { return this->put(key, value); };
-    bool add(const std::string key, const Json& value)          { return this->put(key, value); };
-    bool add(const std::string key, const Array& value)         { return this->put(key, value); };
+    bool add(const std::string key, const std::string value){ return this->put(key, value); };
+    bool add(const std::string key, const bool value)       { return this->put(key, value); };
+    bool add(const std::string key, const double value)     { return this->put(key, value); };
+    bool add(const std::string key, const Json& value)      { return this->put(key, value); };
+    bool add(const std::string key, const Array& value)     { return this->put(key, value); };
 
     bool readFile(const std::string path);
     bool writeFile(const std::string path, int16_t tabulation_level = 0);
@@ -128,6 +143,12 @@ public:
     std::vector<std::pair<std::string, Element>>::const_iterator cend()
                     const { return values.end(); };
 
+
+//    template <typename T, typename = std::enable_if<std::is_same<DoubleElement, T>::type>>
+//    template <typename T, typename = std::enable_if<std::is_same<StringElement, T>::type>>
+//    T value(const size_t index)
+//    {
+//    }
 //    template <typename T, typename = std::enable_if<std::is_base_of<BaseElement, T>::type>>
 //    T value(const size_t index) {
 //    //TODO: exception для выхода из диапазона
@@ -143,26 +164,23 @@ public:
 //        return nullptr;
 //    }
     Element value(const size_t index) {
-        //TODO: exception для выхода из диапазона
-        return Element(
-            this->values[index].second.first,
-            this->values[index].second.second);
+        if(!checkIndexes(index))
+            return {};
+        return Element(this->values[index].second.first, this->values[index].second.second);
     }
     Element operator[](const size_t index) {
-        //TODO: exception для выхода из диапазона
-        return Element(
-            this->values[index].second.first,
-            this->values[index].second.second);
+        if(!checkIndexes(index))
+            return {};
+        return Element(this->values[index].second.first, this->values[index].second.second);
     }
     Element operator[](std::string name) { //TODO: многосоставные (вложенные) элементы
-        //TODO: exception для выхода из диапазона
         for(size_t i = 0; i < this->values.size(); i++) {
             if(this->values[i].first == name)
                 return Element(
                     this->values[i].second.first,
                     this->values[i].second.second);
         }
-        return Element(ValueType::eNull, nullptr);
+        return {};
     }
 };
 
