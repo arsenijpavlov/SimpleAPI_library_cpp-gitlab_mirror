@@ -49,7 +49,7 @@ class Array {
     std::vector<Element> values;
 
     bool checkIndexes(const size_t index) {
-        if(index > values.size() - 1) {
+        if(index + 1 > values.size()) {
             throw "Going beyond Array boundaries";
             return false;
         }
@@ -90,13 +90,15 @@ public:
 //        return reinterpret_cast<T*>(this->values[index].second);
 //    }
     Element value(const size_t index) {
-        if(!checkIndexes(index))
-            return {};
+        if(this->values.empty()) return {};
+        if(!checkIndexes(index)) return {};
+
         return Element(this->values[index].first, this->values[index].second);
     }
     Element operator[](const size_t index) {
-        if(!checkIndexes(index))
-            return {};
+        if(this->values.empty()) return {};
+        if(!checkIndexes(index)) return {};
+
         return Element(this->values[index].first, this->values[index].second);
     }
 };
@@ -107,7 +109,7 @@ class Json
     std::vector<std::pair<std::string, Element>> values;
 
     bool checkIndexes(const size_t index) {
-        if(index > values.size() - 1) {
+        if(index + 1 > values.size()) {
             throw "Going beyond Json boundaries";
             return false;
         }
@@ -165,16 +167,20 @@ public:
 //        return nullptr;
 //    }
     Element value(const size_t index) {
-        if(!checkIndexes(index))
-            return {};
+        if(this->values.empty()) return {};
+        if(!checkIndexes(index)) return {};
+
         return Element(this->values[index].second.first, this->values[index].second.second);
     }
     Element operator[](const size_t index) {
-        if(!checkIndexes(index))
-            return {};
+        if(this->values.empty()) return {};
+        if(!checkIndexes(index)) return {};
+
         return Element(this->values[index].second.first, this->values[index].second.second);
     }
-    Element operator[](std::string name) { //TODO: многосоставные (вложенные) элементы
+    Element operator[](std::string name) {
+        if(this->values.empty()) return {};
+
         for(size_t i = 0; i < this->values.size(); i++) {
             if(this->values[i].first == name)
                 return Element(
@@ -182,6 +188,28 @@ public:
                     this->values[i].second.second);
         }
         return {};
+    }
+    //TODO: многосоставные (вложенные) элементы
+    // "a.ab.abc"
+    // "a.1.abc.4" сначала поиск по названиям, потом по индексам
+    Element operator[](std::vector<std::string> complex_name) {
+        if(this->values.empty()) return {};
+
+        Element el = (*this)[complex_name[0]]; //находим первый элемент списка
+        std::vector<std::string>::iterator it = complex_name.begin() + 1; //первый элемент пропускаем
+        while (el.first != ValueType::eNull && it != complex_name.end()) {
+            if(el.first != ValueType::eJson || el.first != ValueType::eArray)
+                return {}; //продолжать поиск можно только по двум структурам!
+
+            std::string str = *it;
+            //строка - число?
+            if(utils::IsNumber(str, false))
+
+            el = el.second[it];
+            it++;
+
+        }
+        return el;
     }
 };
 

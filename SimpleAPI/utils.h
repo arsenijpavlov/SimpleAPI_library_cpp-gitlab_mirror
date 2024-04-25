@@ -6,8 +6,8 @@
 
 namespace utils {
 
-bool IsNumber(const std::string& str);
-bool IsNumber(const char ch);
+bool IsNumber(const std::string& str, bool use_point = true);
+bool IsNumber(const char ch, bool use_point = true);
 inline std::string Tab(uint8_t tabs_counter) {
     std::string ret = "";
     for(uint8_t i = 0; i < tabs_counter; i++)

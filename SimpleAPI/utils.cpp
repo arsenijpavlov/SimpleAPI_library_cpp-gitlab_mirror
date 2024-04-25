@@ -2,15 +2,15 @@
 
 #include <iostream>
 
-bool utils::IsNumber(const std::string &str)
+bool utils::IsNumber(const std::string &str, bool use_point)
 {
     for(int i = 0; i < str.size(); i++) {
-        if(!IsNumber(str[i])) return false;
+        if(!IsNumber(str[i], use_point)) return false;
     }
     return true;
 }
-bool utils::IsNumber(const char ch) {
-    return (std::isdigit(ch) || (ch == '.'));
+bool utils::IsNumber(const char ch, bool use_point) {
+    return (std::isdigit(ch) || (use_point && (ch == '.')));
 }
 
 void utils::RemoveComments(std::string& str, bool& startComment, char& quote)

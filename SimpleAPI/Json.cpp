@@ -431,6 +431,37 @@ std::string Json::to_string(int16_t tabulation_level)
     ret += "}"; //end of json
     return ret;
 }
+
+Element Json::operator[](std::vector<std::string> complex_name) {
+    if(this->values.empty()) return {};
+
+    Element el = (*this)[complex_name[0]]; //находим первый элемент списка
+    std::vector<std::string>::iterator it = complex_name.begin() + 1; //первый элемент пропускаем
+    while (el.first != ValueType::eNull && it != complex_name.end()) {
+        bool isNumber = utils::IsNumber(*it, false);
+        switch(el.first) {
+        case eJson:
+            el = (reinterpret_cast<JsonElement*>(el.second))->value[*it];
+            if(el.first == ValueType::eNull && isNumber)
+                el = (reinterpret_cast<JsonElement*>(el.second))->value[stoi(*it)];
+            else
+                el = {};
+            break;
+        case eArray:
+            //для массива возможно обращение только по числовому индексу!
+            if(isNumber)
+                el = (reinterpret_cast<ArrayElement*>(el.second))->value[stoi(*it)];
+            else
+                el = {};
+            break;
+        default: return {}; //продолжать поиск можно только по двум структурам!
+        }
+
+        it++;
+
+    }
+    return el;
+}
 /// Json
 
 //STATIC:
