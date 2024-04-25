@@ -143,7 +143,6 @@ public:
     std::vector<std::pair<std::string, Element>>::const_iterator cend()
                     const { return values.end(); };
 
-
 //    template <typename T, typename = std::enable_if<std::is_same<DoubleElement, T>::type>>
 //    template <typename T, typename = std::enable_if<std::is_same<StringElement, T>::type>>
 //    T value(const size_t index)
@@ -151,12 +150,14 @@ public:
 //    }
 //    template <typename T, typename = std::enable_if<std::is_base_of<BaseElement, T>::type>>
 //    T value(const size_t index) {
-//    //TODO: exception для выхода из диапазона
+//        if(!checkIndexes(index))
+//            return {};
 //        return reinterpret_cast<T>(this->values[index].second.second);
 //    }
 //    template <typename T, typename = std::enable_if<std::is_base_of<BaseElement, T>::type>>
 //    T value(const std::string name) {
-//    //TODO: exception для выхода из диапазона
+//        if(!checkIndexes(index))
+//            return {};
 //        for(size_t i = 0; i < this->values.size(); i++) {
 //            if(this->values[i].first == name)
 //                return reinterpret_cast<T>(this->values[i].second.second);
