@@ -85,6 +85,7 @@ int main(int argc, char **argv) {
         j.put("a", (double)156);
         j.put("b", true);
 //        std::cout << j.to_string(tabLvl) << std::endl;
+//        double* dd = j.value<double>(0);
 
         Array ja;
         ja.push_back(j);
@@ -109,8 +110,10 @@ int main(int argc, char **argv) {
         Json jj;
         jj.put("aa", aa);
         jj.put("jjInt", (double)42);
+        jj.put("jjString", "asde");
         std::cout << jj.to_string(tabLvl) << std::endl;
-//WARNING:        double dd = j<double>(0); does not worked
+
+        std::cout << "val: " << jj.value<std::string>("jjString") << std::endl;
     }
 
     if(!writeFilePath.empty()) {

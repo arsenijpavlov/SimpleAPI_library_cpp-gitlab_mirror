@@ -75,9 +75,9 @@ public:
     ValueType getTypeFront(size_t index)    { return getType(0); }
     ValueType getTypeBack(size_t index)     { return getType(this->values.size() - 1); }
 
-    void* getAt(size_t index);
-    void* getFront()                        { return getAt(0); }
-    void* getBack()                         { return getAt(this->values.size() - 1); }
+    Element getAt(size_t index)             { return this->values[index]; }
+    Element getFront()                      { return this->values.front(); }
+    Element getBack()                       { return this->values.back(); }
 
 //TODO:    void popFront()
     void popBack()                          { this->values.pop_back(); }
@@ -85,10 +85,38 @@ public:
     std::string to_string(int16_t tabulation_level = 0);
     size_t size() { return values.size(); }
 
-//    template <typename T, typename = std::enable_if<std::is_base_of<BaseElement, T>::type>>
-//    T* operator[](size_t index) {
-//        return reinterpret_cast<T*>(this->values[index].second);
-//    }
+    template <typename T> T *value(const size_t index) { return nullptr; }
+    template<> double *value(const size_t index) {
+        if(this->values.empty()) return nullptr;
+        if(!checkIndexes(index)) return nullptr;
+
+        return this->values[index].getNum();
+    }
+    template<> bool *value(const size_t index) {
+        if(this->values.empty()) return nullptr;
+        if(!checkIndexes(index)) return nullptr;
+
+        return this->values[index].getBool();
+    }
+    template<> std::string *value(const size_t index) {
+        if(this->values.empty()) return nullptr;
+        if(!checkIndexes(index)) return nullptr;
+
+        return this->values[index].getString();
+    }
+    template<> Json *value(const size_t index) {
+        if(this->values.empty()) return nullptr;
+        if(!checkIndexes(index)) return nullptr;
+
+        return this->values[index].getJson();
+    }
+    template<> Array *value(const size_t index) {
+        if(this->values.empty()) return nullptr;
+        if(!checkIndexes(index)) return nullptr;
+
+        return this->values[index].getArray();
+    }
+
     Element value(const size_t index) {
         if(this->values.empty()) return {};
         if(!checkIndexes(index)) return {};
@@ -145,27 +173,48 @@ public:
     std::vector<std::pair<std::string, Element>>::const_iterator cend()
                     const { return values.end(); };
 
-//    template <typename T, typename = std::enable_if<std::is_same<DoubleElement, T>::type>>
-//    template <typename T, typename = std::enable_if<std::is_same<StringElement, T>::type>>
-//    T value(const size_t index)
-//    {
-//    }
-//    template <typename T, typename = std::enable_if<std::is_base_of<BaseElement, T>::type>>
-//    T value(const size_t index) {
-//        if(!checkIndexes(index))
-//            return {};
-//        return reinterpret_cast<T>(this->values[index].second.second);
-//    }
-//    template <typename T, typename = std::enable_if<std::is_base_of<BaseElement, T>::type>>
-//    T value(const std::string name) {
-//        if(!checkIndexes(index))
-//            return {};
-//        for(size_t i = 0; i < this->values.size(); i++) {
-//            if(this->values[i].first == name)
-//                return reinterpret_cast<T>(this->values[i].second.second);
-//        }
-//        return nullptr;
-//    }
+    template<typename T> T *value(const std::string name) { return nullptr; }
+    template<> double *value(const std::string name) {
+        if(this->values.empty()) return nullptr;
+
+        for(size_t i = 0; i < this->values.size(); i++)
+            if(this->values[i].first == name)
+                return this->values[i].second.getNum();
+        return nullptr;
+    }
+    template<> bool *value(const std::string name) {
+        if(this->values.empty()) return nullptr;
+
+        for(size_t i = 0; i < this->values.size(); i++)
+            if(this->values[i].first == name)
+                return this->values[i].second.getBool();
+        return nullptr;
+    }
+    template<> std::string *value(const std::string name) {
+        if(this->values.empty()) return nullptr;
+
+        for(size_t i = 0; i < this->values.size(); i++)
+            if(this->values[i].first == name)
+                return this->values[i].second.getString();
+        return nullptr;
+    }
+    template<> Json *value(const std::string name) {
+        if(this->values.empty()) return nullptr;
+
+        for(size_t i = 0; i < this->values.size(); i++)
+            if(this->values[i].first == name)
+                return this->values[i].second.getJson();
+        return nullptr;
+    }
+    template<> Array *value(const std::string name) {
+        if(this->values.empty()) return nullptr;
+
+        for(size_t i = 0; i < this->values.size(); i++)
+            if(this->values[i].first == name)
+                return this->values[i].second.getArray();
+        return nullptr;
+    }
+
     Element value(const size_t index) {
         if(this->values.empty()) return {};
         if(!checkIndexes(index)) return {};
