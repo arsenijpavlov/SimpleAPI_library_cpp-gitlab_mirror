@@ -205,17 +205,6 @@ void Array::push_back(Array& array)
 //        ValueType::eArray, reinterpret_cast<BaseElement*>(new ArrayElement(array))));
 //}
 
-
-ValueType Array::getType(size_t index)
-{
-    return this->values[index].first;
-}
-
-void* Array::getAt(size_t index)
-{
-    return this->values[index].second;
-}
-
 std::string Array::to_string(int16_t tabulation_level)
 {
     if(this->values.empty()) return "[]";

@@ -96,6 +96,7 @@ int main(int argc, char **argv) {
         a.push_back(15.0);
         a.push_back(ja);
 //        std::cout << a.to_string(tabLvl) << std::endl;
+//        *a.value<double>(0) = 21;
 
 
         Array aa;
@@ -104,16 +105,17 @@ int main(int argc, char **argv) {
 //        std::cout << aa.to_string(tabLvl) << std::endl;
 
         Element el = aa[0];
+
         double& d = *(*el.getJson())["a"].getNum();
         std::cout << "aa.j.a: (double)" << d << std::endl;
 
         Json jj;
         jj.put("aa", aa);
         jj.put("jjInt", (double)42);
-        jj.put("jjString", "asde");
+        jj.put("jjString", "asde"); //FIXME: воспринимает как BOOL
         std::cout << jj.to_string(tabLvl) << std::endl;
 
-        std::cout << "val: " << jj.value<std::string>("jjString") << std::endl;
+        std::cout << "val: " << jj.value<std::string*>("jjString") << std::endl;
     }
 
     if(!writeFilePath.empty()) {
