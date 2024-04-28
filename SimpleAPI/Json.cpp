@@ -500,7 +500,7 @@ ValueType CheckValue(std::string& value)
             if(vType == ValueType::eNull) {
                 if(utils::IsNumber(value[i]))
                     vType = ValueType::eNumber;
-                else if(value[i] == '"' || value[i] == '\'')
+                else if(value[i] == '"')
                     vType = ValueType::eString;
                 else if(value[i] == '{')
                     vType = ValueType::eJson;
@@ -571,9 +571,8 @@ bool CheckBool(std::string& value)
 
 bool CheckString(std::string& value)
 {
-    //TODO: проверить строки с обрамлением одинарными кавычками
     /* TODO: экранирование строк при распаковке
-     *  skip \" \\ \'
+     *  skip \" \\
      */
 //    std::cout << "CheckString(): \"" << value << "\"" << std::endl;
     char ch = 0;
@@ -592,7 +591,7 @@ bool CheckString(std::string& value)
                     return false;
                 }
             }
-        } else if(utils::CharsInString(value[i], "\"'"))
+        } else if(value[i] == '"')
             ch = value[i];
     }
 
@@ -611,7 +610,7 @@ bool CheckJson(std::string& value)
     uint32_t innerLvlQBrace = 0;
     for(size_t i = 0; i < value.length(); i++) {
         if(ch != 0) { //начинаем запись слова
-            if(utils::CharsInString(value[i], "\"'")) {
+            if(value[i] == '"') {
                 if(innerWord == 0)              innerWord = value[i];
                 else if(value[i] == innerWord)  innerWord = 0;
             }
@@ -662,7 +661,7 @@ bool CheckArray(std::string& value)
     uint32_t innerLvlQBrace = 0;
     for(size_t i = 0; i < value.length(); i++) {
         if(ch != 0) { //начинаем запись слова
-            if(utils::CharsInString(value[i], "\"'")) {
+            if(value[i] == '"') {
                 if(innerWord == 0)              innerWord = value[i];
                 else if(value[i] == innerWord)  innerWord = 0;
             }
