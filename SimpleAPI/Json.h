@@ -85,6 +85,7 @@ public:
     std::string to_string(int16_t tabulation_level = 0);
     size_t size() { return values.size(); }
 
+    /* DEPRECATED functions, not actual
     template <typename T> T *value(const size_t index) { return nullptr; }
     template<double*> double *value(const size_t index) {
         if(this->values.empty()) return nullptr;
@@ -116,19 +117,17 @@ public:
 
         return this->values[index].getArray();
     }
+    */
 
-//    Element value(const size_t index) {
-//        if(this->values.empty()) return {};
-//        if(!checkIndexes(index)) return {};
-
-//        return Element(this->values[index].first, this->values[index].second);
-//    }
     Element operator[](const size_t index) {
         if(this->values.empty()) return {};
         if(!checkIndexes(index)) return {};
 
         return Element(this->values[index].first, this->values[index].second);
     }
+    Element operator[](std::vector<std::string> complex_name);
+    Element value(const size_t index)                       { return (*this)[index]; }
+    Element value(std::vector<std::string> complex_name)    { return (*this)[complex_name]; }
 };
 
 // Неупорядоченный список "ключ-значение"
@@ -150,14 +149,16 @@ public:
     bool put(const std::string key, const double value);
     bool put(const std::string key, const bool value);
     bool put(const std::string key, const std::string value);
+    bool put(const std::string key, const char* value)      { return this->put(key, std::string(value)); }
     bool put(const std::string key, const Json& value);
     bool put(const std::string key, const Array& value);
 
-    bool add(const std::string key, const std::string value){ return this->put(key, value); };
-    bool add(const std::string key, const bool value)       { return this->put(key, value); };
-    bool add(const std::string key, const double value)     { return this->put(key, value); };
-    bool add(const std::string key, const Json& value)      { return this->put(key, value); };
-    bool add(const std::string key, const Array& value)     { return this->put(key, value); };
+    bool add(const std::string key, const double value)     { return this->put(key, value); }
+    bool add(const std::string key, const bool value)       { return this->put(key, value); }
+    bool add(const std::string key, const std::string value){ return this->put(key, value); }
+    bool add(const std::string key, const char* value)      { return this->put(key, value); }
+    bool add(const std::string key, const Json& value)      { return this->put(key, value); }
+    bool add(const std::string key, const Array& value)     { return this->put(key, value); }
 
     bool readFile(const std::string path);
     bool writeFile(const std::string path, int16_t tabulation_level = 0);
@@ -173,6 +174,7 @@ public:
     std::vector<std::pair<std::string, Element>>::const_iterator cend()
                     const { return values.end(); };
 
+    /* DEPRECATED functions, not actual
     template<typename T> T *value(const std::string name) { return nullptr; }
     template<double*> double *value(const std::string name) {
         if(this->values.empty()) return nullptr;
@@ -226,7 +228,6 @@ public:
 
         return this->values[index].second.getBool();
     }
-//    template<> std::string *value<std::string>(const size_t index)
     template<std::string*> std::string *value(const size_t index)
     {
         if(this->values.empty()) return nullptr;
@@ -243,14 +244,8 @@ public:
 
         return this->values[index].second.getArray();
     }
+    */
 
-
-//    Element value(const size_t index) {
-//        if(this->values.empty()) return {};
-//        if(!checkIndexes(index)) return {};
-
-//        return Element(this->values[index].second.first, this->values[index].second.second);
-//    }
     Element operator[](const size_t index) {
         if(this->values.empty()) return {};
         if(!checkIndexes(index)) return {};
@@ -260,18 +255,17 @@ public:
     Element operator[](std::string name) {
         if(this->values.empty()) return {};
 
-        for(size_t i = 0; i < this->values.size(); i++) {
+        for(size_t i = 0; i < this->values.size(); i++)
             if(this->values[i].first == name)
                 return Element(
                     this->values[i].second.first,
                     this->values[i].second.second);
-        }
         return {};
     }
-    //TODO: многосоставные (вложенные) элементы
-    // "a.ab.abc"
-    // "a.1.abc.4" сначала поиск по названиям, потом по индексам
     Element operator[](std::vector<std::string> complex_name);
+    Element value(const size_t index)                       { return (*this)[index]; }
+    Element value(std::string name)                         { return (*this)[name]; }
+    Element value(std::vector<std::string> complex_name)    { return (*this)[complex_name]; }
 };
 
 static ValueType CheckValue(std::string& value);

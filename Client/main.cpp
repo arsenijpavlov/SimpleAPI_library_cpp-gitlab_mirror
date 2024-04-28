@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
         Json j;
         j.put("a", (double)156);
         j.put("b", true);
-//        std::cout << j.to_string(tabLvl) << std::endl;
+        std::cout << j.to_string(tabLvl) << std::endl;
 //        double* dd = j.value<double>(0);
 
         Array ja;
@@ -102,20 +102,29 @@ int main(int argc, char **argv) {
         Array aa;
         aa.push_back(j);
         aa.push_back(a);
-//        std::cout << aa.to_string(tabLvl) << std::endl;
+        std::cout << aa.to_string(tabLvl) << std::endl;
 
         Element el = aa[0];
 
-        double& d = *(*el.getJson())["a"].getNum();
-        std::cout << "aa.j.a: (double)" << d << std::endl;
+        double* d = (*el.getJson())
+                        ["a"]
+                            .getNum();
+        std::cout << "aa.j.a: (double)" << *d << std::endl;
 
         Json jj;
         jj.put("aa", aa);
         jj.put("jjInt", (double)42);
-        jj.put("jjString", "asde"); //FIXME: воспринимает как BOOL
+        jj.put("jjString", "asde");
         std::cout << jj.to_string(tabLvl) << std::endl;
 
-        std::cout << "val: " << jj.value<std::string*>("jjString") << std::endl;
+        //тест для каскада вложенных значений с одним get'тером
+        std::vector<std::string> index;
+        index.push_back("aa");  //array
+        index.push_back("0");   //json
+        index.push_back("a");   //array
+        Element ee = jj[index];
+        double dddd = *ee.getNum();
+        std::cout << std::endl << dddd << std::endl;
     }
 
     if(!writeFilePath.empty()) {
