@@ -57,7 +57,7 @@ std::string ToString(const ValueType type) {
 }
 
 
-//ELEMENT
+// struct Element
 double* Element::getNum()
 {
     if(first == ValueType::eNumber)
@@ -92,7 +92,7 @@ Array* Element::getArray()
         return &reinterpret_cast<ArrayElement*>(this->second)->value;
     else return nullptr;
 }
-///ELEMENT
+/// struct Element
 
 
 //ARRAY
@@ -143,7 +143,6 @@ Array::~Array()
         }
     }
 }
-
 
 void Array::push_back(double d)
 {
@@ -256,8 +255,7 @@ Element Array::operator[](std::vector<std::string> complex_name) {
             }
             break;
         case eArray:
-            //для массива возможно обращение только по числовому индексу!
-            if(isNumber)
+            if(isNumber) //для массива возможно обращение только по числовому индексу!
                 el = (reinterpret_cast<ArrayElement*>(el.second))->value[stoi(*it)];
             else
                 el = {};
@@ -268,7 +266,7 @@ Element Array::operator[](std::vector<std::string> complex_name) {
 
     return el;
 }
-///ARRAY
+/// class Array
 
 // Json
 Json::Json(const Json& json)
@@ -453,6 +451,24 @@ std::string Json::to_string(int16_t tabulation_level)
     return ret;
 }
 
+Element Json::operator[](const size_t index) {
+    if(this->values.empty()) return {};
+    if(!checkIndexes(index)) return {};
+
+    return Element(this->values[index].second.first, this->values[index].second.second);
+}
+
+Element Json::operator[](std::string name) {
+    if(this->values.empty()) return {};
+
+    for(size_t i = 0; i < this->values.size(); i++)
+        if(this->values[i].first == name)
+            return Element(
+                this->values[i].second.first,
+                this->values[i].second.second);
+    return {};
+}
+
 Element Json::operator[](std::vector<std::string> complex_name) {
     if(this->values.empty()) return {};
 
@@ -483,7 +499,7 @@ Element Json::operator[](std::vector<std::string> complex_name) {
 
     return el;
 }
-/// Json
+/// class Json
 
 //STATIC:
 ValueType CheckValue(std::string& value)
@@ -822,9 +838,10 @@ bool ParseJson(const std::string& json_str, Json* json)
                 default: break;
                 }
 
-                //обнуление временных переменных, переход к следующему элементу
 //                std::cout << "Json key: \"" << key << "\""
 //                          << ", value: \"" << value << "\"" << std::endl;
+
+                //обнуление временных переменных, переход к следующему элементу
                 key = "";
                 value = "";
                 ChangeNextState(state, NextReadState::eComma);
@@ -973,8 +990,9 @@ bool ParseArray(const std::string& array_str, Array* array)
                 default: break;
                 }
 
-                //обнуление временных переменных, переход к следующему элементу
 //                std::cout << "Array value: \"" << value << "\"" << std::endl;
+
+                //обнуление временных переменных, переход к следующему элементу
                 value = "";
                 ChangeNextState(state, NextReadState::eComma);
             }

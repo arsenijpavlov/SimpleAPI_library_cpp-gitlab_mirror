@@ -59,6 +59,7 @@ public:
     Array(){};
     Array(const Array& array);
     ~Array();
+
     void push_back(double d);
     void push_back(bool b);
     void push_back(std::string string);
@@ -79,46 +80,12 @@ public:
     Element getFront()                      { return this->values.front(); }
     Element getBack()                       { return this->values.back(); }
 
-//TODO:    void popFront()
     void popBack()                          { this->values.pop_back(); }
+    void clear()                            { this->values.clear(); }
 
     std::string to_string(int16_t tabulation_level = 0);
     size_t size() { return values.size(); }
-
-    /* DEPRECATED functions, not actual
-    template <typename T> T *value(const size_t index) { return nullptr; }
-    template<double*> double *value(const size_t index) {
-        if(this->values.empty()) return nullptr;
-        if(!checkIndexes(index)) return nullptr;
-
-        return this->values[index].getNum();
-    }
-    template<bool*> bool *value(const size_t index) {
-        if(this->values.empty()) return nullptr;
-        if(!checkIndexes(index)) return nullptr;
-
-        return this->values[index].getBool();
-    }
-    template<std::string*> std::string *value(const size_t index) {
-        if(this->values.empty()) return nullptr;
-        if(!checkIndexes(index)) return nullptr;
-
-        return this->values[index].getString();
-    }
-    template<Json*> Json *value(const size_t index) {
-        if(this->values.empty()) return nullptr;
-        if(!checkIndexes(index)) return nullptr;
-
-        return this->values[index].getJson();
-    }
-    template<Array*> Array *value(const size_t index) {
-        if(this->values.empty()) return nullptr;
-        if(!checkIndexes(index)) return nullptr;
-
-        return this->values[index].getArray();
-    }
-    */
-
+    \
     Element operator[](const size_t index) {
         if(this->values.empty()) return {};
         if(!checkIndexes(index)) return {};
@@ -126,9 +93,27 @@ public:
         return Element(this->values[index].first, this->values[index].second);
     }
     Element operator[](std::vector<std::string> complex_name);
-    Element value(const size_t index)                       { return (*this)[index]; }
-    Element value(std::vector<std::string> complex_name)    { return (*this)[complex_name]; }
-};
+    Element value(const size_t index)                   { return (*this)[index]; }
+    Element value(std::vector<std::string> complex_name){ return (*this)[complex_name]; }
+
+    std::vector<Element>::iterator begin()              { return values.begin(); }
+    std::vector<Element>::iterator end()                { return values.end(); }
+    std::vector<Element>::const_iterator cbegin() const { return values.begin(); }
+    std::vector<Element>::const_iterator cend()   const { return values.end(); }
+
+//TODO:    void insert(size_t index, double value)
+//TODO:    void insert(size_t index, bool value)
+//TODO:    void insert(size_t index, std::string value)
+//TODO:    void insert(size_t index, char* value)
+//TODO:    void insert(size_t index, Json value)
+//TODO:    void insert(size_t index, Array value)
+//TODO:    insert(iterator, ...)
+//TODO:    insert(iterator, std::vector<Element>{...})
+
+//TODO:    void erase(size_t index)
+//TODO:    void erase(iterator)
+//TODO:    void erase(begin, end)
+}; /// class Array
 
 // Неупорядоченный список "ключ-значение"
 class Json
@@ -174,99 +159,32 @@ public:
     std::vector<std::pair<std::string, Element>>::const_iterator cend()
                     const { return values.end(); };
 
-    /* DEPRECATED functions, not actual
-    template<typename T> T *value(const std::string name) { return nullptr; }
-    template<double*> double *value(const std::string name) {
-        if(this->values.empty()) return nullptr;
-
-        for(size_t i = 0; i < this->values.size(); i++)
-            if(this->values[i].first == name)
-                return this->values[i].second.getNum();
-        return nullptr;
-    }
-    template<bool*> bool *value(const std::string name) {
-        if(this->values.empty()) return nullptr;
-
-        for(size_t i = 0; i < this->values.size(); i++)
-            if(this->values[i].first == name)
-                return this->values[i].second.getBool();
-        return nullptr;
-    }
-    template<std::string*> std::string *value(const std::string name) {
-        if(this->values.empty()) return nullptr;
-
-        for(size_t i = 0; i < this->values.size(); i++)
-            if(this->values[i].first == name)
-                return this->values[i].second.getString();
-        return nullptr;
-    }
-    template<Json*> Json *value(const std::string name) {
-        if(this->values.empty()) return nullptr;
-
-        for(size_t i = 0; i < this->values.size(); i++)
-            if(this->values[i].first == name)
-                return this->values[i].second.getJson();
-        return nullptr;
-    }
-    template<Array*> Array *value(const std::string name) {
-        if(this->values.empty()) return nullptr;
-
-        for(size_t i = 0; i < this->values.size(); i++)
-            if(this->values[i].first == name)
-                return this->values[i].second.getArray();
-        return nullptr;
-    }
-
-    template<typename T> T *value(const size_t index) { return nullptr; }
-    template<double*> double *value(const size_t index) {
-        if(this->values.empty()) return nullptr;
-
-        return this->values[index].second.getNum();
-    }
-    template<bool*> bool *value(const size_t index) {
-        if(this->values.empty()) return nullptr;
-
-        return this->values[index].second.getBool();
-    }
-    template<std::string*> std::string *value(const size_t index)
-    {
-        if(this->values.empty()) return nullptr;
-
-        return this->values[index].second.getString();
-    }
-    template<Json*> Json *value(const size_t index) {
-        if(this->values.empty()) return nullptr;
-
-        return this->values[index].second.getJson();
-    }
-    template<Array*> Array *value(const size_t index) {
-        if(this->values.empty()) return nullptr;
-
-        return this->values[index].second.getArray();
-    }
-    */
-
-    Element operator[](const size_t index) {
-        if(this->values.empty()) return {};
-        if(!checkIndexes(index)) return {};
-
-        return Element(this->values[index].second.first, this->values[index].second.second);
-    }
-    Element operator[](std::string name) {
-        if(this->values.empty()) return {};
-
-        for(size_t i = 0; i < this->values.size(); i++)
-            if(this->values[i].first == name)
-                return Element(
-                    this->values[i].second.first,
-                    this->values[i].second.second);
-        return {};
-    }
+    Element operator[](const size_t index);
+    Element operator[](std::string name);
     Element operator[](std::vector<std::string> complex_name);
     Element value(const size_t index)                       { return (*this)[index]; }
     Element value(std::string name)                         { return (*this)[name]; }
     Element value(std::vector<std::string> complex_name)    { return (*this)[complex_name]; }
-};
+
+//TODO:    void insert(size_t index, std::string key, double value)
+//TODO:    void insert(size_t index, std::string key, bool value)
+//TODO:    void insert(size_t index, std::string key, std::string value)
+//TODO:    void insert(size_t index, std::string key, char* value)
+//TODO:    void insert(size_t index, std::string key, Json value)
+//TODO:    void insert(size_t index, std::string key, Array value)
+//TODO:    insert(iterator,  std::string key, <...> value)
+
+//TODO:    insertBefore(std::string key, key, value)
+//TODO:    insertBefore(std::string key, <key, value>{...})
+//TODO:    insertAfter(std::string key, key, value)
+//TODO:    insertAfter(std::string key, <key, value>{...})
+
+//TODO:    void erase(size_t index)
+//TODO:    void erase(iterator)
+//TODO:    void erase(std::string key)
+//TODO:    void erase(std::vector<std::string> keys)
+//TODO:    void erase(begin, end)
+}; ///class Json
 
 static ValueType CheckValue(std::string& value);
 static bool CheckDouble(std::string& value);
@@ -288,13 +206,12 @@ public:
 };
 class BoolElement : BaseElement {
 public:
-//    uint8_t value;
     bool value;
 
     BoolElement(){}
     BoolElement(const bool& b) : value(b){};
     std::string to_string(int16_t tabulation_level = 0)
-        { return ((bool)value) ? "true" : "false"; }
+        { return value ? "true" : "false"; }
 };
 class StringElement : BaseElement {
 public:
