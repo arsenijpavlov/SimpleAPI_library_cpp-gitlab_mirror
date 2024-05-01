@@ -19,16 +19,18 @@ void utils::RemoveComments(std::string& str, bool& startComment, char& quote)
     bool isOneComment = false;
     bool isFullComment = startComment;
     for(size_t i = 0; i < str.length(); i++) {
-        if (quote == 0) { //если не часть строкового значения
-            if(i <= str.length() + 1) { //проверка на границы строки
+        if(i <= str.length() + 1) { //проверка на границы строки
+            if(quote == 0) { //если не часть строкового значения
                 if(!isFullComment) { //многострочные комментарии имеют приоритет
-                    if(str[i] == '/' && str[i + 1] == '*') {
+                    if(str[i] == '/' && str[i + 1] == '*' && !isOneComment) {
                         isFullComment = true;
+                        i++;
                         continue;
                     }
                     if(!isOneComment) {
                         if(str[i] == '/' && str[i+1] == '/') {
                             isOneComment = true;
+                            i++;
                             continue;
                         }
                     }
@@ -38,17 +40,25 @@ void utils::RemoveComments(std::string& str, bool& startComment, char& quote)
                     continue;
                 }
             }
-            if(!isFullComment && str[i] == '\n') //действует только до конца строки
-                isOneComment = false;
         }
+        if(!isFullComment && str[i] == '\n' && quote == 0) //действует только до конца строки
+            isOneComment = false;
 
-        if(str[i] == '"' || str[i] == '\'') {
-            if(str[i] == quote) quote = 0;
-            else                quote = str[i];
-        }
+        if(!isFullComment && !isOneComment) {
+            if(str[i] == '"') { //пропускать \"
+                bool isIgnore = false;
+                if( i - 1 >= 0) {
+                    if(str[i - 1] == '\\')
+                        isIgnore = true;
+                }
 
-        if(!isOneComment && !isFullComment)
+                if(!isIgnore) {
+                    if(str[i] == quote) quote = 0;
+                    else                quote = str[i];
+                }
+            }
             tempString += str[i];
+        }
     }
 
     str = tempString;

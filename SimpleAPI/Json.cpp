@@ -390,9 +390,12 @@ bool Json::readFile(const std::string path)
     char quote = 0;
     std::string json_str;
     while(getline(file, temp_string)) {
+        std::cout << "prepare(" << (nextStrStartFromComment ? "true" : "false") << "): " << temp_string << std::endl;
         utils::RemoveComments(temp_string, nextStrStartFromComment, quote);
-        if(!temp_string.empty())
+        if(!temp_string.empty()) {
             json_str += temp_string + '\n';
+            std::cout << "temp: " << temp_string << std::endl;
+        }
     }
     file.close();
 
@@ -587,28 +590,47 @@ bool CheckBool(std::string& value)
 
 bool CheckString(std::string& value)
 {
-    /* TODO: экранирование строк при распаковке
-     *  skip \" \\
-     */
 //    std::cout << "CheckString(): \"" << value << "\"" << std::endl;
     char ch = 0;
     std::string temp;
     bool done = false;
+    bool isNextTechChar = false;
     for(size_t i = 0; i < value.length(); i++) {
         if(ch != 0) { //начинаем запись слова
             if(!done) {
-                if(value[i] == ch) //пока не встретили конец слова
-                    done = true;
-                else
+                //экранирование?
+                if(value[i] == '\\' && !isNextTechChar) {
+                    isNextTechChar = true;
                     temp += value[i];
+                    continue;
+                }
+
+                if(value[i] == ch) //применяем экранирование только для кавычек
+                {
+                    if(isNextTechChar)
+                    {
+                        temp += value[i];
+                        isNextTechChar = false;
+                    } else
+                        done = true;
+                } else
+                    temp += value[i];
+//                if(isNextTechChar) { //текущий символ экранирован?
+//                    temp += value[i];
+//                    isNextTechChar = false;
+//                } else if(value[i] == ch)
+//                    done = true;
+//                else
+//                    temp += value[i];
             } else { //замкнули слово, надо проверить оставшиеся символы
                 if(!utils::CharsInString(value[i], SPACES)) {
                     std::cout << "Error with parse String in: " << value << std::endl;
                     return false;
                 }
             }
-        } else if(value[i] == '"')
+        } else if(value[i] == '"') {
             ch = value[i];
+        }
     }
 
     value = temp;
@@ -719,7 +741,7 @@ bool CheckArray(std::string& value)
 
 bool ParseJson(const std::string& json_str, Json* json)
 {
-//    std::cout << "ParseJson(): " << json_str << std::endl;
+    std::cout << "ParseJson(): " << json_str << std::endl;
     bool return_code = true;
     if(!json) return false;
 

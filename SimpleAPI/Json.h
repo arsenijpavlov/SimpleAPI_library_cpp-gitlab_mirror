@@ -231,7 +231,6 @@ public:
     std::string to_string(int16_t tabulation_level = 0)
         { return value.to_string(tabulation_level); }
 };
-class Array;
 class ArrayElement : BaseElement {
 public:
     Array value;
