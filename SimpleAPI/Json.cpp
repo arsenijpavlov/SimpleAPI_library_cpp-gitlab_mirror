@@ -368,7 +368,7 @@ bool Json::put(const std::string key, const Json& value)
 
 bool Json::put(const std::string key, const Array& value)
 {
-    //TODO: экранирование спецсимволов, как минимум кавычек
+    //NOTE: (возможно) экранирование спецсимволов, как минимум кавычек
     bool ret = true;
     this->values.push_back(std::pair<std::string, Element>(
         key,
