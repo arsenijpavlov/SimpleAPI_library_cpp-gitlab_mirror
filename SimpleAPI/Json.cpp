@@ -686,6 +686,21 @@ void Json::erase(const size_t index)
 
     this->values.erase(this->values.cbegin() + index);
 }
+
+void Json::erase(const std::string& key)
+{
+    bool flag = false;
+    size_t index;
+    for(index = 0; index < this->size(); index++) {
+        if(this->values[index].first == key) {
+            flag = true;
+            break;
+        }
+    }
+
+    if(flag)
+        this->values.erase(this->values.cbegin() + index);
+}
 /// class Json
 
 //STATIC:

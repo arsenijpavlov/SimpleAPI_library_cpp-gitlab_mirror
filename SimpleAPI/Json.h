@@ -332,8 +332,12 @@ public:
         { this->values.erase(this->values.cbegin()); }
     void erase(const JVector::iterator begin, const JVector::iterator end)
         { this->values.erase(begin, end); }
-//TODO:    void erase(std::string key)
-//TODO:    void erase(std::vector<std::string> keys)
+    void erase(const std::string& key);
+    void erase(const std::vector<std::string>& keys)
+    {
+        for(const std::string &key : keys)
+            this->erase(key);
+    }
 }; ///class Json
 
 static ValueType CheckValue(std::string& value);
