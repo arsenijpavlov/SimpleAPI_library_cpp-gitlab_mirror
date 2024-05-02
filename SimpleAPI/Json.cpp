@@ -144,65 +144,70 @@ Array::~Array()
     }
 }
 
-void Array::push_back(double d)
+void Array::push_back(const double d)
 {
     this->values.push_back(Element(
         ValueType::eNumber, reinterpret_cast<BaseElement*>(new DoubleElement(d))));
 }
 
-void Array::push_back(bool b)
+void Array::push_back(const bool b)
 {
     this->values.push_back(Element(
         ValueType::eBool, reinterpret_cast<BaseElement*>(new BoolElement(b))));
 }
 
-void Array::push_back(std::string string)
+void Array::push_back(const std::string string)
 {
     this->values.push_back(Element(
         ValueType::eString, reinterpret_cast<BaseElement*>(new StringElement(string))));
 }
 
-void Array::push_back(Json& json)
+void Array::push_back(const Json& json)
 {
     this->values.push_back(Element(
         ValueType::eJson, reinterpret_cast<BaseElement*>(new JsonElement(json))));
 }
 
-void Array::push_back(Array& array)
+void Array::push_back(const Array& array)
 {
     this->values.push_back(Element(
         ValueType::eArray, reinterpret_cast<BaseElement*>(new ArrayElement(array))));
 }
 
-//void Array::push_front(double d)
-//{
-//    this->values.push_back(Element(
-//        ValueType::eNumber, reinterpret_cast<BaseElement*>(new DoubleElement(d))));
-//}
+void Array::push_front(const double d)
+{
+    this->values.insert(this->values.cbegin(),
+                        Element(ValueType::eNumber,
+                                reinterpret_cast<BaseElement*>(new DoubleElement(d))));
+}
 
-//void Array::push_front(bool b)
-//{
-//    this->values.push_back(Element(
-//        ValueType::eBool, reinterpret_cast<BaseElement*>(new BoolElement(b))));
-//}
+void Array::push_front(const bool b)
+{
+    this->values.insert(this->values.cbegin(),
+                        Element(ValueType::eBool,
+                                reinterpret_cast<BaseElement*>(new BoolElement(b))));
+}
 
-//void Array::push_front(std::string string)
-//{
-//    this->values.push_back(Element(
-//        ValueType::eString, reinterpret_cast<BaseElement*>(new StringElement(string))));
-//}
+void Array::push_front(const std::string string)
+{
+    this->values.insert(this->values.cbegin(),
+                        Element(ValueType::eString,
+                                reinterpret_cast<BaseElement*>(new StringElement(string))));
+}
 
-//void Array::push_front(Json& json)
-//{
-//    this->values.push_back(Element(
-//        ValueType::eJson, reinterpret_cast<BaseElement*>(new JsonElement(json))));
-//}
+void Array::push_front(const Json& json)
+{
+    this->values.insert(this->values.cbegin(),
+                        Element(ValueType::eJson,
+                                reinterpret_cast<BaseElement*>(new JsonElement(json))));
+}
 
-//void Array::push_front(Array& array)
-//{
-//    this->values.push_back(Element(
-//        ValueType::eArray, reinterpret_cast<BaseElement*>(new ArrayElement(array))));
-//}
+void Array::push_front(const Array& array)
+{
+    this->values.insert(this->values.cbegin(),
+                        Element(ValueType::eArray,
+                                reinterpret_cast<BaseElement*>(new ArrayElement(array))));
+}
 
 std::string Array::to_string(int16_t tabulation_level)
 {
@@ -235,10 +240,10 @@ std::string Array::to_string(int16_t tabulation_level)
     return ret;
 }
 
-Element Array::operator[](std::vector<std::string> complex_name) {
+Element Array::operator[](const std::vector<std::string>& complex_name) {
     if(this->values.empty()) return {};
 
-    std::vector<std::string>::iterator it = complex_name.begin();
+    std::vector<std::string>::const_iterator it = complex_name.begin();
     if(!utils::IsNumber(*it++, false))
         return {};
     Element el = (*this)[stoi(*it)]; //находим первый элемент списка
@@ -327,7 +332,7 @@ Json::~Json()
     }
 }
 
-bool Json::put(const std::string key, const double value)    
+bool Json::put(const std::string& key, const double value)
 {
     bool ret = true;
     this->values.push_back(std::pair<std::string, Element>(
@@ -337,7 +342,7 @@ bool Json::put(const std::string key, const double value)
     return ret;
 }
 
-bool Json::put(const std::string key, const bool value)
+bool Json::put(const std::string& key, const bool value)
 {
     bool ret = true;
     this->values.push_back(std::pair<std::string, Element>(
@@ -347,7 +352,7 @@ bool Json::put(const std::string key, const bool value)
     return ret;
 }
 
-bool Json::put(const std::string key, const std::string value)
+bool Json::put(const std::string& key, const std::string value)
 {
     this->values.push_back(std::pair<std::string, Element>(
         key,
@@ -356,7 +361,7 @@ bool Json::put(const std::string key, const std::string value)
     return true;
 }
 
-bool Json::put(const std::string key, const Json& value)
+bool Json::put(const std::string& key, const Json& value)
 {
     bool ret = true;
     this->values.push_back(std::pair<std::string, Element>(
@@ -366,7 +371,7 @@ bool Json::put(const std::string key, const Json& value)
     return ret;
 }
 
-bool Json::put(const std::string key, const Array& value)
+bool Json::put(const std::string& key, const Array& value)
 {
     //NOTE: (возможно) экранирование спецсимволов, как минимум кавычек
     bool ret = true;
@@ -377,7 +382,16 @@ bool Json::put(const std::string key, const Array& value)
     return ret;
 }
 
-bool Json::readFile(const std::string path)
+bool Json::isValueExists(const std::string& name)
+{
+    for(const auto &it : this->values) {
+        if(it.first == name)
+            return true;
+    }
+    return false;
+}
+
+bool Json::readFile(const std::string& path)
 {
     std::ifstream file(path);
     if (!file.is_open()) {
@@ -403,7 +417,7 @@ bool Json::readFile(const std::string path)
     return ParseJson(json_str, this);
 }
 
-bool Json::writeFile(const std::string path, int16_t tabulation_level)
+bool Json::writeFile(const std::string& path, int16_t tabulation_level)
 {
     std::ofstream file(path);
     if (!file.is_open())
@@ -461,7 +475,7 @@ Element Json::operator[](const size_t index) {
     return Element(this->values[index].second.first, this->values[index].second.second);
 }
 
-Element Json::operator[](std::string name) {
+Element Json::operator[](const std::string& name) {
     if(this->values.empty()) return {};
 
     for(size_t i = 0; i < this->values.size(); i++)
@@ -472,11 +486,11 @@ Element Json::operator[](std::string name) {
     return {};
 }
 
-Element Json::operator[](std::vector<std::string> complex_name) {
+Element Json::operator[](const std::vector<std::string>& complex_name) {
     if(this->values.empty()) return {};
 
     Element el = (*this)[complex_name[0]]; //находим первый элемент списка
-    std::vector<std::string>::iterator it = complex_name.begin() + 1; //первый элемент пропускаем
+    std::vector<std::string>::const_iterator it = complex_name.begin() + 1; //первый элемент пропускаем
     for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
         bool isNumber = utils::IsNumber(*it, false);
         switch(el.first) {

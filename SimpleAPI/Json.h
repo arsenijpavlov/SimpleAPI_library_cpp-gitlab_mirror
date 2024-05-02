@@ -37,11 +37,11 @@ struct Element {
 
     Element() : first(ValueType::eNull), second(nullptr) {}
     Element(ValueType type, BaseElement* ptr) : first(type), second(ptr) {}
-    double* getNum();
-    bool*   getBool();
-    std::string* getString();
-    Json*   getJson();
-    Array*  getArray();
+    double*         getNum();
+    bool*           getBool();
+    std::string*    getString();
+    Json*           getJson();
+    Array*          getArray();
 };
 
 // Упорядоченный список значений
@@ -50,6 +50,7 @@ class Array {
 
     bool checkIndexes(const size_t index) {
         if(index + 1 > values.size()) {
+            //TODO: std::outofrange
             throw "Going beyond Array boundaries";
             return false;
         }
@@ -60,31 +61,31 @@ public:
     Array(const Array& array);
     ~Array();
 
-    void push_back(double d);
-    void push_back(bool b);
-    void push_back(std::string string);
-    void push_back(Json& json);
-    void push_back(Array& array);
+    void push_back(const double d);
+    void push_back(const bool b);
+    void push_back(const std::string string);
+    void push_back(const Json& json);
+    void push_back(const Array& array);
 
-//TODO:    void push_front(double d);
-//TODO:    void push_front(bool b);
-//TODO:    void push_front(std::string string);
-//TODO:    void push_front(Json& json);
-//TODO:    void push_front(Array& array);
+    void push_front(const double d);
+    void push_front(const bool b);
+    void push_front(const std::string string);
+    void push_front(const Json& json);
+    void push_front(const Array& array);
 
-    ValueType getType(size_t index)         { return this->values[index].first; }
-    ValueType getTypeFront(size_t index)    { return getType(0); }
-    ValueType getTypeBack(size_t index)     { return getType(this->values.size() - 1); }
+    ValueType getType(const size_t index)       { return this->values[index].first; }
+    ValueType getTypeFront(const size_t index)  { return getType(0); }
+    ValueType getTypeBack(const size_t index)   { return getType(this->values.size() - 1); }
 
-    Element getAt(size_t index)             { return this->values[index]; }
-    Element getFront()                      { return this->values.front(); }
-    Element getBack()                       { return this->values.back(); }
+    Element getAt(const size_t index)           { return this->values[index]; }
+    Element getFront()                          { return this->values.front(); }
+    Element getBack()                           { return this->values.back(); }
 
-    void popBack()                          { this->values.pop_back(); }
-    void clear()                            { this->values.clear(); }
+    void popBack()                              { this->values.pop_back(); }
+    void clear()                                { this->values.clear(); }
 
     std::string to_string(int16_t tabulation_level = 0);
-    size_t size() { return values.size(); }
+    size_t size()                               { return values.size(); }
     \
     Element operator[](const size_t index) {
         if(this->values.empty()) return {};
@@ -92,9 +93,10 @@ public:
 
         return Element(this->values[index].first, this->values[index].second);
     }
-    Element operator[](std::vector<std::string> complex_name);
+    Element operator[](const std::vector<std::string>& complex_name);
     Element value(const size_t index)                   { return (*this)[index]; }
-    Element value(std::vector<std::string> complex_name){ return (*this)[complex_name]; }
+    Element value(const std::vector<std::string>& complex_name)
+                                                        { return (*this)[complex_name]; }
 
     std::vector<Element>::iterator begin()              { return values.begin(); }
     std::vector<Element>::iterator end()                { return values.end(); }
@@ -131,22 +133,25 @@ public:
     Json(){};
     Json(const Json& json);
     ~Json();
-    bool put(const std::string key, const double value);
-    bool put(const std::string key, const bool value);
-    bool put(const std::string key, const std::string value);
-    bool put(const std::string key, const char* value)      { return this->put(key, std::string(value)); }
-    bool put(const std::string key, const Json& value);
-    bool put(const std::string key, const Array& value);
 
-    bool add(const std::string key, const double value)     { return this->put(key, value); }
-    bool add(const std::string key, const bool value)       { return this->put(key, value); }
-    bool add(const std::string key, const std::string value){ return this->put(key, value); }
-    bool add(const std::string key, const char* value)      { return this->put(key, value); }
-    bool add(const std::string key, const Json& value)      { return this->put(key, value); }
-    bool add(const std::string key, const Array& value)     { return this->put(key, value); }
+    bool put(const std::string& key, const double value);
+    bool put(const std::string& key, const bool value);
+    bool put(const std::string& key, const std::string value);
+    bool put(const std::string& key, const char* value)      { return this->put(key, std::string(value)); }
+    bool put(const std::string& key, const Json& value);
+    bool put(const std::string& key, const Array& value);
 
-    bool readFile(const std::string path);
-    bool writeFile(const std::string path, int16_t tabulation_level = 0);
+    bool add(const std::string& key, const double value)     { return this->put(key, value); }
+    bool add(const std::string& key, const bool value)       { return this->put(key, value); }
+    bool add(const std::string& key, const std::string value){ return this->put(key, value); }
+    bool add(const std::string& key, const char* value)      { return this->put(key, value); }
+    bool add(const std::string& key, const Json& value)      { return this->put(key, value); }
+    bool add(const std::string& key, const Array& value)     { return this->put(key, value); }
+
+    bool isValueExists(const std::string& name);
+
+    bool readFile(const std::string& path);
+    bool writeFile(const std::string& path, int16_t tabulation_level = 0);
 
     std::string to_string(int16_t tabulation_level = 0);
     size_t size()   { return values.size(); }
@@ -160,11 +165,12 @@ public:
                     const { return values.end(); };
 
     Element operator[](const size_t index);
-    Element operator[](std::string name);
-    Element operator[](std::vector<std::string> complex_name);
-    Element value(const size_t index)                       { return (*this)[index]; }
-    Element value(std::string name)                         { return (*this)[name]; }
-    Element value(std::vector<std::string> complex_name)    { return (*this)[complex_name]; }
+    Element operator[](const std::string& name);
+    Element operator[](const std::vector<std::string>& complex_name);
+//TODO:    Element operator[](std::array<std::string> complex_name);
+    Element value(const size_t index)                           { return (*this)[index]; }
+    Element value(const std::string& name)                      { return (*this)[name]; }
+    Element value(const std::vector<std::string>& complex_name) { return (*this)[complex_name]; }
 
 //TODO:    void insert(size_t index, std::string key, double value)
 //TODO:    void insert(size_t index, std::string key, bool value)
