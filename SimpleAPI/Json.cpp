@@ -92,6 +92,24 @@ Array* Element::getArray()
         return &reinterpret_cast<ArrayElement*>(this->second)->value;
     else return nullptr;
 }
+
+Element Element::getInnerValue(std::string name)
+{
+    if(this->first == ValueType::eJson)
+        return reinterpret_cast<JsonElement*>(this->second)->value[name];
+    else
+        return {};
+}
+
+Element Element::getInnerValue(size_t index)
+{
+    if(this->first == ValueType::eJson)
+        return reinterpret_cast<JsonElement*>(this->second)->value[index];
+    else if(this->first == ValueType::eArray)
+        return reinterpret_cast<ArrayElement*>(this->second)->value[index];
+    else
+        return {};
+}
 /// struct Element
 
 
@@ -238,38 +256,6 @@ std::string Array::to_string(int16_t tabulation_level)
     ret += "]";
 
     return ret;
-}
-
-Element Array::operator[](const std::vector<std::string>& complex_name) {
-    if(this->values.empty()) return {};
-
-    std::vector<std::string>::const_iterator it = complex_name.begin();
-    if(!utils::IsNumber(*it++, false))
-        return {};
-    Element el = (*this)[stoi(*it)]; //находим первый элемент списка
-    for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
-        bool isNumber = utils::IsNumber(*it, false);
-        switch(el.first) {
-        case eJson:
-            el = (reinterpret_cast<JsonElement*>(el.second))->value[*it];
-            if(el.first == ValueType::eNull) {
-                if(isNumber)
-                    el = (reinterpret_cast<JsonElement*>(el.second))->value[stoi(*it)];
-                else
-                    el = {};
-            }
-            break;
-        case eArray:
-            if(isNumber) //для массива возможно обращение только по числовому индексу!
-                el = (reinterpret_cast<ArrayElement*>(el.second))->value[stoi(*it)];
-            else
-                el = {};
-            break;
-        default: return {}; //продолжать поиск можно только по двум структурам!
-        }
-    }
-
-    return el;
 }
 /// class Array
 
@@ -475,55 +461,6 @@ std::string Json::to_string(int16_t tabulation_level)
 
     ret += "}"; //end of json
     return ret;
-}
-
-Element Json::operator[](const size_t index) {
-    if(this->values.empty()) return {};
-    if(!checkIndexes(index)) return {};
-
-    return Element(this->values[index].second.first, this->values[index].second.second);
-}
-
-Element Json::operator[](const std::string& name) {
-    if(this->values.empty()) return {};
-
-    for(size_t i = 0; i < this->values.size(); i++)
-        if(this->values[i].first == name)
-            return Element(
-                this->values[i].second.first,
-                this->values[i].second.second);
-    return {};
-}
-
-Element Json::operator[](const std::vector<std::string>& complex_name) {
-    if(this->values.empty()) return {};
-
-    Element el = (*this)[complex_name[0]]; //находим первый элемент списка
-    std::vector<std::string>::const_iterator it = complex_name.begin() + 1; //первый элемент пропускаем
-    for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
-        bool isNumber = utils::IsNumber(*it, false);
-        switch(el.first) {
-        case eJson:
-            el = (reinterpret_cast<JsonElement*>(el.second))->value[*it];
-            if(el.first == ValueType::eNull) {
-                if(isNumber)
-                    el = (reinterpret_cast<JsonElement*>(el.second))->value[stoi(*it)];
-                else
-                    el = {};
-            }
-            break;
-        case eArray:
-            //для массива возможно обращение только по числовому индексу!
-            if(isNumber)
-                el = (reinterpret_cast<ArrayElement*>(el.second))->value[stoi(*it)];
-            else
-                el = {};
-            break;
-        default: return {}; //продолжать поиск можно только по двум структурам!
-        }
-    }
-
-    return el;
 }
 /// class Json
 

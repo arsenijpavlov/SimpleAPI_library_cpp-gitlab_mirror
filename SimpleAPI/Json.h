@@ -37,11 +37,15 @@ struct Element {
 
     Element() : first(ValueType::eNull), second(nullptr) {}
     Element(ValueType type, BaseElement* ptr) : first(type), second(ptr) {}
+
     double*         getNum();
     bool*           getBool();
     std::string*    getString();
     Json*           getJson();
     Array*          getArray();
+
+    Element getInnerValue(std::string name);
+    Element getInnerValue(size_t index);
 };
 
 // Упорядоченный список значений
@@ -86,14 +90,72 @@ public:
 
     std::string to_string(int16_t tabulation_level = 0);
     size_t size()                               { return values.size(); }
-    \
-    Element operator[](const size_t index) {
+
+    Element operator[](const size_t index)
+    {
         if(this->values.empty()) return {};
         if(!checkIndexes(index)) return {};
 
         return Element(this->values[index].first, this->values[index].second);
     }
-    Element operator[](const std::vector<std::string>& complex_name);
+    Element operator[](const std::vector<std::string>& complex_name)
+    {
+        if(this->values.empty()) return {};
+
+        std::vector<std::string>::const_iterator it = complex_name.begin();
+        if(!utils::IsNumber(*it++, false))
+            return {};
+        Element el = (*this)[stoi(*it)]; //находим первый элемент списка
+        for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
+            bool isNumber = utils::IsNumber(*it, false);
+            switch(el.first) {
+            case eJson:
+                el = el.getInnerValue(*it);
+                if(el.first == ValueType::eNull) {
+                    if(isNumber)    el = el.getInnerValue(stoi(*it));
+                    else            el = {};
+                }
+                break;
+            case eArray:
+                //для массива возможно обращение только по числовому индексу!
+                if(isNumber)    el = el.getInnerValue(stoi(*it));
+                else            el = {};
+                break;
+            default: return {}; //продолжать поиск можно только по двум структурам!
+            }
+        }
+
+        return el;
+    }
+    template<std::size_t SIZE>
+    Element operator[](const std::array<std::string, SIZE>& complex_name)
+    {
+        if(this->values.empty()) return {};
+
+        Element el = (*this)[complex_name[0]]; //находим первый элемент списка
+        typename std::array<std::string, SIZE>::const_iterator it = complex_name.begin() + 1; //первый элемент пропускаем
+        for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
+            bool isNumber = utils::IsNumber(*it, false);
+            switch(el.first) {
+            case eJson:
+                el = el.getInnerValue(*it);
+                if(el.first == ValueType::eNull) {
+                    if(isNumber)    el = el.getInnerValue(stoi(*it));
+                    else            el = {};
+                }
+                break;
+            case eArray:
+                //для массива возможно обращение только по числовому индексу!
+                if(isNumber)    el = el.getInnerValue(stoi(*it));
+                else            el = {};
+                break;
+            default: return {}; //продолжать поиск можно только по двум структурам!
+            }
+        }
+
+        return el;
+    }
+
     Element value(const size_t index)                   { return (*this)[index]; }
     Element value(const std::vector<std::string>& complex_name)
                                                         { return (*this)[complex_name]; }
@@ -164,10 +226,79 @@ public:
     std::vector<std::pair<std::string, Element>>::const_iterator cend()
                     const { return values.end(); };
 
-    Element operator[](const size_t index);
-    Element operator[](const std::string& name);
-    Element operator[](const std::vector<std::string>& complex_name);
-//TODO:    Element operator[](std::array<std::string> complex_name);
+    Element operator[](const size_t index)
+    {
+        if(this->values.empty()) return {};
+        if(!checkIndexes(index)) return {};
+
+        return Element(this->values[index].second.first, this->values[index].second.second);
+    }
+    Element operator[](const std::string& name)
+    {
+        if(this->values.empty()) return {};
+
+        for(size_t i = 0; i < this->values.size(); i++)
+            if(this->values[i].first == name)
+                return Element(
+                    this->values[i].second.first,
+                    this->values[i].second.second);
+        return {};
+    }
+    Element operator[](const std::vector<std::string>& complex_name)
+    {
+        if(this->values.empty()) return {};
+
+        Element el = (*this)[complex_name[0]]; //находим первый элемент списка
+        std::vector<std::string>::const_iterator it = complex_name.begin() + 1; //первый элемент пропускаем
+        for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
+            bool isNumber = utils::IsNumber(*it, false);
+            switch(el.first) {
+            case eJson:
+                el = el.getInnerValue(*it);
+                if(el.first == ValueType::eNull) {
+                    if(isNumber)    el = el.getInnerValue(stoi(*it));
+                    else            el = {};
+                }
+                break;
+            case eArray:
+                //для массива возможно обращение только по числовому индексу!
+                if(isNumber)    el = el.getInnerValue(stoi(*it));
+                else            el = {};
+                break;
+            default: return {}; //продолжать поиск можно только по двум структурам!
+            }
+        }
+
+        return el;
+    }
+    template<std::size_t SIZE>
+    Element operator[](const std::array<std::string, SIZE>& complex_name)
+    {
+        if(this->values.empty()) return {};
+
+        Element el = (*this)[complex_name[0]]; //находим первый элемент списка
+        typename std::array<std::string, SIZE>::const_iterator it = complex_name.begin() + 1; //первый элемент пропускаем
+        for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
+            bool isNumber = utils::IsNumber(*it, false);
+            switch(el.first) {
+            case eJson:
+                el = el.getInnerValue(*it);
+                if(el.first == ValueType::eNull) {
+                    if(isNumber)    el = el.getInnerValue(stoi(*it));
+                    else            el = {};
+                }
+                break;
+            case eArray:
+                //для массива возможно обращение только по числовому индексу!
+                if(isNumber)    el = el.getInnerValue(stoi(*it));
+                else            el = {};
+                break;
+            default: return {}; //продолжать поиск можно только по двум структурам!
+            }
+        }
+
+        return el;
+    }
     Element value(const size_t index)                           { return (*this)[index]; }
     Element value(const std::string& name)                      { return (*this)[name]; }
     Element value(const std::vector<std::string>& complex_name) { return (*this)[complex_name]; }

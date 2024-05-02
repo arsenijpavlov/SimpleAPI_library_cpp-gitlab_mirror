@@ -102,14 +102,14 @@ int main(int argc, char **argv) {
         Array aa;
         aa.push_back(j);
         aa.push_back(a);
+        aa.push_front(15.0f);
         std::cout << aa.to_string(tabLvl) << std::endl;
 
-        Element el = aa[0];
+        Element el = aa[1]; //обращение к Json "j"
 
-        double* d = (*el.getJson())
-                        ["a"]
-                            .getNum();
-        std::cout << "aa.j.a: (double)" << *d << std::endl;
+        double* d = (*el.getJson())["a"].getNum();
+        if(d != nullptr)
+            std::cout << "aa.j.a: (double)" << *d << std::endl;
 
         Json jj;
         jj.put("aa", aa);
@@ -117,14 +117,18 @@ int main(int argc, char **argv) {
         jj.put("jjString", "asde");
         std::cout << jj.to_string(tabLvl) << std::endl;
 
+        //предпочтительный способ обращения ко вложенным элементам
         //тест для каскада вложенных значений с одним get'тером
-        std::vector<std::string> index;
-        index.push_back("aa");  //array
-        index.push_back("0");   //json
-        index.push_back("a");   //array
-        Element ee = jj[index];
+        std::vector<std::string> index_1;
+        index_1.push_back("aa");  //array
+        index_1.push_back("0");   //json
+        index_1.push_back("a");   //array
+        Element ee;
+        ee = jj[index_1];
+        std::array<std::string, 3> index_2({"aa", "1", "a"});
+        ee = jj[index_2];
         double dddd = *ee.getNum();
-        std::cout << std::endl << dddd << std::endl;
+        std::cout << std::endl << "d: " << dddd << std::endl;
     }
 
     if(!writeFilePath.empty()) {
