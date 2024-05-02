@@ -334,41 +334,50 @@ Json::~Json()
 
 bool Json::put(const std::string& key, const double value)
 {
-    bool ret = true;
-    this->values.push_back(std::pair<std::string, Element>(
-        key,
-        Element(ValueType::eNumber,
-                reinterpret_cast<BaseElement*>(new DoubleElement(value)))));
-    return ret;
+    if(!isValueExists(key)) {
+        this->values.push_back(std::pair<std::string, Element>(
+            key,
+            Element(ValueType::eNumber,
+                    reinterpret_cast<BaseElement*>(new DoubleElement(value)))));
+        return true;
+    } else
+        return false;
 }
 
 bool Json::put(const std::string& key, const bool value)
 {
-    bool ret = true;
-    this->values.push_back(std::pair<std::string, Element>(
-        key,
-        Element(ValueType::eBool,
-                reinterpret_cast<BaseElement*>(new BoolElement(value)))));
-    return ret;
+    if(!isValueExists(key)) {
+        this->values.push_back(std::pair<std::string, Element>(
+            key,
+            Element(ValueType::eBool,
+                    reinterpret_cast<BaseElement*>(new BoolElement(value)))));
+        return true;
+    } else
+        return false;
 }
 
 bool Json::put(const std::string& key, const std::string value)
 {
-    this->values.push_back(std::pair<std::string, Element>(
-        key,
-        Element(ValueType::eString,
-                reinterpret_cast<BaseElement*>(new StringElement(value)))));
-    return true;
+    if(!isValueExists(key)) {
+        this->values.push_back(std::pair<std::string, Element>(
+            key,
+            Element(ValueType::eString,
+                    reinterpret_cast<BaseElement*>(new StringElement(value)))));
+        return true;
+    } else
+        return false;
 }
 
 bool Json::put(const std::string& key, const Json& value)
 {
-    bool ret = true;
-    this->values.push_back(std::pair<std::string, Element>(
-        key,
-        Element(ValueType::eJson,
-                reinterpret_cast<BaseElement*>(new JsonElement(value)))));
-    return ret;
+    if(!isValueExists(key)) {
+        this->values.push_back(std::pair<std::string, Element>(
+            key,
+            Element(ValueType::eJson,
+                    reinterpret_cast<BaseElement*>(new JsonElement(value)))));
+        return true;
+    } else
+        return false;
 }
 
 bool Json::put(const std::string& key, const Array& value)
