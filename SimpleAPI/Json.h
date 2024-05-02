@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 
+//TODO: add "noexcept"
 namespace json {
 
 enum ValueType {
@@ -48,9 +49,10 @@ struct Element {
     Element getInnerValue(size_t index);
 };
 
+using AVector = std::vector<Element>;
 // Упорядоченный список значений
 class Array {
-    std::vector<Element> values;
+    AVector values;
 
     bool checkIndexes(const size_t index) {
         if(index + 1 > values.size()) {
@@ -156,33 +158,38 @@ public:
         return el;
     }
 
-    Element value(const size_t index)                   { return (*this)[index]; }
+    Element value(const size_t index)           { return (*this)[index]; }
     Element value(const std::vector<std::string>& complex_name)
-                                                        { return (*this)[complex_name]; }
+                                                { return (*this)[complex_name]; }
 
-    std::vector<Element>::iterator begin()              { return values.begin(); }
-    std::vector<Element>::iterator end()                { return values.end(); }
-    std::vector<Element>::const_iterator cbegin() const { return values.begin(); }
-    std::vector<Element>::const_iterator cend()   const { return values.end(); }
+    AVector::iterator begin()                   { return values.begin(); }
+    AVector::iterator end()                     { return values.end(); }
+    AVector::const_iterator cbegin()      const { return values.begin(); }
+    AVector::const_iterator cend()        const { return values.end(); }
 
-//TODO:    void insert(size_t index, double value)
-//TODO:    void insert(size_t index, bool value)
-//TODO:    void insert(size_t index, std::string value)
-//TODO:    void insert(size_t index, char* value)
-//TODO:    void insert(size_t index, Json value)
-//TODO:    void insert(size_t index, Array value)
+    //если индекс больше количества вложенных элементов, то добавятся в конец
+    void insert(const size_t index, const double value);
+    void insert(const size_t index, const bool value);
+    void insert(const size_t index, const std::string value);
+    void insert(const size_t index, const char* value)  { this->insert(index, std::string(value)); }
+    void insert(const size_t index, const Json& value);
+    void insert(const size_t index, const Array& value);
+
 //TODO:    insert(iterator, ...)
 //TODO:    insert(iterator, std::vector<Element>{...})
 
-//TODO:    void erase(size_t index)
-//TODO:    void erase(iterator)
-//TODO:    void erase(begin, end)
+    void erase(const size_t index);
+    void erase(const AVector::iterator iterator)
+        { this->values.erase(this->values.cbegin()); }
+    void erase(const AVector::iterator begin, const AVector::iterator end)
+        { this->values.erase(begin, end); }
 }; /// class Array
 
+using JVector = std::vector<std::pair<std::string, Element>>;
 // Неупорядоченный список "ключ-значение"
 class Json
 {
-    std::vector<std::pair<std::string, Element>> values;
+    JVector values;
 
     bool checkIndexes(const size_t index) {
         if(index + 1 > values.size()) {
@@ -216,15 +223,11 @@ public:
     bool writeFile(const std::string& path, int16_t tabulation_level = 0);
 
     std::string to_string(int16_t tabulation_level = 0);
-    size_t size()   { return values.size(); }
-    std::vector<std::pair<std::string, Element>>::iterator begin()
-                    { return values.begin(); };
-    std::vector<std::pair<std::string, Element>>::iterator end()
-                    { return values.end(); };
-    std::vector<std::pair<std::string, Element>>::const_iterator cbegin()
-                    const { return values.begin(); };
-    std::vector<std::pair<std::string, Element>>::const_iterator cend()
-                    const { return values.end(); };
+    size_t size()                       { return values.size(); }
+    JVector::iterator begin()           { return values.begin(); };
+    JVector::iterator end()             { return values.end(); };
+    JVector::const_iterator cbegin()    const { return values.begin(); };
+    JVector::const_iterator cend()      const { return values.end(); };
 
     Element operator[](const size_t index)
     {
@@ -303,24 +306,34 @@ public:
     Element value(const std::string& name)                      { return (*this)[name]; }
     Element value(const std::vector<std::string>& complex_name) { return (*this)[complex_name]; }
 
-//TODO:    void insert(size_t index, std::string key, double value)
-//TODO:    void insert(size_t index, std::string key, bool value)
-//TODO:    void insert(size_t index, std::string key, std::string value)
-//TODO:    void insert(size_t index, std::string key, char* value)
-//TODO:    void insert(size_t index, std::string key, Json value)
-//TODO:    void insert(size_t index, std::string key, Array value)
-//TODO:    insert(iterator,  std::string key, <...> value)
+    void insert(const size_t index, const std::string& key, const double value);
+    void insert(const size_t index, const std::string& key, const bool value);
+    void insert(const size_t index, const std::string& key, const std::string value);
+    void insert(const size_t index, const std::string& key, const char* value)
+        { this->insert(index, key, std::string(value)); }
+    void insert(const size_t index, const std::string& key, const Json& value);
+    void insert(const size_t index, const std::string& key, const Array& value);
+
+    void insert(JVector::iterator iterator, const std::string& key, const double value);
+    void insert(JVector::iterator iterator, const std::string& key, const bool value);
+    void insert(JVector::iterator iterator, const std::string& key, const std::string value);
+    void insert(JVector::iterator iterator, const std::string& key, const char* value)
+        { insert(iterator, key, std::string(value)); }
+    void insert(JVector::iterator iterator, const std::string& key, const Json& value);
+    void insert(JVector::iterator iterator, const std::string& key, const Array& value);
 
 //TODO:    insertBefore(std::string key, key, value)
 //TODO:    insertBefore(std::string key, <key, value>{...})
 //TODO:    insertAfter(std::string key, key, value)
 //TODO:    insertAfter(std::string key, <key, value>{...})
 
-//TODO:    void erase(size_t index)
-//TODO:    void erase(iterator)
+    void erase(const size_t index);
+    void erase(const JVector::iterator iterator)
+        { this->values.erase(this->values.cbegin()); }
+    void erase(const JVector::iterator begin, const JVector::iterator end)
+        { this->values.erase(begin, end); }
 //TODO:    void erase(std::string key)
 //TODO:    void erase(std::vector<std::string> keys)
-//TODO:    void erase(begin, end)
 }; ///class Json
 
 static ValueType CheckValue(std::string& value);
