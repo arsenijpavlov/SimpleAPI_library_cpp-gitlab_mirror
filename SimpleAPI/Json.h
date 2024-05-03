@@ -333,6 +333,7 @@ public:
     Element value(const std::string& name)                      { return (*this)[name]; }
     Element value(const std::vector<std::string>& complex_name) { return (*this)[complex_name]; }
 
+    //если индекс больше количества вложенных элементов, то добавятся в конец
     __ONLY_ALLOWED_TYPES__
     void insert(const size_t index, const std::string& key, const T value)
     {
@@ -348,6 +349,7 @@ public:
         }
     }
 
+    //если индекс больше количества вложенных элементов, то добавятся в конец
     __ONLY_ALLOWED_TYPES__
     void insert(JVector::iterator iterator, const std::string& key, const T value)
     {
@@ -357,10 +359,19 @@ public:
         this->values.insert(iterator, std::make_pair(key, Element(value)));
     }
 
-//TODO:    insertBefore(std::string key, key, value)
-//TODO:    insertBefore(std::string key, <key, value>{...})
-//TODO:    insertAfter(std::string key, key, value)
-//TODO:    insertAfter(std::string key, <key, value>{...})
+    //если индекс больше количества вложенных элементов, то добавятся в конец
+    __ONLY_ALLOWED_TYPES__
+    void insertBefore(const std::string& keyIndex, const std::string& key, const T value)
+    {
+        //поиск указанного ключа
+        for(size_t i = 0; i < this->values.size(); i++) {
+            //TODO: ...
+        }
+
+    }
+//TODO:    void insertBefore(std::string key, <key, value>{...})
+//TODO:    void insertAfter(std::string key, key, value)
+//TODO:    void insertAfter(std::string key, <key, value>{...})
 
     void erase(const size_t index)
     {
