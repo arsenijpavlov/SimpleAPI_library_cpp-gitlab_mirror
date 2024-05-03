@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
         Array aa;
         aa.push_back(j);
         aa.push_back(a);
-        aa.push_front(15.0f);
+        aa.push_front((double)15.0f);
         std::cout << aa.to_string(tabLvl) << std::endl;
 
         Element el = aa[1]; //обращение к Json "j"

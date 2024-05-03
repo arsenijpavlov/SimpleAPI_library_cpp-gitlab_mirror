@@ -9,6 +9,17 @@
 //TODO: add "noexcept"
 namespace json {
 
+#define __ONLY_ALLOWED_TYPES__ \
+    template<typename T, \
+        typename std::enable_if< \
+            std::is_same<T, double>::value \
+            || std::is_same<T, bool>::value \
+            || std::is_same<T, std::string>::value \
+            || std::is_same<T, const char*>::value \
+            || std::is_same<T, Json>::value \
+            || std::is_same<T, Array>::value \
+        >::type* = nullptr>
+
 enum ValueType {
     eNull,
 
@@ -42,6 +53,7 @@ struct Element {
     Element(const double value);
     Element(const bool value);
     Element(const std::string value);
+    Element(const char* value);
     Element(const Json& value);
     Element(const Array& value);
 
@@ -76,30 +88,12 @@ public:
             delete el.second;
     }
 
-    void push_back(const double value)
-    { this->values.push_back(Element(value)); }
-    void push_back(const bool value)
-    { this->values.push_back(Element(value)); }
-    void push_back(const std::string value)
-    { this->values.push_back(Element(value)); }
-    void push_back(const char* value)
-    { push_back(std::string(value)); }
-    void push_back(const Json& value)
-    { this->values.push_back(Element(value)); }
-    void push_back(const Array& value)
+    __ONLY_ALLOWED_TYPES__
+    void push_back(const T value)
     { this->values.push_back(Element(value)); }
 
-    void push_front(const double value)
-    { this->values.insert(this->values.cbegin(), Element(value)); }
-    void push_front(const bool value)
-    { this->values.insert(this->values.cbegin(), Element(value)); }
-    void push_front(const std::string value)
-    { this->values.insert(this->values.cbegin(), Element(value)); }
-    void push_front(const char* value)
-    { push_front(std::string(value)); }
-    void push_front(const Json& value)
-    { this->values.insert(this->values.cbegin(), Element(value)); }
-    void push_front(const Array& value)
+    __ONLY_ALLOWED_TYPES__
+    void push_front(const T value)
     { this->values.insert(this->values.cbegin(), Element(value)); }
 
     ValueType getType(const size_t index)       { return this->values[index].first; }
@@ -190,38 +184,9 @@ public:
     AVector::const_iterator cbegin()      const { return values.begin(); }
     AVector::const_iterator cend()        const { return values.end(); }
 
+    __ONLY_ALLOWED_TYPES__
     //если индекс больше количества вложенных элементов, то добавятся в конец
-    void insert(const size_t index, const double value)
-    {
-        if(index > this->values.size() - 1)
-            this->push_back(value);
-        else
-            this->values.insert(this->values.cbegin() + index, Element(value));
-    }
-    void insert(const size_t index, const bool value)
-    {
-        if(index > this->values.size() - 1)
-            this->push_back(value);
-        else
-            this->values.insert(this->values.cbegin() + index, Element(value));
-    }
-    void insert(const size_t index, const std::string value)
-    {
-        if(index > this->values.size() - 1)
-            this->push_back(value);
-        else
-            this->values.insert(this->values.cbegin() + index, Element(value));
-    }
-    void insert(const size_t index, const char* value)
-    { this->insert(index, std::string(value)); }
-    void insert(const size_t index, const Json* value)
-    {
-        if(index > this->values.size() - 1)
-            this->push_back(value);
-        else
-            this->values.insert(this->values.cbegin() + index, Element(value));
-    }
-    void insert(const size_t index, const Array* value)
+    void insert(const size_t index, const T value)
     {
         if(index > this->values.size() - 1)
             this->push_back(value);
@@ -229,17 +194,8 @@ public:
             this->values.insert(this->values.cbegin() + index, Element(value));
     }
 
-    void insert(AVector::iterator iterator, const double value)
-    { this->values.insert(iterator, value); }
-    void insert(AVector::iterator iterator, const bool value)
-    { this->values.insert(iterator, value); }
-    void insert(AVector::iterator iterator, const std::string value)
-    { this->values.insert(iterator, value); }
-    void insert(AVector::iterator iterator, const char* value)
-    { this->values.insert(iterator, std::string(value)); }
-    void insert(AVector::iterator iterator, const Json* value)
-    { this->values.insert(iterator, value); }
-    void insert(AVector::iterator iterator, const Array* value)
+    __ONLY_ALLOWED_TYPES__
+    void insert(AVector::iterator iterator, const T value)
     { this->values.insert(iterator, value); }
 
     void erase(const size_t index)
@@ -275,42 +231,8 @@ public:
             delete el.second.second;
     }
 
-    bool put(const std::string& key, const double value)
-    {
-        if(!isValueExists(key)) {
-            this->values.push_back(std::pair<std::string, Element>(key, Element(value)));
-            return true;
-        } else
-            return false;
-    }
-    bool put(const std::string& key, const bool value)
-    {
-        if(!isValueExists(key)) {
-            this->values.push_back(std::pair<std::string, Element>(key, Element(value)));
-            return true;
-        } else
-            return false;
-    }
-    bool put(const std::string& key, const std::string value)
-    {
-        //NOTE: (возможно) экранирование спецсимволов, как минимум кавычек
-        if(!isValueExists(key)) {
-            this->values.push_back(std::pair<std::string, Element>(key, Element(value)));
-            return true;
-        } else
-            return false;
-    }
-    bool put(const std::string& key, const char* value)
-    { return this->put(key, std::string(value)); }
-    bool put(const std::string& key, const Json& value)
-    {
-        if(!isValueExists(key)) {
-            this->values.push_back(std::pair<std::string, Element>(key, Element(value)));
-            return true;
-        } else
-            return false;
-    }
-    bool put(const std::string& key, const Array& value)
+    __ONLY_ALLOWED_TYPES__
+    bool put(const std::string& key, const T value)
     {
         if(!isValueExists(key)) {
             this->values.push_back(std::pair<std::string, Element>(key, Element(value)));
@@ -319,12 +241,8 @@ public:
             return false;
     }
 
-    bool add(const std::string& key, const double value)     { return this->put(key, value); }
-    bool add(const std::string& key, const bool value)       { return this->put(key, value); }
-    bool add(const std::string& key, const std::string value){ return this->put(key, value); }
-    bool add(const std::string& key, const char* value)      { return this->put(key, value); }
-    bool add(const std::string& key, const Json& value)      { return this->put(key, value); }
-    bool add(const std::string& key, const Array& value)     { return this->put(key, value); }
+    __ONLY_ALLOWED_TYPES__
+    bool add(const std::string& key, const T value) { return this->put(key, value); }
 
     bool isValueExists(const std::string& name);
 
@@ -415,61 +333,8 @@ public:
     Element value(const std::string& name)                      { return (*this)[name]; }
     Element value(const std::vector<std::string>& complex_name) { return (*this)[complex_name]; }
 
-    void insert(const size_t index, const std::string& key, const double value)
-    {
-        //без дубликатов
-        if(this->isValueExists(key)) return;
-
-        if(index > this->values.size() - 1) {
-            this->put(key, value);
-        } else {
-            this->values.insert(
-                this->values.cbegin() + index,
-                std::make_pair(key, Element(value)));
-        }
-    }
-    void insert(const size_t index, const std::string& key, const bool value)
-    {
-        //без дубликатов
-        if(this->isValueExists(key)) return;
-
-        if(index > this->values.size() - 1) {
-            this->put(key, value);
-        } else {
-            this->values.insert(
-                this->values.cbegin() + index,
-                std::make_pair(key, Element(value)));
-        }
-    }
-    void insert(const size_t index, const std::string& key, const std::string value)
-    {
-        //без дубликатов
-        if(this->isValueExists(key)) return;
-
-        if(index > this->values.size() - 1) {
-            this->put(key, value);
-        } else {
-            this->values.insert(
-                this->values.cbegin() + index,
-                std::make_pair(key, Element(value)));
-        }
-    }
-    void insert(const size_t index, const std::string& key, const char* value)
-    { this->insert(index, key, std::string(value)); }
-    void insert(const size_t index, const std::string& key, const Json* value)
-    {
-        //без дубликатов
-        if(this->isValueExists(key)) return;
-
-        if(index > this->values.size() - 1) {
-            this->put(key, value);
-        } else {
-            this->values.insert(
-                this->values.cbegin() + index,
-                std::make_pair(key, Element(value)));
-        }
-    }
-    void insert(const size_t index, const std::string& key, const Array* value)
+    __ONLY_ALLOWED_TYPES__
+    void insert(const size_t index, const std::string& key, const T value)
     {
         //без дубликатов
         if(this->isValueExists(key)) return;
@@ -483,37 +348,8 @@ public:
         }
     }
 
-    void insert(JVector::iterator iterator, const std::string& key, const double value)
-    {
-        //без дубликатов
-        if(this->isValueExists(key)) return;
-
-        this->values.insert(iterator, std::make_pair(key, Element(value)));
-    }
-    void insert(JVector::iterator iterator, const std::string& key, const bool value)
-    {
-        //без дубликатов
-        if(this->isValueExists(key)) return;
-
-        this->values.insert(iterator, std::make_pair(key, Element(value)));
-    }
-    void insert(JVector::iterator iterator, const std::string& key, const std::string value)
-    {
-        //без дубликатов
-        if(this->isValueExists(key)) return;
-
-        this->values.insert(iterator, std::make_pair(key, Element(value)));
-    }
-    void insert(JVector::iterator iterator, const std::string& key, const char* value)
-    { insert(iterator, key, std::string(value)); }
-    void insert(JVector::iterator iterator, const std::string& key, const Json* value)
-    {
-        //без дубликатов
-        if(this->isValueExists(key)) return;
-
-        this->values.insert(iterator, std::make_pair(key, Element(value)));
-    }
-    void insert(JVector::iterator iterator, const std::string& key, const Array* value)
+    __ONLY_ALLOWED_TYPES__
+    void insert(JVector::iterator iterator, const std::string& key, const T value)
     {
         //без дубликатов
         if(this->isValueExists(key)) return;
@@ -574,7 +410,7 @@ public:
     ~DoubleElement(){}
 
     std::string to_string(int16_t tabulation_level = 0)
-        { return utils::ToString(value); }
+    { return utils::ToString(value); }
 };
 class BoolElement : BaseElement {
 public:
@@ -585,7 +421,7 @@ public:
     ~BoolElement(){}
 
     std::string to_string(int16_t tabulation_level = 0)
-        { return value ? "true" : "false"; }
+    { return value ? "true" : "false"; }
 };
 class StringElement : BaseElement {
 public:
@@ -596,7 +432,7 @@ public:
     ~StringElement(){}
 
     std::string to_string(int16_t tabulation_level = 0)
-        { return "\"" + value + "\""; }
+    { return "\"" + value + "\""; }
 };
 class JsonElement : BaseElement {
 public:
@@ -607,7 +443,7 @@ public:
     ~JsonElement(){}
 
     std::string to_string(int16_t tabulation_level = 0)
-        { return value.to_string(tabulation_level); }
+    { return value.to_string(tabulation_level); }
 };
 class ArrayElement : BaseElement {
 public:
@@ -618,7 +454,7 @@ public:
     ~ArrayElement(){}
 
     std::string to_string(int16_t tabulation_level = 0)
-        { return value.to_string(tabulation_level); }
+    { return value.to_string(tabulation_level); }
 };
 
 } /// namespace json

@@ -70,6 +70,11 @@ Element::Element(const std::string value) : first(ValueType::eString) {
     second = reinterpret_cast<BaseElement*>(new StringElement(value));
 }
 
+Element::Element(const char *value) : first(ValueType::eString)
+{
+    second = reinterpret_cast<BaseElement*>(new StringElement(std::string(value)));
+}
+
 Element::Element(const Json& value) : first(ValueType::eJson) {
     second = reinterpret_cast<BaseElement*>(new JsonElement(value));
 }
@@ -664,7 +669,7 @@ bool ParseJson(const std::string& json_str, Json* json)
                                   << std::endl;
                         exit = true;
                     } else {
-                        return_code = json->put(key, &_innerJson);
+                        return_code = json->put(key, _innerJson);
                     }
                     break;
                 }
@@ -677,7 +682,7 @@ bool ParseJson(const std::string& json_str, Json* json)
                                   << std::endl;
                         exit = true;
                     } else
-                        return_code = json->put(key, &_innerArray);
+                        return_code = json->put(key, _innerArray);
                     break;
                 }
                 case eNull:     { //значение ещё не прочитано!
@@ -814,7 +819,7 @@ bool ParseArray(const std::string& array_str, Array* array)
                     Json _innerJson;
                     return_code = ParseJson(value, &_innerJson);
                     if(return_code)
-                        array->push_back(&_innerJson);
+                        array->push_back(_innerJson);
                     else {
                         std::cout << "parse error valueType:" << ToString(valueType) << std::endl;
                         exit = true;
@@ -825,7 +830,7 @@ bool ParseArray(const std::string& array_str, Array* array)
                     Array _innerArray;
                     return_code = ParseArray(value, &_innerArray);
                     if(return_code)
-                        array->push_back(&_innerArray);
+                        array->push_back(_innerArray);
                     else {
                         std::cout << "parse error valueType:" << ToString(valueType) << std::endl;
                         exit = true;
