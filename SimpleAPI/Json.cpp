@@ -58,6 +58,26 @@ std::string ToString(const ValueType type) {
 
 
 // struct Element
+Element::Element(const double value) : first(ValueType::eNumber) {
+    second = reinterpret_cast<BaseElement*>(new DoubleElement(value));
+}
+
+Element::Element(const bool value) : first(ValueType::eBool) {
+    second = reinterpret_cast<BaseElement*>(new BoolElement(value));
+}
+
+Element::Element(const std::string value) : first(ValueType::eString) {
+    second = reinterpret_cast<BaseElement*>(new StringElement(value));
+}
+
+Element::Element(const Json& value) : first(ValueType::eJson) {
+    second = reinterpret_cast<BaseElement*>(new JsonElement(value));
+}
+
+Element::Element(const Array& value) : first(ValueType::eArray) {
+    second = reinterpret_cast<BaseElement*>(new ArrayElement(value));
+}
+
 double* Element::getNum()
 {
     if(first == ValueType::eNumber)
@@ -148,71 +168,6 @@ Array::Array(const Array& array)
     }
 }
 
-void Array::push_back(const double d)
-{
-    this->values.push_back(Element(
-        ValueType::eNumber, reinterpret_cast<BaseElement*>(new DoubleElement(d))));
-}
-
-void Array::push_back(const bool b)
-{
-    this->values.push_back(Element(
-        ValueType::eBool, reinterpret_cast<BaseElement*>(new BoolElement(b))));
-}
-
-void Array::push_back(const std::string string)
-{
-    this->values.push_back(Element(
-        ValueType::eString, reinterpret_cast<BaseElement*>(new StringElement(string))));
-}
-
-void Array::push_back(const Json& json)
-{
-    this->values.push_back(Element(
-        ValueType::eJson, reinterpret_cast<BaseElement*>(new JsonElement(json))));
-}
-
-void Array::push_back(const Array& array)
-{
-    this->values.push_back(Element(
-        ValueType::eArray, reinterpret_cast<BaseElement*>(new ArrayElement(array))));
-}
-
-void Array::push_front(const double d)
-{
-    this->values.insert(this->values.cbegin(),
-                        Element(ValueType::eNumber,
-                                reinterpret_cast<BaseElement*>(new DoubleElement(d))));
-}
-
-void Array::push_front(const bool b)
-{
-    this->values.insert(this->values.cbegin(),
-                        Element(ValueType::eBool,
-                                reinterpret_cast<BaseElement*>(new BoolElement(b))));
-}
-
-void Array::push_front(const std::string string)
-{
-    this->values.insert(this->values.cbegin(),
-                        Element(ValueType::eString,
-                                reinterpret_cast<BaseElement*>(new StringElement(string))));
-}
-
-void Array::push_front(const Json& json)
-{
-    this->values.insert(this->values.cbegin(),
-                        Element(ValueType::eJson,
-                                reinterpret_cast<BaseElement*>(new JsonElement(json))));
-}
-
-void Array::push_front(const Array& array)
-{
-    this->values.insert(this->values.cbegin(),
-                        Element(ValueType::eArray,
-                                reinterpret_cast<BaseElement*>(new ArrayElement(array))));
-}
-
 std::string Array::to_string(int16_t tabulation_level)
 {
     if(this->values.empty()) return "[]";
@@ -242,68 +197,6 @@ std::string Array::to_string(int16_t tabulation_level)
     ret += "]";
 
     return ret;
-}
-
-void Array::insert(const size_t index, const double value)
-{
-    if(index > this->values.size() - 1) {
-        this->push_back(value);
-    } else {
-        this->values.insert(this->values.cbegin() + index,
-                            Element(ValueType::eNumber,
-                                    reinterpret_cast<BaseElement*>(new DoubleElement(value))));
-    }
-}
-
-void Array::insert(const size_t index, const bool value)
-{
-    if(index > this->values.size() - 1) {
-        this->push_back(value);
-    } else {
-        this->values.insert(this->values.cbegin() + index,
-                            Element(ValueType::eBool,
-                                    reinterpret_cast<BaseElement*>(new BoolElement(value))));
-    }
-}
-
-void Array::insert(const size_t index, const std::string value)
-{
-    if(index > this->values.size() - 1) {
-        this->push_back(value);
-    } else {
-        this->values.insert(this->values.cbegin() + index,
-                            Element(ValueType::eString,
-                                    reinterpret_cast<BaseElement*>(new StringElement(value))));
-    }
-}
-
-void Array::insert(const size_t index, const Json& value)
-{
-    if(index > this->values.size() - 1) {
-        this->push_back(value);
-    } else {
-        this->values.insert(this->values.cbegin() + index,
-                            Element(ValueType::eJson,
-                                    reinterpret_cast<BaseElement*>(new JsonElement(value))));
-    }
-}
-
-void Array::insert(const size_t index, const Array& value)
-{
-    if(index > this->values.size() - 1) {
-        this->push_back(value);
-    } else {
-        this->values.insert(this->values.cbegin() + index,
-                            Element(ValueType::eArray,
-                                    reinterpret_cast<BaseElement*>(new ArrayElement(value))));
-    }
-}
-
-void Array::erase(const size_t index)
-{
-    if(index > this->values.size() - 1) return;
-
-    this->values.erase(this->values.cbegin() + index);
 }
 /// class Array
 
@@ -350,65 +243,6 @@ Json::Json(const Json& json)
         case eNull: break;
         }
     }
-}
-
-bool Json::put(const std::string& key, const double value)
-{
-    if(!isValueExists(key)) {
-        this->values.push_back(std::pair<std::string, Element>(
-            key,
-            Element(ValueType::eNumber,
-                    reinterpret_cast<BaseElement*>(new DoubleElement(value)))));
-        return true;
-    } else
-        return false;
-}
-
-bool Json::put(const std::string& key, const bool value)
-{
-    if(!isValueExists(key)) {
-        this->values.push_back(std::pair<std::string, Element>(
-            key,
-            Element(ValueType::eBool,
-                    reinterpret_cast<BaseElement*>(new BoolElement(value)))));
-        return true;
-    } else
-        return false;
-}
-
-bool Json::put(const std::string& key, const std::string value)
-{
-    if(!isValueExists(key)) {
-        this->values.push_back(std::pair<std::string, Element>(
-            key,
-            Element(ValueType::eString,
-                    reinterpret_cast<BaseElement*>(new StringElement(value)))));
-        return true;
-    } else
-        return false;
-}
-
-bool Json::put(const std::string& key, const Json& value)
-{
-    if(!isValueExists(key)) {
-        this->values.push_back(std::pair<std::string, Element>(
-            key,
-            Element(ValueType::eJson,
-                    reinterpret_cast<BaseElement*>(new JsonElement(value)))));
-        return true;
-    } else
-        return false;
-}
-
-bool Json::put(const std::string& key, const Array& value)
-{
-    //NOTE: (возможно) экранирование спецсимволов, как минимум кавычек
-    bool ret = true;
-    this->values.push_back(std::pair<std::string, Element>(
-        key,
-        Element(ValueType::eArray,
-                reinterpret_cast<BaseElement*>(new ArrayElement(value)))));
-    return ret;
 }
 
 bool Json::isValueExists(const std::string& name)
@@ -495,183 +329,6 @@ std::string Json::to_string(int16_t tabulation_level)
 
     ret += "}"; //end of json
     return ret;
-}
-
-void Json::insert(const size_t index, const std::string &key, const double value)
-{
-    //без дубликатов
-    if(this->isValueExists(key)) return;
-
-    if(index > this->values.size() - 1) {
-        this->put(key, value);
-    } else {
-        this->values.insert(
-            this->values.cbegin() + index,
-            std::make_pair(key,
-                           Element(
-                               ValueType::eNumber,
-                               reinterpret_cast<BaseElement*>(new DoubleElement(value))
-                               )));
-    }
-}
-
-void Json::insert(const size_t index, const std::string &key, const bool value)
-{
-    //без дубликатов
-    if(this->isValueExists(key)) return;
-
-    if(index > this->values.size() - 1) {
-        this->put(key, value);
-    } else {
-        this->values.insert(
-            this->values.cbegin() + index,
-            std::make_pair(key,
-                           Element(
-                               ValueType::eBool,
-                               reinterpret_cast<BaseElement*>(new BoolElement(value))
-                               )));
-    }
-}
-
-void Json::insert(const size_t index, const std::string &key, const std::string value)
-{
-    //без дубликатов
-    if(this->isValueExists(key)) return;
-
-    if(index > this->values.size() - 1) {
-        this->put(key, value);
-    } else {
-        this->values.insert(
-            this->values.cbegin() + index,
-            std::make_pair(key,
-                           Element(
-                               ValueType::eString,
-                               reinterpret_cast<BaseElement*>(new StringElement(value))
-                               )));
-    }
-}
-
-void Json::insert(const size_t index, const std::string &key, const Json &value)
-{
-    //без дубликатов
-    if(this->isValueExists(key)) return;
-
-    if(index > this->values.size() - 1) {
-        this->put(key, value);
-    } else {
-        this->values.insert(
-            this->values.cbegin() + index,
-            std::make_pair(key,
-                           Element(
-                               ValueType::eJson,
-                               reinterpret_cast<BaseElement*>(new JsonElement(value))
-                               )));
-    }
-}
-
-void Json::insert(const size_t index, const std::string &key, const Array &value)
-{
-    //без дубликатов
-    if(this->isValueExists(key)) return;
-
-    if(index > this->values.size() - 1) {
-        this->put(key, value);
-    } else {
-        this->values.insert(
-            this->values.cbegin() + index,
-            std::make_pair(key,
-                           Element(
-                               ValueType::eArray,
-                               reinterpret_cast<BaseElement*>(new ArrayElement(value))
-                               )));
-    }
-}
-
-void Json::insert(JVector::iterator iterator, const std::string &key, const double value)
-{
-    //без дубликатов
-    if(this->isValueExists(key)) return;
-
-    this->values.insert(
-        iterator,
-        std::make_pair(
-            key,
-            Element(ValueType::eNumber,
-                    reinterpret_cast<BaseElement*>(new DoubleElement(value)))));
-}
-
-void Json::insert(JVector::iterator iterator, const std::string &key, const bool value)
-{
-    //без дубликатов
-    if(this->isValueExists(key)) return;
-
-    this->values.insert(
-        iterator,
-        std::make_pair(
-            key,
-            Element(ValueType::eBool,
-                    reinterpret_cast<BaseElement*>(new BoolElement(value)))));
-}
-
-void Json::insert(JVector::iterator iterator, const std::string &key, const std::string value)
-{
-    //без дубликатов
-    if(this->isValueExists(key)) return;
-
-    this->values.insert(
-        iterator,
-        std::make_pair(
-            key,
-            Element(ValueType::eString,
-                    reinterpret_cast<BaseElement*>(new StringElement(value)))));
-}
-
-void Json::insert(JVector::iterator iterator, const std::string &key, const Json &value)
-{
-    //без дубликатов
-    if(this->isValueExists(key)) return;
-
-    this->values.insert(
-        iterator,
-        std::make_pair(
-            key,
-            Element(ValueType::eJson,
-                    reinterpret_cast<BaseElement*>(new JsonElement(value)))));
-}
-
-void Json::insert(JVector::iterator iterator, const std::string &key, const Array &value)
-{
-    //без дубликатов
-    if(this->isValueExists(key)) return;
-
-    this->values.insert(
-        iterator,
-        std::make_pair(
-            key,
-            Element(ValueType::eArray,
-                    reinterpret_cast<BaseElement*>(new ArrayElement(value)))));
-}
-
-void Json::erase(const size_t index)
-{
-    if(index > this->values.size() - 1) return;
-
-    this->values.erase(this->values.cbegin() + index);
-}
-
-void Json::erase(const std::string& key)
-{
-    bool flag = false;
-    size_t index;
-    for(index = 0; index < this->size(); index++) {
-        if(this->values[index].first == key) {
-            flag = true;
-            break;
-        }
-    }
-
-    if(flag)
-        this->values.erase(this->values.cbegin() + index);
 }
 /// class Json
 
@@ -1007,7 +664,7 @@ bool ParseJson(const std::string& json_str, Json* json)
                                   << std::endl;
                         exit = true;
                     } else {
-                        return_code = json->put(key, _innerJson);
+                        return_code = json->put(key, &_innerJson);
                     }
                     break;
                 }
@@ -1020,7 +677,7 @@ bool ParseJson(const std::string& json_str, Json* json)
                                   << std::endl;
                         exit = true;
                     } else
-                        return_code = json->put(key, _innerArray);
+                        return_code = json->put(key, &_innerArray);
                     break;
                 }
                 case eNull:     { //значение ещё не прочитано!
@@ -1157,7 +814,7 @@ bool ParseArray(const std::string& array_str, Array* array)
                     Json _innerJson;
                     return_code = ParseJson(value, &_innerJson);
                     if(return_code)
-                        array->push_back(_innerJson);
+                        array->push_back(&_innerJson);
                     else {
                         std::cout << "parse error valueType:" << ToString(valueType) << std::endl;
                         exit = true;
@@ -1168,7 +825,7 @@ bool ParseArray(const std::string& array_str, Array* array)
                     Array _innerArray;
                     return_code = ParseArray(value, &_innerArray);
                     if(return_code)
-                        array->push_back(_innerArray);
+                        array->push_back(&_innerArray);
                     else {
                         std::cout << "parse error valueType:" << ToString(valueType) << std::endl;
                         exit = true;
