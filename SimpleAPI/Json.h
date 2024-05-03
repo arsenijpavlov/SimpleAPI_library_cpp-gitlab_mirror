@@ -23,6 +23,7 @@ static std::string ToString(const ValueType type);
 class Json;
 class BaseElement {
 public:
+    virtual ~BaseElement(){};
     virtual std::string to_string(int16_t tabultation_level) = 0;
 };
 
@@ -65,7 +66,10 @@ class Array {
 public:
     Array(){};
     Array(const Array& array);
-    ~Array();
+    ~Array() {
+        for(Element& el : this->values)
+            delete el.second;
+    }
 
     void push_back(const double d);
     void push_back(const bool b);
@@ -201,7 +205,10 @@ class Json
 public:
     Json(){};
     Json(const Json& json);
-    ~Json();
+    ~Json() {
+        for(std::pair<std::string, Element>& el : this->values)
+            delete el.second.second;
+    }
 
     bool put(const std::string& key, const double value);
     bool put(const std::string& key, const bool value);
@@ -355,6 +362,8 @@ public:
 
     DoubleElement(){}
     DoubleElement(const double& d) : value(d){};
+    ~DoubleElement(){}
+
     std::string to_string(int16_t tabulation_level = 0)
         { return utils::ToString(value); }
 };
@@ -364,6 +373,8 @@ public:
 
     BoolElement(){}
     BoolElement(const bool& b) : value(b){};
+    ~BoolElement(){}
+
     std::string to_string(int16_t tabulation_level = 0)
         { return value ? "true" : "false"; }
 };
@@ -373,6 +384,8 @@ public:
 
     StringElement(){}
     StringElement(const std::string& s) : value(s){};
+    ~StringElement(){}
+
     std::string to_string(int16_t tabulation_level = 0)
         { return "\"" + value + "\""; }
 };
@@ -382,6 +395,8 @@ public:
 
     JsonElement(){}
     JsonElement(const Json& j) : value(j){};
+    ~JsonElement(){}
+
     std::string to_string(int16_t tabulation_level = 0)
         { return value.to_string(tabulation_level); }
 };
@@ -391,6 +406,8 @@ public:
 
     ArrayElement(){}
     ArrayElement(const Array& a) : value(a){};
+    ~ArrayElement(){}
+
     std::string to_string(int16_t tabulation_level = 0)
         { return value.to_string(tabulation_level); }
 };

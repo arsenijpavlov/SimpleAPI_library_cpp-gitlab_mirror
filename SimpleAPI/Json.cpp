@@ -148,20 +148,6 @@ Array::Array(const Array& array)
     }
 }
 
-Array::~Array()
-{
-    for(Element element : this->values) {
-        switch(element.first) {
-        case eNumber:   delete reinterpret_cast<DoubleElement*>(element.second);    break;
-        case eBool:     delete reinterpret_cast<BoolElement*>(element.second);      break;
-        case eString:   delete reinterpret_cast<StringElement*>(element.second);    break;
-        case eJson:     delete reinterpret_cast<JsonElement*>(element.second);      break;
-        case eArray:    delete reinterpret_cast<ArrayElement*>(element.second);     break;
-        default: break;
-        }
-    }
-}
-
 void Array::push_back(const double d)
 {
     this->values.push_back(Element(
@@ -362,20 +348,6 @@ Json::Json(const Json& json)
             break;
         }
         case eNull: break;
-        }
-    }
-}
-
-Json::~Json()
-{
-    for(std::pair<std::string, Element>& el : this->values) {
-        switch(el.second.first) {
-        case eNumber:   delete reinterpret_cast<DoubleElement*> (el.second.second);    break;
-        case eBool:     delete reinterpret_cast<BoolElement*>   (el.second.second);    break;
-        case eString:   delete reinterpret_cast<StringElement*> (el.second.second);    break;
-        case eJson:     delete reinterpret_cast<JsonElement*>   (el.second.second);    break;
-        case eArray:    delete reinterpret_cast<ArrayElement*>  (el.second.second);    break;
-        default: break;
         }
     }
 }
