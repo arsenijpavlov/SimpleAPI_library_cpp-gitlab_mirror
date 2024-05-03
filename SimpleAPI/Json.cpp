@@ -6,6 +6,19 @@
 namespace json {
 #define SPACES " \n\t"
 
+enum NextReadState {
+    eUnknown,
+
+    eKey,
+    eValue,
+    eColon,
+    eComma,
+    eJsonStart,
+    eJsonEnd,
+    eArrayStart,
+    eArrayEnd
+};
+
 std::string ToString(const NextReadState state)
 {
     switch(state) {
@@ -21,17 +34,6 @@ std::string ToString(const NextReadState state)
     }
 }
 
-std::string ToString(const ValueType type) {
-    switch(type) {
-    case eNumber:       return "Number"; break;
-    case eBool:         return "Bool"; break;
-    case eString:       return "String"; break;
-    case eJson:         return "Json"; break;
-    case eArray:        return "Array"; break;
-    default:            return "null"; break;
-    }
-}
-
 void ChangeNextState(NextReadState &state, const NextReadState nextState)
 {
     if(state == nextState) return;
@@ -43,129 +45,132 @@ void ChangeNextState(NextReadState &state, const NextReadState nextState)
     state = nextState;
 }
 
+std::string ToString(const ValueType type) {
+    switch(type) {
+    case eNumber:       return "Number"; break;
+    case eBool:         return "Bool"; break;
+    case eString:       return "String"; break;
+    case eJson:         return "Json"; break;
+    case eArray:        return "Array"; break;
+    default:            return "null"; break;
+    }
+}
+
+
+// struct Element
+Element::Element(const double value) : first(ValueType::eNumber) {
+    second = reinterpret_cast<BaseElement*>(new DoubleElement(value));
+}
+
+Element::Element(const bool value) : first(ValueType::eBool) {
+    second = reinterpret_cast<BaseElement*>(new BoolElement(value));
+}
+
+Element::Element(const std::string value) : first(ValueType::eString) {
+    second = reinterpret_cast<BaseElement*>(new StringElement(value));
+}
+
+Element::Element(const char *value) : first(ValueType::eString)
+{
+    second = reinterpret_cast<BaseElement*>(new StringElement(std::string(value)));
+}
+
+Element::Element(const Json& value) : first(ValueType::eJson) {
+    second = reinterpret_cast<BaseElement*>(new JsonElement(value));
+}
+
+Element::Element(const Array& value) : first(ValueType::eArray) {
+    second = reinterpret_cast<BaseElement*>(new ArrayElement(value));
+}
+
+double* Element::getNum()
+{
+    if(first == ValueType::eNumber)
+        return &reinterpret_cast<DoubleElement*>(this->second)->value;
+    else return nullptr;
+}
+
+bool* Element::getBool()
+{
+    if(first == ValueType::eBool)
+        return &reinterpret_cast<BoolElement*>(this->second)->value;
+    else return nullptr;
+}
+
+std::string* Element::getString()
+{
+    if(first == ValueType::eString)
+        return &reinterpret_cast<StringElement*>(this->second)->value;
+    else return nullptr;
+}
+
+Json* Element::getJson()
+{
+    if(first == ValueType::eJson)
+        return &reinterpret_cast<JsonElement*>(this->second)->value;
+    else return nullptr;
+}
+
+Array* Element::getArray()
+{
+    if(first == ValueType::eArray)
+        return &reinterpret_cast<ArrayElement*>(this->second)->value;
+    else return nullptr;
+}
+
+Element Element::getInnerValue(std::string name)
+{
+    if(this->first == ValueType::eJson)
+        return reinterpret_cast<JsonElement*>(this->second)->value[name];
+    else
+        return {};
+}
+
+Element Element::getInnerValue(size_t index)
+{
+    if(this->first == ValueType::eJson)
+        return reinterpret_cast<JsonElement*>(this->second)->value[index];
+    else if(this->first == ValueType::eArray)
+        return reinterpret_cast<ArrayElement*>(this->second)->value[index];
+    else
+        return {};
+}
+/// struct Element
+
+
 //ARRAY
 Array::Array(const Array& array)
 {
-    for(ArrayElements el : array.values) {
+    for(Element el : array.values) {
         switch(el.first) {
         case eNumber:
-            this->values.push_back(ArrayElements(
+            this->values.push_back(Element(
                 el.first, reinterpret_cast<BaseElement*>(
                     new DoubleElement(*reinterpret_cast<DoubleElement*>(el.second)))));
             break;
         case eBool:
-            this->values.push_back(ArrayElements(
+            this->values.push_back(Element(
                 el.first, reinterpret_cast<BaseElement*>(
                     new BoolElement(*reinterpret_cast<BoolElement*>(el.second)))));
             break;
         case eString:
-            this->values.push_back(ArrayElements(
+            this->values.push_back(Element(
                 el.first, reinterpret_cast<BaseElement*>(
                     new StringElement(*reinterpret_cast<StringElement*>(el.second)))));
             break;
         case eJson:
-            this->values.push_back(ArrayElements(
+            this->values.push_back(Element(
                 el.first, reinterpret_cast<BaseElement*>(
                     new JsonElement(*reinterpret_cast<JsonElement*>(el.second)))));
             break;
         case eArray:
-            this->values.push_back(ArrayElements(
+            this->values.push_back(Element(
                 el.first, reinterpret_cast<BaseElement*>(
                     new ArrayElement(*reinterpret_cast<ArrayElement*>(el.second)))));
             break;
         case eNull:     break;
         }
     }
-}
-
-Array::~Array()
-{
-    for(ArrayElements element : this->values) {
-        switch(element.first) {
-        case eNumber:   delete reinterpret_cast<DoubleElement*>(element.second);    break;
-        case eBool:     delete reinterpret_cast<BoolElement*>(element.second);      break;
-        case eString:   delete reinterpret_cast<StringElement*>(element.second);    break;
-        case eJson:     delete reinterpret_cast<JsonElement*>(element.second);      break;
-        case eArray:    delete reinterpret_cast<ArrayElement*>(element.second);     break;
-        default: break;
-        }
-    }
-}
-
-
-void Array::push_back(double d)
-{
-    this->values.push_back(ArrayElements(
-        ValueType::eNumber, reinterpret_cast<BaseElement*>(new DoubleElement(d))));
-}
-
-void Array::push_back(bool b)
-{
-    this->values.push_back(ArrayElements(
-        ValueType::eBool, reinterpret_cast<BaseElement*>(new BoolElement(b))));
-}
-
-void Array::push_back(std::string string)
-{
-    this->values.push_back(ArrayElements(
-        ValueType::eString, reinterpret_cast<BaseElement*>(new StringElement(string))));
-}
-
-void Array::push_back(Json json)
-{
-    this->values.push_back(ArrayElements(
-        ValueType::eJson, reinterpret_cast<BaseElement*>(new JsonElement(json))));
-}
-
-void Array::push_back(Array& array)
-{
-    this->values.push_back(ArrayElements(
-        ValueType::eArray, reinterpret_cast<BaseElement*>(new ArrayElement(array))));
-}
-
-/*
- * TODO: Array::push_front(...)
-void Array::push_front(const double d)
-{
-    this->values.push_back(ArrayElements(ValueType::eNumber, reinterpret_cast<BaseElement*>(new DoubleElement(d))));
-}
-
-void Array::push_front(const bool b)
-{
-    this->values.push_back(ArrayElements(ValueType::eBool, reinterpret_cast<BaseElement*>(new BoolElement(b))));
-}
-
-void Array::push_front(const std::string string)
-{
-    this->values.push_back(ArrayElements(ValueType::eString, reinterpret_cast<BaseElement*>(new StringElement(string))));
-}
-
-void Array::push_front(const Json json)
-{
-    Json *pJ = new Json(json);
-    this->values.push_back(ArrayElements(ValueType::eJson, reinterpret_cast<BaseElement*>(pJ)));
-}
-
-void Array::push_front(const Array array)
-{
-    Array *pA = new Array(array);
-    this->values.push_back(ArrayElements(ValueType::eArray, reinterpret_cast<BaseElement*>(pA)));
-}
-*/
-
-ValueType Array::getType(size_t index)
-{
-    return this->values[index].first;
-}
-
-void* Array::getAt(size_t index)
-{
-    return this->values[index].second;
-}
-
-void* Array::operator[](size_t index)
-{
-    return this->values[index].second;
 }
 
 std::string Array::to_string(int16_t tabulation_level)
@@ -175,61 +180,86 @@ std::string Array::to_string(int16_t tabulation_level)
     std::string ret;
     bool withoutSpaces = tabulation_level < 0;
     ret += "[";
-    if(!withoutSpaces) ret += "\n";
-    if(!withoutSpaces) tabulation_level++;
-    std::string tabs_str = !withoutSpaces ? utils::Tab(tabulation_level) : "";
 
-    for(size_t i = 0; i < this->values.size(); i++) {
-        if(!withoutSpaces) ret += tabs_str;
-        ret += this->values[i].second->to_string(tabulation_level);
-        if(i < this->values.size() - 1) ret += ",";
+    if(this->values.size() == 1) {
+        if(!withoutSpaces) ret += " ";
+        ret += this->values[0].second->to_string(tabulation_level);
+        if(!withoutSpaces) ret += " ";
+    } else {
         if(!withoutSpaces) ret += "\n";
+        std::string tabs_str = !withoutSpaces ? utils::Tab(++tabulation_level) : "";
+
+        for(size_t i = 0; i < this->values.size(); i++) {
+            if(!withoutSpaces) ret += tabs_str;
+            ret += this->values[i].second->to_string(tabulation_level);
+            if(i < this->values.size() - 1) ret += ",";
+            if(!withoutSpaces) ret += "\n";
+        }
+
+        if(!withoutSpaces) ret += utils::Tab(--tabulation_level);
     }
 
-    if(!withoutSpaces) ret += utils::Tab(--tabulation_level);
     ret += "]";
 
     return ret;
 }
-
-///ARRAY
+/// class Array
 
 // Json
-Json::~Json()
+Json::Json(const Json& json)
 {
-    this->numbers.clear();
-    this->bools.clear();
-    this->strings.clear();
-    this->jsons.clear();
-    this->arrays.clear();
+    for(const std::pair<std::string, Element> &el : json.values) {
+        switch(el.second.first) {
+        case eNumber: {
+            double value = reinterpret_cast<DoubleElement*>(el.second.second)->value;
+            this->values.push_back(std::make_pair(
+                el.first,
+                Element(el.second.first, reinterpret_cast<BaseElement*>(new DoubleElement(value)))));
+            break;
+        }
+        case eBool: {
+            bool value = reinterpret_cast<BoolElement*>(el.second.second)->value;
+            this->values.push_back(std::make_pair(
+                el.first,
+                Element(el.second.first, reinterpret_cast<BaseElement*>(new BoolElement(value)))));
+            break;
+        }
+        case eString: {
+            std::string value = reinterpret_cast<StringElement*>(el.second.second)->value;
+            this->values.push_back(std::make_pair(
+                el.first,
+                Element(el.second.first, reinterpret_cast<BaseElement*>(new StringElement(value)))));
+            break;
+        }
+        case eJson: {
+            Json value = reinterpret_cast<JsonElement*>(el.second.second)->value;
+            this->values.push_back(std::make_pair(
+                el.first,
+                Element(el.second.first, reinterpret_cast<BaseElement*>(new JsonElement(value)))));
+            break;
+        }
+        case eArray: {
+            Array value = reinterpret_cast<ArrayElement*>(el.second.second)->value;
+            this->values.push_back(std::make_pair(
+                el.first,
+                Element(el.second.first, reinterpret_cast<BaseElement*>(new ArrayElement(value)))));
+            break;
+        }
+        case eNull: break;
+        }
+    }
 }
 
-bool Json::put(const std::string key, const std::string value)
+bool Json::isValueExists(const std::string& name)
 {
-    return this->strings.insert(std::pair<std::string, std::string>(key, value)).second;
+    for(const auto &it : this->values) {
+        if(it.first == name)
+            return true;
+    }
+    return false;
 }
 
-bool Json::put(const std::string key, const double value)
-{
-    return this->numbers.insert(std::pair<std::string, double>(key, value)).second;
-}
-
-bool Json::put(const std::string key, const bool value)
-{
-    return this->bools.insert(std::pair<std::string, bool>(key, value)).second;
-}
-
-bool Json::put(const std::string key, const Json json)
-{
-    return this->jsons.insert(std::pair<std::string, Json>(key, json)).second;
-}
-
-bool Json::put(const std::string key, const Array& value)
-{
-    return this->arrays.insert(std::pair<std::string, Array>(key, Array(value))).second;
-}
-
-bool Json::readFile(const std::string path)
+bool Json::readFile(const std::string& path)
 {
     std::ifstream file(path);
     if (!file.is_open()) {
@@ -242,9 +272,12 @@ bool Json::readFile(const std::string path)
     char quote = 0;
     std::string json_str;
     while(getline(file, temp_string)) {
+        std::cout << "prepare(" << (nextStrStartFromComment ? "true" : "false") << "): " << temp_string << std::endl;
         utils::RemoveComments(temp_string, nextStrStartFromComment, quote);
-        if(!temp_string.empty())
+        if(!temp_string.empty()) {
             json_str += temp_string + '\n';
+            std::cout << "temp: " << temp_string << std::endl;
+        }
     }
     file.close();
 
@@ -252,13 +285,13 @@ bool Json::readFile(const std::string path)
     return ParseJson(json_str, this);
 }
 
-bool Json::writeFile(const std::string path)
+bool Json::writeFile(const std::string& path, int16_t tabulation_level)
 {
     std::ofstream file(path);
     if (!file.is_open())
         return false;
 
-    file << this->to_string() << std::endl;
+    file << this->to_string(tabulation_level) << std::endl;
 
     file.flush();
     file.close();
@@ -270,83 +303,44 @@ std::string Json::to_string(int16_t tabulation_level)
     std::string ret;
     bool withoutSpaces = tabulation_level < 0;
     ret += "{"; //start of json
-    if(!withoutSpaces) ret += "\n";
 
-    if(!withoutSpaces) tabulation_level++;
-    std::string tabs_str = !withoutSpaces ? utils::Tab(tabulation_level) : "";
-    //numbers
-    std::map<std::string, double>::iterator it_num = this->numbers.begin();
-    for(int i = 0; it_num != numbers.end(); i++, it_num++) {
-        ret += tabs_str + "\"" + it_num->first + "\"";
+    if(this->values.size() == 1) {
+        if(!withoutSpaces) ret += " ";
+        ret += "\"" + this->values[0].first + "\"";
         if(!withoutSpaces) ret += " ";
         ret += ":";
         if(!withoutSpaces) ret += " ";
-        ret += utils::ToString(it_num->second)
-               + (((i < numbers.size() - 1)
-                   || (bools.size() > 0)
-                   || (strings.size() > 0)
-                   || (jsons.size() > 0)
-                   || (arrays.size() > 0)) ? "," : "");
-        if(!withoutSpaces) ret += "\n";
-    }
-    //bools
-    std::map<std::string, bool>::iterator it_b = this->bools.begin();
-    for(int i = 0; it_b != bools.end(); i++, it_b++) {
-        ret += tabs_str + "\"" + it_b->first + "\"";
+        ret += this->values[0].second.second->to_string(tabulation_level);
         if(!withoutSpaces) ret += " ";
-        ret += ":";
-        if(!withoutSpaces) ret += " ";
-        ret += BoolElement(it_b->second).to_string()
-               + (((i < bools.size() - 1)
-                   || (strings.size() > 0)
-                   || (jsons.size() > 0)
-                   || (arrays.size() > 0)) ? "," : "");
+    } else {
         if(!withoutSpaces) ret += "\n";
-    }
-    //strings
-    std::map<std::string, std::string>::iterator it_str = this->strings.begin();
-    for(int i = 0; it_str != strings.end(); i++, it_str++) {
-        ret += tabs_str + "\"" + it_str->first + "\"";
-        if(!withoutSpaces) ret += " ";
-        ret += ":";
-        if(!withoutSpaces) ret += " ";
-        ret += "\"" + it_str->second + "\""
-               + (((i < strings.size() - 1)
-                   || (jsons.size() > 0)
-                   || (arrays.size() > 0)) ? "," : "");
-        if(!withoutSpaces) ret += "\n";
-    }
-    //jsons
-    std::map<std::string, Json>::iterator it_js = this->jsons.begin();
-    for(int i = 0; it_js != jsons.end(); i++, it_js++) {
-        ret += tabs_str + "\"" + it_js->first + "\" : "
-               + it_js->second.to_string(tabulation_level)
-               + (((i < jsons.size() - 1)
-                   || (arrays.size() > 0)) ? "," : "");
-        if(!withoutSpaces) ret += "\n";
-    }
-    //arrays
-    std::map<std::string, Array>::iterator it_ar = this->arrays.begin();
-    for(int i = 0; it_ar != arrays.end(); i++, it_ar++) {
-        ret += tabs_str + "\"" + it_ar->first + "\" : "
-               + it_ar->second.to_string(tabulation_level)
-               + ((i < arrays.size() - 1) ? "," : "");
-        if(!withoutSpaces) ret += "\n";
+
+        std::string tabs_str = !withoutSpaces ? utils::Tab(++tabulation_level) : "";
+
+        size_t i = 0;
+        for(std::pair<std::string, Element>& el : this->values) {
+            ret += tabs_str + "\"" + el.first + "\"";
+            if(!withoutSpaces) ret += " ";
+            ret += ":";
+            if(!withoutSpaces) ret += " ";
+            ret += el.second.second->to_string(tabulation_level);
+            if(i < this->values.size() - 1) ret += ",";
+            if(!withoutSpaces) ret += "\n";
+            i++;
+        }
+
+        if(!withoutSpaces) ret += utils::Tab(--tabulation_level);
     }
 
-    if(!withoutSpaces) tabulation_level--;
-    if(!withoutSpaces) ret += utils::Tab(tabulation_level);
     ret += "}"; //end of json
     return ret;
 }
-/// Json
+/// class Json
 
 //STATIC:
 ValueType CheckValue(std::string& value)
 {
-#ifdef __DEBUG__
-    std::cout << "CheckValue(): \"" << value << "\"" << std::endl;
-#endif
+    //    std::cout << "CheckValue(): \"" << value << "\"" << std::endl;
     bool isValue = false;
     std::string _value;
     ValueType vType = eNull;
@@ -358,15 +352,14 @@ ValueType CheckValue(std::string& value)
             if(vType == ValueType::eNull) {
                 if(utils::IsNumber(value[i]))
                     vType = ValueType::eNumber;
-                else if(value[i] == '"' || value[i] == '\'') {
+                else if(value[i] == '"')
                     vType = ValueType::eString;
-                } else if(value[i] == '{') {
+                else if(value[i] == '{')
                     vType = ValueType::eJson;
-                } else if(value[i] == '[') {
+                else if(value[i] == '[')
                     vType = ValueType::eArray;
-                } else if(!utils::CharsInString(value[i], SPACES)) {
+                else if(!utils::CharsInString(value[i], SPACES))
                     vType = ValueType::eBool;
-                }
             }
             _value += value[i];
         }
@@ -423,10 +416,7 @@ bool CheckBool(std::string& value)
         }
     }
 
-//    std::cout << "-CheckValue(): \"" << temp << "\"" << std::endl;
     if(temp != "true" && temp != "false") return false;
-
-//    std::cout << "~CheckValue(): \"" << temp << "\"" << std::endl;
     value = temp;
     return true;
 }
@@ -437,21 +427,43 @@ bool CheckString(std::string& value)
     char ch = 0;
     std::string temp;
     bool done = false;
+    bool isNextTechChar = false;
     for(size_t i = 0; i < value.length(); i++) {
         if(ch != 0) { //начинаем запись слова
             if(!done) {
-                if(value[i] == ch) //пока не встретили конец слова
-                    done = true;
-                else
+                //экранирование?
+                if(value[i] == '\\' && !isNextTechChar) {
+                    isNextTechChar = true;
                     temp += value[i];
+                    continue;
+                }
+
+                if(value[i] == ch) //применяем экранирование только для кавычек
+                {
+                    if(isNextTechChar)
+                    {
+                        temp += value[i];
+                        isNextTechChar = false;
+                    } else
+                        done = true;
+                } else
+                    temp += value[i];
+//                if(isNextTechChar) { //текущий символ экранирован?
+//                    temp += value[i];
+//                    isNextTechChar = false;
+//                } else if(value[i] == ch)
+//                    done = true;
+//                else
+//                    temp += value[i];
             } else { //замкнули слово, надо проверить оставшиеся символы
                 if(!utils::CharsInString(value[i], SPACES)) {
                     std::cout << "Error with parse String in: " << value << std::endl;
                     return false;
                 }
             }
-        } else if(utils::CharsInString(value[i], "\"'"))
+        } else if(value[i] == '"') {
             ch = value[i];
+        }
     }
 
     value = temp;
@@ -468,14 +480,8 @@ bool CheckJson(std::string& value)
     uint32_t innerLvlFBrace = 0;
     uint32_t innerLvlQBrace = 0;
     for(size_t i = 0; i < value.length(); i++) {
-//        std::cout << "CheckJson(): current:[" << value[i] << "]"
-//                  << " done:" << (done ? "+" : "-")
-//                  << " [" << "F:" << innerLvlFBrace << "]"
-//                  << " [" << "Q:" << innerLvlQBrace << "]"
-//                  << " [" << "W:" << innerWord << "]"
-//                  << std::endl;
         if(ch != 0) { //начинаем запись слова
-            if(utils::CharsInString(value[i], "\"'")) {
+            if(value[i] == '"') {
                 if(innerWord == 0)              innerWord = value[i];
                 else if(value[i] == innerWord)  innerWord = 0;
             }
@@ -510,14 +516,7 @@ bool CheckJson(std::string& value)
         }
     }
 
-//    std::cout << "~CheckJson()[" << (done ? "+" : "-") << "]:"
-//              << " [" << "F:" << innerLvlFBrace << "]"
-//              << " [" << "Q:" << innerLvlQBrace << "]"
-//              << " [" << "W:" << innerWord << "]"
-//              << " \"" << temp << "\""
-//              << std::endl;
     if(!done) return false;
-
     value = temp;
     return true;
 }
@@ -532,14 +531,8 @@ bool CheckArray(std::string& value)
     uint32_t innerLvlFBrace = 0;
     uint32_t innerLvlQBrace = 0;
     for(size_t i = 0; i < value.length(); i++) {
-//        std::cout << "CheckJson(): current:[" << value[i] << "]"
-//                  << " done:" << (done ? "+" : "-")
-//                  << " [" << "F:" << innerLvlFBrace << "]"
-//                  << " [" << "Q:" << innerLvlQBrace << "]"
-//                  << " [" << "W:" << innerWord << "]"
-//                  << std::endl;
         if(ch != 0) { //начинаем запись слова
-            if(utils::CharsInString(value[i], "\"'")) {
+            if(value[i] == '"') {
                 if(innerWord == 0)              innerWord = value[i];
                 else if(value[i] == innerWord)  innerWord = 0;
             }
@@ -574,21 +567,14 @@ bool CheckArray(std::string& value)
         }
     }
 
-//    std::cout << "~CheckArray()[" << (done ? "+" : "-") << "]:"
-//              << " [" << "F:" << innerLvlFBrace << "]"
-//              << " [" << "Q:" << innerLvlQBrace << "]"
-//              << " [" << "W:" << innerWord << "]"
-//              << " \"" << temp << "\""
-//              << std::endl;
     if(!done) return false;
-
     value = temp;
     return true;
 }
 
 bool ParseJson(const std::string& json_str, Json* json)
 {
-//    std::cout << "ParseJson(): " << json_str << std::endl;
+    std::cout << "ParseJson(): " << json_str << std::endl;
     bool return_code = true;
     if(!json) return false;
 
@@ -611,13 +597,6 @@ bool ParseJson(const std::string& json_str, Json* json)
     std::string value = "";
     NextReadState state = NextReadState::eJsonStart;
     for(size_t i = 0; i < json_str.length() && !exit; i++) {
-//        std::cout << "current [" << json_str[i] << "]: "
-//                  << "key: [" << key << "], "
-//                  << "value: [" << value << "], "
-//                  << "k:" << (isKey ? "+" : "-") << " "
-//                  << "v:" << (isValue ? "+" : "-")
-//                  << std::endl;
-
         //счётчик строк и символов, для вывода ошибки
         if ((json_str[i] == '\n') || (i == 0)) {
             strCounter++;
@@ -656,10 +635,8 @@ bool ParseJson(const std::string& json_str, Json* json)
             if(!isKey) {
                 if(!CheckString(key))
                     isKey = true;
-                else {
-//                    std::cout << "KEY: \"" << key << "\"" << std::endl;
+                else
                     ChangeNextState(state, NextReadState::eColon);
-                }
             }
             break;
         }
@@ -674,12 +651,7 @@ bool ParseJson(const std::string& json_str, Json* json)
 
             if(!isValue) { //это конец значения?
                 valueType = CheckValue(value);
-#ifdef __DEBUG__
-                if(valueType != ValueType::eNull)
-                    std::cout << "JSON KEY:\"" << key << "\", VALUE(" << ToString(valueType) << "):\"" << value << "\"" << std::endl;
-                else
-                    std::cout << "JSON(BROKEN) KEY:\"" << key << "\", VALUE(" << ToString(valueType) << "):\"" << value << "\"" << std::endl;
-#endif
+
                 switch(valueType) {
                 case eNumber:   { return_code = json->put(key, std::stod(value)); break; }
                 case eBool:     {
@@ -721,11 +693,10 @@ bool ParseJson(const std::string& json_str, Json* json)
                 default: break;
                 }
 
+//                std::cout << "Json key: \"" << key << "\""
+//                          << ", value: \"" << value << "\"" << std::endl;
+
                 //обнуление временных переменных, переход к следующему элементу
-#ifdef __DEBUG__
-                std::cout << "Json key: \"" << key << "\""
-                          << ", value: \"" << value << "\"" << std::endl;
-#endif
                 key = "";
                 value = "";
                 ChangeNextState(state, NextReadState::eComma);
@@ -798,13 +769,6 @@ bool ParseArray(const std::string& array_str, Array* array)
     std::string value = "";
     NextReadState state = NextReadState::eArrayStart;
     for(size_t i = 0; i < array_str.length() && !exit; i++) {
-//        std::cout << "current [" << array_str[i] << "]: "
-//                  << "key: [" << key << "], "
-//                  << "value: [" << value << "], "
-//                  << "k:" << (isKey ? "+" : "-") << " "
-//                  << "v:" << (isValue ? "+" : "-")
-//                  << std::endl;
-
         //счётчик строк и символов, для вывода ошибки
         if ((array_str[i] == '\n') || (i == 0)) {
             strCounter++;
@@ -841,9 +805,8 @@ bool ParseArray(const std::string& array_str, Array* array)
 
             if(!isValue) { //это конец значения?
                 valueType = CheckValue(value);
-                if(valueType != ValueType::eNull)
-//                    std::cout << "ARRAY VALUE(" << ToString(valueType) << "):\"" << value << "\"" << std::endl;
                 return_code = valueType != ValueType::eNull;
+
                 switch(valueType) {
                 case eNumber:   { array->push_back(std::stod(value));       break; }
                 case eBool:     {
@@ -882,10 +845,9 @@ bool ParseArray(const std::string& array_str, Array* array)
                 default: break;
                 }
 
+//                std::cout << "Array value: \"" << value << "\"" << std::endl;
+
                 //обнуление временных переменных, переход к следующему элементу
-#ifdef __DEBUG__
-                std::cout << "Array value: \"" << value << "\"" << std::endl;
-#endif
                 value = "";
                 ChangeNextState(state, NextReadState::eComma);
             }
