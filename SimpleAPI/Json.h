@@ -9,15 +9,15 @@
 //TODO: add "noexcept"
 namespace json {
 
-#define __ONLY_ALLOWED_TYPES__ \
-    template<typename T, \
+#define __ONLY_ALLOWED_TYPES__(ARG) \
+    template<typename ARG, \
         typename std::enable_if< \
-            std::is_same<T, double>::value \
-            || std::is_same<T, bool>::value \
-            || std::is_same<T, std::string>::value \
-            || std::is_same<T, const char*>::value \
-            || std::is_same<T, Json>::value \
-            || std::is_same<T, Array>::value \
+            std::is_same<ARG, double>::value \
+            || std::is_same<ARG, bool>::value \
+            || std::is_same<ARG, std::string>::value \
+            || std::is_same<ARG, const char*>::value \
+            || std::is_same<ARG, Json>::value \
+            || std::is_same<ARG, Array>::value \
         >::type* = nullptr>
 
 enum ValueType {
@@ -88,11 +88,11 @@ public:
             delete el.second;
     }
 
-    __ONLY_ALLOWED_TYPES__
+    __ONLY_ALLOWED_TYPES__(T)
     void push_back(const T value)
     { this->values.push_back(Element(value)); }
 
-    __ONLY_ALLOWED_TYPES__
+    __ONLY_ALLOWED_TYPES__(T)
     void push_front(const T value)
     { this->values.insert(this->values.cbegin(), Element(value)); }
 
@@ -184,8 +184,8 @@ public:
     AVector::const_iterator cbegin()      const { return values.begin(); }
     AVector::const_iterator cend()        const { return values.end(); }
 
-    __ONLY_ALLOWED_TYPES__
     //если индекс больше количества вложенных элементов, то добавятся в конец
+    __ONLY_ALLOWED_TYPES__(T)
     void insert(const size_t index, const T value)
     {
         if(index > this->values.size() - 1)
@@ -194,7 +194,7 @@ public:
             this->values.insert(this->values.cbegin() + index, Element(value));
     }
 
-    __ONLY_ALLOWED_TYPES__
+    __ONLY_ALLOWED_TYPES__(T)
     void insert(AVector::iterator iterator, const T value)
     { this->values.insert(iterator, value); }
 
@@ -231,17 +231,17 @@ public:
             delete el.second.second;
     }
 
-    __ONLY_ALLOWED_TYPES__
+    __ONLY_ALLOWED_TYPES__(T)
     bool put(const std::string& key, const T value)
     {
-        if(!isValueExists(key)) {
+        if(!isValueExists(key)) { //без дубликатов
             this->values.push_back(std::pair<std::string, Element>(key, Element(value)));
             return true;
         } else
             return false;
     }
 
-    __ONLY_ALLOWED_TYPES__
+    __ONLY_ALLOWED_TYPES__(T)
     bool add(const std::string& key, const T value) { return this->put(key, value); }
 
     bool isValueExists(const std::string& name);
@@ -250,11 +250,11 @@ public:
     bool writeFile(const std::string& path, int16_t tabulation_level = 0);
 
     std::string to_string(int16_t tabulation_level = 0);
-    size_t size()                       { return values.size(); }
-    JVector::iterator begin()           { return values.begin(); };
-    JVector::iterator end()             { return values.end(); };
-    JVector::const_iterator cbegin()    const { return values.begin(); };
-    JVector::const_iterator cend()      const { return values.end(); };
+    size_t size()                                               { return values.size(); }
+    JVector::iterator begin()                                   { return values.begin(); };
+    JVector::iterator end()                                     { return values.end(); };
+    JVector::const_iterator cbegin()                      const { return values.begin(); };
+    JVector::const_iterator cend()                        const { return values.end(); };
 
     Element operator[](const size_t index)
     {
@@ -334,44 +334,60 @@ public:
     Element value(const std::vector<std::string>& complex_name) { return (*this)[complex_name]; }
 
     //если индекс больше количества вложенных элементов, то добавятся в конец
-    __ONLY_ALLOWED_TYPES__
-    void insert(const size_t index, const std::string& key, const T value)
+    __ONLY_ALLOWED_TYPES__(T)
+    bool insert(const size_t index, const std::string& key, const T value)
     {
-        //без дубликатов
-        if(this->isValueExists(key)) return;
-
-        if(index > this->values.size() - 1) {
+        if(this->isValueExists(key)) return false; //без дубликатов
+        if(index > this->values.size() - 1)
             this->put(key, value);
-        } else {
+        else {
             this->values.insert(
                 this->values.cbegin() + index,
                 std::make_pair(key, Element(value)));
         }
+        return true;
     }
 
     //если индекс больше количества вложенных элементов, то добавятся в конец
-    __ONLY_ALLOWED_TYPES__
-    void insert(JVector::iterator iterator, const std::string& key, const T value)
+    __ONLY_ALLOWED_TYPES__(T)
+    bool insert(JVector::iterator iterator, const std::string& key, const T value)
     {
-        //без дубликатов
-        if(this->isValueExists(key)) return;
-
+        if(this->isValueExists(key)) return false; //без дубликатов
         this->values.insert(iterator, std::make_pair(key, Element(value)));
+        return true;
     }
 
     //если индекс больше количества вложенных элементов, то добавятся в конец
-    __ONLY_ALLOWED_TYPES__
-    void insertBefore(const std::string& keyIndex, const std::string& key, const T value)
+    __ONLY_ALLOWED_TYPES__(T)
+    bool insertBefore(const std::string& keyIndex, const std::string& key, const T value)
     {
-        //поиск указанного ключа
-        for(size_t i = 0; i < this->values.size(); i++) {
-            //TODO: ...
-        }
+        if(this->isValueExists(key)) return false; //без дубликатов
 
+        //поиск индекса указанного ключа
+        for(std::pair<std::string, Element>& it : this->values) {
+            if(it.first == keyIndex) {
+//FIXME:                this->insert(it, std::make_pair(key, value));
+                return true;
+            }
+        }
+        return false;
     }
-//TODO:    void insertBefore(std::string key, <key, value>{...})
-//TODO:    void insertAfter(std::string key, key, value)
-//TODO:    void insertAfter(std::string key, <key, value>{...})
+
+    //если индекс больше количества вложенных элементов, то добавятся в конец
+    __ONLY_ALLOWED_TYPES__(T)
+    bool insertAfter(const std::string& keyIndex, const std::string& key, const T value)
+    {
+        if(this->isValueExists(key)) return false; //без дубликатов
+
+        //поиск индекса указанного ключа
+        for(std::pair<std::string, Element>& it : this->values) {
+            if(it.first == keyIndex) {
+//FIXME:                this->insert(it + 1, std::make_pair(key, value));
+                return true;
+            }
+        }
+        return false;
+    }
 
     void erase(const size_t index)
     {
