@@ -181,7 +181,9 @@ std::string Array::to_string(int16_t tabulation_level)
     bool withoutSpaces = tabulation_level < 0;
     ret += "[";
 
-    if(this->values.size() == 1) {
+    if(this->values.size() == 1
+        && this->values[0].first != ValueType::eJson
+        && this->values[0].first != ValueType::eArray) {
         if(!withoutSpaces) ret += " ";
         ret += this->values[0].second->to_string(tabulation_level);
         if(!withoutSpaces) ret += " ";
@@ -304,7 +306,9 @@ std::string Json::to_string(int16_t tabulation_level)
     bool withoutSpaces = tabulation_level < 0;
     ret += "{"; //start of json
 
-    if(this->values.size() == 1) {
+    if(this->values.size() == 1
+        && this->values[0].second.first != ValueType::eJson
+        && this->values[0].second.first != ValueType::eArray) {
         if(!withoutSpaces) ret += " ";
         ret += "\"" + this->values[0].first + "\"";
         if(!withoutSpaces) ret += " ";
