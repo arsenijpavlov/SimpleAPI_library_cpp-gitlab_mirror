@@ -80,3 +80,11 @@ bool utils::CharsInString(const char ch, std::string symbols)
         if(c == ch) return true;
     return false;
 }
+
+bool utils::OnlySpaces(std::string str)
+{
+    for(char c : str)
+        if(!CharsInString(c, " \n\t"))
+            return false;
+    return true;
+}

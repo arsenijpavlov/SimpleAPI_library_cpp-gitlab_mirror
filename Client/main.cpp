@@ -62,6 +62,11 @@ int main(int argc, char **argv) {
     using namespace json;
     system("tabs 4");
 
+    std::cout << "args: ";
+    for(int i = 0; i < argc; i++)
+        std::cout << argv[i] << " ";
+    std::cout << std::endl;
+
     //parse arguments
     for(int _argc = 1; _argc < argc && argc > 0; _argc++) {
 #ifdef __DEBUG__

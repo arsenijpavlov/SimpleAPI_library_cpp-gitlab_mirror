@@ -274,7 +274,7 @@ bool Json::readFile(const std::string& path)
     while(getline(file, temp_string)) {
         std::cout << "prepare(" << (nextStrStartFromComment ? "true" : "false") << "): " << temp_string << std::endl;
         utils::RemoveComments(temp_string, nextStrStartFromComment, quote);
-        if(!temp_string.empty()) {
+        if(!temp_string.empty() && !utils::OnlySpaces(temp_string)) {
             json_str += temp_string + '\n';
             std::cout << "temp: " << temp_string << std::endl;
         }
@@ -350,16 +350,12 @@ ValueType CheckValue(std::string& value)
 
         if(isValue) {
             if(vType == ValueType::eNull) {
-                if(utils::IsNumber(value[i]))
-                    vType = ValueType::eNumber;
-                else if(value[i] == '"')
-                    vType = ValueType::eString;
-                else if(value[i] == '{')
-                    vType = ValueType::eJson;
-                else if(value[i] == '[')
-                    vType = ValueType::eArray;
+                if(utils::IsNumber(value[i]))   vType = ValueType::eNumber;
+                else if(value[i] == '"')        vType = ValueType::eString;
+                else if(value[i] == '{')        vType = ValueType::eJson;
+                else if(value[i] == '[')        vType = ValueType::eArray;
                 else if(!utils::CharsInString(value[i], SPACES))
-                    vType = ValueType::eBool;
+                                                vType = ValueType::eBool;
             }
             _value += value[i];
         }
@@ -423,38 +419,26 @@ bool CheckBool(std::string& value)
 
 bool CheckString(std::string& value)
 {
-//    std::cout << "CheckString(): \"" << value << "\"" << std::endl;
+    std::cout << "CheckString(): \"" << value << "\"" << std::endl;
     char ch = 0;
     std::string temp;
     bool done = false;
-    bool isNextTechChar = false;
     for(size_t i = 0; i < value.length(); i++) {
+        if(temp == "testS/*\\\\*tring")
+            temp = temp;
         if(ch != 0) { //начинаем запись слова
             if(!done) {
                 //экранирование?
-                if(value[i] == '\\' && !isNextTechChar) {
-                    isNextTechChar = true;
-                    temp += value[i];
-                    continue;
-                }
-
-                if(value[i] == ch) //применяем экранирование только для кавычек
-                {
-                    if(isNextTechChar)
-                    {
+                if(i <= value.size()) { //следующий символ существует?
+                    if(value[i] == '\\' && value[i+1] == ch) {
                         temp += value[i];
-                        isNextTechChar = false;
-                    } else
-                        done = true;
-                } else
+                        continue;
+                    }
+                }
+                if(value[i] == '"')
+                    done = true;
+                else
                     temp += value[i];
-//                if(isNextTechChar) { //текущий символ экранирован?
-//                    temp += value[i];
-//                    isNextTechChar = false;
-//                } else if(value[i] == ch)
-//                    done = true;
-//                else
-//                    temp += value[i];
             } else { //замкнули слово, надо проверить оставшиеся символы
                 if(!utils::CharsInString(value[i], SPACES)) {
                     std::cout << "Error with parse String in: " << value << std::endl;
@@ -467,7 +451,7 @@ bool CheckString(std::string& value)
     }
 
     value = temp;
-    return true;
+    return done;
 }
 
 bool CheckJson(std::string& value)
@@ -645,9 +629,10 @@ bool ParseJson(const std::string& json_str, Json* json)
             if(isValue)         value += json_str[i];
 
             //значение считано полностью?
-            if(i + 1 < json_str.length()) //следующий символ существует
+            if(i + 1 < json_str.length()) { //следующий символ существует
                 if(json_str[i + 1] == ',' || (json_str[i + 1] == '}' && ((i + 1) == endIndex)))
                     isValue = false;
+            }
 
             if(!isValue) { //это конец значения?
                 valueType = CheckValue(value);

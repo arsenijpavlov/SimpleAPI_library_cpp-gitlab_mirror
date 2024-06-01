@@ -31,6 +31,7 @@ inline bool ToBool(std::string& str) {
     if(str == "true")   return true;
     else                return false;
 }
+bool OnlySpaces(std::string str);
 
 }
 
