@@ -419,19 +419,19 @@ bool CheckBool(std::string& value)
 
 bool CheckString(std::string& value)
 {
-    std::cout << "CheckString(): \"" << value << "\"" << std::endl;
+//    std::cout << "CheckString(): \"" << value << "\"" << std::endl;
     char ch = 0;
     std::string temp;
     bool done = false;
     for(size_t i = 0; i < value.length(); i++) {
-        if(temp == "testS/*\\\\*tring")
-            temp = temp;
         if(ch != 0) { //начинаем запись слова
             if(!done) {
                 //экранирование?
                 if(i <= value.size()) { //следующий символ существует?
                     if(value[i] == '\\' && value[i+1] == ch) {
                         temp += value[i];
+                        temp += value[i + 1];
+                        i++;
                         continue;
                     }
                 }
