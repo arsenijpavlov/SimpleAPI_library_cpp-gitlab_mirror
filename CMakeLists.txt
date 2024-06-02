@@ -23,20 +23,27 @@ message("${Bold}project: ${Green}project_SimpleAPI_main${Reset}")
 #set(CMAKE_CXX_STANDARD 17)
 #set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(ENABLE_CLIENT "Client for testing enabled" on)
-option(ENABLE_SERVER "Server for testing enabled" off)
+option(ENABLE_JSON_TEST     "Testing JSon enabled"      off)
+option(ENABLE_CLIENT_TEST   "Testing Client enabled"    off)
+option(ENABLE_SERVER_TEST   "Testing Server enabled"    on)
 
 #library
 add_subdirectory(SimpleAPI)
 
+#test Json
+if(ENABLE_JSON_TEST)
+    add_subdirectory(Test_Json)
+endif()
+unset(ENABLE_CLIENT CACHE)
+
 #test client
-if(ENABLE_CLIENT)
-    add_subdirectory(Client)
+if(ENABLE_CLIENT_TEST)
+    add_subdirectory(Test_Client)
 endif()
 unset(ENABLE_CLIENT CACHE)
 
 #test server
-if(ENABLE_SERVER)
-    add_subdirectory(Server)
+if(ENABLE_SERVER_TEST)
+    add_subdirectory(Test_Server)
 endif()
 unset(ENABLE_SERVER CACHE)

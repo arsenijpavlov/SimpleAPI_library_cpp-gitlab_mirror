@@ -1,8 +1,6 @@
 #include "Socket.h"
 
-#include <arpa/inet.h>
-#include <sys/socket.h>
-
+//#include <unistd.h>
 //#include <netdb.h>
 //#include <sys/types.h>
 //#include <sys/un.h>
@@ -11,6 +9,12 @@
 //#include <assert.h>
 //#include <stdint.h>
 //#include <stdio.h>
+
+UDPSocket::UDPSocket(uint16_t localPort, std::string localIP) {
+    open(localPort, localIP);
+}
+
+UDPSocket::~UDPSocket() { close(); }
 
 void UDPSocket::open(const uint16_t localPort, const std::string& localIP) {
     // create
@@ -30,4 +34,25 @@ void UDPSocket::open(const uint16_t localPort, const std::string& localIP) {
                            + ", port(" + std::to_string(localPort) + ")").c_str());
 }
 
+bool sendMsg(std::string remoteIP, uint16_t remotePort, Packet packet) {
+//    struct sockaddr_in sock;
 
+//    Packet buf;
+//    //TODO: упаковка
+//    buf = packet;
+
+//    int res = sendto(mSocketFD, buf.data(), buf.size(), 0, (struct sockaddr*)&sock, sizeof(sock));
+//    return res > 0;
+    return true;
+}
+bool sendMsg(std::string remoteIP, uint16_t remotePort, json::Json json) {
+    return true;
+}
+
+bool recvMsg() {
+    return true;
+}
+
+bool recvMsgTimeout() {
+    return true;
+}
