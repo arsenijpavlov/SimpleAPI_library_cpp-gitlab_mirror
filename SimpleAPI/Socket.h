@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-//#include <arpa/inet.h>
+#include <arpa/inet.h>
 #include <sys/socket.h>
 
 /* Packets structure (actually for v.0):

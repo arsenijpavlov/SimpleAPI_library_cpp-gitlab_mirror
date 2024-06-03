@@ -4,8 +4,6 @@
 //#include <unistd.h>
 //#include <netdb.h>
 //#include <sys/types.h>
-#include <netinet/in.h>
-#include <fcntl.h>
 //#include <sys/un.h>
 //#include <errno.h>
 //#include <list>
