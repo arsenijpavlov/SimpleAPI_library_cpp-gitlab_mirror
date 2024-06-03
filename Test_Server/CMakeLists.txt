@@ -26,4 +26,5 @@ add_executable(Test_Server)
 target_sources(Test_Server PUBLIC ${server_sources})
 
 target_include_directories(Test_Server PUBLIC "${PROJECT_BINARY_DIR}/../libs/include")
+target_link_directories(Test_Server PUBLIC "${PROJECT_BINARY_DIR}/../libs/")
 target_link_libraries(Test_Server PUBLIC SimpleAPI)

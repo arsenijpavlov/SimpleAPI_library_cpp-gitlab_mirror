@@ -20,11 +20,11 @@ endif()
 project(project_SimpleAPI_main LANGUAGES CXX)
 message("${Bold}project: ${Green}project_SimpleAPI_main${Reset}")
 
-#set(CMAKE_CXX_STANDARD 17)
-#set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(ENABLE_JSON_TEST     "Testing JSon enabled"      off)
-option(ENABLE_CLIENT_TEST   "Testing Client enabled"    off)
+option(ENABLE_JSON_TEST     "Testing JSon enabled"      on)
+option(ENABLE_CLIENT_TEST   "Testing Client enabled"    on)
 option(ENABLE_SERVER_TEST   "Testing Server enabled"    on)
 
 #library
@@ -34,16 +34,16 @@ add_subdirectory(SimpleAPI)
 if(ENABLE_JSON_TEST)
     add_subdirectory(Test_Json)
 endif()
-unset(ENABLE_CLIENT CACHE)
+unset(ENABLE_JSON_TEST CACHE)
 
 #test client
 if(ENABLE_CLIENT_TEST)
     add_subdirectory(Test_Client)
 endif()
-unset(ENABLE_CLIENT CACHE)
+unset(ENABLE_CLIENT_TEST CACHE)
 
 #test server
 if(ENABLE_SERVER_TEST)
     add_subdirectory(Test_Server)
 endif()
-unset(ENABLE_SERVER CACHE)
+unset(ENABLE_SERVER_TEST CACHE)

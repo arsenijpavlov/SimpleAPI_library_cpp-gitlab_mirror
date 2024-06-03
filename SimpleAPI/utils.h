@@ -3,6 +3,7 @@
 
 #include <string>
 #include <sstream>
+#include <vector>
 
 namespace utils {
 
@@ -31,7 +32,7 @@ inline bool ToBool(std::string& str) {
     if(str == "true")   return true;
     else                return false;
 }
-bool OnlySpaces(std::string str);
+bool OnlySpaces(const std::string& str);
 
 }
 

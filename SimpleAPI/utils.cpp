@@ -81,7 +81,7 @@ bool utils::CharsInString(const char ch, std::string symbols)
     return false;
 }
 
-bool utils::OnlySpaces(std::string str)
+bool utils::OnlySpaces(const std::string& str)
 {
     for(char c : str)
         if(!CharsInString(c, " \n\t"))
