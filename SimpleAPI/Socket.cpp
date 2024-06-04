@@ -1,9 +1,10 @@
 #include "Socket.h"
 #include <iostream>
 
-//#include <unistd.h>
+#include <unistd.h>
 //#include <netdb.h>
 //#include <sys/types.h>
+#include <sys/select.h>
 //#include <sys/un.h>
 //#include <errno.h>
 //#include <list>
@@ -18,6 +19,8 @@ Packet to_packet(const std::string& str)
         packet.push_back(ch);
     return packet;
 }
+
+void Socket::close(){ if(mSocketFD) ::close(this->mSocketFD); }
 
 UDPSocket::UDPSocket(uint16_t localPort, std::string localIP) {
     open(localPort, localIP);
@@ -60,6 +63,9 @@ bool UDPSocket::sendMsg(std::string remoteIP, uint16_t remotePort, json::Json js
 }
 
 bool UDPSocket::recvMsg() {
+    FD_ZERO();
+    FD_SET(mSocketFD, )
+
     char buf[MAX_PACKET_LENGTH];
     struct sockaddr_in sock;
 //    struct sockaddr *sock = struct sockaddr_in();
@@ -84,6 +90,7 @@ bool UDPSocket::recvMsg() {
 bool UDPSocket::recvMsgTimeout() {
     return true;
 }
+
 
 
 

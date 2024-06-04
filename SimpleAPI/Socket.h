@@ -9,8 +9,9 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
-/* Packets structure (actually for v.0):
- * [ API version (2) | length size (3) | CRC (3) | data... ]
+/* Packets structure (actually for v.1):
+ * [ API version (4) | CRC (4) | [CRC] | size (16) | data[size] ]
+ *                                      \ CRC_CALCULATING_DATA /
 */
 
 #define MAX_PACKET_LENGTH 65535
@@ -30,8 +31,8 @@ class Socket {
 protected:
     int mSocketFD;
     CRC crc;
-    std::string localIP/*, remoteIP*/;
-    uint16_t localPort/*, remotePort*/;
+    std::string localIP;
+    uint16_t localPort;
 
 public:
     virtual ~Socket(){};
@@ -46,7 +47,7 @@ public:
 //    virtual void enableCRC(CRC crcLevel)    = 0;
 //    virtual void enableChip()               = 0;
 
-    void close(){ if(mSocketFD) shutdown(mSocketFD, SHUT_RDWR); }
+    void close();
 };
 
 class UDPSocket : public Socket {
@@ -58,7 +59,7 @@ public:
 //    void enableCRC(CRC crcLevel = eCRC_8);
 //    void enableChip();
 
-//TODO: передача сообщения по частям (свыше )
+//TODO: передача сообщения по частям (свыше 65535 байтов)
     bool sendMsg(std::string remoteIP, uint16_t remotePort, Packet packet);    //TYPE = 0
     bool sendMsg(std::string remoteIP, uint16_t remotePort, json::Json json);  //TYPE = 1
     bool recvMsg(); //raw bytes, SimpleAPI::packet
