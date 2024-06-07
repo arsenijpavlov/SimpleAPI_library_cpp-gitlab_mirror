@@ -37,10 +37,9 @@ protected:
 public:
     virtual ~Socket(){};
 
-    virtual bool sendMsg(std::string remoteIP, uint16_t remotePort, Packet packet)      = 0;
-    virtual bool sendMsg(std::string remoteIP, uint16_t remotePort, json::Json json)    = 0;
-    virtual bool recvMsg()                                                              = 0;
-    virtual bool recvMsgTimeout()                                                       = 0;
+    virtual bool sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet)      = 0;
+    virtual bool sendMsg(const std::string& remoteIP, const uint16_t remotePort, const json::Json& json)    = 0;
+    virtual bool recvMsg(const Packet& packet, int timeout)                                   = 0;
 
 //TODO: CRC
 //TODO: Chiphering
@@ -60,10 +59,9 @@ public:
 //    void enableChip();
 
 //TODO: передача сообщения по частям (свыше 65535 байтов)
-    bool sendMsg(std::string remoteIP, uint16_t remotePort, Packet packet);    //TYPE = 0
-    bool sendMsg(std::string remoteIP, uint16_t remotePort, json::Json json);  //TYPE = 1
-    bool recvMsg(); //raw bytes, SimpleAPI::packet
-    bool recvMsgTimeout();
+    bool sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet);    //TYPE = 0
+    bool sendMsg(const std::string& remoteIP, const uint16_t remotePort, const json::Json& json);  //TYPE = 1
+    bool recvMsg(const Packet& packet, const int timeout = -1); //raw bytes, SimpleAPI::packet
 
 //    bool isConnected();
 };

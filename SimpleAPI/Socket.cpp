@@ -46,7 +46,7 @@ void UDPSocket::open(const uint16_t localPort, const std::string& localIP) {
                            + ", port(" + std::to_string(localPort) + ")").c_str());
 }
 
-bool UDPSocket::sendMsg(std::string remoteIP, uint16_t remotePort, Packet packet) {
+bool UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet) {
     struct sockaddr_in sock;
 
     Packet buf;
@@ -58,21 +58,26 @@ bool UDPSocket::sendMsg(std::string remoteIP, uint16_t remotePort, Packet packet
     int res = sendto(mSocketFD, buf.data(), buf.size(), 0, (struct sockaddr*)&sock, sizeof(sock));
     return res > 0;
 }
-bool UDPSocket::sendMsg(std::string remoteIP, uint16_t remotePort, json::Json json) {
+bool UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, const json::Json& json) {
     return true;
 }
 
-bool UDPSocket::recvMsg() {
-    FD_ZERO();
-    FD_SET(mSocketFD, )
-
+bool UDPSocket::recvMsg(const Packet& packet, const int timeout) {
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(mSocketFD, &fds);
+    struct timeval t;
+    if(timeout > 0) {
+        t.tv_sec    = timeout / 1000;
+        t.tv_usec   = (timeout % 1000) * 1000;
+    }
     char buf[MAX_PACKET_LENGTH];
-    struct sockaddr_in sock;
-//    struct sockaddr *sock = struct sockaddr_in();
-//    socklen_t socklen = sizeof(sock);
     int recv_num;
-//    int recv_num = recvfrom(mSocketFD, buf, 10/*MAX_PACKET_LENGTH*/, /*flags*/MSG_PEEK, sock, &socklen);
-    recv_num = recv(mSocketFD, buf, MAX_PACKET_LENGTH, /*flags*/0);
+
+    struct sockaddr sock; //NOTE: возможно надо передавать буфер
+    socklen_t socklen = sizeof(sock);
+    recv_num = recvfrom(mSocketFD, buf, MAX_PACKET_LENGTH, /*flags*/MSG_PEEK, &sock, &socklen);
+
     if(recv_num < 0)
         std::cout << "Error reading msg" << std::endl;
     else if(recv_num > 0) {
@@ -84,10 +89,6 @@ bool UDPSocket::recvMsg() {
         std::cout << "message: \"" << std::string(buf, recv_num) << "\"" << std::endl;
     }
 
-    return true;
-}
-
-bool UDPSocket::recvMsgTimeout() {
     return true;
 }
 
