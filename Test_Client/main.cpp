@@ -1,6 +1,7 @@
-#include "SimpleAPI.h"
+#include <SimpleAPI.h>
 
 #include <csignal>
+#include <iostream>
 #include <unistd.h>
 
 bool isRunning = true;
@@ -12,10 +13,11 @@ void signalHandler(int signal) {
 int main(int argc, char** argv) {
     signal(SIGINT, signalHandler);
 
-    UDPSocket socket(31116);
+    UDPSocket socket(31116, "127.0.0.1");
 
-    Packet packet = to_packet("Hello world!");
-    socket.sendMsg("127.0.0.1", 31115, packet);
+    Packet packet = to_packet("Hello world!123");
+    int num = socket.sendMsg("127.0.0.5", 31115, packet);
+    std::cout << "Sended: " << num << std::endl;
 
     return 0;
 }

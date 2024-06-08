@@ -2,6 +2,7 @@
 
 #include <csignal>
 #include <unistd.h>
+#include <iostream>
 
 bool isRunning = true;
 void signalHandler(int signal) {
@@ -12,12 +13,19 @@ void signalHandler(int signal) {
 int main(int argc, char** argv) {
     signal(SIGINT, signalHandler);
 
-    UDPSocket socket(31115, "127.0.0.1");
+    UDPSocket socket(31115, "127.0.0.5");
 
-    while(isRunning) {
+    while(1) {
+        if(!isRunning) {
+            socket.close();
+            break;
+        }
+
         usleep(1);
-        socket.recvMsg();
+        Packet p;
+        socket.recvMsg(p, 100);
     }
+    socket.close();
 
     return 0;
 }

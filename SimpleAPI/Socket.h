@@ -35,11 +35,14 @@ protected:
     uint16_t localPort;
 
 public:
+    Socket() : mSocketFD(-1) {};
     virtual ~Socket(){};
 
-    virtual bool sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet)      = 0;
-    virtual bool sendMsg(const std::string& remoteIP, const uint16_t remotePort, const json::Json& json)    = 0;
-    virtual bool recvMsg(const Packet& packet, int timeout)                                   = 0;
+    virtual int sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet)      = 0;
+    virtual int sendMsg(const std::string& remoteIP, const uint16_t remotePort, const json::Json& json)    = 0;
+    virtual int recvMsg(Packet& packet, int timeout)                                                      = 0;
+
+    bool isBinded() { return mSocketFD > 0; };
 
 //TODO: CRC
 //TODO: Chiphering
@@ -51,17 +54,19 @@ public:
 
 class UDPSocket : public Socket {
 public:
-    UDPSocket(uint16_t localPort, std::string localIP = "0.0.0.0");
+    UDPSocket(uint16_t localPort, std::string localIP = "") {
+        open(localPort, localIP);
+    }
     ~UDPSocket() { close(); };
 
-    void open(const uint16_t localPort, const std::string& localIP = "0.0.0.0");
+    void open(const uint16_t localPort, const std::string& localIP = "");
 //    void enableCRC(CRC crcLevel = eCRC_8);
 //    void enableChip();
 
 //TODO: передача сообщения по частям (свыше 65535 байтов)
-    bool sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet);    //TYPE = 0
-    bool sendMsg(const std::string& remoteIP, const uint16_t remotePort, const json::Json& json);  //TYPE = 1
-    bool recvMsg(const Packet& packet, const int timeout = -1); //raw bytes, SimpleAPI::packet
+    int sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet);    //TYPE = 0
+    int sendMsg(const std::string& remoteIP, const uint16_t remotePort, const json::Json& json);  //TYPE = 1
+    int recvMsg(Packet& packet, const int timeout = -1); //raw bytes, SimpleAPI::packet
 
 //    bool isConnected();
 };
