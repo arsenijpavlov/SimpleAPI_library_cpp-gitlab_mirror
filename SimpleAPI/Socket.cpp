@@ -25,6 +25,8 @@ std::string to_string(const Packet& packet)
     return std::string((char*)packet.data(), packet.size());
 }
 
+bool Socket::isActive() { return mSocketFD > 0; }
+
 void Socket::close() {
     if(mSocketFD) {
         ::close(this->mSocketFD);
@@ -88,7 +90,7 @@ int UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, c
     return res;
 }
 int UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Json& json) {
-    return sendMsg(remoteIP, remotePort, convert_to_packet(json.to_string(-1)));
+    return sendMsg(remoteIP, remotePort, convert_to_packet(json.to_string(-1))); //отправит Json в текстовом формате без пробелов
 }
 
 int UDPSocket::recvMsg(Packet& packet, const int timeout) {
@@ -112,6 +114,7 @@ int UDPSocket::recvMsg(Packet& packet, const int timeout) {
     if(recv_num < 0) {
         if(errno != EINTR) /* Interrupted system call */
 //TODO: сделать флаг для возможности отключения/перенаправления сообщений от API
+//TODO: сделать внутреннюю функцию-логгер для API
             std::cout << "Error in select(), errno=" << errno << std::endl;
         return -1;
     }

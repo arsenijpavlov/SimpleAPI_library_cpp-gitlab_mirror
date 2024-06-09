@@ -10,12 +10,8 @@
 #include <sys/socket.h>
 
 /* Packets structure (actually for v.1):
- * [ D/C (1) | API version (3) | number of packet | size (16) | data[size] ]
- * D/C - data or control
- * API version
- * number of packet - sequence number of the packet in the transmittion
- * size - length of packet data
- * data - packet data
+ * [ D/C (1) | API version (3) | CRC level (3) | Chiphering enable (1) | ...
+ *       ... | number of packet (8) | CRC (if enabaled, X bytes) | size (16) | data[size] ]
 */
 
 #define MAX_PACKET_LENGTH 65535
@@ -47,11 +43,16 @@ public:
     virtual int sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Json& json)       = 0;
     virtual int recvMsg(Packet& packet, int timeout)                                                    = 0;
 
-    bool isActive() { return mSocketFD > 0; };
+    bool isActive();;
 
+//TODO: CRC checking
+    void enableCRC(CRC crcLevel = eCRC_OFF) { this->crcLevel = crcLevel; }
 //TODO: Chiphering
-//    virtual void enableCRC(CRC crcLevel)    = 0;
 //    virtual void enableChip()               = 0;
+
+    //большие пакеты могут фрагментироваться по пути, что не работает для некоторых маршрутизаторов
+    //по умолчанию 1500 байт (установлено MTU)
+    void setMaxLength(uint16_t newMaxSize) { maxLength = newMaxSize; }
 
     void close();
 };
@@ -64,9 +65,6 @@ public:
 //    void enableChip();
 //    void enableDeliveryMsg();
 
-    //большие пакеты могут фрагментироваться по пути, что не работает для некоторых маршрутизаторов
-    //по умолчанию 1500 байт (установлено MTU)
-    void setMaxLength(uint16_t newMaxSize) { maxLength = newMaxSize; }
 
     void open(const uint16_t localPort, const std::string& localIP = "");
 //TODO: передача сообщения по частям (свыше this->maxLength)
