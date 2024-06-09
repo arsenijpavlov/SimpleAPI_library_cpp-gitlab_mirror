@@ -1,6 +1,7 @@
 #include "utils.h"
 
 #include <iostream>
+#include <string>
 
 bool utils::IsNumber(const std::string &str, bool use_point)
 {
@@ -87,4 +88,53 @@ bool utils::OnlySpaces(const std::string& str)
         if(!CharsInString(c, " \n\t"))
             return false;
     return true;
+}
+
+std::string utils::to_hex_string(const std::vector<uint8_t>& data)
+{
+    auto getHex = [&](uint8_t halfByte) -> char {
+        halfByte = halfByte & 0xF;
+        switch(halfByte) {
+        case 0:     { return '0'; }
+        case 1:     { return '1'; }
+        case 2:     { return '2'; }
+        case 3:     { return '3'; }
+        case 4:     { return '4'; }
+        case 5:     { return '5'; }
+        case 6:     { return '6'; }
+        case 7:     { return '7'; }
+        case 8:     { return '8'; }
+        case 9:     { return '9'; }
+        case 0xA:   { return 'A'; }
+        case 0xB:   { return 'B'; }
+        case 0xC:   { return 'C'; }
+        case 0xD:   { return 'D'; }
+        case 0xE:   { return 'E'; }
+        case 0xF:   { return 'F'; }
+        default: throw "";
+        }
+    };
+
+    std::stringstream ss;
+    for(uint8_t d : data) {
+        ss << getHex(d >> 4);
+        ss << getHex(d & 0xF);
+    }
+
+    return ss.str();
+}
+
+std::vector<uint8_t> utils::from_hex_string(std::string str)
+{
+    if(str.size() % 2 != 0) str.push_back('0');
+
+    std::vector<uint8_t> vec;
+    for(int i = 0; i < str.size(); i+=2) {
+        std::string temp = str.substr(i, 2);
+//        std::cout << "temp: [" << temp << "]" << std::endl;
+        vec.push_back(std::stoi((temp), 0 , 16));
+//        std::cout << "vec[i]: " << std::hex << (int)vec.back() << std::endl;
+    }
+
+    return vec;
 }

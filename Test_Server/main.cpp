@@ -16,16 +16,12 @@ int main(int argc, char** argv) {
     UDPSocket socket(31115, "127.0.0.5");
 
     while(1) {
-        if(!isRunning) {
-            socket.close();
-            break;
-        }
+        if(!isRunning) break;
 
         usleep(1);
         Packet p;
         socket.recvMsg(p, 100);
     }
-    socket.close();
 
     return 0;
 }

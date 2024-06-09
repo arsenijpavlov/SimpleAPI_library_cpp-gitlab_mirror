@@ -33,6 +33,8 @@ inline bool ToBool(std::string& str) {
     else                return false;
 }
 bool OnlySpaces(const std::string& str);
+std::string to_hex_string(const std::vector<uint8_t>& data);
+std::vector<uint8_t> from_hex_string(std::string str);
 
 }
 

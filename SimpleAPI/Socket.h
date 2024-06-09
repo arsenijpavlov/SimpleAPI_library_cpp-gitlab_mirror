@@ -10,14 +10,18 @@
 #include <sys/socket.h>
 
 /* Packets structure (actually for v.1):
- * [ API version (4) | CRC (4) | [CRC] | size (16) | data[size] ]
- *                                      \ CRC_CALCULATING_DATA /
+ * [ D/C (1) | API version (3) | number of packet | size (16) | data[size] ]
+ * D/C - data or control
+ * API version
+ * number of packet - sequence number of the packet in the transmittion
+ * size - length of packet data
+ * data - packet data
 */
 
 #define MAX_PACKET_LENGTH 65535
 using Packet = std::vector<uint8_t>;
-Packet to_packet(const std::string& str);
-Packet to_packet(const char* str) { return to_packet(std::string(str)); }
+Packet convert_to_packet(const std::string& str);
+Packet convert_to_packet(const char* str) { return convert_to_packet(std::string(str)); }
 
 enum CRC {
     eCRC_OFF,
@@ -29,22 +33,22 @@ enum CRC {
 
 class Socket {
 protected:
-    int mSocketFD;
-    CRC crc;
+    int         mSocketFD;
+    CRC         crcLevel;
+    uint16_t    maxLength;
     std::string localIP;
-    uint16_t localPort;
+    uint16_t    localPort;
 
 public:
-    Socket() : mSocketFD(-1) {};
+    Socket() : mSocketFD(-1), maxLength(1500) {};
     virtual ~Socket(){};
 
-    virtual int sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet)      = 0;
-    virtual int sendMsg(const std::string& remoteIP, const uint16_t remotePort, const json::Json& json)    = 0;
-    virtual int recvMsg(Packet& packet, int timeout)                                                      = 0;
+    virtual int sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet)   = 0;
+    virtual int sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Json& json)       = 0;
+    virtual int recvMsg(Packet& packet, int timeout)                                                    = 0;
 
-    bool isBinded() { return mSocketFD > 0; };
+    bool isActive() { return mSocketFD > 0; };
 
-//TODO: CRC
 //TODO: Chiphering
 //    virtual void enableCRC(CRC crcLevel)    = 0;
 //    virtual void enableChip()               = 0;
@@ -54,19 +58,21 @@ public:
 
 class UDPSocket : public Socket {
 public:
-    UDPSocket(uint16_t localPort, std::string localIP = "") {
-        open(localPort, localIP);
-    }
-    ~UDPSocket() { close(); };
+    UDPSocket(uint16_t localPort, std::string localIP = "");
+    ~UDPSocket();;
+
+//    void enableChip();
+//    void enableDeliveryMsg();
+
+    //большие пакеты могут фрагментироваться по пути, что не работает для некоторых маршрутизаторов
+    //по умолчанию 1500 байт (установлено MTU)
+    void setMaxLength(uint16_t newMaxSize) { maxLength = newMaxSize; }
 
     void open(const uint16_t localPort, const std::string& localIP = "");
-//    void enableCRC(CRC crcLevel = eCRC_8);
-//    void enableChip();
-
-//TODO: передача сообщения по частям (свыше 65535 байтов)
-    int sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet);    //TYPE = 0
-    int sendMsg(const std::string& remoteIP, const uint16_t remotePort, const json::Json& json);  //TYPE = 1
-    int recvMsg(Packet& packet, const int timeout = -1); //raw bytes, SimpleAPI::packet
+//TODO: передача сообщения по частям (свыше this->maxLength)
+    int sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet); //TYPE = 0
+    int sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Json& json);     //TYPE = 1
+    int recvMsg(Packet& packet, const int timeout = -1);
 
 //    bool isConnected();
 };

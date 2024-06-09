@@ -12,20 +12,32 @@
 //#include <stdint.h>
 //#include <stdio.h>
 
-Packet to_packet(const std::string& str)
+Packet convert_to_packet(const std::string& str)
 {
     Packet packet;
-    for(char ch : str)
-        packet.push_back(ch);
+    packet.resize(str.size());
+    std::copy(str.begin(), str.end(), packet.begin());
+
     return packet;
+}
+std::string to_string(const Packet& packet)
+{
+    return std::string((char*)packet.data(), packet.size());
 }
 
 void Socket::close() {
     if(mSocketFD) {
         ::close(this->mSocketFD);
+        std::cout << "The socket has been freed" << std::endl;
         this->mSocketFD = -1;
     }
 }
+
+UDPSocket::UDPSocket(uint16_t localPort, std::string localIP) {
+    open(localPort, localIP);
+}
+
+UDPSocket::~UDPSocket() { close(); }
 
 void UDPSocket::open(const uint16_t localPort, const std::string& localIP) {
     // create
@@ -58,14 +70,13 @@ void UDPSocket::open(const uint16_t localPort, const std::string& localIP) {
 }
 
 int UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet) {
-    if(!this->isBinded()) return -1;
+    if(!this->isActive()) return -1;
 
     struct sockaddr_in sock;
 
     Packet buf;
     //TODO: упаковка
     buf = packet;
-//    char buf2[20] = "Hello World!";
 
     sock.sin_family = AF_INET;
     sock.sin_port = htons(remotePort);
@@ -76,14 +87,12 @@ int UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, c
         std::cout << "ErrNo: " << errno << std::endl;
     return res;
 }
-int UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, const json::Json& json) {
-    if(!this->isBinded()) return -1;
-
-    return 0;
+int UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Json& json) {
+    return sendMsg(remoteIP, remotePort, convert_to_packet(json.to_string(-1)));
 }
 
 int UDPSocket::recvMsg(Packet& packet, const int timeout) {
-    if(!this->isBinded()) return -1;
+    if(!this->isActive()) return -1;
 
     fd_set fds;
     FD_ZERO(&fds);
@@ -101,7 +110,9 @@ int UDPSocket::recvMsg(Packet& packet, const int timeout) {
     socklen_t socklen = sizeof(sock);
     recv_num = select(mSocketFD + 1, &fds, NULL, NULL, (timeout > 0 ? &t : NULL));
     if(recv_num < 0) {
-//        std::cout << "Error in select()" << std::endl;
+        if(errno != EINTR) /* Interrupted system call */
+//TODO: сделать флаг для возможности отключения/перенаправления сообщений от API
+            std::cout << "Error in select(), errno=" << errno << std::endl;
         return -1;
     }
     if(recv_num > 0) {

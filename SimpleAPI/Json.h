@@ -7,7 +7,7 @@
 #include <vector>
 
 //TODO: add "noexcept"
-namespace json {
+//namespace json {
 
 #define __ONLY_ALLOWED_TYPES__(ARG) \
     template<typename ARG, \
@@ -249,7 +249,7 @@ public:
     bool readFile(const std::string& path);
     bool writeFile(const std::string& path, int16_t tabulation_level = 0);
 
-    std::string to_string(int16_t tabulation_level = 0);
+    std::string to_string(int16_t tabulation_level = 0) const;
     size_t size()                                               { return values.size(); }
     JVector::iterator begin()                                   { return values.begin(); };
     JVector::iterator end()                                     { return values.end(); };
@@ -484,6 +484,6 @@ public:
     { return value.to_string(tabulation_level); }
 };
 
-} /// namespace json
+//} /// namespace json
 
 #endif // JSON_H

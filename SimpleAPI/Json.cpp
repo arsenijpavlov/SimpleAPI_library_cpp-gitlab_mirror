@@ -3,7 +3,7 @@
 #include <fstream>
 #include <iostream>
 
-namespace json {
+//namespace json {
 #define SPACES " \n\t"
 
 enum NextReadState {
@@ -300,7 +300,7 @@ bool Json::writeFile(const std::string& path, int16_t tabulation_level)
     return true;
 }
 
-std::string Json::to_string(int16_t tabulation_level)
+std::string Json::to_string(int16_t tabulation_level) const
 {
     std::string ret;
     bool withoutSpaces = tabulation_level < 0;
@@ -322,7 +322,7 @@ std::string Json::to_string(int16_t tabulation_level)
         std::string tabs_str = !withoutSpaces ? utils::Tab(++tabulation_level) : "";
 
         size_t i = 0;
-        for(std::pair<std::string, Element>& el : this->values) {
+        for(const std::pair<std::string, Element>& el : this->values) {
             ret += tabs_str + "\"" + el.first + "\"";
             if(!withoutSpaces) ret += " ";
             ret += ":";
@@ -871,4 +871,4 @@ bool ParseArray(const std::string& array_str, Array* array)
 }
 ///STATIC
 
-} /// namespace json
+//} /// namespace json
