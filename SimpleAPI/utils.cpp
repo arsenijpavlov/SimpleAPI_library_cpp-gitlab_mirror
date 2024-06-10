@@ -3,18 +3,28 @@
 #include <iostream>
 #include <string>
 
-bool utils::IsNumber(const std::string &str, bool use_point)
+namespace utils {
+
+bool IsNumber(const std::string &str, bool use_point)
 {
-    for(int i = 0; i < str.size(); i++) {
-        if(!IsNumber(str[i], use_point)) return false;
-    }
+    for(int i = 0; i < str.size(); i++)
+        if(!IsNumber(str[i], use_point))
+            return false;
     return true;
 }
-bool utils::IsNumber(const char ch, bool use_point) {
+
+bool IsNumber(const char ch, bool use_point) {
     return (std::isdigit(ch) || (use_point && (ch == '.')));
 }
 
-void utils::RemoveComments(std::string& str, bool& startComment, char& quote)
+std::string Tab(uint8_t tabs_counter) {
+    std::string ret = "";
+    for(uint8_t i = 0; i < tabs_counter; i++)
+        ret += "\t";
+    return ret;
+}
+
+void RemoveComments(std::string& str, bool& startComment, char& quote)
 {
     std::string tempString;
     bool isOneComment = false;
@@ -66,7 +76,7 @@ void utils::RemoveComments(std::string& str, bool& startComment, char& quote)
     startComment = isFullComment;
 }
 
-size_t utils::CountSymInStr(const std::string &str, const char ch)
+size_t CountSymInStr(const std::string &str, const char ch)
 {
     size_t counter = 0;
     for(char temp : str)
@@ -75,14 +85,30 @@ size_t utils::CountSymInStr(const std::string &str, const char ch)
     return counter;
 }
 
-bool utils::CharsInString(const char ch, std::string symbols)
+bool CharsInString(const char ch, std::string symbols)
 {
     for(char c : symbols)
         if(c == ch) return true;
     return false;
 }
 
-bool utils::OnlySpaces(const std::string& str)
+std::string ToString(double d) {
+    std::ostringstream str;
+    str << d;
+    return str.str();
+}
+
+bool isBool(std::string& str) {
+    if(str == "true" || str == "false") return true;
+    else                                return false;
+}
+
+bool ToBool(std::string& str) {
+    if(str == "true")   return true;
+    else                return false;
+}
+
+bool OnlySpaces(const std::string& str)
 {
     for(char c : str)
         if(!CharsInString(c, " \n\t"))
@@ -90,7 +116,7 @@ bool utils::OnlySpaces(const std::string& str)
     return true;
 }
 
-std::string utils::to_hex_string(const std::vector<uint8_t>& data)
+std::string to_hex_string(const std::vector<uint8_t>& data)
 {
     auto getHex = [&](uint8_t halfByte) -> char {
         halfByte = halfByte & 0xF;
@@ -124,17 +150,18 @@ std::string utils::to_hex_string(const std::vector<uint8_t>& data)
     return ss.str();
 }
 
-std::vector<uint8_t> utils::from_hex_string(std::string str)
+std::vector<uint8_t> from_hex_string(std::string str)
 {
     if(str.size() % 2 != 0) str.push_back('0');
 
     std::vector<uint8_t> vec;
     for(int i = 0; i < str.size(); i+=2) {
         std::string temp = str.substr(i, 2);
-//        std::cout << "temp: [" << temp << "]" << std::endl;
         vec.push_back(std::stoi((temp), 0 , 16));
-//        std::cout << "vec[i]: " << std::hex << (int)vec.back() << std::endl;
     }
 
     return vec;
+}
+
+
 }
