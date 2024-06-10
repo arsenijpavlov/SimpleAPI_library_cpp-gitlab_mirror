@@ -46,11 +46,13 @@ protected:
     int         mSocketFD;
     CRC         crcLevel;
     uint16_t    maxLength;
+    uint8_t     useAPI;
+
     std::string localIP;
     uint16_t    localPort;
 
 public:
-    Socket() : mSocketFD(-1), maxLength(1500) {};
+    Socket();
     virtual ~Socket(){};
 
     virtual int sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet)   = 0;
@@ -62,11 +64,12 @@ public:
 
     void enableCRC(CRC crcLevel = eCRC_OFF);
 //TODO: Chiphering
-//    virtual void enableChip()               = 0;
+//    virtual void enableChip() = 0;
 
     //большие пакеты могут фрагментироваться по пути, что не работает для некоторых маршрутизаторов
     //по умолчанию 1500 байт (установлено MTU)
-    void setMaxLength(uint16_t newMaxSize) { maxLength = newMaxSize; }
+    void setMaxLength(uint16_t newMaxSize);
+//TODO:    void setUseApiVersion(uint8_t version); //не может быть больше актуальной
 
     void close();
 };

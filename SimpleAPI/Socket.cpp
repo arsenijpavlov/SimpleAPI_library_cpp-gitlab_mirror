@@ -25,9 +25,13 @@ std::string to_string(const Packet& packet)
     return std::string((char*)packet.data(), packet.size());
 }
 
+Socket::Socket() : mSocketFD(-1), maxLength(1500) {}
+
 bool Socket::isActive() { return mSocketFD > 0; }
 
 void Socket::enableCRC(CRC crcLevel) { this->crcLevel = crcLevel; }
+
+void Socket::setMaxLength(uint16_t newMaxSize) { maxLength = newMaxSize; }
 
 void Socket::close() {
     if(mSocketFD) {
@@ -80,6 +84,14 @@ int UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, c
 
     Packet buf;
     //TODO: упаковка
+//    ToByte(MessageType, getVersion(), isChiphering(), crcLevel)
+//    buf.push_back(temp);
+//    buf.push_back(sequenceNumber); //для текущего клиента
+//    std::vector<uint8_t> check;
+//    buf.push_back(checkCrc8/16/32(packet, check));
+//    if(startPacket)
+//        buf.push_back(packet.size());
+//    buf.push_back(trunc(packet, currentPos, maxLength));
     buf = packet;
 
     sock.sin_family = AF_INET;
