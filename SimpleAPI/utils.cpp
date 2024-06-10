@@ -163,5 +163,23 @@ std::vector<uint8_t> from_hex_string(std::string str)
     return vec;
 }
 
+bool checkCrc8(const std::vector<uint8_t> &data, std::vector<uint8_t> &crcData)
+{
+    //TODO: checkCrc8()
+    return true;
+}
+
+bool checkCrc16(const std::vector<uint8_t> &data, std::vector<uint8_t> &crcData)
+{
+    //TODO: checkCrc16()
+    return true;
+}
+
+bool checkCrc32(const std::vector<uint8_t> &data, std::vector<uint8_t> &crcData)
+{
+    //TODO: checkCrc32()
+    return true;
+}
+
 
 }

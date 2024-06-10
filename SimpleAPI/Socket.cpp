@@ -27,6 +27,8 @@ std::string to_string(const Packet& packet)
 
 bool Socket::isActive() { return mSocketFD > 0; }
 
+void Socket::enableCRC(CRC crcLevel) { this->crcLevel = crcLevel; }
+
 void Socket::close() {
     if(mSocketFD) {
         ::close(this->mSocketFD);
