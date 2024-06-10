@@ -10,8 +10,22 @@
 #include <sys/socket.h>
 
 /* Packets structure (actually for v.1):
- * [ D/C (1) | API version (3) | CRC level (3) | Chiphering enable (1) | ...
- *       ... | number of packet (8) | CRC (if enabaled, X bytes) | size (16) | data[size] ]
+ * [ C/D/J (2) | API version (3) | Chiphering enable (1) | CRC level (2) | ...
+ *       ... | sequence number (8) | CRC (if enabaled, X bytes) | size (16) | data[size] ]
+ *
+ *  C/D/J               - тип пакета:
+ *                          * Control, необходимый для работы сокета
+ *                          * Data, сырые данные
+ *                          * Json, JSON-формат текстового сообщения
+ *  API version         - версия библиотеки, обратная совместимость обязательна
+ *  Chiphering enabled  - флаг шифрования, параметры шифрования д/б отправлены контрольным пакетом
+ *  CRC level           - формат checksum, используемый для проверки целостности пакета
+ *                      (в основном необходимо для сборки больших пакетов)
+ *  sequence number     - порядковый номер пакета, нужен для сборки больших сообщений и проверки
+ *                       корректности доставки
+ *  CRC                 - checksum
+ *  size                - размер полного сообщения, не дублируется для последующих частей
+ *  data                - данные
 */
 
 #define MAX_PACKET_LENGTH 65535
@@ -23,8 +37,7 @@ enum CRC {
     eCRC_OFF,
     eCRC_8,
     eCRC_16,
-    eCRC_32,
-    eCRC_64
+    eCRC_32
 };
 
 class Socket {
