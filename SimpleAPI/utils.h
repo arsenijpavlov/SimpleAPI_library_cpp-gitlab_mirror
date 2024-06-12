@@ -21,9 +21,9 @@ bool OnlySpaces(const std::string& str);
 std::string to_hex_string(const std::vector<uint8_t>& data);
 std::vector<uint8_t> from_hex_string(std::string str);
 
-bool checkCrc8(const std::vector<uint8_t>& data, std::vector<uint8_t>& crcData);
-bool checkCrc16(const std::vector<uint8_t>& data, std::vector<uint8_t>& crcData);
-bool checkCrc32(const std::vector<uint8_t>& data, std::vector<uint8_t>& crcData);
+bool checkCrc8(std::vector<uint8_t>& data);
+bool checkCrc16(std::vector<uint8_t>& data);
+bool checkCrc32(std::vector<uint8_t>& data);
 
 }
 

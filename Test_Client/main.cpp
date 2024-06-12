@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
     Json json;
     json.add("Hello", "WORLD!");
     int num = socket.sendMsg("127.0.0.5", 31115, json);
-    std::cout << "Sended: " << num << std::endl;
+    std::cout << "Sent: " << num << std::endl;
 
     return 0;
 }

@@ -163,21 +163,84 @@ std::vector<uint8_t> from_hex_string(std::string str)
     return vec;
 }
 
-bool checkCrc8(const std::vector<uint8_t> &data, std::vector<uint8_t> &crcData)
+bool checkCrc8(std::vector<uint8_t>& data)
 {
-    //TODO: checkCrc8()
+    bool needCheck = data[0] != 0;
+
+    uint16_t sum = 0;
+    for(uint8_t d : data)
+        sum += d;
+    while(sum > 0xFF)
+        sum = (sum & 0xFF) + (sum >> 8);
+    sum = !sum;
+    data[0] = sum & 0xFF;
+
+    if(needCheck && data[0] != 0)
+        return false;
     return true;
 }
 
-bool checkCrc16(const std::vector<uint8_t> &data, std::vector<uint8_t> &crcData)
+bool checkCrc16(std::vector<uint8_t>& data)
 {
-    //TODO: checkCrc16()
+    union u8_16_32 {
+        uint8_t     u8[4];
+        uint16_t    u16[2];
+        uint32_t    u32;
+    };
+
+    bool needCheck = (data[0] != 0) && (data[1] != 0);
+
+    u8_16_32 sum;
+    sum.u32 = 0;
+    for(size_t i = 0; i < data.size(); i += 2) {
+        u8_16_32 d8;
+        d8.u8[0] = data[i];
+        d8.u8[1] = (i + 1 < data.size()) ? data[i + 1] : 0;
+        sum.u32 += d8.u16[0];
+    }
+    while(sum.u32 > 0xFFFFFFFF)
+        sum.u32 = sum.u16[0] + sum.u16[1];
+    sum.u32 = !sum.u32;
+    data[0] = sum.u8[0];
+    data[1] = sum.u8[1];
+
+    if(needCheck && ((data[0] != 0) || (data[1] != 0)))
+        return false;
     return true;
 }
 
-bool checkCrc32(const std::vector<uint8_t> &data, std::vector<uint8_t> &crcData)
+bool checkCrc32(std::vector<uint8_t>& data)
 {
-    //TODO: checkCrc32()
+    union u8_32_64 {
+        uint8_t     u8[8];
+        uint32_t    u32[2];
+        uint64_t    u64;
+    };
+
+    bool needCheck = (data[0] != 0) && (data[1] != 0)
+                     && (data[1] != 0) && (data[2] != 0);
+
+    u8_32_64 sum;
+    sum.u64 = 0;
+    for(size_t i = 0; i < data.size(); i += 4) {
+        u8_32_64 d8;
+        d8.u8[0] = data[i];
+        d8.u8[1] = (i + 1 < data.size()) ? data[i + 1] : 0;
+        d8.u8[2] = (i + 2 < data.size()) ? data[i + 2] : 0;
+        d8.u8[3] = (i + 3 < data.size()) ? data[i + 3] : 0;
+        sum.u64 += d8.u32[0];
+    }
+    while(sum.u64 > 0xFFFFFFFFFFFFFFFF)
+        sum.u64 = sum.u32[0] + sum.u32[1];
+    sum.u64 = !sum.u64;
+    data[0] = sum.u8[0];
+    data[1] = sum.u8[1];
+    data[2] = sum.u8[2];
+    data[3] = sum.u8[3];
+
+    if(needCheck && ((data[0] != 0) || (data[1] != 0)
+                      || (data[2] != 0) || (data[3] != 0)))
+        return false;
     return true;
 }
 

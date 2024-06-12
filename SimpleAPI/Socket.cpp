@@ -20,9 +20,33 @@ Packet convert_to_packet(const std::string& str)
 
     return packet;
 }
+
+Packet convert_to_packet(const char *str) { return convert_to_packet(std::string(str)); }
+
 std::string to_string(const Packet& packet)
 {
     return std::string((char*)packet.data(), packet.size());
+}
+
+uint8_t Socket::packHeader(const PacketType type, const uint8_t version,
+                           const bool isFirstFragment, const bool isChip, const CRC crcLevel)
+{
+    return (type << 6) & (version << 4) & (isFirstFragment << 3) & (isChip << 2) & crcLevel;
+}
+
+SNumber Socket::getSeqNumber(const struct sockaddr_in& sock)
+{
+    std::string ipKey;
+    ipKey.resize(INET_ADDRSTRLEN);
+    inet_ntop(AF_INET, &(sock.sin_addr), (char*)ipKey.data(), INET_ADDRSTRLEN);
+    ipKey += htons(sock.sin_port);
+
+    auto it = mapActiveConnections.find(ipKey);
+    if(it == mapActiveConnections.end()) {
+        it = mapActiveConnections.insert(std::make_pair(ipKey, 0)).first;
+    }
+
+    return it->second++;
 }
 
 Socket::Socket() : mSocketFD(-1), maxLength(1500) {}
@@ -33,12 +57,112 @@ void Socket::enableCRC(CRC crcLevel) { this->crcLevel = crcLevel; }
 
 void Socket::setMaxLength(uint16_t newMaxSize) { maxLength = newMaxSize; }
 
+void Socket::setUseApiVersion(ApiVersion version)
+{
+    switch(version) {
+//    case ...
+    default: //NOTE: по умолчанию всегда самая последняя из списка!
+    case Version_1: useApiVersion = version;    break;
+    }
+}
+
 void Socket::close() {
     if(mSocketFD) {
         ::close(this->mSocketFD);
         std::cout << "The socket has been freed" << std::endl;
         this->mSocketFD = -1;
     }
+}
+
+bool UDPSocket::sendFragments(const PacketType type, sockaddr_in &sock, const Packet &packet)
+{
+    std::cout << "Message to socket (" << packet.size() << " bytes)" << std::endl;
+
+    Packet bigMsg;
+    //оставляем место для поля CRC
+    switch(crcLevel) {
+    case eCRC_8:
+        bigMsg.push_back(0);
+        break;
+    case eCRC_16:
+        bigMsg.push_back(0);
+        bigMsg.push_back(0);
+        break;
+    case eCRC_32:
+        bigMsg.push_back(0);
+        bigMsg.push_back(0);
+        bigMsg.push_back(0);
+        bigMsg.push_back(0);
+        break;
+    default:        break;
+    }
+    //упаковка размера сообщения
+    bigMsg.push_back(packet.size() >> 8); //NOTE: emplace_back отказывается работать
+    bigMsg.push_back(packet.size() & 0xFF);
+    //упаковка данных во временный пакет
+    size_t tempSize = bigMsg.size();
+    bigMsg.resize(tempSize + packet.size());
+    std::copy(packet.begin(), packet.end(), bigMsg.begin() + tempSize);
+//    bigMsg.emplace_back(packet.data()); //не работает
+    //обновляем поле CRC
+    switch(crcLevel) {
+    case eCRC_8:    utils::checkCrc8(bigMsg);  break;
+    case eCRC_16:   utils::checkCrc16(bigMsg); break;
+    case eCRC_32:   utils::checkCrc32(bigMsg); break;
+    default:        break;
+    }
+
+    std::string stype;
+    switch(type) {
+    case eControlType:  stype = "CONTROL";  break;
+    case eDataType:     stype = "DATA";     break;
+    case eJsonType:     stype = "JSON";     break;
+    default:            stype = "UNKNOWN";
+    }
+    std::cout << "Prepare to send [" << stype << "] (" << bigMsg.size() << " bytes), MTU=" << this->maxLength << std::endl;
+
+    Packet      fragment;
+    size_t      currentPos = 0;
+    uint16_t    currentFragmentSize;
+
+    bool isFirstFragment = true;
+    while(bigMsg.size() - currentPos > 0) {
+        uint16_t availableSize = this->maxLength;
+
+        //упаковываем фрагмент
+        Packet buf;
+        buf.push_back(packHeader(type, useApiVersion, isFirstFragment, isChiphering(), crcLevel));
+        buf.push_back(getSeqNumber(sock)); //для текущего клиента
+        availableSize -= buf.size();
+
+        //высчитываем размер данных
+        uint16_t leftSize = bigMsg.size() - currentPos;
+        currentFragmentSize = leftSize > availableSize ? availableSize : leftSize;
+        availableSize -= currentFragmentSize;
+        if(isFirstFragment) { //первый пакет в списке
+            isFirstFragment = false;
+        }
+        fragment.resize(currentFragmentSize);
+        std::copy(bigMsg.begin() + currentPos, bigMsg.begin() + currentPos + currentFragmentSize, fragment.begin());
+
+//        buf.emplace_back(fragment); //не работает
+        tempSize = buf.size();
+        buf.resize(fragment.size() + tempSize);
+        std::copy(fragment.begin(), fragment.end(), buf.begin() + tempSize);
+
+        //отправляем фрагмент
+        int res = sendto(mSocketFD, (char*)buf.data(), buf.size(), 0, (struct sockaddr*)&sock, sizeof(struct sockaddr_in));
+        if(res < 0) {
+            std::cout << "ErrNo: " << errno << std::endl;
+            return false;
+        }
+        std::cout << "Sent " << res << " bytes" << std::endl;
+
+        //определяем расположение следующего фрагмента
+        currentPos += currentFragmentSize;
+    }
+
+    return true;
 }
 
 UDPSocket::UDPSocket(uint16_t localPort, std::string localIP) {
@@ -77,34 +201,22 @@ void UDPSocket::open(const uint16_t localPort, const std::string& localIP) {
     std::cout << "Socket binded at " << str << ":" << localPort << std::endl;
 }
 
-int UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet) {
-    if(!this->isActive()) return -1;
-
+bool UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet) {
     struct sockaddr_in sock;
-
-    Packet buf;
-    //TODO: упаковка
-//    ToByte(MessageType, getVersion(), isChiphering(), crcLevel)
-//    buf.push_back(temp);
-//    buf.push_back(sequenceNumber); //для текущего клиента
-//    std::vector<uint8_t> check;
-//    buf.push_back(checkCrc8/16/32(packet, check));
-//    if(startPacket)
-//        buf.push_back(packet.size());
-//    buf.push_back(trunc(packet, currentPos, maxLength));
-    buf = packet;
-
     sock.sin_family = AF_INET;
     sock.sin_port = htons(remotePort);
     if(!inet_pton(AF_INET, remoteIP.c_str(), &sock.sin_addr.s_addr))
         std::cout << "inet_pton(): return ERROR" << std::endl;
-    int res = sendto(mSocketFD, (char*)buf.data(), buf.size(), 0, (struct sockaddr*)&sock, sizeof(struct sockaddr_in));
-    if(res == -1)
-        std::cout << "ErrNo: " << errno << std::endl;
-    return res;
+    return sendFragments(eDataType, sock, packet);
 }
-int UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Json& json) {
-    return sendMsg(remoteIP, remotePort, convert_to_packet(json.to_string(-1))); //отправит Json в текстовом формате без пробелов
+
+bool UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Json& json) {
+    struct sockaddr_in sock;
+    sock.sin_family = AF_INET;
+    sock.sin_port = htons(remotePort);
+    if(!inet_pton(AF_INET, remoteIP.c_str(), &sock.sin_addr.s_addr))
+        std::cout << "inet_pton(): return ERROR" << std::endl;
+    return sendFragments(eJsonType, sock, convert_to_packet(json.to_string(-1))); //отправит Json в текстовом формате без пробелов
 }
 
 int UDPSocket::recvMsg(Packet& packet, const int timeout) {
@@ -127,8 +239,8 @@ int UDPSocket::recvMsg(Packet& packet, const int timeout) {
     recv_num = select(mSocketFD + 1, &fds, NULL, NULL, (timeout > 0 ? &t : NULL));
     if(recv_num < 0) {
         if(errno != EINTR) /* Interrupted system call */
-//TODO: сделать флаг для возможности отключения/перенаправления сообщений от API
-//TODO: сделать внутреннюю функцию-логгер для API
+//TODO: (LOG) сделать флаг для возможности отключения/перенаправления сообщений от API
+//TODO: (LOG) сделать внутреннюю функцию-логгер для API
             std::cout << "Error in select(), errno=" << errno << std::endl;
         return -1;
     }
@@ -148,12 +260,9 @@ int UDPSocket::recvMsg(Packet& packet, const int timeout) {
         inet_ntop(AF_INET, &(sock.sin_addr), (char*)remoteIP.data(), INET_ADDRSTRLEN);
         std::cout << "ip:" << remoteIP << std::endl;
         std::cout << "port:" << ntohs(sock.sin_port) << std::endl;
-        std::cout << "message: \"" << std::string(buf, recv_num) << "\"" << std::endl;
+        std::cout << "message[" << recv_num << "]: \"" << std::string(buf, recv_num) << "\"" << std::endl;
     }
 
     return recv_num;
 }
-
-
-
 
