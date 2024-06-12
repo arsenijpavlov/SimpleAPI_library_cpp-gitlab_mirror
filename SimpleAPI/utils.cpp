@@ -141,13 +141,13 @@ std::string to_hex_string(const std::vector<uint8_t>& data)
         }
     };
 
-    std::stringstream ss;
+    std::string str;
     for(uint8_t d : data) {
-        ss << getHex(d >> 4);
-        ss << getHex(d & 0xF);
+        str += getHex(d >> 4);
+        str += getHex(d & 0xF);
     }
 
-    return ss.str();
+    return str;
 }
 
 std::vector<uint8_t> from_hex_string(std::string str)

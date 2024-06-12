@@ -31,7 +31,7 @@ std::string to_string(const Packet& packet)
 uint8_t Socket::packHeader(const PacketType type, const uint8_t version,
                            const bool isFirstFragment, const bool isChip, const CRC crcLevel)
 {
-    return (type << 6) & (version << 4) & (isFirstFragment << 3) & (isChip << 2) & crcLevel;
+    return (type << 6) | (version << 4) | (isFirstFragment << 3) | (isChip << 2) | crcLevel;
 }
 
 SNumber Socket::getSeqNumber(const struct sockaddr_in& sock)
@@ -138,10 +138,8 @@ bool UDPSocket::sendFragments(const PacketType type, sockaddr_in &sock, const Pa
         //высчитываем размер данных
         uint16_t leftSize = bigMsg.size() - currentPos;
         currentFragmentSize = leftSize > availableSize ? availableSize : leftSize;
-        availableSize -= currentFragmentSize;
-        if(isFirstFragment) { //первый пакет в списке
+        if(isFirstFragment) //первый пакет в списке
             isFirstFragment = false;
-        }
         fragment.resize(currentFragmentSize);
         std::copy(bigMsg.begin() + currentPos, bigMsg.begin() + currentPos + currentFragmentSize, fragment.begin());
 
@@ -261,6 +259,8 @@ int UDPSocket::recvMsg(Packet& packet, const int timeout) {
         std::cout << "ip:" << remoteIP << std::endl;
         std::cout << "port:" << ntohs(sock.sin_port) << std::endl;
         std::cout << "message[" << recv_num << "]: \"" << std::string(buf, recv_num) << "\"" << std::endl;
+
+        packet = Packet(buf, buf + recv_num);
     }
 
     return recv_num;

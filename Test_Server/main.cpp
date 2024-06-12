@@ -21,6 +21,10 @@ int main(int argc, char** argv) {
         usleep(1);
         Packet p;
         socket.recvMsg(p, 100);
+        if(p.size() > 0) {
+            std::cout << "packet(" << p.size() << "):";
+            std::cout << " [" << utils::to_hex_string(p) << "]" << std::endl;
+        }
     }
 
     return 0;

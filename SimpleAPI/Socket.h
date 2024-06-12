@@ -54,6 +54,12 @@ enum CRC {
     eCRC_32     = 3
 };
 
+struct Connection {
+    SNumber sn;
+    //NOTE: если подтверждение не пришло и через 200 (sn [0-255]), пакет удаляется из очереди с...
+    std::map<SNumber, Packet> sentPackets; //по приходе подтверждения пакет удаляется из этого списка
+};
+
 class Socket {
 protected:
     int         mSocketFD;
