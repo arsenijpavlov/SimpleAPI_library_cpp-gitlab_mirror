@@ -51,7 +51,7 @@ SNumber Socket::getSeqNumber(const struct sockaddr_in& sock)
 
 Socket::Socket() : mSocketFD(-1), maxLength(1500) {}
 
-bool Socket::isActive() { return mSocketFD > 0; }
+bool Socket::isServerActive() { return mSocketFD > 0; }
 
 void Socket::enableCRC(CRC crcLevel) { this->crcLevel = crcLevel; }
 
@@ -169,6 +169,70 @@ UDPSocket::UDPSocket(uint16_t localPort, std::string localIP) {
 
 UDPSocket::~UDPSocket() { close(); }
 
+bool UDPSocket::sendRawMsg(const std::string &remoteIP, const uint16_t remotePort, const Packet &packet)
+{
+    struct sockaddr_in sock;
+    sock.sin_family = AF_INET;
+    sock.sin_port = htons(remotePort);
+    if(!inet_pton(AF_INET, remoteIP.c_str(), &sock.sin_addr.s_addr))
+        std::cout << "inet_pton(): return ERROR" << std::endl;
+    int res = sendto(mSocketFD, (char*)packet.data(), packet.size(), 0, (struct sockaddr*)&sock, sizeof(struct sockaddr_in));
+    if(res < 0) {
+        std::cout << "ErrNo: " << errno << std::endl;
+        return false;
+    }
+    std::cout << "Sent " << res << " bytes" << std::endl;;
+    return res > 0;
+}
+
+ReceivedPacket UDPSocket::recvRawMsg(int timeout)
+{
+    if(!this->isServerActive()) return {};
+
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(mSocketFD, &fds);
+    struct timeval t;
+    if(timeout > 0) {
+        t.tv_sec    = timeout / 1000;
+        t.tv_usec   = (timeout % 1000) * 1000;
+    }
+    char buf[MAX_PACKET_LENGTH];
+    int recv_num;
+
+    struct sockaddr_in sock;
+    sock.sin_family = AF_INET;
+    socklen_t socklen = sizeof(sock);
+    recv_num = select(mSocketFD + 1, &fds, NULL, NULL, (timeout > 0 ? &t : NULL));
+    if(recv_num < 0) {
+        if(errno != EINTR) /* Interrupted system call */
+//TODO: (LOG) сделать флаг для возможности отключения/перенаправления сообщений от API
+//TODO: (LOG) сделать внутреннюю функцию-логгер для API
+            std::cout << "Error in select(), errno=" << errno << std::endl;
+        return ReceivedPacket();
+    }
+    if(recv_num > 0) {
+        recv_num = recvfrom(mSocketFD, buf,
+                            MAX_PACKET_LENGTH, /*flags*/0,
+                            (struct sockaddr*)&sock, &socklen);
+    }
+
+    if(recv_num < 0) {
+//        std::cout << "Error reading msg" << std::endl;
+    } else if(recv_num > 0) {
+        ReceivedPacket rpacket;
+        rpacket.senderIp.resize(INET_ADDRSTRLEN);
+        inet_ntop(AF_INET, &(sock.sin_addr), (char*)rpacket.senderIp.data(), INET_ADDRSTRLEN);
+        rpacket.senderPort = ntohs(sock.sin_port);
+        rpacket.packet = Packet(buf, buf + recv_num);
+
+        return rpacket;
+    }
+
+    return {};
+
+}
+
 void UDPSocket::open(const uint16_t localPort, const std::string& localIP) {
     // create
     mSocketFD = socket(AF_INET, SOCK_DGRAM, 0);
@@ -215,54 +279,5 @@ bool UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, 
     if(!inet_pton(AF_INET, remoteIP.c_str(), &sock.sin_addr.s_addr))
         std::cout << "inet_pton(): return ERROR" << std::endl;
     return sendFragments(eJsonType, sock, convert_to_packet(json.to_string(-1))); //отправит Json в текстовом формате без пробелов
-}
-
-int UDPSocket::recvMsg(Packet& packet, const int timeout) {
-    if(!this->isActive()) return -1;
-
-    fd_set fds;
-    FD_ZERO(&fds);
-    FD_SET(mSocketFD, &fds);
-    struct timeval t;
-    if(timeout > 0) {
-        t.tv_sec    = timeout / 1000;
-        t.tv_usec   = (timeout % 1000) * 1000;
-    }
-    char buf[MAX_PACKET_LENGTH];
-    int recv_num;
-
-    struct sockaddr_in sock;
-    sock.sin_family = AF_INET;
-    socklen_t socklen = sizeof(sock);
-    recv_num = select(mSocketFD + 1, &fds, NULL, NULL, (timeout > 0 ? &t : NULL));
-    if(recv_num < 0) {
-        if(errno != EINTR) /* Interrupted system call */
-//TODO: (LOG) сделать флаг для возможности отключения/перенаправления сообщений от API
-//TODO: (LOG) сделать внутреннюю функцию-логгер для API
-            std::cout << "Error in select(), errno=" << errno << std::endl;
-        return -1;
-    }
-    if(recv_num > 0) {
-        recv_num = recvfrom(mSocketFD, buf,
-                            MAX_PACKET_LENGTH, /*flags*/0,
-                            (struct sockaddr*)&sock, &socklen);
-//        std::cout << "recv_num: " << recv_num << std::endl;
-    }
-
-    if(recv_num < 0) {
-//        std::cout << "Error reading msg" << std::endl;
-        return -1;
-    } else if(recv_num > 0) {
-        std::string remoteIP;
-        remoteIP.resize(INET_ADDRSTRLEN);
-        inet_ntop(AF_INET, &(sock.sin_addr), (char*)remoteIP.data(), INET_ADDRSTRLEN);
-        std::cout << "ip:" << remoteIP << std::endl;
-        std::cout << "port:" << ntohs(sock.sin_port) << std::endl;
-        std::cout << "message[" << recv_num << "]: \"" << std::string(buf, recv_num) << "\"" << std::endl;
-
-        packet = Packet(buf, buf + recv_num);
-    }
-
-    return recv_num;
 }
 
