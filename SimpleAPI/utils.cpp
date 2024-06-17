@@ -163,7 +163,7 @@ std::vector<uint8_t> from_hex_string(std::string str)
     return vec;
 }
 
-//на вход подаётся массив данных, в начале которого 1 байт отвечают за CRC
+//на вход подаётся массив данных, в начале которого 1 байт отвечает за CRC
 bool checkCrc8(std::vector<uint8_t>& data)
 {
     bool needCheck = data[0] != 0;
