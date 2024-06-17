@@ -192,7 +192,7 @@ bool checkCrc16(std::vector<uint8_t>& data)
     uint32_t sum = 0;
     //первые два байта не влияют на итоговый результат
     for(uint8_t i = 2; i < data.size(); i+=2)
-        sum += (data[i] + (i < data.size() ? (data[i + 1]) : 0));
+        sum += ((data[i] << 8) + (i < data.size() ? (data[i + 1]) : 0));
 
     while(sum > 0xFFFF)
         sum = (sum & 0xFFFF) + (sum >> 16);
@@ -206,37 +206,29 @@ bool checkCrc16(std::vector<uint8_t>& data)
     return true;
 }
 
+//на вход подаётся массив данных, в начале которого 4 байта отвечают за CRC
 bool checkCrc32(std::vector<uint8_t>& data)
 {
-    union u8_32_64 {
-        uint8_t     u8[8];
-        uint32_t    u32[2];
-        uint64_t    u64;
-    };
+    bool needCheck = data[0] != 0 || data[1] != 0 || data[2] != 0 || data[3] != 0;
 
-    bool needCheck = (data[0] != 0) && (data[1] != 0)
-                     && (data[1] != 0) && (data[2] != 0);
+    uint64_t sum = 0;
+    //первые четыре байта не влияют на итоговый результат
+    for(uint8_t i = 4; i < data.size(); i+=4)
+        sum += ((data[i] << 24)
+                + (i + 1 < data.size() ? (data[i + 1] << 16) : 0)
+                + (i + 2 < data.size() ? (data[i + 2] << 8) : 0)
+                + (i + 3 < data.size() ? (data[i + 3]) : 0));
 
-    u8_32_64 sum;
-    sum.u64 = 0;
-    for(size_t i = 0; i < data.size(); i += 4) {
-        u8_32_64 d8;
-        d8.u8[0] = data[i];
-        d8.u8[1] = (i + 1 < data.size()) ? data[i + 1] : 0;
-        d8.u8[2] = (i + 2 < data.size()) ? data[i + 2] : 0;
-        d8.u8[3] = (i + 3 < data.size()) ? data[i + 3] : 0;
-        sum.u64 += d8.u32[0];
-    }
-    while(sum.u64 > 0xFFFFFFFFFFFFFFFF)
-        sum.u64 = sum.u32[0] + sum.u32[1];
-    sum.u64 = !sum.u64;
-    data[0] = sum.u8[0];
-    data[1] = sum.u8[1];
-    data[2] = sum.u8[2];
-    data[3] = sum.u8[3];
+    while(sum > 0xFFFFFFFF)
+        sum = (sum & 0xFFFFFFFF) + (sum >> 32);
+    sum = !sum;
 
-    if(needCheck && ((data[0] != 0) || (data[1] != 0)
-                      || (data[2] != 0) || (data[3] != 0)))
+    data[0] = (sum >> 24) & 0xFF;
+    data[1] = (sum >> 16) & 0xFF;
+    data[2] = (sum >> 8) & 0xFF;
+    data[3] = sum & 0xFF;
+
+    if(needCheck && (data[0] != 0 || data[1] != 0 || data[2] != 0 || data[3] != 0))
         return false;
     return true;
 }
