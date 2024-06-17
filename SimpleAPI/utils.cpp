@@ -163,16 +163,20 @@ std::vector<uint8_t> from_hex_string(std::string str)
     return vec;
 }
 
+//на вход подаётся массив данных, в начале которого 1 байт отвечают за CRC
 bool checkCrc8(std::vector<uint8_t>& data)
 {
     bool needCheck = data[0] != 0;
 
     uint16_t sum = 0;
-    for(uint8_t d : data)
-        sum += d;
+    //первый байт не влияет на итоговый результат
+    for(uint8_t i = 1; i < data.size(); i++)
+        sum += data[i];
+
     while(sum > 0xFF)
         sum = (sum & 0xFF) + (sum >> 8);
     sum = !sum;
+
     data[0] = sum & 0xFF;
 
     if(needCheck && data[0] != 0)
