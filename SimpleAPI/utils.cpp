@@ -180,31 +180,24 @@ bool checkCrc8(std::vector<uint8_t>& data)
     return true;
 }
 
+//на вход подаётся массив данных, в начале которого 2 байта отвечают за CRC
 bool checkCrc16(std::vector<uint8_t>& data)
 {
-    union u8_16_32 {
-        uint8_t     u8[4];
-        uint16_t    u16[2];
-        uint32_t    u32;
-    };
+    bool needCheck = data[0] != 0 || data[1] != 0;
 
-    bool needCheck = (data[0] != 0) && (data[1] != 0);
+    uint32_t sum = 0;
+    //первые два байта не влияют на итоговый результат
+    for(uint8_t i = 2; i < data.size(); i+=2)
+        sum += (data[i] + (i < data.size() ? (data[i + 1]) : 0));
 
-    u8_16_32 sum;
-    sum.u32 = 0;
-    for(size_t i = 0; i < data.size(); i += 2) {
-        u8_16_32 d8;
-        d8.u8[0] = data[i];
-        d8.u8[1] = (i + 1 < data.size()) ? data[i + 1] : 0;
-        sum.u32 += d8.u16[0];
-    }
-    while(sum.u32 > 0xFFFFFFFF)
-        sum.u32 = sum.u16[0] + sum.u16[1];
-    sum.u32 = !sum.u32;
-    data[0] = sum.u8[0];
-    data[1] = sum.u8[1];
+    while(sum > 0xFFFF)
+        sum = (sum & 0xFFFF) + (sum >> 16);
+    sum = !sum;
 
-    if(needCheck && ((data[0] != 0) || (data[1] != 0)))
+    data[0] = (sum >> 8) & 0xFF;
+    data[1] = sum & 0xFF;
+
+    if(needCheck && (data[0] != 0 || data[1] != 0))
         return false;
     return true;
 }
