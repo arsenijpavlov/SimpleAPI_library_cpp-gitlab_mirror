@@ -72,21 +72,11 @@ using AVector = std::vector<Element>;
 class Array {
     AVector values;
 
-    bool checkIndexes(const size_t index) {
-        if(index + 1 > values.size()) {
-            //TODO: std::outofrange
-            throw "Going beyond Array boundaries";
-            return false;
-        }
-        return true;
-    }
+    bool checkIndexes(const size_t index);
 public:
     Array(){};
     Array(const Array& array);
-    ~Array() {
-        for(Element& el : this->values)
-            delete el.second;
-    }
+    ~Array();
 
     __ONLY_ALLOWED_TYPES__(T)
     void push_back(const T value)
@@ -96,56 +86,22 @@ public:
     void push_front(const T value)
     { this->values.insert(this->values.cbegin(), Element(value)); }
 
-    ValueType getType(const size_t index)       { return this->values[index].first; }
-    ValueType getTypeFront(const size_t index)  { return getType(0); }
-    ValueType getTypeBack(const size_t index)   { return getType(this->values.size() - 1); }
+    ValueType getType(const size_t index);
+    ValueType getTypeFront(const size_t index);
+    ValueType getTypeBack(const size_t index);
 
-    Element getAt(const size_t index)           { return this->values[index]; }
-    Element getFront()                          { return this->values.front(); }
-    Element getBack()                           { return this->values.back(); }
+    Element getAt(const size_t index);
+    Element getFront();
+    Element getBack();
 
-    void popBack()                              { this->values.pop_back(); }
-    void clear()                                { this->values.clear(); }
+    void popBack();
+    void clear();
 
     std::string to_string(int16_t tabulation_level = 0);
-    size_t size()                               { return values.size(); }
+    size_t size();
 
-    Element operator[](const size_t index)
-    {
-        if(this->values.empty()) return {};
-        if(!checkIndexes(index)) return {};
-
-        return Element(this->values[index].first, this->values[index].second);
-    }
-    Element operator[](const std::vector<std::string>& complex_name)
-    {
-        if(this->values.empty()) return {};
-
-        std::vector<std::string>::const_iterator it = complex_name.begin();
-        if(!utils::IsNumber(*it++, false))
-            return {};
-        Element el = (*this)[stoi(*it)]; //находим первый элемент списка
-        for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
-            bool isNumber = utils::IsNumber(*it, false);
-            switch(el.first) {
-            case eJson:
-                el = el.getInnerValue(*it);
-                if(el.first == ValueType::eNull) {
-                    if(isNumber)    el = el.getInnerValue(stoi(*it));
-                    else            el = {};
-                }
-                break;
-            case eArray:
-                //для массива возможно обращение только по числовому индексу!
-                if(isNumber)    el = el.getInnerValue(stoi(*it));
-                else            el = {};
-                break;
-            default: return {}; //продолжать поиск можно только по двум структурам!
-            }
-        }
-
-        return el;
-    }
+    Element operator[](const size_t index);
+    Element operator[](const std::vector<std::string>& complex_name);
     template<std::size_t SIZE>
     Element operator[](const std::array<std::string, SIZE>& complex_name)
     {
@@ -154,7 +110,7 @@ public:
         Element el = (*this)[complex_name[0]]; //находим первый элемент списка
         typename std::array<std::string, SIZE>::const_iterator it = complex_name.begin() + 1; //первый элемент пропускаем
         for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
-            bool isNumber = utils::IsNumber(*it, false);
+            bool isNumber = utils::isNumber(*it, false);
             switch(el.first) {
             case eJson:
                 el = el.getInnerValue(*it);
@@ -175,9 +131,8 @@ public:
         return el;
     }
 
-    Element value(const size_t index)           { return (*this)[index]; }
-    Element value(const std::vector<std::string>& complex_name)
-                                                { return (*this)[complex_name]; }
+    Element value(const size_t index);
+    Element value(const std::vector<std::string>& complex_name);
 
     AVector::iterator begin()                   { return values.begin(); }
     AVector::iterator end()                     { return values.end(); }
@@ -198,38 +153,22 @@ public:
     void insert(AVector::iterator iterator, const T value)
     { this->values.insert(iterator, value); }
 
-    void erase(const size_t index)
-    {
-        if(index > this->values.size() - 1) return;
-
-        this->values.erase(this->values.cbegin() + index);
-    }
-    void erase(const AVector::iterator iterator)
-    { this->values.erase(this->values.cbegin()); }
-    void erase(const AVector::iterator begin, const AVector::iterator end)
-    { this->values.erase(begin, end); }
+    void erase(const size_t index);
+    void erase(const AVector::iterator iterator);
+    void erase(const AVector::iterator begin, const AVector::iterator end);
 }; /// class Array
 
 using JVector = std::vector<std::pair<std::string, Element>>;
-// Неупорядоченный список "ключ-значение"
+// Неупорядоченный список "ключ-значение" (в данном случае упорядочен)
 class Json
 {
     JVector values;
 
-    bool checkIndexes(const size_t index) {
-        if(index + 1 > values.size()) {
-            throw "Going beyond Json boundaries";
-            return false;
-        }
-        return true;
-    }
+    bool checkIndexes(const size_t index);
 public:
-    Json(){};
+    Json();;
     Json(const Json& json);
-    ~Json() {
-        for(std::pair<std::string, Element>& el : this->values)
-            delete el.second.second;
-    }
+    ~Json();
 
     __ONLY_ALLOWED_TYPES__(T)
     bool put(const std::string& key, const T value)
@@ -256,51 +195,9 @@ public:
     JVector::const_iterator cbegin()                      const { return values.begin(); };
     JVector::const_iterator cend()                        const { return values.end(); };
 
-    Element operator[](const size_t index)
-    {
-        if(this->values.empty()) return {};
-        if(!checkIndexes(index)) return {};
-
-        return Element(this->values[index].second.first, this->values[index].second.second);
-    }
-    Element operator[](const std::string& name)
-    {
-        if(this->values.empty()) return {};
-
-        for(size_t i = 0; i < this->values.size(); i++)
-            if(this->values[i].first == name)
-                return Element(
-                    this->values[i].second.first,
-                    this->values[i].second.second);
-        return {};
-    }
-    Element operator[](const std::vector<std::string>& complex_name)
-    {
-        if(this->values.empty()) return {};
-
-        Element el = (*this)[complex_name[0]]; //находим первый элемент списка
-        std::vector<std::string>::const_iterator it = complex_name.begin() + 1; //первый элемент пропускаем
-        for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
-            bool isNumber = utils::IsNumber(*it, false);
-            switch(el.first) {
-            case eJson:
-                el = el.getInnerValue(*it);
-                if(el.first == ValueType::eNull) {
-                    if(isNumber)    el = el.getInnerValue(stoi(*it));
-                    else            el = {};
-                }
-                break;
-            case eArray:
-                //для массива возможно обращение только по числовому индексу!
-                if(isNumber)    el = el.getInnerValue(stoi(*it));
-                else            el = {};
-                break;
-            default: return {}; //продолжать поиск можно только по двум структурам!
-            }
-        }
-
-        return el;
-    }
+    Element operator[](const size_t index);
+    Element operator[](const std::string& name);
+    Element operator[](const std::vector<std::string>& complex_name);
     template<std::size_t SIZE>
     Element operator[](const std::array<std::string, SIZE>& complex_name)
     {
@@ -309,7 +206,7 @@ public:
         Element el = (*this)[complex_name[0]]; //находим первый элемент списка
         typename std::array<std::string, SIZE>::const_iterator it = complex_name.begin() + 1; //первый элемент пропускаем
         for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
-            bool isNumber = utils::IsNumber(*it, false);
+            bool isNumber = utils::isNumber(*it, false);
             switch(el.first) {
             case eJson:
                 el = el.getInnerValue(*it);
@@ -389,34 +286,11 @@ public:
         return false;
     }
 
-    void erase(const size_t index)
-    {
-        if(index > this->values.size() - 1) return;
-
-        this->values.erase(this->values.cbegin() + index);
-    }
-    void erase(const JVector::iterator iterator)
-    { this->values.erase(this->values.cbegin()); }
-    void erase(const JVector::iterator begin, const JVector::iterator end)
-    { this->values.erase(begin, end); }
-    void erase(const std::string& key)
-    {
-        bool flag = false;
-        size_t index;
-        for(index = 0; index < this->size(); index++) {
-            if(this->values[index].first == key) {
-                flag = true;
-                break;
-            }
-        }
-
-        if(flag) this->values.erase(this->values.cbegin() + index);
-    }
-    void erase(const std::vector<std::string>& keys)
-    {
-        for(const std::string &key : keys)
-            this->erase(key);
-    }
+    void erase(const size_t index);
+    void erase(const JVector::iterator iterator);
+    void erase(const JVector::iterator begin, const JVector::iterator end);
+    void erase(const std::string& key);
+    void erase(const std::vector<std::string>& keys);
 }; ///class Json
 
 static ValueType CheckValue(std::string& value);
@@ -436,8 +310,7 @@ public:
     DoubleElement(const double& d) : value(d){};
     ~DoubleElement(){}
 
-    std::string to_string(int16_t tabulation_level = 0)
-    { return utils::ToString(value); }
+    std::string to_string(int16_t tabulation_level = 0);
 };
 class BoolElement : BaseElement {
 public:
@@ -447,8 +320,7 @@ public:
     BoolElement(const bool& b) : value(b){};
     ~BoolElement(){}
 
-    std::string to_string(int16_t tabulation_level = 0)
-    { return value ? "true" : "false"; }
+    std::string to_string(int16_t tabulation_level = 0);
 };
 class StringElement : BaseElement {
 public:
@@ -458,8 +330,7 @@ public:
     StringElement(const std::string& s) : value(s){};
     ~StringElement(){}
 
-    std::string to_string(int16_t tabulation_level = 0)
-    { return "\"" + value + "\""; }
+    std::string to_string(int16_t tabulation_level = 0);
 };
 class JsonElement : BaseElement {
 public:
@@ -469,8 +340,7 @@ public:
     JsonElement(const Json& j) : value(j){};
     ~JsonElement(){}
 
-    std::string to_string(int16_t tabulation_level = 0)
-    { return value.to_string(tabulation_level); }
+    std::string to_string(int16_t tabulation_level = 0);
 };
 class ArrayElement : BaseElement {
 public:
@@ -480,8 +350,7 @@ public:
     ArrayElement(const Array& a) : value(a){};
     ~ArrayElement(){}
 
-    std::string to_string(int16_t tabulation_level = 0)
-    { return value.to_string(tabulation_level); }
+    std::string to_string(int16_t tabulation_level = 0);
 };
 
 //} /// namespace json

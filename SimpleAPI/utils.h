@@ -7,15 +7,15 @@
 
 namespace utils {
 
-bool IsNumber(const std::string& str, bool use_point = true);
-bool IsNumber(const char ch, bool use_point = true);
+bool isNumber(const std::string& str, bool use_point = true);
+bool isNumber(const char ch, bool use_point = true);
 std::string Tab(uint8_t tabs_counter);
 void RemoveComments(std::string& str, bool& startComment, char& quote);
 size_t CountSymInStr(const std::string& str, const char ch);
 bool CharsInString(const char ch, std::string symbols);
-std::string ToString(double d); //исключить лишние знаки при выводе чисел
+std::string toString(double d); //исключить лишние знаки при выводе чисел
 bool isBool(std::string& str);
-bool ToBool(std::string& str);
+bool toBool(std::string& str);
 bool OnlySpaces(const std::string& str);
 
 std::string to_hex_string(const std::vector<uint8_t>& data);

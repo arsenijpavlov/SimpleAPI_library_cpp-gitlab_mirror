@@ -5,15 +5,15 @@
 
 namespace utils {
 
-bool IsNumber(const std::string &str, bool use_point)
+bool isNumber(const std::string &str, bool use_point)
 {
     for(int i = 0; i < str.size(); i++)
-        if(!IsNumber(str[i], use_point))
+        if(!isNumber(str[i], use_point))
             return false;
     return true;
 }
 
-bool IsNumber(const char ch, bool use_point) {
+bool isNumber(const char ch, bool use_point) {
     return (std::isdigit(ch) || (use_point && (ch == '.')));
 }
 
@@ -92,7 +92,7 @@ bool CharsInString(const char ch, std::string symbols)
     return false;
 }
 
-std::string ToString(double d) {
+std::string toString(double d) {
     std::ostringstream str;
     str << d;
     return str.str();
@@ -103,7 +103,7 @@ bool isBool(std::string& str) {
     else                                return false;
 }
 
-bool ToBool(std::string& str) {
+bool toBool(std::string& str) {
     if(str == "true")   return true;
     else                return false;
 }

@@ -139,6 +139,15 @@ Element Element::getInnerValue(size_t index)
 
 
 //ARRAY
+bool Array::checkIndexes(const size_t index) {
+    if(index + 1 > values.size()) {
+        //TODO: std::outofrange
+        throw "Going beyond Array boundaries";
+        return false;
+    }
+    return true;
+}
+
 Array::Array(const Array& array)
 {
     for(Element el : array.values) {
@@ -173,6 +182,27 @@ Array::Array(const Array& array)
     }
 }
 
+Array::~Array() {
+    for(Element& el : this->values)
+        delete el.second;
+}
+
+ValueType Array::getType(const size_t index)       { return this->values[index].first; }
+
+ValueType Array::getTypeFront(const size_t index)  { return getType(0); }
+
+ValueType Array::getTypeBack(const size_t index)   { return getType(this->values.size() - 1); }
+
+Element Array::getAt(const size_t index)           { return this->values[index]; }
+
+Element Array::getFront()                          { return this->values.front(); }
+
+Element Array::getBack()                           { return this->values.back(); }
+
+void Array::popBack()                              { this->values.pop_back(); }
+
+void Array::clear()                                { this->values.clear(); }
+
 std::string Array::to_string(int16_t tabulation_level)
 {
     if(this->values.empty()) return "[]";
@@ -205,9 +235,77 @@ std::string Array::to_string(int16_t tabulation_level)
 
     return ret;
 }
+
+size_t Array::size()                               { return values.size(); }
+
+Element Array::value(const size_t index)           { return (*this)[index]; }
+
+Element Array::value(const std::vector<std::string> &complex_name)
+{ return (*this)[complex_name]; }
+
+void Array::erase(const size_t index)
+{
+    if(index > this->values.size() - 1) return;
+
+    this->values.erase(this->values.cbegin() + index);
+}
+
+void Array::erase(const AVector::iterator iterator)
+{ this->values.erase(this->values.cbegin()); }
+
+void Array::erase(const AVector::iterator begin, const AVector::iterator end)
+{ this->values.erase(begin, end); }
+
+Element Array::operator[](const std::vector<std::string> &complex_name)
+{
+    if(this->values.empty()) return {};
+
+    std::vector<std::string>::const_iterator it = complex_name.begin();
+    if(!utils::isNumber(*it++, false))
+        return {};
+    Element el = (*this)[stoi(*it)]; //находим первый элемент списка
+    for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
+        bool isNumber = utils::isNumber(*it, false);
+        switch(el.first) {
+        case eJson:
+            el = el.getInnerValue(*it);
+            if(el.first == ValueType::eNull) {
+                if(isNumber)    el = el.getInnerValue(stoi(*it));
+                else            el = {};
+            }
+            break;
+        case eArray:
+            //для массива возможно обращение только по числовому индексу!
+            if(isNumber)    el = el.getInnerValue(stoi(*it));
+            else            el = {};
+            break;
+        default: return {}; //продолжать поиск можно только по двум структурам!
+        }
+    }
+
+    return el;
+}
+
+Element Array::operator[](const size_t index)
+{
+    if(this->values.empty()) return {};
+    if(!checkIndexes(index)) return {};
+
+    return Element(this->values[index].first, this->values[index].second);
+}
 /// class Array
 
 // Json
+bool Json::checkIndexes(const size_t index) {
+    if(index + 1 > values.size()) {
+        throw "Going beyond Json boundaries";
+        return false;
+    }
+    return true;
+}
+
+Json::Json(){}
+
 Json::Json(const Json& json)
 {
     for(const std::pair<std::string, Element> &el : json.values) {
@@ -250,6 +348,11 @@ Json::Json(const Json& json)
         case eNull: break;
         }
     }
+}
+
+Json::~Json() {
+    for(std::pair<std::string, Element>& el : this->values)
+        delete el.second.second;
 }
 
 bool Json::isValueExists(const std::string& name)
@@ -339,6 +442,87 @@ std::string Json::to_string(int16_t tabulation_level) const
     ret += "}"; //end of json
     return ret;
 }
+
+void Json::erase(const size_t index)
+{
+    if(index > this->values.size() - 1) return;
+
+    this->values.erase(this->values.cbegin() + index);
+}
+
+void Json::erase(const JVector::iterator iterator)
+{ this->values.erase(this->values.cbegin()); }
+
+void Json::erase(const JVector::iterator begin, const JVector::iterator end)
+{ this->values.erase(begin, end); }
+
+void Json::erase(const std::string &key)
+{
+    bool flag = false;
+    size_t index;
+    for(index = 0; index < this->size(); index++) {
+        if(this->values[index].first == key) {
+            flag = true;
+            break;
+        }
+    }
+
+    if(flag) this->values.erase(this->values.cbegin() + index);
+}
+
+void Json::erase(const std::vector<std::string> &keys)
+{
+    for(const std::string &key : keys)
+        this->erase(key);
+}
+
+Element Json::operator[](const std::vector<std::string> &complex_name)
+{
+    if(this->values.empty()) return {};
+
+    Element el = (*this)[complex_name[0]]; //находим первый элемент списка
+    std::vector<std::string>::const_iterator it = complex_name.begin() + 1; //первый элемент пропускаем
+    for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
+        bool isNumber = utils::isNumber(*it, false);
+        switch(el.first) {
+        case eJson:
+            el = el.getInnerValue(*it);
+            if(el.first == ValueType::eNull) {
+                if(isNumber)    el = el.getInnerValue(stoi(*it));
+                else            el = {};
+            }
+            break;
+        case eArray:
+            //для массива возможно обращение только по числовому индексу!
+            if(isNumber)    el = el.getInnerValue(stoi(*it));
+            else            el = {};
+            break;
+        default: return {}; //продолжать поиск можно только по двум структурам!
+        }
+    }
+
+    return el;
+}
+
+Element Json::operator[](const std::string &name)
+{
+    if(this->values.empty()) return {};
+
+    for(size_t i = 0; i < this->values.size(); i++)
+        if(this->values[i].first == name)
+            return Element(
+                this->values[i].second.first,
+                this->values[i].second.second);
+    return {};
+}
+
+Element Json::operator[](const size_t index)
+{
+    if(this->values.empty()) return {};
+    if(!checkIndexes(index)) return {};
+
+    return Element(this->values[index].second.first, this->values[index].second.second);
+}
 /// class Json
 
 //STATIC:
@@ -354,7 +538,7 @@ ValueType CheckValue(std::string& value)
 
         if(isValue) {
             if(vType == ValueType::eNull) {
-                if(utils::IsNumber(value[i]))   vType = ValueType::eNumber;
+                if(utils::isNumber(value[i]))   vType = ValueType::eNumber;
                 else if(value[i] == '"')        vType = ValueType::eString;
                 else if(value[i] == '{')        vType = ValueType::eJson;
                 else if(value[i] == '[')        vType = ValueType::eArray;
@@ -392,7 +576,7 @@ bool CheckDouble(std::string& value)
 
     for(char ch : temp) {
         if(ch == '.') pCounter++;
-        if(!utils::IsNumber(ch) || pCounter > 1) {
+        if(!utils::isNumber(ch) || pCounter > 1) {
             std::cout << "Error with parse Number in: " << value << std::endl;
             return false;
         }
@@ -646,7 +830,7 @@ bool ParseJson(const std::string& json_str, Json* json)
                 case eBool:     {
                     return_code = utils::isBool(value);
                     if(return_code)
-                        return_code = json->put(key, utils::ToBool(value));
+                        return_code = json->put(key, utils::toBool(value));
                     break;
                 }
                 case eString:   { return_code = json->put(key, value); break; }
@@ -800,7 +984,7 @@ bool ParseArray(const std::string& array_str, Array* array)
                 case eNumber:   { array->push_back(std::stod(value));       break; }
                 case eBool:     {
                     return_code = utils::isBool(value);
-                    if(return_code) array->push_back(utils::ToBool(value));
+                    if(return_code) array->push_back(utils::toBool(value));
                     break;
                 }
                 case eString:   { array->push_back(value);                  break; }
@@ -872,3 +1056,18 @@ bool ParseArray(const std::string& array_str, Array* array)
 ///STATIC
 
 //} /// namespace json
+
+std::string DoubleElement::to_string(int16_t tabulation_level)
+{ return utils::toString(value); }
+
+std::string BoolElement::to_string(int16_t tabulation_level)
+{ return value ? "true" : "false"; }
+
+std::string StringElement::to_string(int16_t tabulation_level)
+{ return "\"" + value + "\""; }
+
+std::string JsonElement::to_string(int16_t tabulation_level)
+{ return value.to_string(tabulation_level); }
+
+std::string ArrayElement::to_string(int16_t tabulation_level)
+{ return value.to_string(tabulation_level); }
