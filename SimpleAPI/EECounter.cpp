@@ -1,84 +1,153 @@
 #include "EECounter.h"
 
+//TODO: _INCOMPATIBLE_EXCEPTION_
+#define _INCOMPATIBLE_EXCEPTION_     if(this->size != other.size) return false;
 
-EECounter::EECounter(uint16_t size) {
+
+EECounter::EECounter(uint64_t size) {
     this->size = size;
-    this->current_pos = 0;
-    this->current_global_pos = 0;
+    this->pos = 0;
+    this->global_pos = 0;
 }
 
-EECounter::EECounter(EECounter &other) {
+EECounter::EECounter(const EECounter &other) {
     this->size = other.size;
-    this->current_pos = other.current_pos;
-    this->current_global_pos = other.current_global_pos;
+    this->pos = other.pos;
+    this->global_pos = other.global_pos;
 }
 
-bool EECounter::operator==(EECounter &other)
+bool EECounter::operator==(const EECounter &other)
 {
-    if(this->size == other.size
-        && this->current_pos == other.current_pos
-        && this->current_global_pos == other.current_global_pos)
-        return true;
-    else
-        return false;
+    _INCOMPATIBLE_EXCEPTION_
+
+    if(this->pos == other.pos && this->global_pos == other.global_pos)  return true;
+    else                                                                return false;
 }
 
-bool EECounter::operator!=(EECounter &other)
+bool EECounter::operator!=(const EECounter &other)
 {
-    if(this->size != other.size
-        || this->current_pos != other.current_pos
-        || this->current_global_pos != other.current_global_pos)
-        return true;
-    else
-        return false;
+    _INCOMPATIBLE_EXCEPTION_
+
+    if(this->pos != other.pos || this->global_pos != other.global_pos)  return true;
+    else                                                                return false;
 }
 
-bool EECounter::operator<(EECounter &other)
+bool EECounter::operator<(const EECounter &other)
 {
-    if(this->size != other.size)
-        return false;
+    _INCOMPATIBLE_EXCEPTION_
 
-    if(this->current_pos < other.current_pos
-        && this->current_global_pos < other.current_global_pos)
-        return true;
-    else
-        return false;
+    if(this->pos < other.pos && this->global_pos < other.global_pos)    return true;
+    else                                                                return false;
 }
 
-bool EECounter::operator>(EECounter &other)
+bool EECounter::operator>(const EECounter &other)
 {
-    if(this->size != other.size)
-        return false;
+    _INCOMPATIBLE_EXCEPTION_
 
-    if(this->current_pos > other.current_pos
-        && this->current_global_pos > other.current_global_pos)
-        return true;
-    else
-        return false;
+    if(this->pos > other.pos && this->global_pos > other.global_pos)    return true;
+    else                                                                return false;
 }
 
-bool EECounter::operator<=(EECounter &other)
+bool EECounter::operator<=(const EECounter &other)
 {
-    //TODO: EECounter::operator<=
-    //    if(this == &other)
-    //        return true;
+    if(*this == other)  return true;
+    if(*this < other)   return true;
 
-    //    if(this->current_pos < other.current_pos
-    //        && this->current_global_pos < other.current_global_pos)
-    //        return true;
-    //    else
     return false;
 }
 
-bool EECounter::operator>=(EECounter &other)
+bool EECounter::operator>=(const EECounter &other)
 {
-    //TODO: EECounter::operator>=
-    //    if(this == &other)
-    //        return true;
+    if(*this == other)  return true;
+    if(*this > other)   return true;
 
-    //    if(this->current_pos < other.current_pos
-    //        && this->current_global_pos < other.current_global_pos)
-    //        return true;
-    //    else
     return false;
+}
+
+EECounter& EECounter::operator++()
+{
+    this->add();
+    return *this;
+}
+
+EECounter& EECounter::operator--()
+{
+    this->sub();
+    return *this;
+}
+
+EECounter EECounter::operator++(int)
+{
+    EECounter saved(*this);
+    this->add();
+    return saved;
+}
+
+EECounter EECounter::operator--(int)
+{
+    EECounter saved(*this);
+    this->sub();
+    return saved;
+}
+
+EECounter EECounter::operator+(uint64_t step) {
+    EECounter saved(*this);
+    saved.add(step);
+    return saved;
+}
+
+EECounter EECounter::operator-(uint64_t step)
+{
+    EECounter saved(*this);
+    saved.sub(step);
+    return saved;
+}
+
+EECounter EECounter::operator+(const EECounter& other) {
+    _INCOMPATIBLE_EXCEPTION_
+
+    EECounter saved(*this);
+    saved.global_pos += other.pos;
+    saved.pos += other.pos;
+    if(saved.pos > saved.size) {
+        saved.global_pos++;
+        saved.pos = saved.pos - saved.size;
+    }
+
+    return saved;
+}
+
+EECounter EECounter::operator-(const EECounter& other) {
+    _INCOMPATIBLE_EXCEPTION_
+
+    EECounter saved(*this);
+    saved.global_pos -= other.pos;
+    if(other.pos >= saved.pos) {
+        saved.global_pos--;
+        saved.pos -= other.pos - saved.size;
+    } else
+        saved.pos -= other.pos;
+
+    return saved;
+}
+
+void EECounter::add(uint64_t step)
+{
+    pos += step;
+    if(pos > size) {
+        pos = size - pos;
+        global_pos++;
+    }
+}
+
+void EECounter::sub(uint64_t step)
+{
+    pos += step;
+    if(pos > size) pos = size - pos;
+}
+
+void EECounter::reset()
+{
+    pos = 0;
+    global_pos = 0;
 }

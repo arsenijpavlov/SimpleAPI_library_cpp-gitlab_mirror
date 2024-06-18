@@ -4,35 +4,32 @@
 
 #include <cstdint>
 
-struct EEC_element{
-
-};
-
 class EECounter {
-    uint16_t size;
-    uint16_t current_pos;
-    uint16_t current_global_pos;
+    uint64_t size;
+    uint64_t pos;
+    uint64_t global_pos;
 public:
-    EECounter(uint16_t size);
-    EECounter(EECounter& other);
+    EECounter(uint64_t size);
+    EECounter(const EECounter& other);
 
-    bool operator==(EECounter& other);
-    bool operator!=(EECounter& other);
-    bool operator<(EECounter& other);
-    bool operator>(EECounter& other);
-    bool operator<=(EECounter& other);
-    bool operator>=(EECounter& other);
+    bool operator==(const EECounter& other);
+    bool operator!=(const EECounter& other);
+    bool operator<(const EECounter& other);
+    bool operator>(const EECounter& other);
+    bool operator<=(const EECounter& other);
+    bool operator>=(const EECounter& other);
 
-//TODO: (EECounter)
-    void operator++();
-    void operator--();
-    EECounter operator+(uint16_t step);
-    EECounter operator-(uint16_t step);
-    EECounter operator+(EECounter& other);
-    EECounter operator-(EECounter& other);
+    EECounter& operator++();
+    EECounter& operator--();
+    EECounter operator++(int);
+    EECounter operator--(int);
+    EECounter operator+(const uint64_t step);
+    EECounter operator-(const uint64_t step);
+    EECounter operator+(const EECounter& other);
+    EECounter operator-(const EECounter& other);
 
-    void add();
-    void sub();
+    void add(uint64_t step = 0);
+    void sub(uint64_t step = 0);
     void reset();
 };
 
