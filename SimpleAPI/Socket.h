@@ -3,6 +3,8 @@
 
 #include "Json.h"
 
+#include <deque>
+#include <mutex>
 #include <string>
 #include <vector>
 #include <chrono>
@@ -40,9 +42,9 @@ Packet convert_to_packet(const std::string& str);
 Packet convert_to_packet(const char* str);
 
 using IpPort = std::string; //"X.X.X.X:Y"
-IpPort      toIpPort(std::string ip, uint16_t port);
-std::string toIp(IpPort ipPort);
-uint16_t    toPort(IpPort ipPort);
+IpPort      toIpPort(const std::string& ip, const uint16_t port);
+std::string toIp(const IpPort& ipPort);
+uint16_t    toPort(const IpPort& ipPort);
 
 enum PacketType {
     eControlType    = 0,
@@ -83,6 +85,13 @@ struct ReceivedJson {
     Json        json;
 };
 
+struct Message {
+    std::string remoteIP;
+    uint16_t    remotePort;
+    Packet      packet;
+};
+
+
 class Socket {
 protected:
     int         mSocketFD;
@@ -96,12 +105,13 @@ protected:
 
     uint8_t packHeader(const PacketType type, const uint8_t version, const bool isFirstFragment,
                        const bool isChip, const CRC crcLevel);
-    SNumber getSeqNumber(const struct sockaddr_in& sock);
-    virtual bool sendFragments(const PacketType type, struct sockaddr_in& sock, const Packet& packet)      = 0;
+    SNumber getSeqNumber(const IpPort& ipPort);
+    virtual void sendFragments(const std::string& remoteIP, const uint16_t remotePort, const PacketType type, const Packet& packet) = 0;
 
-    virtual bool sendAutoMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet) = 0;
-    virtual bool sendAutoMsg(const std::string& remoteIP, const uint16_t remotePort, const Json& json)     = 0;
-    virtual ReceivedPacket recvAutoMsg(int timeout)                                                        = 0;
+    virtual void tick()                                 = 0;
+    virtual void sendAutoMsg()                          = 0;
+    virtual ReceivedPacket recvAutoMsg(int timeout)     = 0;
+    virtual ReceivedJson recvJsonAutoMsg(int timeout)   = 0;
 
 public:
     Socket();
@@ -110,13 +120,15 @@ public:
     virtual bool sendRawMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet)  = 0;
     virtual int  recvRawMsg(Packet& packet, int timeout)                                                   = 0;
 
-    virtual bool isConnected(std::string remoteIP, uint16_t remotePort) = 0;
-
+//TODO:    virtual bool isConnected(std::string remoteIP, uint16_t remotePort) = 0;
     bool isServerActive();
 
     void close();
 //=====================================
 //ONLY FOR USE IN SOCKET_THREAD!
+protected:
+
+public:
     bool isChiphering() { /*TODO: isChiphering()*/ return false; }
 
     //по умолчанию 1500 байт (установлено MTU)
@@ -125,39 +137,52 @@ public:
 
 //    virtual void enableChip(/*ChiphgeringSettings*/) = 0;
     void enableCRC(CRC crcLevel = eCRC_OFF);
-
-protected:
-    virtual void tick() = 0;
 //=====================================
 };
 
 class UDPSocket : public Socket {
-    std::map<IpPort, std::time_t>           mapLastActivity;
-    std::map<IpPort, std::vector<Packet>>   mapSendPackets;
-    std::map<IpPort, std::vector<Packet>>   mapRecvPackets;
+    //работа через tick()
+    std::map<IpPort, std::time_t>   mapLastActivity;
+    std::deque<Message>             mapSendPackets;
+    std::deque<Message>             mapRecvPackets;
+
+    //для доступа извне------------------------
+    std::mutex          outputThreadsMutex;
+    std::deque<Message> mapSendPacketsBuffer;
+    //-----------------------------------------
 
 public:
     UDPSocket(uint16_t localPort, std::string localIP = "");
     ~UDPSocket();;
 
-    bool isConnected(std::string remoteIP, uint16_t remotePort) { /*TODO: isConnected()*/ return true; }
+//TODO:    bool isConnected(std::string remoteIP, uint16_t remotePort);
 
     void open(const uint16_t localPort, const std::string& localIP = "");
     bool sendRawMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet);
+    //сборка пакетов из фрагментов
     ReceivedPacket recvRawMsg(int timeout = -1);
 
 //=====================================
 //ONLY FOR USE IN SOCKET_THREAD!
 protected:
-    bool sendFragments(const PacketType type, struct sockaddr_in& sock, const Packet& packet);
+    /* принятый пакет делится на части, пришиваются необходимые заголовки...
+     * и полученные фрагменты прокидываются в очередь на отправку через функцию sendAutoMsg */
+    void sendFragments(const std::string& remoteIP, const uint16_t remotePort, const PacketType type, const Packet& packet);
 
-    void tick() {};
+    void tick();
+    void sendAutoMsg();
+    ReceivedPacket recvAutoMsg(int timeout);
+    ReceivedJson recvJsonAutoMsg(int timeout);
+
 
 public:
 //    void enableChip(/*ChiphgeringSettings*/);
     void setDeliveryNeed(bool enabled = true);
     void setInactivityTimer(int usec);
 
+    /* пользователь библиотеки вызывает эти функции
+     *  внутри функции проверяется корректность адреса назначения
+     *  и вызывается sendFragments() */
     bool sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet);
     bool sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Json& json);
 //=====================================

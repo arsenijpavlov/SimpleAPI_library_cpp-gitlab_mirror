@@ -21,7 +21,9 @@ Packet convert_to_packet(const std::string& str)
     return packet;
 }
 
-Packet convert_to_packet(const char *str) { return convert_to_packet(std::string(str)); }
+Packet convert_to_packet(const char *str) {
+    return convert_to_packet(std::string(str));
+}
 
 std::string to_string(const Packet& packet)
 {
@@ -34,7 +36,7 @@ uint8_t Socket::packHeader(const PacketType type, const uint8_t version,
     return (type << 6) | (version << 4) | (isFirstFragment << 3) | (isChip << 2) | crcLevel;
 }
 
-SNumber Socket::getSeqNumber(const struct sockaddr_in& sock)
+SNumber Socket::getSeqNumber(const IpPort& ipPort)
 {
     std::string ipKey;
     ipKey.resize(INET_ADDRSTRLEN);
@@ -51,11 +53,17 @@ SNumber Socket::getSeqNumber(const struct sockaddr_in& sock)
 
 Socket::Socket() : mSocketFD(-1), maxLength(1500) {}
 
-bool Socket::isServerActive() { return mSocketFD > 0; }
+bool Socket::isServerActive() {
+    return mSocketFD > 0;
+}
 
-void Socket::enableCRC(CRC crcLevel) { this->crcLevel = crcLevel; }
+void Socket::enableCRC(CRC crcLevel) {
+    this->crcLevel = crcLevel;
+}
 
-void Socket::setMaxLength(uint16_t newMaxSize) { maxLength = newMaxSize; }
+void Socket::setMaxLength(uint16_t newMaxSize) {
+    maxLength = newMaxSize;
+}
 
 void Socket::setUseApiVersion(ApiVersion version)
 {
@@ -74,44 +82,50 @@ void Socket::close() {
     }
 }
 
-bool UDPSocket::sendFragments(const PacketType type, sockaddr_in &sock, const Packet &packet)
+void UDPSocket::sendFragments(const std::string& remoteIP, const uint16_t remotePort, const PacketType type, const Packet& packet)
 {
     std::cout << "Message to socket (" << packet.size() << " bytes)" << std::endl;
 
-    Packet bigMsg;
+    //=CHIP_and_CRC_and_SIZE_and_DATA===========================================
+    Packet innerData;
     //оставляем место для поля CRC
     switch(crcLevel) {
     case eCRC_8:
-        bigMsg.push_back(0);
+        innerData.push_back(0);
         break;
     case eCRC_16:
-        bigMsg.push_back(0);
-        bigMsg.push_back(0);
+        innerData.push_back(0);
+        innerData.push_back(0);
         break;
     case eCRC_32:
-        bigMsg.push_back(0);
-        bigMsg.push_back(0);
-        bigMsg.push_back(0);
-        bigMsg.push_back(0);
+        innerData.push_back(0);
+        innerData.push_back(0);
+        innerData.push_back(0);
+        innerData.push_back(0);
         break;
     default:        break;
     }
     //упаковка размера сообщения
-    bigMsg.push_back(packet.size() >> 8); //NOTE: emplace_back отказывается работать
-    bigMsg.push_back(packet.size() & 0xFF);
+    innerData.push_back(packet.size() >> 8); //NOTE: emplace_back отказывается работать
+    innerData.push_back(packet.size() & 0xFF);
     //упаковка данных во временный пакет
-    size_t tempSize = bigMsg.size();
-    bigMsg.resize(tempSize + packet.size());
-    std::copy(packet.begin(), packet.end(), bigMsg.begin() + tempSize);
-//    bigMsg.emplace_back(packet.data()); //не работает
+    size_t tempSize = innerData.size();
+    innerData.resize(tempSize + packet.size());
+    std::copy(packet.begin(),
+              packet.end(),
+              innerData.begin() + tempSize);
     //обновляем поле CRC
     switch(crcLevel) {
-    case eCRC_8:    utils::checkCrc8(bigMsg);  break;
-    case eCRC_16:   utils::checkCrc16(bigMsg); break;
-    case eCRC_32:   utils::checkCrc32(bigMsg); break;
+    case eCRC_8:    utils::checkCrc8(innerData);    break;
+    case eCRC_16:   utils::checkCrc16(innerData);   break;
+    case eCRC_32:   utils::checkCrc32(innerData);   break;
     default:        break;
     }
+    //применяем шифрование на данный пакет
+//TODO:    chiphering(innerData);
+    //==========================================================================
 
+    //подготавливаем пакеты к отправке
     std::string stype;
     switch(type) {
     case eControlType:  stype = "CONTROL";  break;
@@ -119,55 +133,71 @@ bool UDPSocket::sendFragments(const PacketType type, sockaddr_in &sock, const Pa
     case eJsonType:     stype = "JSON";     break;
     default:            stype = "UNKNOWN";
     }
-    std::cout << "Prepare to send [" << stype << "] (" << bigMsg.size() << " bytes), MTU=" << this->maxLength << std::endl;
+    std::cout << "Prepare to send [" << stype << "] (" << innerData.size() << " bytes), MTU=" << this->maxLength << std::endl;
 
     Packet      fragment;
     size_t      currentPos = 0;
     uint16_t    currentFragmentSize;
 
     bool isFirstFragment = true;
-    while(bigMsg.size() - currentPos > 0) {
+    while(innerData.size() - currentPos > 0) {
         uint16_t availableSize = this->maxLength;
 
         //упаковываем фрагмент
         Packet buf;
         buf.push_back(packHeader(type, useApiVersion, isFirstFragment, isChiphering(), crcLevel));
-        buf.push_back(getSeqNumber(sock)); //для текущего клиента
+        buf.push_back(getSeqNumber(toIpPort(remoteIP, remotePort))); //для текущего клиента
         availableSize -= buf.size();
 
         //высчитываем размер данных
-        uint16_t leftSize = bigMsg.size() - currentPos;
+        uint16_t leftSize = innerData.size() - currentPos;
         currentFragmentSize = leftSize > availableSize ? availableSize : leftSize;
         if(isFirstFragment) //первый пакет в списке
             isFirstFragment = false;
         fragment.resize(currentFragmentSize);
-        std::copy(bigMsg.begin() + currentPos, bigMsg.begin() + currentPos + currentFragmentSize, fragment.begin());
+        std::copy(innerData.begin() + currentPos,
+                  innerData.begin() + currentPos + currentFragmentSize,
+                  fragment.begin());
 
-//        buf.emplace_back(fragment); //не работает
         tempSize = buf.size();
         buf.resize(fragment.size() + tempSize);
         std::copy(fragment.begin(), fragment.end(), buf.begin() + tempSize);
 
-        //отправляем фрагмент
-        int res = sendto(mSocketFD, (char*)buf.data(), buf.size(), 0, (struct sockaddr*)&sock, sizeof(struct sockaddr_in));
-        if(res < 0) {
-            std::cout << "ErrNo: " << errno << std::endl;
-            return false;
-        }
-        std::cout << "Sent " << res << " bytes" << std::endl;
+        //помещаем получившийся фрагмент в очередь на отправку
+        this->outputThreadsMutex.lock();
+        //TODO: вынести работу с мьютексом за цикл, чтобы за один раз положить все элементы
+        Message message;
+        message.remoteIP    = remoteIP;
+        message.remotePort  = remotePort;
+        message.packet      = packet;
+        mapSendPacketsBuffer.push_back(message);
+
+        this->outputThreadsMutex.unlock();
+
+        //дальнейшая обработка пакета происходит в функции tick()
+
 
         //определяем расположение следующего фрагмента
         currentPos += currentFragmentSize;
     }
+}
 
-    return true;
+void UDPSocket::sendAutoMsg()
+{
+
+}
+
+void tick() {
+
 }
 
 UDPSocket::UDPSocket(uint16_t localPort, std::string localIP) {
     open(localPort, localIP);
 }
 
-UDPSocket::~UDPSocket() { close(); }
+UDPSocket::~UDPSocket() {
+    close();
+}
 
 bool UDPSocket::sendRawMsg(const std::string &remoteIP, const uint16_t remotePort, const Packet &packet)
 {
@@ -264,20 +294,31 @@ void UDPSocket::open(const uint16_t localPort, const std::string& localIP) {
 }
 
 bool UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet) {
+    //проверка адреса назначения
     struct sockaddr_in sock;
     sock.sin_family = AF_INET;
     sock.sin_port = htons(remotePort);
-    if(!inet_pton(AF_INET, remoteIP.c_str(), &sock.sin_addr.s_addr))
+    if(!inet_pton(AF_INET, remoteIP.c_str(), &sock.sin_addr.s_addr)) {
         std::cout << "inet_pton(): return ERROR" << std::endl;
-    return sendFragments(eDataType, sock, packet);
+        return false;
+    }
+
+    sendFragments(eDataType, packet, remoteIP, remotePort);
+    return true;
 }
 
 bool UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Json& json) {
+    //проверка адреса назначения
     struct sockaddr_in sock;
     sock.sin_family = AF_INET;
     sock.sin_port = htons(remotePort);
-    if(!inet_pton(AF_INET, remoteIP.c_str(), &sock.sin_addr.s_addr))
+    if(!inet_pton(AF_INET, remoteIP.c_str(), &sock.sin_addr.s_addr)) {
         std::cout << "inet_pton(): return ERROR" << std::endl;
-    return sendFragments(eJsonType, sock, convert_to_packet(json.to_string(-1))); //отправит Json в текстовом формате без пробелов
+        return false;
+    }
+
+    //отправит Json в текстовом формате без пробелов
+    sendFragments(eJsonType, convert_to_packet(json.to_string(-1)), remoteIP, remotePort);
+    return true;
 }
 
