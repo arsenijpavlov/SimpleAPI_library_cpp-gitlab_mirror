@@ -1,6 +1,7 @@
 #ifndef SOCKET_H
 #define SOCKET_H
 
+#include "EECounter.h"
 #include "Json.h"
 
 #include <deque>
@@ -41,10 +42,10 @@ using SNumber = uint8_t;
 Packet convert_to_packet(const std::string& str);
 Packet convert_to_packet(const char* str);
 
-using IpPort = std::string; //"X.X.X.X:Y"
-IpPort      toIpPort(const std::string& ip, const uint16_t port);
-std::string toIp(const IpPort& ipPort);
-uint16_t    toPort(const IpPort& ipPort);
+//using IpPort = std::string; //"X.X.X.X:Y"
+//IpPort      toIpPort(const std::string& ip, const uint16_t port);
+//std::string toIp(const IpPort& ipPort);
+//uint16_t    toPort(const IpPort& ipPort);
 
 enum PacketType {
     eControlType    = 0,
@@ -68,10 +69,9 @@ enum SocketType {
     eTCP
 };
 
-struct Connection {
-    SNumber sn;
-    //NOTE: если подтверждение не пришло и через 200 (sn [0-255]), пакет удаляется из очереди с...
-    std::map<SNumber, Packet> sentPackets; //по приходе подтверждения пакет удаляется из этого списка
+struct IpPort {
+    std::string ip;
+    uint16_t port;
 };
 
 struct ReceivedPacket {
@@ -105,7 +105,7 @@ protected:
 
     uint8_t packHeader(const PacketType type, const uint8_t version, const bool isFirstFragment,
                        const bool isChip, const CRC crcLevel);
-    SNumber getSeqNumber(const IpPort& ipPort);
+    EECounter getSeqNumber(const std::string& remoteIP, const uint16_t remotePort);
     virtual void sendFragments(const std::string& remoteIP, const uint16_t remotePort, const PacketType type, const Packet& packet) = 0;
 
     virtual void tick()                                 = 0;
@@ -131,9 +131,8 @@ protected:
 public:
     bool isChiphering() { /*TODO: isChiphering()*/ return false; }
 
-    //по умолчанию 1500 байт (установлено MTU)
-    void setMaxLength(uint16_t newMaxSize);
-    void setUseApiVersion(ApiVersion version); //не может быть больше актуальной
+    void setMaxLength(uint16_t newMaxSize);     //по умолчанию 1500 байт (установлено MTU)
+    void setUseApiVersion(ApiVersion version);  //не может быть больше актуальной
 
 //    virtual void enableChip(/*ChiphgeringSettings*/) = 0;
     void enableCRC(CRC crcLevel = eCRC_OFF);
@@ -142,7 +141,7 @@ public:
 
 class UDPSocket : public Socket {
     //работа через tick()
-    std::map<IpPort, std::time_t>   mapLastActivity;
+//    std::map<IpPort, std::time_t>   mapLastActivity;
     std::deque<Message>             mapSendPackets;
     std::deque<Message>             mapRecvPackets;
 

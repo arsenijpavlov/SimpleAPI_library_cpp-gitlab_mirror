@@ -2,18 +2,10 @@
 #include <iostream>
 
 #include <unistd.h>
-//#include <netdb.h>
-//#include <sys/types.h>
 #include <sys/select.h>
-//#include <sys/un.h>
 #include <errno.h>
-//#include <list>
-//#include <assert.h>
-//#include <stdint.h>
-//#include <stdio.h>
 
-Packet convert_to_packet(const std::string& str)
-{
+Packet convert_to_packet(const std::string& str) {
     Packet packet;
     packet.resize(str.size());
     std::copy(str.begin(), str.end(), packet.begin());
@@ -25,33 +17,36 @@ Packet convert_to_packet(const char *str) {
     return convert_to_packet(std::string(str));
 }
 
-std::string to_string(const Packet& packet)
-{
+std::string to_string(const Packet& packet) {
     return std::string((char*)packet.data(), packet.size());
 }
 
 uint8_t Socket::packHeader(const PacketType type, const uint8_t version,
-                           const bool isFirstFragment, const bool isChip, const CRC crcLevel)
-{
-    return (type << 6) | (version << 4) | (isFirstFragment << 3) | (isChip << 2) | crcLevel;
+                           const bool isFirstFragment, const bool isChip,
+                           const CRC crcLevel) {
+    return (type << 6)
+           | (version << 4)
+           | (isFirstFragment << 3)
+           | (isChip << 2)
+           | crcLevel;
 }
 
-SNumber Socket::getSeqNumber(const IpPort& ipPort)
-{
-    std::string ipKey;
-    ipKey.resize(INET_ADDRSTRLEN);
-    inet_ntop(AF_INET, &(sock.sin_addr), (char*)ipKey.data(), INET_ADDRSTRLEN);
-    ipKey += htons(sock.sin_port);
-
-    auto it = mapActiveConnections.find(ipKey);
-    if(it == mapActiveConnections.end()) {
-        it = mapActiveConnections.insert(std::make_pair(ipKey, 0)).first;
-    }
+EECounter Socket::getSeqNumber(const std::string& remoteIP, const uint16_t remotePort) {
+    auto it = mapActiveConnections.find(ipPort);
+    if(it == mapActiveConnections.end())
+        it = mapActiveConnections.insert(std::make_pair(ipPort, 0)).first;
 
     return it->second++;
 }
 
 Socket::Socket() : mSocketFD(-1), maxLength(1500) {}
+
+bool Socket::sendRawMsg(const IpPort &ipPort, const Packet &packet)
+{
+    std::string ip = toIp(ipPort);
+    uint16_t port = toPort(ipPort);
+    return sendRawMsg()
+}
 
 bool Socket::isServerActive() {
     return mSocketFD > 0;
@@ -65,8 +60,7 @@ void Socket::setMaxLength(uint16_t newMaxSize) {
     maxLength = newMaxSize;
 }
 
-void Socket::setUseApiVersion(ApiVersion version)
-{
+void Socket::setUseApiVersion(ApiVersion version) {
     switch(version) {
 //    case ...
     default: //NOTE: по умолчанию всегда самая последняя из списка!
@@ -182,6 +176,10 @@ void UDPSocket::sendFragments(const std::string& remoteIP, const uint16_t remote
     }
 }
 
+void UDPSocket::tick() {
+
+}
+
 void UDPSocket::sendAutoMsg()
 {
 
@@ -215,8 +213,7 @@ bool UDPSocket::sendRawMsg(const std::string &remoteIP, const uint16_t remotePor
     return res > 0;
 }
 
-ReceivedPacket UDPSocket::recvRawMsg(int timeout)
-{
+ReceivedPacket UDPSocket::recvRawMsg(int timeout) {
     if(!this->isServerActive()) return {};
 
     fd_set fds;
@@ -303,7 +300,7 @@ bool UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, 
         return false;
     }
 
-    sendFragments(eDataType, packet, remoteIP, remotePort);
+    sendFragments(remoteIP, remotePort, eDataType, packet);
     return true;
 }
 
@@ -318,7 +315,7 @@ bool UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, 
     }
 
     //отправит Json в текстовом формате без пробелов
-    sendFragments(eJsonType, convert_to_packet(json.to_string(-1)), remoteIP, remotePort);
+    sendFragments(remoteIP, remotePort, eJsonType, convert_to_packet(json.to_string(-1)));
     return true;
 }
 
