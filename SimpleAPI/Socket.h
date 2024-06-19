@@ -168,7 +168,7 @@ protected:
      * и полученные фрагменты прокидываются в очередь на отправку через функцию sendAutoMsg */
     void sendFragments(const std::string& remoteIP, const uint16_t remotePort, const PacketType type, const Packet& packet);
 
-    void tick();
+    void tick();;
     void sendAutoMsg();
     ReceivedPacket recvAutoMsg(int timeout);
     ReceivedJson recvJsonAutoMsg(int timeout);
