@@ -32,21 +32,14 @@ uint8_t Socket::packHeader(const PacketType type, const uint8_t version,
 }
 
 EECounter Socket::getSeqNumber(const std::string& remoteIP, const uint16_t remotePort) {
-    auto it = mapActiveConnections.find(ipPort);
+    auto it = mapActiveConnections.find({remoteIP, remotePort});
     if(it == mapActiveConnections.end())
-        it = mapActiveConnections.insert(std::make_pair(ipPort, 0)).first;
+        it = mapActiveConnections.insert(std::pair<IpPort, time_t>({remoteIP, remotePort}, 0)).first;
 
     return it->second++;
 }
 
 Socket::Socket() : mSocketFD(-1), maxLength(1500) {}
-
-bool Socket::sendRawMsg(const IpPort &ipPort, const Packet &packet)
-{
-    std::string ip = toIp(ipPort);
-    uint16_t port = toPort(ipPort);
-    return sendRawMsg()
-}
 
 bool Socket::isServerActive() {
     return mSocketFD > 0;
@@ -140,7 +133,7 @@ void UDPSocket::sendFragments(const std::string& remoteIP, const uint16_t remote
         //упаковываем фрагмент
         Packet buf;
         buf.push_back(packHeader(type, useApiVersion, isFirstFragment, isChiphering(), crcLevel));
-        buf.push_back(getSeqNumber(toIpPort(remoteIP, remotePort))); //для текущего клиента
+        buf.push_back(getSeqNumber(remoteIP, remotePort)); //для текущего клиента
         availableSize -= buf.size();
 
         //высчитываем размер данных
@@ -160,10 +153,10 @@ void UDPSocket::sendFragments(const std::string& remoteIP, const uint16_t remote
         //помещаем получившийся фрагмент в очередь на отправку
         this->outputThreadsMutex.lock();
         //TODO: вынести работу с мьютексом за цикл, чтобы за один раз положить все элементы
-        Message message;
-        message.remoteIP    = remoteIP;
-        message.remotePort  = remotePort;
-        message.packet      = packet;
+        PacketMessage message;
+        message.ip      = remoteIP;
+        message.port    = remotePort;
+        message.packet  = packet;
         mapSendPacketsBuffer.push_back(message);
 
         this->outputThreadsMutex.unlock();
@@ -177,16 +170,44 @@ void UDPSocket::sendFragments(const std::string& remoteIP, const uint16_t remote
 }
 
 void UDPSocket::tick() {
+    sendAutoMsg();
 
+    PacketMessage rp = recvAutoMsg(1);
+    if(!rp.packet.empty())
+        mapRecvPacketsBuffer.push_back(rp); //дальнейший доступ через SocketThread
+    JsonMessage rj = recvJsonAutoMsg(1);
+    if(!rj.json.isEmpty())
+        mapRecvJsonsBuffer.push_back(rj);   //дальнейший доступ через SocketThread
 }
 
+//постепенная отправка пакетов в сокет
+//перепосылка недоставленных пакетов
 void UDPSocket::sendAutoMsg()
 {
+//TODO: setMaxMsgsSentOnTick(int)
 
 }
 
-void tick() {
+//
+PacketMessage UDPSocket::recvAutoMsg(int timeout)
+{
+//TODO: если Json, то
+//    tmpRecvJson = builtPacket;
+}
 
+JsonMessage UDPSocket::recvJsonAutoMsg(int timeout)
+{
+    if(!tmpRecvJsonPacket.packet.empty()) {
+        //TODO: Json json = convert_to_json(const Packet&);
+        Json json;
+        std::string json_string;
+        ParseJson(json_string, &json);
+        mapRecvJsonsBuffer.push_back({tmpRecvJsonPacket.packet,
+                                      tmpRecvJsonPacket.port,
+                                      json});
+    }
+
+    tmpRecvJsonPacket.clear();
 }
 
 UDPSocket::UDPSocket(uint16_t localPort, std::string localIP) {
@@ -213,7 +234,7 @@ bool UDPSocket::sendRawMsg(const std::string &remoteIP, const uint16_t remotePor
     return res > 0;
 }
 
-ReceivedPacket UDPSocket::recvRawMsg(int timeout) {
+PacketMessage UDPSocket::recvRawMsg(int timeout) {
     if(!this->isServerActive()) return {};
 
     fd_set fds;
@@ -236,7 +257,7 @@ ReceivedPacket UDPSocket::recvRawMsg(int timeout) {
 //TODO: (LOG) сделать флаг для возможности отключения/перенаправления сообщений от API
 //TODO: (LOG) сделать внутреннюю функцию-логгер для API
             std::cout << "Error in select(), errno=" << errno << std::endl;
-        return ReceivedPacket();
+        return PacketMessage();
     }
     if(recv_num > 0) {
         recv_num = recvfrom(mSocketFD, buf,
@@ -247,10 +268,10 @@ ReceivedPacket UDPSocket::recvRawMsg(int timeout) {
     if(recv_num < 0) {
 //        std::cout << "Error reading msg" << std::endl;
     } else if(recv_num > 0) {
-        ReceivedPacket rpacket;
-        rpacket.senderIp.resize(INET_ADDRSTRLEN);
-        inet_ntop(AF_INET, &(sock.sin_addr), (char*)rpacket.senderIp.data(), INET_ADDRSTRLEN);
-        rpacket.senderPort = ntohs(sock.sin_port);
+        PacketMessage rpacket;
+        rpacket.ip.resize(INET_ADDRSTRLEN);
+        inet_ntop(AF_INET, &(sock.sin_addr), (char*)rpacket.ip.data(), INET_ADDRSTRLEN);
+        rpacket.port = ntohs(sock.sin_port);
         rpacket.packet = Packet(buf, buf + recv_num);
 
         return rpacket;
@@ -305,7 +326,7 @@ bool UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, 
 }
 
 bool UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Json& json) {
-    //проверка адреса назначения
+    //проверка адреса назначения //TODO: вынести в отдельную функцию
     struct sockaddr_in sock;
     sock.sin_family = AF_INET;
     sock.sin_port = htons(remotePort);

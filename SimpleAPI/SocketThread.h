@@ -26,8 +26,8 @@ public:
     void send(Socket& s, const IpPort& remoteIpPort, const Packet& packet); //string address as "X.X.X.X:Y"
     void send(Socket& s, const IpPort& remoteIpPort, const Json& json);     //string address as "X.X.X.X:Y"
 
-    ReceivedPacket setCallbackSocketReadRawData(const Socket& s, ReceivedPacket(*callback)(void));
-    ReceivedJson setCallbackSocketReadJsonData(const Socket& s, ReceivedJson(*callback)(void));
+    PacketMessage   setCallbackSocketReadRawData(const Socket& s, PacketMessage(*callback)(void));
+    JsonMessage     setCallbackSocketReadJsonData(const Socket& s, JsonMessage(*callback)(void));
 };
 
 #endif // SOCKET_THREAD_H

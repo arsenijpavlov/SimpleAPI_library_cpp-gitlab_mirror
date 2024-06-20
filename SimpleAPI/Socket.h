@@ -10,12 +10,15 @@
 #include <vector>
 #include <chrono>
 #include <ctime>
+#include <set>
 
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
 /* ================================================================================================
- * Packets structure (actually for v.1):
+ * API v.1
+ * ================================================================================================
+ * Packets structure:
  * [ C/D/J (2) | API version (2) | Start Data (1) | Chiphering enable (1) | CRC level (2) | ...
  *       ... | sequence number (8) | CRC (if enabaled, X bytes) | size (16) | data[size] ]
  * ________________________________________________________________________________________________
@@ -74,21 +77,21 @@ struct IpPort {
     uint16_t port;
 };
 
-struct ReceivedPacket {
-    std::string senderIp;
-    uint16_t    senderPort;
+class PacketMessage {
+public:
+    std::string ip;
+    uint16_t    port;
     Packet      packet;
-};
-struct ReceivedJson {
-    std::string senderIp;
-    uint16_t    senderPort;
-    Json        json;
-};
 
-struct Message {
-    std::string remoteIP;
-    uint16_t    remotePort;
-    Packet      packet;
+    void clear() { ip=""; port=0; packet={}; }
+};
+class JsonMessage {
+public:
+    std::string ip;
+    uint16_t    port;
+    Json        json;
+
+    void clear() { ip=""; port=0; json={}; }
 };
 
 
@@ -98,7 +101,7 @@ protected:
     CRC         crcLevel;
     uint16_t    maxLength;
     ApiVersion  useApiVersion;
-    std::map<std::string, SNumber> mapActiveConnections;
+    std::map<std::string, EECounter> mapActiveConnections;
 
     std::string localIP;
     uint16_t    localPort;
@@ -110,8 +113,8 @@ protected:
 
     virtual void tick()                                 = 0;
     virtual void sendAutoMsg()                          = 0;
-    virtual ReceivedPacket recvAutoMsg(int timeout)     = 0;
-    virtual ReceivedJson recvJsonAutoMsg(int timeout)   = 0;
+    virtual PacketMessage recvAutoMsg(int timeout)      = 0;
+    virtual JsonMessage recvJsonAutoMsg(int timeout)    = 0;
 
 public:
     Socket();
@@ -141,13 +144,20 @@ public:
 
 class UDPSocket : public Socket {
     //работа через tick()
-//    std::map<IpPort, std::time_t>   mapLastActivity;
-    std::deque<Message>             mapSendPackets;
-    std::deque<Message>             mapRecvPackets;
+    std::map<IpPort, std::time_t>   mapLastActivity;
+    std::set<PacketMessage>         mapSendGlobalPackets; //запоминаем до тех пор, пока не придёт подтверждение о передаче всех фрагментов
+    std::deque<PacketMessage>       mapSendPackets; //фрагменты на отправку
+    std::deque<PacketMessage>       mapRecvPackets;
+    PacketMessage tmpRecvJsonPacket; //не в map, потому что сборка Json произойдёт в recvAutoMsg()
 
     //для доступа извне------------------------
-    std::mutex          outputThreadsMutex;
-    std::deque<Message> mapSendPacketsBuffer;
+    std::mutex                  outputThreadsMutex;
+    std::deque<PacketMessage>   mapSendPacketsBuffer;
+    std::deque<JsonMessage>     mapSendJsonsBuffer;
+
+    std::mutex                  inputThreadsMutex;
+    std::deque<PacketMessage>   mapRecvPacketsBuffer;
+    std::deque<JsonMessage>     mapRecvJsonsBuffer;
     //-----------------------------------------
 
 public:
@@ -159,7 +169,7 @@ public:
     void open(const uint16_t localPort, const std::string& localIP = "");
     bool sendRawMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet);
     //сборка пакетов из фрагментов
-    ReceivedPacket recvRawMsg(int timeout = -1);
+    PacketMessage recvRawMsg(int timeout = -1);
 
 //=====================================
 //ONLY FOR USE IN SOCKET_THREAD!
@@ -170,8 +180,8 @@ protected:
 
     void tick();;
     void sendAutoMsg();
-    ReceivedPacket recvAutoMsg(int timeout);
-    ReceivedJson recvJsonAutoMsg(int timeout);
+    PacketMessage recvAutoMsg(int timeout);
+    JsonMessage recvJsonAutoMsg(int timeout);
 
 
 public:
