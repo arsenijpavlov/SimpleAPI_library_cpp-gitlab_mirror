@@ -99,6 +99,7 @@ public:
 
     std::string to_string(int16_t tabulation_level = 0);
     size_t size();
+    bool isEmpty();
 
     Element operator[](const size_t index);
     Element operator[](const std::vector<std::string>& complex_name);
@@ -190,10 +191,11 @@ public:
 
     std::string to_string(int16_t tabulation_level = 0) const;
     size_t size()                                               { return values.size(); }
-    JVector::iterator begin()                                   { return values.begin(); };
-    JVector::iterator end()                                     { return values.end(); };
-    JVector::const_iterator cbegin()                      const { return values.begin(); };
-    JVector::const_iterator cend()                        const { return values.end(); };
+    bool isEmpty()                                              { return values.size() > 0; }
+    JVector::iterator begin()                                   { return values.begin(); }
+    JVector::iterator end()                                     { return values.end(); }
+    JVector::const_iterator cbegin()                      const { return values.begin(); }
+    JVector::const_iterator cend()                        const { return values.end(); }
 
     Element operator[](const size_t index);
     Element operator[](const std::string& name);

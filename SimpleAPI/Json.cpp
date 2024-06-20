@@ -236,9 +236,11 @@ std::string Array::to_string(int16_t tabulation_level)
     return ret;
 }
 
-size_t Array::size()                               { return values.size(); }
+size_t Array::size()                        { return values.size(); }
 
-Element Array::value(const size_t index)           { return (*this)[index]; }
+bool Array::isEmpty()                       { return values.size() == 0; }
+
+Element Array::value(const size_t index)    { return (*this)[index]; }
 
 Element Array::value(const std::vector<std::string> &complex_name)
 { return (*this)[complex_name]; }
