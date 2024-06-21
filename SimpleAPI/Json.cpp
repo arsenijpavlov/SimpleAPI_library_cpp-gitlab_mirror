@@ -746,7 +746,7 @@ bool CheckArray(std::string& value)
     return true;
 }
 
-bool ParseJson(const std::string& json_str, Json* json)
+bool Json::ParseJson(const std::string& json_str, Json* json)
 {
     std::cout << "ParseJson(): " << json_str << std::endl;
     bool return_code = true;
@@ -850,7 +850,7 @@ bool ParseJson(const std::string& json_str, Json* json)
                 }
                 case eArray:    {
                     Array _innerArray;
-                    return_code = ParseArray(value, &_innerArray);
+                    return_code = Array::ParseArray(value, &_innerArray);
                     if(!return_code) {
                         std::cout << "parse error in key:" << key
                                   << "valueType:" << ToString(valueType)
@@ -921,7 +921,7 @@ bool ParseJson(const std::string& json_str, Json* json)
     return return_code;
 }
 
-bool ParseArray(const std::string& array_str, Array* array)
+bool Array::ParseArray(const std::string& array_str, Array* array)
 {
 //    std::cout << "ParseArray(): " << array_str << std::endl;
     bool return_code = true;
@@ -992,7 +992,7 @@ bool ParseArray(const std::string& array_str, Array* array)
                 case eString:   { array->push_back(value);                  break; }
                 case eJson:     {
                     Json _innerJson;
-                    return_code = ParseJson(value, &_innerJson);
+                    return_code = Json::ParseJson(value, &_innerJson);
                     if(return_code)
                         array->push_back(_innerJson);
                     else {

@@ -157,6 +157,9 @@ public:
     void erase(const size_t index);
     void erase(const AVector::iterator iterator);
     void erase(const AVector::iterator begin, const AVector::iterator end);
+
+//STATIC
+    static bool ParseArray(const std::string& str, Array* array);
 }; /// class Array
 
 using JVector = std::vector<std::pair<std::string, Element>>;
@@ -293,6 +296,9 @@ public:
     void erase(const JVector::iterator begin, const JVector::iterator end);
     void erase(const std::string& key);
     void erase(const std::vector<std::string>& keys);
+
+//STATIC
+    static bool ParseJson(const std::string& str, Json* json);
 }; ///class Json
 
 static ValueType CheckValue(std::string& value);
@@ -301,8 +307,6 @@ static bool CheckBool(std::string& value);
 static bool CheckString(std::string& value);
 static bool CheckJson(std::string& value);
 static bool CheckArray(std::string& value);
-static bool ParseJson(const std::string& str, Json* json);
-static bool ParseArray(const std::string& str, Array* array);
 
 class DoubleElement : BaseElement {
 public:
