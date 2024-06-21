@@ -103,6 +103,17 @@ EECounter EECounter::operator-(uint64_t step)
     return saved;
 }
 
+uint64_t EECounter::get()
+{
+    return pos;
+}
+
+uint64_t EECounter::get_next()
+{
+    EECounter saved(*this);
+    return (++saved).get();
+}
+
 EECounter EECounter::operator+(const EECounter& other) {
     _INCOMPATIBLE_EXCEPTION_
 
