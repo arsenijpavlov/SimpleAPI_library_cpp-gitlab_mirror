@@ -17,29 +17,52 @@ Packet convert_to_packet(const char *str) {
     return convert_to_packet(std::string(str));
 }
 
+std::string convert_from_packet(const Packet &packet) {
+    std::string str;
+    str.resize(packet.size());
+    std::copy(packet.begin(), packet.end(), str.begin());
+    return str;
+}
+
 std::string to_string(const Packet& packet) {
     return std::string((char*)packet.data(), packet.size());
 }
 
-uint8_t Socket::packHeader(const PacketType type, const uint8_t version,
-                           const bool isFirstFragment, const bool isChip,
-                           const CRC crcLevel) {
-    return (type << 6)
-           | (version << 4)
-           | (isFirstFragment << 3)
-           | (isChip << 2)
-           | crcLevel;
+bool checkCorrectIp(const std::string& ipString) {
+    struct sockaddr_in sock;
+    sock.sin_family = AF_INET;
+    if(!inet_pton(AF_INET, ipString.c_str(), &sock.sin_addr.s_addr)) {
+        std::cout << "inet_pton(): return ERROR" << std::endl;
+        return false;
+    }
+    return true;
 }
 
-EECounter Socket::getSeqNumber(const std::string& remoteIP, const uint16_t remotePort) {
-    auto it = mapActiveConnections.find({remoteIP, remotePort});
+uint8_t Socket::packHeader(const PacketHeader& pm) {
+    return (pm.type << 6)
+           | (pm.version << 4)
+           | (pm.isFirstFragment << 3)
+           | (pm.isChip << 2)
+           | pm.crcLevel;
+}
+
+void Socket::unpackHeader(uint8_t header, PacketHeader& pm) {
+    type =
+}
+
+EECounter Socket::getSeqNumber(const IpPort& ipPort) {
+    auto it = mapActiveConnections.find(ipPort);
     if(it == mapActiveConnections.end())
-        it = mapActiveConnections.insert(std::pair<IpPort, time_t>({remoteIP, remotePort}, 0)).first;
+        it = mapActiveConnections.insert(std::pair<IpPort, time_t>(ipPort, 0)).first;
 
     return it->second++;
 }
 
-Socket::Socket() : mSocketFD(-1), maxLength(1500) {}
+Socket::Socket() : mSocketFD(-1), maxLength(1500), maxMsgsSentOnTick(-1) {}
+
+bool Socket::sendRawMsg(const PacketMessage &packetMessage) {
+    return sendRawMsg(packetMessage.ip, packetMessage.port, packetMessage.packet);
+}
 
 bool Socket::isServerActive() {
     return mSocketFD > 0;
@@ -98,9 +121,7 @@ void UDPSocket::sendFragments(const std::string& remoteIP, const uint16_t remote
     //упаковка данных во временный пакет
     size_t tempSize = innerData.size();
     innerData.resize(tempSize + packet.size());
-    std::copy(packet.begin(),
-              packet.end(),
-              innerData.begin() + tempSize);
+    std::copy(packet.begin(), packet.end(), innerData.begin() + tempSize);
     //обновляем поле CRC
     switch(crcLevel) {
     case eCRC_8:    utils::checkCrc8(innerData);    break;
@@ -109,7 +130,7 @@ void UDPSocket::sendFragments(const std::string& remoteIP, const uint16_t remote
     default:        break;
     }
     //применяем шифрование на данный пакет
-//TODO:    chiphering(innerData);
+    chiphering(innerData);
     //==========================================================================
 
     //подготавливаем пакеты к отправке
@@ -126,88 +147,100 @@ void UDPSocket::sendFragments(const std::string& remoteIP, const uint16_t remote
     size_t      currentPos = 0;
     uint16_t    currentFragmentSize;
 
+    std::vector<PacketMessage> fragments;
     bool isFirstFragment = true;
     while(innerData.size() - currentPos > 0) {
         uint16_t availableSize = this->maxLength;
 
+        EECounter fragment_sn = getSeqNumber({remoteIP, remotePort});
         //упаковываем фрагмент
         Packet buf;
-        buf.push_back(packHeader(type, useApiVersion, isFirstFragment, isChiphering(), crcLevel));
-        buf.push_back(getSeqNumber(remoteIP, remotePort)); //для текущего клиента
-        availableSize -= buf.size();
+        {
+            buf.push_back(packHeader({type, useApiVersion, isFirstFragment, isChiphering(), crcLevel}));
+            buf.push_back(fragment_sn.get()); //для текущего клиента
+            availableSize -= buf.size();
 
-        //высчитываем размер данных
-        uint16_t leftSize = innerData.size() - currentPos;
-        currentFragmentSize = leftSize > availableSize ? availableSize : leftSize;
-        if(isFirstFragment) //первый пакет в списке
-            isFirstFragment = false;
-        fragment.resize(currentFragmentSize);
-        std::copy(innerData.begin() + currentPos,
-                  innerData.begin() + currentPos + currentFragmentSize,
-                  fragment.begin());
+            //высчитываем размер данных
+            uint16_t leftSize = innerData.size() - currentPos;
+            currentFragmentSize = leftSize > availableSize ? availableSize : leftSize;
+            if(isFirstFragment) //первый пакет в списке
+                isFirstFragment = false;
+            fragment.resize(currentFragmentSize);
+            std::copy(innerData.begin() + currentPos,
+                      innerData.begin() + currentPos + currentFragmentSize,
+                      fragment.begin());
 
-        tempSize = buf.size();
-        buf.resize(fragment.size() + tempSize);
-        std::copy(fragment.begin(), fragment.end(), buf.begin() + tempSize);
+            tempSize = buf.size();
+            buf.resize(fragment.size() + tempSize);
+            std::copy(fragment.begin(), fragment.end(), buf.begin() + tempSize);
+        }
 
-        //помещаем получившийся фрагмент в очередь на отправку
-        this->outputThreadsMutex.lock();
-        //TODO: вынести работу с мьютексом за цикл, чтобы за один раз положить все элементы
-        PacketMessage message;
-        message.ip      = remoteIP;
-        message.port    = remotePort;
-        message.packet  = packet;
-        mapSendPacketsBuffer.push_back(message);
-
-        this->outputThreadsMutex.unlock();
-
-        //дальнейшая обработка пакета происходит в функции tick()
-
+        PacketMessage pm;
+        {
+            pm.ip = remoteIP;
+            pm.port = remotePort;
+            pm.packet = buf;
+            pm.sn = fragment_sn;
+        }
+        fragments.push_back(pm); //запоминаем фрагмент
 
         //определяем расположение следующего фрагмента
         currentPos += currentFragmentSize;
     }
+
+    //помещаем получившиеся фрагменты в очередь на отправку
+    this->outputThreadsMutex.lock();
+    for(PacketMessage p : fragments)
+        this->mapSendPacketsBuffer.push_back(p);
+    this->outputThreadsMutex.unlock();
+    //дальнейшая обработка пакета происходит в функции tick()
 }
 
 void UDPSocket::tick() {
     sendAutoMsg();
-
-    PacketMessage rp = recvAutoMsg(1);
-    if(!rp.packet.empty())
-        mapRecvPacketsBuffer.push_back(rp); //дальнейший доступ через SocketThread
-    JsonMessage rj = recvJsonAutoMsg(1);
-    if(!rj.json.isEmpty())
-        mapRecvJsonsBuffer.push_back(rj);   //дальнейший доступ через SocketThread
+    recvAutoMsg(1);
 }
 
 //постепенная отправка пакетов в сокет
 //перепосылка недоставленных пакетов
-void UDPSocket::sendAutoMsg()
-{
-//TODO: setMaxMsgsSentOnTick(int)
-
+void UDPSocket::sendAutoMsg() {
+    int counter = 0;
+    for(PacketMessage pm : mapSendPacketsBuffer) {
+        if((counter < maxMsgsSentOnTick) || (maxMsgsSentOnTick < 0)) {
+            Socket::sendRawMsg(pm);             //отправили
+            mapAutoSentPackets.push_back(pm);   //запомнили для ожидания ответа или досылки
+        }
+        counter++;
+    }
 }
 
-//
-PacketMessage UDPSocket::recvAutoMsg(int timeout)
-{
-//TODO: если Json, то
+void UDPSocket::recvAutoMsg(int timeout) {
+    PacketMessage pm = recvRawMsg(1);
+    PacketHeader ph;
+    unpackHeader(pm.packet[0], ph);
+
+    switch(ph.type) {
+    case eControlType: {
+
+        break;
+    }
+    case eDataType: {
+
+        break;
+    }
+    case eJsonType: {
+
+        break;
+    }
+    default: std::cout << "Error: unknown received type(" << ph.type << ")" << std::endl;
+    }
+
+    //TODO: если Json, то
 //    tmpRecvJson = builtPacket;
 }
 
-JsonMessage UDPSocket::recvJsonAutoMsg(int timeout)
-{
-    if(!tmpRecvJsonPacket.packet.empty()) {
-        //TODO: Json json = convert_to_json(const Packet&);
-        Json json;
-        std::string json_string;
-        ParseJson(json_string, &json);
-        mapRecvJsonsBuffer.push_back({tmpRecvJsonPacket.packet,
-                                      tmpRecvJsonPacket.port,
-                                      json});
-    }
-
-    tmpRecvJsonPacket.clear();
+void UDPSocket::setMaxMsgsSentOnTick(int count) {
+    maxMsgsSentOnTick = count;
 }
 
 UDPSocket::UDPSocket(uint16_t localPort, std::string localIP) {
@@ -284,9 +317,8 @@ PacketMessage UDPSocket::recvRawMsg(int timeout) {
 void UDPSocket::open(const uint16_t localPort, const std::string& localIP) {
     // create
     mSocketFD = socket(AF_INET, SOCK_DGRAM, 0);
-    if (mSocketFD < 0) {
+    if (mSocketFD < 0)
         perror("socket() failed");
-    }
 
     // bind
     struct sockaddr_in sock;
@@ -312,31 +344,16 @@ void UDPSocket::open(const uint16_t localPort, const std::string& localIP) {
 }
 
 bool UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet) {
-    //проверка адреса назначения
-    struct sockaddr_in sock;
-    sock.sin_family = AF_INET;
-    sock.sin_port = htons(remotePort);
-    if(!inet_pton(AF_INET, remoteIP.c_str(), &sock.sin_addr.s_addr)) {
-        std::cout << "inet_pton(): return ERROR" << std::endl;
-        return false;
-    }
+    if(!checkCorrectIp(remoteIP)) return false;
 
     sendFragments(remoteIP, remotePort, eDataType, packet);
     return true;
 }
 
 bool UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Json& json) {
-    //проверка адреса назначения //TODO: вынести в отдельную функцию
-    struct sockaddr_in sock;
-    sock.sin_family = AF_INET;
-    sock.sin_port = htons(remotePort);
-    if(!inet_pton(AF_INET, remoteIP.c_str(), &sock.sin_addr.s_addr)) {
-        std::cout << "inet_pton(): return ERROR" << std::endl;
-        return false;
-    }
+    if(!checkCorrectIp(remoteIP)) return false;
 
     //отправит Json в текстовом формате без пробелов
     sendFragments(remoteIP, remotePort, eJsonType, convert_to_packet(json.to_string(-1)));
     return true;
 }
-
