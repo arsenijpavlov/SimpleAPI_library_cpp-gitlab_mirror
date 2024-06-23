@@ -36,7 +36,6 @@ SocketThread::SocketThread(const SocketType type, const IpPort &localIpPort) : a
 
 SocketThread::~SocketThread() {
     stopThread();
-
 }
 
 bool SocketThread::addSocket(const SocketType type, const std::string &localIP, const uint16_t localPort) {
@@ -126,6 +125,23 @@ void SocketThread::send(const std::set<std::shared_ptr<Socket*>>::iterator it,
 
 bool SocketThread::isActive() {
     return active;
+}
+
+void SocketThread::startThread()
+{
+    if(!isActive()) {
+        t = new std::thread(this->run());
+
+        active = true;
+    }
+}
+
+void SocketThread::stopThread()
+{
+    if(isActive()) {
+        active = false; //остановили
+        t.join();       //ждём завершения потока
+    }
 }
 
 
