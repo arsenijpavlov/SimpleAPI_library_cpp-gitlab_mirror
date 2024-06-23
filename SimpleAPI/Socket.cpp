@@ -72,6 +72,14 @@ void Socket::enableCRC(CRC crcLevel) {
     this->crcLevel = crcLevel;
 }
 
+bool Socket::sendMsg(const IpPort &remoteIpPort, const Packet &packet) {
+    return sendMsg(remoteIpPort.ip, remoteIpPort.port, packet);
+}
+
+bool Socket::sendMsg(const IpPort &remoteIpPort, const Json &json) {
+    return sendMsg(remoteIpPort.ip, remoteIpPort.port, json);
+}
+
 void Socket::setMaxLength(uint16_t newMaxSize) {
     maxLength = newMaxSize;
 }
@@ -314,6 +322,18 @@ PacketMessage UDPSocket::recvRawMsg(int timeout) {
 
 }
 
+void UDPSocket::startServer()
+{
+    if(!isServerActive())
+        open(this->localPort, this->localIP);
+}
+
+void UDPSocket::stopServer()
+{
+    if(isServerActive())
+        close();
+}
+
 void UDPSocket::open(const uint16_t localPort, const std::string& localIP) {
     // create
     mSocketFD = socket(AF_INET, SOCK_DGRAM, 0);
@@ -356,4 +376,35 @@ bool UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, 
     //отправит Json в текстовом формате без пробелов
     sendFragments(remoteIP, remotePort, eJsonType, convert_to_packet(json.to_string(-1)));
     return true;
+}
+
+//NOTE: ouput всегда один, потому без мьютекса
+PacketMessage UDPSocket::getOutPacket()
+{
+    PacketMessage pm;
+    if(this->mapRecvPacketsBuffer.size() > 0) {
+        pm = this->mapRecvPacketsBuffer.front();
+        this->mapSendPacketsBuffer.pop_front();
+    }
+    return pm;
+}
+
+JsonMessage UDPSocket::getOutJson()
+{
+    JsonMessage jm;
+    if(this->mapRecvJsonsBuffer.size() > 0) {
+        jm = this->mapRecvJsonsBuffer.front();
+        this->mapRecvJsonsBuffer.pop_front();
+    }
+    return jm;
+}
+
+bool const IpPort::operator==(const IpPort &other) {
+    if(this->ip == other.ip && this->port == other.port)    return true;
+    else                                                    return false;
+}
+
+bool const IpPort::operator!=(const IpPort &other) {
+    if(this->ip != other.ip || this->port != other.port)    return true;
+    else                                                    return false;
 }

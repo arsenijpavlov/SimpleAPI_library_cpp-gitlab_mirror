@@ -48,11 +48,6 @@ std::string convert_from_packet(const Packet& packet);
 std::string to_string(const Packet& packet);
 bool checkCorrectIp(const std::string& ipString);
 
-//using IpPort = std::string; //"X.X.X.X:Y"
-//IpPort      toIpPort(const std::string& ip, const uint16_t port);
-//std::string toIp(const IpPort& ipPort);
-//uint16_t    toPort(const IpPort& ipPort);
-
 enum PacketType {
     eControlType    = 0,
     eDataType       = 1,
@@ -78,6 +73,9 @@ enum SocketType {
 struct IpPort {
     std::string ip;
     uint16_t port;
+
+    bool const operator==(const IpPort& other);
+    bool const operator!=(const IpPort& other);
 };
 
 class PacketMessage {
@@ -121,6 +119,35 @@ protected:
 
     int maxMsgsSentOnTick;
 
+    uint8_t         packHeader(const PacketHeader& ph);
+    void            unpackHeader(uint8_t header, PacketHeader& ph);
+    EECounter       getSeqNumber(const IpPort& ipPort);
+
+public:
+                    Socket();
+    virtual         ~Socket(){};
+
+    bool            sendRawMsg(const PacketMessage &packetMessage);
+    virtual bool    sendRawMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet) = 0;
+    virtual PacketMessage recvRawMsg(int timeout) = 0;
+
+    virtual void    chiphering(Packet& packet) = 0;
+    PacketMessage   getRecvPacket(); //выдаст пустой пакет, если очередь пуста
+    JsonMessage     getRecvJson(); //выдаст пустой пакет, если очередь пуста
+
+    IpPort          getLocalIpPort() { return IpPort{localIP, localPort}; }
+
+
+//TODO:    virtual bool isConnected(std::string remoteIP, uint16_t remotePort) = 0;
+    bool            isServerActive();
+    virtual void    startServer() = 0;
+    virtual void    stopServer() = 0;
+    void            close();
+//=====================================
+//ONLY FOR USE IN SOCKET_THREAD!
+protected:
+    virtual void    sendFragments(const std::string& remoteIP, const uint16_t remotePort, const PacketType type, const Packet& packet) = 0;
+
     //для доступа извне------------------------
     std::mutex                  outputThreadsMutex;
     std::deque<PacketMessage>   sendPacketsBuffer;
@@ -130,36 +157,9 @@ protected:
     std::deque<PacketMessage>   recvPackets;
     std::deque<JsonMessage>     recvJsons;
     //-----------------------------------------
-
-    uint8_t         packHeader(const PacketHeader& ph);
-    void            unpackHeader(uint8_t header, PacketHeader& ph);
-    EECounter       getSeqNumber(const IpPort& ipPort);
-    virtual void    sendFragments(const std::string& remoteIP, const uint16_t remotePort, const PacketType type, const Packet& packet) = 0;
-
-    virtual void    tick()                                 = 0;
-    virtual void    sendAutoMsg()                          = 0;
-    virtual void    recvAutoMsg(int timeout)               = 0;
-
-public:
-                    Socket();
-    virtual         ~Socket(){};
-
-    bool            sendRawMsg(const PacketMessage &packetMessage);
-    virtual bool    sendRawMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet)  = 0;
-    virtual int     recvRawMsg(Packet& packet, int timeout)                                                   = 0;
-
-    virtual void    chiphering(Packet& packet) = 0;
-    PacketMessage   getRecvPacket(); //выдаст пустой пакет, если очередь пуста
-    JsonMessage     getRecvJson(); //выдаст пустой пакет, если очередь пуста
-
-
-//TODO:    virtual bool isConnected(std::string remoteIP, uint16_t remotePort) = 0;
-    bool            isServerActive();
-
-    void            close();
-//=====================================
-//ONLY FOR USE IN SOCKET_THREAD!
-protected:
+    virtual void    tick() = 0;
+    virtual void    sendAutoMsg() = 0;
+    virtual void    recvAutoMsg(int timeout) = 0;
 
 public:
     bool isChiphering() { /*TODO: isChiphering()*/ return false; }
@@ -169,7 +169,15 @@ public:
 
 //    virtual void enableChip(/*ChiphgeringSettings*/) = 0;
     void enableCRC(CRC crcLevel = eCRC_OFF);
+
+    virtual bool sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet) = 0;
+    virtual bool sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Json& json) = 0;
+    bool sendMsg(const IpPort& remoteIpPort, const Packet& packet);
+    bool sendMsg(const IpPort& remoteIpPort, const Json& json);
+    virtual PacketMessage getOutPacket() = 0;
+    virtual JsonMessage getOutJson() = 0;
 //=====================================
+    friend class SocketThread; //NOTE: для функции tick(), надо будет подумать...
 };
 
 class UDPSocket : public Socket {
@@ -203,6 +211,9 @@ public:
     PacketMessage recvRawMsg(int timeout = -1);
     void chiphering(Packet& packet) {};
 
+    void startServer();
+    void stopServer();
+
 //=====================================
 //ONLY FOR USE IN SOCKET_THREAD!
 protected:
@@ -225,6 +236,8 @@ public:
      *  и вызывается sendFragments() */
     bool sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet);
     bool sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Json& json);
+    PacketMessage getOutPacket();
+    JsonMessage getOutJson();
 //=====================================
 };
 

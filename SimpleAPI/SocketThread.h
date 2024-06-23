@@ -7,27 +7,48 @@
 
 
 class SocketThread {
-    std::thread t; //поток, который просто крутит while(1) { foreach() { socket.tick(); } }
-    std::set<Socket> sockets;
+    std::thread t;
+    bool        active;
+    std::set<std::shared_ptr<Socket*>> p_sockets;
+
+    void (*packetCallback)(PacketMessage pm);
+    void (*jsonCallback)(JsonMessage jm);
+
+    void run();
+
 public:
     SocketThread();
-    SocketThread(Socket& s);
     SocketThread(const SocketType type, const std::string& localIP, uint16_t localPort);
-    SocketThread(const SocketType type, const IpPort& localIpPort); //string address as "X.X.X.X:Y"
+    SocketThread(const SocketType type, const IpPort& localIpPort);
     ~SocketThread();
 
-    bool addSocket(Socket& s);
-    bool addSocket(const std::string& localIP, const uint16_t localPort);
-    bool addSocket(const IpPort& localIpPort); //string address as "X.X.X.X:Y"
-    bool closeSocket(Socket& s);
+    bool addSocket(const SocketType type, const std::string& localIP, const uint16_t localPort);
+    bool addSocket(const SocketType type, const IpPort& localIpPort);
 
-    void send(Socket& s, const std::string& remoteIp, const uint16_t remotePort, const Packet& packet);
-    void send(Socket& s, const std::string& remoteIp, const uint16_t remotePort, const Json& json);
-    void send(Socket& s, const IpPort& remoteIpPort, const Packet& packet); //string address as "X.X.X.X:Y"
-    void send(Socket& s, const IpPort& remoteIpPort, const Json& json);     //string address as "X.X.X.X:Y"
+    std::set<std::shared_ptr<Socket*>>::iterator find(const SocketType type, const std::string& localIp, const uint16_t localPort);
+    std::set<std::shared_ptr<Socket*>>::iterator find(const SocketType type, const IpPort& localIpPort);
 
-    PacketMessage   setCallbackSocketReadRawData(const Socket& s, PacketMessage(*callback)(void));
-    JsonMessage     setCallbackSocketReadJsonData(const Socket& s, JsonMessage(*callback)(void));
+    void closeSocket(const std::set<std::shared_ptr<Socket*>>::iterator it);
+    void closeAllSockets();
+
+    void startSocket(const std::set<std::shared_ptr<Socket*>>::iterator it);
+    void stopSocket(const std::set<std::shared_ptr<Socket*>>::iterator it);
+
+    void send(const std::set<std::shared_ptr<Socket*>>::iterator it,
+              const std::string& remoteIp, const uint16_t remotePort, const Packet& packet);
+    void send(const std::set<std::shared_ptr<Socket*>>::iterator it,
+              const std::string& remoteIp, const uint16_t remotePort, const Json& json);
+    void send(const std::set<std::shared_ptr<Socket*>>::iterator it,
+              const IpPort& remoteIpPort, const Packet& packet);
+    void send(const std::set<std::shared_ptr<Socket*>>::iterator it,
+              const IpPort& remoteIpPort, const Json& json);
+
+    bool isActive();
+    void startThread();   /*TODO: заблокировать изменения, если активен*/ //вызывается в конструкторе, запускает поток
+    void stopThread(); /*TODO: заблокировать изменения, если НЕ активен*/ //вызывается в деструкторе, останавливает поток
+
+    void setCallbackSocketReadRawData(const Socket& s, void (*callback)(PacketMessage pm));
+    void setCallbackSocketReadJsonData(const Socket& s, void (*callback)(JsonMessage jm));
 };
 
 #endif // SOCKET_THREAD_H
