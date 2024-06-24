@@ -5,6 +5,7 @@
 
 #include "Json.h"
 #include "Socket.h"
+#include "SocketThread.h"
 
 
 #endif // SIMPLEAPI_H

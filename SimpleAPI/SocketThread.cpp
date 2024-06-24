@@ -2,10 +2,10 @@
 
 
 void SocketThread::run() {
-    while(isActive()) {
-        std::set<std::shared_ptr<Socket*>>::iterator it = p_sockets.begin();
-        while(it != p_sockets.end()) {
-            Socket* sock = *(it->get());
+    while(this->isActive()) {
+        auto it = this->p_sockets.begin();
+        while(it != this->p_sockets.end()) {
+            Socket* sock = it->second.get();
 
             sock->tick(); //вся магия там
 
@@ -39,88 +39,52 @@ SocketThread::~SocketThread() {
 }
 
 bool SocketThread::addSocket(const SocketType type, const std::string &localIP, const uint16_t localPort) {
+    return addSocket(type, {localIP, localPort});
+}
+
+bool SocketThread::addSocket(const SocketType type, const IpPort &localIpPort) {
     if(type == SocketType::eTCP) {
         return false; //TODO: TCP пока не готов
     } else if(type == SocketType::eUDP) {
-        std::shared_ptr<Socket*> sock = std::make_shared<Socket*>(UDPSocket(localPort, localIP));
-        return this->p_sockets.insert(sock).second;
+        std::shared_ptr<Socket> sock = std::make_shared<Socket>(new UDPSocket(localIpPort));
+        return this->p_sockets.insert(std::make_pair(localIpPort, sock)).second;
     }
 
     return false;
 }
 
-bool SocketThread::addSocket(const SocketType type, const IpPort &localIpPort) {
-    return addSocket(type, localIpPort.ip, localIpPort.port);
-}
-
-std::set<std::shared_ptr<Socket*>>::iterator SocketThread::find(
-    const SocketType type, const std::string &localIp, const uint16_t localPort)
-{
-    return find(type, IpPort{localIp, localPort});
-}
-
-std::set<std::shared_ptr<Socket*>>::iterator SocketThread::find(
-    const SocketType type, const IpPort &localIpPort)
-{
-    auto it = p_sockets.begin();
-    while(it != p_sockets.end()) {
-        switch(type) {
-        case eUDP: {
-            if(std::dynamic_pointer_cast<UDPSocket*>(*it)) {
-                if(((UDPSocket*)it->get())->getLocalIpPort() == localIpPort)
-                    return it;
-            }
-            break;
-        }
-        case eTCP: {
-//            if(std::dynamic_pointer_cast<TCPSocket*>(*it))
-//                if(((TCPSocket*)it->get())->getLocalIpPort() == ipPort)
-//                    return it;
-            break;
-        }
-        default: p_sockets.end();
-        }
-
-    }
-
-    return p_sockets.end();
-}
-
-void SocketThread::closeSocket(const std::set<std::shared_ptr<Socket*>>::iterator it) {
-    this->p_sockets.erase(it);
+void SocketThread::closeSocket(const IpPort& localIpPort) {
+    this->p_sockets.erase(localIpPort);
 }
 
 void SocketThread::closeAllSockets() {
     this->p_sockets.erase(this->p_sockets.begin(), this->p_sockets.cend());
 }
 
-void SocketThread::startSocket(const std::set<std::shared_ptr<Socket*>>::iterator it) {
-    ((Socket*)it->get())->startServer();
+void SocketThread::startSocket(const IpPort& localIpPort) {
+    auto it = this->p_sockets.find(localIpPort);
+    if(it != this->p_sockets.end())
+        it->second->startServer();
 }
 
-void SocketThread::stopSocket(const std::set<std::shared_ptr<Socket*>>::iterator it) {
-    ((Socket*)it->get())->stopServer();
+void SocketThread::stopSocket(const IpPort& localIpPort) {
+    auto it = this->p_sockets.find(localIpPort);
+    if(it != this->p_sockets.end())
+        it->second->stopServer();
 }
 
-void SocketThread::send(const std::set<std::shared_ptr<Socket*>>::iterator it,
-                        const std::string &remoteIp, const uint16_t remotePort, const Packet &packet) {
-    send(it, IpPort{remoteIp, remotePort}, packet);
+bool SocketThread::send(const IpPort &source, const IpPort &destination, const Packet &packet) {
+    auto it = this->p_sockets.find(source);
+    if(it != this->p_sockets.end())
+        return it->second->sendMsg(source, packet);
+    return false;
 }
 
-
-void SocketThread::send(const std::set<std::shared_ptr<Socket*>>::iterator it,
-                        const std::string &remoteIp, const uint16_t remotePort, const Json &json) {
-    send(it, IpPort{remoteIp, remotePort}, json);
-}
-
-void SocketThread::send(const std::set<std::shared_ptr<Socket*>>::iterator it,
-                        const IpPort &remoteIpPort, const Packet &packet) {
-    ((Socket*)it->get())->sendMsg(remoteIpPort, packet);
-}
-
-void SocketThread::send(const std::set<std::shared_ptr<Socket*>>::iterator it,
-                        const IpPort &remoteIpPort, const Json &json) {
-    ((Socket*)it->get())->sendMsg(remoteIpPort, json);
+bool SocketThread::send(const IpPort &source, const IpPort &destination, const Json &json) {
+    auto it = this->p_sockets.find(source);
+    if(it != this->p_sockets.end())
+        return it->second->sendMsg(source, json);
+    return false;
 }
 
 bool SocketThread::isActive() {
@@ -130,9 +94,8 @@ bool SocketThread::isActive() {
 void SocketThread::startThread()
 {
     if(!isActive()) {
-        t = new std::thread(this->run());
-
         active = true;
+        t = std::thread(&SocketThread::run, this);
     }
 }
 

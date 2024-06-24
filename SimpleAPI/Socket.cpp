@@ -47,7 +47,7 @@ uint8_t Socket::packHeader(const PacketHeader& pm) {
 }
 
 void Socket::unpackHeader(uint8_t header, PacketHeader& pm) {
-    type =
+//    type =
 }
 
 EECounter Socket::getSeqNumber(const IpPort& ipPort) {
@@ -251,6 +251,11 @@ void UDPSocket::setMaxMsgsSentOnTick(int count) {
     maxMsgsSentOnTick = count;
 }
 
+UDPSocket::UDPSocket(const IpPort &ipPort)
+{
+    open(ipPort.port, ipPort.ip);
+}
+
 UDPSocket::UDPSocket(uint16_t localPort, std::string localIP) {
     open(localPort, localIP);
 }
@@ -399,12 +404,24 @@ JsonMessage UDPSocket::getOutJson()
     return jm;
 }
 
-bool const IpPort::operator==(const IpPort &other) {
+const bool IpPort::operator==(const IpPort &other) {
     if(this->ip == other.ip && this->port == other.port)    return true;
     else                                                    return false;
 }
 
-bool const IpPort::operator!=(const IpPort &other) {
+const bool IpPort::operator!=(const IpPort &other) {
     if(this->ip != other.ip || this->port != other.port)    return true;
     else                                                    return false;
+}
+
+const bool IpPort::operator<(const IpPort &other)
+{
+    if(this->port < other.port) return true;
+    else                        return false;
+}
+
+const bool IpPort::operator>(const IpPort &other)
+{
+    if(this->port > other.port) return true;
+    else                        return false;
 }

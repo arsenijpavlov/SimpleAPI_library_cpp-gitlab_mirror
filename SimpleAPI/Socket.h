@@ -74,8 +74,10 @@ struct IpPort {
     std::string ip;
     uint16_t port;
 
-    bool const operator==(const IpPort& other);
-    bool const operator!=(const IpPort& other);
+    const bool operator==(const IpPort& other);
+    const bool operator!=(const IpPort& other);
+    const bool operator<(const IpPort& other);
+    const bool operator>(const IpPort& other);
 };
 
 class PacketMessage {
@@ -200,6 +202,7 @@ class UDPSocket : public Socket {
     //-----------------------------------------
 
 public:
+    UDPSocket(const IpPort& ipPort);
     UDPSocket(uint16_t localPort, std::string localIP = "");
     ~UDPSocket();
 

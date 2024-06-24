@@ -19,11 +19,11 @@ int main(int argc, char** argv) {
         if(!isRunning) break;
 
         usleep(1);
-        Packet p;
-        socket.recvMsg(p, 100);
-        if(p.size() > 0) {
-            std::cout << "packet(" << p.size() << "):";
-            std::cout << " [" << utils::to_hex_string(p) << "]" << std::endl;
+        PacketMessage pm = socket.recvRawMsg(100);
+        if(!pm.packet.empty()) {
+            std::cout << "sender: " << pm.ip << ":" << pm.port << ", ";
+            std::cout << "packet(" << pm.packet.size() << "):";
+            std::cout << " [" << utils::to_hex_string(pm.packet) << "]" << std::endl;
         }
     }
 
