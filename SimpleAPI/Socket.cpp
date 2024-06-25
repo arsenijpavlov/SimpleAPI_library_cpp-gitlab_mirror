@@ -414,14 +414,24 @@ const bool IpPort::operator!=(const IpPort &other) {
     else                                                    return false;
 }
 
-const bool IpPort::operator<(const IpPort &other)
+const bool IpPort::operator<(const IpPort &other) const
 {
+    if(this->port == other.port) {
+        if(this->ip < other.ip) return true;
+        else                    return false;
+    }
+
     if(this->port < other.port) return true;
     else                        return false;
 }
 
-const bool IpPort::operator>(const IpPort &other)
+const bool IpPort::operator>(const IpPort &other) const
 {
+    if(this->port == other.port) {
+        if(this->ip > other.ip) return true;
+        else                    return false;
+    }
+
     if(this->port > other.port) return true;
     else                        return false;
 }

@@ -76,8 +76,8 @@ struct IpPort {
 
     const bool operator==(const IpPort& other);
     const bool operator!=(const IpPort& other);
-    const bool operator<(const IpPort& other);
-    const bool operator>(const IpPort& other);
+    const bool operator<(const IpPort& other) const;
+    const bool operator>(const IpPort& other) const;
 };
 
 class PacketMessage {
