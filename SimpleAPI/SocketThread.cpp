@@ -1,11 +1,14 @@
 #include "SocketThread.h"
 #include <iostream>
+#include <unistd.h>
 
 
 void SocketThread::run() {
+    pthread_setname_np(pthread_self(), "SERVERS_THREAD");
+
     while(this->isActive()) {
-        auto it = this->p_sockets.begin();
-        while(it != this->p_sockets.end()) {
+
+        for(auto it = this->p_sockets.begin(); it != this->p_sockets.end(); it++) {
             Socket* sock = it->second.get();
 
             sock->tick(); //вся магия там
@@ -17,20 +20,22 @@ void SocketThread::run() {
             if(!jm.json.isEmpty() && this->jsonCallback)
                 this->jsonCallback(jm);
         }
+
+        usleep(1);
     }
 }
 
-SocketThread::SocketThread() {
+SocketThread::SocketThread() : packetCallback(nullptr), jsonCallback(nullptr) {
     startThread();
 }
 
 SocketThread::SocketThread(const SocketType type, const std::string &localIP,
-                           uint16_t localPort) {
+                           uint16_t localPort) : packetCallback(nullptr), jsonCallback(nullptr) {
     addSocket(type, localIP, localPort);
     startThread();
 }
 
-SocketThread::SocketThread(const SocketType type, const IpPort &localIpPort) {
+SocketThread::SocketThread(const SocketType type, const IpPort &localIpPort) : packetCallback(nullptr), jsonCallback(nullptr) {
     addSocket(type, localIpPort);
     startThread();
 }
@@ -77,14 +82,14 @@ void SocketThread::stopSocket(const IpPort& localIpPort) {
 bool SocketThread::send(const IpPort &source, const IpPort &destination, const Packet &packet) {
     auto it = this->p_sockets.find(source);
     if(it != this->p_sockets.end())
-        return it->second->sendMsg(source, packet);
+        return it->second->sendMsg(destination, packet);
     return false;
 }
 
 bool SocketThread::send(const IpPort &source, const IpPort &destination, const Json &json) {
     auto it = this->p_sockets.find(source);
     if(it != this->p_sockets.end())
-        return it->second->sendMsg(source, json);
+        return it->second->sendMsg(destination, json);
     return false;
 }
 
@@ -109,7 +114,6 @@ void SocketThread::stopThread()
         t.join();       //ждём завершения потока
     }
 }
-
 
 void SocketThread::setCallbackSocketReadRawData(const Socket &s, void (*callback)(PacketMessage pm)) {
     this->packetCallback = callback;

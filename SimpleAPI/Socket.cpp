@@ -46,8 +46,12 @@ uint8_t Socket::packHeader(const PacketHeader& pm) {
            | pm.crcLevel;
 }
 
-void Socket::unpackHeader(uint8_t header, PacketHeader& pm) {
-//    type =
+void Socket::unpackHeader(uint8_t header, PacketHeader& ph) {
+    ph.type             = (PacketType)(header >> 6); //2
+    ph.version          = (ApiVersion)((header >> 4) & 0xFF); //2
+    ph.isFirstFragment  = (header >> 3) & 0xF; //1
+    ph.isChip           = (header >> 2) & 0xF; //1
+    ph.crcLevel         = (CRC)(header & 0xFF); //2
 }
 
 EECounter Socket::getSeqNumber(const IpPort& ipPort) {
@@ -95,7 +99,7 @@ void Socket::setUseApiVersion(ApiVersion version) {
 void Socket::close() {
     if(mSocketFD) {
         ::close(this->mSocketFD);
-        std::cout << "The socket has been freed" << std::endl;
+        std::cout << "The socket " << IpPort{this->localIP, this->localPort}.to_string() << " has been freed" << std::endl;
         this->mSocketFD = -1;
     }
 }
@@ -213,19 +217,31 @@ void UDPSocket::tick() {
 //перепосылка недоставленных пакетов
 void UDPSocket::sendAutoMsg() {
     int counter = 0;
-    for(PacketMessage pm : mapSendPacketsBuffer) {
-        if((counter < maxMsgsSentOnTick) || (maxMsgsSentOnTick < 0)) {
-            Socket::sendRawMsg(pm);             //отправили
-            mapAutoSentPackets.push_back(pm);   //запомнили для ожидания ответа или досылки
-        }
+    this->outputThreadsMutex.lock();
+    while(!this->mapSendPacketsBuffer.empty()
+           && ((counter < maxMsgsSentOnTick) || (maxMsgsSentOnTick < 0))
+           ) {
+        PacketMessage pm = this->mapSendPacketsBuffer.front();
+        this->mapSendPacketsBuffer.pop_front();
+        Socket::sendRawMsg(pm);             //отправили
+        mapAutoSentPackets.push_back(pm);   //запомнили для ожидания ответа или досылки
+
         counter++;
     }
+    this->outputThreadsMutex.unlock();
 }
 
 void UDPSocket::recvAutoMsg(int timeout) {
     PacketMessage pm = recvRawMsg(1);
+    if(pm.packet.empty()) return;
+
     PacketHeader ph;
     unpackHeader(pm.packet[0], ph);
+
+    std::cout << pm.to_string() << std::endl;
+    Json json;
+    json.parseJson(to_string(pm.packet));
+    std::cout << pm.to_string() << std::endl;
 
     switch(ph.type) {
     case eControlType: {
@@ -242,9 +258,6 @@ void UDPSocket::recvAutoMsg(int timeout) {
     }
     default: std::cout << "Error: unknown received type(" << ph.type << ")" << std::endl;
     }
-
-    //TODO: если Json, то
-//    tmpRecvJson = builtPacket;
 }
 
 void UDPSocket::setMaxMsgsSentOnTick(int count) {
@@ -266,6 +279,8 @@ UDPSocket::~UDPSocket() {
 
 bool UDPSocket::sendRawMsg(const std::string &remoteIP, const uint16_t remotePort, const Packet &packet)
 {
+    std::cout << "UDPSocket::sendRawMsg -> " << IpPort{remoteIP, remotePort}.to_string() << std::endl;
+
     struct sockaddr_in sock;
     sock.sin_family = AF_INET;
     sock.sin_port = htons(remotePort);
@@ -312,7 +327,7 @@ PacketMessage UDPSocket::recvRawMsg(int timeout) {
     }
 
     if(recv_num < 0) {
-//        std::cout << "Error reading msg" << std::endl;
+        std::cout << "Error reading msg" << std::endl;
     } else if(recv_num > 0) {
         PacketMessage rpacket;
         rpacket.ip.resize(INET_ADDRSTRLEN);
@@ -324,7 +339,6 @@ PacketMessage UDPSocket::recvRawMsg(int timeout) {
     }
 
     return {};
-
 }
 
 void UDPSocket::startServer()
@@ -340,6 +354,9 @@ void UDPSocket::stopServer()
 }
 
 void UDPSocket::open(const uint16_t localPort, const std::string& localIP) {
+    this->localIP = localIP;
+    this->localPort = localPort;
+
     // create
     mSocketFD = socket(AF_INET, SOCK_DGRAM, 0);
     if (mSocketFD < 0)
@@ -365,7 +382,7 @@ void UDPSocket::open(const uint16_t localPort, const std::string& localIP) {
 
     char str[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &(sock.sin_addr.s_addr), str, INET_ADDRSTRLEN);
-    std::cout << "Socket binded at " << str << ":" << localPort << std::endl;
+    std::cout << "Socket binded at " << IpPort{str, localPort}.to_string() << std::endl;
 }
 
 bool UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet) {
@@ -383,13 +400,14 @@ bool UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, 
     return true;
 }
 
-//NOTE: ouput всегда один, потому без мьютекса
 PacketMessage UDPSocket::getOutPacket()
 {
     PacketMessage pm;
     if(this->mapRecvPacketsBuffer.size() > 0) {
+        this->inputThreadsMutex.lock();
         pm = this->mapRecvPacketsBuffer.front();
         this->mapSendPacketsBuffer.pop_front();
+        this->inputThreadsMutex.unlock();
     }
     return pm;
 }
@@ -398,8 +416,10 @@ JsonMessage UDPSocket::getOutJson()
 {
     JsonMessage jm;
     if(this->mapRecvJsonsBuffer.size() > 0) {
+        this->inputThreadsMutex.lock();
         jm = this->mapRecvJsonsBuffer.front();
         this->mapRecvJsonsBuffer.pop_front();
+        this->inputThreadsMutex.unlock();
     }
     return jm;
 }
@@ -434,4 +454,24 @@ const bool IpPort::operator>(const IpPort &other) const
 
     if(this->port > other.port) return true;
     else                        return false;
+}
+
+std::string PacketMessage::to_string()
+{
+    std::string out;
+
+    out = "[" + this->ip + ":" + std::to_string(this->port) + "] ";
+    out += "[(" + std::to_string(this->packet.size()) + ") " + ::to_string(this->packet) + "]";
+
+    return out;
+}
+
+std::string JsonMessage::to_string(int arg)
+{
+    std::string out;
+
+    out = "[" + this->ip + ":" + std::to_string(this->port) + "] ";
+    out += "[(" + std::to_string(this->json.size()) + ")" + this->json.to_string(arg) + "]";
+
+    return out;
 }

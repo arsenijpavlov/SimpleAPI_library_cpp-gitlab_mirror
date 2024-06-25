@@ -13,18 +13,17 @@ void signalHandler(int signal) {
 int main(int argc, char** argv) {
     signal(SIGINT, signalHandler);
 
-    UDPSocket socket(31115, "127.0.0.5");
+    IpPort server{"127.0.0.5", 31115};
+    SocketThread st(eUDP, server);
+//    st.setCallbackSocketReadJsonData()
+//    st.setCallbackSocketReadRawData()
 
     while(1) {
-        if(!isRunning) break;
-
-        usleep(1);
-        PacketMessage pm = socket.recvRawMsg(100);
-        if(!pm.packet.empty()) {
-            std::cout << "sender: " << pm.ip << ":" << pm.port << ", ";
-            std::cout << "packet(" << pm.packet.size() << "):";
-            std::cout << " [" << utils::to_hex_string(pm.packet) << "]" << std::endl;
+        if(!isRunning) {
+            st.stopThread();
+            break;
         }
+        usleep(1);
     }
 
     return 0;

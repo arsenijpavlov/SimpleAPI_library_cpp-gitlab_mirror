@@ -5,6 +5,7 @@
 #include "Json.h"
 
 #include <deque>
+#include <iostream>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -78,6 +79,8 @@ struct IpPort {
     const bool operator!=(const IpPort& other);
     const bool operator<(const IpPort& other) const;
     const bool operator>(const IpPort& other) const;
+
+    std::string to_string() { return "[" + this->ip + ":" + std::to_string(this->port) + "]"; }
 };
 
 class PacketMessage {
@@ -90,6 +93,7 @@ public:
     PacketMessage() : sn(0) { clear(); };
 
     void clear() { ip=""; port=0; packet={}; sn.reset(); }
+    std::string to_string();
 };
 class JsonMessage {
 public:
@@ -98,6 +102,7 @@ public:
     Json        json;
 
     void clear() { ip=""; port=0; json={}; }
+    std::string to_string(int arg = -1);
 };
 
 struct PacketHeader {
@@ -134,8 +139,6 @@ public:
     virtual PacketMessage recvRawMsg(int timeout) = 0;
 
     virtual void    chiphering(Packet& packet) = 0;
-    PacketMessage   getRecvPacket(); //выдаст пустой пакет, если очередь пуста
-    JsonMessage     getRecvJson(); //выдаст пустой пакет, если очередь пуста
 
     IpPort          getLocalIpPort() { return IpPort{localIP, localPort}; }
 
@@ -176,8 +179,8 @@ public:
     virtual bool sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Json& json) = 0;
     bool sendMsg(const IpPort& remoteIpPort, const Packet& packet);
     bool sendMsg(const IpPort& remoteIpPort, const Json& json);
-    virtual PacketMessage getOutPacket() = 0;
-    virtual JsonMessage getOutJson() = 0;
+    virtual PacketMessage getOutPacket() = 0;   //выдаст пустой пакет, если очередь пуста
+    virtual JsonMessage getOutJson() = 0;       //выдаст пустой пакет, если очередь пуста
 //=====================================
     friend class SocketThread; //NOTE: для функции tick(), надо будет подумать...
 };
