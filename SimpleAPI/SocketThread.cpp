@@ -1,4 +1,5 @@
 #include "SocketThread.h"
+#include <iostream>
 
 
 void SocketThread::run() {
@@ -19,17 +20,17 @@ void SocketThread::run() {
     }
 }
 
-SocketThread::SocketThread() : active(true) {
+SocketThread::SocketThread() {
     startThread();
 }
 
 SocketThread::SocketThread(const SocketType type, const std::string &localIP,
-                           uint16_t localPort) : active(true) {
+                           uint16_t localPort) {
     addSocket(type, localIP, localPort);
     startThread();
 }
 
-SocketThread::SocketThread(const SocketType type, const IpPort &localIpPort) : active(true) {
+SocketThread::SocketThread(const SocketType type, const IpPort &localIpPort) {
     addSocket(type, localIpPort);
     startThread();
 }
@@ -46,7 +47,7 @@ bool SocketThread::addSocket(const SocketType type, const IpPort &localIpPort) {
     if(type == SocketType::eTCP) {
         return false; //TODO: TCP пока не готов
     } else if(type == SocketType::eUDP) {
-        std::shared_ptr<Socket> sock = std::make_shared<Socket>(new UDPSocket(localIpPort));
+        std::shared_ptr<Socket> sock(new UDPSocket(localIpPort));
         return this->p_sockets.insert(std::make_pair(localIpPort, sock)).second;
     }
 
@@ -94,6 +95,7 @@ bool SocketThread::isActive() {
 void SocketThread::startThread()
 {
     if(!isActive()) {
+        std::cout << "[THREAD START]" << std::endl;
         active = true;
         t = std::thread(&SocketThread::run, this);
     }
@@ -102,6 +104,7 @@ void SocketThread::startThread()
 void SocketThread::stopThread()
 {
     if(isActive()) {
+        std::cout << "[THREAD STOP]" << std::endl;
         active = false; //остановили
         t.join();       //ждём завершения потока
     }
