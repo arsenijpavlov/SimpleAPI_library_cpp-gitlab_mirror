@@ -28,6 +28,8 @@ target_sources(SimpleAPI PRIVATE
     ${simpleAPI_sources}
     ${simpleAPI_headers}
 )
+target_link_libraries(SimpleAPI PUBLIC -pthread)
+
 
 execute_process(
     COMMAND bash -c "mkdir -p ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include && cd $_; \
