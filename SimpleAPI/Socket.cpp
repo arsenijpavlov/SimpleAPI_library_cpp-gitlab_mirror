@@ -213,10 +213,16 @@ void UDPSocket::tick() {
     recvAutoMsg(1);
 }
 
-//постепенная отправка пакетов в сокет
-//перепосылка недоставленных пакетов
 void UDPSocket::sendAutoMsg() {
-    int counter = 0;
+    int counter = 0; //общий счётчик за проход функции
+    //перепосылка недоставленных пакетов
+    for(size_t i = 0;
+         i < mapAutoSentPackets.size() && ((counter < maxMsgsSentOnTick) || (maxMsgsSentOnTick < 0));
+         i++) {
+
+    }
+
+    //постепенная отправка пакетов в сокет
     this->outputThreadsMutex.lock();
     while(!this->mapSendPacketsBuffer.empty()
            && ((counter < maxMsgsSentOnTick) || (maxMsgsSentOnTick < 0))

@@ -187,8 +187,8 @@ public:
 
 class UDPSocket : public Socket {
     //работа через tick()
-    std::map<IpPort, std::time_t>   mapLastActivity;
-    std::set<PacketMessage>         mapSendGlobalPackets; //запоминаем до тех пор, пока не придёт подтверждение о передаче всех фрагментов
+    std::map<IpPort, std::time_t>           mapLastActivity;
+    std::map<std::time_t, PacketMessage>    mapSendGlobalPackets; //запоминаем до тех пор, пока не придёт подтверждение о передаче всех фрагментов
     std::deque<PacketMessage>       mapSendPackets; //фрагменты на отправку
     std::vector<PacketMessage>      mapAutoSentPackets;
     std::deque<PacketMessage>       mapRecvPackets;
