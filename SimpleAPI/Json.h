@@ -78,6 +78,8 @@ public:
     Array(const Array& array);
     ~Array();
 
+    bool parseArray(const std::string& str);
+
     __ONLY_ALLOWED_TYPES__(T)
     void push_back(const T value)
     { this->values.push_back(Element(value)); }
@@ -152,14 +154,12 @@ public:
 
     __ONLY_ALLOWED_TYPES__(T)
     void insert(AVector::iterator iterator, const T value)
+
     { this->values.insert(iterator, value); }
 
     void erase(const size_t index);
     void erase(const AVector::iterator iterator);
     void erase(const AVector::iterator begin, const AVector::iterator end);
-
-//STATIC
-    static bool ParseArray(const std::string& str, Array* array);
 }; /// class Array
 
 using JVector = std::vector<std::pair<std::string, Element>>;
@@ -189,6 +189,7 @@ public:
 
     bool isValueExists(const std::string& name);
 
+    bool parseJson(const std::string& str);
     bool readFile(const std::string& path);
     bool writeFile(const std::string& path, int16_t tabulation_level = 0);
 
@@ -289,6 +290,7 @@ public:
             }
         }
         return false;
+
     }
 
     void erase(const size_t index);
@@ -296,9 +298,6 @@ public:
     void erase(const JVector::iterator begin, const JVector::iterator end);
     void erase(const std::string& key);
     void erase(const std::vector<std::string>& keys);
-
-//STATIC
-    static bool ParseJson(const std::string& str, Json* json);
 }; ///class Json
 
 static ValueType CheckValue(std::string& value);
