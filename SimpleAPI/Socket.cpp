@@ -58,7 +58,7 @@ void Socket::unpackHeader(uint8_t header, PacketHeader& ph) {
 EECounter Socket::getSeqNumber(const IpPort& ipPort) {
     auto it = mapActiveConnections.find(ipPort);
     if(it == mapActiveConnections.end())
-        it = mapActiveConnections.insert(std::pair<IpPort, time_t>(ipPort, 0)).first;
+        it = mapActiveConnections.insert(std::pair<IpPort, EECounter>(ipPort, 0)).first;
 
     return it->second++;
 }
@@ -227,6 +227,13 @@ void UDPSocket::sendFragments(const std::string& remoteIP, const uint16_t remote
     }
     this->outputThreadsMutex.unlock();
     //дальнейшая обработка пакета происходит в функции tick()
+
+    PacketMessage pm;
+    pm.packet   = packet;
+    pm.ip       = remoteIP;
+    pm.port     = remotePort;
+    pm.type     = type;
+    this->mapSentGlobalPackets.push_back(pm);
 }
 
 void UDPSocket::tick() {
@@ -281,16 +288,12 @@ void UDPSocket::recvAutoMsg(int timeout) {
     uint8_t sequence_number = pm.packet[1]; //TODO: нужна защита от некорректного размера чтения!
     uint16_t size = (pm.packet[2] << 8) + pm.packet[3];
 
-    pm.packet.erase(pm.packet.begin(), pm.packet.begin() + 3); //удалить первую две пары элементов
+    pm.packet.erase(pm.packet.begin(), pm.packet.begin() + 4); //удалить первую две пары элементов
     if(ph.type != eControlType)
         sendAutoAck(sequence_number, {pm.ip, pm.port});
 
     Json json;
-    bool ret = json.parseJson(convert_from_packet(pm.packet));
-    std::cout << "ret1: " << (ret ? "true":"false") << std::endl;
-    ret = json.isEmpty();
-    std::cout << "ret2: " << (ret ? "true":"false") << std::endl;
-    std::cout << "size: " << json.isEmpty() << std::endl;
+    json.parseJson(convert_from_packet(pm.packet));
 
     std::string stype;
     switch(ph.type) {
@@ -301,8 +304,6 @@ void UDPSocket::recvAutoMsg(int timeout) {
     }
     std::cout << "Recv: [" << stype << "] ["
               << (json.isEmpty() ? "Data:" + pm.to_string() : "Json:" + json.to_string(-1))
-              << "]" << std::endl;
-    std::cout << "Json: [" << json.to_string(-1)
               << "]" << std::endl;
 
     switch(ph.type) {

@@ -143,8 +143,8 @@ protected:
     std::string localIP;
     uint16_t    localPort;
 
-    int maxMsgsSentOnTick;
-    uint32_t inactivityTimer; //для проверки коннекта, перепосылки недоставленных сообщений и прочего
+    int         maxMsgsSentOnTick;
+    uint32_t    inactivityTimer; //для проверки коннекта, перепосылки недоставленных сообщений и прочего
 
 
     uint8_t         packHeader(const PacketHeader& ph);
