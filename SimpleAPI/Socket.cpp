@@ -63,7 +63,11 @@ EECounter Socket::getSeqNumber(const IpPort& ipPort) {
     return it->second++;
 }
 
-Socket::Socket() : mSocketFD(-1), maxLength(1500), maxMsgsSentOnTick(-1), inactivityTimer(1000) {}
+Socket::Socket() :
+    mSocketFD(-1),
+    maxLength(1500),
+    maxMsgsSentOnTick(-1),
+    inactivityTimer(1000) {}
 
 bool Socket::sendRawMsg(const PacketMessage &packetMessage) {
     return sendRawMsg(packetMessage.ip, packetMessage.port, packetMessage.packet);
@@ -105,12 +109,16 @@ void Socket::close() {
     }
 }
 
+void Socket::sendFragments(const IpPort &remoteIpPort, const PacketType type, const Packet &packet) {
+    sendFragments(remoteIpPort.ip, remoteIpPort.port, type, packet);
+}
+
 void UDPSocket::sendFragments(const std::string& remoteIP, const uint16_t remotePort, const PacketType type, const Packet& packet)
 {
     std::cout << "Message to socket (" << packet.size() << " bytes)" << std::endl;
 
-    //=CHIP_and_CRC_and_SIZE_and_DATA===========================================
     Packet innerData;
+    //=CHIP_and_CRC_and_SIZE_and_DATA===========================================
     //оставляем место для поля CRC
     switch(crcLevel) {
     case eCRC_8:
@@ -128,28 +136,32 @@ void UDPSocket::sendFragments(const std::string& remoteIP, const uint16_t remote
         break;
     default:        break;
     }
+
+    size_t tempSize;
     //упаковка размера сообщения
     innerData.push_back(packet.size() >> 8); //NOTE: emplace_back отказывается работать
     innerData.push_back(packet.size() & 0xFF);
     //упаковка данных во временный пакет
-    size_t tempSize = innerData.size();
+    tempSize = innerData.size();
     innerData.resize(tempSize + packet.size());
     std::copy(packet.begin(), packet.end(), innerData.begin() + tempSize);
-    //обновляем поле CRC
-    switch(crcLevel) {
-    case eCRC_8:    utils::checkCrc8(innerData);    break;
-    case eCRC_16:   utils::checkCrc16(innerData);   break;
-    case eCRC_32:   utils::checkCrc32(innerData);   break;
-    default:        break;
+    if(type != eControlType) {
+        //обновляем поле CRC
+        switch(crcLevel) {
+        case eCRC_8:    utils::checkCrc8(innerData);    break;
+        case eCRC_16:   utils::checkCrc16(innerData);   break;
+        case eCRC_32:   utils::checkCrc32(innerData);   break;
+        default:        break;
+        }
+        //применяем шифрование на данный пакет
+        chiphering(innerData);
     }
-    //применяем шифрование на данный пакет
-    chiphering(innerData);
     //==========================================================================
 
     //подготавливаем пакеты к отправке
     std::string stype;
     switch(type) {
-    case eControlType:  stype = "CONTROL";  break;
+    case eControlType:  stype = "CONTROL";  break; //TODO: вынести в to_string()
     case eDataType:     stype = "DATA";     break;
     case eJsonType:     stype = "JSON";     break;
     default:            stype = "UNKNOWN";
@@ -190,10 +202,11 @@ void UDPSocket::sendFragments(const std::string& remoteIP, const uint16_t remote
 
         PacketMessage pm;
         {
-            pm.ip = remoteIP;
-            pm.port = remotePort;
-            pm.packet = buf;
-            pm.sn = fragment_sn;
+            pm.ip       = remoteIP;
+            pm.port     = remotePort;
+            pm.packet   = buf;
+            pm.sn       = fragment_sn;
+            pm.type     = type;
         }
         fragments.push_back(pm); //запоминаем фрагмент
 
@@ -203,8 +216,15 @@ void UDPSocket::sendFragments(const std::string& remoteIP, const uint16_t remote
 
     //помещаем получившиеся фрагменты в очередь на отправку
     this->outputThreadsMutex.lock();
-    for(PacketMessage p : fragments)
-        this->mapSendPacketsBuffer.push_back(p);
+    if(type == eControlType) {
+        /*обратный порядок упаковки, чтобы раздробленное контрольное сообщение ушло
+         * в правильном порядке, но с приоритетом */
+        for(auto back_it = fragments.rbegin(); back_it != fragments.rend(); back_it++)
+            this->mapSendPacketsBuffer.push_front(*back_it); //контрольные пакеты имеют приоритет при отправке
+    } else {
+        for(PacketMessage& p : fragments)
+            this->mapSendPacketsBuffer.push_back(p);
+    }
     this->outputThreadsMutex.unlock();
     //дальнейшая обработка пакета происходит в функции tick()
 }
@@ -239,9 +259,12 @@ void UDPSocket::sendAutoMsg() {
         PacketMessage pm = this->mapSendPacketsBuffer.front();
         this->mapSendPacketsBuffer.pop_front();
         Socket::sendRawMsg(pm); //отправили
-        //запоминаем для ожидания ответа или досылки
-        time_point_default current_time = std::chrono::system_clock::now();
-        mapAutoSentPackets.insert(std::make_pair(current_time, pm));
+
+        if(pm.type != eControlType) { //контрольные пакеты не перепосылаются, поэтому хранить их не нужно
+            //запоминаем для ожидания ответа или досылки
+            time_point_default current_time = std::chrono::system_clock::now();
+            mapAutoSentPackets.insert(std::make_pair(current_time, pm));
+        }
 
         counter++;
     }
@@ -255,15 +278,45 @@ void UDPSocket::recvAutoMsg(int timeout) {
 
     PacketHeader ph;
     unpackHeader(pm.packet[0], ph);
+    uint8_t sequence_number = pm.packet[1]; //TODO: нужна защита от некорректного размера чтения!
+    uint16_t size = (pm.packet[2] << 8) + pm.packet[3];
 
-    std::cout << pm.to_string() << std::endl;
+    pm.packet.erase(pm.packet.begin(), pm.packet.begin() + 3); //удалить первую две пары элементов
+    if(ph.type != eControlType)
+        sendAutoAck(sequence_number, {pm.ip, pm.port});
+
     Json json;
-    json.parseJson(to_string(pm.packet));
-    std::cout << pm.to_string() << std::endl;
+    bool ret = json.parseJson(convert_from_packet(pm.packet));
+    std::cout << "ret1: " << (ret ? "true":"false") << std::endl;
+    ret = json.isEmpty();
+    std::cout << "ret2: " << (ret ? "true":"false") << std::endl;
+    std::cout << "size: " << json.isEmpty() << std::endl;
+
+    std::string stype;
+    switch(ph.type) {
+    case eControlType:  stype = "CONTROL";  break;
+    case eDataType:     stype = "DATA";     break;
+    case eJsonType:     stype = "JSON";     break;
+    default:            stype = "UNKNOWN";
+    }
+    std::cout << "Recv: [" << stype << "] ["
+              << (json.isEmpty() ? "Data:" + pm.to_string() : "Json:" + json.to_string(-1))
+              << "]" << std::endl;
+    std::cout << "Json: [" << json.to_string(-1)
+              << "]" << std::endl;
 
     switch(ph.type) {
     case eControlType: {
-
+        if(json.contains("ack_sn")) {
+            uint8_t sn = *json["ack_sn"].getNum();
+//TODO:            auto it = FindSentSn(sn);
+            for(auto& it : this->mapAutoSentPackets) {
+                if(it.second.sn == sn) {
+                    this->mapAutoSentPackets.erase(it.first);
+                    break;
+                }
+            }
+        }
         break;
     }
     case eDataType: {
@@ -276,6 +329,16 @@ void UDPSocket::recvAutoMsg(int timeout) {
     }
     default: std::cout << "Error: unknown received type(" << ph.type << ")" << std::endl;
     }
+}
+
+void UDPSocket::sendAutoAck(uint8_t sn, const IpPort& ipPort)
+{
+    std::cout << "Send acknowledge for message(" << sn << ")" << std::endl;
+
+    Json jAck;
+    jAck.put("ack_sn", (double)sn); //TODO: общий тип для всех числовых значений
+
+    Socket::sendFragments(ipPort, eControlType, convert_to_packet(jAck.to_string(-1)));
 }
 
 void UDPSocket::setMaxMsgsSentOnTick(int count) {

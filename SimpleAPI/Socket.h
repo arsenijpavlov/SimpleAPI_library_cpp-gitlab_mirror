@@ -19,7 +19,7 @@
 /* ================================================================================================
  * API v.1
  * ================================================================================================
- * Packets structure:
+ * Packets structure (Data/Json):
  * [ C/D/J (2) | API version (2) | Start Data (1) | Chiphering enable (1) | CRC level (2) | ...
  *       ... | sequence number (8) | CRC (if enabaled, X bytes) | size (16) | data[size] ]
  * ________________________________________________________________________________________________
@@ -31,12 +31,26 @@
  *  Start Data          - флаг начала сообщения, необходим для корректного приёма
  *  Chiphering enabled  - флаг шифрования, параметры шифрования д/б отправлены контрольным пакетом
  *  CRC level           - формат checksum, используемый для проверки целостности пакета
- *                      (в основном необходимо для сборки больших пакетов)
+ *                      (в основном необходимо для сборки больших пакетов, скорее всего избыточная информация)
  *  sequence number     - порядковый номер пакета, нужен для сборки больших сообщений и проверки
  *                       корректности доставки
  *  CRC                 - checksum полного сообщения, не дублируется для последующих частей
  *  size                - размер полного сообщения, не дублируется для последующих частей
  *  data                - данные
+ * ==============================================================================================
+ * Packets structure (Control):
+ * [ C/D/J (2) | API version (2) | Start Data (1) | Chiphering enable (1) | CRC level (2) | JSON:{} ]
+ * ________________________________________________________________________________________________
+ *  C/D/J               - тип пакета:
+ *                          * Control, необходимый для работы сокета
+ *                          * Data, сырые данные
+ *                          * Json, JSON-формат текстового сообщения
+ *  API version         - версия библиотеки, обратная совместимость обязательна
+ *  Start Data          - флаг начала сообщения, необходим для корректного приёма
+ *  Chiphering enabled  - флаг шифрования, параметры шифрования д/б отправлены контрольным пакетом
+ *  CRC level           - формат checksum, используемый для проверки целостности пакета
+ *                      (в основном необходимо для сборки больших пакетов, скорее всего избыточная информация)
+ *  JSON:{}             - текстовое представление контрольного сообщения (без шифрования)
  * ==============================================================================================*/
 
 #define MAX_PACKET_LENGTH 65535
@@ -92,12 +106,14 @@ public:
     uint16_t    port;
     Packet      packet;
     EECounter   sn;
+    PacketType  type;
 
     PacketMessage() : sn(0) { clear(); };
 
     void clear() { ip=""; port=0; packet={}; sn.reset(); }
     std::string to_string();
 };
+
 class JsonMessage {
 public:
     std::string ip;
@@ -156,6 +172,7 @@ public:
 //=====================================
 //ONLY FOR USE IN SOCKET_THREAD!
 protected:
+    void            sendFragments(const IpPort& remoteIpPort, const PacketType type, const Packet& packet);
     virtual void    sendFragments(const std::string& remoteIP, const uint16_t remotePort, const PacketType type, const Packet& packet) = 0;
 
     //для доступа извне------------------------
@@ -170,6 +187,7 @@ protected:
     virtual void    tick() = 0;
     virtual void    sendAutoMsg() = 0;
     virtual void    recvAutoMsg(int timeout) = 0;
+    virtual void    sendAutoAck(uint8_t sn, const IpPort& ipPort) = 0;
 
 public:
     bool isChiphering() { /*TODO: isChiphering()*/ return false; }
@@ -237,6 +255,7 @@ protected:
     void tick();
     void sendAutoMsg();
     void recvAutoMsg(int timeout);
+    void sendAutoAck(uint8_t sn, const IpPort& ipPort);
 
 public:
 //    void enableChip(/*ChiphgeringSettings*/);

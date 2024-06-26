@@ -16,9 +16,9 @@ void SocketThread::run() {
             PacketMessage pm = sock->getOutPacket();
             if(!pm.packet.empty() && this->packetCallback)
                 this->packetCallback(pm);
-            JsonMessage jm = sock->getOutJson();
-            if(!jm.json.isEmpty() && this->jsonCallback)
-                this->jsonCallback(jm);
+//            JsonMessage jm = sock->getOutJson();
+//            if(!jm.json.isEmpty() && this->jsonCallback)
+//                this->jsonCallback(jm);
         }
 
         usleep(1);
