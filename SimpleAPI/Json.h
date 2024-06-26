@@ -195,7 +195,7 @@ public:
 
     std::string to_string(int16_t tabulation_level = 0) const;
     size_t size()                                               { return values.size(); }
-    bool isEmpty()                                              { return values.size() > 0; }
+    bool isEmpty()                                              { return values.size() == 0; }
     JVector::iterator begin()                                   { return values.begin(); }
     JVector::iterator end()                                     { return values.end(); }
     JVector::const_iterator cbegin()                      const { return values.begin(); }
