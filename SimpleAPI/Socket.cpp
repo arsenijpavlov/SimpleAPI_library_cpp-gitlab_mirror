@@ -54,6 +54,7 @@ void Socket::unpackHeader(uint8_t header, PacketHeader& ph) {
     ph.crcLevel         = (CRC)(header & 0xFF); //2
 }
 
+//TODO: Socket::getSeqNumber()
 EECounter Socket::getSeqNumber(const IpPort& ipPort) {
     auto it = mapActiveConnections.find(ipPort);
     if(it == mapActiveConnections.end())
@@ -62,7 +63,7 @@ EECounter Socket::getSeqNumber(const IpPort& ipPort) {
     return it->second++;
 }
 
-Socket::Socket() : mSocketFD(-1), maxLength(1500), maxMsgsSentOnTick(-1) {}
+Socket::Socket() : mSocketFD(-1), maxLength(1500), maxMsgsSentOnTick(-1), inactivityTimer(1000) {}
 
 bool Socket::sendRawMsg(const PacketMessage &packetMessage) {
     return sendRawMsg(packetMessage.ip, packetMessage.port, packetMessage.packet);
@@ -215,25 +216,36 @@ void UDPSocket::tick() {
 
 void UDPSocket::sendAutoMsg() {
     int counter = 0; //общий счётчик за проход функции
-    //перепосылка недоставленных пакетов
-    for(size_t i = 0;
-         i < mapAutoSentPackets.size() && ((counter < maxMsgsSentOnTick) || (maxMsgsSentOnTick < 0));
-         i++) {
+    this->outputThreadsMutex.lock();
 
+    //перепосылка недоставленных пакетов
+    for(auto it = this->mapAutoSentPackets.begin();
+         it != this->mapAutoSentPackets.end() && ((counter < maxMsgsSentOnTick) || (maxMsgsSentOnTick < 0));
+         it++) {
+        time_point_default tp = it->first;
+        tp += std::chrono::milliseconds(this->inactivityTimer);
+        PacketMessage pm = it->second;
+        if(tp < std::chrono::system_clock::now()) { //нужно переотправить
+            it = this->mapAutoSentPackets.erase(it);
+            this->mapSendPacketsBuffer.push_front(pm);
+            counter++;
+        }
     }
 
     //постепенная отправка пакетов в сокет
-    this->outputThreadsMutex.lock();
     while(!this->mapSendPacketsBuffer.empty()
            && ((counter < maxMsgsSentOnTick) || (maxMsgsSentOnTick < 0))
            ) {
         PacketMessage pm = this->mapSendPacketsBuffer.front();
         this->mapSendPacketsBuffer.pop_front();
-        Socket::sendRawMsg(pm);             //отправили
-        mapAutoSentPackets.push_back(pm);   //запомнили для ожидания ответа или досылки
+        Socket::sendRawMsg(pm); //отправили
+        //запоминаем для ожидания ответа или досылки
+        time_point_default current_time = std::chrono::system_clock::now();
+        mapAutoSentPackets.insert(std::make_pair(current_time, pm));
 
         counter++;
     }
+
     this->outputThreadsMutex.unlock();
 }
 

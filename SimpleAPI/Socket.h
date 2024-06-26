@@ -42,7 +42,10 @@
 #define MAX_PACKET_LENGTH 65535
 
 using Packet = std::vector<uint8_t>;
-using SNumber = uint8_t;
+using SNumber = uint8_t; //TODO: ?
+using time_point_default = std::chrono::time_point<
+    std::chrono::system_clock,
+    std::chrono::duration<long, std::ratio<1, 1000000000>>>;
 Packet convert_to_packet(const std::string& str);
 Packet convert_to_packet(const char* str);
 std::string convert_from_packet(const Packet& packet);
@@ -125,6 +128,8 @@ protected:
     uint16_t    localPort;
 
     int maxMsgsSentOnTick;
+    uint32_t inactivityTimer; //для проверки коннекта, перепосылки недоставленных сообщений и прочего
+
 
     uint8_t         packHeader(const PacketHeader& ph);
     void            unpackHeader(uint8_t header, PacketHeader& ph);
@@ -187,12 +192,14 @@ public:
 
 class UDPSocket : public Socket {
     //работа через tick()
-    std::map<IpPort, std::time_t>           mapLastActivity;
-    std::map<std::time_t, PacketMessage>    mapSendGlobalPackets; //запоминаем до тех пор, пока не придёт подтверждение о передаче всех фрагментов
-    std::deque<PacketMessage>       mapSendPackets; //фрагменты на отправку
-    std::vector<PacketMessage>      mapAutoSentPackets;
-    std::deque<PacketMessage>       mapRecvPackets;
-    PacketMessage tmpRecvJsonPacket; //не в map, потому что сборка Json произойдёт в recvAutoMsg()
+    std::map<IpPort, time_point_default>        mapLastActivity;
+    std::vector<PacketMessage>                  mapSentGlobalPackets; //запоминаем до тех пор, пока не придёт подтверждение о передаче всех фрагментов
+
+    std::deque<PacketMessage>                   mapSendPackets;     //фрагменты на отправку
+    std::map<time_point_default, PacketMessage> mapAutoSentPackets; //уже отправленные фрагменты
+
+    std::deque<PacketMessage>   mapRecvPackets;
+    PacketMessage               tmpRecvJsonPacket; //не в map, потому что сборка Json произойдёт в recvAutoMsg()
 
     //для доступа извне------------------------
     std::mutex                  outputThreadsMutex;
