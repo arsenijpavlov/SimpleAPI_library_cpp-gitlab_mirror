@@ -163,6 +163,7 @@ public:
 }; /// class Array
 
 using JVector = std::vector<std::pair<std::string, Element>>;
+using JMap = std::map<std::string, Element>; //TODO: переделать всё на этот вариант
 // Неупорядоченный список "ключ-значение" (в данном случае упорядочен)
 class Json
 {
@@ -170,8 +171,9 @@ class Json
 
     bool checkIndexes(const size_t index);
 public:
-    Json();;
+    Json();
     Json(const Json& json);
+//    TODO: Json(const std::string& json_string);
     ~Json();
 
     __ONLY_ALLOWED_TYPES__(T)
@@ -196,6 +198,9 @@ public:
     std::string to_string(int16_t tabulation_level = 0) const;
     size_t size()                                               { return values.size(); }
     bool isEmpty()                                              { return values.size() == 0; }
+    bool contains(const std::string& key);
+
+
     JVector::iterator begin()                                   { return values.begin(); }
     JVector::iterator end()                                     { return values.end(); }
     JVector::const_iterator cbegin()                      const { return values.begin(); }

@@ -445,6 +445,15 @@ std::string Json::to_string(int16_t tabulation_level) const
     return ret;
 }
 
+bool Json::contains(const std::string &key) {
+    for(auto& el : this->values) {
+        if(el.first == key)
+            return true;
+    }
+
+    return false;
+}
+
 void Json::erase(const size_t index)
 {
     if(index > this->values.size() - 1) return;
@@ -748,14 +757,14 @@ bool CheckArray(std::string& value)
 
 bool Json::parseJson(const std::string& json_str)
 {
-    std::cout << "ParseJson(): " << json_str << std::endl;
+//    std::cout << "ParseJson(): " << json_str << std::endl;
     bool return_code = true;
 
     //ищем границы Json конструкции
     size_t startIndex = json_str.find('{');
     size_t endIndex = json_str.find_last_of('}');
     if((startIndex == -1) || (endIndex == -1)) {
-        std::cout << "JSON not found in: " << json_str << std::endl;
+//        std::cout << "JSON not found in: " << json_str << std::endl;
         return false;
     }
 
