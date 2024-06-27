@@ -287,8 +287,6 @@ void UDPSocket::recvAutoMsg(int timeout) {
     uint16_t size = (pm.packet[2] << 8) + pm.packet[3];
 
     pm.packet.erase(pm.packet.begin(), pm.packet.begin() + 4); //удалить первые две пары элементов
-    if(ph.type != eControlType)
-        sendAutoAck(sequence_number, {pm.ip, pm.port});
 
     Json json;
     json.parseJson(convert_from_packet(pm.packet));
@@ -296,6 +294,9 @@ void UDPSocket::recvAutoMsg(int timeout) {
     std::cout << "Recv: " << to_string(ph.type) << " ["
               << (json.isEmpty() ? "Data:0x" + utils::to_hex_string(pm.packet) : "Json:" + json.to_string(-1))
               << "] <-(from)- " << IpPort{pm.ip, pm.port}.to_string() << std::endl;
+
+    if(ph.type != eControlType)
+        sendAutoAck(sequence_number, {pm.ip, pm.port});
 
     switch(ph.type) {
     case eControlType: {
