@@ -71,6 +71,7 @@ enum PacketType {
     eDataType       = 1,
     eJsonType       = 2
 };
+std::string to_string(PacketType type);
 
 enum ApiVersion {
     Version_1   = 1

@@ -60,7 +60,7 @@ EECounter Socket::getSeqNumber(const IpPort& ipPort) {
     if(it == mapActiveConnections.end())
         it = mapActiveConnections.insert(std::pair<IpPort, EECounter>(ipPort, EECounter(255))).first;
 
-    std::cout << "current sn: " << it->second.get() << std::endl;
+//    std::cout << "current sn: " << it->second.get() << std::endl;
 
     return it->second++;
 }
@@ -117,7 +117,12 @@ void Socket::sendFragments(const IpPort &remoteIpPort, const PacketType type, co
 
 void UDPSocket::sendFragments(const std::string& remoteIP, const uint16_t remotePort, const PacketType type, const Packet& packet)
 {
-    std::cout << "Message to socket (" << packet.size() << " bytes)" << std::endl;
+    Json json;
+    json.parseJson(convert_from_packet(packet));
+
+    std::cout << "Send: " << to_string(type) << " ["
+              << (json.isEmpty() ? "Data:0x" + utils::to_hex_string(packet) : "Json:" + json.to_string(-1))
+              << "] --(to)--> " << IpPort{remoteIP, remotePort}.to_string() << std::endl;
 
     Packet innerData;
     //=CHIP_and_CRC_and_SIZE_and_DATA===========================================
@@ -161,15 +166,6 @@ void UDPSocket::sendFragments(const std::string& remoteIP, const uint16_t remote
     //==========================================================================
 
     //подготавливаем пакеты к отправке
-    std::string stype;
-    switch(type) {
-    case eControlType:  stype = "CONTROL";  break; //TODO: вынести в to_string()
-    case eDataType:     stype = "DATA";     break;
-    case eJsonType:     stype = "JSON";     break;
-    default:            stype = "UNKNOWN";
-    }
-    std::cout << "Prepare to send [" << stype << "] (" << innerData.size() << " bytes), MTU=" << this->maxLength << std::endl;
-
     Packet      fragment;
     size_t      currentPos = 0;
     uint16_t    currentFragmentSize;
@@ -297,16 +293,9 @@ void UDPSocket::recvAutoMsg(int timeout) {
     Json json;
     json.parseJson(convert_from_packet(pm.packet));
 
-    std::string stype;
-    switch(ph.type) {
-    case eControlType:  stype = "CONTROL";  break;
-    case eDataType:     stype = "DATA";     break;
-    case eJsonType:     stype = "JSON";     break;
-    default:            stype = "UNKNOWN";
-    }
-    std::cout << "Recv: [" << stype << "] ["
-              << (json.isEmpty() ? "Data:" + pm.to_string() : "Json:" + json.to_string(-1))
-              << "]" << std::endl;
+    std::cout << "Recv: " << to_string(ph.type) << " ["
+              << (json.isEmpty() ? "Data:0x" + utils::to_hex_string(pm.packet) : "Json:" + json.to_string(-1))
+              << "] <-(from)- " << IpPort{pm.ip, pm.port}.to_string() << std::endl;
 
     switch(ph.type) {
     case eControlType: {
@@ -363,8 +352,6 @@ UDPSocket::~UDPSocket() {
 
 bool UDPSocket::sendRawMsg(const std::string &remoteIP, const uint16_t remotePort, const Packet &packet)
 {
-    std::cout << "UDPSocket::sendRawMsg -> " << IpPort{remoteIP, remotePort}.to_string() << std::endl;
-
     struct sockaddr_in sock;
     sock.sin_family = AF_INET;
     sock.sin_port = htons(remotePort);
@@ -375,7 +362,7 @@ bool UDPSocket::sendRawMsg(const std::string &remoteIP, const uint16_t remotePor
         std::cout << "ErrNo: " << errno << std::endl;
         return false;
     }
-    std::cout << "Sent " << res << " bytes" << std::endl;;
+//    std::cout << "Sent (" << res << ") -> " << IpPort{remoteIP, remotePort}.to_string() << std::endl;
     return res > 0;
 }
 
@@ -558,4 +545,13 @@ std::string JsonMessage::to_string(int arg)
     out += "[(" + std::to_string(this->json.size()) + ")" + this->json.to_string(arg) + "]";
 
     return out;
+}
+
+std::string to_string(PacketType type) {
+    switch(type){
+    case eControlType:  return "[CONTROL]";
+    case eDataType:     return "[DATA]";
+    case eJsonType:     return "[JSON]";
+    default: return "UNKNOWN";
+    }
 }
