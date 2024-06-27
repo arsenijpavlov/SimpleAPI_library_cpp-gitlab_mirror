@@ -58,7 +58,9 @@ void Socket::unpackHeader(uint8_t header, PacketHeader& ph) {
 EECounter Socket::getSeqNumber(const IpPort& ipPort) {
     auto it = mapActiveConnections.find(ipPort);
     if(it == mapActiveConnections.end())
-        it = mapActiveConnections.insert(std::pair<IpPort, EECounter>(ipPort, 0)).first;
+        it = mapActiveConnections.insert(std::pair<IpPort, EECounter>(ipPort, EECounter(255))).first;
+
+    std::cout << "current sn: " << it->second.get() << std::endl;
 
     return it->second++;
 }
@@ -288,7 +290,7 @@ void UDPSocket::recvAutoMsg(int timeout) {
     uint8_t sequence_number = pm.packet[1]; //TODO: нужна защита от некорректного размера чтения!
     uint16_t size = (pm.packet[2] << 8) + pm.packet[3];
 
-    pm.packet.erase(pm.packet.begin(), pm.packet.begin() + 4); //удалить первую две пары элементов
+    pm.packet.erase(pm.packet.begin(), pm.packet.begin() + 4); //удалить первые две пары элементов
     if(ph.type != eControlType)
         sendAutoAck(sequence_number, {pm.ip, pm.port});
 
@@ -312,7 +314,7 @@ void UDPSocket::recvAutoMsg(int timeout) {
             uint8_t sn = *json["ack_sn"].getNum();
 //TODO:            auto it = FindSentSn(sn);
             for(auto& it : this->mapAutoSentPackets) {
-                if(it.second.sn == sn) {
+                if(it.second.sn.get() == sn) {
                     this->mapAutoSentPackets.erase(it.first);
                     break;
                 }
