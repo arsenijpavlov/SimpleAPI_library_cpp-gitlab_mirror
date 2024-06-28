@@ -54,13 +54,10 @@ void Socket::unpackHeader(uint8_t header, PacketHeader& ph) {
     ph.crcLevel         = (CRC)(header & 0xFF); //2
 }
 
-//TODO: Socket::getSeqNumber()
 EECounter Socket::getSeqNumber(const IpPort& ipPort) {
     auto it = mapActiveConnections.find(ipPort);
     if(it == mapActiveConnections.end())
         it = mapActiveConnections.insert(std::pair<IpPort, EECounter>(ipPort, EECounter(255))).first;
-
-//    std::cout << "current sn: " << it->second.get() << std::endl;
 
     return it->second++;
 }
@@ -494,38 +491,6 @@ JsonMessage UDPSocket::getOutJson()
         this->inputThreadsMutex.unlock();
     }
     return jm;
-}
-
-const bool IpPort::operator==(const IpPort &other) {
-    if(this->ip == other.ip && this->port == other.port)    return true;
-    else                                                    return false;
-}
-
-const bool IpPort::operator!=(const IpPort &other) {
-    if(this->ip != other.ip || this->port != other.port)    return true;
-    else                                                    return false;
-}
-
-const bool IpPort::operator<(const IpPort &other) const
-{
-    if(this->port == other.port) {
-        if(this->ip < other.ip) return true;
-        else                    return false;
-    }
-
-    if(this->port < other.port) return true;
-    else                        return false;
-}
-
-const bool IpPort::operator>(const IpPort &other) const
-{
-    if(this->port == other.port) {
-        if(this->ip > other.ip) return true;
-        else                    return false;
-    }
-
-    if(this->port > other.port) return true;
-    else                        return false;
 }
 
 std::string PacketMessage::to_string()

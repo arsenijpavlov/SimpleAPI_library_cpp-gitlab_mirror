@@ -2,6 +2,7 @@
 #define SOCKET_H
 
 #include "EECounter.h"
+#include "IpPort.h"
 #include "Json.h"
 
 #include <deque>
@@ -45,11 +46,10 @@
  *                          * Control, необходимый для работы сокета
  *                          * Data, сырые данные
  *                          * Json, JSON-формат текстового сообщения
- *  API version         - версия библиотеки, обратная совместимость обязательна
- *  Start Data          - флаг начала сообщения, необходим для корректного приёма
- *  Chiphering enabled  - флаг шифрования, параметры шифрования д/б отправлены контрольным пакетом
- *  CRC level           - формат checksum, используемый для проверки целостности пакета
- *                      (в основном необходимо для сборки больших пакетов, скорее всего избыточная информация)
+ *  API version         - ...
+ *  Start Data          - ...
+ *  Chiphering enabled  - ..., false для всех [CONTROL] пакетов
+ *  CRC level           - ...
  *  JSON:{}             - текстовое представление контрольного сообщения (без шифрования)
  * ==============================================================================================*/
 
@@ -87,18 +87,6 @@ enum CRC {
 enum SocketType {
     eUDP,
     eTCP
-};
-
-struct IpPort {
-    std::string ip;
-    uint16_t port;
-
-    const bool operator==(const IpPort& other);
-    const bool operator!=(const IpPort& other);
-    const bool operator<(const IpPort& other) const;
-    const bool operator>(const IpPort& other) const;
-
-    std::string to_string() { return "[" + this->ip + ":" + std::to_string(this->port) + "]"; }
 };
 
 class PacketMessage {
