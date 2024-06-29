@@ -41,10 +41,11 @@ EECounter Socket::getSeqNumber(const IpPort& ipPort) {
 }
 
 Socket::Socket() :
-    mSocketFD(-1),
-    maxLength(1500),
-    maxMsgsSentOnTick(-1),
-    inactivityTimer(1000) {}
+    mSocketFD(-1) {
+    settings.maxLength          = 1500;
+    settings.maxMsgsSentOnTick  = -1;
+    settings.inactivityTimer    = 1000;
+}
 
 bool Socket::sendRawMsg(const PacketMessage &packetMessage) {
     return sendRawMsg(packetMessage.ip, packetMessage.port, packetMessage.packet);
@@ -55,7 +56,7 @@ bool Socket::isServerActive() {
 }
 
 void Socket::enableCRC(CRC crcLevel) {
-    this->crcLevel = crcLevel;
+    this->settings.crcLevel = crcLevel;
 }
 
 bool Socket::sendMsg(const IpPort &remoteIpPort, const Packet &packet) {
@@ -67,14 +68,14 @@ bool Socket::sendMsg(const IpPort &remoteIpPort, const Json &json) {
 }
 
 void Socket::setMaxLength(uint16_t newMaxSize) {
-    maxLength = newMaxSize;
+    settings.maxLength = newMaxSize;
 }
 
 void Socket::setUseApiVersion(ApiVersion version) {
     switch(version) {
 //    case ...
     default: //NOTE: по умолчанию всегда самая последняя из списка!
-    case Version_1: useApiVersion = version;    break;
+    case Version_1: settings.useApiVersion = version;    break;
     }
 }
 
@@ -102,7 +103,7 @@ void UDPSocket::sendFragments(const std::string& remoteIP, const uint16_t remote
     Packet innerData;
     //=CHIP_and_CRC_and_SIZE_and_DATA===========================================
     //оставляем место для поля CRC
-    switch(crcLevel) {
+    switch(settings.crcLevel) {
     case eCRC_8:
         innerData.push_back(0);
         break;
@@ -129,7 +130,7 @@ void UDPSocket::sendFragments(const std::string& remoteIP, const uint16_t remote
     std::copy(packet.begin(), packet.end(), innerData.begin() + tempSize);
     if(type != eControlType) {
         //обновляем поле CRC
-        switch(crcLevel) {
+        switch(settings.crcLevel) {
         case eCRC_8:    utils::checkCrc8(innerData);    break;
         case eCRC_16:   utils::checkCrc16(innerData);   break;
         case eCRC_32:   utils::checkCrc32(innerData);   break;
@@ -148,13 +149,13 @@ void UDPSocket::sendFragments(const std::string& remoteIP, const uint16_t remote
     std::vector<PacketMessage> fragments;
     bool isFirstFragment = true;
     while(innerData.size() - currentPos > 0) {
-        uint16_t availableSize = this->maxLength;
+        uint16_t availableSize = this->settings.maxLength;
 
         EECounter fragment_sn = getSeqNumber({remoteIP, remotePort});
         //упаковываем фрагмент
         Packet buf;
         {
-            buf.push_back(packHeader({type, useApiVersion, isFirstFragment, isChiphering(), crcLevel}));
+            buf.push_back(packHeader({type, settings.useApiVersion, isFirstFragment, isChiphering(), settings.crcLevel}));
             buf.push_back(fragment_sn.get()); //для текущего клиента
             availableSize -= buf.size();
 
@@ -193,10 +194,10 @@ void UDPSocket::sendFragments(const std::string& remoteIP, const uint16_t remote
         /*обратный порядок упаковки, чтобы раздробленное контрольное сообщение ушло
          * в правильном порядке, но с приоритетом */
         for(auto back_it = fragments.rbegin(); back_it != fragments.rend(); back_it++)
-            this->mapSendPacketsBuffer.push_front(*back_it); //контрольные пакеты имеют приоритет при отправке
+            this->sendPacketsBuffer.push_front(*back_it); //контрольные пакеты имеют приоритет при отправке
     } else {
         for(PacketMessage& p : fragments)
-            this->mapSendPacketsBuffer.push_back(p);
+            this->sendPacketsBuffer.push_back(p);
     }
     this->outputThreadsMutex.unlock();
     //дальнейшая обработка пакета происходит в функции tick()
@@ -206,7 +207,7 @@ void UDPSocket::sendFragments(const std::string& remoteIP, const uint16_t remote
     pm.ip       = remoteIP;
     pm.port     = remotePort;
     pm.type     = type;
-    this->mapSentGlobalPackets.push_back(pm);
+    this->sentGlobalPackets.push_back(pm);
 }
 
 void UDPSocket::tick() {
@@ -220,24 +221,24 @@ void UDPSocket::sendAutoMsg() {
 
     //перепосылка недоставленных пакетов
     for(auto it = this->mapAutoSentPackets.begin();
-         it != this->mapAutoSentPackets.end() && ((counter < maxMsgsSentOnTick) || (maxMsgsSentOnTick < 0));
+         it != this->mapAutoSentPackets.end() && ((counter < settings.maxMsgsSentOnTick) || (settings.maxMsgsSentOnTick < 0));
          it++) {
         time_point_default tp = it->first;
-        tp += std::chrono::milliseconds(this->inactivityTimer);
+        tp += std::chrono::milliseconds(this->settings.inactivityTimer);
         PacketMessage pm = it->second;
         if(tp < std::chrono::system_clock::now()) { //нужно переотправить
             it = this->mapAutoSentPackets.erase(it);
-            this->mapSendPacketsBuffer.push_front(pm);
+            this->sendPacketsBuffer.push_front(pm);
             counter++;
         }
     }
 
     //постепенная отправка пакетов в сокет
-    while(!this->mapSendPacketsBuffer.empty()
-           && ((counter < maxMsgsSentOnTick) || (maxMsgsSentOnTick < 0))
+    while(!this->sendPacketsBuffer.empty()
+           && ((counter < settings.maxMsgsSentOnTick) || (settings.maxMsgsSentOnTick < 0))
            ) {
-        PacketMessage pm = this->mapSendPacketsBuffer.front();
-        this->mapSendPacketsBuffer.pop_front();
+        PacketMessage pm = this->sendPacketsBuffer.front();
+        this->sendPacketsBuffer.pop_front();
         Socket::sendRawMsg(pm); //отправили
 
         if(pm.type != eControlType) { //контрольные пакеты не перепосылаются, поэтому хранить их не нужно
@@ -306,7 +307,7 @@ void UDPSocket::sendAutoAck(uint8_t sn, const IpPort& ipPort)
 }
 
 void UDPSocket::setMaxMsgsSentOnTick(int count) {
-    maxMsgsSentOnTick = count;
+    settings.maxMsgsSentOnTick = count;
 }
 
 UDPSocket::UDPSocket(const IpPort &ipPort)
@@ -449,7 +450,7 @@ PacketMessage UDPSocket::getOutPacket()
     if(this->mapRecvPacketsBuffer.size() > 0) {
         this->inputThreadsMutex.lock();
         pm = this->mapRecvPacketsBuffer.front();
-        this->mapSendPacketsBuffer.pop_front();
+        this->mapRecvPacketsBuffer.pop_front();
         this->inputThreadsMutex.unlock();
     }
     return pm;
