@@ -16,75 +16,65 @@ EECounter::EECounter(const EECounter &other) {
     this->global_pos = other.global_pos;
 }
 
-bool EECounter::operator==(const EECounter &other)
-{
+bool EECounter::operator==(const EECounter &other) {
     _INCOMPATIBLE_EXCEPTION_
 
     if(this->pos == other.pos && this->global_pos == other.global_pos)  return true;
     else                                                                return false;
 }
 
-bool EECounter::operator!=(const EECounter &other)
-{
+bool EECounter::operator!=(const EECounter &other) {
     _INCOMPATIBLE_EXCEPTION_
 
     if(this->pos != other.pos || this->global_pos != other.global_pos)  return true;
     else                                                                return false;
 }
 
-bool EECounter::operator<(const EECounter &other)
-{
+bool EECounter::operator<(const EECounter &other) {
     _INCOMPATIBLE_EXCEPTION_
 
     if(this->pos < other.pos && this->global_pos < other.global_pos)    return true;
     else                                                                return false;
 }
 
-bool EECounter::operator>(const EECounter &other)
-{
+bool EECounter::operator>(const EECounter &other) {
     _INCOMPATIBLE_EXCEPTION_
 
     if(this->pos > other.pos && this->global_pos > other.global_pos)    return true;
     else                                                                return false;
 }
 
-bool EECounter::operator<=(const EECounter &other)
-{
+bool EECounter::operator<=(const EECounter &other) {
     if(*this == other)  return true;
     if(*this < other)   return true;
 
     return false;
 }
 
-bool EECounter::operator>=(const EECounter &other)
-{
+bool EECounter::operator>=(const EECounter &other) {
     if(*this == other)  return true;
     if(*this > other)   return true;
 
     return false;
 }
 
-EECounter& EECounter::operator++()
-{
+EECounter& EECounter::operator++() {
     this->add();
     return *this;
 }
 
-EECounter& EECounter::operator--()
-{
+EECounter& EECounter::operator--() {
     this->sub();
     return *this;
 }
 
-EECounter EECounter::operator++(int)
-{
+EECounter EECounter::operator++(int) {
     EECounter saved(*this);
     this->add();
     return saved;
 }
 
-EECounter EECounter::operator--(int)
-{
+EECounter EECounter::operator--(int) {
     EECounter saved(*this);
     this->sub();
     return saved;
@@ -96,20 +86,23 @@ EECounter EECounter::operator+(uint64_t step) {
     return saved;
 }
 
-EECounter EECounter::operator-(uint64_t step)
-{
+EECounter EECounter::operator-(uint64_t step) {
     EECounter saved(*this);
     saved.sub(step);
     return saved;
 }
 
-uint64_t EECounter::get()
-{
+uint64_t EECounter::get() {
     return pos;
 }
 
-uint64_t EECounter::get_next()
-{
+uint64_t EECounter::get_add() {
+    EECounter saved(*this);
+    this->add();
+    return saved.pos;
+}
+
+uint64_t EECounter::get_next() {
     EECounter saved(*this);
     return (++saved).get();
 }
@@ -142,8 +135,7 @@ EECounter EECounter::operator-(const EECounter& other) {
     return saved;
 }
 
-void EECounter::add(uint64_t step)
-{
+void EECounter::add(uint64_t step) {
     pos += step;
     if(pos > size) {
         pos = size - pos;
@@ -151,14 +143,12 @@ void EECounter::add(uint64_t step)
     }
 }
 
-void EECounter::sub(uint64_t step)
-{
+void EECounter::sub(uint64_t step) {
     pos += step;
     if(pos > size) pos = size - pos;
 }
 
-void EECounter::reset()
-{
+void EECounter::reset() {
     pos = 0;
     global_pos = 0;
 }

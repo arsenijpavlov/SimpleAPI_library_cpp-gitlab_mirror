@@ -29,6 +29,7 @@ public:
     EECounter operator-(const EECounter& other);
 
     uint64_t get();
+    uint64_t get_add();
     uint64_t get_next();
     void add(uint64_t step = 1);
     void sub(uint64_t step = 1);
