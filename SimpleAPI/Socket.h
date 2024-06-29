@@ -80,14 +80,13 @@ enum SocketType {
     eTCP
 };
 
-// [ D/C(1) | ApiVersion(2) |  | other...
 struct PacketHeader {
-    PacketType  type;
-    ApiVersion  version;
-    bool        isFirstFragment;
-    bool        isLastFragment;
-    bool        isChip;
-    CRC         crcLevel;
+    PacketType  type;           //1 bit
+    ApiVersion  version;        //2 bits
+    bool        isFirstFragment;//1 bit
+    bool        isLastFragment; //1 bit
+    bool        isChip;         //1 bit
+    CRC         crcLevel;       //2 bits
 };
 
 struct ChannelSettings {
@@ -133,6 +132,7 @@ protected:
     void            unpackHeader(uint8_t header, PacketHeader& ph);
     EECounter       getOutSeqNumber(const IpPort& ipPort);
     EECounter       getInSeqNumber(const IpPort& ipPort);
+    PacketMessage   buildPacket(PacketMessage receivedPM);
 
     void            sendFragments(const std::string& remoteIp, const uint16_t remotePort, const PacketType type, const Packet& packet);
     virtual void    sendFragments(const IpPort& remoteIpPort, const PacketType type, const Packet& packet) = 0;
@@ -140,7 +140,6 @@ protected:
     virtual void    tick() = 0;
     virtual void    sendAutoMsg() = 0;
     virtual void    recvAutoMsg(int timeout) = 0;
-    virtual void    sendAutoAck(uint8_t sn, const IpPort& ipPort) = 0;
     //=====================================
     friend class SocketThread; //NOTE: для функции tick()
 
@@ -199,7 +198,6 @@ class UDPSocket : public Socket {
     void            tick();
     void            sendAutoMsg();
     void            recvAutoMsg(int timeout);
-    void            sendAutoAck(uint8_t sn, const IpPort& ipPort);
     //=====================================
 
 public:

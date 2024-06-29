@@ -50,6 +50,12 @@ EECounter Socket::getInSeqNumber(const IpPort& ipPort) {
     return it->second.inSn;
 }
 
+PacketMessage Socket::buildPacket(PacketMessage receivedPM)
+{
+//TODO: сборка пакетов
+    return {};
+}
+
 Socket::Socket() : mSocketFD(-1) {
     settings.maxLength          = 1500;
     settings.maxMsgsSentOnTick  = -1;
@@ -158,6 +164,9 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
     size_t      currentPos = 0;
     uint16_t    currentFragmentSize;
 
+    bool isFirstEECsaved = false;
+    EECounter firstSn(255);
+
     std::vector<PacketMessage> fragments;
     bool isStart    = true;
     bool isFinish   = false;
@@ -165,6 +174,9 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
         uint16_t availableSize = this->settings.maxLength;
 
         EECounter fragment_sn = getOutSeqNumber(remoteIpPort);
+        if(!isFirstEECsaved)
+            firstSn = fragment_sn;
+
         //упаковываем фрагмент
         Packet buf;
         {
@@ -233,11 +245,13 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
         pm.ipPort   = remoteIpPort;
         pm.packet   = packet;
         pm.type     = type;
+        pm.sn       = firstSn;
     }
     this->sentGlobalPackets.push_back(pm);
 }
 
 void UDPSocket::tick() {
+//TODO:    checkConnections();
     sendAutoMsg();
     recvAutoMsg(1);
 }
@@ -293,49 +307,72 @@ void UDPSocket::recvAutoMsg(int timeout) {
     PacketHeader ph;
     unpackHeader(pm.packet[0], ph);
     uint8_t sequence_number = pm.packet[1]; //TODO: нужна защита от некорректного размера чтения!
-    uint16_t size = (pm.packet[2] << 8) + pm.packet[3];
+//    uint16_t size = (pm.packet[2] << 8) + pm.packet[3];
 
     pm.packet.erase(pm.packet.begin(), pm.packet.begin() + 4); //удалить первые две пары элементов
 
-    Json json;
-    json.parseJson(convert_from_packet(pm.packet));
-    std::cout << "Recv: " << to_string(ph.type) << " ["
-              << (json.isEmpty() ? "Data:0x" + utils::to_hex_string(pm.packet) : "Json:" + json.to_string(-1))
-              << "] <-(from)- " << pm.ipPort.to_string() << std::endl;
+    bool isPacketComplete   = false; //пришёл последний фрагмент И пакет собран И дешифрация И проверка CRC
+    uint8_t builded_sn      = 0;
+    bool isBuildError       = false; //пришёл последний фрагмент И (пакет не собран ИЛИ !проверка CRC)
 
-    if(ph.type != eControlType)
-        sendAutoAck(sequence_number, pm.ipPort);
+    //TODO: сборка пакетов
+    PacketMessage b_pm = buildPacket(pm);
+    JsonMessage jm = b_pm;
 
-    switch(ph.type) {
-    case eControlType: {
-        if(json.contains("ack_sn")) {
-            uint8_t sn = *json["ack_sn"].getNum();
-//TODO:            auto it = FindSentSn(sn); ???
-            for(auto& it : this->mapAutoSentPackets) {
-                if(it.second.sn.get() == sn) {
-                    this->mapAutoSentPackets.erase(it.first);
-                    break;
+    if(!b_pm.packet.empty()) {
+        std::cout << "Recv: " << to_string(b_pm.type) << " ["
+                  << (jm.json.isEmpty() ? "Data:0x" + utils::to_hex_string(b_pm.packet)
+                                        : "Json:" + jm.json.to_string(-1))
+                  << "] <-(from)- " << b_pm.ipPort.to_string() << std::endl;
+
+        //обработка собранного пакета (1 за проход)
+        switch(ph.type) {
+        case eControlType: {
+            if(jm.json.contains("ack_sn")) {
+                uint8_t sn = *jm.json["ack_sn"].getNum();
+                for(auto& it : this->mapAutoSentPackets) {
+                    if(it.second.sn.get() == sn) {
+                        this->mapAutoSentPackets.erase(it.first);
+                        break;
+                    }
                 }
             }
+            if(jm.json.contains("ack_all_packet")) {
+                uint8_t first_sn = *jm.json["ack_all_packet"].getNum(); //номер первого фрагмента сообщения
+
+                for(auto it = this->sentGlobalPackets.begin(); it != this->sentGlobalPackets.end(); it++) {
+                    if(it->sn.get() == first_sn) {
+                        it = this->sentGlobalPackets.erase(it);
+                        break;
+                    }
+                }
+            }
+            break;
         }
-        break;
+        case eDataType: {
+            if(jm.json.isEmpty())
+                this->mapRecvPacketsBuffer.push_back(b_pm);
+            else
+                this->mapRecvJsonsBuffer.push_back(jm);
+            break;
+        }
+        default: std::cout << "Error: unknown received type(" << ph.type << ")" << std::endl;
+        }
     }
-    case eDataType: {
 
-        break;
+
+    Json controlAcknoledge;
+    if(ph.type != eControlType) {
+        std::cout << "Send acknowledge for message(" << pm.sn.get() << ")" << std::endl;
+        controlAcknoledge.put("ack_sn", (double)pm.sn.get()); //TODO: общий тип для всех числовых значений
     }
-    default: std::cout << "Error: unknown received type(" << ph.type << ")" << std::endl;
-    }
-}
+    if(b_pm.isBuiltComplete)
+        controlAcknoledge.put("ack_all_packet", (double)builded_sn);
+    if(b_pm.incorrectCRC)
+        controlAcknoledge.put("packet_error", (double)builded_sn); //TODO: проверка ошибок и переотправка
 
-void UDPSocket::sendAutoAck(uint8_t sn, const IpPort& ipPort)
-{
-    std::cout << "Send acknowledge for message(" << sn << ")" << std::endl;
-
-    Json jAck;
-    jAck.put("ack_sn", (double)sn); //TODO: общий тип для всех числовых значений
-
-    Socket::sendFragments(ipPort, eControlType, convert_to_packet(jAck.to_string(-1)));
+    if(!controlAcknoledge.isEmpty())
+        Socket::sendFragments(pm.ipPort, eControlType, convert_to_packet(controlAcknoledge.to_string(-1)));
 }
 
 void UDPSocket::setMaxMsgsSentOnTick(int count) {
@@ -406,9 +443,9 @@ PacketMessage UDPSocket::recvRawMsg(int timeout) {
         std::cout << "Error reading msg" << std::endl;
     } else if(recv_num > 0) {
         PacketMessage rpacket;
-        rpacket.ip.resize(INET_ADDRSTRLEN);
-        inet_ntop(AF_INET, &(sock.sin_addr), (char*)rpacket.ip.data(), INET_ADDRSTRLEN);
-        rpacket.port = ntohs(sock.sin_port);
+        rpacket.ipPort.ip.resize(INET_ADDRSTRLEN);
+        inet_ntop(AF_INET, &(sock.sin_addr), (char*)rpacket.ipPort.ip.data(), INET_ADDRSTRLEN);
+        rpacket.ipPort.port = ntohs(sock.sin_port);
         rpacket.packet = Packet(buf, buf + recv_num);
 
         return rpacket;
