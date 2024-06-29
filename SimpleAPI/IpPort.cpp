@@ -33,4 +33,6 @@ const bool IpPort::operator>(const IpPort &other) const
     else                        return false;
 }
 
-std::string IpPort::to_string() { return "[" + this->ip + ":" + std::to_string(this->port) + "]"; }
+std::string IpPort::to_string() const {
+    return "[" + this->ip + ":" + std::to_string(this->port) + "]";
+}
