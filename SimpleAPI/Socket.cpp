@@ -17,19 +17,21 @@ bool checkCorrectIp(const std::string& ipString) {
 }
 
 uint8_t Socket::packHeader(const PacketHeader& pm) {
-    return (pm.type << 6)
-           | (pm.version << 4)
-           | (pm.isFirstFragment << 3)
+    return (pm.type << 7)
+           | (pm.version << 5)
+           | (pm.isFirstFragment << 4)
+           | (pm.isLastFragment << 3)
            | (pm.isChip << 2)
            | pm.crcLevel;
 }
 
 void Socket::unpackHeader(uint8_t header, PacketHeader& ph) {
-    ph.type             = (PacketType)(header >> 6); //2
-    ph.version          = (ApiVersion)((header >> 4) & 0xFF); //2
-    ph.isFirstFragment  = (header >> 3) & 0xF; //1
-    ph.isChip           = (header >> 2) & 0xF; //1
-    ph.crcLevel         = (CRC)(header & 0xFF); //2
+    ph.type             = (PacketType)(header >> 7); //1
+    ph.version          = (ApiVersion)((header >> 5) & 0x3); //2
+    ph.isFirstFragment  = (header >> 4) & 0x1; //1
+    ph.isLastFragment   = (header >> 3) & 0x1; //1
+    ph.isChip           = (header >> 2) & 0x1; //1
+    ph.crcLevel         = (CRC)(header & 0x3); //2
 }
 
 EECounter Socket::getOutSeqNumber(const IpPort& ipPort) {
@@ -157,7 +159,8 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
     uint16_t    currentFragmentSize;
 
     std::vector<PacketMessage> fragments;
-    bool isFirstFragment = true;
+    bool isStart    = true;
+    bool isFinish   = false;
     while(innerData.size() - currentPos > 0) {
         uint16_t availableSize = this->settings.maxLength;
 
@@ -165,19 +168,33 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
         //упаковываем фрагмент
         Packet buf;
         {
-            buf.push_back(packHeader({type, settings.useApiVersion, isFirstFragment, isChiphering(), settings.crcLevel}));
-            buf.push_back(fragment_sn.get_add()); //для текущего клиента
-            availableSize -= buf.size();
-
             //высчитываем размер данных
             uint16_t leftSize = innerData.size() - currentPos;
             currentFragmentSize = leftSize > availableSize ? availableSize : leftSize;
-            if(isFirstFragment) //первый пакет в списке
-                isFirstFragment = false;
             fragment.resize(currentFragmentSize);
             std::copy(innerData.begin() + currentPos,
                       innerData.begin() + currentPos + currentFragmentSize,
                       fragment.begin());
+
+            //формируем заголовок
+            PacketHeader ph;
+            {
+                isFinish = currentFragmentSize == leftSize;
+
+                ph.type     = type;
+                ph.version  = settings.useApiVersion;
+                ph.isFirstFragment = isStart;
+                ph.isLastFragment = isFinish;
+                ph.isChip   = isChiphering();
+                ph.isChip   = isChiphering();
+                ph.crcLevel = settings.crcLevel;
+
+                if(isStart) //первый пакет в списке
+                    isStart = false;
+            }
+            buf.push_back(packHeader(ph));
+            buf.push_back(fragment_sn.get_add()); //для текущего клиента
+            availableSize -= buf.size();
 
             tempSize = buf.size();
             buf.resize(fragment.size() + tempSize);

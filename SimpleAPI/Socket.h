@@ -22,15 +22,15 @@
  * API v.1
  * ================================================================================================
  * Packets structure (Data/Json):
- * [ C/D/J (2) | API version (2) | Start Data (1) | Chiphering enable (1) | CRC level (2) | ...
- *       ... | sequence number (8) | CRC (if enabaled, X bytes) | size (16) | data[size] ]
+ * [ C/D(1) | API version(2) | Start Data(1) | Finish Data(1) | Chiphering enable (1) | CRC level (2) | ...
+ *          | sequence number (8) | CRC (if enabaled, X bytes) | size (16) | data[size] ]
  * ________________________________________________________________________________________________
- *  C/D/J               - тип пакета:
+ *  C/D                 - тип пакета:
  *                          * Control, необходимый для работы сокета
  *                          * Data, сырые данные
- *                          * Json, JSON-формат текстового сообщения
  *  API version         - версия библиотеки, обратная совместимость обязательна
- *  Start Data          - флаг начала сообщения, необходим для корректного приёма
+ *  Start Data          - флаг первого фрагмента сообщения
+ *  Finish Data         - флаг последнего фрагмента сообщения
  *  Chiphering enabled  - флаг шифрования, параметры шифрования д/б отправлены контрольным пакетом
  *  CRC level           - формат checksum, используемый для проверки целостности пакета
  *                      (в основном необходимо для сборки больших пакетов, скорее всего избыточная информация)
@@ -43,12 +43,12 @@
  * Packets structure (Control):
  * [ C/D/J (2) | API version (2) | Start Data (1) | Chiphering enable (1) | CRC level (2) | JSON:{} ]
  * ________________________________________________________________________________________________
- *  C/D/J               - тип пакета:
+ *  C/D                 - тип пакета:
  *                          * Control, необходимый для работы сокета
  *                          * Data, сырые данные
- *                          * Json, JSON-формат текстового сообщения
  *  API version         - ...
  *  Start Data          - ...
+ *  Finish Data         - ...
  *  Chiphering enabled  - ..., false для всех [CONTROL] пакетов
  *  CRC level           - ...
  *  JSON:{}             - текстовое представление контрольного сообщения (без шифрования)
@@ -80,10 +80,12 @@ enum SocketType {
     eTCP
 };
 
+// [ D/C(1) | ApiVersion(2) |  | other...
 struct PacketHeader {
     PacketType  type;
     ApiVersion  version;
     bool        isFirstFragment;
+    bool        isLastFragment;
     bool        isChip;
     CRC         crcLevel;
 };
