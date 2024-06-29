@@ -4,6 +4,7 @@
 #include "EECounter.h"
 #include "IpPort.h"
 #include "Json.h"
+#include "Message.h"
 
 #include <deque>
 #include <iostream>
@@ -55,23 +56,13 @@
 
 #define MAX_PACKET_LENGTH 65535
 
-using Packet = std::vector<uint8_t>;
-using SNumber = uint8_t; //TODO: ?
 using time_point_default = std::chrono::time_point<
     std::chrono::system_clock,
     std::chrono::duration<long, std::ratio<1, 1000000000>>>;
-Packet convert_to_packet(const std::string& str);
-Packet convert_to_packet(const char* str);
-std::string convert_from_packet(const Packet& packet);
-std::string to_string(const Packet& packet);
+
+
 bool checkCorrectIp(const std::string& ipString);
 
-enum PacketType {
-    eControlType    = 0,
-    eDataType       = 1,
-    eJsonType       = 2
-};
-std::string to_string(PacketType type);
 
 enum ApiVersion {
     Version_1   = 1
@@ -89,29 +80,6 @@ enum SocketType {
     eTCP
 };
 
-class PacketMessage {
-public:
-    std::string ip;
-    uint16_t    port;
-    Packet      packet;
-    EECounter   sn;
-    PacketType  type;
-
-    PacketMessage() : sn(0) { clear(); };
-
-    void clear() { ip=""; port=0; packet={}; sn.reset(); }
-    std::string to_string();
-};
-
-class JsonMessage {
-public:
-    std::string ip;
-    uint16_t    port;
-    Json        json;
-
-    void clear() { ip=""; port=0; json={}; }
-    std::string to_string(int arg = -1);
-};
 
 struct PacketHeader {
     PacketType  type;

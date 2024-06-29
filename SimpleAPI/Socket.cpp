@@ -5,28 +5,6 @@
 #include <sys/select.h>
 #include <errno.h>
 
-Packet convert_to_packet(const std::string& str) {
-    Packet packet;
-    packet.resize(str.size());
-    std::copy(str.begin(), str.end(), packet.begin());
-
-    return packet;
-}
-
-Packet convert_to_packet(const char *str) {
-    return convert_to_packet(std::string(str));
-}
-
-std::string convert_from_packet(const Packet &packet) {
-    std::string str;
-    str.resize(packet.size());
-    std::copy(packet.begin(), packet.end(), str.begin());
-    return str;
-}
-
-std::string to_string(const Packet& packet) {
-    return std::string((char*)packet.data(), packet.size());
-}
 
 bool checkCorrectIp(const std::string& ipString) {
     struct sockaddr_in sock;
@@ -313,10 +291,6 @@ void UDPSocket::recvAutoMsg(int timeout) {
 
         break;
     }
-    case eJsonType: {
-
-        break;
-    }
     default: std::cout << "Error: unknown received type(" << ph.type << ")" << std::endl;
     }
 }
@@ -465,7 +439,7 @@ bool UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, 
     if(!checkCorrectIp(remoteIP)) return false;
 
     //отправит Json в текстовом формате без пробелов
-    sendFragments(remoteIP, remotePort, eJsonType, convert_to_packet(json.to_string(-1)));
+    sendFragments(remoteIP, remotePort, eDataType, convert_to_packet(json.to_string(-1)));
     return true;
 }
 
@@ -491,33 +465,4 @@ JsonMessage UDPSocket::getOutJson()
         this->inputThreadsMutex.unlock();
     }
     return jm;
-}
-
-std::string PacketMessage::to_string()
-{
-    std::string out;
-
-    out = "[" + this->ip + ":" + std::to_string(this->port) + "] ";
-    out += "[(" + std::to_string(this->packet.size()) + ") " + ::to_string(this->packet) + "]";
-
-    return out;
-}
-
-std::string JsonMessage::to_string(int arg)
-{
-    std::string out;
-
-    out = "[" + this->ip + ":" + std::to_string(this->port) + "] ";
-    out += "[(" + std::to_string(this->json.size()) + ")" + this->json.to_string(arg) + "]";
-
-    return out;
-}
-
-std::string to_string(PacketType type) {
-    switch(type){
-    case eControlType:  return "[CONTROL]";
-    case eDataType:     return "[DATA]";
-    case eJsonType:     return "[JSON]";
-    default: return "UNKNOWN";
-    }
 }
