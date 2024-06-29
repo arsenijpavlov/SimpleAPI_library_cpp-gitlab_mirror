@@ -37,8 +37,7 @@ PacketMessage::PacketMessage() : sn(0) {
 }
 
 void PacketMessage::clear() {
-    ip="";
-    port=0;
+    ipPort = IpPort{"", 0};
     packet={};
     sn.reset();
 }
@@ -47,15 +46,14 @@ std::string PacketMessage::to_string()
 {
     std::string out;
 
-    out = "[" + this->ip + ":" + std::to_string(this->port) + "] ";
+    out = this->ipPort.to_string() + " ";
     out += "[(" + std::to_string(this->packet.size()) + ") " + ::to_string(this->packet) + "]";
 
     return out;
 }
 
 void JsonMessage::clear() {
-    ip="";
-    port=0;
+    ipPort = IpPort{"", 0};
     json={};
 }
 
@@ -63,7 +61,7 @@ std::string JsonMessage::to_string(int arg)
 {
     std::string out;
 
-    out = "[" + this->ip + ":" + std::to_string(this->port) + "] ";
+    out = this->ipPort.to_string() + " ";
     out += "[(" + std::to_string(this->json.size()) + ")" + this->json.to_string(arg) + "]";
 
     return out;

@@ -2,6 +2,7 @@
 #define MESSAGE_H
 
 #include "EECounter.h"
+#include "IpPort.h"
 #include "Json.h"
 
 #include <cstdint>
@@ -24,8 +25,7 @@ std::string to_string(PacketType type);
 
 class PacketMessage {
 public:
-    std::string ip;
-    uint16_t    port;
+    IpPort      ipPort;
     Packet      packet;
     EECounter   sn;
     PacketType  type;
@@ -38,8 +38,7 @@ public:
 
 class JsonMessage {
 public:
-    std::string ip;
-    uint16_t    port;
+    IpPort      ipPort;
     Json        json;
 
     void clear();
