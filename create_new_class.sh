@@ -20,7 +20,7 @@ echo "" >> "$path/$2.h"
 echo "" >> "$path/$2.h"
 echo "class $2 {" >> "$path/$2.h"
 echo "" >> "$path/$2.h"
-echo "}" >> "$path/$2.h"
+echo "};" >> "$path/$2.h"
 echo "" >> "$path/$2.h"
 echo "#endif // ${2^^}_H" >> "$path/$2.h"
 
