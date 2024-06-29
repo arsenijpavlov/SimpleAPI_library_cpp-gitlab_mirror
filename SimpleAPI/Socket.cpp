@@ -32,23 +32,30 @@ void Socket::unpackHeader(uint8_t header, PacketHeader& ph) {
     ph.crcLevel         = (CRC)(header & 0xFF); //2
 }
 
-EECounter Socket::getSeqNumber(const IpPort& ipPort) {
-    auto it = mapActiveConnections.find(ipPort);
-    if(it == mapActiveConnections.end())
-        it = mapActiveConnections.insert(std::pair<IpPort, EECounter>(ipPort, EECounter(255))).first;
+EECounter Socket::getOutSeqNumber(const IpPort& ipPort) {
+    auto it = mapConnections.find(ipPort);
+    if(it == mapConnections.end())
+        it = mapConnections.insert(std::pair<IpPort, Connection>(ipPort, {EECounter(255), EECounter(255)})).first;
 
-    return it->second++;
+    return it->second.outSn;
 }
 
-Socket::Socket() :
-    mSocketFD(-1) {
+EECounter Socket::getInSeqNumber(const IpPort& ipPort) {
+    auto it = mapConnections.find(ipPort);
+    if(it == mapConnections.end())
+        it = mapConnections.insert(std::pair<IpPort, Connection>(ipPort, {EECounter(255), EECounter(255)})).first;
+
+    return it->second.inSn;
+}
+
+Socket::Socket() : mSocketFD(-1) {
     settings.maxLength          = 1500;
     settings.maxMsgsSentOnTick  = -1;
     settings.inactivityTimer    = 1000;
 }
 
 bool Socket::sendRawMsg(const PacketMessage &packetMessage) {
-    return sendRawMsg(packetMessage.ip, packetMessage.port, packetMessage.packet);
+    return sendRawMsg(packetMessage.ipPort.ip, packetMessage.ipPort.port, packetMessage.packet);
 }
 
 bool Socket::isServerActive() {
@@ -59,12 +66,16 @@ void Socket::enableCRC(CRC crcLevel) {
     this->settings.crcLevel = crcLevel;
 }
 
-bool Socket::sendMsg(const IpPort &remoteIpPort, const Packet &packet) {
-    return sendMsg(remoteIpPort.ip, remoteIpPort.port, packet);
+bool Socket::sendMsg(const std::string& remoteIp, const uint16_t remotePort, const Packet& packet) {
+    if(!checkCorrectIp(remoteIp)) return false;
+
+    return sendMsg(IpPort{remoteIp, remotePort}, packet);
 }
 
-bool Socket::sendMsg(const IpPort &remoteIpPort, const Json &json) {
-    return sendMsg(remoteIpPort.ip, remoteIpPort.port, json);
+bool Socket::sendMsg(const std::string& remoteIp, const uint16_t remotePort, const Json& json) {
+    if(!checkCorrectIp(remoteIp)) return false;
+
+    return sendMsg(IpPort{remoteIp, remotePort}, json);
 }
 
 void Socket::setMaxLength(uint16_t newMaxSize) {
@@ -87,18 +98,17 @@ void Socket::close() {
     }
 }
 
-void Socket::sendFragments(const IpPort &remoteIpPort, const PacketType type, const Packet &packet) {
-    sendFragments(remoteIpPort.ip, remoteIpPort.port, type, packet);
+void Socket::sendFragments(const std::string& remoteIp, const uint16_t remotePort, const PacketType type, const Packet& packet) {
+    sendFragments(IpPort{remoteIp, remotePort}, type, packet);
 }
 
-void UDPSocket::sendFragments(const std::string& remoteIP, const uint16_t remotePort, const PacketType type, const Packet& packet)
-{
+void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type, const Packet &packet) {
     Json json;
     json.parseJson(convert_from_packet(packet));
 
     std::cout << "Send: " << to_string(type) << " ["
               << (json.isEmpty() ? "Data:0x" + utils::to_hex_string(packet) : "Json:" + json.to_string(-1))
-              << "] --(to)--> " << IpPort{remoteIP, remotePort}.to_string() << std::endl;
+              << "] --(to)--> " << remoteIpPort.to_string() << std::endl;
 
     Packet innerData;
     //=CHIP_and_CRC_and_SIZE_and_DATA===========================================
@@ -151,12 +161,12 @@ void UDPSocket::sendFragments(const std::string& remoteIP, const uint16_t remote
     while(innerData.size() - currentPos > 0) {
         uint16_t availableSize = this->settings.maxLength;
 
-        EECounter fragment_sn = getSeqNumber({remoteIP, remotePort});
+        EECounter fragment_sn = getOutSeqNumber(remoteIpPort);
         //упаковываем фрагмент
         Packet buf;
         {
             buf.push_back(packHeader({type, settings.useApiVersion, isFirstFragment, isChiphering(), settings.crcLevel}));
-            buf.push_back(fragment_sn.get()); //для текущего клиента
+            buf.push_back(fragment_sn.get_add()); //для текущего клиента
             availableSize -= buf.size();
 
             //высчитываем размер данных
@@ -176,8 +186,7 @@ void UDPSocket::sendFragments(const std::string& remoteIP, const uint16_t remote
 
         PacketMessage pm;
         {
-            pm.ip       = remoteIP;
-            pm.port     = remotePort;
+            pm.ipPort   = remoteIpPort;
             pm.packet   = buf;
             pm.sn       = fragment_sn;
             pm.type     = type;
@@ -203,10 +212,11 @@ void UDPSocket::sendFragments(const std::string& remoteIP, const uint16_t remote
     //дальнейшая обработка пакета происходит в функции tick()
 
     PacketMessage pm;
-    pm.packet   = packet;
-    pm.ip       = remoteIP;
-    pm.port     = remotePort;
-    pm.type     = type;
+    {
+        pm.ipPort   = remoteIpPort;
+        pm.packet   = packet;
+        pm.type     = type;
+    }
     this->sentGlobalPackets.push_back(pm);
 }
 
@@ -257,6 +267,12 @@ void UDPSocket::recvAutoMsg(int timeout) {
     PacketMessage pm = recvRawMsg(1);
     if(pm.packet.empty()) return;
 
+    //записать время прихода нового сообщения от сокета
+    auto it = this->mapLastActivity.begin();
+    if(it == this->mapLastActivity.end())
+        it = this->mapLastActivity.insert(std::make_pair(pm.ipPort, std::chrono::system_clock::now())).first;
+    it->second = std::chrono::system_clock::now();
+
     PacketHeader ph;
     unpackHeader(pm.packet[0], ph);
     uint8_t sequence_number = pm.packet[1]; //TODO: нужна защита от некорректного размера чтения!
@@ -266,19 +282,18 @@ void UDPSocket::recvAutoMsg(int timeout) {
 
     Json json;
     json.parseJson(convert_from_packet(pm.packet));
-
     std::cout << "Recv: " << to_string(ph.type) << " ["
               << (json.isEmpty() ? "Data:0x" + utils::to_hex_string(pm.packet) : "Json:" + json.to_string(-1))
-              << "] <-(from)- " << IpPort{pm.ip, pm.port}.to_string() << std::endl;
+              << "] <-(from)- " << pm.ipPort.to_string() << std::endl;
 
     if(ph.type != eControlType)
-        sendAutoAck(sequence_number, {pm.ip, pm.port});
+        sendAutoAck(sequence_number, pm.ipPort);
 
     switch(ph.type) {
     case eControlType: {
         if(json.contains("ack_sn")) {
             uint8_t sn = *json["ack_sn"].getNum();
-//TODO:            auto it = FindSentSn(sn);
+//TODO:            auto it = FindSentSn(sn); ???
             for(auto& it : this->mapAutoSentPackets) {
                 if(it.second.sn.get() == sn) {
                     this->mapAutoSentPackets.erase(it.first);
@@ -429,18 +444,14 @@ void UDPSocket::open(const uint16_t localPort, const std::string& localIP) {
     std::cout << "Socket binded at " << IpPort{str, localPort}.to_string() << std::endl;
 }
 
-bool UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet) {
-    if(!checkCorrectIp(remoteIP)) return false;
-
-    sendFragments(remoteIP, remotePort, eDataType, packet);
+bool UDPSocket::sendMsg(const IpPort& remoteIpPort, const Packet& packet) {
+    sendFragments(remoteIpPort, eDataType, packet);
     return true;
 }
 
-bool UDPSocket::sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Json& json) {
-    if(!checkCorrectIp(remoteIP)) return false;
-
+bool UDPSocket::sendMsg(const IpPort& remoteIpPort, const Json& json) {
     //отправит Json в текстовом формате без пробелов
-    sendFragments(remoteIP, remotePort, eDataType, convert_to_packet(json.to_string(-1)));
+    sendFragments(remoteIpPort, eDataType, convert_to_packet(json.to_string(-1)));
     return true;
 }
 
