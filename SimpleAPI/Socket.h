@@ -113,8 +113,7 @@ protected:
     std::vector<PacketMessage>  sentGlobalPackets;  //запоминаем до тех пор, пока не придёт подтверждение о передаче всех фрагментов
 
     std::mutex                  inputThreadsMutex;
-    std::deque<PacketMessage>   recvPackets;
-    std::deque<JsonMessage>     recvJsons;
+    //собранные пакеты
     std::deque<PacketMessage>   mapRecvPacketsBuffer;   //getOutJson()
     std::deque<JsonMessage>     mapRecvJsonsBuffer;     //getOutJson()
     //-----------------------------------------
