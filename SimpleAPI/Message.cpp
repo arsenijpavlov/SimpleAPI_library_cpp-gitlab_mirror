@@ -37,9 +37,11 @@ PacketMessage::PacketMessage() : sn(0) {
 }
 
 void PacketMessage::clear() {
-    ipPort = IpPort{"", 0};
-    packet={};
+    ipPort          = IpPort{"", 0};
+    packet          = {};
     sn.reset();
+    incorrectCRC    = false;
+    isBuiltComplete = false;
 }
 
 std::string PacketMessage::to_string()
@@ -50,6 +52,17 @@ std::string PacketMessage::to_string()
     out += "[(" + std::to_string(this->packet.size()) + ") " + ::to_string(this->packet) + "]";
 
     return out;
+}
+
+JsonMessage::JsonMessage(const JsonMessage &jm)
+{
+    *this = jm;
+}
+
+JsonMessage::JsonMessage(const PacketMessage &pm)
+{
+    this->ipPort = pm.ipPort;
+    this->json.parseJson(convert_from_packet(pm.packet));
 }
 
 void JsonMessage::clear() {
@@ -66,3 +79,4 @@ std::string JsonMessage::to_string(int arg)
 
     return out;
 }
+

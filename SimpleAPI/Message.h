@@ -30,7 +30,10 @@ public:
     EECounter   sn;
     PacketType  type;
 
-    PacketMessage();;
+    bool        incorrectCRC;
+    bool        isBuiltComplete;
+
+    PacketMessage();
 
     void clear();
     std::string to_string();
@@ -40,6 +43,10 @@ class JsonMessage {
 public:
     IpPort      ipPort;
     Json        json;
+
+    JsonMessage(){};
+    JsonMessage(const JsonMessage& jm);
+    JsonMessage(const PacketMessage& pm);
 
     void clear();
     std::string to_string(int arg = -1);
