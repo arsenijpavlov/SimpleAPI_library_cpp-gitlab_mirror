@@ -25,35 +25,157 @@ uint8_t Socket::packHeader(const PacketHeader& pm) {
            | pm.crcLevel;
 }
 
-void Socket::unpackHeader(uint8_t header, PacketHeader& ph) {
+PacketHeader Socket::unpackHeader(uint8_t header) {
+    PacketHeader ph;
     ph.type             = (PacketType)(header >> 7); //1
     ph.version          = (ApiVersion)((header >> 5) & 0x3); //2
     ph.isFirstFragment  = (header >> 4) & 0x1; //1
     ph.isLastFragment   = (header >> 3) & 0x1; //1
     ph.isChip           = (header >> 2) & 0x1; //1
     ph.crcLevel         = (CRC)(header & 0x3); //2
+
+    return ph;
 }
 
 EECounter Socket::getOutSeqNumber(const IpPort& ipPort) {
-    auto it = mapConnections.find(ipPort);
-    if(it == mapConnections.end())
-        it = mapConnections.insert(std::pair<IpPort, Connection>(ipPort, {EECounter(255), EECounter(255)})).first;
+    auto it = this->mapConnections.find(ipPort);
+    if(it == this->mapConnections.end()) {
+        it = this->mapConnections.insert(
+            std::make_pair(ipPort,
+                           Connection{EECounter(255), EECounter(255), EECounter(255)})).first;
+    }
 
     return it->second.outSn;
 }
 
-EECounter Socket::getInSeqNumber(const IpPort& ipPort) {
-    auto it = mapConnections.find(ipPort);
-    if(it == mapConnections.end())
-        it = mapConnections.insert(std::pair<IpPort, Connection>(ipPort, {EECounter(255), EECounter(255)})).first;
-
-    return it->second.inSn;
-}
-
 PacketMessage Socket::buildPacket(PacketMessage receivedPM)
 {
-//TODO: сборка пакетов
-    return {};
+    auto it = this->mapConnections.find(receivedPM.ipPort);
+    if(it == this->mapConnections.end()) {
+        it = this->mapConnections.insert(
+            std::make_pair(receivedPM.ipPort,
+                           Connection{EECounter(255), EECounter(255), EECounter(255)})).first;
+    }
+
+    if(it->second.inSnLastRecv < receivedPM.sn)
+        it->second.inSnLastRecv = receivedPM.sn;
+    //всё, что пришло до этого - удалится
+    EECounter rmSn = it->second.inSnLastRecv - (it->second.inSnLastRecv.size() / 2); //размер окна - половина диапазона
+
+    if(receivedPM.sn == it->second.inNextSn) {
+        //NOTE: игнор уже пришедших фрагментов произойдёт здесь же
+        it->second.mapRecvBuildedMessages.insert(std::make_pair(receivedPM.sn, receivedPM));
+        it->second.inNextSn++;
+    } else
+        it->second.mapRecvFragments.insert(std::make_pair(receivedPM.sn, receivedPM));
+
+    //пройтись по poolRecvMessages и добрать по порядку к mapRecvBuildedMessages
+    auto it_pool = it->second.mapRecvFragments.find(it->second.inNextSn);
+    while(it_pool != it->second.mapRecvFragments.end()) {
+        if(receivedPM.sn == it->second.inNextSn) {
+            it->second.mapRecvBuildedMessages.insert(std::make_pair(receivedPM.sn, receivedPM));
+            it->second.inNextSn++;
+
+            it_pool = it->second.mapRecvFragments.erase(it_pool);
+        }
+        it_pool = it->second.mapRecvFragments.find(it->second.inNextSn); //ищем следующий фрагмент очереди
+    }
+
+    //удалить всё, что теперь вне окна ожидания
+    it_pool = it->second.mapRecvFragments.begin();
+    while(it_pool == it->second.mapRecvFragments.end()) {
+        if(it_pool->first < rmSn)
+            it_pool = it->second.mapRecvFragments.erase(it_pool);
+        it_pool++;
+    }
+
+    //попытаться собрать ОДИН пакет
+    PacketMessage pm;
+    pm.isBuiltComplete  = false;
+    pm.isError          = false;
+
+    bool isStarted  = false;
+    bool isFinished = false;
+    bool isFirstCounterSet  = false;
+    EECounter firstCounter(255);
+    EECounter lastCounter(255);
+
+    if(!it->second.mapRecvBuildedMessages.empty()) {
+        //запоминаем индексы первого встречного пакета
+        for(auto it_build = it->second.mapRecvBuildedMessages.begin();
+             it_build != it->second.mapRecvBuildedMessages.end(); it_build++) {
+            if(!isFirstCounterSet) {
+                firstCounter = it_build->first;
+                isFirstCounterSet = true;
+            }
+
+            if(it_build->second.header.isLastFragment) {
+                lastCounter = it_build->first;
+                break;
+            }
+        }
+        if(!it->second.mapRecvBuildedMessages.find(firstCounter)->second.header.isFirstFragment)
+            isStarted = true;
+        if(!it->second.mapRecvBuildedMessages.find(lastCounter)->second.header.isLastFragment)
+            isFinished = true;
+
+        //пакет не состоялся, удалить все фрагменты
+        if(!isStarted && isFinished && (firstCounter < rmSn)) {
+            auto it_build = it->second.mapRecvBuildedMessages.begin();
+            while(it_build != it->second.mapRecvBuildedMessages.end()
+                   && (it_build->first < lastCounter)) {
+                it_build = it->second.mapRecvBuildedMessages.erase(it_build);
+                it_build++;
+            }
+            pm.isError = true;
+            return pm;
+        }
+
+        //пакет соберётся, копируем в выходной PM.packet
+        if(isStarted && isFinished) {
+            pm.sn = firstCounter; //номер первого фрагмента для индикации доставки глобального сообщения
+            //скопировать и удалить задействованные фрагменты
+            auto it_build = it->second.mapRecvBuildedMessages.begin();
+            while(it_build != it->second.mapRecvBuildedMessages.end()
+                   && (it_build->first < lastCounter)) {
+//                pm.packet.emplace_back(it_build->second.packet);
+                std::copy(std::begin(it_build->second.packet),
+                          std::end(it_build->second.packet),
+                          std::back_insert_iterator<Packet>(pm.packet));
+                it_build = it->second.mapRecvBuildedMessages.erase(it_build);
+                it_build++;
+            }
+
+            std::cout << "Compile received packet: 0x" << utils::to_hex_string(pm.packet);
+
+            uint16_t size = (pm.packet[0] << 8) + pm.packet[1];
+            pm.packet.erase(pm.packet.begin(), pm.packet.begin() + 1);
+            //проверка ошибки размера
+            if(size != pm.packet.size()) {
+                pm.isError = true;
+                return pm;
+            }
+\
+            //дешифрация
+            dechiphering(pm.packet);
+            //проверка контрольной суммы
+            if(pm.header.type != eControlType) {
+                //обновляем поле CRC
+                switch(settings.crcLevel) {
+                case eCRC_8:    pm.isError = !utils::checkCrc8(pm.packet);    break;
+                case eCRC_16:   pm.isError = !utils::checkCrc16(pm.packet);   break;
+                case eCRC_32:   pm.isError = !utils::checkCrc32(pm.packet);   break;
+                default:        break;
+                }
+            }
+
+            if(!pm.isError)
+                pm.isBuiltComplete = true;
+        }
+    }
+
+
+    return pm;
 }
 
 Socket::Socket() : mSocketFD(-1) {
@@ -205,6 +327,7 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
                     isStart = false;
             }
             buf.push_back(packHeader(ph));
+            buf.push_back(fragment_sn.get_glob()); //для текущего клиента
             buf.push_back(fragment_sn.get_add()); //для текущего клиента
             availableSize -= buf.size();
 
@@ -215,10 +338,10 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
 
         PacketMessage pm;
         {
-            pm.ipPort   = remoteIpPort;
-            pm.packet   = buf;
-            pm.sn       = fragment_sn;
-            pm.type     = type;
+            pm.ipPort       = remoteIpPort;
+            pm.packet       = buf;
+            pm.sn           = fragment_sn;
+            pm.header.type  = type;
         }
         fragments.push_back(pm); //запоминаем фрагмент
 
@@ -242,10 +365,10 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
 
     PacketMessage pm;
     {
-        pm.ipPort   = remoteIpPort;
-        pm.packet   = packet;
-        pm.type     = type;
-        pm.sn       = firstSn;
+        pm.ipPort       = remoteIpPort;
+        pm.packet       = packet;
+        pm.header.type  = type;
+        pm.sn           = firstSn;
     }
     this->sentGlobalPackets.push_back(pm);
 }
@@ -282,7 +405,7 @@ void UDPSocket::sendAutoMsg() {
         this->sendPacketsBuffer.pop_front();
         Socket::sendRawMsg(pm); //отправили
 
-        if(pm.type != eControlType) { //контрольные пакеты не перепосылаются, поэтому хранить их не нужно
+        if(pm.header.type != eControlType) { //контрольные пакеты не перепосылаются, поэтому хранить их не нужно
             //запоминаем для ожидания ответа или досылки
             time_point_default current_time = std::chrono::system_clock::now();
             mapAutoSentPackets.insert(std::make_pair(current_time, pm));
@@ -302,31 +425,38 @@ void UDPSocket::recvAutoMsg(int timeout) {
     auto it = this->mapLastActivity.begin();
     if(it == this->mapLastActivity.end())
         it = this->mapLastActivity.insert(std::make_pair(pm.ipPort, std::chrono::system_clock::now())).first;
-    it->second = std::chrono::system_clock::now();
+    else
+        it->second = std::chrono::system_clock::now();
 
-    PacketHeader ph;
-    unpackHeader(pm.packet[0], ph);
-    uint8_t sequence_number = pm.packet[1]; //TODO: нужна защита от некорректного размера чтения!
-//    uint16_t size = (pm.packet[2] << 8) + pm.packet[3];
+    pm.header = unpackHeader(pm.packet[0]);
+    uint8_t glob_sn = pm.packet[1]; //TODO: нужна защита от некорректного размера чтения!
+    uint8_t sn      = pm.packet[2];
+    pm.sn = EECounter(255);
+    pm.sn.set_glob_pos(glob_sn);
+    pm.sn.set_pos(sn);
+    pm.packet.erase(pm.packet.begin(), pm.packet.begin() + 3); //удалить первые три байта
 
-    pm.packet.erase(pm.packet.begin(), pm.packet.begin() + 4); //удалить первые две пары элементов
-
-    bool isPacketComplete   = false; //пришёл последний фрагмент И пакет собран И дешифрация И проверка CRC
-    uint8_t builded_sn      = 0;
-    bool isBuildError       = false; //пришёл последний фрагмент И (пакет не собран ИЛИ !проверка CRC)
-
-    //TODO: сборка пакетов
     PacketMessage b_pm = buildPacket(pm);
     JsonMessage jm = b_pm;
 
+    Json controlAcknoledge;
+    if(pm.header.type != eControlType) {
+        std::cout << "Send acknowledge for message(" << pm.sn.get() << ")" << std::endl;
+        controlAcknoledge.put("ack_sn", (double)pm.sn.get()); //TODO: общий тип для всех числовых значений
+    }
+    if(b_pm.isBuiltComplete)
+        controlAcknoledge.put("ack_all_packet", (double)b_pm.sn.get());
+    if(b_pm.isError)
+        controlAcknoledge.put("packet_error", (double)b_pm.sn.get()); //TODO: проверка ошибок и переотправка
+
     if(!b_pm.packet.empty()) {
-        std::cout << "Recv: " << to_string(b_pm.type) << " ["
+        std::cout << "Recv: " << to_string(b_pm.header.type) << " ["
                   << (jm.json.isEmpty() ? "Data:0x" + utils::to_hex_string(b_pm.packet)
                                         : "Json:" + jm.json.to_string(-1))
                   << "] <-(from)- " << b_pm.ipPort.to_string() << std::endl;
 
         //обработка собранного пакета (1 за проход)
-        switch(ph.type) {
+        switch(pm.header.type) {
         case eControlType: {
             if(jm.json.contains("ack_sn")) {
                 uint8_t sn = *jm.json["ack_sn"].getNum();
@@ -356,31 +486,19 @@ void UDPSocket::recvAutoMsg(int timeout) {
                 this->mapRecvJsonsBuffer.push_back(jm);
             break;
         }
-        default: std::cout << "Error: unknown received type(" << ph.type << ")" << std::endl;
+        default: std::cout << "Error: unknown received type(" << pm.header.type << ")" << std::endl;
         }
     }
 
-
-    Json controlAcknoledge;
-    if(ph.type != eControlType) {
-        std::cout << "Send acknowledge for message(" << pm.sn.get() << ")" << std::endl;
-        controlAcknoledge.put("ack_sn", (double)pm.sn.get()); //TODO: общий тип для всех числовых значений
-    }
-    if(b_pm.isBuiltComplete)
-        controlAcknoledge.put("ack_all_packet", (double)builded_sn);
-    if(b_pm.incorrectCRC)
-        controlAcknoledge.put("packet_error", (double)builded_sn); //TODO: проверка ошибок и переотправка
-
     if(!controlAcknoledge.isEmpty())
-        Socket::sendFragments(pm.ipPort, eControlType, convert_to_packet(controlAcknoledge.to_string(-1)));
+        sendFragments(pm.ipPort, eControlType, convert_to_packet(controlAcknoledge.to_string(-1)));
 }
 
 void UDPSocket::setMaxMsgsSentOnTick(int count) {
     settings.maxMsgsSentOnTick = count;
 }
 
-UDPSocket::UDPSocket(const IpPort &ipPort)
-{
+UDPSocket::UDPSocket(const IpPort &ipPort) {
     open(ipPort.port, ipPort.ip);
 }
 
@@ -392,8 +510,7 @@ UDPSocket::~UDPSocket() {
     close();
 }
 
-bool UDPSocket::sendRawMsg(const std::string &remoteIP, const uint16_t remotePort, const Packet &packet)
-{
+bool UDPSocket::sendRawMsg(const std::string &remoteIP, const uint16_t remotePort, const Packet &packet) {
     struct sockaddr_in sock;
     sock.sin_family = AF_INET;
     sock.sin_port = htons(remotePort);
@@ -428,8 +545,6 @@ PacketMessage UDPSocket::recvRawMsg(int timeout) {
     recv_num = select(mSocketFD + 1, &fds, NULL, NULL, (timeout > 0 ? &t : NULL));
     if(recv_num < 0) {
         if(errno != EINTR) /* Interrupted system call */
-//TODO: (LOG) сделать флаг для возможности отключения/перенаправления сообщений от API
-//TODO: (LOG) сделать внутреннюю функцию-логгер для API
             std::cout << "Error in select(), errno=" << errno << std::endl;
         return PacketMessage();
     }
@@ -454,14 +569,12 @@ PacketMessage UDPSocket::recvRawMsg(int timeout) {
     return {};
 }
 
-void UDPSocket::startServer()
-{
+void UDPSocket::startServer() {
     if(!isServerActive())
         open(this->localPort, this->localIP);
 }
 
-void UDPSocket::stopServer()
-{
+void UDPSocket::stopServer() {
     if(isServerActive())
         close();
 }

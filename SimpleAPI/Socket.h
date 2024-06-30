@@ -18,41 +18,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
-/* ================================================================================================
- * API v.1
- * ================================================================================================
- * Packets structure (Data/Json):
- * [ C/D(1) | API version(2) | Start Data(1) | Finish Data(1) | Chiphering enable (1) | CRC level (2) | ...
- *          | sequence number (8) | CRC (if enabaled, X bytes) | size (16) | data[size] ]
- * ________________________________________________________________________________________________
- *  C/D                 - тип пакета:
- *                          * Control, необходимый для работы сокета
- *                          * Data, сырые данные
- *  API version         - версия библиотеки, обратная совместимость обязательна
- *  Start Data          - флаг первого фрагмента сообщения
- *  Finish Data         - флаг последнего фрагмента сообщения
- *  Chiphering enabled  - флаг шифрования, параметры шифрования д/б отправлены контрольным пакетом
- *  CRC level           - формат checksum, используемый для проверки целостности пакета
- *                      (в основном необходимо для сборки больших пакетов, скорее всего избыточная информация)
- *  sequence number     - порядковый номер пакета, нужен для сборки больших сообщений и проверки
- *                       корректности доставки
- *  CRC                 - checksum полного сообщения, не дублируется для последующих частей
- *  size                - размер полного сообщения, не дублируется для последующих частей
- *  data                - данные
- * ==============================================================================================
- * Packets structure (Control):
- * [ C/D/J (2) | API version (2) | Start Data (1) | Chiphering enable (1) | CRC level (2) | JSON:{} ]
- * ________________________________________________________________________________________________
- *  C/D                 - тип пакета:
- *                          * Control, необходимый для работы сокета
- *                          * Data, сырые данные
- *  API version         - ...
- *  Start Data          - ...
- *  Finish Data         - ...
- *  Chiphering enabled  - ..., false для всех [CONTROL] пакетов
- *  CRC level           - ...
- *  JSON:{}             - текстовое представление контрольного сообщения (без шифрования)
- * ==============================================================================================*/
+
 
 #define MAX_PACKET_LENGTH 65535
 
@@ -63,30 +29,9 @@ using time_point_default = std::chrono::time_point<
 
 bool checkCorrectIp(const std::string& ipString);
 
-
-enum ApiVersion {
-    Version_1   = 1
-};
-
-enum CRC {
-    eCRC_OFF    = 0,
-    eCRC_8      = 1,
-    eCRC_16     = 2,
-    eCRC_32     = 3
-};
-
 enum SocketType {
     eUDP,
     eTCP
-};
-
-struct PacketHeader {
-    PacketType  type;           //1 bit
-    ApiVersion  version;        //2 bits
-    bool        isFirstFragment;//1 bit
-    bool        isLastFragment; //1 bit
-    bool        isChip;         //1 bit
-    CRC         crcLevel;       //2 bits
 };
 
 struct ChannelSettings {
@@ -97,9 +42,16 @@ struct ChannelSettings {
     uint32_t    inactivityTimer; //для проверки коннекта, перепосылки недоставленных сообщений и прочего
 };
 
+//TODO: (LOG) сделать флаг для возможности отключения/перенаправления сообщений от API
+//TODO: (LOG) сделать внутреннюю функцию-логгер для API
+
 struct Connection {
     EECounter outSn;
-    EECounter inSn;
+    EECounter inSnLastRecv; //влияет на границу окна ожидания фрагментов
+    EECounter inNextSn;     //TODO: обнулить после обрыва соединения
+
+    std::map<EECounter, PacketMessage> mapRecvFragments;        //фрагменты сообщений (в беспорядке)
+    std::map<EECounter, PacketMessage> mapRecvBuildedMessages;  //собранные по очереди фрагменты сообщений
 };
 
 class Socket {
@@ -123,15 +75,14 @@ protected:
     std::deque<PacketMessage>   mapRecvPacketsBuffer;   //buildPackets(), getOutPacket()
     std::deque<JsonMessage>     mapRecvJsonsBuffer;     //buildPackets(), getOutJson()
     //-----------------------------------------
-    std::deque<PacketMessage>   mapSendPackets;     //фрагменты на отправку
-    std::deque<PacketMessage>   mapRecvPackets;     //полученные фрагменты
-    PacketMessage               tmpRecvJsonPacket;  //не в map, потому что сборка Json произойдёт в recvAutoMsg()
+//    std::deque<PacketMessage>   mapSendPackets;     //фрагменты на отправку
+//    std::deque<PacketMessage>   mapRecvPackets;     //полученные фрагменты
+//    PacketMessage               tmpRecvJsonPacket;  //не в map, потому что сборка Json произойдёт в recvAutoMsg()
     //-----------------------------------------
 
     uint8_t         packHeader(const PacketHeader& ph);
-    void            unpackHeader(uint8_t header, PacketHeader& ph);
+    PacketHeader    unpackHeader(uint8_t header);
     EECounter       getOutSeqNumber(const IpPort& ipPort);
-    EECounter       getInSeqNumber(const IpPort& ipPort);
     PacketMessage   buildPacket(PacketMessage receivedPM);
 
     void            sendFragments(const std::string& remoteIp, const uint16_t remotePort, const PacketType type, const Packet& packet);
@@ -153,7 +104,8 @@ public:
 //TODO:    virtual bool isConnected(std::string remoteIP, uint16_t remotePort) = 0;
     bool            isServerActive();
     //-----------------------------------------
-    virtual void    chiphering(Packet& packet) = 0;
+    void            chiphering(Packet& packet) {};
+    void            dechiphering(Packet& packet) {};
     virtual void    startServer() = 0;
     virtual void    stopServer() = 0;
     void            close();
@@ -209,7 +161,6 @@ public:
     //-----------------------------------------
 //TODO:    bool isConnected(std::string remoteIP, uint16_t remotePort); //TODO: постоянный пинг
     //-----------------------------------------
-    void            chiphering(Packet& packet) {};
     void            startServer();
     void            stopServer();
     //-----------------------------------------

@@ -40,7 +40,7 @@ void PacketMessage::clear() {
     ipPort          = IpPort{"", 0};
     packet          = {};
     sn.reset();
-    incorrectCRC    = false;
+    isError         = false;
     isBuiltComplete = false;
 }
 
