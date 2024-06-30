@@ -1,19 +1,29 @@
 #include "EECounter.h"
 
 //TODO: _INCOMPATIBLE_EXCEPTION_
-#define _INCOMPATIBLE_EXCEPTION_     if(this->size != other.size) return false;
+#define _INCOMPATIBLE_EXCEPTION_     if(this->maxSize != other.maxSize) return false;
 
 
 EECounter::EECounter(uint64_t size) {
-    this->size = size;
+    this->maxSize = size;
     this->pos = 0;
     this->global_pos = 0;
 }
 
 EECounter::EECounter(const EECounter &other) {
-    this->size = other.size;
+    this->maxSize = other.maxSize;
     this->pos = other.pos;
     this->global_pos = other.global_pos;
+}
+
+void EECounter::set_pos(uint64_t pos)
+{
+    this->pos = pos;
+}
+
+void EECounter::set_glob_pos(uint64_t glob_pos)
+{
+    this->global_pos = glob_pos;
 }
 
 bool EECounter::operator==(const EECounter &other) {
@@ -30,14 +40,14 @@ bool EECounter::operator!=(const EECounter &other) {
     else                                                                return false;
 }
 
-bool EECounter::operator<(const EECounter &other) {
+bool EECounter::operator<(const EECounter &other) const {
     _INCOMPATIBLE_EXCEPTION_
 
     if(this->pos < other.pos && this->global_pos < other.global_pos)    return true;
     else                                                                return false;
 }
 
-bool EECounter::operator>(const EECounter &other) {
+bool EECounter::operator>(const EECounter &other) const {
     _INCOMPATIBLE_EXCEPTION_
 
     if(this->pos > other.pos && this->global_pos > other.global_pos)    return true;
@@ -92,6 +102,14 @@ EECounter EECounter::operator-(uint64_t step) {
     return saved;
 }
 
+EECounter &EECounter::operator=(const EECounter &other) {
+    this->maxSize       = other.maxSize;
+    this->pos           = other.pos;
+    this->global_pos    = other.global_pos;
+
+    return *this;
+}
+
 uint64_t EECounter::get() {
     return pos;
 }
@@ -107,15 +125,19 @@ uint64_t EECounter::get_next() {
     return (++saved).get();
 }
 
+uint64_t EECounter::get_glob() {
+    return this->global_pos;
+}
+
 EECounter EECounter::operator+(const EECounter& other) {
     _INCOMPATIBLE_EXCEPTION_
 
     EECounter saved(*this);
     saved.global_pos += other.pos;
     saved.pos += other.pos;
-    if(saved.pos > saved.size) {
+    if(saved.pos > saved.maxSize) {
         saved.global_pos++;
-        saved.pos = saved.pos - saved.size;
+        saved.pos = saved.pos - saved.maxSize;
     }
 
     return saved;
@@ -128,7 +150,7 @@ EECounter EECounter::operator-(const EECounter& other) {
     saved.global_pos -= other.pos;
     if(other.pos >= saved.pos) {
         saved.global_pos--;
-        saved.pos -= other.pos - saved.size;
+        saved.pos -= other.pos - saved.maxSize;
     } else
         saved.pos -= other.pos;
 
@@ -137,15 +159,15 @@ EECounter EECounter::operator-(const EECounter& other) {
 
 void EECounter::add(uint64_t step) {
     pos += step;
-    if(pos > size) {
-        pos = size - pos;
+    if(pos > maxSize) {
+        pos = maxSize - pos;
         global_pos++;
     }
 }
 
 void EECounter::sub(uint64_t step) {
     pos += step;
-    if(pos > size) pos = size - pos;
+    if(pos > maxSize) pos = maxSize - pos;
 }
 
 void EECounter::reset() {
