@@ -16,12 +16,12 @@ public:
     void        set_pos(uint64_t pos);
     void        set_glob_pos(uint64_t glob_pos);
 
-    bool        operator==(const EECounter& other);
-    bool        operator!=(const EECounter& other);
+    bool        operator==(const EECounter& other) const;
+    bool        operator!=(const EECounter& other) const;
     bool        operator<(const EECounter& other) const;
     bool        operator>(const EECounter& other) const;
-    bool        operator<=(const EECounter& other);
-    bool        operator>=(const EECounter& other);
+    bool        operator<=(const EECounter& other) const;
+    bool        operator>=(const EECounter& other) const;
 
     EECounter&  operator++();
     EECounter&  operator--();

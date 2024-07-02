@@ -26,14 +26,14 @@ void EECounter::set_glob_pos(uint64_t glob_pos)
     this->global_pos = glob_pos;
 }
 
-bool EECounter::operator==(const EECounter &other) {
+bool EECounter::operator==(const EECounter &other) const {
     _INCOMPATIBLE_EXCEPTION_
 
     if(this->pos == other.pos && this->global_pos == other.global_pos)  return true;
     else                                                                return false;
 }
 
-bool EECounter::operator!=(const EECounter &other) {
+bool EECounter::operator!=(const EECounter &other) const {
     _INCOMPATIBLE_EXCEPTION_
 
     if(this->pos != other.pos || this->global_pos != other.global_pos)  return true;
@@ -54,14 +54,14 @@ bool EECounter::operator>(const EECounter &other) const {
     else                                                                return false;
 }
 
-bool EECounter::operator<=(const EECounter &other) {
+bool EECounter::operator<=(const EECounter &other) const {
     if(*this == other)  return true;
     if(*this < other)   return true;
 
     return false;
 }
 
-bool EECounter::operator>=(const EECounter &other) {
+bool EECounter::operator>=(const EECounter &other) const {
     if(*this == other)  return true;
     if(*this > other)   return true;
 

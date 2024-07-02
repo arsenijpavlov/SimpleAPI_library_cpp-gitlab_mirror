@@ -60,7 +60,7 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
     if(receivedPM.packet.empty())
         return {};
 
-    std::cout << "[SOCKET] input message" << std::endl;
+//    std::cout << "[SOCKET] input message" << std::endl;
     if(it->second.inSnLastRecv < receivedPM.sn)
         it->second.inSnLastRecv = receivedPM.sn;
     //всё, что пришло до этого - удалится
@@ -74,29 +74,29 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
         it->second.mapRecvFragments.insert(std::make_pair(receivedPM.sn, receivedPM));
 
     //пройтись по poolRecvMessages и добрать по порядку к mapRecvBuildedMessages
-    std::cout << "[SOCKET] before while(poolRecvMessages.sn)" << std::endl;
+//    std::cout << "[SOCKET] before while(poolRecvMessages.sn)" << std::endl;
     auto it_pool = it->second.mapRecvFragments.find(it->second.inNextSn);
     while(it_pool != it->second.mapRecvFragments.end()) {
-        if(receivedPM.sn == it->second.inNextSn) {
-            it->second.mapRecvBuildedMessages.insert(std::make_pair(receivedPM.sn, receivedPM));
+//        if(it_pool->second.sn == it->second.inNextSn) {
+            it->second.mapRecvBuildedMessages.insert(std::make_pair(it_pool->second.sn, it_pool->second));
             it->second.inNextSn++;
 
             it_pool = it->second.mapRecvFragments.erase(it_pool);
-            std::cout << "[SOCKET] while(poolRecvMessages.sn) removed (" << it->second.inNextSn.get() << ")" << std::endl;
-        }
+//            std::cout << "[SOCKET] while(poolRecvMessages.sn) removed (" << it->second.inNextSn.get() << ")" << std::endl;
+//        }
         it_pool = it->second.mapRecvFragments.find(it->second.inNextSn); //ищем следующий фрагмент очереди
     }
-    std::cout << "[SOCKET] after while(poolRecvMessages.sn)" << std::endl;
+//    std::cout << "[SOCKET] after while(poolRecvMessages.sn)" << std::endl;
 
     //удалить всё, что теперь вне окна ожидания
-    std::cout << "[SOCKET] before removing out window" << std::endl;
+//    std::cout << "[SOCKET] before removing out window" << std::endl;
     it_pool = it->second.mapRecvFragments.begin();
     while(it_pool != it->second.mapRecvFragments.end()) {
         if(it_pool->first < rmSn)
             it_pool = it->second.mapRecvFragments.erase(it_pool);
         it_pool++;
     }
-    std::cout << "[SOCKET] after removing out window" << std::endl;
+//    std::cout << "[SOCKET] after removing out window" << std::endl;
 
     //попытаться собрать ОДИН пакет
     PacketMessage pm;
@@ -116,6 +116,9 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
             if(!isFirstCounterSet) {
                 firstCounter = it_build->first;
                 isFirstCounterSet = true;
+
+                pm.ipPort = it_build->second.ipPort;
+                pm.header = it_build->second.header;
             }
 
             if(it_build->second.header.isLastFragment) {
@@ -123,9 +126,9 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
                 break;
             }
         }
-        if(!it->second.mapRecvBuildedMessages.find(firstCounter)->second.header.isFirstFragment)
+        if(it->second.mapRecvBuildedMessages.find(firstCounter)->second.header.isFirstFragment)
             isStarted = true;
-        if(!it->second.mapRecvBuildedMessages.find(lastCounter)->second.header.isLastFragment)
+        if(it->second.mapRecvBuildedMessages.find(lastCounter)->second.header.isLastFragment)
             isFinished = true;
 
         //пакет не состоялся, удалить все фрагменты
@@ -145,17 +148,16 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
             pm.sn = firstCounter; //номер первого фрагмента для индикации доставки глобального сообщения
             //скопировать и удалить задействованные фрагменты
             auto it_build = it->second.mapRecvBuildedMessages.begin();
-            while(it_build != it->second.mapRecvBuildedMessages.end()
-                   && (it_build->first < lastCounter)) {
-//                pm.packet.emplace_back(it_build->second.packet);
+            while(it_build != it->second.mapRecvBuildedMessages.end() && (it_build->first <= lastCounter)) {
                 std::copy(std::begin(it_build->second.packet),
                           std::end(it_build->second.packet),
                           std::back_insert_iterator<Packet>(pm.packet));
                 it_build = it->second.mapRecvBuildedMessages.erase(it_build);
-                it_build++;
+//                it_build++;
+//                std::cout << "it_build++" << std::endl;
             }
 
-            std::cout << "Compile received packet: 0x" << utils::to_hex_string(pm.packet);
+            std::cout << "Compile received packet: 0x" << utils::to_hex_string(pm.packet) << std::endl;
 
             uint16_t size = (pm.packet[0] << 8) + pm.packet[1];
             pm.packet.erase(pm.packet.begin(), pm.packet.begin() + 1);
