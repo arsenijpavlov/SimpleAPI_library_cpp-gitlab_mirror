@@ -57,6 +57,10 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
                            Connection{EECounter(255), EECounter(255), EECounter(255)})).first;
     }
 
+    if(receivedPM.packet.empty())
+        return {};
+
+    std::cout << "[SOCKET] input message" << std::endl;
     if(it->second.inSnLastRecv < receivedPM.sn)
         it->second.inSnLastRecv = receivedPM.sn;
     //всё, что пришло до этого - удалится
@@ -70,6 +74,7 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
         it->second.mapRecvFragments.insert(std::make_pair(receivedPM.sn, receivedPM));
 
     //пройтись по poolRecvMessages и добрать по порядку к mapRecvBuildedMessages
+    std::cout << "[SOCKET] before while(poolRecvMessages.sn)" << std::endl;
     auto it_pool = it->second.mapRecvFragments.find(it->second.inNextSn);
     while(it_pool != it->second.mapRecvFragments.end()) {
         if(receivedPM.sn == it->second.inNextSn) {
@@ -77,17 +82,21 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
             it->second.inNextSn++;
 
             it_pool = it->second.mapRecvFragments.erase(it_pool);
+            std::cout << "[SOCKET] while(poolRecvMessages.sn) removed (" << it->second.inNextSn.get() << ")" << std::endl;
         }
         it_pool = it->second.mapRecvFragments.find(it->second.inNextSn); //ищем следующий фрагмент очереди
     }
+    std::cout << "[SOCKET] after while(poolRecvMessages.sn)" << std::endl;
 
     //удалить всё, что теперь вне окна ожидания
+    std::cout << "[SOCKET] before removing out window" << std::endl;
     it_pool = it->second.mapRecvFragments.begin();
-    while(it_pool == it->second.mapRecvFragments.end()) {
+    while(it_pool != it->second.mapRecvFragments.end()) {
         if(it_pool->first < rmSn)
             it_pool = it->second.mapRecvFragments.erase(it_pool);
         it_pool++;
     }
+    std::cout << "[SOCKET] after removing out window" << std::endl;
 
     //попытаться собрать ОДИН пакет
     PacketMessage pm;

@@ -38,8 +38,8 @@ public:
     void startThread(); //вызывается в конструкторе, запускает поток
     void stopThread();  //вызывается в деструкторе, останавливает поток
 
-    void setCallbackSocketReadRawData(const Socket& s, void (*callback)(PacketMessage pm));
-    void setCallbackSocketReadJsonData(const Socket& s, void (*callback)(JsonMessage jm));
+    void setCallbackSocketReadRawData(const IpPort& ipPort, void (*callback)(PacketMessage pm));
+    void setCallbackSocketReadJsonData(const IpPort& ipPort, void (*callback)(JsonMessage jm));
 };
 
 #endif // SOCKET_THREAD_H

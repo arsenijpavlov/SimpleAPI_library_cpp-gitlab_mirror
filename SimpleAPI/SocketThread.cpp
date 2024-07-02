@@ -22,6 +22,7 @@ void SocketThread::run() {
         }
 
         usleep(1);
+//        std::cout << "[THREAD]" << std::endl;
     }
 }
 
@@ -101,7 +102,14 @@ void SocketThread::startThread()
 {
     if(!isActive()) {
         std::cout << "[THREAD START]" << std::endl;
-        active = true;
+        active = true;//void RecvData(PacketMessage pm) {
+
+        //}
+
+        //void RecvJson(JsonMessage jm) {
+
+        //}
+
         t = std::thread(&SocketThread::run, this);
     }
 }
@@ -115,10 +123,10 @@ void SocketThread::stopThread()
     }
 }
 
-void SocketThread::setCallbackSocketReadRawData(const Socket &s, void (*callback)(PacketMessage pm)) {
+void SocketThread::setCallbackSocketReadRawData(const IpPort &ipPort, void (*callback)(PacketMessage pm)) {
     this->packetCallback = callback;
 }
 
-void SocketThread::setCallbackSocketReadJsonData(const Socket &s, void (*callback)(JsonMessage jm)) {
+void SocketThread::setCallbackSocketReadJsonData(const IpPort &ipPort, void (*callback)(JsonMessage jm)) {
     this->jsonCallback = callback;
 }

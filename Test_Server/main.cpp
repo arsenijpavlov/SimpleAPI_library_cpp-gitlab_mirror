@@ -10,13 +10,19 @@ void signalHandler(int signal) {
         isRunning = false;
 }
 
+//void RecvData(PacketMessage pm) {
+//}
+
+//void RecvJson(JsonMessage jm) {
+//}
+
 int main(int argc, char** argv) {
     signal(SIGINT, signalHandler);
 
-    IpPort server{"127.0.0.5", 31115};
+    IpPort server{"127.0.0.15", 31115};
     SocketThread st(eUDP, server);
-//    st.setCallbackSocketReadJsonData()
-//    st.setCallbackSocketReadRawData()
+//    st.setCallbackSocketReadJsonData(server, RecvData);
+//    st.setCallbackSocketReadRawData();
 
     while(1) {
         if(!isRunning) {
