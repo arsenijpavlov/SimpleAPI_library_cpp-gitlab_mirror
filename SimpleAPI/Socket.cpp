@@ -37,7 +37,7 @@ PacketHeader Socket::unpackHeader(uint8_t header) {
     return ph;
 }
 
-EECounter Socket::getOutSeqNumber(const IpPort& ipPort) {
+EECounter& Socket::getOutSeqNumber(const IpPort& ipPort) {
     auto it = this->mapConnections.find(ipPort);
     if(it == this->mapConnections.end()) {
         it = this->mapConnections.insert(
@@ -157,11 +157,12 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
 //                std::cout << "it_build++" << std::endl;
             }
 
-            std::cout << "Compile received packet: 0x" << utils::to_hex_string(pm.packet) << std::endl;
+//            std::cout << "Compile received packet: 0x" << utils::to_hex_string(pm.packet) << std::endl;
 
             uint16_t size = (pm.packet[0] << 8) + pm.packet[1];
-            pm.packet.erase(pm.packet.begin(), pm.packet.begin() + 1);
+            pm.packet.erase(pm.packet.begin(), pm.packet.begin() + 2); //размер поля данных
             //проверка ошибки размера
+//            std::cout << "size:" << size << std::endl;
             if(size != pm.packet.size()) {
                 pm.isError = true;
                 return pm;
@@ -273,8 +274,9 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
 
     size_t tempSize;
     //упаковка размера сообщения
-    innerData.push_back(packet.size() >> 8); //NOTE: emplace_back отказывается работать
+    innerData.push_back(packet.size() >> 8);
     innerData.push_back(packet.size() & 0xFF);
+//    std::cout << "send size: " << (packet.size() >> 8) << ", " << (packet.size() & 0xFF) << std::endl;
     //упаковка данных во временный пакет
     tempSize = innerData.size();
     innerData.resize(tempSize + packet.size());
@@ -306,10 +308,11 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
     while(innerData.size() - currentPos > 0) {
         uint16_t availableSize = this->settings.maxLength;
 
-        EECounter fragment_sn = getOutSeqNumber(remoteIpPort);
+        EECounter& fragment_sn = getOutSeqNumber(remoteIpPort);
         if(!isFirstEECsaved)
             firstSn = fragment_sn;
 
+        EECounter saved = fragment_sn;
         //упаковываем фрагмент
         Packet buf;
         {
@@ -338,6 +341,7 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
                     isStart = false;
             }
             buf.push_back(packHeader(ph));
+            saved = fragment_sn;
             buf.push_back(fragment_sn.get_glob()); //для текущего клиента
             buf.push_back(fragment_sn.get_add()); //для текущего клиента
             availableSize -= buf.size();
@@ -351,7 +355,7 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
         {
             pm.ipPort       = remoteIpPort;
             pm.packet       = buf;
-            pm.sn           = fragment_sn;
+            pm.sn           = saved; //для записи НЕ инкрементированного значения
             pm.header.type  = type;
         }
         fragments.push_back(pm); //запоминаем фрагмент
@@ -432,6 +436,7 @@ void UDPSocket::recvAutoMsg(int timeout) {
     PacketMessage pm = recvRawMsg(1);
     if(pm.packet.empty()) return;
 
+//    std::cout << "Input packet: 0x" << utils::to_hex_string(pm.packet) << std::endl;
     //записать время прихода нового сообщения от сокета
     auto it = this->mapLastActivity.begin();
     if(it == this->mapLastActivity.end())
@@ -454,11 +459,11 @@ void UDPSocket::recvAutoMsg(int timeout) {
     if(pm.header.type != eControlType) {
         std::cout << "Send acknowledge for message(" << pm.sn.get() << ")" << std::endl;
         controlAcknoledge.put("ack_sn", (double)pm.sn.get()); //TODO: общий тип для всех числовых значений
+        if(b_pm.isBuiltComplete)
+            controlAcknoledge.put("ack_all_packet", (double)b_pm.sn.get());
+        if(b_pm.isError)
+            controlAcknoledge.put("packet_error", (double)b_pm.sn.get()); //TODO: проверка ошибок и переотправка
     }
-    if(b_pm.isBuiltComplete)
-        controlAcknoledge.put("ack_all_packet", (double)b_pm.sn.get());
-    if(b_pm.isError)
-        controlAcknoledge.put("packet_error", (double)b_pm.sn.get()); //TODO: проверка ошибок и переотправка
 
     if(!b_pm.packet.empty()) {
         std::cout << "Recv: " << to_string(b_pm.header.type) << " ["
@@ -470,20 +475,22 @@ void UDPSocket::recvAutoMsg(int timeout) {
         switch(pm.header.type) {
         case eControlType: {
             if(jm.json.contains("ack_sn")) {
-                uint8_t sn = *jm.json["ack_sn"].getNum();
-                for(auto& it : this->mapAutoSentPackets) {
-                    if(it.second.sn.get() == sn) {
-                        this->mapAutoSentPackets.erase(it.first);
+                uint8_t sn = jm.json["ack_sn"].getNum();
+                for(auto it = this->mapAutoSentPackets.begin(); it != this->mapAutoSentPackets.end(); it++) {
+                    if(it->second.sn.get() == sn) {
+                        this->mapAutoSentPackets.erase(it->first);
+                        std::cout << "erased(" << (int)sn << ")" << std::endl;
                         break;
                     }
                 }
             }
             if(jm.json.contains("ack_all_packet")) {
-                uint8_t first_sn = *jm.json["ack_all_packet"].getNum(); //номер первого фрагмента сообщения
+                uint8_t first_sn = jm.json["ack_all_packet"].getNum(); //номер первого фрагмента сообщения
 
                 for(auto it = this->sentGlobalPackets.begin(); it != this->sentGlobalPackets.end(); it++) {
                     if(it->sn.get() == first_sn) {
                         it = this->sentGlobalPackets.erase(it);
+                        std::cout << "global erased(" << (int)first_sn << ")" << std::endl;
                         break;
                     }
                 }
@@ -499,6 +506,9 @@ void UDPSocket::recvAutoMsg(int timeout) {
         }
         default: std::cout << "Error: unknown received type(" << pm.header.type << ")" << std::endl;
         }
+
+        std::cout << "this->mapAutoSentPackets:" << this->mapAutoSentPackets.size() << ")" << std::endl;
+        std::cout << "this->sentGlobalPackets:" << this->sentGlobalPackets.size() << ")" << std::endl;
     }
 
     if(!controlAcknoledge.isEmpty())

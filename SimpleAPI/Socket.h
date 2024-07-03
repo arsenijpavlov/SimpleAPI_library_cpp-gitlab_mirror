@@ -82,7 +82,7 @@ protected:
 
     uint8_t         packHeader(const PacketHeader& ph);
     PacketHeader    unpackHeader(uint8_t header);
-    EECounter       getOutSeqNumber(const IpPort& ipPort);
+    EECounter&      getOutSeqNumber(const IpPort& ipPort);
     PacketMessage   buildPacket(PacketMessage receivedPM);
 
     void            sendFragments(const std::string& remoteIp, const uint16_t remotePort, const PacketType type, const Packet& packet);
