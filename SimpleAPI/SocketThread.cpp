@@ -102,7 +102,9 @@ void SocketThread::startThread()
 {
     if(!isActive()) {
         std::cout << "[THREAD START]" << std::endl;
-        active = true;//void RecvData(PacketMessage pm) {
+        active = true;
+
+        //void RecvData(PacketMessage pm) {
 
         //}
 
@@ -121,6 +123,11 @@ void SocketThread::stopThread()
         active = false; //остановили
         t.join();       //ждём завершения потока
     }
+}
+
+std::shared_ptr<Socket> SocketThread::findSocket(const IpPort &localIpPort)
+{
+    return this->p_sockets.find(localIpPort)->second;
 }
 
 void SocketThread::setCallbackSocketReadRawData(const IpPort &ipPort, void (*callback)(PacketMessage pm)) {

@@ -38,6 +38,9 @@ public:
     void startThread(); //вызывается в конструкторе, запускает поток
     void stopThread();  //вызывается в деструкторе, останавливает поток
 
+    //NOTE: nullptr если не найден или создать новый сервер во избежание ошибок?
+    std::shared_ptr<Socket> findSocket(const IpPort& localIpPort);
+
     void setCallbackSocketReadRawData(const IpPort& ipPort, void (*callback)(PacketMessage pm));
     void setCallbackSocketReadJsonData(const IpPort& ipPort, void (*callback)(JsonMessage jm));
 };
