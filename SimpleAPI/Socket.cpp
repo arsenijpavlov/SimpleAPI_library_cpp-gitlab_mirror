@@ -140,6 +140,7 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
                 it_build++;
             }
             pm.isError = true;
+            pm.error.sn_finish = lastCounter;
             return pm;
         }
 
@@ -165,6 +166,7 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
 //            std::cout << "size:" << size << std::endl;
             if(size != pm.packet.size()) {
                 pm.isError = true;
+                pm.error.sn_finish = lastCounter;
                 return pm;
             }
 \
@@ -301,6 +303,7 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
 
     bool isFirstEECsaved = false;
     EECounter firstSn(255);
+    EECounter lastSn(255);
 
     std::vector<PacketMessage> fragments;
     bool isStart    = true;
@@ -359,6 +362,7 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
             pm.header.type  = type;
         }
         fragments.push_back(pm); //запоминаем фрагмент
+        lastSn = saved; //для определения границ глобального пакета
 
         //определяем расположение следующего фрагмента
         currentPos += currentFragmentSize;
@@ -383,7 +387,9 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
         pm.ipPort       = remoteIpPort;
         pm.packet       = packet;
         pm.header.type  = type;
-        pm.sn           = firstSn;
+        //границы глобального пакета
+        pm.range.start  = firstSn;
+        pm.range.finish = lastSn;
     }
     this->sentGlobalPackets.push_back(pm);
 }
@@ -461,8 +467,9 @@ void UDPSocket::recvAutoMsg(int timeout) {
         controlAcknoledge.put("ack_sn", (double)pm.sn.get()); //TODO: общий тип для всех числовых значений
         if(b_pm.isBuiltComplete)
             controlAcknoledge.put("ack_all_packet", (double)b_pm.sn.get());
-        if(b_pm.isError)
-            controlAcknoledge.put("packet_error", (double)b_pm.sn.get()); //TODO: проверка ошибок и переотправка
+        if(b_pm.isError) {
+            controlAcknoledge.put("packet_error_last_sn", (double)b_pm.error.sn_finish.get());//TODO: проверка ошибок и переотправка
+        }
     }
 
     if(!b_pm.packet.empty()) {
@@ -479,7 +486,7 @@ void UDPSocket::recvAutoMsg(int timeout) {
                 for(auto it = this->mapAutoSentPackets.begin(); it != this->mapAutoSentPackets.end(); it++) {
                     if(it->second.sn.get() == sn) {
                         this->mapAutoSentPackets.erase(it->first);
-                        std::cout << "erased(" << (int)sn << ")" << std::endl;
+//                        std::cout << "erased(" << (int)sn << ")" << std::endl;
                         break;
                     }
                 }
@@ -488,12 +495,36 @@ void UDPSocket::recvAutoMsg(int timeout) {
                 uint8_t first_sn = jm.json["ack_all_packet"].getNum(); //номер первого фрагмента сообщения
 
                 for(auto it = this->sentGlobalPackets.begin(); it != this->sentGlobalPackets.end(); it++) {
-                    if(it->sn.get() == first_sn) {
+                    if(it->range.start.get() == first_sn) {
                         it = this->sentGlobalPackets.erase(it);
-                        std::cout << "global erased(" << (int)first_sn << ")" << std::endl;
+//                        std::cout << "global erased(" << (int)first_sn << ")" << std::endl;
                         break;
                     }
                 }
+            }
+            if(jm.json.contains("packet_error_last_sn")) {
+                uint8_t last_err_sn = jm.json["packet_error"].getNum(); //номер первого фрагмента сообщения
+
+                //удалить все упоминания фрагментов пакета из очереди переотправок
+                for(auto it = this->mapAutoSentPackets.begin(); it != this->mapAutoSentPackets.end(); it++) {
+                    if(it->second.sn <= last_err_sn)
+                        it = this->mapAutoSentPackets.erase(it);
+                }
+
+                //удалить из глобального списка (потому что станет дубликатом) и отправить заново
+                Packet packet;
+                IpPort ipPort;
+                PacketType type;
+                for(auto it = this->sentGlobalPackets.begin(); it != this->sentGlobalPackets.end(); it++) {
+                    if(it->range.finish.get() == last_err_sn) {
+                        packet = it->packet;
+                        type = it->header.type;
+                        it = this->sentGlobalPackets.erase(it);
+                        break;
+                    }
+                }
+
+                sendFragments(ipPort, type, packet); //переотправка
             }
             break;
         }
@@ -507,8 +538,8 @@ void UDPSocket::recvAutoMsg(int timeout) {
         default: std::cout << "Error: unknown received type(" << pm.header.type << ")" << std::endl;
         }
 
-        std::cout << "this->mapAutoSentPackets:" << this->mapAutoSentPackets.size() << ")" << std::endl;
-        std::cout << "this->sentGlobalPackets:" << this->sentGlobalPackets.size() << ")" << std::endl;
+//        std::cout << "this->mapAutoSentPackets:" << this->mapAutoSentPackets.size() << ")" << std::endl;
+//        std::cout << "this->sentGlobalPackets:" << this->sentGlobalPackets.size() << ")" << std::endl;
     }
 
     if(!controlAcknoledge.isEmpty())

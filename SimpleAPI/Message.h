@@ -78,6 +78,19 @@ struct PacketHeader {
     CRC         crcLevel;       //2 bits
 };
 
+struct PacketError {
+    EECounter sn_finish;
+
+    PacketError() : sn_finish(255){};
+};
+
+struct PacketRange {
+    EECounter start;
+    EECounter finish;
+
+    PacketRange() : start(255), finish(255) {};
+};
+
 class PacketMessage {
 public:
     IpPort      ipPort;
@@ -86,7 +99,10 @@ public:
     PacketHeader header;
 
     bool        isError;
+    PacketError error;
+
     bool        isBuiltComplete;
+    PacketRange range;
 
     PacketMessage();
 
