@@ -57,11 +57,11 @@ struct Element {
     Element(const Json& value);
     Element(const Array& value);
 
-    double*         getNum();
-    bool*           getBool();
-    std::string*    getString();
-    Json*           getJson();
-    Array*          getArray();
+    double      getNum();
+    bool        getBool();
+    std::string getString();
+    Json        getJson();
+    Array       getArray();
 
     Element getInnerValue(std::string name);
     Element getInnerValue(size_t index);

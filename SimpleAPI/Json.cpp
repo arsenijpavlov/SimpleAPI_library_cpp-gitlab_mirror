@@ -83,39 +83,39 @@ Element::Element(const Array& value) : first(ValueType::eArray) {
     second = reinterpret_cast<BaseElement*>(new ArrayElement(value));
 }
 
-double* Element::getNum()
+double Element::getNum()
 {
     if(first == ValueType::eNumber)
-        return &reinterpret_cast<DoubleElement*>(this->second)->value;
-    else return nullptr;
+        return reinterpret_cast<DoubleElement*>(this->second)->value;
+    else return 0;
 }
 
-bool* Element::getBool()
+bool Element::getBool()
 {
     if(first == ValueType::eBool)
-        return &reinterpret_cast<BoolElement*>(this->second)->value;
-    else return nullptr;
+        return reinterpret_cast<BoolElement*>(this->second)->value;
+    else return false;
 }
 
-std::string* Element::getString()
+std::string Element::getString()
 {
     if(first == ValueType::eString)
-        return &reinterpret_cast<StringElement*>(this->second)->value;
-    else return nullptr;
+        return reinterpret_cast<StringElement*>(this->second)->value;
+    else return "";
 }
 
-Json* Element::getJson()
+Json Element::getJson()
 {
     if(first == ValueType::eJson)
-        return &reinterpret_cast<JsonElement*>(this->second)->value;
-    else return nullptr;
+        return reinterpret_cast<JsonElement*>(this->second)->value;
+    else return {};
 }
 
-Array* Element::getArray()
+Array Element::getArray()
 {
     if(first == ValueType::eArray)
-        return &reinterpret_cast<ArrayElement*>(this->second)->value;
-    else return nullptr;
+        return reinterpret_cast<ArrayElement*>(this->second)->value;
+    else return {};
 }
 
 Element Element::getInnerValue(std::string name)
