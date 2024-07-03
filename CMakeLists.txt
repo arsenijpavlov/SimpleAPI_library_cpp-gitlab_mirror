@@ -23,7 +23,7 @@ message("${Bold}project: ${Green}project_SimpleAPI_main${Reset}")
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(ENABLE_JSON_TEST     "Testing JSon enabled"      on)
+option(ENABLE_JSON_TEST     "Testing Json enabled"      off)
 option(ENABLE_CLIENT_TEST   "Testing Client enabled"    on)
 option(ENABLE_SERVER_TEST   "Testing Server enabled"    on)
 
