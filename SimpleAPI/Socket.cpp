@@ -60,7 +60,6 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
     if(receivedPM.packet.empty())
         return {};
 
-//    std::cout << "[SOCKET] input message" << std::endl;
     if(it->second.inSnLastRecv < receivedPM.sn)
         it->second.inSnLastRecv = receivedPM.sn;
     //всё, что пришло до этого - удалится
@@ -74,29 +73,22 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
         it->second.mapRecvFragments.insert(std::make_pair(receivedPM.sn, receivedPM));
 
     //пройтись по poolRecvMessages и добрать по порядку к mapRecvBuildedMessages
-//    std::cout << "[SOCKET] before while(poolRecvMessages.sn)" << std::endl;
     auto it_pool = it->second.mapRecvFragments.find(it->second.inNextSn);
     while(it_pool != it->second.mapRecvFragments.end()) {
-//        if(it_pool->second.sn == it->second.inNextSn) {
-            it->second.mapRecvBuildedMessages.insert(std::make_pair(it_pool->second.sn, it_pool->second));
-            it->second.inNextSn++;
+        it->second.mapRecvBuildedMessages.insert(std::make_pair(it_pool->second.sn, it_pool->second));
+        it->second.inNextSn++;
 
-            it_pool = it->second.mapRecvFragments.erase(it_pool);
-//            std::cout << "[SOCKET] while(poolRecvMessages.sn) removed (" << it->second.inNextSn.get() << ")" << std::endl;
-//        }
+        it_pool = it->second.mapRecvFragments.erase(it_pool);
         it_pool = it->second.mapRecvFragments.find(it->second.inNextSn); //ищем следующий фрагмент очереди
     }
-//    std::cout << "[SOCKET] after while(poolRecvMessages.sn)" << std::endl;
 
     //удалить всё, что теперь вне окна ожидания
-//    std::cout << "[SOCKET] before removing out window" << std::endl;
     it_pool = it->second.mapRecvFragments.begin();
     while(it_pool != it->second.mapRecvFragments.end()) {
         if(it_pool->first < rmSn)
             it_pool = it->second.mapRecvFragments.erase(it_pool);
         it_pool++;
     }
-//    std::cout << "[SOCKET] after removing out window" << std::endl;
 
     //попытаться собрать ОДИН пакет
     PacketMessage pm;
@@ -154,16 +146,11 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
                           std::end(it_build->second.packet),
                           std::back_insert_iterator<Packet>(pm.packet));
                 it_build = it->second.mapRecvBuildedMessages.erase(it_build);
-//                it_build++;
-//                std::cout << "it_build++" << std::endl;
             }
-
-//            std::cout << "Compile received packet: 0x" << utils::to_hex_string(pm.packet) << std::endl;
 
             uint16_t size = (pm.packet[0] << 8) + pm.packet[1];
             pm.packet.erase(pm.packet.begin(), pm.packet.begin() + 2); //размер поля данных
             //проверка ошибки размера
-//            std::cout << "size:" << size << std::endl;
             if(size != pm.packet.size()) {
                 pm.isError = true;
                 pm.error.sn_finish = lastCounter;
@@ -486,7 +473,6 @@ void UDPSocket::recvAutoMsg(int timeout) {
                 for(auto it = this->mapAutoSentPackets.begin(); it != this->mapAutoSentPackets.end(); it++) {
                     if(it->second.sn.get() == sn) {
                         this->mapAutoSentPackets.erase(it->first);
-//                        std::cout << "erased(" << (int)sn << ")" << std::endl;
                         break;
                     }
                 }
@@ -497,7 +483,6 @@ void UDPSocket::recvAutoMsg(int timeout) {
                 for(auto it = this->sentGlobalPackets.begin(); it != this->sentGlobalPackets.end(); it++) {
                     if(it->range.start.get() == first_sn) {
                         it = this->sentGlobalPackets.erase(it);
-//                        std::cout << "global erased(" << (int)first_sn << ")" << std::endl;
                         break;
                     }
                 }
@@ -537,9 +522,6 @@ void UDPSocket::recvAutoMsg(int timeout) {
         }
         default: std::cout << "Error: unknown received type(" << pm.header.type << ")" << std::endl;
         }
-
-//        std::cout << "this->mapAutoSentPackets:" << this->mapAutoSentPackets.size() << ")" << std::endl;
-//        std::cout << "this->sentGlobalPackets:" << this->sentGlobalPackets.size() << ")" << std::endl;
     }
 
     if(!controlAcknoledge.isEmpty())
