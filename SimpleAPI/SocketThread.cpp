@@ -12,13 +12,6 @@ void SocketThread::run() {
             Socket* sock = it->second.get();
 
             sock->tick(); //вся магия там
-
-            PacketMessage pm = sock->getOutPacket();
-            if(!pm.packet.empty() && this->packetCallback)
-                this->packetCallback(pm);
-            JsonMessage jm = sock->getOutJson();
-            if(!jm.json.isEmpty() && this->jsonCallback)
-                this->jsonCallback(jm);
         }
 
         usleep(1);
@@ -26,17 +19,17 @@ void SocketThread::run() {
     }
 }
 
-SocketThread::SocketThread() : packetCallback(nullptr), jsonCallback(nullptr) {
+SocketThread::SocketThread() {
     startThread();
 }
 
 SocketThread::SocketThread(const SocketType type, const std::string &localIP,
-                           uint16_t localPort) : packetCallback(nullptr), jsonCallback(nullptr) {
+                           uint16_t localPort) {
     addSocket(type, localIP, localPort);
     startThread();
 }
 
-SocketThread::SocketThread(const SocketType type, const IpPort &localIpPort) : packetCallback(nullptr), jsonCallback(nullptr) {
+SocketThread::SocketThread(const SocketType type, const IpPort &localIpPort) {
     addSocket(type, localIpPort);
     startThread();
 }
@@ -119,10 +112,52 @@ std::shared_ptr<Socket> SocketThread::findSocket(const IpPort &localIpPort) {
     return this->p_sockets.find(localIpPort)->second;
 }
 
-void SocketThread::setCallbackSocketReadRawData(const IpPort &ipPort, void (*callback)(PacketMessage pm)) {
-    this->packetCallback = callback;
+void SocketThread::setCallbackAllSocketsReadRawData(void (*callback)(PacketMessage))
+{
+    for(auto it = this->p_sockets.begin(); it != this->p_sockets.end(); it++)
+        it->second->setCallbackSocketReadRawData(callback);
 }
 
-void SocketThread::setCallbackSocketReadJsonData(const IpPort &ipPort, void (*callback)(JsonMessage jm)) {
-    this->jsonCallback = callback;
+void SocketThread::setCallbackAllSocketsReadJsonData(void (*callback)(JsonMessage))
+{
+    for(auto it = this->p_sockets.begin(); it != this->p_sockets.end(); it++)
+        it->second->setCallbackSocketReadJsonData(callback);
+}
+
+void SocketThread::setCallbackSocketReadRawData(const IpPort &localIpPort, void (*callback)(PacketMessage pm)) {
+    auto it = this->p_sockets.find(localIpPort);
+    if(it != this->p_sockets.end())
+        it->second->setCallbackSocketReadRawData(callback);
+}
+
+void SocketThread::setCallbackSocketReadJsonData(const IpPort &localIpPort, void (*callback)(JsonMessage jm)) {
+    auto it = this->p_sockets.find(localIpPort);
+    if(it != this->p_sockets.end())
+        it->second->setCallbackSocketReadJsonData(callback);
+}
+
+void SocketThread::setCallbackAllSocketsLogOutput(void (*callback)(std::string))
+{
+    for(auto it = this->p_sockets.begin(); it != this->p_sockets.end(); it++)
+        it->second->setCallbackLogOutput(callback);
+}
+
+void SocketThread::setCallbackAllSocketsLogErrorOutput(void (*callback)(std::string))
+{
+    for(auto it = this->p_sockets.begin(); it != this->p_sockets.end(); it++)
+        it->second->setCallbackLogErrorOutput(callback);
+}
+
+void SocketThread::setCallbackSocketLogOutput(const IpPort &localIpPort, void (*callback)(std::string))
+{
+    auto it = this->p_sockets.find(localIpPort);
+    if(it != this->p_sockets.end())
+        it->second->setCallbackLogOutput(callback);
+}
+
+void SocketThread::setCallbackSocketLogErrOutput(const IpPort &localIpPort, void (*callback)(std::string))
+{
+    auto it = this->p_sockets.find(localIpPort);
+    if(it != this->p_sockets.end())
+        it->second->setCallbackLogErrorOutput(callback);
 }

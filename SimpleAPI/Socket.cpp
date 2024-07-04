@@ -6,11 +6,11 @@
 #include <errno.h>
 
 
-bool checkCorrectIp(const std::string& ipString) {
+bool Socket::checkCorrectIp(const std::string& ipString) {
     struct sockaddr_in sock;
     sock.sin_family = AF_INET;
     if(!inet_pton(AF_INET, ipString.c_str(), &sock.sin_addr.s_addr)) {
-        std::cout << "inet_pton(): return ERROR" << std::endl;
+        Log(logs::eERROR, "inet_pton(): return ERROR");
         return false;
     }
     return true;
@@ -92,11 +92,11 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
 
     //попытаться собрать ОДИН пакет
     PacketMessage pm;
-    pm.isBuiltComplete  = false;
-    pm.isError          = false;
+    pm.isBuiltComplete      = false;
+    pm.isError              = false;
 
-    bool isStarted  = false;
-    bool isFinished = false;
+    bool isStarted          = false;
+    bool isFinished         = false;
     bool isFirstCounterSet  = false;
     EECounter firstCounter(255);
     EECounter lastCounter(255);
@@ -175,11 +175,49 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
         }
     }
 
-
     return pm;
 }
 
-Socket::Socket() : mSocketFD(-1) {
+void Socket::Log(logs::LEVEL level, std::string log_message)
+{
+    if(level > this->logLevel) {
+        switch(level) {
+        case logs::eINFO:
+        case logs::eDEBUG: {
+            if(this->logCallback)
+                this->logCallback(log_message + "\n");
+            break;
+        }
+        case logs::eERROR:
+        default: {
+            if(this->logErrorCallback)
+                this->logErrorCallback(log_message + "\n");
+            break;
+        }
+        }
+    }
+}
+
+void Socket::setCallbackLogOutput(void (*callback)(std::string)) {
+    this->logCallback = callback;
+}
+
+void Socket::setCallbackLogErrorOutput(void (*callback)(std::string)) {
+    this->logErrorCallback = callback;
+}
+
+void Socket::setCallbackSocketReadRawData(void (*callback)(PacketMessage)) {
+    this->packetCallback = callback;
+}
+
+void Socket::setCallbackSocketReadJsonData(void (*callback)(JsonMessage)) {
+    this->jsonCallback = callback;
+}
+
+Socket::Socket() :
+    mSocketFD(-1), logLevel(logs::eINFO),
+    packetCallback(nullptr), jsonCallback(nullptr)
+{
     settings.maxLength          = 1500;
     settings.maxMsgsSentOnTick  = -1;
     settings.inactivityTimer    = 1000;
@@ -224,7 +262,7 @@ void Socket::setUseApiVersion(ApiVersion version) {
 void Socket::close() {
     if(mSocketFD) {
         ::close(this->mSocketFD);
-        std::cout << "The socket " << IpPort{this->localIP, this->localPort}.to_string() << " has been freed" << std::endl;
+        Log(logs::eINFO, "The socket " + IpPort{this->localIP, this->localPort}.to_string() + " has been freed");
         this->mSocketFD = -1;
     }
 }
@@ -237,9 +275,9 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
     Json json;
     json.parseJson(convert_from_packet(packet));
 
-    std::cout << "Send: " << to_string(type) << " ["
-              << (json.isEmpty() ? "Data:0x" + utils::to_hex_string(packet) : "Json:" + json.to_string(-1))
-              << "] --(to)--> " << remoteIpPort.to_string() << std::endl;
+    Log(logs::eINFO, "[SOCKET] send: " + to_string(type) + " ["
+                         + (json.isEmpty() ? "Data:0x" + utils::to_hex_string(packet) : "Json:" + json.to_string(-1))
+                         + "] --(to)--> " + remoteIpPort.to_string());
 
     Packet innerData;
     //=CHIP_and_CRC_and_SIZE_and_DATA===========================================
@@ -334,7 +372,7 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
             saved = fragment_sn;
             buf.push_back(fragment_sn.get_glob()); //для текущего клиента
             buf.push_back(fragment_sn.get_add()); //для текущего клиента
-            availableSize -= buf.size();
+//            availableSize -= buf.size(); //not used after
 
             tempSize = buf.size();
             buf.resize(fragment.size() + tempSize);
@@ -385,6 +423,13 @@ void UDPSocket::tick() {
 //TODO:    checkConnections();
     sendAutoMsg();
     recvAutoMsg(1);
+
+    PacketMessage pm = getOutPacket();
+    if(!pm.packet.empty() && this->packetCallback)
+        this->packetCallback(pm);
+    JsonMessage jm = getOutJson();
+    if(!jm.json.isEmpty() && this->jsonCallback)
+        this->jsonCallback(jm);
 }
 
 void UDPSocket::sendAutoMsg() {
@@ -401,6 +446,7 @@ void UDPSocket::sendAutoMsg() {
         if(tp < std::chrono::system_clock::now()) { //нужно переотправить
             it = this->mapAutoSentPackets.erase(it);
             this->sendPacketsBuffer.push_front(pm);
+            Log(logs::eDEBUG, "[SERVER] resend [" + std::to_string(it->second.sn.get()) + "] fragment");
             counter++;
         }
     }
@@ -429,7 +475,7 @@ void UDPSocket::recvAutoMsg(int timeout) {
     PacketMessage pm = recvRawMsg(1);
     if(pm.packet.empty()) return;
 
-//    std::cout << "Input packet: 0x" << utils::to_hex_string(pm.packet) << std::endl;
+    Log(logs::eDEBUG, "[SOCKET] received message: 0x" + utils::to_hex_string(pm.packet));
     //записать время прихода нового сообщения от сокета
     auto it = this->mapLastActivity.begin();
     if(it == this->mapLastActivity.end())
@@ -450,7 +496,7 @@ void UDPSocket::recvAutoMsg(int timeout) {
 
     Json controlAcknoledge;
     if(pm.header.type != eControlType) {
-        std::cout << "Send acknowledge for message(" << pm.sn.get() << ")" << std::endl;
+        Log(logs::eDEBUG, "Send acknowledge for message(" + std::to_string(pm.sn.get()) + ")");
         controlAcknoledge.put("ack_sn", (double)pm.sn.get()); //TODO: общий тип для всех числовых значений
         if(b_pm.isBuiltComplete)
             controlAcknoledge.put("ack_all_packet", (double)b_pm.sn.get());
@@ -460,10 +506,10 @@ void UDPSocket::recvAutoMsg(int timeout) {
     }
 
     if(!b_pm.packet.empty()) {
-        std::cout << "Recv: " << to_string(b_pm.header.type) << " ["
-                  << (jm.json.isEmpty() ? "Data:0x" + utils::to_hex_string(b_pm.packet)
-                                        : "Json:" + jm.json.to_string(-1))
-                  << "] <-(from)- " << b_pm.ipPort.to_string() << std::endl;
+        Log(logs::eINFO, "Recv: " + to_string(b_pm.header.type) + " ["
+                             + (jm.json.isEmpty() ? "Data:0x" + utils::to_hex_string(b_pm.packet)
+                                                  : "Json:" + jm.json.to_string(-1))
+                             + "] <-(from)- " + b_pm.ipPort.to_string());
 
         //обработка собранного пакета (1 за проход)
         switch(pm.header.type) {
@@ -488,7 +534,7 @@ void UDPSocket::recvAutoMsg(int timeout) {
                 }
             }
             if(jm.json.contains("packet_error_last_sn")) {
-                uint8_t last_err_sn = jm.json["packet_error"].getNum(); //номер первого фрагмента сообщения
+                uint8_t last_err_sn = jm.json["packet_error_last_sn"].getNum(); //номер первого фрагмента сообщения
 
                 //удалить все упоминания фрагментов пакета из очереди переотправок
                 for(auto it = this->mapAutoSentPackets.begin(); it != this->mapAutoSentPackets.end(); it++) {
@@ -502,14 +548,18 @@ void UDPSocket::recvAutoMsg(int timeout) {
                 PacketType type;
                 for(auto it = this->sentGlobalPackets.begin(); it != this->sentGlobalPackets.end(); it++) {
                     if(it->range.finish.get() == last_err_sn) {
-                        packet = it->packet;
-                        type = it->header.type;
+                        packet  = it->packet;
+                        type    = it->header.type;
+                        ipPort  = it->ipPort;
                         it = this->sentGlobalPackets.erase(it);
                         break;
                     }
                 }
 
-                sendFragments(ipPort, type, packet); //переотправка
+                if(!packet.empty()) {
+                    Log(logs::eDEBUG, "[SERVER] Resend packet [0x" + utils::to_hex_string(packet) + "]");
+                    sendFragments(ipPort, type, packet); //переотправка
+                }
             }
             break;
         }
@@ -522,7 +572,8 @@ void UDPSocket::recvAutoMsg(int timeout) {
             this->inputThreadsMutex.unlock();
             break;
         }
-        default: std::cout << "Error: unknown received type(" << pm.header.type << ")" << std::endl;
+//TODO: бестолковое, надо удалить. Тип пакета занимает всего 1 бит
+        default: Log(logs::eERROR, "[SERVER] unknown received type(" + to_string(pm.header.type) + ")");
         }
     }
 
@@ -551,13 +602,12 @@ bool UDPSocket::sendRawMsg(const std::string &remoteIP, const uint16_t remotePor
     sock.sin_family = AF_INET;
     sock.sin_port = htons(remotePort);
     if(!inet_pton(AF_INET, remoteIP.c_str(), &sock.sin_addr.s_addr))
-        std::cout << "inet_pton(): return ERROR" << std::endl;
+        Log(logs::eERROR, "inet_pton(): return ERROR");
     int res = sendto(mSocketFD, (char*)packet.data(), packet.size(), 0, (struct sockaddr*)&sock, sizeof(struct sockaddr_in));
     if(res < 0) {
-        std::cout << "ErrNo: " << errno << std::endl;
+        Log(logs::eERROR, "ErrNo: " + std::to_string(errno));
         return false;
     }
-//    std::cout << "Sent (" << res << ") -> " << IpPort{remoteIP, remotePort}.to_string() << std::endl;
     return res > 0;
 }
 
@@ -581,7 +631,7 @@ PacketMessage UDPSocket::recvRawMsg(int timeout) {
     recv_num = select(mSocketFD + 1, &fds, NULL, NULL, (timeout > 0 ? &t : NULL));
     if(recv_num < 0) {
         if(errno != EINTR) /* Interrupted system call */
-            std::cout << "Error in select(), errno=" << errno << std::endl;
+            Log(logs::eERROR, "Error in select(), errno=" + std::to_string(errno));
         return PacketMessage();
     }
     if(recv_num > 0) {
@@ -591,7 +641,7 @@ PacketMessage UDPSocket::recvRawMsg(int timeout) {
     }
 
     if(recv_num < 0) {
-        std::cout << "Error reading msg" << std::endl;
+        Log(logs::eERROR, "Error reading msg");
     } else if(recv_num > 0) {
         PacketMessage rpacket;
         rpacket.ipPort.ip.resize(INET_ADDRSTRLEN);
@@ -632,7 +682,7 @@ void UDPSocket::open(const uint16_t localPort, const std::string& localIP) {
         sock.sin_addr.s_addr = INADDR_ANY;
     else {
         if(!inet_pton(AF_INET, localIP.c_str(), &sock.sin_addr.s_addr))
-            std::cout << "inet_pton(): return ERROR" << std::endl;
+            Log(logs::eERROR, "inet_pton(): return ERROR");
     }
     int res = bind(mSocketFD, (struct sockaddr*)&sock, sizeof(sock));
     if(res < 0) {
@@ -644,7 +694,7 @@ void UDPSocket::open(const uint16_t localPort, const std::string& localIP) {
 
     char str[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &(sock.sin_addr.s_addr), str, INET_ADDRSTRLEN);
-    std::cout << "Socket binded at " << IpPort{str, localPort}.to_string() << std::endl;
+    Log(logs::eINFO, "Socket binded at " + IpPort{str, localPort}.to_string());
 }
 
 bool UDPSocket::sendMsg(const IpPort& remoteIpPort, const Packet& packet) {

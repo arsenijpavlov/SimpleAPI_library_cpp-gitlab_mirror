@@ -11,8 +11,7 @@ class SocketThread {
     bool        active;
     std::map<IpPort, std::shared_ptr<Socket>> p_sockets;
 
-    void (*packetCallback)(PacketMessage pm);
-    void (*jsonCallback)(JsonMessage jm);
+//    void (*logOutputCallback)(std::string);//на будущее, может и понадобиться
 
     void run();
 
@@ -22,6 +21,7 @@ public:
     SocketThread(const SocketType type, const IpPort& localIpPort);
     ~SocketThread();
 
+    //TODO: общие callback функции при добавлении новых сокетов
     bool addSocket(const SocketType type, const std::string& localIP, const uint16_t localPort);
     bool addSocket(const SocketType type, const IpPort& localIpPort);
 
@@ -41,8 +41,19 @@ public:
     //NOTE: nullptr если не найден или создать новый сервер во избежание ошибок?
     std::shared_ptr<Socket> findSocket(const IpPort& localIpPort);
 
-    void setCallbackSocketReadRawData(const IpPort& ipPort, void (*callback)(PacketMessage pm));
-    void setCallbackSocketReadJsonData(const IpPort& ipPort, void (*callback)(JsonMessage jm));
+    //общий логгер для всех сокетов
+    void setCallbackAllSocketsReadRawData(void (*callback)(PacketMessage));
+    void setCallbackAllSocketsReadJsonData(void (*callback)(JsonMessage));
+    //индивидуальное для каждого сокета отдельно
+    void setCallbackSocketReadRawData(const IpPort& localIpPort, void (*callback)(PacketMessage));
+    void setCallbackSocketReadJsonData(const IpPort& localIpPort, void (*callback)(JsonMessage));
+
+    //общий логгер для всех сокетов
+    void setCallbackAllSocketsLogOutput(void (*callback)(std::string));
+    void setCallbackAllSocketsLogErrorOutput(void (*callback)(std::string));
+    //индивидуальный логгер для каждого сокета отдельно
+    void setCallbackSocketLogOutput(const IpPort& localIpPort, void (*callback)(std::string));
+    void setCallbackSocketLogErrOutput(const IpPort& localIpPort, void (*callback)(std::string));
 };
 
 #endif // SOCKET_THREAD_H

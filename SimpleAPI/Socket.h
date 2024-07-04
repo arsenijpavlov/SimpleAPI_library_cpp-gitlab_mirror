@@ -4,10 +4,10 @@
 #include "EECounter.h"
 #include "IpPort.h"
 #include "Json.h"
+#include "Logger.h"
 #include "Message.h"
 
 #include <deque>
-#include <iostream>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -27,8 +27,6 @@ using time_point_default = std::chrono::time_point<
     std::chrono::duration<long, std::ratio<1, 1000000000>>>;
 
 
-bool checkCorrectIp(const std::string& ipString);
-
 enum SocketType {
     eUDP,
     eTCP
@@ -47,8 +45,9 @@ struct ChannelSettings {
 
 struct Connection {
     EECounter outSn;
-    EECounter inSnLastRecv; //влияет на границу окна ожидания фрагментов
-    EECounter inNextSn;     //TODO: обнулить после обрыва соединения
+    EECounter inSnLastRecv;                                     //влияет на границу окна ожидания фрагментов
+//TODO: обнулить после обрыва соединения
+    EECounter inNextSn;
 
     std::map<EECounter, PacketMessage> mapRecvFragments;        //фрагменты сообщений (в беспорядке)
     std::map<EECounter, PacketMessage> mapRecvBuildedMessages;  //собранные по очереди фрагменты сообщений
@@ -63,27 +62,39 @@ protected:
 
     std::map<IpPort, Connection> mapConnections; //счётчики сообщений на отправкуa
 
+    logs::LEVEL     logLevel;
+    void            (*logCallback)(std::string);
+    void            (*logErrorCallback)(std::string);
+
+    void            (*packetCallback)(PacketMessage);
+    void            (*jsonCallback)(JsonMessage);
+
     //=====================================
     //ONLY FOR USE IN SOCKET_THREAD!
     //для доступа извне------------------------
     std::mutex                  outputThreadsMutex;
-    std::deque<PacketMessage>   sendPacketsBuffer;  //sendFragments(), sendAutoMsg()
-    std::vector<PacketMessage>  sentGlobalPackets;  //запоминаем до тех пор, пока не придёт подтверждение о передаче всех фрагментов
+    std::deque<PacketMessage>   sendPacketsBuffer;      //sendFragments(), sendAutoMsg()
+    std::vector<PacketMessage>  sentGlobalPackets;      //запоминаем до тех пор, пока не придёт подтверждение о передаче всех фрагментов
 
     std::mutex                  inputThreadsMutex;
     //собранные пакеты
     std::deque<PacketMessage>   mapRecvPacketsBuffer;   //buildPackets(), getOutPacket()
     std::deque<JsonMessage>     mapRecvJsonsBuffer;     //buildPackets(), getOutJson()
     //-----------------------------------------
-//    std::deque<PacketMessage>   mapSendPackets;     //фрагменты на отправку
-//    std::deque<PacketMessage>   mapRecvPackets;     //полученные фрагменты
-//    PacketMessage               tmpRecvJsonPacket;  //не в map, потому что сборка Json произойдёт в recvAutoMsg()
-    //-----------------------------------------
+
+    bool            checkCorrectIp(const std::string& ipString);
 
     uint8_t         packHeader(const PacketHeader& ph);
     PacketHeader    unpackHeader(uint8_t header);
     EECounter&      getOutSeqNumber(const IpPort& ipPort);
     PacketMessage   buildPacket(PacketMessage receivedPM);
+
+    void            Log(logs::LEVEL level, std::string log_message);
+    void            setCallbackLogOutput(void (*callback)(std::string));
+    void            setCallbackLogErrorOutput(void (*callback)(std::string));
+
+    void            setCallbackSocketReadRawData(void (*callback)(PacketMessage));
+    void            setCallbackSocketReadJsonData(void (*callback)(JsonMessage));
 
     void            sendFragments(const std::string& remoteIp, const uint16_t remotePort, const PacketType type, const Packet& packet);
     virtual void    sendFragments(const IpPort& remoteIpPort, const PacketType type, const Packet& packet) = 0;
@@ -92,7 +103,7 @@ protected:
     virtual void    sendAutoMsg() = 0;
     virtual void    recvAutoMsg(int timeout) = 0;
     //=====================================
-    friend class SocketThread; //NOTE: для функции tick()
+    friend class SocketThread; //для функции tick()
 
 public:
             Socket();
@@ -132,7 +143,7 @@ public:
     //-----------------------------------------
     //Эти функции работают в связке с tick()
     virtual PacketMessage   getOutPacket() = 0; //выдаст пустой пакет, если очередь пуста
-    virtual JsonMessage     getOutJson() = 0;   //выдаст пустой пакет, если очередь пуста
+    virtual JsonMessage     getOutJson() = 0;   //выдаст пустой json, если очередь пуста
     //=====================================
 };
 
