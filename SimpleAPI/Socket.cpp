@@ -514,10 +514,12 @@ void UDPSocket::recvAutoMsg(int timeout) {
             break;
         }
         case eDataType: {
+            this->inputThreadsMutex.lock();
             if(jm.json.isEmpty())
                 this->mapRecvPacketsBuffer.push_back(b_pm);
             else
                 this->mapRecvJsonsBuffer.push_back(jm);
+            this->inputThreadsMutex.unlock();
             break;
         }
         default: std::cout << "Error: unknown received type(" << pm.header.type << ")" << std::endl;
@@ -658,24 +660,26 @@ bool UDPSocket::sendMsg(const IpPort& remoteIpPort, const Json& json) {
 
 PacketMessage UDPSocket::getOutPacket()
 {
+    this->inputThreadsMutex.lock();
     PacketMessage pm;
     if(this->mapRecvPacketsBuffer.size() > 0) {
-        this->inputThreadsMutex.lock();
         pm = this->mapRecvPacketsBuffer.front();
         this->mapRecvPacketsBuffer.pop_front();
-        this->inputThreadsMutex.unlock();
     }
+    this->inputThreadsMutex.unlock();
+
     return pm;
 }
 
 JsonMessage UDPSocket::getOutJson()
 {
+    this->inputThreadsMutex.lock();
     JsonMessage jm;
     if(this->mapRecvJsonsBuffer.size() > 0) {
-        this->inputThreadsMutex.lock();
         jm = this->mapRecvJsonsBuffer.front();
         this->mapRecvJsonsBuffer.pop_front();
-        this->inputThreadsMutex.unlock();
     }
+    this->inputThreadsMutex.unlock();
+
     return jm;
 }

@@ -16,9 +16,9 @@ void SocketThread::run() {
             PacketMessage pm = sock->getOutPacket();
             if(!pm.packet.empty() && this->packetCallback)
                 this->packetCallback(pm);
-//            JsonMessage jm = sock->getOutJson();
-//            if(!jm.json.isEmpty() && this->jsonCallback)
-//                this->jsonCallback(jm);
+            JsonMessage jm = sock->getOutJson();
+            if(!jm.json.isEmpty() && this->jsonCallback)
+                this->jsonCallback(jm);
         }
 
         usleep(1);
@@ -98,26 +98,16 @@ bool SocketThread::isActive() {
     return active;
 }
 
-void SocketThread::startThread()
-{
+void SocketThread::startThread() {
     if(!isActive()) {
         std::cout << "[THREAD START]" << std::endl;
         active = true;
-
-        //void RecvData(PacketMessage pm) {
-
-        //}
-
-        //void RecvJson(JsonMessage jm) {
-
-        //}
 
         t = std::thread(&SocketThread::run, this);
     }
 }
 
-void SocketThread::stopThread()
-{
+void SocketThread::stopThread() {
     if(isActive()) {
         std::cout << "[THREAD STOP]" << std::endl;
         active = false; //остановили
@@ -125,8 +115,7 @@ void SocketThread::stopThread()
     }
 }
 
-std::shared_ptr<Socket> SocketThread::findSocket(const IpPort &localIpPort)
-{
+std::shared_ptr<Socket> SocketThread::findSocket(const IpPort &localIpPort) {
     return this->p_sockets.find(localIpPort)->second;
 }
 

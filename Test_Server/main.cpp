@@ -10,19 +10,21 @@ void signalHandler(int signal) {
         isRunning = false;
 }
 
-//void RecvData(PacketMessage pm) {
-//}
+void RecvData(PacketMessage pm) {
+    std::cout << "[SERVER] recv data: 0x" << utils::to_hex_string(pm.packet) << std::endl;
+}
 
-//void RecvJson(JsonMessage jm) {
-//}
+void RecvJson(JsonMessage jm) {
+    std::cout << "[SERVER] recv json: " << jm.to_string() << std::endl;
+}
 
 int main(int argc, char** argv) {
     signal(SIGINT, signalHandler);
 
     IpPort server{"127.0.0.15", 31115};
     SocketThread st(eUDP, server);
-//    st.setCallbackSocketReadJsonData(server, RecvData);
-//    st.setCallbackSocketReadRawData();
+    st.setCallbackSocketReadRawData(server, RecvData);
+    st.setCallbackSocketReadJsonData(server, RecvJson);
 
     while(1) {
         if(!isRunning) {
