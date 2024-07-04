@@ -176,6 +176,8 @@ public:
 //    TODO: Json(const std::string& json_string);
     ~Json();
 
+    Json& operator=(const Json& other);
+
     __ONLY_ALLOWED_TYPES__(T)
     bool put(const std::string& key, const T value)
     {

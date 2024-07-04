@@ -357,6 +357,51 @@ Json::~Json() {
         delete el.second.second;
 }
 
+Json &Json::operator=(const Json &other) {
+    for(const std::pair<std::string, Element> &el : other.values) {
+        switch(el.second.first) {
+        case eNumber: {
+            double value = reinterpret_cast<DoubleElement*>(el.second.second)->value;
+            this->values.push_back(std::make_pair(
+                el.first,
+                Element(el.second.first, reinterpret_cast<BaseElement*>(new DoubleElement(value)))));
+            break;
+        }
+        case eBool: {
+            bool value = reinterpret_cast<BoolElement*>(el.second.second)->value;
+            this->values.push_back(std::make_pair(
+                el.first,
+                Element(el.second.first, reinterpret_cast<BaseElement*>(new BoolElement(value)))));
+            break;
+        }
+        case eString: {
+            std::string value = reinterpret_cast<StringElement*>(el.second.second)->value;
+            this->values.push_back(std::make_pair(
+                el.first,
+                Element(el.second.first, reinterpret_cast<BaseElement*>(new StringElement(value)))));
+            break;
+        }
+        case eJson: {
+            Json value = reinterpret_cast<JsonElement*>(el.second.second)->value;
+            this->values.push_back(std::make_pair(
+                el.first,
+                Element(el.second.first, reinterpret_cast<BaseElement*>(new JsonElement(value)))));
+            break;
+        }
+        case eArray: {
+            Array value = reinterpret_cast<ArrayElement*>(el.second.second)->value;
+            this->values.push_back(std::make_pair(
+                el.first,
+                Element(el.second.first, reinterpret_cast<BaseElement*>(new ArrayElement(value)))));
+            break;
+        }
+        case eNull: break;
+        }
+    }
+
+    return *this;
+}
+
 bool Json::isValueExists(const std::string& name)
 {
     for(const auto &it : this->values) {
