@@ -180,7 +180,7 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
 
 void Socket::Log(logs::LEVEL level, std::string log_message)
 {
-    if(level > this->logLevel) {
+    if(level >= this->logLevel) {
         switch(level) {
         case logs::eINFO:
         case logs::eDEBUG: {
@@ -216,7 +216,8 @@ void Socket::setCallbackSocketReadJsonData(void (*callback)(JsonMessage)) {
 
 Socket::Socket() :
     mSocketFD(-1), logLevel(logs::eINFO),
-    packetCallback(nullptr), jsonCallback(nullptr)
+    packetCallback(nullptr), jsonCallback(nullptr),
+    logCallback(nullptr), logErrorCallback(nullptr)
 {
     settings.maxLength          = 1500;
     settings.maxMsgsSentOnTick  = -1;
@@ -585,11 +586,31 @@ void UDPSocket::setMaxMsgsSentOnTick(int count) {
     settings.maxMsgsSentOnTick = count;
 }
 
-UDPSocket::UDPSocket(const IpPort &ipPort) {
+UDPSocket::UDPSocket(const IpPort &ipPort,
+                     void (*callbackRecvPacket)(PacketMessage),
+                     void (*callbackRecvJson)(JsonMessage),
+                     void (*callbackLog)(std::string),
+                     void (*callbackLogError)(std::string)
+                     ) {
+    this->packetCallback    = callbackRecvPacket;
+    this->jsonCallback      = callbackRecvJson;
+    this->logCallback       = callbackLog;
+    this->logErrorCallback  = callbackLogError;
+
     open(ipPort.port, ipPort.ip);
 }
 
-UDPSocket::UDPSocket(uint16_t localPort, std::string localIP) {
+UDPSocket::UDPSocket(uint16_t localPort, std::string localIP,
+                     void (*callbackRecvPacket)(PacketMessage),
+                     void (*callbackRecvJson)(JsonMessage),
+                     void (*callbackLog)(std::string),
+                     void (*callbackLogError)(std::string)
+                     ) {
+    this->packetCallback    = callbackRecvPacket;
+    this->jsonCallback      = callbackRecvJson;
+    this->logCallback       = callbackLog;
+    this->logErrorCallback  = callbackLogError;
+
     open(localPort, localIP);
 }
 

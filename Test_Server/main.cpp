@@ -18,14 +18,26 @@ void RecvJson(JsonMessage jm) {
     std::cout << "[SERVER] recv json: " << jm.to_string() << std::endl;
 }
 
+void Log(std::string msg) {
+    std::cout << msg;
+}
+
+void LogError(std::string msg) {
+    std::cout << msg;
+}
+
 int main(int argc, char** argv) {
     signal(SIGINT, signalHandler);
 
     IpPort server{"127.0.0.15", 31115};
-    SocketThread st(eUDP, server);
-    st.setCallbackSocketReadRawData(server, RecvData);
-    st.setCallbackSocketReadJsonData(server, RecvJson);
+    SocketThread st(eUDP, server, RecvData, RecvJson, Log, LogError);
+//    st.setCallbackAllSocketsReadRawData(RecvData);
+//    st.setCallbackAllSocketsReadJsonData(RecvJson);
 
+//    st.setCallbackAllSocketsLogOutput(Log);
+//    st.setCallbackAllSocketsLogOutput(LogError);
+
+    st.startThread();
     while(1) {
         if(!isRunning) {
             st.stopThread();

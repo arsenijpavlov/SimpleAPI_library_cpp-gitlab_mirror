@@ -11,19 +11,44 @@ class SocketThread {
     bool        active;
     std::map<IpPort, std::shared_ptr<Socket>> p_sockets;
 
-//    void (*logOutputCallback)(std::string);//на будущее, может и понадобиться
+    void (*common_SocketsReadRawDataCallback)(PacketMessage);
+    void (*common_SocketsReadJsonDataCallback)(JsonMessage);
+
+    void (*common_LogOutputCallback)(std::string);
+    void (*common_LogErrorOutputCallback)(std::string);
 
     void run();
 
 public:
     SocketThread();
-    SocketThread(const SocketType type, const std::string& localIP, uint16_t localPort);
-    SocketThread(const SocketType type, const IpPort& localIpPort);
+    SocketThread(const SocketType type, const uint16_t localPort,
+                 const std::string& localIP = "",
+                 void (*callbackRecvPacket)(PacketMessage) = nullptr,
+                 void (*callbackRecvJson)(JsonMessage)     = nullptr,
+                 void (*callbackLog)(std::string)          = nullptr,
+                 void (*callbackLogError)(std::string)     = nullptr);
+    SocketThread(const SocketType type, const IpPort& localIpPort,
+                 void (*callbackRecvPacket)(PacketMessage) = nullptr,
+                 void (*callbackRecvJson)(JsonMessage)     = nullptr,
+                 void (*callbackLog)(std::string)          = nullptr,
+                 void (*callbackLogError)(std::string)     = nullptr);
     ~SocketThread();
 
-    //TODO: общие callback функции при добавлении новых сокетов
-    bool addSocket(const SocketType type, const std::string& localIP, const uint16_t localPort);
-    bool addSocket(const SocketType type, const IpPort& localIpPort);
+    bool addSocket(const SocketType type, const uint16_t localPort,
+                   const std::string& localIP = "",
+                   void (*callbackRecvPacket)(PacketMessage) = nullptr,
+                   void (*callbackRecvJson)(JsonMessage)     = nullptr,
+                   void (*callbackLog)(std::string)          = nullptr,
+                   void (*callbackLogError)(std::string)     = nullptr);
+    bool addSocket(const SocketType type, const IpPort& localIpPort,
+                   void (*callbackRecvPacket)(PacketMessage) = nullptr,
+                   void (*callbackRecvJson)(JsonMessage)     = nullptr,
+                   void (*callbackLog)(std::string)          = nullptr,
+                   void (*callbackLogError)(std::string)     = nullptr);
+    bool addSocket(const SocketType type, const uint16_t localPort,
+                   const std::string localIP = "", bool commonSettings = false);
+    bool addSocket(const SocketType type, const IpPort& localIpPort,
+                   bool commonSettings = false);
 
     void closeSocket(const IpPort& localIpPort);
     void closeAllSockets();
@@ -35,7 +60,7 @@ public:
     bool send(const IpPort& source, const IpPort& destination, const Json& json);
 
     bool isActive();
-    void startThread(); //вызывается в конструкторе, запускает поток
+    void startThread();
     void stopThread();  //вызывается в деструкторе, останавливает поток
 
     //NOTE: nullptr если не найден или создать новый сервер во избежание ошибок?

@@ -108,6 +108,11 @@ protected:
 public:
             Socket();
     virtual ~Socket(){};
+    /*NOTE: (описания конструкторов сервера)
+     * конструктор с адресом
+     * конструктор с адресом И callback на приём сообщений
+     * конструктор с адресом И callback на приём сообщений И перенаправлением логов
+     */
 
     //-----------------------------------------
     IpPort          getLocalIpPort() { return IpPort{localIP, localPort}; }
@@ -164,8 +169,16 @@ class UDPSocket : public Socket {
     //=====================================
 
 public:
-    UDPSocket(const IpPort& ipPort);
-    UDPSocket(uint16_t localPort, std::string localIP = "");
+    UDPSocket(const IpPort& ipPort,
+              void (*callbackRecvPacket)(PacketMessage) = nullptr,
+              void (*callbackRecvJson)(JsonMessage)     = nullptr,
+              void (*callbackLog)(std::string)          = nullptr,
+              void (*callbackLogError)(std::string)     = nullptr);
+    UDPSocket(uint16_t localPort, std::string localIP = "",
+              void (*callbackRecvPacket)(PacketMessage) = nullptr,
+              void (*callbackRecvJson)(JsonMessage)     = nullptr,
+              void (*callbackLog)(std::string)          = nullptr,
+              void (*callbackLogError)(std::string)     = nullptr);
     ~UDPSocket();
     void            open(const uint16_t localPort, const std::string& localIP = "");
 

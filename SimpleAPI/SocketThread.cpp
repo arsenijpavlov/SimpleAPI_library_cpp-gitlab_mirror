@@ -19,38 +19,90 @@ void SocketThread::run() {
     }
 }
 
-SocketThread::SocketThread() {
-    startThread();
+SocketThread::SocketThread() : active(false) {
+//    startThread();
 }
 
-SocketThread::SocketThread(const SocketType type, const std::string &localIP,
-                           uint16_t localPort) {
-    addSocket(type, localIP, localPort);
-    startThread();
+SocketThread::SocketThread(const SocketType type, const uint16_t localPort,
+                           const std::string& localIP,
+                           void (*callbackRecvPacket)(PacketMessage),
+                           void (*callbackRecvJson)(JsonMessage),
+                           void (*callbackLog)(std::string),
+                           void (*callbackLogError)(std::string))
+    : active(false) {
+    addSocket(type, localPort, localIP,
+              callbackRecvPacket, callbackRecvJson,
+              callbackLog, callbackLogError);
+//    startThread();
 }
 
-SocketThread::SocketThread(const SocketType type, const IpPort &localIpPort) {
-    addSocket(type, localIpPort);
-    startThread();
+SocketThread::SocketThread(const SocketType type, const IpPort &localIpPort,
+                           void (*callbackRecvPacket)(PacketMessage),
+                           void (*callbackRecvJson)(JsonMessage),
+                           void (*callbackLog)(std::string),
+                           void (*callbackLogError)(std::string))
+    : active(false) {
+    addSocket(type, localIpPort,
+              callbackRecvPacket, callbackRecvJson,
+              callbackLog, callbackLogError);
+//    startThread();
 }
 
 SocketThread::~SocketThread() {
     stopThread();
 }
 
-bool SocketThread::addSocket(const SocketType type, const std::string &localIP, const uint16_t localPort) {
-    return addSocket(type, {localIP, localPort});
+bool SocketThread::addSocket(const SocketType type, const uint16_t localPort,
+                             const std::string& localIP,
+                             void (*callbackRecvPacket)(PacketMessage),
+                             void (*callbackRecvJson)(JsonMessage),
+                             void (*callbackLog)(std::string),
+                             void (*callbackLogError)(std::string)) {
+    return addSocket(type, IpPort{localIP, localPort},
+                     callbackRecvPacket, callbackRecvJson,
+                     callbackLog, callbackLogError);
 }
 
-bool SocketThread::addSocket(const SocketType type, const IpPort &localIpPort) {
+bool SocketThread::addSocket(const SocketType type, const IpPort &localIpPort,
+                             void (*callbackRecvPacket)(PacketMessage),
+                             void (*callbackRecvJson)(JsonMessage),
+                             void (*callbackLog)(std::string),
+                             void (*callbackLogError)(std::string)) {
     if(type == SocketType::eTCP) {
         return false; //TODO: TCP пока не готов
     } else if(type == SocketType::eUDP) {
-        std::shared_ptr<Socket> sock(new UDPSocket(localIpPort));
+        std::shared_ptr<Socket> sock(new UDPSocket(localIpPort,
+                                                   callbackRecvPacket, callbackRecvJson,
+                                                   callbackLog, callbackLogError));
         return this->p_sockets.insert(std::make_pair(localIpPort, sock)).second;
     }
 
     return false;
+}
+
+bool SocketThread::addSocket(const SocketType type, const uint16_t localPort,
+                             const std::string localIP, bool commonSettings)
+{
+    if(commonSettings)
+        return addSocket(type, localPort, localIP,
+                         this->common_SocketsReadRawDataCallback,
+                         this->common_SocketsReadJsonDataCallback,
+                         this->common_LogOutputCallback,
+                         this->common_LogErrorOutputCallback);
+    else
+        return addSocket(type, localPort, localIP, nullptr); //остальные тоже nullptr
+}
+
+bool SocketThread::addSocket(const SocketType type, const IpPort &localIpPort, bool commonSettings)
+{
+    if(commonSettings)
+        return addSocket(type, localIpPort,
+                         this->common_SocketsReadRawDataCallback,
+                         this->common_SocketsReadJsonDataCallback,
+                         this->common_LogOutputCallback,
+                         this->common_LogErrorOutputCallback);
+    else
+        return addSocket(type, localIpPort, nullptr); //остальные тоже nullptr
 }
 
 void SocketThread::closeSocket(const IpPort& localIpPort) {
@@ -104,7 +156,9 @@ void SocketThread::stopThread() {
     if(isActive()) {
         std::cout << "[THREAD STOP]" << std::endl;
         active = false; //остановили
-        t.join();       //ждём завершения потока
+
+        if(t.joinable())
+            t.join();       //ждём завершения потока
     }
 }
 
@@ -114,12 +168,16 @@ std::shared_ptr<Socket> SocketThread::findSocket(const IpPort &localIpPort) {
 
 void SocketThread::setCallbackAllSocketsReadRawData(void (*callback)(PacketMessage))
 {
+    this->common_SocketsReadRawDataCallback = callback;
+
     for(auto it = this->p_sockets.begin(); it != this->p_sockets.end(); it++)
         it->second->setCallbackSocketReadRawData(callback);
 }
 
 void SocketThread::setCallbackAllSocketsReadJsonData(void (*callback)(JsonMessage))
 {
+    this->common_SocketsReadJsonDataCallback = callback;
+
     for(auto it = this->p_sockets.begin(); it != this->p_sockets.end(); it++)
         it->second->setCallbackSocketReadJsonData(callback);
 }
