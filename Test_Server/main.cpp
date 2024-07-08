@@ -13,15 +13,12 @@ void signalHandler(int signal) {
 void RecvData(PacketMessage pm) {
     std::cout << "[SERVER] recv data: 0x" << utils::to_hex_string(pm.packet) << std::endl;
 }
-
 void RecvJson(JsonMessage jm) {
     std::cout << "[SERVER] recv json: " << jm.to_string() << std::endl;
 }
-
 void Log(std::string msg) {
     std::cout << msg;
 }
-
 void LogError(std::string msg) {
     std::cout << msg;
 }
@@ -31,6 +28,8 @@ int main(int argc, char** argv) {
 
     IpPort server{"127.0.0.15", 31115};
     SocketThread st(eUDP, server, RecvData, RecvJson, Log, LogError);
+//    st.setLogLevel(server, logs::eDEBUG);
+
 //    st.setCallbackAllSocketsReadRawData(RecvData);
 //    st.setCallbackAllSocketsReadJsonData(RecvJson);
 

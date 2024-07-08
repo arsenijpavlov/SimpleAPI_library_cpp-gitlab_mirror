@@ -19,7 +19,15 @@ void SocketThread::run() {
     }
 }
 
-SocketThread::SocketThread() : active(false) {
+SocketThread::SocketThread() :
+    active(false),
+    common_SocketsReadRawDataCallback(nullptr),
+    common_SocketsReadJsonDataCallback(nullptr),
+    common_LogOutputCallback(nullptr),
+    common_LogErrorOutputCallback(nullptr),
+    common_logLevel(logs::eINFO),
+    common_logErrorLevel(logs::eERROR)
+{
 //    startThread();
 }
 
@@ -28,11 +36,14 @@ SocketThread::SocketThread(const SocketType type, const uint16_t localPort,
                            void (*callbackRecvPacket)(PacketMessage),
                            void (*callbackRecvJson)(JsonMessage),
                            void (*callbackLog)(std::string),
-                           void (*callbackLogError)(std::string))
+                           void (*callbackLogError)(std::string),
+                           const logs::LEVEL logLevel,
+                           const logs::LEVEL logErrorLevel)
     : active(false) {
     addSocket(type, localPort, localIP,
               callbackRecvPacket, callbackRecvJson,
-              callbackLog, callbackLogError);
+              callbackLog, callbackLogError,
+              logLevel, logErrorLevel);
 //    startThread();
 }
 
@@ -40,11 +51,14 @@ SocketThread::SocketThread(const SocketType type, const IpPort &localIpPort,
                            void (*callbackRecvPacket)(PacketMessage),
                            void (*callbackRecvJson)(JsonMessage),
                            void (*callbackLog)(std::string),
-                           void (*callbackLogError)(std::string))
+                           void (*callbackLogError)(std::string),
+                           const logs::LEVEL logLevel,
+                           const logs::LEVEL logErrorLevel)
     : active(false) {
     addSocket(type, localIpPort,
               callbackRecvPacket, callbackRecvJson,
-              callbackLog, callbackLogError);
+              callbackLog, callbackLogError,
+              logLevel, logErrorLevel);
 //    startThread();
 }
 
@@ -57,23 +71,29 @@ bool SocketThread::addSocket(const SocketType type, const uint16_t localPort,
                              void (*callbackRecvPacket)(PacketMessage),
                              void (*callbackRecvJson)(JsonMessage),
                              void (*callbackLog)(std::string),
-                             void (*callbackLogError)(std::string)) {
+                             void (*callbackLogError)(std::string),
+                             const logs::LEVEL logLevel,
+                             const logs::LEVEL logErrorLevel) {
     return addSocket(type, IpPort{localIP, localPort},
                      callbackRecvPacket, callbackRecvJson,
-                     callbackLog, callbackLogError);
+                     callbackLog, callbackLogError,
+                     logLevel, logErrorLevel);
 }
 
 bool SocketThread::addSocket(const SocketType type, const IpPort &localIpPort,
                              void (*callbackRecvPacket)(PacketMessage),
                              void (*callbackRecvJson)(JsonMessage),
                              void (*callbackLog)(std::string),
-                             void (*callbackLogError)(std::string)) {
+                             void (*callbackLogError)(std::string),
+                             const logs::LEVEL logLevel,
+                             const logs::LEVEL logErrorLevel) {
     if(type == SocketType::eTCP) {
         return false; //TODO: TCP пока не готов
     } else if(type == SocketType::eUDP) {
         std::shared_ptr<Socket> sock(new UDPSocket(localIpPort,
                                                    callbackRecvPacket, callbackRecvJson,
-                                                   callbackLog, callbackLogError));
+                                                   callbackLog, callbackLogError,
+                                                   logLevel, logErrorLevel));
         return this->p_sockets.insert(std::make_pair(localIpPort, sock)).second;
     }
 
@@ -88,7 +108,9 @@ bool SocketThread::addSocket(const SocketType type, const uint16_t localPort,
                          this->common_SocketsReadRawDataCallback,
                          this->common_SocketsReadJsonDataCallback,
                          this->common_LogOutputCallback,
-                         this->common_LogErrorOutputCallback);
+                         this->common_LogErrorOutputCallback,
+                         this->common_logLevel,
+                         this->common_logErrorLevel);
     else
         return addSocket(type, localPort, localIP, nullptr); //остальные тоже nullptr
 }
@@ -100,7 +122,9 @@ bool SocketThread::addSocket(const SocketType type, const IpPort &localIpPort, b
                          this->common_SocketsReadRawDataCallback,
                          this->common_SocketsReadJsonDataCallback,
                          this->common_LogOutputCallback,
-                         this->common_LogErrorOutputCallback);
+                         this->common_LogErrorOutputCallback,
+                         this->common_logLevel,
+                         this->common_logErrorLevel);
     else
         return addSocket(type, localIpPort, nullptr); //остальные тоже nullptr
 }
@@ -194,28 +218,64 @@ void SocketThread::setCallbackSocketReadJsonData(const IpPort &localIpPort, void
         it->second->setCallbackSocketReadJsonData(callback);
 }
 
-void SocketThread::setCallbackAllSocketsLogOutput(void (*callback)(std::string))
+void SocketThread::setCallbackAllSocketsLogOutput(void (*callback)(std::string),
+                                                  const logs::LEVEL logLevel)
 {
+    this->common_logLevel = logLevel;
     for(auto it = this->p_sockets.begin(); it != this->p_sockets.end(); it++)
         it->second->setCallbackLogOutput(callback);
 }
 
-void SocketThread::setCallbackAllSocketsLogErrorOutput(void (*callback)(std::string))
+void SocketThread::setCallbackAllSocketsLogErrorOutput(void (*callback)(std::string),
+                                                       const logs::LEVEL logLevel)
 {
+    this->common_logErrorLevel = logLevel;
     for(auto it = this->p_sockets.begin(); it != this->p_sockets.end(); it++)
         it->second->setCallbackLogErrorOutput(callback);
 }
 
-void SocketThread::setCallbackSocketLogOutput(const IpPort &localIpPort, void (*callback)(std::string))
+void SocketThread::setAllLogLevel(logs::LEVEL logLevel)
 {
-    auto it = this->p_sockets.find(localIpPort);
-    if(it != this->p_sockets.end())
-        it->second->setCallbackLogOutput(callback);
+    for(auto it = this->p_sockets.begin(); it != this->p_sockets.end(); it++)
+        it->second->setLogLevel(logLevel);
 }
 
-void SocketThread::setCallbackSocketLogErrOutput(const IpPort &localIpPort, void (*callback)(std::string))
+void SocketThread::setAllLogErrorLevel(logs::LEVEL logLevel)
+{
+    for(auto it = this->p_sockets.begin(); it != this->p_sockets.end(); it++)
+        it->second->setLogErrorLevel(logLevel);
+}
+
+void SocketThread::setCallbackSocketLogOutput(const IpPort &localIpPort, void (*callback)(std::string),
+                                              const logs::LEVEL logLevel)
+{
+    auto it = this->p_sockets.find(localIpPort);
+    if(it != this->p_sockets.end()) {
+        it->second->setCallbackLogOutput(callback);
+        it->second->setLogLevel(logLevel);
+    }
+}
+
+void SocketThread::setCallbackSocketLogErrOutput(const IpPort &localIpPort, void (*callback)(std::string),
+                                                 const logs::LEVEL logLevel)
+{
+    auto it = this->p_sockets.find(localIpPort);
+    if(it != this->p_sockets.end()) {
+        it->second->setCallbackLogErrorOutput(callback);
+        it->second->setLogErrorLevel(logLevel);
+    }
+}
+
+void SocketThread::setLogLevel(const IpPort &localIpPort, logs::LEVEL logLevel)
 {
     auto it = this->p_sockets.find(localIpPort);
     if(it != this->p_sockets.end())
-        it->second->setCallbackLogErrorOutput(callback);
+        it->second->setLogLevel(logLevel);
+}
+
+void SocketThread::setLogErrorLevel(const IpPort &localIpPort, logs::LEVEL logLevel)
+{
+    auto it = this->p_sockets.find(localIpPort);
+    if(it != this->p_sockets.end())
+        it->second->setLogErrorLevel(logLevel);
 }

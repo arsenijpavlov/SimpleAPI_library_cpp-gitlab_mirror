@@ -180,18 +180,19 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
 
 void Socket::Log(logs::LEVEL level, std::string log_message)
 {
-    if(level >= this->logLevel) {
+    if(level <= this->logLevel) {
         switch(level) {
         case logs::eINFO:
         case logs::eDEBUG: {
             if(this->logCallback)
-                this->logCallback(log_message + "\n");
+                this->logCallback(to_color_string(level) + " " + log_message + "\n");
             break;
         }
+        case logs::eWARNING:
         case logs::eERROR:
         default: {
             if(this->logErrorCallback)
-                this->logErrorCallback(log_message + "\n");
+                this->logErrorCallback(to_color_string(level) + " " + log_message + "\n");
             break;
         }
         }
@@ -224,7 +225,16 @@ Socket::Socket() :
     settings.inactivityTimer    = 1000;
 }
 
+void Socket::setLogLevel(logs::LEVEL logLevel) {
+    this->logLevel = logLevel;
+}
+
+void Socket::setLogErrorLevel(logs::LEVEL logLevel) {
+    this->logErrorLevel = logLevel;
+}
+
 bool Socket::sendRawMsg(const PacketMessage &packetMessage) {
+    Log(logs::eDEBUG, "sendRawMsg()");
     return sendRawMsg(packetMessage.ipPort.ip, packetMessage.ipPort.port, packetMessage.packet);
 }
 
@@ -590,12 +600,16 @@ UDPSocket::UDPSocket(const IpPort &ipPort,
                      void (*callbackRecvPacket)(PacketMessage),
                      void (*callbackRecvJson)(JsonMessage),
                      void (*callbackLog)(std::string),
-                     void (*callbackLogError)(std::string)
+                     void (*callbackLogError)(std::string),
+                     const logs::LEVEL logLevel,
+                     const logs::LEVEL logErrorLevel
                      ) {
     this->packetCallback    = callbackRecvPacket;
     this->jsonCallback      = callbackRecvJson;
     this->logCallback       = callbackLog;
     this->logErrorCallback  = callbackLogError;
+    this->logLevel          = logLevel;
+    this->logErrorLevel     = logErrorLevel;
 
     open(ipPort.port, ipPort.ip);
 }
@@ -604,12 +618,16 @@ UDPSocket::UDPSocket(uint16_t localPort, std::string localIP,
                      void (*callbackRecvPacket)(PacketMessage),
                      void (*callbackRecvJson)(JsonMessage),
                      void (*callbackLog)(std::string),
-                     void (*callbackLogError)(std::string)
+                     void (*callbackLogError)(std::string),
+                     const logs::LEVEL logLevel,
+                     const logs::LEVEL logErrorLevel
                      ) {
     this->packetCallback    = callbackRecvPacket;
     this->jsonCallback      = callbackRecvJson;
     this->logCallback       = callbackLog;
     this->logErrorCallback  = callbackLogError;
+    this->logLevel          = logLevel;
+    this->logErrorLevel     = logErrorLevel;
 
     open(localPort, localIP);
 }

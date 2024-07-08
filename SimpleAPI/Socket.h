@@ -62,12 +62,14 @@ protected:
 
     std::map<IpPort, Connection> mapConnections; //счётчики сообщений на отправкуa
 
-    logs::LEVEL     logLevel;
     void            (*logCallback)(std::string);
     void            (*logErrorCallback)(std::string);
 
     void            (*packetCallback)(PacketMessage);
     void            (*jsonCallback)(JsonMessage);
+
+    logs::LEVEL     logLevel;
+    logs::LEVEL     logErrorLevel;
 
     //=====================================
     //ONLY FOR USE IN SOCKET_THREAD!
@@ -115,6 +117,8 @@ public:
      */
 
     //-----------------------------------------
+    void            setLogLevel(logs::LEVEL logLevel);
+    void            setLogErrorLevel(logs::LEVEL logLevel);
     IpPort          getLocalIpPort() { return IpPort{localIP, localPort}; }
     bool            isChiphering() { /*TODO: isChiphering()*/ return false; }
 //TODO:    virtual bool isConnected(std::string remoteIP, uint16_t remotePort) = 0;
@@ -173,12 +177,16 @@ public:
               void (*callbackRecvPacket)(PacketMessage) = nullptr,
               void (*callbackRecvJson)(JsonMessage)     = nullptr,
               void (*callbackLog)(std::string)          = nullptr,
-              void (*callbackLogError)(std::string)     = nullptr);
+              void (*callbackLogError)(std::string)     = nullptr,
+              const logs::LEVEL logLevel                = logs::eINFO,
+              const logs::LEVEL logErrorLevel           = logs::eERROR);
     UDPSocket(uint16_t localPort, std::string localIP = "",
               void (*callbackRecvPacket)(PacketMessage) = nullptr,
               void (*callbackRecvJson)(JsonMessage)     = nullptr,
               void (*callbackLog)(std::string)          = nullptr,
-              void (*callbackLogError)(std::string)     = nullptr);
+              void (*callbackLogError)(std::string)     = nullptr,
+              const logs::LEVEL logLevel                = logs::eINFO,
+              const logs::LEVEL logErrorLevel           = logs::eERROR);
     ~UDPSocket();
     void            open(const uint16_t localPort, const std::string& localIP = "");
 
