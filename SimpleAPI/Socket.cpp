@@ -222,7 +222,7 @@ Socket::Socket() :
 {
     settings.maxLength          = 1500;
     settings.maxMsgsSentOnTick  = -1;
-    settings.inactivityTimer    = 1000;
+    settings.inactivityTimer    = 5000;
 }
 
 void Socket::setLogLevel(logs::LEVEL logLevel) {
@@ -431,7 +431,8 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
 }
 
 void UDPSocket::tick() {
-//TODO:    checkConnections();
+    checkConnections();
+
     sendAutoMsg();
     recvAutoMsg(1);
 
@@ -441,6 +442,20 @@ void UDPSocket::tick() {
     JsonMessage jm = getOutJson();
     if(!jm.json.isEmpty() && this->jsonCallback)
         this->jsonCallback(jm);
+}
+
+void UDPSocket::checkConnections()
+{
+    Json jPing;
+    jPing.put("ping", this->getLocalIpPort().to_string());
+    for(const auto &it : this->mapConnections) {
+        //если не было сообщений ОТ адреса дольше this->inactivityTimer/2, то отправить пинг
+        auto it_last = this->mapLastActivity.find(it.first);
+        if(it_last == this->mapLastActivity.end()
+            || it_last->second + std::chrono::milliseconds(this->settings.inactivityTimer / 2)
+                   > std::chrono::system_clock::now())
+            sendFragments(it.first, eControlType, convert_to_packet(jPing.to_string(-1)));
+    }
 }
 
 void UDPSocket::sendAutoMsg() {

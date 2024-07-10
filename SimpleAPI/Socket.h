@@ -168,6 +168,7 @@ class UDPSocket : public Socket {
     void            sendFragments(const IpPort& remoteIpPort, const PacketType type, const Packet& packet);
 
     void            tick();
+    void            checkConnections();//только UDP, проверка коннекта
     void            sendAutoMsg();
     void            recvAutoMsg(int timeout);
     //=====================================
