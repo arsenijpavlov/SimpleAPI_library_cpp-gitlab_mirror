@@ -448,13 +448,23 @@ void UDPSocket::checkConnections()
 {
     Json jPing;
     jPing.put("ping", this->getLocalIpPort().to_string());
-    for(const auto &it : this->mapConnections) {
+    for(auto it = this->mapConnections.begin(); it != this->mapConnections.end(); it++) {
         //если не было сообщений ОТ адреса дольше this->inactivityTimer/2, то отправить пинг
-        auto it_last = this->mapLastActivity.find(it.first);
+        auto it_last = this->mapLastActivity.find(it->first);
         if(it_last == this->mapLastActivity.end()
             || it_last->second + std::chrono::milliseconds(this->settings.inactivityTimer / 2)
-                   > std::chrono::system_clock::now())
-            sendFragments(it.first, eControlType, convert_to_packet(jPing.to_string(-1)));
+                   > std::chrono::system_clock::now()) {
+//            sendFragments(it->first, eControlType, convert_to_packet(jPing.to_string(-1)));
+            continue;
+        }
+
+        //если долгое время не было сообщений от абонента, удалить все сообщения до него
+        if(it_last == this->mapLastActivity.end()
+            || it_last->second + std::chrono::milliseconds(this->settings.inactivityTimer)
+                   > std::chrono::system_clock::now()) {
+            it = this->mapConnections.erase(it);
+            std::cout << "Connection removed" << std::endl;
+        }
     }
 }
 
