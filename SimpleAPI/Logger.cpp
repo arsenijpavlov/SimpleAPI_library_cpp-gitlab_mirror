@@ -13,13 +13,13 @@ std::string to_string(LEVEL level) {
     }
 }
 
-std::string to_color_string(LEVEL level) {
+std::string to_color_string(LEVEL level, std::string name) {
     switch(level) {
-    case eERROR:    return std::string(RED_TEXT) + "[ERROR]" + RESET_TEXT;
-    case eWARNING:  return std::string(YELLOW_TEXT) + "[WARNING]" + RESET_TEXT;
-    case eINFO:     return std::string(GREEN_TEXT) + "[INFO]" + RESET_TEXT;
-    case eDEBUG:    return std::string(GREY_TEXT) + "[DEBUG]" + RESET_TEXT;
-    default:        return std::string(RED_TEXT) + "[UNKNOWN]" + RESET_TEXT;
+    case eERROR:    return std::string(RED_TEXT)    + "[" + name + "](E)" + RESET_TEXT;
+    case eWARNING:  return std::string(YELLOW_TEXT) + "[" + name + "](W)" + RESET_TEXT;
+    case eINFO:     return std::string(GREEN_TEXT)  + "[" + name + "](I)" + RESET_TEXT;
+    case eDEBUG:    return std::string(GREY_TEXT)   + "[" + name + "](D)" + RESET_TEXT;
+    default:        return std::string(RED_TEXT)    + "[" + name + "](UNKNOWN)" + RESET_TEXT;
     }
 }
 

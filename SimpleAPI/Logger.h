@@ -19,7 +19,7 @@ enum LEVEL {
     eDEBUG
 };
 std::string to_string(LEVEL level);
-std::string to_color_string(LEVEL level);
+std::string to_color_string(LEVEL level, std::string name);
 
 }
 

@@ -7,16 +7,21 @@ void SocketThread::run() {
     pthread_setname_np(pthread_self(), "SERVERS_THREAD");
 
     while(this->isActive()) {
+        if(!this->isActive())
+            std::cout << "(M) not active" << std::endl;
 
         for(auto it = this->p_sockets.begin(); it != this->p_sockets.end(); it++) {
             Socket* sock = it->second.get();
 
             sock->tick(); //вся магия там
+            if(!this->isActive())
+                std::cout << "not active" << std::endl;
         }
 
         usleep(1);
-//        std::cout << "[THREAD]" << std::endl;
     }
+
+    std::cout << "[THREAD STOPED]" << std::endl;
 }
 
 SocketThread::SocketThread() :

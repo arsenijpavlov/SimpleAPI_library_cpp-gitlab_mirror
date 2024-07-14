@@ -185,14 +185,14 @@ void Socket::Log(logs::LEVEL level, std::string log_message)
         case logs::eINFO:
         case logs::eDEBUG: {
             if(this->logCallback)
-                this->logCallback(to_color_string(level) + " " + log_message + "\n");
+                this->logCallback(to_color_string(level, "SOCKET") + " " + log_message + "\n");
             break;
         }
         case logs::eWARNING:
         case logs::eERROR:
         default: {
             if(this->logErrorCallback)
-                this->logErrorCallback(to_color_string(level) + " " + log_message + "\n");
+                this->logErrorCallback(to_color_string(level, "SOCKET") + " " + log_message + "\n");
             break;
         }
         }
@@ -286,7 +286,7 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
     Json json;
     json.parseJson(convert_from_packet(packet));
 
-    Log(logs::eINFO, "[SOCKET] send: " + to_string(type) + " ["
+    Log(logs::eINFO, "send: " + to_string(type) + " ["
                          + (json.isEmpty() ? "Data:0x" + utils::to_hex_string(packet) : "Json:" + json.to_string(-1))
                          + "] --(to)--> " + remoteIpPort.to_string());
 
@@ -431,9 +431,12 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
 }
 
 void UDPSocket::tick() {
+//    Log(logs::eDEBUG, "tick_1");
     checkConnections();
 
+//    Log(logs::eDEBUG, "tick_2");
     sendAutoMsg();
+//    Log(logs::eDEBUG, "tick_3");
     recvAutoMsg(1);
 
     PacketMessage pm = getOutPacket();
@@ -442,22 +445,30 @@ void UDPSocket::tick() {
     JsonMessage jm = getOutJson();
     if(!jm.json.isEmpty() && this->jsonCallback)
         this->jsonCallback(jm);
+    Log(logs::eDEBUG, "tick_END");
 }
 
 void UDPSocket::checkConnections()
 {
     Json jPing;
     jPing.put("ping", this->getLocalIpPort().to_string());
-    for(auto it = this->mapConnections.begin(); it != this->mapConnections.end(); it++) {
+    Log(logs::eDEBUG, "for() main");
+    auto it = this->mapConnections.begin();
+    while(it != this->mapConnections.end() && !this->mapConnections.empty()) {
+//    for(auto it = this->mapConnections.begin(); it != this->mapConnections.end(); it++) {
+        Log(logs::eDEBUG, "for() 1, it=" + it->first.to_string());
+
         //если не было сообщений ОТ адреса дольше this->inactivityTimer/2, то отправить пинг
         auto it_last = this->mapLastActivity.find(it->first);
         if(it_last == this->mapLastActivity.end()
             || it_last->second + std::chrono::milliseconds(this->settings.inactivityTimer / 2)
                    > std::chrono::system_clock::now()) {
 //            sendFragments(it->first, eControlType, convert_to_packet(jPing.to_string(-1)));
+            it++;
             continue;
         }
 
+        Log(logs::eDEBUG, "for() 2");
         //если долгое время не было сообщений от абонента, удалить все сообщения до него
         if(it_last == this->mapLastActivity.end()
             || it_last->second + std::chrono::milliseconds(this->settings.inactivityTimer)
@@ -465,7 +476,20 @@ void UDPSocket::checkConnections()
             it = this->mapConnections.erase(it);
             std::cout << "Connection removed" << std::endl;
         }
+
+        if(it == this->mapConnections.end()) {
+            Log(logs::eWARNING, "for() end, it is end()");
+            it++;
+            if(it == this->mapConnections.end())
+                Log(logs::eERROR, "double end()");
+            break;
+        }
+        else
+            Log(logs::eDEBUG, "for() end, it=" + it->first.to_string());
+
+        it++;
     }
+    Log(logs::eDEBUG, "for() end main");
 }
 
 void UDPSocket::sendAutoMsg() {
@@ -511,7 +535,7 @@ void UDPSocket::recvAutoMsg(int timeout) {
     PacketMessage pm = recvRawMsg(1);
     if(pm.packet.empty()) return;
 
-    Log(logs::eDEBUG, "[SOCKET] received message: 0x" + utils::to_hex_string(pm.packet));
+    Log(logs::eDEBUG, "received message: 0x" + utils::to_hex_string(pm.packet));
     //записать время прихода нового сообщения от сокета
     auto it = this->mapLastActivity.begin();
     if(it == this->mapLastActivity.end())
