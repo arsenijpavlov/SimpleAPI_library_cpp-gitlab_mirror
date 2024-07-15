@@ -31,6 +31,7 @@ enum SocketType {
     eUDP,
     eTCP
 };
+std::string to_string(SocketType type);
 
 struct ChannelSettings {
     CRC         crcLevel;
@@ -56,6 +57,7 @@ struct Connection {
 class Socket {
 protected:
     int             mSocketFD;
+    SocketType      mSocketType;
     std::string     localIP;
     uint16_t        localPort;
     ChannelSettings settings;

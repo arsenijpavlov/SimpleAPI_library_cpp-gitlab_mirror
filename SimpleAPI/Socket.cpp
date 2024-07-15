@@ -185,14 +185,14 @@ void Socket::Log(logs::LEVEL level, std::string log_message)
         case logs::eINFO:
         case logs::eDEBUG: {
             if(this->logCallback)
-                this->logCallback(to_color_string(level, "SOCKET") + " " + log_message + "\n");
+                this->logCallback(to_color_string(level, to_string(this->mSocketType)) + " " + log_message + "\n");
             break;
         }
         case logs::eWARNING:
         case logs::eERROR:
         default: {
             if(this->logErrorCallback)
-                this->logErrorCallback(to_color_string(level, "SOCKET") + " " + log_message + "\n");
+                this->logErrorCallback(to_color_string(level, to_string(this->mSocketType)) + " " + log_message + "\n");
             break;
         }
         }
@@ -431,12 +431,9 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
 }
 
 void UDPSocket::tick() {
-//    Log(logs::eDEBUG, "tick_1");
     checkConnections();
 
-//    Log(logs::eDEBUG, "tick_2");
     sendAutoMsg();
-//    Log(logs::eDEBUG, "tick_3");
     recvAutoMsg(1);
 
     PacketMessage pm = getOutPacket();
@@ -445,51 +442,35 @@ void UDPSocket::tick() {
     JsonMessage jm = getOutJson();
     if(!jm.json.isEmpty() && this->jsonCallback)
         this->jsonCallback(jm);
-    Log(logs::eDEBUG, "tick_END");
 }
 
 void UDPSocket::checkConnections()
 {
     Json jPing;
     jPing.put("ping", this->getLocalIpPort().to_string());
-    Log(logs::eDEBUG, "for() main");
-    auto it = this->mapConnections.begin();
-    while(it != this->mapConnections.end() && !this->mapConnections.empty()) {
-//    for(auto it = this->mapConnections.begin(); it != this->mapConnections.end(); it++) {
-        Log(logs::eDEBUG, "for() 1, it=" + it->first.to_string());
 
+    for(auto it = this->mapConnections.begin(); it != this->mapConnections.end(); it++) {
         //если не было сообщений ОТ адреса дольше this->inactivityTimer/2, то отправить пинг
         auto it_last = this->mapLastActivity.find(it->first);
         if(it_last == this->mapLastActivity.end()
             || it_last->second + std::chrono::milliseconds(this->settings.inactivityTimer / 2)
                    > std::chrono::system_clock::now()) {
-//            sendFragments(it->first, eControlType, convert_to_packet(jPing.to_string(-1)));
-            it++;
+            sendFragments(it->first, eControlType, convert_to_packet(jPing.to_string(-1)));
             continue;
         }
 
-        Log(logs::eDEBUG, "for() 2");
         //если долгое время не было сообщений от абонента, удалить все сообщения до него
         if(it_last == this->mapLastActivity.end()
             || it_last->second + std::chrono::milliseconds(this->settings.inactivityTimer)
                    > std::chrono::system_clock::now()) {
             it = this->mapConnections.erase(it);
-            std::cout << "Connection removed" << std::endl;
+            Log(logs::eINFO, "Connection " + it->first.to_string() + " removed");
         }
 
-        if(it == this->mapConnections.end()) {
-            Log(logs::eWARNING, "for() end, it is end()");
-            it++;
-            if(it == this->mapConnections.end())
-                Log(logs::eERROR, "double end()");
+        //если дошли до конца диапазона
+        if(it == this->mapConnections.end())
             break;
-        }
-        else
-            Log(logs::eDEBUG, "for() end, it=" + it->first.to_string());
-
-        it++;
     }
-    Log(logs::eDEBUG, "for() end main");
 }
 
 void UDPSocket::sendAutoMsg() {
@@ -653,6 +634,8 @@ UDPSocket::UDPSocket(const IpPort &ipPort,
                      const logs::LEVEL logLevel,
                      const logs::LEVEL logErrorLevel
                      ) {
+    this->mSocketType       = SocketType::eUDP;
+
     this->packetCallback    = callbackRecvPacket;
     this->jsonCallback      = callbackRecvJson;
     this->logCallback       = callbackLog;
@@ -671,6 +654,8 @@ UDPSocket::UDPSocket(uint16_t localPort, std::string localIP,
                      const logs::LEVEL logLevel,
                      const logs::LEVEL logErrorLevel
                      ) {
+    this->mSocketType       = SocketType::eUDP;
+
     this->packetCallback    = callbackRecvPacket;
     this->jsonCallback      = callbackRecvJson;
     this->logCallback       = callbackLog;
@@ -820,4 +805,13 @@ JsonMessage UDPSocket::getOutJson()
     this->inputThreadsMutex.unlock();
 
     return jm;
+}
+
+std::string to_string(SocketType type)
+{
+    switch(type){
+    case eUDP:      return "UDP";
+    case eTCP:      return "TCP";
+    default:        return "SOCKET";
+    }
 }
