@@ -147,6 +147,18 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
                           std::back_insert_iterator<Packet>(pm.packet));
                 it_build = it->second.mapRecvBuildedMessages.erase(it_build);
             }
+\
+            if(pm.header.type != eControlType) {
+                //дешифрация
+                dechiphering(pm.packet);
+                //проверка контрольной суммы
+                switch(settings.crcLevel) {
+                case eCRC_8:    pm.isError = !utils::checkCrc8(pm.packet);    break;
+                case eCRC_16:   pm.isError = !utils::checkCrc16(pm.packet);   break;
+                case eCRC_32:   pm.isError = !utils::checkCrc32(pm.packet);   break;
+                default:        break;
+                }
+            }
 
             uint16_t size = (pm.packet[0] << 8) + pm.packet[1];
             pm.packet.erase(pm.packet.begin(), pm.packet.begin() + 2); //размер поля данных
@@ -155,19 +167,6 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
                 pm.isError = true;
                 pm.error.sn_finish = lastCounter;
                 return pm;
-            }
-\
-            //дешифрация
-            dechiphering(pm.packet);
-            //проверка контрольной суммы
-            if(pm.header.type != eControlType) {
-                //обновляем поле CRC
-                switch(settings.crcLevel) {
-                case eCRC_8:    pm.isError = !utils::checkCrc8(pm.packet);    break;
-                case eCRC_16:   pm.isError = !utils::checkCrc16(pm.packet);   break;
-                case eCRC_32:   pm.isError = !utils::checkCrc32(pm.packet);   break;
-                default:        break;
-                }
             }
 
             if(!pm.isError)
