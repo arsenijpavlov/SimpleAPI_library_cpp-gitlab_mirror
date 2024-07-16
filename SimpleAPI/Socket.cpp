@@ -487,7 +487,7 @@ void UDPSocket::sendAutoMsg() {
         if(tp < std::chrono::system_clock::now()) { //нужно переотправить
             it = this->mapAutoSentPackets.erase(it);
             this->sendPacketsBuffer.push_front(pm);
-            Log(logs::eDEBUG, "[SERVER] resend [" + std::to_string(it->second.sn.get()) + "] fragment");
+            Log(logs::eDEBUG, "new try to send [" + std::to_string(it->second.sn.get()) + "] fragment");
             counter++;
         }
     }
@@ -516,7 +516,7 @@ void UDPSocket::recvAutoMsg(int timeout) {
     PacketMessage pm = recvRawMsg(1);
     if(pm.packet.empty()) return;
 
-    Log(logs::eDEBUG, "received message: 0x" + utils::to_hex_string(pm.packet));
+    Log(logs::eDEBUG, "received raw message: [0x" + utils::to_hex_string(pm.packet) + "]");
     //записать время прихода нового сообщения от сокета
     auto it = this->mapLastActivity.begin();
     if(it == this->mapLastActivity.end())
@@ -553,8 +553,7 @@ void UDPSocket::recvAutoMsg(int timeout) {
                              + "] <-(from)- " + b_pm.ipPort.to_string());
 
         //обработка собранного пакета (1 за проход)
-        switch(pm.header.type) {
-        case eControlType: {
+        if(pm.header.type == eControlType) {
             if(jm.json.contains("ack_sn")) {
                 uint8_t sn = jm.json["ack_sn"].getNum();
                 for(auto it = this->mapAutoSentPackets.begin(); it != this->mapAutoSentPackets.end(); it++) {
@@ -598,23 +597,18 @@ void UDPSocket::recvAutoMsg(int timeout) {
                 }
 
                 if(!packet.empty()) {
-                    Log(logs::eDEBUG, "[SERVER] Resend packet [0x" + utils::to_hex_string(packet) + "]");
+                    Log(logs::eDEBUG, "new try resend packet [0x" + utils::to_hex_string(packet) + "]");
                     sendFragments(ipPort, type, packet); //переотправка
                 }
             }
-            break;
         }
-        case eDataType: {
+        else {
             this->inputThreadsMutex.lock();
             if(jm.json.isEmpty())
                 this->mapRecvPacketsBuffer.push_back(b_pm);
             else
                 this->mapRecvJsonsBuffer.push_back(jm);
             this->inputThreadsMutex.unlock();
-            break;
-        }
-//TODO: бестолковое, надо удалить. Тип пакета занимает всего 1 бит
-        default: Log(logs::eERROR, "[SERVER] unknown received type(" + to_string(pm.header.type) + ")");
         }
     }
 
