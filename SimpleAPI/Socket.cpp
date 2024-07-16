@@ -221,7 +221,7 @@ Socket::Socket() :
 {
     settings.maxLength          = 1500;
     settings.maxMsgsSentOnTick  = -1;
-    settings.inactivityTimer    = 5000;
+    settings.inactivityTimer    = 10000;
 }
 
 void Socket::setLogLevel(logs::LEVEL logLevel) {
