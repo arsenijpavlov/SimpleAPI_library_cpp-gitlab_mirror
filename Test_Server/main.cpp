@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
     signal(SIGINT, signalHandler);
 
     IpPort server{"127.0.0.15", 31115};
-    SocketThread st(eUDP, server, RecvData, RecvJson, Log, LogError, logs::eDEBUG);
+    SocketThread st(eUDP, server, RecvData, RecvJson, Log, LogError);
 //    st.setLogLevel(server, logs::eDEBUG);
 
 //    st.setCallbackAllSocketsReadRawData(RecvData);

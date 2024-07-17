@@ -153,16 +153,6 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
                           std::back_insert_iterator<Packet>(pm.packet));
                 it_build = it->second.mapRecvBuildedMessages.erase(it_build);
             }
-
-            uint16_t size = (pm.packet[0] << 8) + pm.packet[1];
-            pm.packet.erase(pm.packet.begin(), pm.packet.begin() + 2); //размер поля данных
-            //проверка ошибки размера
-            if(size != pm.packet.size()) {
-                pm.isError = true;
-                pm.error.sn_finish = lastCounter;
-                return pm;
-                Log(logs::eDEBUG, "~buildPacket(2), mapConnection size: " + std::to_string(this->mapConnections.size()));
-            }
 \
             if(pm.header.type != eControlType) {
                 //дешифрация
@@ -174,6 +164,16 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
                 case eCRC_32:   pm.isError = !utils::checkCrc32(pm.packet);   break;
                 default:        break;
                 }
+            }
+
+            uint16_t size = (pm.packet[0] << 8) + pm.packet[1];
+            pm.packet.erase(pm.packet.begin(), pm.packet.begin() + 2); //размер поля данных
+            //проверка ошибки размера
+            if(size != pm.packet.size()) {
+                pm.isError = true;
+                pm.error.sn_finish = lastCounter;
+                Log(logs::eDEBUG, "~buildPacket(2), mapConnection size: " + std::to_string(this->mapConnections.size()));
+                return pm;
             }
 
             if(!pm.isError)
@@ -233,7 +233,7 @@ Socket::Socket() :
 {
     settings.maxLength          = 1500;
     settings.maxMsgsSentOnTick  = -1;
-    settings.inactivityTimer    = 5000;
+    settings.inactivityTimer    = 10000;
 }
 
 void Socket::setLogLevel(logs::LEVEL logLevel) {
