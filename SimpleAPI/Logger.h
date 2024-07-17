@@ -21,6 +21,8 @@ enum LEVEL {
 std::string to_string(LEVEL level);
 std::string to_color_string(LEVEL level, std::string name);
 
+std::string get_time_string();
+
 }
 
 #endif // LOGGER_H

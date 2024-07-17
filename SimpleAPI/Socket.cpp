@@ -56,6 +56,7 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
             std::make_pair(receivedPM.ipPort,
                            Connection{EECounter(255), EECounter(255), EECounter(255)})).first;
     }
+    Log(logs::eDEBUG, "mapConnection size: " + std::to_string(this->mapConnections.size()));
 
     if(receivedPM.packet.empty())
         return {};
@@ -157,11 +158,10 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
                 return pm;
             }
 \
-            //дешифрация
-            dechiphering(pm.packet);
-            //проверка контрольной суммы
             if(pm.header.type != eControlType) {
-                //обновляем поле CRC
+                //дешифрация
+                dechiphering(pm.packet);
+                //проверка контрольной суммы
                 switch(settings.crcLevel) {
                 case eCRC_8:    pm.isError = !utils::checkCrc8(pm.packet);    break;
                 case eCRC_16:   pm.isError = !utils::checkCrc16(pm.packet);   break;
@@ -185,14 +185,18 @@ void Socket::Log(logs::LEVEL level, std::string log_message)
         case logs::eINFO:
         case logs::eDEBUG: {
             if(this->logCallback)
-                this->logCallback(to_color_string(level, to_string(this->mSocketType)) + " " + log_message + "\n");
+                this->logCallback(logs::get_time_string() + " "
+                                  + to_color_string(level, to_string(this->mSocketType))
+                                  + " " + log_message + "\n");
             break;
         }
         case logs::eWARNING:
         case logs::eERROR:
         default: {
             if(this->logErrorCallback)
-                this->logErrorCallback(to_color_string(level, to_string(this->mSocketType)) + " " + log_message + "\n");
+                this->logErrorCallback(logs::get_time_string() + " "
+                                       + to_color_string(level, to_string(this->mSocketType))
+                                       + " " + log_message + "\n");
             break;
         }
         }
@@ -234,7 +238,8 @@ void Socket::setLogErrorLevel(logs::LEVEL logLevel) {
 }
 
 bool Socket::sendRawMsg(const PacketMessage &packetMessage) {
-    Log(logs::eDEBUG, "sendRawMsg()");
+    Log(logs::eDEBUG, "sendRawMsg() " + std::to_string(packetMessage.packet.size())
+                          + " bytes to " + packetMessage.ipPort.to_string());
     return sendRawMsg(packetMessage.ipPort.ip, packetMessage.ipPort.port, packetMessage.packet);
 }
 
@@ -288,7 +293,7 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
 
     Log(logs::eINFO, "send: " + to_string(type) + " ["
                          + (json.isEmpty() ? "Data:0x" + utils::to_hex_string(packet) : "Json:" + json.to_string(-1))
-                         + "] --(to)--> " + remoteIpPort.to_string());
+                         + "] --> " + remoteIpPort.to_string());
 
     Packet innerData;
     //=CHIP_and_CRC_and_SIZE_and_DATA===========================================
@@ -516,7 +521,12 @@ void UDPSocket::recvAutoMsg(int timeout) {
     PacketMessage pm = recvRawMsg(1);
     if(pm.packet.empty()) return;
 
+    JsonMessage _jm = pm;
     Log(logs::eDEBUG, "received raw message: [0x" + utils::to_hex_string(pm.packet) + "]");
+//    Log(logs::eINFO, "Recv: " + to_string(pm.header.type) + " ["
+//                         + (_jm.json.isEmpty() ? "Data:0x" + utils::to_hex_string(pm.packet)
+//                                               : "Json:" + _jm.json.to_string(-1))
+//                         + "] <-- " + pm.ipPort.to_string());
     //записать время прихода нового сообщения от сокета
     auto it = this->mapLastActivity.begin();
     if(it == this->mapLastActivity.end())
@@ -550,7 +560,7 @@ void UDPSocket::recvAutoMsg(int timeout) {
         Log(logs::eINFO, "Recv: " + to_string(b_pm.header.type) + " ["
                              + (jm.json.isEmpty() ? "Data:0x" + utils::to_hex_string(b_pm.packet)
                                                   : "Json:" + jm.json.to_string(-1))
-                             + "] <-(from)- " + b_pm.ipPort.to_string());
+                             + "] <-- " + b_pm.ipPort.to_string());
 
         //обработка собранного пакета (1 за проход)
         if(pm.header.type == eControlType) {
