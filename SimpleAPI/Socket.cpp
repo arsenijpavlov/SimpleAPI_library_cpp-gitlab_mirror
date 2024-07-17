@@ -470,7 +470,7 @@ void UDPSocket::checkConnections()
         auto time_now = std::chrono::system_clock::now();
         time_point_default time_expected = time_point_default(time_now.time_since_epoch() + std::chrono::milliseconds(/*this->settings.inactivityTimer / 2*/1500));
 
-        Log(logs::eWARNING, "now:\t\t\t" + logs::get_time_string(time_now));
+        Log(logs::eWARNING, "now:\t\t" + logs::get_time_string(time_now));
         Log(logs::eWARNING, "expected:\t" + logs::get_time_string(time_expected));
 
         //если не было сообщений ОТ адреса дольше this->inactivityTimer/2, то отправить пинг
