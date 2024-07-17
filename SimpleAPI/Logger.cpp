@@ -29,7 +29,12 @@ std::string to_color_string(LEVEL level, std::string name) {
 std::string get_time_string()
 {
     auto _now = std::chrono::system_clock::now();
-    std::time_t tt = std::chrono::system_clock::to_time_t(_now);
+    return get_time_string(_now);
+}
+
+std::string get_time_string(std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<long, std::ratio<1, 1000000000> > > tp_millis)
+{
+    std::time_t tt = std::chrono::system_clock::to_time_t(tp_millis);
     struct tm* tmInfo = std::localtime(&tt);
 
     char hours[3];
@@ -39,7 +44,7 @@ std::string get_time_string()
     char seconds[3];
     sprintf(seconds, "%02d", tmInfo->tm_sec);
     char millis[4];
-    sprintf(millis, "%03ld", _now.time_since_epoch().count() % 1000);
+    sprintf(millis, "%03ld", tp_millis.time_since_epoch().count() % 1000);
 
     return std::string("[")
            + hours + ":"

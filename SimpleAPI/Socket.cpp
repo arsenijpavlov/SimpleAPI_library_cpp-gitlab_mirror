@@ -56,10 +56,12 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
             std::make_pair(receivedPM.ipPort,
                            Connection{EECounter(255), EECounter(255), EECounter(255)})).first;
     }
-    Log(logs::eDEBUG, "mapConnection size: " + std::to_string(this->mapConnections.size()));
+    Log(logs::eDEBUG, "buildPacket(), mapConnection size: " + std::to_string(this->mapConnections.size()));
 
-    if(receivedPM.packet.empty())
+    if(receivedPM.packet.empty()) {
+        Log(logs::eDEBUG, "~buildPacket(), packet empty");
         return {};
+    }
 
     if(it->second.inSnLastRecv < receivedPM.sn)
         it->second.inSnLastRecv = receivedPM.sn;
@@ -81,6 +83,7 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
 
         it_pool = it->second.mapRecvFragments.erase(it_pool);
         it_pool = it->second.mapRecvFragments.find(it->second.inNextSn); //ищем следующий фрагмент очереди
+        Log(logs::eDEBUG, "buildPacket(), find()");
     }
 
     //удалить всё, что теперь вне окна ожидания
@@ -91,6 +94,7 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
         it_pool++;
     }
 
+    Log(logs::eDEBUG, "buildPacket(), prepare to build");
     //попытаться собрать ОДИН пакет
     PacketMessage pm;
     pm.isBuiltComplete      = false;
@@ -134,6 +138,7 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
             }
             pm.isError = true;
             pm.error.sn_finish = lastCounter;
+            Log(logs::eDEBUG, "~buildPacket(1), mapConnection size: " + std::to_string(this->mapConnections.size()));
             return pm;
         }
 
@@ -156,6 +161,7 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
                 pm.isError = true;
                 pm.error.sn_finish = lastCounter;
                 return pm;
+                Log(logs::eDEBUG, "~buildPacket(2), mapConnection size: " + std::to_string(this->mapConnections.size()));
             }
 \
             if(pm.header.type != eControlType) {
@@ -175,6 +181,7 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
         }
     }
 
+    Log(logs::eDEBUG, "~buildPacket(3), mapConnection size: " + std::to_string(this->mapConnections.size()));
     return pm;
 }
 
@@ -238,8 +245,10 @@ void Socket::setLogErrorLevel(logs::LEVEL logLevel) {
 }
 
 bool Socket::sendRawMsg(const PacketMessage &packetMessage) {
-    Log(logs::eDEBUG, "sendRawMsg() " + std::to_string(packetMessage.packet.size())
-                          + " bytes to " + packetMessage.ipPort.to_string());
+    Log(logs::eDEBUG, std::string("sendRaw ")
+                          + "(" + std::to_string(packetMessage.packet.size()) + ")"
+                          + "[0x" + utils::to_hex_string(packetMessage.packet) + "]"
+                          + " to " + packetMessage.ipPort.to_string());
     return sendRawMsg(packetMessage.ipPort.ip, packetMessage.ipPort.port, packetMessage.packet);
 }
 
@@ -291,9 +300,12 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
     Json json;
     json.parseJson(convert_from_packet(packet));
 
-    Log(logs::eINFO, "send: " + to_string(type) + " ["
-                         + (json.isEmpty() ? "Data:0x" + utils::to_hex_string(packet) : "Json:" + json.to_string(-1))
-                         + "] --> " + remoteIpPort.to_string());
+    Log(logs::eINFO, "send: " + to_string(type) + " "
+                         + (json.isEmpty() ? "[Data:0x" + utils::to_hex_string(packet) + "]"
+                                           : "[Json:" + json.to_string(-1) + "]"
+                                                + "/[Data:0x" + utils::to_hex_string(packet) + "]"
+                                           )
+                         + " --> " + remoteIpPort.to_string());
 
     Packet innerData;
     //=CHIP_and_CRC_and_SIZE_and_DATA===========================================
@@ -455,21 +467,29 @@ void UDPSocket::checkConnections()
     jPing.put("ping", this->getLocalIpPort().to_string());
 
     for(auto it = this->mapConnections.begin(); it != this->mapConnections.end(); it++) {
+        auto time_now = std::chrono::system_clock::now();
+        time_point_default time_expected = time_point_default(time_now.time_since_epoch() + std::chrono::milliseconds(/*this->settings.inactivityTimer / 2*/1500));
+
+        Log(logs::eWARNING, "now:\t\t\t" + logs::get_time_string(time_now));
+        Log(logs::eWARNING, "expected:\t" + logs::get_time_string(time_expected));
+
         //если не было сообщений ОТ адреса дольше this->inactivityTimer/2, то отправить пинг
         auto it_last = this->mapLastActivity.find(it->first);
         if(it_last == this->mapLastActivity.end()
-            || it_last->second + std::chrono::milliseconds(this->settings.inactivityTimer / 2)
-                   > std::chrono::system_clock::now()) {
+            || it_last->second.time_since_epoch().count() + std::chrono::milliseconds(this->settings.inactivityTimer / 2).count()
+                   > std::chrono::system_clock::now().time_since_epoch().count()) {
+            Log(logs::eWARNING, "send ping to " + it->first.to_string());
             sendFragments(it->first, eControlType, convert_to_packet(jPing.to_string(-1)));
+            it_last->second = std::chrono::system_clock::now();
             continue;
         }
 
         //если долгое время не было сообщений от абонента, удалить все сообщения до него
         if(it_last == this->mapLastActivity.end()
-            || it_last->second + std::chrono::milliseconds(this->settings.inactivityTimer)
-                   > std::chrono::system_clock::now()) {
+            || it_last->second.time_since_epoch().count() + std::chrono::milliseconds(this->settings.inactivityTimer).count()
+                   > std::chrono::system_clock::now().time_since_epoch().count()) {
             it = this->mapConnections.erase(it);
-            Log(logs::eINFO, "Connection " + it->first.to_string() + " removed");
+            Log(logs::eWARNING, "Connection " + it->first.to_string() + " removed");
         }
 
         //если дошли до конца диапазона
@@ -521,12 +541,13 @@ void UDPSocket::recvAutoMsg(int timeout) {
     PacketMessage pm = recvRawMsg(1);
     if(pm.packet.empty()) return;
 
-    JsonMessage _jm = pm;
     Log(logs::eDEBUG, "received raw message: [0x" + utils::to_hex_string(pm.packet) + "]");
+//    JsonMessage _jm = pm;
 //    Log(logs::eINFO, "Recv: " + to_string(pm.header.type) + " ["
 //                         + (_jm.json.isEmpty() ? "Data:0x" + utils::to_hex_string(pm.packet)
 //                                               : "Json:" + _jm.json.to_string(-1))
 //                         + "] <-- " + pm.ipPort.to_string());
+
     //записать время прихода нового сообщения от сокета
     auto it = this->mapLastActivity.begin();
     if(it == this->mapLastActivity.end())
@@ -725,6 +746,11 @@ PacketMessage UDPSocket::recvRawMsg(int timeout) {
         inet_ntop(AF_INET, &(sock.sin_addr), (char*)rpacket.ipPort.ip.data(), INET_ADDRSTRLEN);
         rpacket.ipPort.port = ntohs(sock.sin_port);
         rpacket.packet = Packet(buf, buf + recv_num);
+
+        Log(logs::eDEBUG, std::string("sendRaw ")
+                              + "(" + std::to_string(rpacket.packet.size()) + ")"
+                              + "[0x" + utils::to_hex_string(rpacket.packet) + "]"
+                              + " from " + rpacket.ipPort.to_string());
 
         return rpacket;
     }

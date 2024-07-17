@@ -62,7 +62,7 @@ protected:
     uint16_t        localPort;
     ChannelSettings settings;
 
-    std::map<IpPort, Connection> mapConnections; //счётчики сообщений на отправкуa
+    std::map<IpPort, Connection> mapConnections; //счётчики сообщений на отправку
 
     void            (*logCallback)(std::string);
     void            (*logErrorCallback)(std::string);
