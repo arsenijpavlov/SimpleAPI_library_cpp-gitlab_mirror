@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
     SocketThread st(eUDP, server, RecvData, RecvJson, Log, LogError);
 //    st.setLogLevel(server, logs::eDEBUG);
 //    st.findSocket(server)->enableCRC(eCRC_32);
-    st.findSocket(server)->setMaxLength(5);
+//    st.findSocket(server)->setMaxLength(5); //TODO: не работает, если клиент долго не был активен
 //    st.setCallbackAllSocketsLogOutput(Log);
 //    st.setCallbackAllSocketsLogOutput(LogError);
     st.startThread();
