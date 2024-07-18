@@ -26,7 +26,7 @@ std::string to_string(const Packet& packet) {
 
 std::string to_string(PacketType type) {
     switch(type){
-    case eControlType:  return "[CONTROL]";
+    case eControlType:  return "[CTRL]";
     case eDataType:     return "[DATA]";
     default: return "UNKNOWN";
     }

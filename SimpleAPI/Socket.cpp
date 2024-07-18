@@ -299,12 +299,13 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
     Json json;
     json.parseJson(convert_from_packet(packet));
 
-    Log(logs::eINFO, "send: " + to_string(type) + " "
-                         + (json.isEmpty() ? "[Data:0x" + utils::to_hex_string(packet) + "]"
-                                           : "[Json:" + json.to_string(-1) + "]"
-                                                + "/[Data:0x" + utils::to_hex_string(packet) + "]"
-                                           )
-                         + " --> " + remoteIpPort.to_string());
+    Log(type != eControlType ? logs::eINFO : logs::eDEBUG,
+        "send: " + to_string(type) + " "
+            + (json.isEmpty() ? "[Data:0x" + utils::to_hex_string(packet) + "]"
+                              : "[Json:" + json.to_string(-1) + "]"
+                                    + "/[Data:0x" + utils::to_hex_string(packet) + "]"
+               )
+            + " --> " + remoteIpPort.to_string());
 
     Packet innerData;
     //=CHIP_and_CRC_and_SIZE_and_DATA===========================================
@@ -477,7 +478,7 @@ void UDPSocket::checkConnections()
             it->second.lastActivity + std::chrono::milliseconds(this->settings.inactivityTimer / 2)
                    < std::chrono::system_clock::now()
             ) {
-            Log(logs::eWARNING, "send ping to " + it->first.to_string());
+            Log(logs::eDEBUG, "send ping to " + it->first.to_string());
             Log(logs::eDEBUG, "expected time: " + logs::get_time_string(it->second.lastPingTime + std::chrono::milliseconds(this->settings.inactivityTimer / 2)));
             sendFragments(it->first, eControlType, convert_to_packet(jPing.to_string(-1)));
             it->second.lastPingTime = std::chrono::system_clock::now();
@@ -551,20 +552,6 @@ void UDPSocket::recvAutoMsg(int timeout) {
     PacketMessage pm = recvRawMsg(1);
     if(pm.packet.empty()) return;
 
-//    Log(logs::eDEBUG, "received raw message: [0x" + utils::to_hex_string(pm.packet) + "]");
-//    JsonMessage _jm = pm;
-//    Log(logs::eINFO, "Recv: " + to_string(pm.header.type) + " ["
-//                         + (_jm.json.isEmpty() ? "Data:0x" + utils::to_hex_string(pm.packet)
-//                                               : "Json:" + _jm.json.to_string(-1))
-//                         + "] <-- " + pm.ipPort.to_string());
-
-    //записать время прихода нового сообщения от сокета
-//    auto it = this->mapLastActivity.begin();
-//    if(it == this->mapLastActivity.end())
-//        it = this->mapLastActivity.insert(std::make_pair(pm.ipPort, std::chrono::system_clock::now())).first;
-//    else
-//        it->second = std::chrono::system_clock::now();
-
     pm.header = unpackHeader(pm.packet[0]);
     uint8_t glob_sn = pm.packet[1]; //TODO: нужна защита от некорректного размера чтения!
     uint8_t sn      = pm.packet[2];
@@ -588,10 +575,11 @@ void UDPSocket::recvAutoMsg(int timeout) {
     }
 
     if(!b_pm.packet.empty()) {
-        Log(logs::eINFO, "Recv: " + to_string(b_pm.header.type) + " ["
-                             + (jm.json.isEmpty() ? "Data:0x" + utils::to_hex_string(b_pm.packet)
-                                                  : "Json:" + jm.json.to_string(-1))
-                             + "] <-- " + b_pm.ipPort.to_string());
+        Log(b_pm.header.type != eControlType ? logs::eINFO : logs::eDEBUG,
+            "Recv: "+ to_string(b_pm.header.type) + " ["
+                + (jm.json.isEmpty() ? "Data:0x" + utils::to_hex_string(b_pm.packet)
+                                     : "Json:" + jm.json.to_string(-1))
+                + "] <-- " + b_pm.ipPort.to_string());
 
         //обработка собранного пакета (1 за проход)
         if(pm.header.type == eControlType) {
