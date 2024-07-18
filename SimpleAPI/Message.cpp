@@ -79,4 +79,3 @@ std::string JsonMessage::to_string(int arg)
 
     return out;
 }
-

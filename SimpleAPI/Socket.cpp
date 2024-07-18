@@ -165,7 +165,7 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
                 //дешифрация
                 dechiphering(pm.packet);
                 //проверка контрольной суммы
-                switch(settings.crcLevel) {
+                switch(_settings.crcLevel) {
                 case eCRC_8:    pm.isError = !utils::checkCrc8(pm.packet);    break;
                 case eCRC_16:   pm.isError = !utils::checkCrc16(pm.packet);   break;
                 case eCRC_32:   pm.isError = !utils::checkCrc32(pm.packet);   break;
@@ -191,7 +191,7 @@ void Socket::Log(logs::LEVEL level, std::string log_message)
             if(this->logCallback)
                 this->logCallback(
                     logs::get_time_string() + " "
-                    + to_color_string(level, to_string(this->mSocketType))
+                    + to_color_string(level, to_string(this->_socketType))
                     + " " + log_message + "\n");
             break;
         }
@@ -201,7 +201,7 @@ void Socket::Log(logs::LEVEL level, std::string log_message)
             if(this->logErrorCallback)
                 this->logErrorCallback(
                     logs::get_time_string() + " "
-                    + to_color_string(level, to_string(this->mSocketType))
+                    + to_color_string(level, to_string(this->_socketType))
                     + " " + log_message + "\n");
             break;
         }
@@ -226,13 +226,13 @@ void Socket::setCallbackSocketReadJsonData(void (*callback)(JsonMessage)) {
 }
 
 Socket::Socket() :
-    mSocketFD(-1), logLevel(logs::eINFO),
+    _socketFD(-1), logLevel(logs::eINFO),
     packetCallback(nullptr), jsonCallback(nullptr),
     logCallback(nullptr), logErrorCallback(nullptr)
 {
-    settings.maxLength          = 1500;
-    settings.maxMsgsSentOnTick  = -1;
-    settings.inactivityTimer    = 5000;
+    _settings.maxLength          = 1500;
+    _settings.maxMsgsSentOnTick  = -1;
+    _settings.inactivityTimer    = 5000;
 }
 
 void Socket::setLogLevel(logs::LEVEL logLevel) {
@@ -252,11 +252,11 @@ bool Socket::sendRawMsg(const PacketMessage &packetMessage) {
 }
 
 bool Socket::isServerActive() {
-    return mSocketFD > 0;
+    return _socketFD > 0;
 }
 
 void Socket::enableCRC(CRC crcLevel) {
-    this->settings.crcLevel = crcLevel;
+    this->_settings.crcLevel = crcLevel;
 }
 
 bool Socket::sendMsg(const std::string& remoteIp, const uint16_t remotePort, const Packet& packet) {
@@ -272,22 +272,22 @@ bool Socket::sendMsg(const std::string& remoteIp, const uint16_t remotePort, con
 }
 
 void Socket::setMaxLength(uint16_t newMaxSize) {
-    settings.maxLength = newMaxSize;
+    _settings.maxLength = newMaxSize;
 }
 
 void Socket::setUseApiVersion(ApiVersion version) {
     switch(version) {
 //    case ...
     default: //NOTE: по умолчанию всегда самая последняя из списка!
-    case Version_1: settings.useApiVersion = version;    break;
+    case Version_1: _settings.useApiVersion = version;    break;
     }
 }
 
 void Socket::close() {
-    if(mSocketFD) {
-        ::close(this->mSocketFD);
-        Log(logs::eINFO, "The socket " + IpPort{this->localIP, this->localPort}.to_string() + " has been freed");
-        this->mSocketFD = -1;
+    if(_socketFD) {
+        ::close(this->_socketFD);
+        Log(logs::eINFO, "The socket " + IpPort{this->_localIP, this->_localPort}.to_string() + " has been freed");
+        this->_socketFD = -1;
     }
 }
 
@@ -310,7 +310,7 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
     Packet innerData;
     //=CHIP_and_CRC_and_SIZE_and_DATA===========================================
     //оставляем место для поля CRC
-    switch(settings.crcLevel) {
+    switch(_settings.crcLevel) {
     case eCRC_8:
         innerData.push_back(0);
         break;
@@ -338,7 +338,7 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
     std::copy(packet.begin(), packet.end(), innerData.begin() + tempSize);
     if(type != eControlType) {
         //обновляем поле CRC
-        switch(settings.crcLevel) {
+        switch(_settings.crcLevel) {
         case eCRC_8:    utils::checkCrc8(innerData);    break;
         case eCRC_16:   utils::checkCrc16(innerData);   break;
         case eCRC_32:   utils::checkCrc32(innerData);   break;
@@ -362,7 +362,7 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
     bool isStart    = true;
     bool isFinish   = false;
     while(innerData.size() - currentPos > 0) {
-        uint16_t availableSize = this->settings.maxLength;
+        uint16_t availableSize = this->_settings.maxLength;
 
         EECounter& fragment_sn = getOutSeqNumber(remoteIpPort);
         if(!isFirstEECsaved)
@@ -386,12 +386,12 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
                 isFinish = currentFragmentSize == leftSize;
 
                 ph.type     = type;
-                ph.version  = settings.useApiVersion;
+                ph.version  = _settings.useApiVersion;
                 ph.isFirstFragment = isStart;
                 ph.isLastFragment = isFinish;
                 ph.isChip   = isChiphering();
                 ph.isChip   = isChiphering();
-                ph.crcLevel = settings.crcLevel;
+                ph.crcLevel = _settings.crcLevel;
 
                 if(isStart) //первый пакет в списке
                     isStart = false;
@@ -472,14 +472,14 @@ void UDPSocket::checkConnections()
         Log(logs::eDEBUG, "checkConnections() #1");
 
         //если не было сообщений ОТ адреса дольше this->inactivityTimer/2, то отправить пинг
-        if(it->second.lastPingTime + std::chrono::milliseconds(this->settings.inactivityTimer / 2)
+        if(it->second.lastPingTime + std::chrono::milliseconds(this->_settings.inactivityTimer / 2)
                 < std::chrono::system_clock::now()
             &&
-            it->second.lastActivity + std::chrono::milliseconds(this->settings.inactivityTimer / 2)
+            it->second.lastActivity + std::chrono::milliseconds(this->_settings.inactivityTimer / 2)
                    < std::chrono::system_clock::now()
             ) {
             Log(logs::eDEBUG, "send ping to " + it->first.to_string());
-            Log(logs::eDEBUG, "expected time: " + logs::get_time_string(it->second.lastPingTime + std::chrono::milliseconds(this->settings.inactivityTimer / 2)));
+            Log(logs::eDEBUG, "expected time: " + logs::get_time_string(it->second.lastPingTime + std::chrono::milliseconds(this->_settings.inactivityTimer / 2)));
             sendFragments(it->first, eControlType, convert_to_packet(jPing.to_string(-1)));
             it->second.lastPingTime = std::chrono::system_clock::now();
             continue;
@@ -487,7 +487,7 @@ void UDPSocket::checkConnections()
 
         Log(logs::eDEBUG, "checkConnections() #2");
         //если долгое время не было сообщений от абонента, удалить все сообщения до него
-        if(it->second.lastActivity + std::chrono::milliseconds(this->settings.inactivityTimer)
+        if(it->second.lastActivity + std::chrono::milliseconds(this->_settings.inactivityTimer)
             < std::chrono::system_clock::now()
             ) {
             Log(logs::eWARNING, "Connection " + it->first.to_string()
@@ -513,10 +513,10 @@ void UDPSocket::sendAutoMsg() {
 
     //перепосылка недоставленных пакетов
     for(auto it = this->mapAutoSentPackets.begin();
-         it != this->mapAutoSentPackets.end() && ((counter < settings.maxMsgsSentOnTick) || (settings.maxMsgsSentOnTick < 0));
+         it != this->mapAutoSentPackets.end() && ((counter < _settings.maxMsgsSentOnTick) || (_settings.maxMsgsSentOnTick < 0));
          it++) {
         time_point_default tp = it->first;
-        tp += std::chrono::milliseconds(this->settings.inactivityTimer);
+        tp += std::chrono::milliseconds(this->_settings.inactivityTimer);
         PacketMessage pm = it->second;
         if(tp < std::chrono::system_clock::now()) { //нужно переотправить
             it = this->mapAutoSentPackets.erase(it);
@@ -528,7 +528,7 @@ void UDPSocket::sendAutoMsg() {
 
     //постепенная отправка пакетов в сокет
     while(!this->sendPacketsBuffer.empty()
-           && ((counter < settings.maxMsgsSentOnTick) || (settings.maxMsgsSentOnTick < 0))
+           && ((counter < _settings.maxMsgsSentOnTick) || (_settings.maxMsgsSentOnTick < 0))
            ) {
         PacketMessage pm = this->sendPacketsBuffer.front();
         this->sendPacketsBuffer.pop_front();
@@ -655,7 +655,7 @@ void UDPSocket::recvAutoMsg(int timeout) {
 }
 
 void UDPSocket::setMaxMsgsSentOnTick(int count) {
-    settings.maxMsgsSentOnTick = count;
+    _settings.maxMsgsSentOnTick = count;
 }
 
 UDPSocket::UDPSocket(const IpPort &ipPort,
@@ -666,7 +666,7 @@ UDPSocket::UDPSocket(const IpPort &ipPort,
                      const logs::LEVEL logLevel,
                      const logs::LEVEL logErrorLevel
                      ) {
-    this->mSocketType       = SocketType::eUDP;
+    this->_socketType       = SocketType::eUDP;
 
     this->packetCallback    = callbackRecvPacket;
     this->jsonCallback      = callbackRecvJson;
@@ -686,7 +686,7 @@ UDPSocket::UDPSocket(uint16_t localPort, std::string localIP,
                      const logs::LEVEL logLevel,
                      const logs::LEVEL logErrorLevel
                      ) {
-    this->mSocketType       = SocketType::eUDP;
+    this->_socketType       = SocketType::eUDP;
 
     this->packetCallback    = callbackRecvPacket;
     this->jsonCallback      = callbackRecvJson;
@@ -708,7 +708,7 @@ bool UDPSocket::sendRawMsg(const std::string &remoteIP, const uint16_t remotePor
     sock.sin_port = htons(remotePort);
     if(!inet_pton(AF_INET, remoteIP.c_str(), &sock.sin_addr.s_addr))
         Log(logs::eERROR, "inet_pton(): return ERROR");
-    int res = sendto(mSocketFD, (char*)packet.data(), packet.size(), 0, (struct sockaddr*)&sock, sizeof(struct sockaddr_in));
+    int res = sendto(_socketFD, (char*)packet.data(), packet.size(), 0, (struct sockaddr*)&sock, sizeof(struct sockaddr_in));
     if(res < 0) {
         Log(logs::eERROR, "ErrNo: " + std::to_string(errno));
         return false;
@@ -721,7 +721,7 @@ PacketMessage UDPSocket::recvRawMsg(int timeout) {
 
     fd_set fds;
     FD_ZERO(&fds);
-    FD_SET(mSocketFD, &fds);
+    FD_SET(_socketFD, &fds);
     struct timeval t;
     if(timeout > 0) {
         t.tv_sec    = timeout / 1000;
@@ -733,14 +733,14 @@ PacketMessage UDPSocket::recvRawMsg(int timeout) {
     struct sockaddr_in sock;
     sock.sin_family = AF_INET;
     socklen_t socklen = sizeof(sock);
-    recv_num = select(mSocketFD + 1, &fds, NULL, NULL, (timeout > 0 ? &t : NULL));
+    recv_num = select(_socketFD + 1, &fds, NULL, NULL, (timeout > 0 ? &t : NULL));
     if(recv_num < 0) {
         if(errno != EINTR) /* Interrupted system call */
             Log(logs::eERROR, "Error in select(), errno=" + std::to_string(errno));
         return PacketMessage();
     }
     if(recv_num > 0) {
-        recv_num = recvfrom(mSocketFD, buf,
+        recv_num = recvfrom(_socketFD, buf,
                             MAX_PACKET_LENGTH, /*flags*/0,
                             (struct sockaddr*)&sock, &socklen);
     }
@@ -767,7 +767,7 @@ PacketMessage UDPSocket::recvRawMsg(int timeout) {
 
 void UDPSocket::startServer() {
     if(!isServerActive())
-        open(this->localPort, this->localIP);
+        open(this->_localPort, this->_localIP);
 }
 
 void UDPSocket::stopServer() {
@@ -776,12 +776,12 @@ void UDPSocket::stopServer() {
 }
 
 void UDPSocket::open(const uint16_t localPort, const std::string& localIP) {
-    this->localIP = localIP;
-    this->localPort = localPort;
+    this->_localIP      = localIP;
+    this->_localPort    = localPort;
 
     // create
-    mSocketFD = socket(AF_INET, SOCK_DGRAM, 0);
-    if (mSocketFD < 0)
+    _socketFD = socket(AF_INET, SOCK_DGRAM, 0);
+    if (_socketFD < 0)
         perror("socket() failed");
 
     // bind
@@ -794,7 +794,7 @@ void UDPSocket::open(const uint16_t localPort, const std::string& localIP) {
         if(!inet_pton(AF_INET, localIP.c_str(), &sock.sin_addr.s_addr))
             Log(logs::eERROR, "inet_pton(): return ERROR");
     }
-    int res = bind(mSocketFD, (struct sockaddr*)&sock, sizeof(sock));
+    int res = bind(_socketFD, (struct sockaddr*)&sock, sizeof(sock));
     if(res < 0) {
         perror(std::string("bind() failed with localIP(" + localIP + ")"
                            + ", port(" + std::to_string(localPort) + ")").c_str());
