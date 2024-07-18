@@ -150,7 +150,17 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
                           std::back_insert_iterator<Packet>(pm.packet));
                 it_build = it->second.mapRecvBuildedMessages.erase(it_build);
             }
-\
+
+            uint16_t size = (pm.packet[0] << 8) + pm.packet[1];
+            pm.packet.erase(pm.packet.begin(), pm.packet.begin() + 2); //размер поля данных
+            //проверка ошибки размера
+            if(size != pm.packet.size()) {
+                pm.isError = true;
+                pm.error.sn_finish = lastCounter;
+                Log(logs::eDEBUG, "~buildPacket(2), mapConnection size: " + std::to_string(this->mapConnections.size()));
+                return pm;
+            }
+
             if(pm.header.type != eControlType) {
                 //дешифрация
                 dechiphering(pm.packet);
@@ -161,16 +171,6 @@ PacketMessage Socket::buildPacket(PacketMessage receivedPM)
                 case eCRC_32:   pm.isError = !utils::checkCrc32(pm.packet);   break;
                 default:        break;
                 }
-            }
-
-            uint16_t size = (pm.packet[0] << 8) + pm.packet[1];
-            pm.packet.erase(pm.packet.begin(), pm.packet.begin() + 2); //размер поля данных
-            //проверка ошибки размера
-            if(size != pm.packet.size()) {
-                pm.isError = true;
-                pm.error.sn_finish = lastCounter;
-                Log(logs::eDEBUG, "~buildPacket(2), mapConnection size: " + std::to_string(this->mapConnections.size()));
-                return pm;
             }
 
             if(!pm.isError)
@@ -303,7 +303,7 @@ void UDPSocket::sendFragments(const IpPort &remoteIpPort, const PacketType type,
         "send: " + to_string(type) + " "
             + (json.isEmpty() ? "[Data:0x" + utils::to_hex_string(packet) + "]"
                               : "[Json:" + json.to_string(-1) + "]"
-                                    + "/[Data:0x" + utils::to_hex_string(packet) + "]"
+                                    + " / [Data:0x" + utils::to_hex_string(packet) + "]"
                )
             + " --> " + remoteIpPort.to_string());
 
@@ -563,14 +563,14 @@ void UDPSocket::recvAutoMsg(int timeout) {
     PacketMessage b_pm = buildPacket(pm);
     JsonMessage jm = b_pm;
 
-    Json controlAcknoledge;
+    Json controlAcknowledgement;
     if(pm.header.type != eControlType) {
         Log(logs::eDEBUG, "Send acknowledge for message(" + std::to_string(pm.sn.get()) + ")");
-        controlAcknoledge.put("ack_sn", (double)pm.sn.get()); //TODO: общий тип для всех числовых значений
+        controlAcknowledgement.put("ack_sn", (double)pm.sn.get()); //TODO: общий тип для всех числовых значений
         if(b_pm.isBuiltComplete)
-            controlAcknoledge.put("ack_all_packet", (double)b_pm.sn.get());
+            controlAcknowledgement.put("ack_all_packet", (double)b_pm.sn.get());
         if(b_pm.isError) {
-            controlAcknoledge.put("packet_error_last_sn", (double)b_pm.error.sn_finish.get());//TODO: проверка ошибок и переотправка
+            controlAcknowledgement.put("packet_error_last_sn", (double)b_pm.error.sn_finish.get());//TODO: проверка ошибок и переотправка
         }
     }
 
@@ -597,6 +597,15 @@ void UDPSocket::recvAutoMsg(int timeout) {
 
                 for(auto it = this->sentGlobalPackets.begin(); it != this->sentGlobalPackets.end(); it++) {
                     if(it->range.start.get() == first_sn) {
+                        PacketMessage tempPM;
+                        tempPM.packet = it->packet;
+                        jm.clear();
+                        jm = tempPM;
+                        Log(it->header.type != eControlType ? logs::eINFO : logs::eDEBUG,
+                            "message delivered ["
+                                + (jm.json.isEmpty() ? "Data:0x" + utils::to_hex_string(tempPM.packet)
+                                                     : "Json:" + jm.json.to_string(-1))
+                                + "]");
                         it = this->sentGlobalPackets.erase(it);
                         break;
                     }
@@ -641,8 +650,8 @@ void UDPSocket::recvAutoMsg(int timeout) {
         }
     }
 
-    if(!controlAcknoledge.isEmpty())
-        sendFragments(pm.ipPort, eControlType, convert_to_packet(controlAcknoledge.to_string(-1)));
+    if(!controlAcknowledgement.isEmpty())
+        sendFragments(pm.ipPort, eControlType, convert_to_packet(controlAcknowledgement.to_string(-1)));
 }
 
 void UDPSocket::setMaxMsgsSentOnTick(int count) {
