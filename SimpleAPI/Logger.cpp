@@ -32,26 +32,22 @@ std::string get_time_string()
     return get_time_string(_now);
 }
 
-std::string get_time_string(std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<long, std::ratio<1, 1000000000> > > tp_millis)
+std::string get_time_string(long millis)
+{
+    return get_time_string(std::chrono::system_clock::time_point{std::chrono::milliseconds{millis}});
+}
+
+std::string get_time_string(std::chrono::system_clock::time_point tp_millis)
 {
     std::time_t tt = std::chrono::system_clock::to_time_t(tp_millis);
     struct tm* tmInfo = std::localtime(&tt);
 
-    char hours[3];
-    sprintf(hours, "%02d", tmInfo->tm_hour);
-    char minutes[3];
-    sprintf(minutes, "%02d", tmInfo->tm_min);
-    char seconds[3];
-    sprintf(seconds, "%02d", tmInfo->tm_sec);
+    char time_buf[20];
+    std::strftime(time_buf, 20, "%0H:%0M:%0S", tmInfo);
     char millis[4];
-    sprintf(millis, "%03ld", tp_millis.time_since_epoch().count() % 1000);
+    sprintf(millis, "%03ld", (tp_millis.time_since_epoch() / std::chrono::milliseconds(1)) % 1000);
 
-    return std::string("[")
-           + hours + ":"
-           + minutes + ":"
-           + seconds + "."
-           + millis
-           + "]";
+    return std::string("[") + time_buf + "." + millis + "]";
 }
 
 

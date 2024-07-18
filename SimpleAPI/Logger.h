@@ -23,9 +23,8 @@ std::string to_string(LEVEL level);
 std::string to_color_string(LEVEL level, std::string name);
 
 std::string get_time_string();
-std::string get_time_string(std::chrono::time_point<
-                            std::chrono::system_clock,
-                            std::chrono::duration<long, std::ratio<1, 1000000000>>> tp_millis);
+std::string get_time_string(long millis);
+std::string get_time_string(std::chrono::system_clock::time_point tp_millis);
 
 }
 
