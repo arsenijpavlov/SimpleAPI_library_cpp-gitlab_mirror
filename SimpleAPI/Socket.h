@@ -22,9 +22,7 @@
 
 #define MAX_PACKET_LENGTH 65535
 
-using time_point_default = std::chrono::time_point<
-    std::chrono::system_clock,
-    std::chrono::duration<long, std::ratio<1, 1000000000>>>;
+using time_point_default = std::chrono::system_clock::time_point;
 
 
 enum SocketType {
@@ -44,14 +42,19 @@ struct ChannelSettings {
 //TODO: (LOG) сделать флаг для возможности отключения/перенаправления сообщений от API
 //TODO: (LOG) сделать внутреннюю функцию-логгер для API
 
-struct Connection {
-    EECounter outSn;
-    EECounter inSnLastRecv;                                     //влияет на границу окна ожидания фрагментов
+class Connection {
+public:
+    time_point_default  lastPingTime;
+    time_point_default  lastActivity;
+    EECounter           outSn;
+    EECounter           inSnLastRecv;                           //влияет на границу окна ожидания фрагментов
 //TODO: обнулить после обрыва соединения
-    EECounter inNextSn;
+    EECounter           inNextSn;
 
     std::map<EECounter, PacketMessage> mapRecvFragments;        //фрагменты сообщений (в беспорядке)
     std::map<EECounter, PacketMessage> mapRecvBuildedMessages;  //собранные по очереди фрагменты сообщений
+
+    Connection();
 };
 
 class Socket {
@@ -160,7 +163,7 @@ public:
 
 class UDPSocket : public Socket {
     //работа через tick()
-    std::map<IpPort, time_point_default>        mapLastActivity;    //только UDP, проверка коннекта
+//    std::map<IpPort, time_point_default>        mapLastActivity;    //только UDP, проверка коннекта
     std::map<time_point_default, PacketMessage> mapAutoSentPackets; //только UDP, уже отправленные фрагменты
 
     //=====================================
