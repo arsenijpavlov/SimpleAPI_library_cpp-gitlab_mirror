@@ -27,12 +27,13 @@ int main(int argc, char** argv) {
     signal(SIGINT, signalHandler);
 
     IpPort server{"127.0.0.15", 31116};
-    SocketThread st(eUDP, server, RecvData, RecvJson, Log, LogError);
-//    st.setLogLevel(server, logs::eDEBUG);
-//    st.findSocket(server)->enableCRC(eCRC_32);
-//    st.findSocket(server)->setMaxLength(5); //TODO: не работает, если клиент долго не был активен
-//    st.setCallbackAllSocketsLogOutput(Log);
-//    st.setCallbackAllSocketsLogOutput(LogError);
+    SocketSettings settings;
+    settings.setRecvPacketCallback(RecvData);
+    settings.setRecvJsonCallback(RecvJson);
+    settings.setLogCallback(Log);
+    settings.setLogErrorCallback(LogError);
+    SocketThread st(eUDP, server, settings);
+//    st.findSocket(server)->m_settings.setMaxLength(5); //TODO: не работает, если клиент долго не был активен
     st.startThread();
 
     Packet packet;

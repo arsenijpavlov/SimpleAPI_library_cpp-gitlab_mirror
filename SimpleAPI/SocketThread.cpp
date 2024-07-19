@@ -7,15 +7,11 @@ void SocketThread::run() {
     pthread_setname_np(pthread_self(), "SERVERS_THREAD");
 
     while(this->isActive()) {
-//        if(!this->isActive())
-//            std::cout << "(M) not active" << std::endl;
 
-        for(auto it = this->p_sockets.begin(); it != this->p_sockets.end(); it++) {
+        for(auto it = m_sockets.begin(); it != m_sockets.end(); it++) {
             Socket* sock = it->second.get();
 
             sock->tick(); //вся магия там
-//            if(!this->isActive())
-//                std::cout << "not active" << std::endl;
         }
 
         usleep(1);
@@ -25,45 +21,24 @@ void SocketThread::run() {
 }
 
 SocketThread::SocketThread() :
-    active(false),
-    common_SocketsReadRawDataCallback(nullptr),
-    common_SocketsReadJsonDataCallback(nullptr),
-    common_LogOutputCallback(nullptr),
-    common_LogErrorOutputCallback(nullptr),
-    common_logLevel(logs::eINFO),
-    common_logErrorLevel(logs::eERROR)
+    m_active(false),
+    m_common_settings(SocketSettings())
 {
 //    startThread();
 }
 
 SocketThread::SocketThread(const SocketType type, const uint16_t localPort,
                            const std::string& localIP,
-                           void (*callbackRecvPacket)(PacketMessage),
-                           void (*callbackRecvJson)(JsonMessage),
-                           void (*callbackLog)(std::string),
-                           void (*callbackLogError)(std::string),
-                           const logs::LEVEL logLevel,
-                           const logs::LEVEL logErrorLevel)
-    : active(false) {
-    addSocket(type, localPort, localIP,
-              callbackRecvPacket, callbackRecvJson,
-              callbackLog, callbackLogError,
-              logLevel, logErrorLevel);
+                           SocketSettings settings)
+    : m_active(false) {
+    addSocket(type, localPort, localIP, settings);
 //    startThread();
 }
 
-SocketThread::SocketThread(const SocketType type, const IpPort &localIpPort,
-                           void (*callbackRecvPacket)(PacketMessage),
-                           void (*callbackRecvJson)(JsonMessage),
-                           void (*callbackLog)(std::string),
-                           void (*callbackLogError)(std::string),
-                           const logs::LEVEL logLevel,
-                           const logs::LEVEL logErrorLevel)
-    : active(false) {
-    addSocket(type, localIpPort,
-              callbackRecvPacket, callbackRecvJson,
-              callbackLog, callbackLogError,
-              logLevel, logErrorLevel);
+SocketThread::SocketThread(const SocketType type, const IpPort& local_ip_port,
+                           const SocketSettings settings)
+    : m_active(false) {
+    addSocket(type, local_ip_port, settings);
 //    startThread();
 }
 
@@ -71,216 +46,115 @@ SocketThread::~SocketThread() {
     stopThread();
 }
 
-bool SocketThread::addSocket(const SocketType type, const uint16_t localPort,
-                             const std::string& localIP,
-                             void (*callbackRecvPacket)(PacketMessage),
-                             void (*callbackRecvJson)(JsonMessage),
-                             void (*callbackLog)(std::string),
-                             void (*callbackLogError)(std::string),
-                             const logs::LEVEL logLevel,
-                             const logs::LEVEL logErrorLevel) {
-    return addSocket(type, IpPort{localIP, localPort},
-                     callbackRecvPacket, callbackRecvJson,
-                     callbackLog, callbackLogError,
-                     logLevel, logErrorLevel);
+bool SocketThread::addSocket(const SocketType type, const uint16_t local_port,
+                             const std::string& local_ip,
+                             const SocketSettings settings) {
+    return addSocket(type, IpPort{local_ip, local_port}, settings);
 }
 
-bool SocketThread::addSocket(const SocketType type, const IpPort &localIpPort,
-                             void (*callbackRecvPacket)(PacketMessage),
-                             void (*callbackRecvJson)(JsonMessage),
-                             void (*callbackLog)(std::string),
-                             void (*callbackLogError)(std::string),
-                             const logs::LEVEL logLevel,
-                             const logs::LEVEL logErrorLevel) {
+bool SocketThread::addSocket(const SocketType type, const IpPort& local_ip_port,
+                             const SocketSettings settings) {
     if(type == SocketType::eTCP) {
         return false; //TODO: TCP пока не готов
     } else if(type == SocketType::eUDP) {
-        std::shared_ptr<Socket> sock(new UDPSocket(localIpPort,
-                                                   callbackRecvPacket, callbackRecvJson,
-                                                   callbackLog, callbackLogError,
-                                                   logLevel, logErrorLevel));
-        return this->p_sockets.insert(std::make_pair(localIpPort, sock)).second;
+        std::shared_ptr<Socket> sock(new UDPSocket(local_ip_port, settings));
+        return m_sockets.insert(std::make_pair(local_ip_port, sock)).second;
     }
 
     return false;
 }
 
-bool SocketThread::addSocket(const SocketType type, const uint16_t localPort,
-                             const std::string localIP, bool commonSettings)
+bool SocketThread::addSocket(const SocketType type, const uint16_t local_port,
+                             const std::string local_ip, const bool commonSettings)
 {
     if(commonSettings)
-        return addSocket(type, localPort, localIP,
-                         this->common_SocketsReadRawDataCallback,
-                         this->common_SocketsReadJsonDataCallback,
-                         this->common_LogOutputCallback,
-                         this->common_LogErrorOutputCallback,
-                         this->common_logLevel,
-                         this->common_logErrorLevel);
+        return addSocket(type, local_port, local_ip, m_common_settings);
     else
-        return addSocket(type, localPort, localIP, nullptr); //остальные тоже nullptr
+        return addSocket(type, local_port, local_ip, SocketSettings());
 }
 
-bool SocketThread::addSocket(const SocketType type, const IpPort &localIpPort, bool commonSettings)
+bool SocketThread::addSocket(const SocketType type, const IpPort &local_ip_port, bool commonSettings)
 {
     if(commonSettings)
-        return addSocket(type, localIpPort,
-                         this->common_SocketsReadRawDataCallback,
-                         this->common_SocketsReadJsonDataCallback,
-                         this->common_LogOutputCallback,
-                         this->common_LogErrorOutputCallback,
-                         this->common_logLevel,
-                         this->common_logErrorLevel);
+        return addSocket(type, local_ip_port, m_common_settings);
     else
-        return addSocket(type, localIpPort, nullptr); //остальные тоже nullptr
+        return addSocket(type, local_ip_port, SocketSettings());
 }
 
 void SocketThread::closeSocket(const IpPort& localIpPort) {
-    this->p_sockets.erase(localIpPort);
+    m_sockets.erase(localIpPort);
 }
 
 void SocketThread::closeAllSockets() {
-    this->p_sockets.erase(this->p_sockets.begin(), this->p_sockets.cend());
+    m_sockets.erase(m_sockets.begin(), m_sockets.cend());
 }
 
 void SocketThread::startSocket(const IpPort& localIpPort) {
-    auto it = this->p_sockets.find(localIpPort);
-    if(it != this->p_sockets.end())
+    auto it = m_sockets.find(localIpPort);
+    if(it != m_sockets.end())
         it->second->startServer();
 }
 
 void SocketThread::stopSocket(const IpPort& localIpPort) {
-    auto it = this->p_sockets.find(localIpPort);
-    if(it != this->p_sockets.end())
+    auto it = m_sockets.find(localIpPort);
+    if(it != m_sockets.end())
         it->second->stopServer();
 }
 
 bool SocketThread::send(const IpPort &source, const IpPort &destination, const Packet &packet) {
-    auto it = this->p_sockets.find(source);
-    if(it != this->p_sockets.end())
+    auto it = m_sockets.find(source);
+    if(it != m_sockets.end())
         return it->second->sendMsg(destination, packet);
     return false;
 }
 
 bool SocketThread::send(const IpPort &source, const IpPort &destination, const Json &json) {
-    auto it = this->p_sockets.find(source);
-    if(it != this->p_sockets.end())
+    auto it = m_sockets.find(source);
+    if(it != m_sockets.end())
         return it->second->sendMsg(destination, json);
     return false;
 }
 
 bool SocketThread::isActive() {
-    return active;
+    return m_active;
 }
 
 void SocketThread::startThread() {
     if(!isActive()) {
         std::cout << "[THREAD START]" << std::endl;
-        active = true;
+        m_active = true;
 
-        t = std::thread(&SocketThread::run, this);
+        m_thread = std::thread(&SocketThread::run, this);
     }
 }
 
 void SocketThread::stopThread() {
     if(isActive()) {
         std::cout << "[THREAD STOP]" << std::endl;
-        active = false; //остановили
+        m_active = false; //дали сигнал на остановку
 
-        if(t.joinable())
-            t.join();       //ждём завершения потока
+        if(m_thread.joinable())
+            m_thread.join(); //ждём завершения потока
     }
 }
 
 std::shared_ptr<Socket> SocketThread::findSocket(const IpPort &localIpPort) {
-    return this->p_sockets.find(localIpPort)->second;
+    return m_sockets.find(localIpPort)->second;
 }
 
-void SocketThread::setCallbackAllSocketsReadRawData(void (*callback)(PacketMessage))
+void SocketThread::setAllSocketsSettings(const SocketSettings settings)
 {
-    this->common_SocketsReadRawDataCallback = callback;
+    m_common_settings = settings;
 
-    for(auto it = this->p_sockets.begin(); it != this->p_sockets.end(); it++)
-        it->second->setCallbackSocketReadRawData(callback);
+    for(auto it = m_sockets.begin(); it != m_sockets.end(); it++)
+        it->second->setSettings(settings);
 }
 
-void SocketThread::setCallbackAllSocketsReadJsonData(void (*callback)(JsonMessage))
+void SocketThread::setSocketsSettings(const IpPort& local_ip_port, const SocketSettings settings)
 {
-    this->common_SocketsReadJsonDataCallback = callback;
 
-    for(auto it = this->p_sockets.begin(); it != this->p_sockets.end(); it++)
-        it->second->setCallbackSocketReadJsonData(callback);
+    auto it = m_sockets.find(local_ip_port);
+    if(it != m_sockets.end())
+        it->second->setSettings(settings);
 }
 
-void SocketThread::setCallbackSocketReadRawData(const IpPort &localIpPort, void (*callback)(PacketMessage pm)) {
-    auto it = this->p_sockets.find(localIpPort);
-    if(it != this->p_sockets.end())
-        it->second->setCallbackSocketReadRawData(callback);
-}
-
-void SocketThread::setCallbackSocketReadJsonData(const IpPort &localIpPort, void (*callback)(JsonMessage jm)) {
-    auto it = this->p_sockets.find(localIpPort);
-    if(it != this->p_sockets.end())
-        it->second->setCallbackSocketReadJsonData(callback);
-}
-
-void SocketThread::setCallbackAllSocketsLogOutput(void (*callback)(std::string),
-                                                  const logs::LEVEL logLevel)
-{
-    this->common_logLevel = logLevel;
-    for(auto it = this->p_sockets.begin(); it != this->p_sockets.end(); it++)
-        it->second->setCallbackLogOutput(callback);
-}
-
-void SocketThread::setCallbackAllSocketsLogErrorOutput(void (*callback)(std::string),
-                                                       const logs::LEVEL logLevel)
-{
-    this->common_logErrorLevel = logLevel;
-    for(auto it = this->p_sockets.begin(); it != this->p_sockets.end(); it++)
-        it->second->setCallbackLogErrorOutput(callback);
-}
-
-void SocketThread::setAllLogLevel(logs::LEVEL logLevel)
-{
-    for(auto it = this->p_sockets.begin(); it != this->p_sockets.end(); it++)
-        it->second->setLogLevel(logLevel);
-}
-
-void SocketThread::setAllLogErrorLevel(logs::LEVEL logLevel)
-{
-    for(auto it = this->p_sockets.begin(); it != this->p_sockets.end(); it++)
-        it->second->setLogErrorLevel(logLevel);
-}
-
-void SocketThread::setCallbackSocketLogOutput(const IpPort &localIpPort, void (*callback)(std::string),
-                                              const logs::LEVEL logLevel)
-{
-    auto it = this->p_sockets.find(localIpPort);
-    if(it != this->p_sockets.end()) {
-        it->second->setCallbackLogOutput(callback);
-        it->second->setLogLevel(logLevel);
-    }
-}
-
-void SocketThread::setCallbackSocketLogErrOutput(const IpPort &localIpPort, void (*callback)(std::string),
-                                                 const logs::LEVEL logLevel)
-{
-    auto it = this->p_sockets.find(localIpPort);
-    if(it != this->p_sockets.end()) {
-        it->second->setCallbackLogErrorOutput(callback);
-        it->second->setLogErrorLevel(logLevel);
-    }
-}
-
-void SocketThread::setLogLevel(const IpPort &localIpPort, logs::LEVEL logLevel)
-{
-    auto it = this->p_sockets.find(localIpPort);
-    if(it != this->p_sockets.end())
-        it->second->setLogLevel(logLevel);
-}
-
-void SocketThread::setLogErrorLevel(const IpPort &localIpPort, logs::LEVEL logLevel)
-{
-    auto it = this->p_sockets.find(localIpPort);
-    if(it != this->p_sockets.end())
-        it->second->setLogErrorLevel(logLevel);
-}

@@ -79,3 +79,8 @@ std::string JsonMessage::to_string(int arg)
 
     return out;
 }
+
+ApiVersion getLastApiVersion()
+{
+    return ApiVersion::Version_1; //TODO: заглушка, потом надо будет сделать алгоритм поиска
+}

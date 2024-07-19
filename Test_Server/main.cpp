@@ -27,14 +27,13 @@ int main(int argc, char** argv) {
     signal(SIGINT, signalHandler);
 
     IpPort server{"127.0.0.15", 31115};
-    SocketThread st(eUDP, server, RecvData, RecvJson, Log, LogError);
-//    st.setLogLevel(server, logs::eDEBUG);
-
-//    st.setCallbackAllSocketsReadRawData(RecvData);
-//    st.setCallbackAllSocketsReadJsonData(RecvJson);
-
-//    st.setCallbackAllSocketsLogOutput(Log);
-//    st.setCallbackAllSocketsLogOutput(LogError);
+    SocketSettings settings;
+    settings.setRecvPacketCallback(RecvData);
+    settings.setRecvJsonCallback(RecvJson);
+    settings.setLogCallback(Log);
+    settings.setLogErrorCallback(LogError);
+//    settings.setLogLevel(logs::eDEBUG);
+    SocketThread st(eUDP, server, settings);
 
     st.startThread();
     while(1) {

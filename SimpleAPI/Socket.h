@@ -4,20 +4,17 @@
 #include "EECounter.h"
 #include "IpPort.h"
 #include "Json.h"
-#include "Logger.h"
-#include "Message.h"
+#include "SocketSettings.h"
 
 #include <deque>
 #include <mutex>
 #include <string>
 #include <vector>
 #include <chrono>
-#include <ctime>
 #include <set>
 
 #include <arpa/inet.h>
 #include <sys/socket.h>
-
 
 
 #define MAX_PACKET_LENGTH 65535
@@ -31,119 +28,66 @@ enum SocketType {
 };
 std::string to_string(SocketType type);
 
-//TODO: на удаление
-struct ChannelSettings {
-    CRC         crcLevel;
-    uint16_t    maxLength;
-    int         maxMsgsSentOnTick;
-    ApiVersion  useApiVersion;
-    uint32_t    inactivityTimer; //для проверки коннекта, перепосылки недоставленных сообщений и прочего
-};
 
 class Connection {
 public:
-    time_point_default  lastPingTime;
-    time_point_default  lastActivity;
-    EECounter           outSn;
-    EECounter           inSnLastRecv;                           //влияет на границу окна ожидания фрагментов
-    EECounter           inNextSn;
+    time_point_default  m_last_ping_time;
+    time_point_default  m_last_activity;
+    EECounter           m_out_sn;
+    EECounter           m_in_sn_last_recv; //влияет на границу окна ожидания фрагментов
+    EECounter           m_in_next_sn;
 
-    std::map<EECounter, PacketMessage> mapRecvFragments;        //фрагменты сообщений (в беспорядке)
-    std::map<EECounter, PacketMessage> mapRecvBuildedMessages;  //собранные по очереди фрагменты сообщений
+    std::map<EECounter, PacketMessage> m_map_recv_fragments;        //фрагменты сообщений (в беспорядке)
+    std::map<EECounter, PacketMessage> m_map_recv_builded_messages;  //собранные по очереди фрагменты сообщений
 
-    Connection();
-};
-
-//TODO: закончить идею
-class SocketSettings {
-    long        m_inactivity_timer;
-    uint16_t    m_max_length;
-    int         m_max_msgs_sent_on_tick;
-    ApiVersion  m_api_version;
-
-    void        (*m_packet_callback)(PacketMessage);
-    void        (*m_json_callback)(JsonMessage);
-
-    logs::LEVEL m_log_level;
-    void        (*m_log_callback)(std::string);
-    void        (*m_log_error_callback)(std::string);
-
-
-public:
-    SocketSettings() :
-        m_inactivity_timer(10000),
-        m_max_length(1500),
-        m_max_msgs_sent_on_tick(-1),
-        m_api_version(getLastApiVersion()),
-        m_packet_callback(nullptr),
-        m_json_callback(nullptr),
-        m_log_level(logs::eINFO),
-        m_log_callback(nullptr),
-        m_log_error_callback(nullptr)
-        {};
-
-    void setInactivityTimer(long usec = 10000);
-    void setMaxLength(uint16_t messageLength = 1500);
-    void setMaxMsgsSentOnTick(int maxSendMessagesOnTick = -1);
-    void setApiVersion(ApiVersion version = getLastApiVersion());
-    void setPacketCallback(void (*callback)(PacketMessage) = nullptr);
-    void setJsonCallback(void (*callback)(JsonMessage) = nullptr);
-    void setLogLevel(logs::LEVEL level = logs::eINFO);
-    void setLogCallback(void (*callback)(std::string));
-    void setLogErrorCallback(void (*callback)(std::string));
-
-    //TODO: get'теры для них же
+    Connection() :
+        m_last_ping_time(std::chrono::system_clock::now()),
+        m_last_activity(std::chrono::system_clock::now()),
+        m_out_sn(255),
+        m_in_sn_last_recv(255),
+        m_in_next_sn(255)
+    {}
 };
 
 class Socket {
 protected:
-    int             _socketFD;
-    SocketType      _socketType;
-    std::string     _localIP;
-    uint16_t        _localPort;
+    int         m_socket_fd;
+    SocketType  m_socket_type;
+    std::string m_local_ip;
+    uint16_t    m_local_port;
+    std::map<IpPort, Connection> m_map_connections; //счётчики сообщений на отправку
 
-    ChannelSettings _settings;
+public:
+    SocketSettings  m_settings;
 
-    std::map<IpPort, Connection> mapConnections; //счётчики сообщений на отправку
-
-    void            (*logCallback)(std::string);
-    void            (*logErrorCallback)(std::string);
-
-    void            (*packetCallback)(PacketMessage);
-    void            (*jsonCallback)(JsonMessage);
-
-    logs::LEVEL     logLevel;
-    logs::LEVEL     logErrorLevel;
-
+protected:
     //=====================================
     //ONLY FOR USE IN SOCKET_THREAD!
     //для доступа извне------------------------
-    std::mutex                  outputThreadsMutex;
-    std::deque<PacketMessage>   sendPacketsBuffer;      //sendFragments(), sendAutoMsg()
-    std::vector<PacketMessage>  sentGlobalPackets;      //запоминаем до тех пор, пока не придёт подтверждение о передаче всех фрагментов
+    std::mutex                  m_output_threads_mutex;
+    std::deque<PacketMessage>   m_send_packets_buffer;      //sendFragments(), sendAutoMsg()
+    std::vector<PacketMessage>  m_sent_global_packets;      //запоминаем до тех пор, пока не придёт подтверждение о передаче всех фрагментов
 
-    std::mutex                  inputThreadsMutex;
+    std::mutex                  m_input_threads_mutex;
     //собранные пакеты
-    std::deque<PacketMessage>   mapRecvPacketsBuffer;   //buildPackets(), getOutPacket()
-    std::deque<JsonMessage>     mapRecvJsonsBuffer;     //buildPackets(), getOutJson()
+    std::deque<PacketMessage>   m_map_recv_packets_buffer;  //buildPackets(), getOutPacket()
+    std::deque<JsonMessage>     m_map_recv_jsons_buffer;    //buildPackets(), getOutJson()
     //-----------------------------------------
 
-    bool            checkCorrectIp(const std::string& ipString);
+    bool            checkCorrectIp(const std::string& ip_string);
 
     uint8_t         packHeader(const PacketHeader& ph);
     PacketHeader    unpackHeader(uint8_t header);
-    EECounter&      getOutSeqNumber(const IpPort& ipPort);
-    PacketMessage   buildPacket(PacketMessage receivedPM);
+    EECounter&      getOutSeqNumber(const IpPort& ip_port);
+    PacketMessage   buildPacket(PacketMessage received_pm);
 
     void            Log(logs::LEVEL level, std::string log_message);
-    void            setCallbackLogOutput(void (*callback)(std::string));
-    void            setCallbackLogErrorOutput(void (*callback)(std::string));
+    void            setSettings(SocketSettings settings = SocketSettings())
+                    { m_settings = settings; }
+    SocketSettings  getSettings() { return m_settings; }
 
-    void            setCallbackSocketReadRawData(void (*callback)(PacketMessage));
-    void            setCallbackSocketReadJsonData(void (*callback)(JsonMessage));
-
-    void            sendFragments(const std::string& remoteIp, const uint16_t remotePort, const PacketType type, const Packet& packet);
-    virtual void    sendFragments(const IpPort& remoteIpPort, const PacketType type, const Packet& packet) = 0;
+    void            sendFragments(const std::string& remote_ip, const uint16_t remote_port, const PacketType type, const Packet& packet);
+    virtual void    sendFragments(const IpPort& remote_ip_port, const PacketType type, const Packet& packet) = 0;
 
     virtual void    tick() = 0;
     virtual void    sendAutoMsg() = 0;
@@ -152,8 +96,8 @@ protected:
     friend class SocketThread; //для функции tick()
 
 public:
-            Socket();
-    virtual ~Socket(){};
+                    Socket();
+    virtual         ~Socket(){}
     /*NOTE: (описания конструкторов сервера)
      * конструктор с адресом
      * конструктор с адресом И callback на приём сообщений
@@ -161,9 +105,8 @@ public:
      */
 
     //-----------------------------------------
-    void            setLogLevel(logs::LEVEL logLevel);
-    void            setLogErrorLevel(logs::LEVEL logLevel);
-    IpPort          getLocalIpPort() { return IpPort{this->_localIP, this->_localPort}; }
+    void            setLogLevel(logs::LEVEL log_level) { m_settings.setLogLevel(log_level); }
+    IpPort          getLocalIpPort(){ return IpPort{m_local_ip, m_local_port}; }
     bool            isChiphering() { /*TODO: isChiphering()*/ return false; }
 //TODO:    virtual bool isConnected(std::string remoteIP, uint16_t remotePort) = 0;
     bool            isServerActive();
@@ -174,25 +117,20 @@ public:
     virtual void    stopServer() = 0;
     void            close();
     //-----------------------------------------
-    bool            sendRawMsg(const PacketMessage &packetMessage);
-    virtual bool    sendRawMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet) = 0;
+    bool            sendRawMsg(const PacketMessage &packet_message);
+    virtual bool    sendRawMsg(const std::string& remote_ip, const uint16_t remote_port, const Packet& packet) = 0;
     virtual PacketMessage recvRawMsg(int timeout) = 0;
     //-----------------------------------------
 
     //=====================================
     //УПРАВЛЕНИЕ АВТОМАТИЧЕСКИМ СЕРВЕРОМ
-    void            setMaxLength(uint16_t newMaxSize);     //по умолчанию 1500 байт (установлено MTU)
-    void            setUseApiVersion(ApiVersion version);  //не может быть больше актуальной
-//    void            enableChip(/*ChiphgeringSettings*/);
-    void            enableCRC(CRC crcLevel = eCRC_OFF);
-    //-----------------------------------------
     /* пользователь библиотеки вызывает эти функции
      *  внутри функции проверяется корректность адреса назначения
      *  и вызывается sendFragments() */
-    bool            sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet);
-    bool            sendMsg(const std::string& remoteIP, const uint16_t remotePort, const Json& json);
-    virtual bool    sendMsg(const IpPort& remoteIpPort, const Packet& packet) = 0;
-    virtual bool    sendMsg(const IpPort& remoteIpPort, const Json& json) = 0;
+    bool            sendMsg(const std::string& remote_ip, const uint16_t remote_port, const Packet& packet);
+    bool            sendMsg(const std::string& remote_ip, const uint16_t remote_port, const Json& json);
+    virtual bool    sendMsg(const IpPort& remote_ip_port, const Packet& packet) = 0;
+    virtual bool    sendMsg(const IpPort& remote_ip_port, const Json& json) = 0;
     //-----------------------------------------
     //Эти функции работают в связке с tick()
     virtual PacketMessage   getOutPacket() = 0; //выдаст пустой пакет, если очередь пуста
@@ -202,14 +140,13 @@ public:
 
 class UDPSocket : public Socket {
     //работа через tick()
-//    std::map<IpPort, time_point_default>        mapLastActivity;    //только UDP, проверка коннекта
-    std::map<time_point_default, PacketMessage> mapAutoSentPackets; //только UDP, уже отправленные фрагменты
+    std::map<time_point_default, PacketMessage> m_map_auto_sent_packets; //только UDP, уже отправленные фрагменты
 
     //=====================================
     //ONLY FOR USE IN SOCKET_THREAD!
     /* принятый пакет делится на части, пришиваются необходимые заголовки
      * и полученные фрагменты прокидываются в очередь на отправку через функцию sendAutoMsg */
-    void            sendFragments(const IpPort& remoteIpPort, const PacketType type, const Packet& packet);
+    void            sendFragments(const IpPort& remote_ip_port, const PacketType type, const Packet& packet);
 
     void            tick();
     void            checkConnections();//только UDP, проверка коннекта
@@ -218,22 +155,10 @@ class UDPSocket : public Socket {
     //=====================================
 
 public:
-    UDPSocket(const IpPort& ipPort,
-              void (*callbackRecvPacket)(PacketMessage) = nullptr,
-              void (*callbackRecvJson)(JsonMessage)     = nullptr,
-              void (*callbackLog)(std::string)          = nullptr,
-              void (*callbackLogError)(std::string)     = nullptr,
-              const logs::LEVEL logLevel                = logs::eINFO,
-              const logs::LEVEL logErrorLevel           = logs::eERROR);
-    UDPSocket(uint16_t localPort, std::string localIP = "",
-              void (*callbackRecvPacket)(PacketMessage) = nullptr,
-              void (*callbackRecvJson)(JsonMessage)     = nullptr,
-              void (*callbackLog)(std::string)          = nullptr,
-              void (*callbackLogError)(std::string)     = nullptr,
-              const logs::LEVEL logLevel                = logs::eINFO,
-              const logs::LEVEL logErrorLevel           = logs::eERROR);
-    ~UDPSocket();
-    void            open(const uint16_t localPort, const std::string& localIP = "");
+    UDPSocket(const IpPort& ip_port, SocketSettings settings = SocketSettings());
+    UDPSocket(uint16_t local_port, std::string local_ip = "", SocketSettings settings = SocketSettings());
+    ~UDPSocket()    { close(); }
+    void            open(const uint16_t local_port, const std::string& local_ip = "");
 
     //-----------------------------------------
 //TODO:    bool isConnected(std::string remoteIP, uint16_t remotePort); //TODO: постоянный пинг
@@ -241,18 +166,16 @@ public:
     void            startServer();
     void            stopServer();
     //-----------------------------------------
-    bool            sendRawMsg(const std::string& remoteIP, const uint16_t remotePort, const Packet& packet);
+    bool            sendRawMsg(const std::string& remote_ip, const uint16_t remote_port, const Packet& packet);
     PacketMessage   recvRawMsg(int timeout = -1);
     //-----------------------------------------
 
     //=====================================
     //УПРАВЛЕНИЕ АВТОМАТИЧЕСКИМ СЕРВЕРОМ
     void            setDeliveryNeed(bool enabled = true); //только UDP
-    void            setInactivityTimer(int usec = 10000);
-    void            setMaxMsgsSentOnTick(int count = -1); //-1 если все накопленные отправить разом
 
-    bool            sendMsg(const IpPort& remoteIpPort, const Packet& packet);
-    bool            sendMsg(const IpPort& remoteIpPort, const Json& json);
+    bool            sendMsg(const IpPort& remote_ip_port, const Packet& packet);
+    bool            sendMsg(const IpPort& remote_ip_port, const Json& json);
 
     PacketMessage   getOutPacket();
     JsonMessage     getOutJson();

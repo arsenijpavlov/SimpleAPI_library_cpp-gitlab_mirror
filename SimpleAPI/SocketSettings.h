@@ -44,6 +44,7 @@ public:
 
     void setInactivityTimer(long milliseconds = 10000)                      { m_inactivity_timer = milliseconds; }
     void setMaxLength(uint16_t max_length = 1500)                           { m_max_length = max_length; }
+    //NOTE: -1 == все накопленные отправить за один заход
     void setMaxMsgsSentOnTick(int max_msgs_sent_on_tick = -1)               { m_max_msgs_sent_on_tick = max_msgs_sent_on_tick; }
     void setCrcLevel(CRC crc_level = CRC::eCRC_OFF)                         { m_crc_level = crc_level; }
     void setApiVersion(ApiVersion version = getLastApiVersion())            { m_api_version = version; }
