@@ -59,9 +59,9 @@ enum PacketType {
 std::string to_string(PacketType type);
 
 enum ApiVersion {
-    Version_1   = 1
+    eVersion_1   = 1
 };
-ApiVersion getLastApiVersion(); //TODO:
+ApiVersion getLastApiVersion();
 
 enum CRC {
     eCRC_OFF    = 0,

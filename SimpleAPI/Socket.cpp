@@ -609,11 +609,11 @@ void UDPSocket::recvAutoMsg(int timeout) {
 }
 
 
-UDPSocket::UDPSocket(const IpPort &ip_port, SocketSettings settings) {
+UDPSocket::UDPSocket(const IpPort &local_ip_port, SocketSettings settings) {
     m_socket_type = SocketType::eUDP;
     m_settings = settings;
 
-    open(ip_port.port, ip_port.ip);
+    open(local_ip_port.port, local_ip_port.ip);
 }
 
 UDPSocket::UDPSocket(uint16_t local_port, std::string local_ip, SocketSettings settings) {

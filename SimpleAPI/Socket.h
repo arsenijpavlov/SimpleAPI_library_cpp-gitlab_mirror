@@ -100,8 +100,7 @@ public:
     virtual         ~Socket(){}
     /*NOTE: (описания конструкторов сервера)
      * конструктор с адресом
-     * конструктор с адресом И callback на приём сообщений
-     * конструктор с адресом И callback на приём сообщений И перенаправлением логов
+     * конструктор с адресом И настройками
      */
 
     //-----------------------------------------
@@ -155,7 +154,7 @@ class UDPSocket : public Socket {
     //=====================================
 
 public:
-    UDPSocket(const IpPort& ip_port, SocketSettings settings = SocketSettings());
+    UDPSocket(const IpPort& local_ip_port, SocketSettings settings = SocketSettings());
     UDPSocket(uint16_t local_port, std::string local_ip = "", SocketSettings settings = SocketSettings());
     ~UDPSocket()    { close(); }
     void            open(const uint16_t local_port, const std::string& local_ip = "");
