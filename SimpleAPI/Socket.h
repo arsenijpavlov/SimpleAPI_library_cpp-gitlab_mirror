@@ -96,7 +96,7 @@ protected:
     friend class SocketThread; //для функции tick()
 
 public:
-                    Socket();
+                    Socket() : m_socket_fd(-1), m_settings(SocketSettings()) {}
     virtual         ~Socket(){}
     /*NOTE: (описания конструкторов сервера)
      * конструктор с адресом

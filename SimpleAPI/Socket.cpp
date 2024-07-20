@@ -209,10 +209,7 @@ void Socket::Log(logs::LEVEL level, std::string log_message)
     }
 }
 
-Socket::Socket() :
-    m_socket_fd(-1),
-    m_settings(SocketSettings())
-{}
+
 
 bool Socket::sendRawMsg(const PacketMessage &packet_message) {
     Log(logs::eDEBUG, std::string("sendRaw ")
