@@ -67,7 +67,7 @@ JsonMessage::JsonMessage(const PacketMessage &pm)
 
 void JsonMessage::clear() {
     ipPort = IpPort{"", 0};
-    json={};
+    json.clear();
 }
 
 std::string JsonMessage::to_string(int arg)
