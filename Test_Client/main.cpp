@@ -11,10 +11,10 @@ void signalHandler(int signal) {
 }
 
 void RecvData(PacketMessage pm) {
-    std::cout << "[SERVER] recv data: 0x" << utils::to_hex_string(pm.packet) << std::endl;
+    std::cout << "[CLIENT] recv data: 0x" << utils::to_hex_string(pm.packet) << std::endl;
 }
 void RecvJson(JsonMessage jm) {
-    std::cout << "[SERVER] recv json: " << jm.to_string() << std::endl;
+    std::cout << "[CLIENT] recv json: " << jm.to_string() << std::endl;
 }
 void Log(std::string msg) {
     std::cout << msg;

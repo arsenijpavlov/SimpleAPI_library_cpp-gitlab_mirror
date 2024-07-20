@@ -13,8 +13,20 @@ void signalHandler(int signal) {
 void RecvData(PacketMessage pm) {
     std::cout << "[SERVER] recv data: 0x" << utils::to_hex_string(pm.packet) << std::endl;
 }
+bool isBigPacketSent = false;
+bool isNeedAck = false;
+Json jsonAck;
+IpPort ipPortAck;
 void RecvJson(JsonMessage jm) {
     std::cout << "[SERVER] recv json: " << jm.to_string() << std::endl;
+    if(!isBigPacketSent) {
+        isNeedAck = true;
+//        json.clear(); //TODO: Json::clear()
+        jsonAck.put("Chapter #1", "Some test text... Some test text... Some test text... Some test text... Some test text...");
+        ipPortAck = jm.ipPort;
+
+        isBigPacketSent = true;
+    }
 }
 void Log(std::string msg) {
     std::cout << msg;
@@ -41,6 +53,12 @@ int main(int argc, char** argv) {
             st.stopThread();
             break;
         }
+
+        if(isNeedAck) {
+            st.send(server, ipPortAck, jsonAck);
+            isNeedAck = false;
+        }
+
         usleep(1);
     }
 
