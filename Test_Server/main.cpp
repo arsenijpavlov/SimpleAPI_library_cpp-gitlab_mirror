@@ -21,7 +21,7 @@ void RecvJson(JsonMessage jm) {
     std::cout << "[SERVER] recv json: " << jm.to_string() << std::endl;
     if(!isBigPacketSent) {
         isNeedAck = true;
-//        json.clear(); //TODO: Json::clear()
+        jsonAck.clear();
         jsonAck.put("Chapter #1", "Some test text... Some test text... Some test text... Some test text... Some test text...");
         ipPortAck = jm.ipPort;
 
@@ -46,6 +46,8 @@ int main(int argc, char** argv) {
     settings.setLogErrorCallback(LogError);
 //    settings.setLogLevel(logs::eDEBUG);
     SocketThread st(eUDP, server, settings);
+    st.m_settings.setLogLevel(logs::eINFO);
+    st.m_settings.setLogCallback(Log);
 
     st.startThread();
     while(1) {

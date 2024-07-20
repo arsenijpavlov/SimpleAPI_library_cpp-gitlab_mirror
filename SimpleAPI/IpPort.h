@@ -6,14 +6,14 @@
 
 struct IpPort {
     std::string ip;
-    uint16_t port;
+    uint16_t    port;
 
     const bool operator==(const IpPort& other);
     const bool operator!=(const IpPort& other);
     const bool operator<(const IpPort& other) const;
     const bool operator>(const IpPort& other) const;
 
-    std::string to_string() const;
+    std::string to_string(std::string info = "") const;
 };
 
 #endif // IP_PORT_H

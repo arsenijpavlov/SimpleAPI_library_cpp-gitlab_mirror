@@ -17,39 +17,34 @@ void SocketThread::run() {
         usleep(1);
     }
 
-    std::cout << "[THREAD STOPPED]" << std::endl;
+    Log(logs::eINFO, "stopped");
 }
 
-SocketThread::SocketThread() :
-    m_active(false),
-    m_common_settings(SocketSettings())
+void SocketThread::Log(logs::LEVEL level, std::string log_message)
 {
-//    startThread();
-}
-
-SocketThread::SocketThread(const SocketType type, const uint16_t localPort,
-                           const std::string& localIP,
-                           SocketSettings settings)
-    : m_active(false) {
-    addSocket(type, localPort, localIP, settings);
-//    startThread();
-}
-
-SocketThread::SocketThread(const SocketType type, const IpPort& local_ip_port,
-                           const SocketSettings settings)
-    : m_active(false) {
-    addSocket(type, local_ip_port, settings);
-//    startThread();
-}
-
-SocketThread::~SocketThread() {
-    stopThread();
-}
-
-bool SocketThread::addSocket(const SocketType type, const uint16_t local_port,
-                             const std::string& local_ip,
-                             const SocketSettings settings) {
-    return addSocket(type, IpPort{local_ip, local_port}, settings);
+    if(level <= m_settings.getLogLevel()) {
+        switch(level) {
+        case logs::eWARNING:
+        case logs::eINFO:
+        case logs::eDEBUG: {
+            if(m_settings.getLogCallback())
+                m_settings.getLogCallback()(
+                    logs::get_time_string() + " "
+                    + to_color_string(level, "SOCKET THREAD", false) + " "
+                    + log_message + "\n");
+            break;
+        }
+        case logs::eERROR:
+        default: {
+            if(m_settings.getLogErrorCallback())
+                m_settings.getLogErrorCallback()(
+                    logs::get_time_string() + " "
+                    + to_color_string(level, "SOCKET THREAD", false) + " "
+                    + log_message + "\n");
+            break;
+        }
+        }
+    }
 }
 
 bool SocketThread::addSocket(const SocketType type, const IpPort& local_ip_port,
@@ -67,36 +62,24 @@ bool SocketThread::addSocket(const SocketType type, const IpPort& local_ip_port,
 bool SocketThread::addSocket(const SocketType type, const uint16_t local_port,
                              const std::string local_ip, const bool commonSettings)
 {
-    if(commonSettings)
-        return addSocket(type, local_port, local_ip, m_common_settings);
-    else
-        return addSocket(type, local_port, local_ip, SocketSettings());
+    if(commonSettings)  return addSocket(type, local_port, local_ip, m_common_socket_settings);
+    else                return addSocket(type, local_port, local_ip, SocketSettings());
 }
 
 bool SocketThread::addSocket(const SocketType type, const IpPort &local_ip_port, bool commonSettings)
 {
-    if(commonSettings)
-        return addSocket(type, local_ip_port, m_common_settings);
-    else
-        return addSocket(type, local_ip_port, SocketSettings());
+    if(commonSettings)  return addSocket(type, local_ip_port, m_common_socket_settings);
+    else                return addSocket(type, local_ip_port, SocketSettings());
 }
 
-void SocketThread::closeSocket(const IpPort& localIpPort) {
-    m_sockets.erase(localIpPort);
-}
-
-void SocketThread::closeAllSockets() {
-    m_sockets.erase(m_sockets.begin(), m_sockets.cend());
-}
-
-void SocketThread::startSocket(const IpPort& localIpPort) {
-    auto it = m_sockets.find(localIpPort);
+void SocketThread::startSocket(const IpPort& local_ip_Port) {
+    auto it = m_sockets.find(local_ip_Port);
     if(it != m_sockets.end())
         it->second->startServer();
 }
 
-void SocketThread::stopSocket(const IpPort& localIpPort) {
-    auto it = m_sockets.find(localIpPort);
+void SocketThread::stopSocket(const IpPort& local_ip_Port) {
+    auto it = m_sockets.find(local_ip_Port);
     if(it != m_sockets.end())
         it->second->stopServer();
 }
@@ -115,13 +98,11 @@ bool SocketThread::send(const IpPort &source, const IpPort &destination, const J
     return false;
 }
 
-bool SocketThread::isActive() {
-    return m_active;
-}
+
 
 void SocketThread::startThread() {
     if(!isActive()) {
-        std::cout << "[THREAD START]" << std::endl;
+        Log(logs::eINFO, "start");
         m_active = true;
 
         m_thread = std::thread(&SocketThread::run, this);
@@ -130,7 +111,7 @@ void SocketThread::startThread() {
 
 void SocketThread::stopThread() {
     if(isActive()) {
-        std::cout << "[THREAD STOP]" << std::endl;
+        Log(logs::eDEBUG, "stop...");
         m_active = false; //дали сигнал на остановку
 
         if(m_thread.joinable())
@@ -138,13 +119,13 @@ void SocketThread::stopThread() {
     }
 }
 
-std::shared_ptr<Socket> SocketThread::findSocket(const IpPort &localIpPort) {
-    return m_sockets.find(localIpPort)->second;
+std::shared_ptr<Socket> SocketThread::findSocket(const IpPort &local_ip_Port) {
+    return m_sockets.find(local_ip_Port)->second;
 }
 
 void SocketThread::setAllSocketsSettings(const SocketSettings settings)
 {
-    m_common_settings = settings;
+    m_common_socket_settings = settings;
 
     for(auto it = m_sockets.begin(); it != m_sockets.end(); it++)
         it->second->setSettings(settings);

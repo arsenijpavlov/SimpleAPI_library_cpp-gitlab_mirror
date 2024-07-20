@@ -33,7 +33,10 @@ int main(int argc, char** argv) {
     settings.setLogCallback(Log);
     settings.setLogErrorCallback(LogError);
     SocketThread st(eUDP, server, settings);
+    st.m_settings.setLogLevel(logs::eINFO);
+    st.m_settings.setLogCallback(Log);
 //    st.findSocket(server)->m_settings.setMaxLength(5); //TODO: не работает, если клиент долго не был активен
+
     st.startThread();
 
     Packet packet;

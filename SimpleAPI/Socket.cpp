@@ -5,12 +5,16 @@
 #include <sys/select.h>
 #include <errno.h>
 
+//#define FULL_MSG_COLOR {logs::COLOR::eYELLOW_BG, logs::COLOR::eWHITE_FG, logs::COLOR::eBOLD_TEXT}
+//#define FULL_MSG_COLOR {logs::COLOR::eYELLOW_BG, logs::COLOR::eBLACK_FG, logs::COLOR::eBOLD_TEXT}
+//#define FULL_MSG_COLOR {logs::COLOR::eBRIGHT_YELLOW_BG, logs::COLOR::eBLACK_FG, logs::COLOR::eBOLD_TEXT}
+#define FULL_MSG_COLOR {logs::COLOR::eBRIGHT_GREEN_BG, logs::COLOR::eBLACK_FG, logs::COLOR::eBOLD_TEXT}
 
 bool Socket::checkCorrectIp(const std::string& ip_string) {
     struct sockaddr_in sock;
     sock.sin_family = AF_INET;
     if(!inet_pton(AF_INET, ip_string.c_str(), &sock.sin_addr.s_addr)) {
-        Log(logs::eERROR, "inet_pton(): return ERROR");
+        Log(logs::eERROR, "inet_pton(): failed, error(" + std::to_string(errno) + ")");
         return false;
     }
     return true;
@@ -192,8 +196,8 @@ void Socket::Log(logs::LEVEL level, std::string log_message)
             if(m_settings.getLogCallback())
                 m_settings.getLogCallback()(
                     logs::get_time_string() + " "
-                    + to_color_string(level, to_string(m_socket_type))
-                    + " " + log_message + "\n");
+                    + to_color_string(level, to_string(m_socket_type)) + " "
+                    + log_message + "\n");
             break;
         }
         case logs::eERROR:
@@ -201,8 +205,8 @@ void Socket::Log(logs::LEVEL level, std::string log_message)
             if(m_settings.getLogErrorCallback())
                 m_settings.getLogErrorCallback()(
                     logs::get_time_string() + " "
-                    + to_color_string(level, to_string(m_socket_type))
-                    + " " + log_message + "\n");
+                    + to_color_string(level, to_string(m_socket_type)) + " "
+                    + log_message + "\n");
             break;
         }
         }
@@ -214,8 +218,8 @@ void Socket::Log(logs::LEVEL level, std::string log_message)
 bool Socket::sendRawMsg(const PacketMessage &packet_message) {
     Log(logs::eDEBUG, std::string("sendRaw ")
                           + "(" + std::to_string(packet_message.packet.size()) + ")"
-                          + "[0x" + utils::to_hex_string(packet_message.packet) + "]"
-                          + " to " + packet_message.ipPort.to_string());
+                          + "[0x" + utils::to_hex_string(packet_message.packet) + "] "
+                          + packet_message.ipPort.to_string("to"));
     return sendRawMsg(packet_message.ipPort.ip, packet_message.ipPort.port, packet_message.packet);
 }
 
@@ -252,12 +256,12 @@ void UDPSocket::sendFragments(const IpPort &remote_ip_port, const PacketType typ
     json.parseJson(convert_from_packet(packet));
 
     Log(type != eControlType ? logs::eINFO : logs::eDEBUG,
-        "send: " + to_string(type) + " "
-            + (json.isEmpty() ? "[Data:0x" + utils::to_hex_string(packet) + "]"
-                              : "[Json:" + json.to_string(-1) + "]"
-                                    + " / [Data:0x" + utils::to_hex_string(packet) + "]"
-               )
-            + " --> " + remote_ip_port.to_string());
+        "Send: " + to_string(type) + " "
+            + (json.isEmpty() ? "[Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::to_hex_string(packet)) + "]"
+                              : "[Json:" + logs::to_color_string(FULL_MSG_COLOR, json.to_string(-1)) + "]"
+                                    + " / [Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::to_hex_string(packet)) + "]"
+               ) + " "
+            + remote_ip_port.to_string("to"));
 
     Packet innerData;
     //=CHIP_and_CRC_and_SIZE_and_DATA===========================================
@@ -528,9 +532,10 @@ void UDPSocket::recvAutoMsg(int timeout) {
     if(!b_pm.packet.empty()) {
         Log(b_pm.header.type != eControlType ? logs::eINFO : logs::eDEBUG,
             "Recv: "+ to_string(b_pm.header.type) + " ["
-                + (jm.json.isEmpty() ? "Data:0x" + utils::to_hex_string(b_pm.packet)
-                                     : "Json:" + jm.json.to_string(-1))
-                + "] <-- " + b_pm.ipPort.to_string());
+                + (jm.json.isEmpty() ? "Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::to_hex_string(b_pm.packet))
+                                     : "Json:" + logs::to_color_string(FULL_MSG_COLOR, jm.json.to_string(-1)))
+                + "] "
+                + b_pm.ipPort.to_string("from"));
 
         //обработка собранного пакета (1 за проход)
         if(pm.header.type == eControlType) {
@@ -553,9 +558,9 @@ void UDPSocket::recvAutoMsg(int timeout) {
                         jm.clear();
                         jm = tempPM;
                         Log(it->header.type != eControlType ? logs::eINFO : logs::eDEBUG,
-                            "message delivered ["
-                                + (jm.json.isEmpty() ? "Data:0x" + utils::to_hex_string(tempPM.packet)
-                                                     : "Json:" + jm.json.to_string(-1))
+                            "Message delivered ["
+                                + (jm.json.isEmpty() ? "Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::to_hex_string(tempPM.packet))
+                                                     : "Json:" + logs::to_color_string(FULL_MSG_COLOR, jm.json.to_string(-1)))
                                 + "]");
                         it = m_sent_global_packets.erase(it);
                         break;
@@ -625,11 +630,11 @@ bool UDPSocket::sendRawMsg(const std::string &remote_ip, const uint16_t remote_p
     sock.sin_family = AF_INET;
     sock.sin_port = htons(remote_port);
     if(!inet_pton(AF_INET, remote_ip.c_str(), &sock.sin_addr.s_addr))
-        Log(logs::eERROR, "inet_pton(): return ERROR");
+        Log(logs::eERROR, "inet_pton() failed, error(" + std::to_string(errno) + ")");
     int res = sendto(m_socket_fd, (char*)packet.data(), packet.size(), 0,
                      (struct sockaddr*)&sock, sizeof(struct sockaddr_in));
     if(res < 0) {
-        Log(logs::eERROR, "ErrNo: " + std::to_string(errno));
+        Log(logs::eERROR, "sendTo() failed, error(" + std::to_string(errno) + ")");
         return false;
     }
     return res > 0;
@@ -655,7 +660,7 @@ PacketMessage UDPSocket::recvRawMsg(int timeout) {
     recv_num = select(m_socket_fd + 1, &fds, NULL, NULL, (timeout > 0 ? &t : NULL));
     if(recv_num < 0) {
         if(errno != EINTR) /* Interrupted system call */
-            Log(logs::eERROR, "Error in select(), errno=" + std::to_string(errno));
+            Log(logs::eERROR, "select() failed, error(" + std::to_string(errno) + ")");
         return PacketMessage();
     }
     if(recv_num > 0) {
@@ -665,7 +670,7 @@ PacketMessage UDPSocket::recvRawMsg(int timeout) {
     }
 
     if(recv_num < 0) {
-        Log(logs::eERROR, "Error reading msg");
+        Log(logs::eERROR, "recvfrom() failed, error(" + std::to_string(errno) + ")");
     } else if(recv_num > 0) {
         PacketMessage rpacket;
         rpacket.ipPort.ip.resize(INET_ADDRSTRLEN);
@@ -673,10 +678,10 @@ PacketMessage UDPSocket::recvRawMsg(int timeout) {
         rpacket.ipPort.port = ntohs(sock.sin_port);
         rpacket.packet = Packet(buf, buf + recv_num);
 
-        Log(logs::eDEBUG, std::string("sendRaw ")
+        Log(logs::eDEBUG, std::string("recvRaw ")
                               + "(" + std::to_string(rpacket.packet.size()) + ")"
-                              + "[0x" + utils::to_hex_string(rpacket.packet) + "]"
-                              + " from " + rpacket.ipPort.to_string());
+                              + "[0x" + utils::to_hex_string(rpacket.packet) + "] "
+                              + rpacket.ipPort.to_string("from"));
 
         return rpacket;
     }
@@ -701,7 +706,7 @@ void UDPSocket::open(const uint16_t local_port, const std::string& local_ip) {
     // create
     m_socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (m_socket_fd < 0)
-        perror("socket() failed");
+        Log(logs::eERROR, "socket() failed, error(" + std::to_string(errno) + ")");
 
     // bind
     struct sockaddr_in sock;
@@ -711,12 +716,13 @@ void UDPSocket::open(const uint16_t local_port, const std::string& local_ip) {
         sock.sin_addr.s_addr = INADDR_ANY;
     else {
         if(!inet_pton(AF_INET, local_ip.c_str(), &sock.sin_addr.s_addr))
-            Log(logs::eERROR, "inet_pton(): return ERROR");
+            Log(logs::eERROR, "inet_pton() failed, error(" + std::to_string(errno) + ")");
     }
     int res = bind(m_socket_fd, (struct sockaddr*)&sock, sizeof(sock));
     if(res < 0) {
-        perror(std::string("bind() failed with localIP(" + local_ip + ")"
-                           + ", port(" + std::to_string(local_port) + ")").c_str());
+        Log(logs::eERROR, "bind() failed with localIP(" + local_ip + ")"
+                              + ", port(" + std::to_string(local_port) + "), error("
+                              + std::to_string(errno) + ")");
         close();
         return;
     }
