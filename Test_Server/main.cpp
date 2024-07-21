@@ -5,6 +5,8 @@
 #include <iostream>
 
 #define MAIN_COLOR logs::eCYAN_FG
+#define NAME_COLUMN_SIZE 16
+#define NAME_COLUMN_RIGHT_ALIGN true
 
 bool isRunning = true;
 void signalHandler(int signal) {
@@ -16,7 +18,9 @@ void signalHandler(int signal) {
 
 void RecvData(PacketMessage pm) {
     std::cout << logs::get_time_string() << " "
-              << logs::to_color_string(MAIN_COLOR, "[SERVER]") << " "
+              << logs::columned(MAIN_COLOR, "[SERVER]",
+                                NAME_COLUMN_SIZE,
+                                NAME_COLUMN_RIGHT_ALIGN) << " "
               << "recv data: 0x" << utils::to_hex_string(pm.packet)
               << std::endl;
 }
@@ -26,7 +30,9 @@ Json jsonAck;
 IpPort ipPortAck;
 void RecvJson(JsonMessage jm) {
     std::cout << logs::get_time_string() << " "
-              << logs::to_color_string(MAIN_COLOR, "[SERVER]") << " "
+              << logs::columned(MAIN_COLOR, "[SERVER]",
+                                NAME_COLUMN_SIZE,
+                                NAME_COLUMN_RIGHT_ALIGN) << " "
               << "recv json: " << jm.to_string()
               << std::endl;
 
@@ -55,6 +61,8 @@ int main(int argc, char** argv) {
     settings.setRecvJsonCallback(RecvJson);
     settings.setColorLogCallback(Log);
     settings.setColorLogErrorCallback(LogError);
+    settings.setNameColumnSize(NAME_COLUMN_SIZE);
+    settings.enableNameColumnRightAlign(NAME_COLUMN_RIGHT_ALIGN);
 //    settings.setLogLevel(logs::eDEBUG);
     settings.enableLogTime(true);
     settings.enablePrintLogLevel(false);
@@ -62,6 +70,8 @@ int main(int argc, char** argv) {
     st.m_settings.setLogLevel(logs::eINFO);
     st.m_settings.enableLogTime(true);
     st.m_settings.enablePrintLogLevel(false);
+    st.m_settings.setNameColumnSize(NAME_COLUMN_SIZE);
+    st.m_settings.enableNameColumnRightAlign(NAME_COLUMN_RIGHT_ALIGN);
 //    st.m_settings.setLogCallback(Log);
     st.m_settings.setColorLogCallback(Log);
 

@@ -60,20 +60,24 @@ void SocketThread::Log(const logs::LEVEL level, const std::string log_message, c
     if(currentCallback)
         currentCallback(
             timeString
-            + "["
-            + "SOCKET THREAD"
-            + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
-            + "] "
+            + logs::columned(std::string("[") + "SOCKET THREAD"
+                                 + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
+                                 + "]",
+                             m_settings.getNameColumnSize(),
+                             m_settings.isNameColumnRightAlignEnabled())
+            + " "
             + log_message
             + "\n");
     //цветной вывод
     if(currentColorCallback)
         currentColorCallback(
             timeString
-            + to_color_string(level, std::string("[")
-                                         + "SOCKET THREAD"
-                                         + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
-                                         + "] ")
+            + logs::columned(level, std::string("[") + "SOCKET THREAD"
+                                           + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
+                                           + "]",
+                             m_settings.getNameColumnSize(),
+                             m_settings.isNameColumnRightAlignEnabled())
+            + " "
             + (color_log_message.empty() ? log_message : color_log_message)
             + "\n");
 }

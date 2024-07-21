@@ -59,7 +59,7 @@ const std::string to_string(const COLOR color)
     }
 }
 
-std::string to_color_string(const LEVEL level, const std::string log_message) {
+std::string to_color_string(const LEVEL level, const std::string& log_message) {
     COLOR color;
     switch(level) {
     case eERROR:    color = eBRIGHT_RED_FG;     break;
@@ -72,12 +72,10 @@ std::string to_color_string(const LEVEL level, const std::string log_message) {
     return to_color_string(color, log_message);
 }
 
-std::string to_color_string(const COLOR color, const std::string log_message)
-{
-    return to_color_string(std::vector<COLOR>{color}, log_message);
-}
+std::string to_color_string(const COLOR color, const std::string &log_message)
+{ return to_color_string(std::vector<COLOR>{color}, log_message); }
 
-std::string to_color_string(const std::vector<COLOR> colors, const std::string log_message)
+std::string to_color_string(const std::vector<COLOR>& colors, const std::string& log_message)
 {
     std::string result_string = "";
     for(COLOR clr : colors)
@@ -95,7 +93,7 @@ std::string get_time_string(const long millis) {
     return get_time_string(std::chrono::system_clock::time_point{std::chrono::milliseconds{millis}});
 }
 
-std::string get_time_string(const std::chrono::system_clock::time_point tp_millis) {
+std::string get_time_string(const std::chrono::system_clock::time_point& tp_millis) {
     std::time_t tt = std::chrono::system_clock::to_time_t(tp_millis);
     struct tm* tmInfo = std::localtime(&tt);
 
@@ -106,6 +104,34 @@ std::string get_time_string(const std::chrono::system_clock::time_point tp_milli
 
     return std::string("[") + time_buf + "." + millis + "]";
 }
+
+std::string columned(const std::string &log_message, const int column_size, const bool right_align)
+{
+//    std::cout << "log size: " << log_message.size() << ", column size:" << column_size << std::endl;
+    if(column_size == -1)                   return log_message;
+    if(column_size <= log_message.size())   return log_message;
+
+    std::string _result = "";
+    int _spaceSize = abs(static_cast<int>(log_message.size()) - column_size);
+
+    for(int i = 0; i < _spaceSize; i++)
+        _result += " ";
+
+    if(right_align)
+        return _result + log_message;
+    else
+        return log_message + _result;
+}
+
+std::string columned(const std::vector<COLOR> colors, const std::string &log_message, const int column_size, const bool right_align)
+{ return to_color_string(colors, columned(log_message, column_size, right_align)); }
+
+std::string columned(const COLOR color, const std::string &log_message, const int column_size, const bool right_align)
+{ return columned(std::vector<COLOR>{color}, log_message, column_size, right_align); }
+
+std::string columned(const LEVEL level, const std::string &log_message, const int column_size, const bool right_align)
+{ return to_color_string(level, columned(log_message, column_size, right_align)); }
+
 
 
 }

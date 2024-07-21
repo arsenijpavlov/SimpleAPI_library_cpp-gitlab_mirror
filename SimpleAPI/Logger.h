@@ -112,13 +112,19 @@ enum LEVEL {
 
 const std::string to_string(const LEVEL level);
 const std::string to_string(const COLOR color);
-std::string to_color_string(const LEVEL level, const std::string log_message);
-std::string to_color_string(const COLOR color, const std::string log_message);
-std::string to_color_string(const std::vector<COLOR> colors, const std::string log_message);
+
+std::string to_color_string(const LEVEL level, const std::string& log_message);
+std::string to_color_string(const std::vector<COLOR>& colors, const std::string& log_message);
+std::string to_color_string(const COLOR color, const std::string& log_message);
 
 std::string get_time_string();
 std::string get_time_string(const long millis);
-std::string get_time_string(const std::chrono::system_clock::time_point tp_millis);
+std::string get_time_string(const std::chrono::system_clock::time_point& tp_millis);
+
+std::string columned(const std::string& log_message, const int column_size, const bool right_align = false);
+std::string columned(const std::vector<COLOR> colors, const std::string& log_message, const int column_size, const bool right_align = false);
+std::string columned(const COLOR color, const std::string& log_message, const int column_size, const bool right_align = false);
+std::string columned(const LEVEL level, const std::string& log_message, const int column_size, const bool right_align = false);
 
 }
 

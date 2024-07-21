@@ -228,20 +228,24 @@ void Socket::Log(const logs::LEVEL level, const std::string log_message, const s
     if(currentCallback)
         currentCallback(
             timeString
-            + "["
-            + to_string(m_socket_type)
-            + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
-            + "] "
+            + logs::columned(std::string("[") + to_string(m_socket_type)
+                                     + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
+                                     + "]",
+                             m_settings.getNameColumnSize(),
+                             m_settings.isNameColumnRightAlignEnabled())
+            + " "
             + log_message
             + "\n");
     //цветной вывод
     if(currentColorCallback)
         currentColorCallback(
             timeString
-            + to_color_string(level, std::string("[")
-                                         + to_string(m_socket_type)
-                                         + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
-                                         + "] ")
+            + logs::columned(level, std::string("[") + to_string(m_socket_type)
+                                        + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
+                                        + "]",
+                             m_settings.getNameColumnSize(),
+                             m_settings.isNameColumnRightAlignEnabled())
+            + " "
             + (color_log_message.empty() ? log_message : color_log_message)
             + "\n");
 }
