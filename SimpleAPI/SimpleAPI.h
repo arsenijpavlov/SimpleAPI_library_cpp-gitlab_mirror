@@ -6,6 +6,6 @@
 #include "Json.h"
 #include "Socket.h"
 #include "SocketThread.h"
-
+#include "Logger.h"
 
 #endif // SIMPLEAPI_H

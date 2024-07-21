@@ -59,18 +59,22 @@ const std::string to_string(const COLOR color)
     }
 }
 
-std::string to_color_string(const LEVEL level, const std::string log_message, const bool visibleLevel) {
+std::string to_color_string(const LEVEL level, const std::string log_message) {
     COLOR color;
-    std::string levelString;
     switch(level) {
-    case eERROR:    color = eBRIGHT_RED_FG;     levelString = visibleLevel ? ".e" : "";         break;
-    case eWARNING:  color = eBRIGHT_YELLOW_FG;  levelString = visibleLevel ? ".w" : "";         break;
-    case eINFO:     color = eBRIGHT_GREEN_FG;   levelString = visibleLevel ? ".i" : "";         break;
-    case eDEBUG:    color = eBRIGHT_GRAY_FG;    levelString = visibleLevel ? ".d" : "";         break;
-    default:        color = eBRIGHT_RED_FG;     levelString = visibleLevel ? ".unknown]" : "";  break;
+    case eERROR:    color = eBRIGHT_RED_FG;     break;
+    case eWARNING:  color = eBRIGHT_YELLOW_FG;  break;
+    case eINFO:     color = eBRIGHT_GREEN_FG;   break;
+    case eDEBUG:    color = eBRIGHT_GRAY_FG;    break;
+    default:        color = eBRIGHT_RED_FG;     break;
     }
 
-    return to_color_string({color}, "[" + log_message + levelString + "]");
+    return to_color_string(color, log_message);
+}
+
+std::string to_color_string(const COLOR color, const std::string log_message)
+{
+    return to_color_string(std::vector<COLOR>{color}, log_message);
 }
 
 std::string to_color_string(const std::vector<COLOR> colors, const std::string log_message)

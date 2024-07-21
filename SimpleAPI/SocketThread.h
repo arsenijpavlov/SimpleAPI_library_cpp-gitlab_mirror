@@ -5,18 +5,17 @@
 #include <thread>
 #include "Socket.h"
 
-
 class SocketThread {
     std::thread     m_thread;
     bool            m_active;
     SocketSettings  m_common_socket_settings;
     std::map<IpPort, std::shared_ptr<Socket>> m_sockets;
 public:
-    SocketSettings  m_settings;
+    LoggerSettings  m_settings;
 
 private:
     void run();
-    void Log(logs::LEVEL level, std::string log_message);
+    void Log(const logs::LEVEL level, const std::string log_message, const std::string color_log_message = "");
 
 public:
     SocketThread() :

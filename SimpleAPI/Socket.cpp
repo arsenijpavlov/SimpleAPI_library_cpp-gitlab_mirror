@@ -6,15 +6,15 @@
 #include <errno.h>
 
 //#define FULL_MSG_COLOR {logs::COLOR::eYELLOW_BG, logs::COLOR::eWHITE_FG, logs::COLOR::eBOLD_TEXT}
-//#define FULL_MSG_COLOR {logs::COLOR::eYELLOW_BG, logs::COLOR::eBLACK_FG, logs::COLOR::eBOLD_TEXT}
+#define FULL_MSG_COLOR {logs::COLOR::eYELLOW_BG, logs::COLOR::eBLACK_FG, logs::COLOR::eBOLD_TEXT}
 //#define FULL_MSG_COLOR {logs::COLOR::eBRIGHT_YELLOW_BG, logs::COLOR::eBLACK_FG, logs::COLOR::eBOLD_TEXT}
-#define FULL_MSG_COLOR {logs::COLOR::eBRIGHT_GREEN_BG, logs::COLOR::eBLACK_FG, logs::COLOR::eBOLD_TEXT}
+//#define FULL_MSG_COLOR {logs::COLOR::eBRIGHT_GREEN_BG, logs::COLOR::eBLACK_FG, logs::COLOR::eBOLD_TEXT}
 
 bool Socket::checkCorrectIp(const std::string& ip_string) {
     struct sockaddr_in sock;
     sock.sin_family = AF_INET;
     if(!inet_pton(AF_INET, ip_string.c_str(), &sock.sin_addr.s_addr)) {
-        Log(logs::eERROR, "inet_pton(): failed, error(" + std::to_string(errno) + ")");
+        Log(logs::eERROR, "inet_pton() failed, error(" + std::to_string(errno) + ")");
         return false;
     }
     return true;
@@ -186,31 +186,64 @@ PacketMessage Socket::buildPacket(PacketMessage received_pm)
     return pm;
 }
 
-void Socket::Log(logs::LEVEL level, std::string log_message)
+void Socket::Log(const logs::LEVEL level, const std::string log_message, const std::string color_log_message)
 {
+    LoggerSettings::LogCallback currentCallback = nullptr;
+    LoggerSettings::LogCallback currentColorCallback = nullptr;
+    std::string levelSubstring = "";
+    std::string timeString = "";
+    if(m_settings.isLogTimeEnabled())
+        timeString = logs::get_time_string() + " ";
+
     if(level <= m_settings.getLogLevel()) {
         switch(level) {
         case logs::eWARNING:
+            currentCallback         = m_settings.getLogCallback();
+            currentColorCallback    = m_settings.getColorLogCallback();
+            levelSubstring          = ".w";
+            break;
         case logs::eINFO:
-        case logs::eDEBUG: {
-            if(m_settings.getLogCallback())
-                m_settings.getLogCallback()(
-                    logs::get_time_string() + " "
-                    + to_color_string(level, to_string(m_socket_type)) + " "
-                    + log_message + "\n");
+            currentCallback         = m_settings.getLogCallback();
+            currentColorCallback    = m_settings.getColorLogCallback();
+            levelSubstring          = ".i";
             break;
-        }
+        case logs::eDEBUG:
+            currentCallback         = m_settings.getLogCallback();
+            currentColorCallback    = m_settings.getColorLogCallback();
+            levelSubstring          = ".d";
+            break;
         case logs::eERROR:
-        default: {
-            if(m_settings.getLogErrorCallback())
-                m_settings.getLogErrorCallback()(
-                    logs::get_time_string() + " "
-                    + to_color_string(level, to_string(m_socket_type)) + " "
-                    + log_message + "\n");
+            currentCallback         = m_settings.getLogErrorCallback();
+            currentColorCallback    = m_settings.getColorLogErrorCallback();
+            levelSubstring          = ".e";
+        default:
+            currentCallback         = m_settings.getLogErrorCallback();
+            currentColorCallback    = m_settings.getColorLogErrorCallback();
+            levelSubstring          = ".unknown";
             break;
-        }
         }
     }
+
+    //обычный вывод
+    if(currentCallback)
+        currentCallback(
+            timeString
+            + "["
+            + to_string(m_socket_type)
+            + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
+            + "] "
+            + log_message
+            + "\n");
+    //цветной вывод
+    if(currentColorCallback)
+        currentColorCallback(
+            timeString
+            + to_color_string(level, std::string("[")
+                                         + to_string(m_socket_type)
+                                         + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
+                                         + "] ")
+            + (color_log_message.empty() ? log_message : color_log_message)
+            + "\n");
 }
 
 
@@ -255,7 +288,13 @@ void UDPSocket::sendFragments(const IpPort &remote_ip_port, const PacketType typ
     Json json;
     json.parseJson(convert_from_packet(packet));
 
-    Log(type != eControlType ? logs::eINFO : logs::eDEBUG,
+    Log(type != eControlType ? logs::eINFO : logs::eDEBUG, //TODO: придумать более логичное решение Log()
+        "Send: " + to_string(type) + " "
+            + (json.isEmpty() ? "[Data:0x" + utils::to_hex_string(packet) + "]"
+                              : "[Json:" + json.to_string(-1) + "]"
+                                    + " / [Data:" + "0x" + utils::to_hex_string(packet) + "]"
+               ) + " "
+            + remote_ip_port.to_string("to"),
         "Send: " + to_string(type) + " "
             + (json.isEmpty() ? "[Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::to_hex_string(packet)) + "]"
                               : "[Json:" + logs::to_color_string(FULL_MSG_COLOR, json.to_string(-1)) + "]"
@@ -532,6 +571,11 @@ void UDPSocket::recvAutoMsg(int timeout) {
     if(!b_pm.packet.empty()) {
         Log(b_pm.header.type != eControlType ? logs::eINFO : logs::eDEBUG,
             "Recv: "+ to_string(b_pm.header.type) + " ["
+                + (jm.json.isEmpty() ? "Data:0x" + utils::to_hex_string(b_pm.packet)
+                                     : "Json:" + jm.json.to_string(-1))
+                + "] "
+                + b_pm.ipPort.to_string("from"),
+            "Recv: "+ to_string(b_pm.header.type) + " ["
                 + (jm.json.isEmpty() ? "Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::to_hex_string(b_pm.packet))
                                      : "Json:" + logs::to_color_string(FULL_MSG_COLOR, jm.json.to_string(-1)))
                 + "] "
@@ -558,6 +602,10 @@ void UDPSocket::recvAutoMsg(int timeout) {
                         jm.clear();
                         jm = tempPM;
                         Log(it->header.type != eControlType ? logs::eINFO : logs::eDEBUG,
+                            "Message delivered ["
+                                + (jm.json.isEmpty() ? "Data:0x" + utils::to_hex_string(tempPM.packet)
+                                                     : "Json:" + jm.json.to_string(-1))
+                                + "]",
                             "Message delivered ["
                                 + (jm.json.isEmpty() ? "Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::to_hex_string(tempPM.packet))
                                                      : "Json:" + logs::to_color_string(FULL_MSG_COLOR, jm.json.to_string(-1)))

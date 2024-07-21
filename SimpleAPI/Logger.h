@@ -112,7 +112,8 @@ enum LEVEL {
 
 const std::string to_string(const LEVEL level);
 const std::string to_string(const COLOR color);
-std::string to_color_string(const LEVEL level, const std::string log_message, const bool visibleLevel = true);
+std::string to_color_string(const LEVEL level, const std::string log_message);
+std::string to_color_string(const COLOR color, const std::string log_message);
 std::string to_color_string(const std::vector<COLOR> colors, const std::string log_message);
 
 std::string get_time_string();

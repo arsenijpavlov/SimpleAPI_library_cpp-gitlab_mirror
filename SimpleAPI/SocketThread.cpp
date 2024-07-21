@@ -16,35 +16,66 @@ void SocketThread::run() {
 
         usleep(1);
     }
-
-    Log(logs::eINFO, "stopped");
 }
 
-void SocketThread::Log(logs::LEVEL level, std::string log_message)
-{
+void SocketThread::Log(const logs::LEVEL level, const std::string log_message, const std::string color_log_message)
+{   
+    LoggerSettings::LogCallback currentCallback = nullptr;
+    LoggerSettings::LogCallback currentColorCallback = nullptr;
+    std::string levelSubstring = "";
+    std::string timeString = "";
+    if(m_settings.isLogTimeEnabled())
+        timeString = logs::get_time_string() + " ";
+
     if(level <= m_settings.getLogLevel()) {
         switch(level) {
         case logs::eWARNING:
+            currentCallback         = m_settings.getLogCallback();
+            currentColorCallback    = m_settings.getColorLogCallback();
+            levelSubstring          = ".w";
+            break;
         case logs::eINFO:
-        case logs::eDEBUG: {
-            if(m_settings.getLogCallback())
-                m_settings.getLogCallback()(
-                    logs::get_time_string() + " "
-                    + to_color_string(level, "SOCKET THREAD", false) + " "
-                    + log_message + "\n");
+            currentCallback         = m_settings.getLogCallback();
+            currentColorCallback    = m_settings.getColorLogCallback();
+            levelSubstring          = ".i";
             break;
-        }
+        case logs::eDEBUG:
+            currentCallback         = m_settings.getLogCallback();
+            currentColorCallback    = m_settings.getColorLogCallback();
+            levelSubstring          = ".d";
+            break;
         case logs::eERROR:
-        default: {
-            if(m_settings.getLogErrorCallback())
-                m_settings.getLogErrorCallback()(
-                    logs::get_time_string() + " "
-                    + to_color_string(level, "SOCKET THREAD", false) + " "
-                    + log_message + "\n");
+            currentCallback         = m_settings.getLogErrorCallback();
+            currentColorCallback    = m_settings.getColorLogErrorCallback();
+            levelSubstring          = ".e";
+        default:
+            currentCallback         = m_settings.getLogErrorCallback();
+            currentColorCallback    = m_settings.getColorLogErrorCallback();
+            levelSubstring          = ".unknown";
             break;
-        }
         }
     }
+
+    //обычный вывод
+    if(currentCallback)
+        currentCallback(
+            timeString
+            + "["
+            + "SOCKET THREAD"
+            + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
+            + "] "
+            + log_message
+            + "\n");
+    //цветной вывод
+    if(currentColorCallback)
+        currentColorCallback(
+            timeString
+            + to_color_string(level, std::string("[")
+                                         + "SOCKET THREAD"
+                                         + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
+                                         + "] ")
+            + (color_log_message.empty() ? log_message : color_log_message)
+            + "\n");
 }
 
 bool SocketThread::addSocket(const SocketType type, const IpPort& local_ip_port,
@@ -98,14 +129,13 @@ bool SocketThread::send(const IpPort &source, const IpPort &destination, const J
     return false;
 }
 
-
-
 void SocketThread::startThread() {
     if(!isActive()) {
-        Log(logs::eINFO, "start");
+        Log(logs::eDEBUG, "starting...");
         m_active = true;
 
         m_thread = std::thread(&SocketThread::run, this);
+        Log(logs::eINFO, "started");
     }
 }
 
@@ -114,8 +144,10 @@ void SocketThread::stopThread() {
         Log(logs::eDEBUG, "stop...");
         m_active = false; //дали сигнал на остановку
 
-        if(m_thread.joinable())
+        if(m_thread.joinable()) {
             m_thread.join(); //ждём завершения потока
+            Log(logs::eINFO, "stopped");
+        }
     }
 }
 

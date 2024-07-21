@@ -4,17 +4,27 @@
 #include <iostream>
 #include <unistd.h>
 
+#define MAIN_COLOR logs::eCYAN_FG
+
 bool isRunning = true;
 void signalHandler(int signal) {
-    if(signal == SIGINT)
+    if(signal == SIGINT) {
+        std::cout << "\n";
         isRunning = false;
+    }
 }
 
 void RecvData(PacketMessage pm) {
-    std::cout << "[CLIENT] recv data: 0x" << utils::to_hex_string(pm.packet) << std::endl;
+    std::cout << logs::get_time_string() << " "
+              << logs::to_color_string(MAIN_COLOR, "[CLIENT]") << " "
+              << "recv data: 0x" << utils::to_hex_string(pm.packet)
+              << std::endl;
 }
 void RecvJson(JsonMessage jm) {
-    std::cout << "[CLIENT] recv json: " << jm.to_string() << std::endl;
+    std::cout << logs::get_time_string() << " "
+              << logs::to_color_string(MAIN_COLOR, "[CLIENT]") << " "
+              << "recv json: " << jm.to_string()
+              << std::endl;
 }
 void Log(std::string msg) {
     std::cout << msg;
@@ -30,11 +40,16 @@ int main(int argc, char** argv) {
     SocketSettings settings;
     settings.setRecvPacketCallback(RecvData);
     settings.setRecvJsonCallback(RecvJson);
-    settings.setLogCallback(Log);
-    settings.setLogErrorCallback(LogError);
+    settings.setColorLogCallback(Log);
+    settings.setColorLogErrorCallback(LogError);
+    settings.enableLogTime(true);
+    settings.enablePrintLogLevel(false);
     SocketThread st(eUDP, server, settings);
     st.m_settings.setLogLevel(logs::eINFO);
-    st.m_settings.setLogCallback(Log);
+//    st.m_settings.setLogCallback(Log);
+    st.m_settings.enableLogTime(true);
+    st.m_settings.enablePrintLogLevel(false);
+    st.m_settings.setColorLogCallback(Log);
 //    st.findSocket(server)->m_settings.setMaxLength(5); //TODO: не работает, если клиент долго не был активен
 
     st.startThread();

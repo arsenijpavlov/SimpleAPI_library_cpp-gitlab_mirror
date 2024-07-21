@@ -77,12 +77,12 @@ protected:
     bool            checkCorrectIp(const std::string& ip_string);
 
     uint8_t         packHeader(const PacketHeader& ph);
-    PacketHeader    unpackHeader(uint8_t header);
+    PacketHeader    unpackHeader(const uint8_t header);
     EECounter&      getOutSeqNumber(const IpPort& ip_port);
     PacketMessage   buildPacket(PacketMessage received_pm);
 
-    void            Log(logs::LEVEL level, std::string log_message);
-    void            setSettings(SocketSettings settings = SocketSettings())
+    void            Log(const logs::LEVEL level, const std::string log_message, const std::string color_log_message = "");
+    void            setSettings(const SocketSettings settings = SocketSettings())
                     { m_settings = settings; }
     SocketSettings  getSettings() { return m_settings; }
 
