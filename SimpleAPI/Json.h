@@ -29,7 +29,7 @@ enum ValueType {
     eJson,
     eArray
 };
-static std::string ToString(const ValueType type);
+static std::string to_string(const ValueType type);
 
 class Json;
 class BaseElement {
@@ -160,8 +160,8 @@ public:
                 { m_values.erase(begin, end); }
 }; /// class Array
 
-using JPair = std::pair<std::string, Element>;
-using JVector = std::vector<JPair>;
+using JPair     = std::pair<std::string, Element>;
+using JVector   = std::vector<JPair>;
 // Неупорядоченный список "ключ-значение" (в данном случае упорядочен)
 class Json
 {
@@ -307,12 +307,12 @@ public:
     void        erase(const std::vector<std::string>& keys);
 }; ///class Json
 
-static ValueType CheckValue(std::string& value);
-static bool CheckDouble(std::string& value);
-static bool CheckBool(std::string& value);
-static bool CheckString(std::string& value);
-static bool CheckJson(std::string& value);
-static bool CheckArray(std::string& value);
+static ValueType    CheckValue(std::string& value);
+static bool         CheckDouble(std::string& value);
+static bool         CheckBool(std::string& value);
+static bool         CheckString(std::string& value);
+static bool         CheckJson(std::string& value);
+static bool         CheckArray(std::string& value);
 
 class DoubleElement : BaseElement {
 public:

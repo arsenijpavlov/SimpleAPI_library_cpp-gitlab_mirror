@@ -19,7 +19,7 @@ enum NextReadState {
     eArrayEnd
 };
 
-std::string ToString(const NextReadState state)
+std::string to_string(const NextReadState state)
 {
     switch(state) {
     case eKey:          return "Key";
@@ -38,14 +38,14 @@ void ChangeNextState(NextReadState &state, const NextReadState nextState)
 {
     if(state == nextState) return;
 //    std::cout << "state changed: "
-//              << ToString(state)
+//              << to_string(state)
 //              << "->"
-//              << ToString(nextState)
+//              << to_string(nextState)
 //              << std::endl;
     state = nextState;
 }
 
-std::string ToString(const ValueType type) {
+std::string to_string(const ValueType type) {
     switch(type) {
     case eNumber:       return "Number"; break;
     case eBool:         return "Bool"; break;
@@ -853,7 +853,7 @@ bool Json::parseJson(const std::string& json_str)
                     Json _innerJson;
                     if(!_innerJson.parseJson(value)) {
                         std::cout << "parse error in key:" << key
-                                  << "valueType:" << ToString(valueType)
+                                  << "valueType:" << to_string(valueType)
                                   << std::endl;
                         exit = true;
                     } else {
@@ -866,7 +866,7 @@ bool Json::parseJson(const std::string& json_str)
                     return_code = _innerArray.parseArray(value);
                     if(!return_code) {
                         std::cout << "parse error in key:" << key
-                                  << "valueType:" << ToString(valueType)
+                                  << "valueType:" << to_string(valueType)
                                   << std::endl;
                         exit = true;
                     } else
@@ -1008,7 +1008,7 @@ bool Array::parseArray(const std::string& array_str)
                     if(return_code)
                         this->push_back(_innerJson);
                     else {
-                        std::cout << "parse error valueType:" << ToString(valueType) << std::endl;
+                        std::cout << "parse error valueType:" << to_string(valueType) << std::endl;
                         exit = true;
                     }
                     break;
@@ -1019,7 +1019,7 @@ bool Array::parseArray(const std::string& array_str)
                     if(return_code)
                         this->push_back(_innerArray);
                     else {
-                        std::cout << "parse error valueType:" << ToString(valueType) << std::endl;
+                        std::cout << "parse error valueType:" << to_string(valueType) << std::endl;
                         exit = true;
                     }
                     break;
