@@ -160,8 +160,8 @@ public:
                 { m_values.erase(begin, end); }
 }; /// class Array
 
-using JVector = std::vector<std::pair<std::string, Element>>;
-using JMap = std::map<std::string, Element>; //TODO: переделать всё на этот вариант
+using JPair = std::pair<std::string, Element>;
+using JVector = std::vector<JPair>;
 // Неупорядоченный список "ключ-значение" (в данном случае упорядочен)
 class Json
 {
@@ -180,7 +180,7 @@ public:
     bool        put(const std::string& key, const T value)
     {
         if(!isValueExists(key)) { //без дубликатов
-            m_values.push_back(std::pair<std::string, Element>(key, Element(value)));
+            m_values.push_back(JPair(key, Element(value)));
             return true;
         } else
             return false;
@@ -272,7 +272,7 @@ public:
         if(this->isValueExists(key)) return false; //без дубликатов
 
         //поиск индекса указанного ключа
-        for(std::pair<std::string, Element>& it : m_values) {
+        for(JPair& it : m_values) {
             if(it.first == keyIndex) {
 //FIXME:                this->insert(it, std::make_pair(key, value));
                 return true;
@@ -288,7 +288,7 @@ public:
         if(this->isValueExists(key)) return false; //без дубликатов
 
         //поиск индекса указанного ключа
-        for(std::pair<std::string, Element>& it : m_values) {
+        for(JPair& it : m_values) {
             if(it.first == keyIndex) {
 //FIXME:                this->insert(it + 1, std::make_pair(key, value));
                 return true;

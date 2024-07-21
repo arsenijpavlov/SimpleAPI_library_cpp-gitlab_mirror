@@ -277,7 +277,7 @@ bool Json::checkIndexes(const size_t index) {
 
 Json::Json(const Json& json)
 {
-    for(const std::pair<std::string, Element> &el : json.m_values) {
+    for(const JPair &el : json.m_values) {
         switch(el.second.first) {
         case eNumber: {
             double value = reinterpret_cast<DoubleElement*>(el.second.second)->m_value;
@@ -320,12 +320,12 @@ Json::Json(const Json& json)
 }
 
 Json::~Json() {
-    for(std::pair<std::string, Element>& el : m_values)
+    for(JPair& el : m_values)
         delete el.second.second;
 }
 
 Json &Json::operator=(const Json &other) {
-    for(const std::pair<std::string, Element> &el : other.m_values) {
+    for(const JPair &el : other.m_values) {
         switch(el.second.first) {
         case eNumber: {
             double value = reinterpret_cast<DoubleElement*>(el.second.second)->m_value;
@@ -439,7 +439,7 @@ std::string Json::to_string(int16_t tabulation_level) const
         std::string tabs_str = !withoutSpaces ? utils::Tab(++tabulation_level) : "";
 
         size_t i = 0;
-        for(const std::pair<std::string, Element>& el : m_values) {
+        for(const JPair& el : m_values) {
             ret += tabs_str + "\"" + el.first + "\"";
             if(!withoutSpaces) ret += " ";
             ret += ":";
