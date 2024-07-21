@@ -663,14 +663,14 @@ void UDPSocket::recvAutoMsg(int timeout) {
 }
 
 
-UDPSocket::UDPSocket(const IpPort &local_ip_port, SocketSettings settings) {
+UDPSocket::UDPSocket(const IpPort &local_ip_port, const SocketSettings& settings) {
     m_socket_type = SocketType::eUDP;
     m_settings = settings;
 
     open(local_ip_port.port, local_ip_port.ip);
 }
 
-UDPSocket::UDPSocket(uint16_t local_port, std::string local_ip, SocketSettings settings) {
+UDPSocket::UDPSocket(const uint16_t local_port, const std::string& local_ip, const SocketSettings& settings) {
     m_socket_type = SocketType::eUDP;
     m_settings = settings;
 
@@ -782,6 +782,15 @@ void UDPSocket::open(const uint16_t local_port, const std::string& local_ip) {
     char str[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &(sock.sin_addr.s_addr), str, INET_ADDRSTRLEN);
     Log(logs::eINFO, "Socket binded at " + IpPort{str, local_port}.to_string());
+}
+
+bool UDPSocket::isConnected(const IpPort &remote_ip_port)
+{
+    auto it = m_map_connections.find(remote_ip_port);
+    if(it != m_map_connections.end())
+        return true;
+    else
+        return false;
 }
 
 bool UDPSocket::sendMsg(const IpPort& remote_ip_port, const Packet& packet) {

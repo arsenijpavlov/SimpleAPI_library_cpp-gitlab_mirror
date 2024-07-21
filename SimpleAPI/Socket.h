@@ -107,7 +107,7 @@ public:
     void            setLogLevel(logs::LEVEL log_level) { m_settings.setLogLevel(log_level); }
     IpPort          getLocalIpPort(){ return IpPort{m_local_ip, m_local_port}; }
     bool            isChiphering() { /*TODO: isChiphering()*/ return false; }
-//TODO:    virtual bool isConnected(std::string remoteIP, uint16_t remotePort) = 0;
+    virtual bool    isConnected(const IpPort& remote_ip_port) = 0;
     bool            isServerActive();
     //-----------------------------------------
     void            chiphering(Packet& packet) {};
@@ -154,13 +154,13 @@ class UDPSocket : public Socket {
     //=====================================
 
 public:
-    UDPSocket(const IpPort& local_ip_port, SocketSettings settings = SocketSettings());
-    UDPSocket(uint16_t local_port, std::string local_ip = "", SocketSettings settings = SocketSettings());
+    UDPSocket(const IpPort& local_ip_port, const SocketSettings& settings = SocketSettings());
+    UDPSocket(const uint16_t local_port, const std::string& local_ip = "", const SocketSettings& settings = SocketSettings());
     ~UDPSocket()    { close(); }
     void            open(const uint16_t local_port, const std::string& local_ip = "");
 
     //-----------------------------------------
-//TODO:    bool isConnected(std::string remoteIP, uint16_t remotePort); //TODO: постоянный пинг
+    bool            isConnected(const IpPort& remote_ip_port);
     //-----------------------------------------
     void            startServer();
     void            stopServer();
