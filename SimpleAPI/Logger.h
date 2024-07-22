@@ -107,7 +107,9 @@ enum LEVEL {
     eERROR,
     eWARNING,
     eINFO,
-    eDEBUG
+    eDEBUG,
+    eDEBUG2,
+    eDEBUG3
 };
 
 const std::string to_string(const LEVEL level);

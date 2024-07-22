@@ -40,6 +40,8 @@ void SocketThread::Log(const logs::LEVEL level, const std::string log_message, c
             levelSubstring          = ".i";
             break;
         case logs::eDEBUG:
+        case logs::eDEBUG2:
+        case logs::eDEBUG3:
             currentCallback         = m_settings.getLogCallback();
             currentColorCallback    = m_settings.getColorLogCallback();
             levelSubstring          = ".d";

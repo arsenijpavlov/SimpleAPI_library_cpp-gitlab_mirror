@@ -66,6 +66,8 @@ std::string to_color_string(const LEVEL level, const std::string& log_message) {
     case eWARNING:  color = eYELLOW_FG;  break;
     case eINFO:     color = eGREEN_FG;   break;
     case eDEBUG:    color = eGRAY_FG;    break;
+    case eDEBUG2:   color = eGRAY_FG;    break;
+    case eDEBUG3:   color = eGRAY_FG;    break;
     default:        color = eRED_FG;     break;
     }
 

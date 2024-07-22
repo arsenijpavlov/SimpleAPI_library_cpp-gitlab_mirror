@@ -57,10 +57,10 @@ PacketMessage Socket::buildPacket(PacketMessage received_pm)
         it = m_map_connections.insert(std::make_pair(received_pm.ipPort, Connection())).first;
     }
     it->second.m_last_activity = std::chrono::system_clock::now();
-    Log(logs::eDEBUG, "buildPacket(), mapConnection size: " + std::to_string(m_map_connections.size()));
+    Log(logs::eDEBUG2, "buildPacket(), mapConnection size: " + std::to_string(m_map_connections.size()));
 
     if(received_pm.packet.empty()) {
-        Log(logs::eDEBUG, "~buildPacket(), packet empty");
+        Log(logs::eDEBUG2, "~buildPacket(), packet empty");
         return {};
     }
 
@@ -84,7 +84,7 @@ PacketMessage Socket::buildPacket(PacketMessage received_pm)
 
         it_pool = it->second.m_map_recv_fragments.erase(it_pool);
         it_pool = it->second.m_map_recv_fragments.find(it->second.m_in_next_sn); //ищем следующий фрагмент очереди
-        Log(logs::eDEBUG, "buildPacket(), find()");
+        Log(logs::eDEBUG2, "buildPacket(), find()");
     }
 
     //удалить всё, что теперь вне окна ожидания
@@ -95,7 +95,7 @@ PacketMessage Socket::buildPacket(PacketMessage received_pm)
         it_pool++;
     }
 
-    Log(logs::eDEBUG, "buildPacket(), prepare to build");
+    Log(logs::eDEBUG2, "buildPacket(), prepare to build");
     //попытаться собрать ОДИН пакет
     PacketMessage pm;
     pm.isBuiltComplete      = false;
@@ -139,7 +139,7 @@ PacketMessage Socket::buildPacket(PacketMessage received_pm)
             }
             pm.isError = true;
             pm.error.sn_finish = lastCounter;
-            Log(logs::eDEBUG, "~buildPacket(1), mapConnection size: " + std::to_string(m_map_connections.size()));
+            Log(logs::eDEBUG2, "~buildPacket(1), mapConnection size: " + std::to_string(m_map_connections.size()));
             return pm;
         }
 
@@ -161,7 +161,7 @@ PacketMessage Socket::buildPacket(PacketMessage received_pm)
             if(size != pm.packet.size()) {
                 pm.isError = true;
                 pm.error.sn_finish = lastCounter;
-                Log(logs::eDEBUG, "~buildPacket(2), mapConnection size: " + std::to_string(m_map_connections.size()));
+                Log(logs::eDEBUG2, "~buildPacket(2), mapConnection size: " + std::to_string(m_map_connections.size()));
                 return pm;
             }
 
@@ -182,7 +182,7 @@ PacketMessage Socket::buildPacket(PacketMessage received_pm)
         }
     }
 
-    Log(logs::eDEBUG, "~buildPacket(3), mapConnection size: " + std::to_string(m_map_connections.size()));
+    Log(logs::eDEBUG2, "~buildPacket(3), mapConnection size: " + std::to_string(m_map_connections.size()));
     return pm;
 }
 
@@ -208,6 +208,8 @@ void Socket::Log(const logs::LEVEL level, const std::string log_message, const s
             levelSubstring          = ".i";
             break;
         case logs::eDEBUG:
+        case logs::eDEBUG2:
+        case logs::eDEBUG3:
             currentCallback         = m_settings.getLogCallback();
             currentColorCallback    = m_settings.getColorLogCallback();
             levelSubstring          = ".d";
@@ -468,7 +470,7 @@ void UDPSocket::checkConnections()
     jPing.put("ping", this->getLocalIpPort().to_string());
 
     for(auto it = m_map_connections.begin(); it != m_map_connections.end(); it++) {
-        Log(logs::eDEBUG, "checkConnections() #1");
+        Log(logs::eDEBUG2, "checkConnections() #1");
 
         auto _now = std::chrono::system_clock::now();
         auto _inactivity = std::chrono::milliseconds(m_settings.getInactivityTimer());
@@ -478,13 +480,13 @@ void UDPSocket::checkConnections()
             && it->second.m_last_activity + _halfInactivity < _now
             ) {
             Log(logs::eDEBUG, "send ping to " + it->first.to_string());
-            Log(logs::eDEBUG, "expected time: " + logs::get_time_string(it->second.m_last_ping_time + _halfInactivity));
+            Log(logs::eDEBUG2, "expected time: " + logs::get_time_string(it->second.m_last_ping_time + _halfInactivity));
             sendFragments(it->first, eControlType, convert_to_packet(jPing.to_string(-1)));
             it->second.m_last_ping_time = std::chrono::system_clock::now();
             continue;
         }
 
-        Log(logs::eDEBUG, "checkConnections() #2");
+        Log(logs::eDEBUG2, "checkConnections() #2");
         //если долгое время не было сообщений от абонента, удалить все сообщения до него
         if(it->second.m_last_activity + _inactivity < _now) {
             Log(logs::eWARNING, "Connection " + it->first.to_string()
@@ -493,12 +495,12 @@ void UDPSocket::checkConnections()
             it = m_map_connections.erase(it);
         }
 
-        Log(logs::eDEBUG, "checkConnections() #3");
+        Log(logs::eDEBUG2, "checkConnections() #3");
         //если дошли до конца диапазона
         if(it == m_map_connections.end())
             break;
 
-        Log(logs::eDEBUG, "checkConnections() #4");
+        Log(logs::eDEBUG2, "checkConnections() #4");
     }
 }
 
