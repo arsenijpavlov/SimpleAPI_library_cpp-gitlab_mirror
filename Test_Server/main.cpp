@@ -66,6 +66,7 @@ int main(int argc, char** argv) {
 //    settings.setLogLevel(logs::eDEBUG);
     settings.enableLogTime(true);
     settings.enablePrintLogLevel(false);
+
     SocketThread st(eUDP, server, settings);
     st.m_settings.setLogLevel(logs::eINFO);
     st.m_settings.enableLogTime(true);

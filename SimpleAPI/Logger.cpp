@@ -62,11 +62,11 @@ const std::string to_string(const COLOR color)
 std::string to_color_string(const LEVEL level, const std::string& log_message) {
     COLOR color;
     switch(level) {
-    case eERROR:    color = eBRIGHT_RED_FG;     break;
-    case eWARNING:  color = eBRIGHT_YELLOW_FG;  break;
-    case eINFO:     color = eBRIGHT_GREEN_FG;   break;
-    case eDEBUG:    color = eBRIGHT_GRAY_FG;    break;
-    default:        color = eBRIGHT_RED_FG;     break;
+    case eERROR:    color = eRED_FG;     break;
+    case eWARNING:  color = eYELLOW_FG;  break;
+    case eINFO:     color = eGREEN_FG;   break;
+    case eDEBUG:    color = eGRAY_FG;    break;
+    default:        color = eRED_FG;     break;
     }
 
     return to_color_string(color, log_message);
