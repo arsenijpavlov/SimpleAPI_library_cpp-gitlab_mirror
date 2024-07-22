@@ -8,8 +8,8 @@ struct IpPort {
     std::string ip;
     uint16_t    port;
 
-    const bool operator==(const IpPort& other);
-    const bool operator!=(const IpPort& other);
+    const bool operator==(const IpPort& other) const;
+    const bool operator!=(const IpPort& other) const;
     const bool operator<(const IpPort& other) const;
     const bool operator>(const IpPort& other) const;
 

@@ -84,9 +84,11 @@ protected:
     void            Log(const logs::LEVEL level, const std::string log_message, const std::string color_log_message = "");
     void            setSettings(const SocketSettings settings = SocketSettings())
                     { m_settings = settings; }
-    SocketSettings  getSettings() { return m_settings; }
+    SocketSettings  getSettings()                       { return m_settings; }
 
-    void            sendFragments(const std::string& remote_ip, const uint16_t remote_port, const PacketType type, const Packet& packet);
+    void            sendFragments(const std::string& remote_ip, const uint16_t remote_port,
+                                  const PacketType type, const Packet& packet)
+                    { sendFragments(IpPort{remote_ip, remote_port}, type, packet); }
     virtual void    sendFragments(const IpPort& remote_ip_port, const PacketType type, const Packet& packet) = 0;
 
     virtual void    tick() = 0;
@@ -104,11 +106,11 @@ public:
      */
 
     //-----------------------------------------
-    void            setLogLevel(logs::LEVEL log_level) { m_settings.setLogLevel(log_level); }
-    IpPort          getLocalIpPort(){ return IpPort{m_local_ip, m_local_port}; }
-    bool            isChiphering() { /*TODO: isChiphering()*/ return false; }
+    void            setLogLevel(logs::LEVEL log_level)  { m_settings.setLogLevel(log_level); }
+    IpPort          getLocalIpPort()                    { return IpPort{m_local_ip, m_local_port}; }
+    bool            isChiphering()                      { /*TODO: isChiphering()*/ return false; }
     virtual bool    isConnected(const IpPort& remote_ip_port) = 0;
-    bool            isServerActive();
+    bool            isServerActive()                    { return m_socket_fd > 0; }
     //-----------------------------------------
     void            chiphering(Packet& packet) {};
     void            dechiphering(Packet& packet) {};

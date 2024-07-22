@@ -1,12 +1,12 @@
 #include "IpPort.h"
 
 
-const bool IpPort::operator==(const IpPort &other) {
+const bool IpPort::operator==(const IpPort &other) const {
     if(this->ip == other.ip && this->port == other.port)    return true;
     else                                                    return false;
 }
 
-const bool IpPort::operator!=(const IpPort &other) {
+const bool IpPort::operator!=(const IpPort &other) const {
     if(this->ip != other.ip || this->port != other.port)    return true;
     else                                                    return false;
 }

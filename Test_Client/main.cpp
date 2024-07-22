@@ -52,6 +52,7 @@ int main(int argc, char** argv) {
     settings.enablePrintLogLevel(false);
     settings.setNameColumnSize(NAME_COLUMN_SIZE);
     settings.enableNameColumnRightAlign(NAME_COLUMN_RIGHT_ALIGN);
+    settings.setLogLevel(logs::eDEBUG);
 
     SocketThread st(eUDP, server, settings);
     st.m_settings.setLogLevel(logs::eINFO);
