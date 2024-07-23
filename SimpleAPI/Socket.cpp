@@ -495,8 +495,8 @@ void UDPSocket::checkConnections()
         if(it->second.m_last_ping_time + _halfInactivity < _now
             && it->second.m_last_activity + _halfInactivity < _now
             ) {
-            log(logs::eDEBUG, "send ping to " + it->first.to_string());
-            log(logs::eDEBUG3, "expected time: " + logs::get_time_string(it->second.m_last_ping_time + _halfInactivity));
+            log(logs::eDEBUG, "Send ping to " + it->first.to_string());
+            log(logs::eDEBUG3, "Expected time: " + logs::get_time_string(it->second.m_last_ping_time + _halfInactivity));
             sendFragments(it->first, eControlType, convert_to_packet(jPing.to_string(-1)), false);
             it->second.m_last_ping_time = std::chrono::system_clock::now();
             continue;
@@ -547,7 +547,7 @@ void UDPSocket::checkConnections()
     log(logs::eDEBUG3, "checkConnections(), send found prepared packets");
     for(const prepPacket& current : packetsForSend) {
         if(!current.packet.empty()) {
-            log(logs::eDEBUG, "new try to send packet [0x" + utils::to_hex_string(current.packet) + "]");
+            log(logs::eDEBUG, "New try to send packet [0x" + utils::to_hex_string(current.packet) + "]");
             sendFragments(current.ipPort, current.type, current.packet); //переотправка
         }
     }
@@ -571,7 +571,7 @@ void UDPSocket::sendAutoMsg() {
         if(tp < std::chrono::system_clock::now()) { //нужно переотправить
             it = m_map_auto_sent_packets.erase(it);
             m_send_packets_buffer.push_front(pm);
-            log(logs::eDEBUG, "new try to send [" + std::to_string(it->second.sn.get()) + "] fragment");
+            log(logs::eDEBUG, "New try to send [" + std::to_string(it->second.sn.get()) + "] fragment");
 
             counter++;
             if(it == m_map_auto_sent_packets.end()) break;
@@ -586,6 +586,7 @@ void UDPSocket::sendAutoMsg() {
            ) {
         PacketMessage pm = m_send_packets_buffer.front();
         m_send_packets_buffer.pop_front();
+        log(logs::eDEBUG, "Sending [" + std::to_string(pm.sn.get()) + "] sn fragment " + pm.ipPort.to_string("to"));
         Socket::sendRawMsg(pm); //отправили
 
         if(pm.header.type != eControlType) { //контрольные пакеты не перепосылаются, поэтому хранить их не нужно
@@ -610,6 +611,7 @@ void UDPSocket::recvAutoMsg(int timeout) {
     pm.header = unpackHeader(pm.packet[0]);
     uint8_t glob_sn = pm.packet[1]; //TODO: нужна защита от некорректного размера чтения!
     uint8_t sn      = pm.packet[2];
+    log(logs::eDEBUG, "Received [" + std::to_string(sn) + "] sn " + pm.ipPort.to_string("from"));
     pm.sn = EECounter(255);
     pm.sn.set_glob_pos(glob_sn);
     pm.sn.set_pos(sn);
@@ -624,9 +626,8 @@ void UDPSocket::recvAutoMsg(int timeout) {
         controlAcknowledgement.put("ack_sn", (double)pm.sn.get()); //TODO: общий тип для всех числовых значений
         if(b_pm.isBuiltComplete)
             controlAcknowledgement.put("ack_all_packet", (double)b_pm.sn.get());
-        if(b_pm.isError) {
+        if(b_pm.isError)
             controlAcknowledgement.put("packet_error_last_sn", (double)b_pm.error.sn_finish.get());//TODO: проверка ошибок и переотправка
-        }
     }
 
     if(!b_pm.packet.empty()) {
@@ -704,7 +705,7 @@ void UDPSocket::recvAutoMsg(int timeout) {
                 }
 
                 if(!packet.empty()) {
-                    log(logs::eDEBUG, "new try resend packet [0x" + utils::to_hex_string(packet) + "]");
+                    log(logs::eDEBUG, "New try to send packet [0x" + utils::to_hex_string(packet) + "]");
                     sendFragments(ipPort, type, packet); //переотправка
                 }
             }

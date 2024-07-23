@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
     settings.setColorLogErrorCallback(LogError);
     settings.setNameColumnSize(NAME_COLUMN_SIZE);
     settings.enableNameColumnRightAlign(NAME_COLUMN_RIGHT_ALIGN);
-//    settings.setLogLevel(logs::eDEBUG);
+    settings.setLogLevel(logs::eDEBUG);
     settings.enableLogTime(true);
     settings.enablePrintLogLevel(false);
 
