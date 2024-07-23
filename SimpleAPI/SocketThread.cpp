@@ -2,9 +2,10 @@
 #include <iostream>
 #include <unistd.h>
 
+#define SOCKETS_THREAD_NAME "SERVERS_THREAD"
 
 void SocketThread::run() {
-    pthread_setname_np(pthread_self(), "SERVERS_THREAD");
+    pthread_setname_np(pthread_self(), SOCKETS_THREAD_NAME);
 
     while(this->isActive()) {
 
@@ -18,7 +19,7 @@ void SocketThread::run() {
     }
 }
 
-void SocketThread::Log(const logs::LEVEL level, const std::string log_message, const std::string color_log_message)
+void SocketThread::log(const logs::LEVEL level, const std::string log_message, const std::string color_log_message)
 {   
     LoggerSettings::LogCallback currentCallback = nullptr;
     LoggerSettings::LogCallback currentColorCallback = nullptr;
@@ -62,7 +63,7 @@ void SocketThread::Log(const logs::LEVEL level, const std::string log_message, c
     if(currentCallback)
         currentCallback(
             timeString
-            + logs::columned(std::string("[") + "SOCKET THREAD"
+            + logs::columned(std::string("[") + SOCKETS_THREAD_NAME
                                  + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
                                  + "]",
                              m_settings.getNameColumnSize(),
@@ -74,7 +75,7 @@ void SocketThread::Log(const logs::LEVEL level, const std::string log_message, c
     if(currentColorCallback)
         currentColorCallback(
             timeString
-            + logs::columned(level, std::string("[") + "SOCKET THREAD"
+            + logs::columned(level, std::string("[") + SOCKETS_THREAD_NAME
                                            + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
                                            + "]",
                              m_settings.getNameColumnSize(),
@@ -137,22 +138,22 @@ bool SocketThread::send(const IpPort &source, const IpPort &destination, const J
 
 void SocketThread::startThread() {
     if(!isActive()) {
-        Log(logs::eDEBUG, "starting...");
+        log(logs::eDEBUG, "starting...");
         m_active = true;
 
         m_thread = std::thread(&SocketThread::run, this);
-        Log(logs::eINFO, "started");
+        log(logs::eINFO, "started");
     }
 }
 
 void SocketThread::stopThread() {
     if(isActive()) {
-        Log(logs::eDEBUG, "stop...");
+        log(logs::eDEBUG, "stop...");
         m_active = false; //дали сигнал на остановку
 
         if(m_thread.joinable()) {
             m_thread.join(); //ждём завершения потока
-            Log(logs::eINFO, "stopped");
+            log(logs::eINFO, "stopped");
         }
     }
 }
@@ -171,7 +172,6 @@ void SocketThread::setAllSocketsSettings(const SocketSettings settings)
 
 void SocketThread::setSocketsSettings(const IpPort& local_ip_port, const SocketSettings settings)
 {
-
     auto it = m_sockets.find(local_ip_port);
     if(it != m_sockets.end())
         it->second->setSettings(settings);

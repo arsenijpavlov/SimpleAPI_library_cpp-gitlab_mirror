@@ -15,7 +15,7 @@ public:
 
 private:
     void run();
-    void Log(const logs::LEVEL level, const std::string log_message, const std::string color_log_message = "");
+    void log(const logs::LEVEL level, const std::string log_message, const std::string color_log_message = "");
 
 public:
     SocketThread() :

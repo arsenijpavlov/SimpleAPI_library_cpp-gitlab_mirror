@@ -29,7 +29,8 @@ void RecvJson(JsonMessage jm) {
               << logs::columned(MAIN_COLOR, "[CLIENT]",
                                 NAME_COLUMN_SIZE,
                                 NAME_COLUMN_RIGHT_ALIGN) << " "
-              << "recv json: " << jm.to_string()
+              << logs::to_color_string({logs::COLOR::eGREEN_BG, logs::COLOR::eWHITE_FG},
+                                       "recv json: " + jm.to_string())
               << std::endl;
 }
 void Log(std::string msg) {

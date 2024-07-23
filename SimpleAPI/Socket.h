@@ -81,15 +81,16 @@ protected:
     EECounter&      getOutSeqNumber(const IpPort& ip_port);
     PacketMessage   buildPacket(PacketMessage received_pm);
 
-    void            Log(const logs::LEVEL level, const std::string log_message, const std::string color_log_message = "");
+    void            log(const logs::LEVEL level, const std::string log_message, const std::string color_log_message = "");
     void            setSettings(const SocketSettings settings = SocketSettings())
                     { m_settings = settings; }
     SocketSettings  getSettings()                       { return m_settings; }
 
     void            sendFragments(const std::string& remote_ip, const uint16_t remote_port,
-                                  const PacketType type, const Packet& packet)
-                    { sendFragments(IpPort{remote_ip, remote_port}, type, packet); }
-    virtual void    sendFragments(const IpPort& remote_ip_port, const PacketType type, const Packet& packet) = 0;
+                                  const PacketType type, const Packet& packet, const bool need_ack = true)
+                    { sendFragments(IpPort{remote_ip, remote_port}, type, packet, need_ack); }
+    virtual void    sendFragments(const IpPort& remote_ip_port, const PacketType type,
+                                  const Packet& packet, const bool need_ack = true) = 0;
 
     virtual void    tick() = 0;
     virtual void    sendAutoMsg() = 0;
@@ -98,8 +99,10 @@ protected:
     friend class SocketThread; //для функции tick()
 
 public:
-                    Socket() : m_socket_fd(-1), m_settings(SocketSettings()) {}
-    virtual         ~Socket(){}
+                    Socket() :
+                        m_socket_fd(-1),
+                        m_settings(SocketSettings())    {}
+    virtual         ~Socket()                           {}
     /*NOTE: (описания конструкторов сервера)
      * конструктор с адресом
      * конструктор с адресом И настройками
@@ -112,8 +115,8 @@ public:
     virtual bool    isConnected(const IpPort& remote_ip_port) = 0;
     bool            isServerActive()                    { return m_socket_fd > 0; }
     //-----------------------------------------
-    void            chiphering(Packet& packet) {};
-    void            dechiphering(Packet& packet) {};
+    void            chiphering(Packet& packet)          {}
+    void            dechiphering(Packet& packet)        {}
     virtual void    startServer() = 0;
     virtual void    stopServer() = 0;
     void            close();
@@ -147,7 +150,8 @@ class UDPSocket : public Socket {
     //ONLY FOR USE IN SOCKET_THREAD!
     /* принятый пакет делится на части, пришиваются необходимые заголовки
      * и полученные фрагменты прокидываются в очередь на отправку через функцию sendAutoMsg */
-    void            sendFragments(const IpPort& remote_ip_port, const PacketType type, const Packet& packet);
+    void            sendFragments(const IpPort& remote_ip_port, const PacketType type,
+                                  const Packet& packet, const bool need_ack = true);
 
     void            tick();
     void            checkConnections();//только UDP, проверка коннекта
