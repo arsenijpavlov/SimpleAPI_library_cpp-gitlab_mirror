@@ -586,7 +586,8 @@ void UDPSocket::sendAutoMsg() {
            ) {
         PacketMessage pm = m_send_packets_buffer.front();
         m_send_packets_buffer.pop_front();
-        log(logs::eDEBUG, "Sending [" + std::to_string(pm.sn.get()) + "] sn fragment " + pm.ipPort.to_string("to"));
+        log(logs::eDEBUG, "Sending [" + std::to_string(pm.sn.get()) + "] sn fragment, data:[0x"
+                              + utils::to_hex_string(pm.packet) + "] " + pm.ipPort.to_string("to"));
         Socket::sendRawMsg(pm); //отправили
 
         if(pm.header.type != eControlType) { //контрольные пакеты не перепосылаются, поэтому хранить их не нужно
@@ -611,7 +612,8 @@ void UDPSocket::recvAutoMsg(int timeout) {
     pm.header = unpackHeader(pm.packet[0]);
     uint8_t glob_sn = pm.packet[1]; //TODO: нужна защита от некорректного размера чтения!
     uint8_t sn      = pm.packet[2];
-    log(logs::eDEBUG, "Received [" + std::to_string(sn) + "] sn " + pm.ipPort.to_string("from"));
+    log(logs::eDEBUG, "Received [" + std::to_string(sn) + "] sn fragment, data:[0x"
+                          + utils::to_hex_string(pm.packet) + "] " + pm.ipPort.to_string("from"));
     pm.sn = EECounter(255);
     pm.sn.set_glob_pos(glob_sn);
     pm.sn.set_pos(sn);
