@@ -43,14 +43,14 @@ bool EECounter::operator!=(const EECounter &other) const {
 bool EECounter::operator<(const EECounter &other) const {
     _INCOMPATIBLE_EXCEPTION_
 
-    if(this->pos < other.pos && this->global_pos < other.global_pos)    return true;
+    if(this->pos < other.pos && this->global_pos <= other.global_pos)   return true;
     else                                                                return false;
 }
 
 bool EECounter::operator>(const EECounter &other) const {
     _INCOMPATIBLE_EXCEPTION_
 
-    if(this->pos > other.pos && this->global_pos > other.global_pos)    return true;
+    if(this->pos > other.pos && this->global_pos >= other.global_pos)   return true;
     else                                                                return false;
 }
 
