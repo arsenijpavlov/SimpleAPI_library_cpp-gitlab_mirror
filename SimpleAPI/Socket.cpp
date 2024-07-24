@@ -56,15 +56,15 @@ PacketMessage Socket::buildPacket(PacketMessage received_pm)
     auto it = m_map_connections.find(received_pm.ipPort);
     if(it == m_map_connections.end()) {
         it = m_map_connections.insert(std::make_pair(received_pm.ipPort, Connection())).first;
-        //первое подключение от адресата, сигнализировать о наличии соединения(!)
-        Json jPing;
-        jPing.put("ping", this->getLocalIpPort().to_string());
-        log(logs::eDEBUG,
-            "Send initial ping to " + it->first.to_string(),
-            logs::to_color_string({logs::eGREEN_BG, logs::eWHITE_FG},
-                                  "Send initial ping to " + it->first.to_string()));
-        sendFragments(it->first, eControlType, convert_to_packet(jPing.to_string(-1)), false);
-        it->second.m_last_ping_time = std::chrono::system_clock::now();
+//        //первое подключение от адресата, сигнализировать о наличии соединения(!)
+//        Json jPing;
+//        jPing.put("ping", this->getLocalIpPort().to_string());
+//        log(logs::eDEBUG,
+//            "Send initial ping to " + it->first.to_string(),
+//            logs::to_color_string({logs::eGREEN_BG, logs::eWHITE_FG},
+//                                  "Send initial ping to " + it->first.to_string()));
+//        sendFragments(it->first, eControlType, convert_to_packet(jPing.to_string(-1)), false);
+//        it->second.m_last_ping_time = std::chrono::system_clock::now();
     }
     it->second.m_last_activity = std::chrono::system_clock::now();
     log(logs::eDEBUG3, "buildPacket(), mapConnection size: " + std::to_string(m_map_connections.size()));
@@ -93,7 +93,7 @@ PacketMessage Socket::buildPacket(PacketMessage received_pm)
     } else if (received_pm.sn < it->second.m_in_next_sn) {
         log(logs::eDEBUG,
             "IGNORING, fragment has already been received!",
-            logs::to_color_string(logs::eBRIGHT_YELLOW_BG, "IGNORING") + ", fragment has already been received!");
+            logs::to_color_string({logs::eGRAY_BG, logs::eWHITE_FG}, "IGNORING") + ", fragment has already been received!");
 
         //если имеющийся пакет с таким SN отличается по содержанию, то необходимо обновить мапу
         auto it_fragment = it->second.m_map_recv_fragments.find(received_pm.sn);
@@ -108,7 +108,7 @@ PacketMessage Socket::buildPacket(PacketMessage received_pm)
             }
         }
     } else {
-        log(logs::eDEBUG, "the fragment has been received, but will not be processed yet");
+        log(logs::eDEBUG, "fragment received, but will be processed later");
         it->second.m_map_recv_fragments.insert(std::make_pair(received_pm.sn, received_pm));
     }
 
@@ -238,6 +238,14 @@ PacketMessage Socket::buildPacket(PacketMessage received_pm)
 
     log(logs::eDEBUG3, "~buildPacket(3), mapConnection size: " + std::to_string(m_map_connections.size()));
     return pm;
+}
+
+void Socket::updateLastOutputActivityTime(const IpPort& remote_ip_port) {
+    auto it = m_map_connections.find(remote_ip_port);
+    if(it == m_map_connections.end())
+        it = m_map_connections.insert(std::make_pair(remote_ip_port, Connection())).first;
+
+    it->second.m_last_ping_time = std::chrono::system_clock::now();
 }
 
 void Socket::log(const logs::LEVEL level, const std::string log_message, const std::string color_log_message)
@@ -500,11 +508,11 @@ void UDPSocket::sendFragments(const IpPort &remote_ip_port, const PacketType typ
             "append ["
                 + (jm.json.isEmpty() ? "Data:0x" + utils::to_hex_string(pm.packet)
                                      : "Json:" + jm.json.to_string(-1))
-                + "]" + appendString,
-            logs::to_color_string(GLOBAL_APPEND_MSG_COLOR, "append ["
-                + (jm.json.isEmpty() ? "Data:0x" + utils::to_hex_string(pm.packet)
-                                     : "Json:" + jm.json.to_string(-1))
-                + "]" + appendString));
+                + "] " + appendString);//,
+//            logs::to_color_string(GLOBAL_APPEND_MSG_COLOR, "append ["
+//                + (jm.json.isEmpty() ? "Data:0x" + utils::to_hex_string(pm.packet)
+//                                     : "Json:" + jm.json.to_string(-1))
+//                + "] " + appendString));
     }
 }
 
@@ -548,7 +556,7 @@ void UDPSocket::checkConnections()
         if(it->second.m_last_ping_time + _halfInactivity < _now
             && it->second.m_last_activity + _halfInactivity < _now
             ) {
-            log(logs::eDEBUG, "Send ping to " + it->first.to_string());
+            log(logs::eDEBUG2, "Send ping to " + it->first.to_string());
             log(logs::eDEBUG3, "Expected time: " + logs::get_time_string(it->second.m_last_ping_time + _halfInactivity));
             sendFragments(it->first, eControlType, convert_to_packet(jPing.to_string(-1)), false);
             it->second.m_last_ping_time = std::chrono::system_clock::now();
@@ -649,7 +657,9 @@ void UDPSocket::sendAutoMsg() {
             logs::to_color_string(OUTPUT_MSG_COLOR,"Sending")
              + " [" + std::to_string(pm.sn.get()) + "] sn fragment, data:[0x"
              + utils::to_hex_string(pm.packet) + "] " + pm.ipPort.to_string("to"));
+
         Socket::sendRawMsg(pm); //отправили
+        updateLastOutputActivityTime(pm.ipPort);
 
         if(pm.header.type != eControlType) { //контрольные пакеты не перепосылаются, поэтому хранить их не нужно
             //запоминаем для ожидания ответа или досылки
@@ -694,7 +704,7 @@ void UDPSocket::recvAutoMsg(int timeout) {
 
     Json controlAcknowledgement;
     if(pm.header.type != eControlType) {
-        log(logs::eDEBUG, "Send acknowledge for message(" + std::to_string(pm.sn.get()) + ")");
+        log(logs::eDEBUG, "Send acknowledge for message sn=" + std::to_string(pm.sn.get()));
         controlAcknowledgement.put("ack_sn", (double)pm.sn.get()); //TODO: общий тип для всех числовых значений
         if(b_pm.isBuiltComplete)
             controlAcknowledgement.put("ack_all_packet", (double)b_pm.sn.get());

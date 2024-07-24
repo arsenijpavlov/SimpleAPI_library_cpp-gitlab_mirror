@@ -80,6 +80,7 @@ protected:
     PacketHeader    unpackHeader(const uint8_t header);
     EECounter&      getOutSeqNumber(const IpPort& ip_port);
     PacketMessage   buildPacket(PacketMessage received_pm);
+    void            updateLastOutputActivityTime(const IpPort& remote_ip_port);
 
     void            log(const logs::LEVEL level, const std::string log_message, const std::string color_log_message = "");
     void            setSettings(const SocketSettings settings = SocketSettings())
