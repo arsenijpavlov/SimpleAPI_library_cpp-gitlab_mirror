@@ -94,6 +94,19 @@ PacketMessage Socket::buildPacket(PacketMessage received_pm)
         log(logs::eDEBUG,
             "IGNORING, fragment has already been received!",
             logs::to_color_string(logs::eBRIGHT_YELLOW_BG, "IGNORING") + ", fragment has already been received!");
+
+        //если имеющийся пакет с таким SN отличается по содержанию, то необходимо обновить мапу
+        auto it_fragment = it->second.m_map_recv_fragments.find(received_pm.sn);
+        if(it_fragment != it->second.m_map_recv_fragments.end()) {
+            if(it_fragment->second.packet != received_pm.packet) {
+                log(logs::eDEBUG,
+                    "This fragment is different from the existing one, updating map...",
+                    logs::to_color_string(logs::eBRIGHT_YELLOW_BG,
+                                          "This fragment is different from the existing one, updating map..."));
+                it->second.m_map_recv_fragments.erase(it_fragment);
+                it->second.m_map_recv_fragments.insert(std::make_pair(received_pm.sn, received_pm));
+            }
+        }
     } else {
         log(logs::eDEBUG, "the fragment has been received, but will not be processed yet");
         it->second.m_map_recv_fragments.insert(std::make_pair(received_pm.sn, received_pm));
