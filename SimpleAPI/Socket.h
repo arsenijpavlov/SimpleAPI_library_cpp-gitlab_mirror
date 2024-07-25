@@ -51,6 +51,8 @@ public:
 
 class Socket {
 protected:
+    using MapConnectionsIterator = std::map<IpPort, Connection>::iterator;
+
     int         m_socket_fd;
     SocketType  m_socket_type;
     std::string m_local_ip;
@@ -79,7 +81,8 @@ protected:
     uint8_t         packHeader(const PacketHeader& ph);
     PacketHeader    unpackHeader(const uint8_t header);
     EECounter&      getOutSeqNumber(const IpPort& ip_port);
-    PacketMessage   buildPacket(PacketMessage received_pm);
+    void            appendNewFragment(const PacketMessage& received_pm);
+    PacketMessage   buildPacket(MapConnectionsIterator& it);
     void            updateLastOutputActivityTime(const IpPort& remote_ip_port);
 
     void            log(const logs::LEVEL level, const std::string log_message, const std::string color_log_message = "");
@@ -95,7 +98,8 @@ protected:
 
     virtual void    tick() = 0;
     virtual void    sendAutoMsg() = 0;
-    virtual void    recvAutoMsg(int timeout) = 0;
+    virtual Json    recvAutoMsg(int timeout) = 0;
+    virtual Json    processingBuiltPacket(const PacketMessage& pm) = 0;
     //=====================================
     friend class SocketThread; //для функции tick()
 
@@ -104,10 +108,6 @@ public:
                         m_socket_fd(-1),
                         m_settings(SocketSettings())    {}
     virtual         ~Socket()                           {}
-    /*NOTE: (описания конструкторов сервера)
-     * конструктор с адресом
-     * конструктор с адресом И настройками
-     */
 
     //-----------------------------------------
     void            setLogLevel(logs::LEVEL log_level)  { m_settings.setLogLevel(log_level); }
@@ -157,7 +157,8 @@ class UDPSocket : public Socket {
     void            tick();
     void            checkConnections();//только UDP, проверка коннекта
     void            sendAutoMsg();
-    void            recvAutoMsg(int timeout);
+    Json            recvAutoMsg(int timeout);
+    Json            processingBuiltPacket(const PacketMessage& pm);
     //=====================================
 
 public:

@@ -51,27 +51,19 @@ EECounter& Socket::getOutSeqNumber(const IpPort& ip_port) {
     return it->second.m_out_sn;
 }
 
-PacketMessage Socket::buildPacket(PacketMessage received_pm)
+void Socket::appendNewFragment(const PacketMessage& received_pm)
 {
     auto it = m_map_connections.find(received_pm.ipPort);
     if(it == m_map_connections.end()) {
         it = m_map_connections.insert(std::make_pair(received_pm.ipPort, Connection())).first;
-//        //первое подключение от адресата, сигнализировать о наличии соединения(!)
-//        Json jPing;
-//        jPing.put("ping", this->getLocalIpPort().to_string());
-//        log(logs::eDEBUG,
-//            "Send initial ping to " + it->first.to_string(),
-//            logs::to_color_string({logs::eGREEN_BG, logs::eWHITE_FG},
-//                                  "Send initial ping to " + it->first.to_string()));
-//        sendFragments(it->first, eControlType, convert_to_packet(jPing.to_string(-1)), false);
-//        it->second.m_last_ping_time = std::chrono::system_clock::now();
     }
     it->second.m_last_activity = std::chrono::system_clock::now();
+
     log(logs::eDEBUG3, "buildPacket(), mapConnection size: " + std::to_string(m_map_connections.size()));
 
     if(received_pm.packet.empty()) {
         log(logs::eDEBUG3, "~buildPacket(), packet empty");
-        return {};
+        return;
     }
 
     log(logs::eDEBUG,
@@ -145,7 +137,9 @@ PacketMessage Socket::buildPacket(PacketMessage received_pm)
             it_pool++;
         }
     }
+}
 
+PacketMessage Socket::buildPacket(MapConnectionsIterator& it) {
     log(logs::eDEBUG3, "buildPacket(), prepare to build");
     //попытаться собрать ОДИН пакет
     PacketMessage pm;
@@ -180,6 +174,8 @@ PacketMessage Socket::buildPacket(PacketMessage received_pm)
         if(it->second.m_map_recv_builded_messages.find(lastCounter)->second.header.isLastFragment)
             isFinished = true;
 
+        //всё, что пришло до этого - удалится
+        EECounter rmSn = it->second.m_in_sn_last_recv - (it->second.m_in_sn_last_recv.size() / 2); //размер окна - половина диапазонаe
         //пакет не состоялся, удалить все фрагменты
         if(!isStarted && isFinished && (firstCounter < rmSn)) {
             auto it_build = it->second.m_map_recv_builded_messages.begin();
@@ -517,11 +513,35 @@ void UDPSocket::sendFragments(const IpPort &remote_ip_port, const PacketType typ
 }
 
 void UDPSocket::tick() {
+    std::map<IpPort, Json> acknowledgeMap;
     checkConnections();
 
+    //отправка фрагментов
     sendAutoMsg();
-    recvAutoMsg(1);
 
+    //приём фрагментов
+    Json jRecv = recvAutoMsg(1);
+    if(jRecv.contains("ping")) { //только для первого подключения
+        std::string ipPortString = jRecv["ping"].getString();
+        IpPort remoteIpPort;
+        if(remoteIpPort.from_string(ipPortString))
+            acknowledgeMap.insert(std::pair<IpPort, Json>(remoteIpPort, jRecv));
+    }
+
+    //сборка пакетов для всех активных соединений
+    for(auto it = m_map_connections.begin(); it != m_map_connections.end(); it++) {
+        PacketMessage b_pm = buildPacket(it);
+        Json jProc = processingBuiltPacket(b_pm);
+        jProc.put(jRecv); //TODO: реализовать вложение полей из одного json в другой
+
+        auto it_json = acknowledgeMap.find(it->first);
+        if(it_json != acknowledgeMap.end()) {
+            if(!it_json->second.isEmpty())
+                sendFragments(it->first, eControlType, convert_to_packet(jProc.to_string(-1)), false);
+        }
+    }
+
+    //выдача собранных пакетов пользователю API
     PacketMessage pm = getOutPacket();
     if(!pm.packet.empty() && m_settings.getPacketCallback())
         m_settings.getPacketCallback()(pm);
@@ -674,11 +694,11 @@ void UDPSocket::sendAutoMsg() {
     m_output_threads_mutex.unlock();
 }
 
-void UDPSocket::recvAutoMsg(int timeout) {
+Json UDPSocket::recvAutoMsg(int timeout) {
     log(logs::eDEBUG2, "recvAutoMsg()");
 
     PacketMessage pm = recvRawMsg(1);
-    if(pm.packet.empty()) return;
+    if(pm.packet.empty()) return {};
 
     pm.header = unpackHeader(pm.packet[0]);
     uint8_t glob_sn = pm.packet[1]; //TODO: нужна защита от некорректного размера чтения!
@@ -699,32 +719,47 @@ void UDPSocket::recvAutoMsg(int timeout) {
             + ", data:[0x"
             + utils::to_hex_string(pm.packet) + "] " + pm.ipPort.to_string("from"));
 
-    PacketMessage b_pm = buildPacket(pm);
-    JsonMessage jm = b_pm;
+    Json outputJson;
+    auto it = m_map_connections.find(pm.ipPort);
+    if(it == m_map_connections.end() && pm.header.type == eControlType) {
+        //если первый пакет от адресата является контрольным и НЕ требует отчёта о доставке
+        outputJson.put("ping", this->getLocalIpPort().to_string());
+    }
 
+    appendNewFragment(pm);
+
+    return outputJson;
+}
+
+Json UDPSocket::processingBuiltPacket(const PacketMessage &pm)
+{
+    JsonMessage jm = pm;
+
+    //=========================================================================================
     Json controlAcknowledgement;
     if(pm.header.type != eControlType) {
         log(logs::eDEBUG, "Send acknowledge for message sn=" + std::to_string(pm.sn.get()));
         controlAcknowledgement.put("ack_sn", (double)pm.sn.get()); //TODO: общий тип для всех числовых значений
-        if(b_pm.isBuiltComplete)
-            controlAcknowledgement.put("ack_all_packet", (double)b_pm.sn.get());
-        if(b_pm.isError)
-            controlAcknowledgement.put("packet_error_last_sn", (double)b_pm.error.sn_finish.get());//TODO: проверка ошибок и переотправка
+        if(pm.isBuiltComplete)
+            controlAcknowledgement.put("ack_all_packet", (double)pm.sn.get());
+        if(pm.isError)
+            controlAcknowledgement.put("packet_error_last_sn", (double)pm.error.sn_finish.get());//TODO: проверка ошибок и переотправка
     }
+    //=========================================================================================
 
-    if(!b_pm.packet.empty()) {
-        log(b_pm.header.type != eControlType ? logs::eINFO : logs::eDEBUG,
-            "Built packet: "+ to_string(b_pm.header.type) + " ["
-                + (jm.json.isEmpty() ? "Data:0x" + utils::to_hex_string(b_pm.packet)
+    if(!pm.packet.empty()) {
+        log(pm.header.type != eControlType ? logs::eINFO : logs::eDEBUG,
+            "Built packet: "+ to_string(pm.header.type) + " ["
+                + (jm.json.isEmpty() ? "Data:0x" + utils::to_hex_string(pm.packet)
                                      : "Json:" + jm.json.to_string(-1))
-                + "] " + b_pm.ipPort.to_string("from"),
-            logs::to_color_string(INPUT_MSG_COLOR, "Built packet") + ": "+ to_string(b_pm.header.type) + " ["
-                + (jm.json.isEmpty() ? "Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::to_hex_string(b_pm.packet))
+                + "] " + pm.ipPort.to_string("from"),
+            logs::to_color_string(INPUT_MSG_COLOR, "Built packet") + ": "+ to_string(pm.header.type) + " ["
+                + (jm.json.isEmpty() ? "Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::to_hex_string(pm.packet))
                                      : "Json:" + logs::to_color_string(FULL_MSG_COLOR, jm.json.to_string(-1)))
-                + "] " + b_pm.ipPort.to_string("from"));
+                + "] " + pm.ipPort.to_string("from"));
 
         //обработка собранного пакета (1 за проход)
-        if(b_pm.header.type == eControlType) {
+        if(pm.header.type == eControlType) {
             if(jm.json.contains("ack_sn")) {
                 uint8_t sn = jm.json["ack_sn"].getNum();
                 for(auto it = m_map_auto_sent_packets.begin(); it != m_map_auto_sent_packets.end(); it++) {
@@ -793,21 +828,20 @@ void UDPSocket::recvAutoMsg(int timeout) {
             m_input_threads_mutex.lock();
             if(jm.json.isEmpty()) {
                 log(logs::eDEBUG,
-                    "insert packet " + to_string(b_pm.header.type) + " to storage",
-                    logs::to_color_string(logs::eBLUE_FG, "insert packet " + to_string(b_pm.header.type) + " to storage"));
-                m_map_recv_packets_buffer.push_back(b_pm);
+                    "insert packet " + to_string(pm.header.type) + " to storage",
+                    logs::to_color_string({logs::eGRAY_BG, logs::eWHITE_FG}, "insert packet " + to_string(pm.header.type) + " to storage"));
+                m_map_recv_packets_buffer.push_back(pm);
             } else {
                 log(logs::eDEBUG,
-                    "insert packet " + to_string(b_pm.header.type) + " to storage",
-                    logs::to_color_string(logs::eBLUE_FG, "insert packet " + to_string(b_pm.header.type) + " to storage"));
+                    "insert packet " + to_string(pm.header.type) + " to storage",
+                    logs::to_color_string({logs::eGRAY_BG, logs::eWHITE_FG}, "insert packet " + to_string(pm.header.type) + " to storage"));
                 m_map_recv_jsons_buffer.push_back(jm);
             }
             m_input_threads_mutex.unlock();
         }
     }
 
-    if(!controlAcknowledgement.isEmpty())
-        sendFragments(pm.ipPort, eControlType, convert_to_packet(controlAcknowledgement.to_string(-1)), false);
+    return controlAcknowledgement;
 }
 
 
