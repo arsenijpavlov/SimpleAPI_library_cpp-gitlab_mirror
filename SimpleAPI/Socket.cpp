@@ -531,8 +531,9 @@ void UDPSocket::tick() {
     //сборка пакетов для всех активных соединений
     for(auto it = m_map_connections.begin(); it != m_map_connections.end(); it++) {
         PacketMessage b_pm = buildPacket(it);
+
         Json jProc = processingBuiltPacket(b_pm);
-        jProc.put(jRecv); //TODO: реализовать вложение полей из одного json в другой
+        jProc.put(jRecv);
 
         auto it_json = acknowledgeMap.find(it->first);
         if(it_json != acknowledgeMap.end()) {
@@ -723,7 +724,11 @@ Json UDPSocket::recvAutoMsg(int timeout) {
     auto it = m_map_connections.find(pm.ipPort);
     if(it == m_map_connections.end() && pm.header.type == eControlType) {
         //если первый пакет от адресата является контрольным и НЕ требует отчёта о доставке
+        log(logs::eDEBUG, "Send initial ping for message sn=" + std::to_string(pm.sn.get()));
         outputJson.put("ping", this->getLocalIpPort().to_string());
+    } else {
+        log(logs::eDEBUG, "Send acknowledge for message sn=" + std::to_string(pm.sn.get()));
+        outputJson.put("ack_sn", (double)pm.sn.get());
     }
 
     appendNewFragment(pm);
@@ -733,19 +738,9 @@ Json UDPSocket::recvAutoMsg(int timeout) {
 
 Json UDPSocket::processingBuiltPacket(const PacketMessage &pm)
 {
-    JsonMessage jm = pm;
+//    if(pm.packet.empty()) return {};
 
-    //=========================================================================================
-    Json controlAcknowledgement;
-    if(pm.header.type != eControlType) {
-        log(logs::eDEBUG, "Send acknowledge for message sn=" + std::to_string(pm.sn.get()));
-        controlAcknowledgement.put("ack_sn", (double)pm.sn.get()); //TODO: общий тип для всех числовых значений
-        if(pm.isBuiltComplete)
-            controlAcknowledgement.put("ack_all_packet", (double)pm.sn.get());
-        if(pm.isError)
-            controlAcknowledgement.put("packet_error_last_sn", (double)pm.error.sn_finish.get());//TODO: проверка ошибок и переотправка
-    }
-    //=========================================================================================
+    JsonMessage jm = pm;
 
     if(!pm.packet.empty()) {
         log(pm.header.type != eControlType ? logs::eINFO : logs::eDEBUG,
@@ -841,6 +836,17 @@ Json UDPSocket::processingBuiltPacket(const PacketMessage &pm)
         }
     }
 
+    //=========================================================================================
+    Json controlAcknowledgement;
+    if(pm.header.type != eControlType) {
+//        log(logs::eDEBUG, "Send acknowledge for message sn=" + std::to_string(pm.sn.get()));
+//        controlAcknowledgement.put("ack_sn", (double)pm.sn.get()); //TODO: общий тип для всех числовых значений
+        if(pm.isBuiltComplete)
+            controlAcknowledgement.put("ack_all_packet", (double)pm.sn.get());
+        if(pm.isError)
+            controlAcknowledgement.put("packet_error_last_sn", (double)pm.error.sn_finish.get());//TODO: проверка ошибок и переотправка
+    }
+    //=========================================================================================
     return controlAcknowledgement;
 }
 
