@@ -369,6 +369,49 @@ Json &Json::operator=(const Json &other) {
     return *this;
 }
 
+bool Json::put(const Json &other/*, TODO: bool для обновления дублей*/)
+{
+    for(const JPair &el : other.m_values) {
+        if(contains(el.first)) continue; //NOTE: дубли пропустятся
+
+        Element new_element;
+
+        switch(el.second.first) {
+        case eNumber: {
+            double value = reinterpret_cast<DoubleElement*>(el.second.second)->m_value;
+            new_element = Element(el.second.first, reinterpret_cast<BaseElement*>(new DoubleElement(value)));
+            break;
+        }
+        case eBool: {
+            bool value = reinterpret_cast<BoolElement*>(el.second.second)->m_value;
+            new_element = Element(el.second.first, reinterpret_cast<BaseElement*>(new BoolElement(value)));
+            break;
+        }
+        case eString: {
+            std::string value = reinterpret_cast<StringElement*>(el.second.second)->m_value;
+            new_element = Element(el.second.first, reinterpret_cast<BaseElement*>(new StringElement(value)));
+            break;
+        }
+        case eJson: {
+            Json value = reinterpret_cast<JsonElement*>(el.second.second)->m_value;
+            new_element = Element(el.second.first, reinterpret_cast<BaseElement*>(new JsonElement(value)));
+            break;
+        }
+        case eArray: {
+            Array value = reinterpret_cast<ArrayElement*>(el.second.second)->m_value;
+            new_element = Element(el.second.first, reinterpret_cast<BaseElement*>(new ArrayElement(value)));
+            break;
+        }
+        case eNull: break;
+        }
+
+        if(el.second.first != eNull)
+            m_values.push_back(std::make_pair(el.first, new_element));
+    }
+
+    return true;
+}
+
 bool Json::isValueExists(const std::string& name)
 {
     for(const auto &it : m_values) {

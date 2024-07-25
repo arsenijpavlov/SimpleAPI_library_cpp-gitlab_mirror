@@ -176,6 +176,7 @@ public:
 
     Json&       operator=(const Json& other);
 
+    //TODO: возврат bool не имеет смысла
     __ONLY_ALLOWED_TYPES__(T)
     bool        put(const std::string& key, const T value)
     {
@@ -185,9 +186,12 @@ public:
         } else
             return false;
     }
+    bool        put(const Json& json);
 
     __ONLY_ALLOWED_TYPES__(T)
     bool        add(const std::string& key, const T value)      { return this->put(key, value); }
+    bool        add(const Json& json)                           { return this->put(json); }
+    bool        append(const Json& json)                        { return this->put(json); }
 
     bool        isValueExists(const std::string& name);
 
