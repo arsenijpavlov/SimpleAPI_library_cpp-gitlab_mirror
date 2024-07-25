@@ -14,6 +14,7 @@ struct IpPort {
     const bool operator>(const IpPort& other) const;
 
     std::string to_string(std::string info = "") const;
+    bool from_string(std::string ip_port_string);
 };
 
 #endif // IP_PORT_H
