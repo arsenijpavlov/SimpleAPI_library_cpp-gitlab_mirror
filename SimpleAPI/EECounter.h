@@ -34,7 +34,7 @@ public:
 
     EECounter&  operator=(const EECounter& other);
 
-    uint64_t    get();
+    uint64_t    get() const;
     uint64_t    get_add();
     uint64_t    get_next();
     uint64_t    get_glob();

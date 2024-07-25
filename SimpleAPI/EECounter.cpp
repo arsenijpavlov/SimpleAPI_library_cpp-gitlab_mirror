@@ -110,7 +110,7 @@ EECounter &EECounter::operator=(const EECounter &other) {
     return *this;
 }
 
-uint64_t EECounter::get() {
+uint64_t EECounter::get() const {
     return pos;
 }
 
