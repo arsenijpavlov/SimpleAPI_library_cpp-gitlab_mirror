@@ -9,11 +9,19 @@ Packet convert_to_packet(const std::string& str) {
     return packet;
 }
 
+Packet convert_to_packet(const char *str) {
+    return convert_to_packet(std::string(str)); //не перемещать реализацию в header
+}
+
 std::string convert_from_packet(const Packet &packet) {
     std::string str;
     str.resize(packet.size());
     std::copy(packet.begin(), packet.end(), str.begin());
     return str;
+}
+
+std::string to_string(const Packet &packet) {
+    return std::string((char*)packet.data(), packet.size()); //не перемещать реализацию в header
 }
 
 std::string to_string(PacketType type) {
@@ -63,3 +71,4 @@ std::string JsonMessage::to_string(int arg) {
 ApiVersion getLastApiVersion() {
     return ApiVersion::eVersion_1; //NOTE: при новых версиях заменять вручную
 }
+

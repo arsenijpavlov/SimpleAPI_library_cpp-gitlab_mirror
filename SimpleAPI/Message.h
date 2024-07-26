@@ -48,9 +48,9 @@
  * ==============================================================================================*/
 using Packet = std::vector<uint8_t>;
 Packet      convert_to_packet(const std::string& str);
-Packet      convert_to_packet(const char* str)          { return convert_to_packet(std::string(str)); }
+Packet      convert_to_packet(const char* str);
 std::string convert_from_packet(const Packet& packet);
-std::string to_string(const Packet& packet)             { return std::string((char*)packet.data(), packet.size()); }
+std::string to_string(const Packet& packet);
 
 enum PacketType {
     eControlType    = 0,
