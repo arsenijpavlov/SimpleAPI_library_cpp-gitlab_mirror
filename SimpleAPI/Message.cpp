@@ -24,8 +24,6 @@ std::string to_string(PacketType type) {
     }
 }
 
-
-
 void PacketMessage::clear() {
     ipPort          = IpPort{"", 0};
     packet          = {};
@@ -41,10 +39,6 @@ std::string PacketMessage::to_string() {
     out += "[(" + std::to_string(this->packet.size()) + ") " + ::to_string(this->packet) + "]";
 
     return out;
-}
-
-JsonMessage::JsonMessage(const JsonMessage &jm) {
-    *this = jm;
 }
 
 JsonMessage::JsonMessage(const PacketMessage &pm) {
