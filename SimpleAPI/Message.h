@@ -48,9 +48,9 @@
  * ==============================================================================================*/
 using Packet = std::vector<uint8_t>;
 Packet      convert_to_packet(const std::string& str);
-Packet      convert_to_packet(const char* str);
+Packet      convert_to_packet(const char* str)          { return convert_to_packet(std::string(str)); }
 std::string convert_from_packet(const Packet& packet);
-std::string to_string(const Packet& packet);
+std::string to_string(const Packet& packet)             { return std::string((char*)packet.data(), packet.size()); }
 
 enum PacketType {
     eControlType    = 0,
@@ -105,7 +105,7 @@ public:
     bool        isBuiltComplete;
     PacketRange range;
 
-    PacketMessage();
+    PacketMessage() : sn(0)     { clear(); }
 
     void clear();
     std::string to_string();
@@ -117,7 +117,7 @@ public:
     Json        json;
 
     JsonMessage(){};
-    JsonMessage(const JsonMessage& jm);
+    JsonMessage(const JsonMessage& jm)      { *this = jm; }
     JsonMessage(const PacketMessage& pm);
 
     void clear();

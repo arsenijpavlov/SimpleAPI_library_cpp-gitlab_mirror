@@ -9,10 +9,6 @@ Packet convert_to_packet(const std::string& str) {
     return packet;
 }
 
-Packet convert_to_packet(const char *str) {
-    return convert_to_packet(std::string(str));
-}
-
 std::string convert_from_packet(const Packet &packet) {
     std::string str;
     str.resize(packet.size());
@@ -20,21 +16,15 @@ std::string convert_from_packet(const Packet &packet) {
     return str;
 }
 
-std::string to_string(const Packet& packet) {
-    return std::string((char*)packet.data(), packet.size());
-}
-
 std::string to_string(PacketType type) {
     switch(type){
     case eControlType:  return "[CTRL]";
     case eDataType:     return "[DATA]";
-    default: return "UNKNOWN";
+    default:            return "[UNKNOWN]";
     }
 }
 
-PacketMessage::PacketMessage() : sn(0) {
-    clear();
-}
+
 
 void PacketMessage::clear() {
     ipPort          = IpPort{"", 0};
@@ -44,8 +34,7 @@ void PacketMessage::clear() {
     isBuiltComplete = false;
 }
 
-std::string PacketMessage::to_string()
-{
+std::string PacketMessage::to_string() {
     std::string out;
 
     out = this->ipPort.to_string() + " ";
@@ -54,13 +43,11 @@ std::string PacketMessage::to_string()
     return out;
 }
 
-JsonMessage::JsonMessage(const JsonMessage &jm)
-{
+JsonMessage::JsonMessage(const JsonMessage &jm) {
     *this = jm;
 }
 
-JsonMessage::JsonMessage(const PacketMessage &pm)
-{
+JsonMessage::JsonMessage(const PacketMessage &pm) {
     this->ipPort = pm.ipPort;
     this->json.parseJson(convert_from_packet(pm.packet));
 }
@@ -70,8 +57,7 @@ void JsonMessage::clear() {
     json.clear();
 }
 
-std::string JsonMessage::to_string(int arg)
-{
+std::string JsonMessage::to_string(int arg) {
     std::string out;
 
     out = this->ipPort.to_string() + " ";
@@ -80,7 +66,6 @@ std::string JsonMessage::to_string(int arg)
     return out;
 }
 
-ApiVersion getLastApiVersion()
-{
+ApiVersion getLastApiVersion() {
     return ApiVersion::eVersion_1; //NOTE: при новых версиях заменять вручную
 }
