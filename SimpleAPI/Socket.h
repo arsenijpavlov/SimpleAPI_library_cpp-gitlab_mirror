@@ -31,8 +31,8 @@ std::string to_string(SocketType type);
 
 class Connection {
 public:
-    time_point_default  m_last_ping_time;
-    time_point_default  m_last_activity;
+    time_point_default  m_last_output_activity;
+    time_point_default  m_last_input_activity;
     EECounter           m_out_sn;
     EECounter           m_in_sn_last_recv; //влияет на границу окна ожидания фрагментов
     EECounter           m_in_next_sn;
@@ -41,8 +41,8 @@ public:
     std::map<EECounter, PacketMessage> m_map_recv_builded_messages;  //собранные по очереди фрагменты сообщений
 
     Connection() :
-        m_last_ping_time(std::chrono::system_clock::now()),
-        m_last_activity(std::chrono::system_clock::now()),
+        m_last_output_activity(std::chrono::system_clock::now()),
+        m_last_input_activity(std::chrono::system_clock::now()),
         m_out_sn(255),
         m_in_sn_last_recv(255),
         m_in_next_sn(255)
@@ -58,6 +58,10 @@ protected:
     std::string m_local_ip;
     uint16_t    m_local_port;
     std::map<IpPort, Connection> m_map_connections; //счётчики сообщений на отправку
+
+    //цветной вывод времени (для визуального различия)
+    std::string m_last_time_string;
+    bool        m_time_color_flag;
 
 public:
     SocketSettings  m_settings;
