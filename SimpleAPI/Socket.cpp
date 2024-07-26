@@ -270,18 +270,21 @@ void Socket::log(const logs::LEVEL level, const std::string log_message, const s
 {
     LoggerSettings::LogCallback currentCallback = nullptr;
     LoggerSettings::LogCallback currentColorCallback = nullptr;
-    std::string levelSubstring = "";
-
-    std::string timeString = "";
-    std::vector<logs::COLOR> timeColor = {};
+    std::string levelSubstring          = "";
+    std::string timeString              = "";
+    std::string coloredTimeString      = "";
     if(m_settings.isLogTimeEnabled()) {
         timeString = logs::get_time_string() + " ";
         if(timeString != m_last_time_string) {
             m_time_color_flag = !m_time_color_flag;
             m_last_time_string = timeString;
         }
+
+        std::vector<logs::COLOR> timeColor = {};
         if(m_time_color_flag)   timeColor = {logs::eBLACK_BG, logs::eWHITE_FG};
         else                    timeColor = {logs::eBLACK_BG, logs::eGRAY_FG};
+
+        coloredTimeString = logs::to_color_string(timeColor, logs::get_time_string()) + " ";
     }
 
     if(level <= m_settings.getLogLevel()) {
@@ -330,7 +333,7 @@ void Socket::log(const logs::LEVEL level, const std::string log_message, const s
     //цветной вывод
     if(currentColorCallback)
         currentColorCallback(
-            logs::to_color_string(timeColor, timeString)
+            coloredTimeString
             + logs::columned(level, std::string("[") + to_string(m_socket_type)
                                         + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
                                         + "]",
