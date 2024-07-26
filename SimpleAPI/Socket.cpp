@@ -257,6 +257,10 @@ void Socket::updateLastOutputActivityTime(const IpPort& remote_ip_port) {
                 + ", map_size:" + std::to_string(m_map_connections.size()),
             logs::to_color_string(logs::eBRIGHT_GREEN_BG, "add connection(1): " + remote_ip_port.to_string())
                 + ", " + "map_size:" + std::to_string(m_map_connections.size()));
+
+        //сигнализировать о новом подключении
+        if(m_settings.getNewConnectionCallback())
+            m_settings.getNewConnectionCallback()(remote_ip_port);
     }
 
     it->second.m_last_output_activity = std::chrono::system_clock::now();
@@ -621,6 +625,10 @@ void UDPSocket::checkConnections()
                  + logs::get_time_string(it->second.m_last_input_activity)));
             it = m_map_connections.erase(it);
 
+            //сигнализировать о разрыве соединения
+            if(m_settings.getConnectionResetCallback())
+                m_settings.getConnectionResetCallback()(_currentIpPort);
+
             //удаление всех фрагментов, которые находятся в очереди отправки, с совпадающим адресатом
             log(logs::eDEBUG3, "checkConnections(), removing fragments");
             for(auto it2 = m_map_auto_sent_packets.begin(); it2 != m_map_auto_sent_packets.end(); it2++) {
@@ -934,12 +942,11 @@ PacketMessage UDPSocket::recvRawMsg(int timeout) {
 
     if(recv_num < 0) {
         log(logs::eERROR, "recvfrom() failed, error(" + std::to_string(errno) + ")");
-    } else if(recv_num > 0) {
-        PacketMessage rpacket;
-//        rpacket.ipPort.ip.resize(INET_ADDRSTRLEN);
+    } else if(recv_num > 0) {        
         char rpacket_ip[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &(sock.sin_addr), (char*)rpacket_ip, INET_ADDRSTRLEN);
 
+        PacketMessage rpacket;
         rpacket.ipPort.ip = rpacket_ip;
         rpacket.ipPort.port = ntohs(sock.sin_port);
         rpacket.packet = Packet(buf, buf + recv_num);

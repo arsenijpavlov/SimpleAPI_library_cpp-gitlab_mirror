@@ -13,6 +13,7 @@ class SocketSettings : public LoggerSettings {
 public:
     using RecvPacketMessageCallback = std::function<void(PacketMessage)>;
     using RecvJsonMessageCallback   = std::function<void(JsonMessage)>;
+    using ConnectionCallback        = std::function<void(IpPort)>;
 
 private:
     ApiVersion                  m_api_version;
@@ -22,16 +23,20 @@ private:
     int                         m_max_msgs_sent_on_tick;
     RecvJsonMessageCallback     m_recv_json_callback;
     RecvPacketMessageCallback   m_recv_packet_callback;
+    ConnectionCallback          m_new_connection_callback;
+    ConnectionCallback          m_connection_reset_callback;
 
 public:
     SocketSettings() :
-        m_api_version           (getLastApiVersion()),
-        m_crc_level             (CRC::eCRC_OFF),
-        m_inactivity_timer      (10000),
-        m_max_length            (1500),
-        m_max_msgs_sent_on_tick (-1),
-        m_recv_json_callback    (nullptr),
-        m_recv_packet_callback  (nullptr)
+        m_api_version               (getLastApiVersion()),
+        m_crc_level                 (CRC::eCRC_OFF),
+        m_inactivity_timer          (10000),
+        m_max_length                (1500),
+        m_max_msgs_sent_on_tick     (-1),
+        m_recv_json_callback        (nullptr),
+        m_recv_packet_callback      (nullptr),
+        m_new_connection_callback   (nullptr),
+        m_connection_reset_callback (nullptr)
     {}
 
     void setInactivityTimer(long milliseconds = 10000)                      { m_inactivity_timer = milliseconds; }
@@ -42,6 +47,8 @@ public:
     void setApiVersion(ApiVersion version = getLastApiVersion())            { m_api_version = version; }
     void setRecvPacketCallback(RecvPacketMessageCallback callback = nullptr){ m_recv_packet_callback = callback; }
     void setRecvJsonCallback(RecvJsonMessageCallback callback = nullptr)    { m_recv_json_callback = callback; }
+    void setNewConnectionCallback(ConnectionCallback callback = nullptr)    { m_new_connection_callback = callback; }
+    void setConnectionResetCallback(ConnectionCallback callback = nullptr)  { m_connection_reset_callback = callback; }
 
     long                        getInactivityTimer()                        { return m_inactivity_timer; }
     uint16_t                    getMaxLength()                              { return m_max_length; }
@@ -50,6 +57,8 @@ public:
     ApiVersion                  getApiVersion()                             { return m_api_version; }
     RecvPacketMessageCallback   getPacketCallback()                         { return m_recv_packet_callback; }
     RecvJsonMessageCallback     getJsonCallback()                           { return m_recv_json_callback; }
+    ConnectionCallback          getNewConnectionCallback()                  { return m_new_connection_callback; }
+    ConnectionCallback          getConnectionResetCallback()                { return m_connection_reset_callback; }
 };
 
 #endif // SOCKET_SETTINGS_H
