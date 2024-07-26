@@ -5,28 +5,28 @@
 #include <netinet/in.h>
 
 
-const bool IpPort::operator==(const IpPort &other) const {
+bool IpPort::operator==(const IpPort &other) const {
     if(this->ip == other.ip && this->port == other.port)    return true;
     else                                                    return false;
 }
 
-const bool IpPort::operator!=(const IpPort &other) const {
+bool IpPort::operator!=(const IpPort &other) const {
     if(this->ip != other.ip || this->port != other.port)    return true;
     else                                                    return false;
 }
 
-const bool IpPort::operator<(const IpPort &other) const
+bool IpPort::operator<(const IpPort &other) const
 {
-    if(this->port == other.port) {
-        if(this->ip < other.ip) return true;
-        else                    return false;
+    if(this->ip < other.ip)
+        return true;
+    else if(this->ip == other.ip) {
+        return this->port < other.port;
+    } else {
+        return false;
     }
-
-    if(this->port < other.port) return true;
-    else                        return false;
 }
 
-const bool IpPort::operator>(const IpPort &other) const
+bool IpPort::operator>(const IpPort &other) const
 {
     if(this->port == other.port) {
         if(this->ip > other.ip) return true;
