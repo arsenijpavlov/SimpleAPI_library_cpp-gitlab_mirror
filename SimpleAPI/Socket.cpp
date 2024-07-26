@@ -280,8 +280,8 @@ void Socket::log(const logs::LEVEL level, const std::string log_message, const s
             m_time_color_flag = !m_time_color_flag;
             m_last_time_string = timeString;
         }
-        if(m_time_color_flag)   timeColor = {logs::eWHITE_BG, logs::eGREEN_FG};
-        else                    timeColor = {logs::eWHITE_BG, logs::eBLACK_FG};
+        if(m_time_color_flag)   timeColor = {logs::eBLACK_BG, logs::eWHITE_FG};
+        else                    timeColor = {logs::eBLACK_BG, logs::eGRAY_FG};
     }
 
     if(level <= m_settings.getLogLevel()) {

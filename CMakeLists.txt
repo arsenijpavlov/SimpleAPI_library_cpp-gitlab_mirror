@@ -26,6 +26,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(ENABLE_JSON_TEST     "Testing Json enabled"      off)
 option(ENABLE_CLIENT_TEST   "Testing Client enabled"    on)
 option(ENABLE_SERVER_TEST   "Testing Server enabled"    on)
+option(ENABLE_COLORS_TEST   "For color choise"          off)
 
 #library
 add_subdirectory(SimpleAPI)
@@ -47,3 +48,9 @@ if(ENABLE_SERVER_TEST)
     add_subdirectory(Test_Server)
 endif()
 unset(ENABLE_SERVER_TEST CACHE)
+
+#test colors
+if(ENABLE_COLORS_TEST)
+    add_subdirectory(Test_COLORS)
+endif()
+unset(ENABLE_COLORS_TEST CACHE)
