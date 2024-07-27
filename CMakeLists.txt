@@ -26,7 +26,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(UNIT_TESTS               "Google tests enabled"          on)
 option(ENABLE_JSON_TEST_APP     "Json testing app enabled"      off)
-option(ENABLE_SOCKETS_TEST_APP  "Sockets testing app enabled"   off)
+option(ENABLE_SOCKETS_TEST_APP  "Sockets testing app enabled"   on)
 option(ENABLE_COLORS_TEST_APP   "Color choiser app enabled"     off)
 
 #library
@@ -56,7 +56,7 @@ if(UNIT_TESTS)
     #Google test libs
     add_subdirectory(googletest-1.15.0)
 
-    #main unit tests
+    #unit tests
     add_subdirectory(tests)
 endif()
 unset(UNIT_TESTS CACHE)

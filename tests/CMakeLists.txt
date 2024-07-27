@@ -4,13 +4,16 @@ project(project_Client LANGUAGES CXX)
 message("project: project_unit_tests")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/../bin")
 
-file(GLOB unit_tests_sources
-    "*.cpp"
-    "*.h"
-)
-add_executable(unit_tests)
-target_sources(unit_tests PUBLIC ${unit_tests_sources})
+function (create_test test_group)
+    file(GLOB test_group_sources
+        "${test_group}.cpp"
+        "*.h"
+    )
+    add_executable(${test_group})
+    target_sources(${test_group} PUBLIC ${test_group_sources})
+    target_include_directories(${test_group} PUBLIC "${PROJECT_BINARY_DIR}/../lib/include")
+    target_link_libraries(${test_group} PUBLIC SimpleAPI gtest gmock)
+endfunction()
 
-target_include_directories(unit_tests PUBLIC "${PROJECT_BINARY_DIR}/../lib/include")
-
-target_link_libraries(unit_tests PUBLIC SimpleAPI gtest gmock)
+create_test(TEST_JSON)
+create_test(TEST_SOCKETS)
