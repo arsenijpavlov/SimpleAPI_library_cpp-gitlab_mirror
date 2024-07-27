@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
     st.m_settings.setColorLogCallback(Log);
     st.m_settings.setNameColumnSize(NAME_COLUMN_SIZE);
     st.m_settings.enableNameColumnRightAlign(NAME_COLUMN_RIGHT_ALIGN);
-//    st.findSocket(server)->m_settings.setMaxLength(5); //TODO: не работает, если клиент долго не был активен
+    st.findSocket(server)->m_settings.setMaxLength(5);
 
     st.startThread();
 

@@ -168,7 +168,9 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) {
              it_build != it->second.m_map_recv_builded_messages.end(); it_build++) {
             if(!isFirstCounterSet) {
                 firstCounter = it_build->first;
+                log(logs::eDEBUG, "first sn: " + std::to_string(firstCounter.get()));
                 isFirstCounterSet = true;
+                isStarted = true;
 
                 pm.ipPort = it_build->second.ipPort;
                 pm.header = it_build->second.header;
@@ -176,13 +178,11 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) {
 
             if(it_build->second.header.isLastFragment) {
                 lastCounter = it_build->first;
+                log(logs::eDEBUG, "last sn: " + std::to_string(lastCounter.get()));
+                isFinished = true;
                 break;
             }
         }
-        if(it->second.m_map_recv_builded_messages.find(firstCounter)->second.header.isFirstFragment)
-            isStarted = true;
-        if(it->second.m_map_recv_builded_messages.find(lastCounter)->second.header.isLastFragment)
-            isFinished = true;
 
         //всё, что пришло до этого - удалится
         EECounter rmSn = it->second.m_in_sn_last_recv - (it->second.m_in_sn_last_recv.size() / 2); //размер окна - половина диапазонаe
@@ -203,16 +203,38 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) {
 
         //пакет соберётся, копируем в выходной PM.packet
         if(isStarted && isFinished) {
+            for(auto _it : it->second.m_map_recv_builded_messages) {
+                log(logs::eDEBUG2,
+                    "MAP: current fragment: [0x" + utils::to_hex_string(_it.second.packet) + "]",
+                    logs::to_color_string(logs::eYELLOW_FG, "MAP: current fragment: [0x" + utils::to_hex_string(_it.second.packet) + "]"));
+            }
+
             pm.sn = firstCounter; //номер первого фрагмента для индикации доставки глобального сообщения
             log(logs::eDEBUG, "built recv packet: sn=" + std::to_string(pm.sn.get()) + ", type=" + to_string(pm.header.type));
             //скопировать и удалить задействованные фрагменты
-            auto it_build = it->second.m_map_recv_builded_messages.begin();
-            while(it_build != it->second.m_map_recv_builded_messages.end() && (it_build->first <= lastCounter)) {
+            bool this_last_fragment = false;
+            EECounter counter = firstCounter;
+            for(auto it_build = it->second.m_map_recv_builded_messages.find(counter++);
+                 it_build != it->second.m_map_recv_builded_messages.end();
+                 it_build = it->second.m_map_recv_builded_messages.find(counter++)
+                 ) {
+
+                if(it_build->second.sn == lastCounter) {
+                    this_last_fragment = true;
+                    log(logs::eDEBUG, "this fragment is last");
+                }
+
+                log(logs::eDEBUG2, "current fragment(sn:" + std::to_string(it_build->first.get())
+                                      + "): [0x" + utils::to_hex_string(it_build->second.packet) + "]");
                 std::copy(std::begin(it_build->second.packet),
                           std::end(it_build->second.packet),
                           std::back_insert_iterator<Packet>(pm.packet));
+
                 it_build = it->second.m_map_recv_builded_messages.erase(it_build);
+
+                if(this_last_fragment) break;
             }
+            log(logs::eDEBUG, "result packet: [0x" + utils::to_hex_string(pm.packet) + "]");
 
             uint16_t size = (pm.packet[0] << 8) + pm.packet[1];
             pm.packet.erase(pm.packet.begin(), pm.packet.begin() + 2); //размер поля данных
@@ -247,7 +269,7 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) {
 }
 
 void Socket::updateLastOutputActivityTime(const IpPort& remote_ip_port) {
-    log(logs::eDEBUG, "updateLastOutputActivityTime " + remote_ip_port.to_string());
+    log(logs::eDEBUG2, "updateLastOutputActivityTime " + remote_ip_port.to_string());
 
     auto it = m_map_connections.find(remote_ip_port);
     if(it == m_map_connections.end()) {
@@ -282,7 +304,7 @@ void Socket::log(const logs::LEVEL level, const std::string log_message, const s
 
         std::vector<logs::COLOR> timeColor = {};
         if(m_time_color_flag)   timeColor = {logs::eBLACK_BG, logs::eWHITE_FG};
-        else                    timeColor = {logs::eBLACK_BG, logs::eGRAY_FG};
+        else                    timeColor = {logs::eBLACK_BG, logs::eBRIGHT_GRAY_FG};
 
         coloredTimeString = logs::to_color_string(timeColor, logs::get_time_string()) + " ";
     }
@@ -391,18 +413,23 @@ void UDPSocket::sendFragments(const IpPort &remote_ip_port, const PacketType typ
                ) + " "
             + remote_ip_port.to_string("to"));
 
+    uint8_t techInformationSize = 1;//1B: заголовок
+    techInformationSize += 2;       //2B: globSN, SN
     Packet innerData;
     //=CHIP_and_CRC_and_SIZE_and_DATA===========================================
     //оставляем место для поля CRC
     switch(m_settings.getCrcLevel()) {
     case eCRC_8:
+        techInformationSize += 1;   //1B: CRC
         innerData.push_back(0);
         break;
     case eCRC_16:
+        techInformationSize += 2;   //2B: CRC
         innerData.push_back(0);
         innerData.push_back(0);
         break;
     case eCRC_32:
+        techInformationSize += 4;   //4B: CRC
         innerData.push_back(0);
         innerData.push_back(0);
         innerData.push_back(0);
@@ -411,6 +438,7 @@ void UDPSocket::sendFragments(const IpPort &remote_ip_port, const PacketType typ
     default:        break;
     }
 
+//    techInformationSize += 2;       //2B: size of data ==> размер сообщения указывается ТОЛЬКО в первом фрагменте
     size_t tempSize;
     //упаковка размера сообщения
     innerData.push_back(packet.size() >> 8);
@@ -438,15 +466,18 @@ void UDPSocket::sendFragments(const IpPort &remote_ip_port, const PacketType typ
     size_t      currentPos = 0;
     uint16_t    currentFragmentSize;
 
-    bool isFirstEECsaved = false;
-    EECounter firstSn(255);
-    EECounter lastSn(255);
+    bool        isFirstEECsaved = false;
+    EECounter   firstSn(255);
+    EECounter   lastSn(255);
 
     std::vector<PacketMessage> fragments;
     bool isStart    = true;
     bool isFinish   = false;
     while(innerData.size() - currentPos > 0) {
         uint16_t availableSize = m_settings.getMaxLength();
+        if(availableSize < techInformationSize + 1) {
+            availableSize = techInformationSize + 1;
+        }
 
         EECounter& fragment_sn = getOutSeqNumber(remote_ip_port);
         if(!isFirstEECsaved)
@@ -744,7 +775,7 @@ Json UDPSocket::recvAutoMsg(int timeout) {
     pm.sn.set_pos(sn);
     pm.packet.erase(pm.packet.begin(), pm.packet.begin() + 3); //удалить первые три байта
 
-    log(logs::eDEBUG,
+    log(logs::eDEBUG2,
         "Received [" + std::to_string(sn) + "] sn fragment of type "
             + to_string(pm.header.type)
             + ", data:[0x"
@@ -784,7 +815,7 @@ Json UDPSocket::processingBuiltPacket(const PacketMessage &pm) {
                 + (jm.json.isEmpty() ? "Data:0x" + utils::to_hex_string(pm.packet)
                                      : "Json:" + jm.json.to_string(-1))
                 + "] " + pm.ipPort.to_string("from"),
-            logs::to_color_string(INPUT_MSG_COLOR, "Built packet") + ": "+ to_string(pm.header.type) + " ["
+            "Built packet: "+ to_string(pm.header.type) + " ["
                 + (jm.json.isEmpty() ? "Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::to_hex_string(pm.packet))
                                      : "Json:" + logs::to_color_string(FULL_MSG_COLOR, jm.json.to_string(-1)))
                 + "] " + pm.ipPort.to_string("from"));
@@ -819,7 +850,7 @@ Json UDPSocket::processingBuiltPacket(const PacketMessage &pm) {
                             "Message delivered ["
                                 + (jm.json.isEmpty() ? "Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::to_hex_string(tempPM.packet))
                                                      : "Json:" + logs::to_color_string(FULL_MSG_COLOR, jm.json.to_string(-1)))
-                                + "]" + logs::to_color_string({logs::COLOR::eBLACK_BG, logs::COLOR::eRED_FG}, appendString));
+                                + "]" + appendString);
                         it = m_sent_global_packets.erase(it);
                         break;
                     }
@@ -858,12 +889,12 @@ Json UDPSocket::processingBuiltPacket(const PacketMessage &pm) {
         } else {
             m_input_threads_mutex.lock();
             if(jm.json.isEmpty()) {
-                log(logs::eDEBUG,
+                log(logs::eDEBUG2,
                     "insert packet " + to_string(pm.header.type) + " to storage",
                     logs::to_color_string({logs::eGRAY_BG, logs::eWHITE_FG}, "insert packet " + to_string(pm.header.type) + " to storage"));
                 m_map_recv_packets_buffer.push_back(pm);
             } else {
-                log(logs::eDEBUG,
+                log(logs::eDEBUG2,
                     "insert packet " + to_string(pm.header.type) + " to storage",
                     logs::to_color_string({logs::eGRAY_BG, logs::eWHITE_FG}, "insert packet " + to_string(pm.header.type) + " to storage"));
                 m_map_recv_jsons_buffer.push_back(jm);
