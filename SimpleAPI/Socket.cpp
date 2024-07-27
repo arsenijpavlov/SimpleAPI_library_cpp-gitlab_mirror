@@ -203,7 +203,7 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) {
 
         //пакет соберётся, копируем в выходной PM.packet
         if(isStarted && isFinished) {
-            for(auto _it : it->second.m_map_recv_builded_messages) {
+            for(const auto& _it : it->second.m_map_recv_builded_messages) {
                 log(logs::eDEBUG2,
                     "MAP: current fragment: [0x" + utils::to_hex_string(_it.second.packet) + "]",
                     logs::to_color_string(logs::eYELLOW_FG, "MAP: current fragment: [0x" + utils::to_hex_string(_it.second.packet) + "]"));
@@ -236,6 +236,28 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) {
             }
             log(logs::eDEBUG, "result packet: [0x" + utils::to_hex_string(pm.packet) + "]");
 
+
+            //дешифрация
+            dechiphering(pm.packet);
+            //проверка контрольной суммы
+            log(logs::eDEBUG2, "before CRC: " + utils::to_hex_string(pm.packet));
+            switch(pm.header.crcLevel) {
+            case eCRC_8:
+                pm.isError = !utils::checkCrc8(pm.packet);
+                pm.packet.erase(pm.packet.begin(), pm.packet.begin() + 1);
+                break;
+            case eCRC_16:
+                pm.isError = !utils::checkCrc16(pm.packet);
+                pm.packet.erase(pm.packet.begin(), pm.packet.begin() + 2);
+                break;
+            case eCRC_32:
+                pm.isError = !utils::checkCrc32(pm.packet);
+                pm.packet.erase(pm.packet.begin(), pm.packet.begin() + 4);
+                break;
+            default:        break;
+            }
+            log(logs::eDEBUG2, "after CRC: " + utils::to_hex_string(pm.packet));
+
             uint16_t size = (pm.packet[0] << 8) + pm.packet[1];
             pm.packet.erase(pm.packet.begin(), pm.packet.begin() + 2); //размер поля данных
             //проверка ошибки размера
@@ -243,20 +265,9 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) {
                 pm.isError = true;
                 pm.error.sn_finish = lastCounter;
 
-                log(logs::eDEBUG3, "~buildPacket(2), mapConnection size: " + std::to_string(m_map_connections.size()));
+                log(logs::eERROR, "Bad result packet size: expected " + std::to_string(pm.packet.size())
+                                      + ", but received " + std::to_string(size));
                 return pm;
-            }
-
-            if(pm.header.type != eControlType) {
-                //дешифрация
-                dechiphering(pm.packet);
-                //проверка контрольной суммы
-                switch(m_settings.getCrcLevel()) {
-                case eCRC_8:    pm.isError = !utils::checkCrc8(pm.packet);    break;
-                case eCRC_16:   pm.isError = !utils::checkCrc16(pm.packet);   break;
-                case eCRC_32:   pm.isError = !utils::checkCrc32(pm.packet);   break;
-                default:        break;
-                }
             }
 
             if(!pm.isError)
