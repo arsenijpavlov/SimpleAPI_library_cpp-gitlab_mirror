@@ -20,7 +20,7 @@ message("${Bold}project: ${Green}project_SimpleAPI_library${Reset}")
 file(GLOB simpleAPI_sources "${PROJECT_SOURCE_DIR}/*.cpp" )
 file(GLOB simpleAPI_headers "${PROJECT_SOURCE_DIR}/*.h" )
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/../libs/")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/../lib/")
 message("CMAKE_LIBRARY_OUTPUT_DIRECTORY: ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
 
 add_library(SimpleAPI SHARED)

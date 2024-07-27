@@ -54,6 +54,7 @@ int main(int argc, char** argv) {
     settings.setNameColumnSize(NAME_COLUMN_SIZE);
     settings.enableNameColumnRightAlign(NAME_COLUMN_RIGHT_ALIGN);
     settings.setLogLevel(logs::eDEBUG);
+    settings.setCrcLevel(eCRC_32);
 
     SocketThread st(eUDP, server, settings);
     st.m_settings.setLogLevel(logs::eINFO);
@@ -63,7 +64,7 @@ int main(int argc, char** argv) {
     st.m_settings.setColorLogCallback(Log);
     st.m_settings.setNameColumnSize(NAME_COLUMN_SIZE);
     st.m_settings.enableNameColumnRightAlign(NAME_COLUMN_RIGHT_ALIGN);
-    st.findSocket(server)->m_settings.setMaxLength(5);
+//    st.findSocket(server)->m_settings.setMaxLength(5);
 
     st.startThread();
 

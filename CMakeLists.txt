@@ -17,40 +17,46 @@ if(CMAKE_BUILD_TYPE STREQUAL Debug )
     message("${Yellow}Debug mode enabled${Reset}")
     add_compile_definitions(__DEBUG__)
 endif()
+
 project(project_SimpleAPI_main LANGUAGES CXX)
 message("${Bold}project: ${Green}project_SimpleAPI_main${Reset}")
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(ENABLE_JSON_TEST     "Testing Json enabled"      off)
-option(ENABLE_CLIENT_TEST   "Testing Client enabled"    on)
-option(ENABLE_SERVER_TEST   "Testing Server enabled"    on)
-option(ENABLE_COLORS_TEST   "For color choise"          off)
+option(UNIT_TESTS               "Google tests enabled"          on)
+option(ENABLE_JSON_TEST_APP     "Json testing app enabled"      off)
+option(ENABLE_SOCKETS_TEST_APP  "Sockets testing app enabled"   off)
+option(ENABLE_COLORS_TEST_APP   "Color choiser app enabled"     off)
 
 #library
 add_subdirectory(SimpleAPI)
 
 #test Json
-if(ENABLE_JSON_TEST)
+if(ENABLE_JSON_TEST_APP)
     add_subdirectory(Test_Json)
 endif()
-unset(ENABLE_JSON_TEST CACHE)
+unset(ENABLE_JSON_TEST_APP CACHE)
 
-#test client
-if(ENABLE_CLIENT_TEST)
+#test sockets
+if(ENABLE_SOCKETS_TEST_APP)
     add_subdirectory(Test_Client)
-endif()
-unset(ENABLE_CLIENT_TEST CACHE)
-
-#test server
-if(ENABLE_SERVER_TEST)
     add_subdirectory(Test_Server)
 endif()
-unset(ENABLE_SERVER_TEST CACHE)
+unset(ENABLE_SOCKETS_TEST_APP CACHE)
 
 #test colors
-if(ENABLE_COLORS_TEST)
+if(ENABLE_COLORS_TEST_APP)
     add_subdirectory(Test_COLORS)
 endif()
-unset(ENABLE_COLORS_TEST CACHE)
+unset(ENABLE_COLORS_TEST_APP CACHE)
+
+#TESTS
+if(UNIT_TESTS)
+    #Google test libs
+    add_subdirectory(googletest-1.15.0)
+
+    #main unit tests
+    add_subdirectory(tests)
+endif()
+unset(UNIT_TESTS CACHE)
