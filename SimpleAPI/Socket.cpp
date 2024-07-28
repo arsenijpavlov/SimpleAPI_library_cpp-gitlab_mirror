@@ -44,14 +44,8 @@ PacketHeader Socket::unpackHeader(uint8_t header) {
 
 EECounter& Socket::getOutSeqNumber(const IpPort& ip_port) {
     auto it = m_map_connections.find(ip_port);
-    if(it == m_map_connections.end()) {
-        it = m_map_connections.insert(std::make_pair(ip_port, Connection())).first;
-        log(logs::eDEBUG,
-            "add connection(1): " + ip_port.to_string()
-                + ", map_size:" + std::to_string(m_map_connections.size()),
-            logs::to_color_string(logs::eBRIGHT_GREEN_BG, "add connection(1): " + ip_port.to_string())
-                + ", " + "map_size:" + std::to_string(m_map_connections.size()));
-    }
+    if(it == m_map_connections.end())
+        it = createConnection(ip_port);
 
     return it->second.m_out_sn;
 }
@@ -59,14 +53,9 @@ EECounter& Socket::getOutSeqNumber(const IpPort& ip_port) {
 void Socket::appendNewFragment(const PacketMessage& received_pm)
 {
     auto it = m_map_connections.find(received_pm.ipPort);
-    if(it == m_map_connections.end()) {
-        it = m_map_connections.insert(std::make_pair(received_pm.ipPort, Connection())).first;
-        log(logs::eDEBUG,
-            "add connection(1): " + received_pm.ipPort.to_string()
-                + ", map_size:" + std::to_string(m_map_connections.size()),
-            logs::to_color_string(logs::eBRIGHT_GREEN_BG, "add connection(1): " + received_pm.ipPort.to_string())
-                + ", " + "map_size:" + std::to_string(m_map_connections.size()));
-    }
+    if(it == m_map_connections.end())
+        it = createConnection(received_pm.ipPort);
+
     it->second.m_last_input_activity = std::chrono::system_clock::now();
 
     log(logs::eDEBUG3, "buildPacket(), mapConnection size: " + std::to_string(m_map_connections.size()));
@@ -279,17 +268,23 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) {
     return pm;
 }
 
+Socket::MapConnectionsIterator Socket::createConnection(const IpPort &remote_ip_port)
+{
+    log(logs::eDEBUG,
+        "add connection(1): " + remote_ip_port.to_string()
+            + ", map_size:" + std::to_string(m_map_connections.size()),
+        logs::to_color_string(logs::eBRIGHT_GREEN_BG, "add connection(1): " + remote_ip_port.to_string())
+            + ", " + "map_size:" + std::to_string(m_map_connections.size()));
+    //TODO: запрос открытой части ключа шифрования (не факт, что здесь)
+    return m_map_connections.insert(std::make_pair(remote_ip_port, Connection())).first;
+}
+
 void Socket::updateLastOutputActivityTime(const IpPort& remote_ip_port) {
     log(logs::eDEBUG2, "updateLastOutputActivityTime " + remote_ip_port.to_string());
 
     auto it = m_map_connections.find(remote_ip_port);
     if(it == m_map_connections.end()) {
-        it = m_map_connections.insert(std::make_pair(remote_ip_port, Connection())).first;
-        log(logs::eDEBUG,
-            "add connection(1): " + remote_ip_port.to_string()
-                + ", map_size:" + std::to_string(m_map_connections.size()),
-            logs::to_color_string(logs::eBRIGHT_GREEN_BG, "add connection(1): " + remote_ip_port.to_string())
-                + ", " + "map_size:" + std::to_string(m_map_connections.size()));
+        it = createConnection(remote_ip_port);
 
         //сигнализировать о новом подключении
         if(m_settings.getNewConnectionCallback())
@@ -299,15 +294,15 @@ void Socket::updateLastOutputActivityTime(const IpPort& remote_ip_port) {
     it->second.m_last_output_activity = std::chrono::system_clock::now();
 }
 
-void Socket::log(const logs::LEVEL level, const std::string log_message, const std::string color_log_message)
+void Socket::log(const logs::LEVEL level, const std::string& log_message, const std::string& color_log_message)
 {
     if(level > m_settings.getLogLevel()) return;
 
-    LoggerSettings::LogCallback currentCallback = nullptr;
-    LoggerSettings::LogCallback currentColorCallback = nullptr;
-    std::string levelSubstring          = "";
-    std::string timeString              = "";
-    std::string coloredTimeString      = "";
+    LoggerSettings::LogCallback currentCallback         = nullptr;
+    LoggerSettings::LogCallback currentColorCallback    = nullptr;
+    std::string levelSubstring      = "";
+    std::string timeString          = "";
+    std::string coloredTimeString   = "";
     if(m_settings.isLogTimeEnabled()) {
         timeString = logs::get_time_string() + " ";
         if(timeString != m_last_time_string) {

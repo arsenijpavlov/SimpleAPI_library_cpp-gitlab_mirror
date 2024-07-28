@@ -87,16 +87,18 @@ protected:
     EECounter&      getOutSeqNumber(const IpPort& ip_port);
     void            appendNewFragment(const PacketMessage& received_pm);
     PacketMessage   buildPacket(MapConnectionsIterator& it);
+    MapConnectionsIterator
+                    createConnection(const IpPort& remote_ip_port);
     void            updateLastOutputActivityTime(const IpPort& remote_ip_port);
 
-    void            log(const logs::LEVEL level, const std::string log_message, const std::string color_log_message = "");
+    void            log(const logs::LEVEL level, const std::string& log_message, const std::string& color_log_message = "");
     void            setSettings(const SocketSettings settings = SocketSettings())
-                    { m_settings = settings; }
+                                                        { m_settings = settings; }
     SocketSettings  getSettings()                       { return m_settings; }
 
     void            sendFragments(const std::string& remote_ip, const uint16_t remote_port,
                                   const PacketType type, const Packet& packet, const bool need_ack = true)
-                    { sendFragments(IpPort{remote_ip, remote_port}, type, packet, need_ack); }
+                                                        { sendFragments(IpPort{remote_ip, remote_port}, type, packet, need_ack); }
     virtual void    sendFragments(const IpPort& remote_ip_port, const PacketType type,
                                   const Packet& packet, const bool need_ack = true) = 0;
 
@@ -166,9 +168,10 @@ class UDPSocket : public Socket {
     //=====================================
 
 public:
-    UDPSocket(const IpPort& local_ip_port, const SocketSettings& settings = SocketSettings());
-    UDPSocket(const uint16_t local_port, const std::string& local_ip = "", const SocketSettings& settings = SocketSettings());
-    ~UDPSocket()    { close(); }
+                    UDPSocket(const IpPort& local_ip_port, const SocketSettings& settings = SocketSettings());
+                    UDPSocket(const uint16_t local_port, const std::string& local_ip = "",
+                              const SocketSettings& settings = SocketSettings());
+                    ~UDPSocket() { close(); }
     void            open(const uint16_t local_port, const std::string& local_ip = "");
 
     //-----------------------------------------
