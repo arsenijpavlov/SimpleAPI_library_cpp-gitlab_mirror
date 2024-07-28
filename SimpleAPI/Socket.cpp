@@ -301,6 +301,8 @@ void Socket::updateLastOutputActivityTime(const IpPort& remote_ip_port) {
 
 void Socket::log(const logs::LEVEL level, const std::string log_message, const std::string color_log_message)
 {
+    if(level > m_settings.getLogLevel()) return;
+
     LoggerSettings::LogCallback currentCallback = nullptr;
     LoggerSettings::LogCallback currentColorCallback = nullptr;
     std::string levelSubstring          = "";
@@ -320,35 +322,33 @@ void Socket::log(const logs::LEVEL level, const std::string log_message, const s
         coloredTimeString = logs::to_color_string(timeColor, logs::get_time_string()) + " ";
     }
 
-    if(level <= m_settings.getLogLevel()) {
-        switch(level) {
-        case logs::eWARNING:
-            currentCallback         = m_settings.getLogCallback();
-            currentColorCallback    = m_settings.getColorLogCallback();
-            levelSubstring          = ".w";
-            break;
-        case logs::eINFO:
-            currentCallback         = m_settings.getLogCallback();
-            currentColorCallback    = m_settings.getColorLogCallback();
-            levelSubstring          = ".i";
-            break;
-        case logs::eDEBUG:
-        case logs::eDEBUG2:
-        case logs::eDEBUG3:
-            currentCallback         = m_settings.getLogCallback();
-            currentColorCallback    = m_settings.getColorLogCallback();
-            levelSubstring          = ".d";
-            break;
-        case logs::eERROR:
-            currentCallback         = m_settings.getLogErrorCallback();
-            currentColorCallback    = m_settings.getColorLogErrorCallback();
-            levelSubstring          = ".e";
-        default:
-            currentCallback         = m_settings.getLogErrorCallback();
-            currentColorCallback    = m_settings.getColorLogErrorCallback();
-            levelSubstring          = ".unknown";
-            break;
-        }
+    switch(level) {
+    case logs::eWARNING:
+        currentCallback         = m_settings.getLogCallback();
+        currentColorCallback    = m_settings.getColorLogCallback();
+        levelSubstring          = ".w";
+        break;
+    case logs::eINFO:
+        currentCallback         = m_settings.getLogCallback();
+        currentColorCallback    = m_settings.getColorLogCallback();
+        levelSubstring          = ".i";
+        break;
+    case logs::eDEBUG:
+    case logs::eDEBUG2:
+    case logs::eDEBUG3:
+        currentCallback         = m_settings.getLogCallback();
+        currentColorCallback    = m_settings.getColorLogCallback();
+        levelSubstring          = ".d";
+        break;
+    case logs::eERROR:
+        currentCallback         = m_settings.getLogErrorCallback();
+        currentColorCallback    = m_settings.getColorLogErrorCallback();
+        levelSubstring          = ".e";
+    default:
+        currentCallback         = m_settings.getLogErrorCallback();
+        currentColorCallback    = m_settings.getColorLogErrorCallback();
+        levelSubstring          = ".unknown";
+        break;
     }
 
     //обычный вывод
