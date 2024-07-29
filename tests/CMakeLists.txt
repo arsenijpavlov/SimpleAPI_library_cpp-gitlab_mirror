@@ -15,5 +15,5 @@ function (create_test test_group)
     target_link_libraries(${test_group} PUBLIC SimpleAPI gtest gmock)
 endfunction()
 
-create_test(TEST_JSON)
-create_test(TEST_SOCKETS)
+create_test(test_json)
+create_test(test_crc)
