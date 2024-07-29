@@ -112,9 +112,8 @@ int main(int argc, char **argv) {
 
         Element el = aa[1]; //обращение к Json "j"
 
-        double* d = (*el.getJson())["a"].getNum();
-        if(d != nullptr)
-            std::cout << "aa.j.a: (double)" << *d << std::endl;
+        double d = el.getJson()["a"].getNum();
+        std::cout << "aa.j.a: (double)" << d << std::endl;
 
         Json jj;
         jj.put("aa", aa);
@@ -122,7 +121,6 @@ int main(int argc, char **argv) {
         jj.put("jjString", "asde");
         std::cout << jj.to_string(tabLvl) << std::endl;
 
-        //предпочтительный способ обращения ко вложенным элементам
         //тест для каскада вложенных значений с одним get'тером
         std::vector<std::string> index_1;
         index_1.push_back("aa");  //array
@@ -132,7 +130,7 @@ int main(int argc, char **argv) {
         ee = jj[index_1];
         std::array<std::string, 3> index_2({"aa", "1", "a"});
         ee = jj[index_2];
-        double dddd = *ee.getNum();
+        double dddd = ee.getNum();
         std::cout << std::endl << "d: " << dddd << std::endl;
     }
 
