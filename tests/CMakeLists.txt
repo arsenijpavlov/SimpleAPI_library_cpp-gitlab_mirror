@@ -11,7 +11,7 @@ function (create_test test_group)
     )
     add_executable(${test_group})
     target_sources(${test_group} PUBLIC ${test_group_sources})
-    target_include_directories(${test_group} PUBLIC "${PROJECT_BINARY_DIR}/../lib/include")
+    target_include_directories(${test_group} PUBLIC "${PROJECT_SOURCE_DIR}/../SimpleAPI")
     target_link_libraries(${test_group} PUBLIC SimpleAPI gtest gmock)
 endfunction()
 

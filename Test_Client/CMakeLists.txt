@@ -11,5 +11,5 @@ file(GLOB client_sources
 add_executable(Test_Client)
 target_sources(Test_Client PUBLIC ${client_sources})
 
-target_include_directories(Test_Client PUBLIC "${PROJECT_BINARY_DIR}/../lib/include")
+target_include_directories(Test_Client PUBLIC "${PROJECT_SOURCE_DIR}/../SimpleAPI")
 target_link_libraries(Test_Client PUBLIC SimpleAPI)

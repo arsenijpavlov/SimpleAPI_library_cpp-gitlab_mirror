@@ -11,5 +11,5 @@ file(GLOB json_sources
 add_executable(Test_Json)
 target_sources(Test_Json PUBLIC ${json_sources})
 
-target_include_directories(Test_Json PUBLIC "${PROJECT_BINARY_DIR}/../lib/include")
+target_include_directories(Test_Json PUBLIC "${PROJECT_SOURCE_DIR}/../SimpleAPI")
 target_link_libraries(Test_Json PUBLIC SimpleAPI)
