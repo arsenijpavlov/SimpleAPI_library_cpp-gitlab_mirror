@@ -129,6 +129,8 @@ bool SocketThread::send(const IpPort &source, const IpPort &destination, const P
     return false;
 }
 
+//TODO: переделать на void!
+//если шифр, но ключа нет, то убрать в другую очередь, иначе отправить сразу
 bool SocketThread::send(const IpPort &source, const IpPort &destination, const Json &json) {
     auto it = m_sockets.find(source);
     if(it != m_sockets.end())
