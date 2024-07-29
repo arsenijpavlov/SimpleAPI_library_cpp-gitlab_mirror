@@ -120,8 +120,7 @@ bool Element::operator==(const Element &other) const
     return false;
 }
 
-bool Element::operator!=(const Element &other) const
-{
+bool Element::operator!=(const Element &other) const {
     return !(*this == other);
 }
 
@@ -129,35 +128,35 @@ double Element::getNum()
 {
     if(first == ValueType::eNumber)
         return reinterpret_cast<DoubleElement*>(this->second)->m_value;
-    else return 0;
+    else return 0; //TODO: вызвать exception
 }
 
 bool Element::getBool()
 {
     if(first == ValueType::eBool)
         return reinterpret_cast<BoolElement*>(this->second)->m_value;
-    else return false;
+    else return false; //TODO: вызвать exception
 }
 
 std::string Element::getString()
 {
     if(first == ValueType::eString)
         return reinterpret_cast<StringElement*>(this->second)->m_value;
-    else return "";
+    else return ""; //TODO: вызвать exception
 }
 
 Json Element::getJson()
 {
     if(first == ValueType::eJson)
         return reinterpret_cast<JsonElement*>(this->second)->m_value;
-    else return {};
+    else return {}; //TODO: вызвать exception
 }
 
 Array Element::getArray()
 {
     if(first == ValueType::eArray)
         return reinterpret_cast<ArrayElement*>(this->second)->m_value;
-    else return {};
+    else return {}; //TODO: вызвать exception
 }
 
 Element Element::getInnerValue(std::string name)
@@ -165,7 +164,7 @@ Element Element::getInnerValue(std::string name)
     if(this->first == ValueType::eJson)
         return reinterpret_cast<JsonElement*>(this->second)->m_value[name];
     else
-        return {};
+        return {}; //TODO: вызвать exception
 }
 
 Element Element::getInnerValue(size_t index)
@@ -175,7 +174,7 @@ Element Element::getInnerValue(size_t index)
     else if(this->first == ValueType::eArray)
         return reinterpret_cast<ArrayElement*>(this->second)->m_value[index];
     else
-        return {};
+        return {}; //TODO: вызвать exception
 }
 /// struct Element
 

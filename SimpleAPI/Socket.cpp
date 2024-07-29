@@ -913,9 +913,9 @@ Json UDPSocket::processingBuiltPacket(const PacketMessage &pm) {
     Json controlAcknowledgement;
     if(pm.header.type != eControlType) {
         if(pm.isBuiltComplete)
-            controlAcknowledgement.put("ack_all_packet", (double)pm.sn.get()); //TODO: общий тип для всех числовых значений JSON
+            controlAcknowledgement.put("ack_all_packet", (double)pm.sn.get());
         if(pm.isError)
-            controlAcknowledgement.put("packet_error_last_sn", (double)pm.error.sn_finish.get());//TODO: проверка ошибок и переотправка
+            controlAcknowledgement.put("packet_error_last_sn", (double)pm.error.sn_finish.get());
     }
     //=========================================================================================
     return controlAcknowledgement;

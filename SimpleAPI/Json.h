@@ -9,6 +9,7 @@
 //TODO: add "noexcept"
 //namespace json {
 
+//std::is_integral<ARG>::value
 #define __ONLY_ALLOWED_TYPES__(ARG) \
     template<typename ARG, \
         typename std::enable_if< \
@@ -69,6 +70,8 @@ struct Element {
     Element     getInnerValue(std::string name);
     Element     getInnerValue(size_t index);
 };
+
+//TODO: общий тип для всех числовых значений JSON
 
 using AVector = std::vector<Element>;
 // Упорядоченный список значений
