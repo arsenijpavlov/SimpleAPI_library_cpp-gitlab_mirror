@@ -83,6 +83,48 @@ Element::Element(const Array& value) : first(ValueType::eArray) {
     second = reinterpret_cast<BaseElement*>(new ArrayElement(value));
 }
 
+bool Element::operator==(const Element &other) const
+{
+    if(this->first != other.first)
+        return false;
+
+    switch(this->first) {
+    case eNull:     return true;
+    case eNumber:
+        if(reinterpret_cast<DoubleElement*>(this->second)->m_value
+            == reinterpret_cast<DoubleElement*>(other.second)->m_value)
+            return true;
+        break;
+    case eBool:
+        if(reinterpret_cast<BoolElement*>(this->second)->m_value
+            == reinterpret_cast<BoolElement*>(other.second)->m_value)
+            return true;
+        break;
+    case eString:
+        if(reinterpret_cast<StringElement*>(this->second)->m_value
+            == reinterpret_cast<StringElement*>(other.second)->m_value)
+            return true;
+        break;
+    case eJson:
+        if(reinterpret_cast<JsonElement*>(this->second)->m_value
+            == reinterpret_cast<JsonElement*>(other.second)->m_value)
+            return true;
+        break;
+    case eArray:
+        if(reinterpret_cast<ArrayElement*>(this->second)->m_value
+            == reinterpret_cast<ArrayElement*>(other.second)->m_value)
+            return true;
+        break;
+    }
+
+    return false;
+}
+
+bool Element::operator!=(const Element &other) const
+{
+    return !(*this == other);
+}
+
 double Element::getNum()
 {
     if(first == ValueType::eNumber)
@@ -218,6 +260,22 @@ std::string Array::to_string(int16_t tabulation_level)
     ret += "]";
 
     return ret;
+}
+
+bool Array::operator==(const Array &other) const
+{
+    if(this->size() != other.size())
+        return false;
+
+    for(auto it1 = this->m_values.begin(), it2 = other.m_values.begin();
+         it1 != this->m_values.end() && it2 != other.m_values.end();
+         it1++, it2++
+         ) {
+        if(*it1 != *it2)
+            return false;
+    }
+
+    return true;
 }
 
 void Array::erase(const size_t index)
@@ -507,6 +565,22 @@ bool Json::contains(const std::string &key) {
     }
 
     return false;
+}
+
+bool Json::operator==(const Json &other) const
+{
+    if(this->size() != other.size())
+        return false;
+
+    for(auto it1 = this->m_values.begin(), it2 = other.m_values.begin();
+         it1 != this->m_values.end() && it2 != other.m_values.end();
+         it1++, it2++
+         ) {
+        if(it1->second != it2->second)
+            return false;
+    }
+
+    return true;
 }
 
 void Json::erase(const size_t index)

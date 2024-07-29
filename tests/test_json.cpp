@@ -11,12 +11,24 @@ int main(int argc, char **argv)
     return RUN_ALL_TESTS();
 }
 
+TEST(ELEMENT, compare) {
+    Element el_num(15.0);
+    Element el_bool(true);
+    Element el_string("true");
+    Element el_json(Json{});
+    Element el_array(Array{});
+
+    EXPECT_EQ(el_num,   Element(15.0));
+    EXPECT_EQ(el_bool,  Element(true));
+    EXPECT_EQ(el_string,Element("true"));
+    EXPECT_EQ(el_json,  Element(Json{}));
+    EXPECT_EQ(el_array, Element(Array{}));
+}
+
 TEST(JSON, put_and_get_elements) {
     std::string test_str    = "abc";
     double test_num         = 15;
     bool test_bool          = true;
-    //inner json
-    //inner array
 
     Json json;
     json.put("string", test_str);
@@ -35,11 +47,11 @@ TEST(JSON, put_and_get_elements) {
     json2.put("json", json);
     json2.put("array", array);
 
-//TODO:    EXPECT_EQ(json, json2["json"].getJson());
-//TODO:    EXPECT_EQ(json["string"], json2["json"].getJson()["string"]);
+    EXPECT_EQ(json, json2["json"].getJson());
+    EXPECT_EQ(json["string"], json2["json"].getJson()["string"]);
     EXPECT_EQ(json["string"].getString(), json2["json"].getJson()["string"].getString());
 
-//TODO:    EXPECT_EQ(array, json2["array"].getArray());
-//TODO:    EXPECT_EQ(array[0], json2["array"].getArray()[0]);
+    EXPECT_EQ(array, json2["array"].getArray());
+    EXPECT_EQ(array[0], json2["array"].getArray()[0]);
     EXPECT_EQ(array[0].getString(), json2["array"].getArray()[0].getString());
 }

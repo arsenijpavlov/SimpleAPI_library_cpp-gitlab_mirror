@@ -57,6 +57,9 @@ struct Element {
                 Element(const Json& value);
                 Element(const Array& value);
 
+    bool        operator==(const Element& other) const;
+    bool        operator!=(const Element& other) const;
+
     double      getNum();
     bool        getBool();
     std::string getString();
@@ -98,8 +101,10 @@ public:
 
     std::string to_string(int16_t tabulation_level = 0);
 
-    size_t      size()                              { return m_values.size(); }
+    size_t      size()                        const { return m_values.size(); }
     bool        isEmpty()                           { return m_values.size() == 0; }
+
+    bool        operator==(const Array& other) const;
 
     Element     operator[](const size_t index);
     Element     operator[](const std::vector<std::string>& complex_name);
@@ -200,7 +205,7 @@ public:
     bool        writeFile(const std::string& path, int16_t tabulation_level = 0);
 
     std::string to_string(int16_t tabulation_level = 0) const;
-    size_t      size()                                          { return m_values.size(); }
+    size_t      size()                                    const { return m_values.size(); }
     bool        isEmpty()                                       { return m_values.size() == 0; }
     bool        contains(const std::string& key);
     void        clear()                                         { m_values.clear(); }
@@ -209,6 +214,8 @@ public:
     JVector::iterator end()                                     { return m_values.end(); }
     JVector::const_iterator cbegin()                      const { return m_values.begin(); }
     JVector::const_iterator cend()                        const { return m_values.end(); }
+
+    bool        operator==(const Json& other) const;
 
     Element     operator[](const size_t index);
     Element     operator[](const std::string& name);
