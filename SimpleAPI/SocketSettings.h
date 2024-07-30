@@ -25,6 +25,7 @@ private:
     RecvPacketMessageCallback   m_recv_packet_callback;
     ConnectionCallback          m_new_connection_callback;
     ConnectionCallback          m_connection_reset_callback;
+    bool                        m_chiphering_enabled;
 
 public:
     SocketSettings() :
@@ -36,8 +37,12 @@ public:
         m_recv_json_callback        (nullptr),
         m_recv_packet_callback      (nullptr),
         m_new_connection_callback   (nullptr),
-        m_connection_reset_callback (nullptr)
+        m_connection_reset_callback (nullptr),
+        m_chiphering_enabled        (false)
     {}
+
+    void enableChiphering(bool enabled = false)                             { m_chiphering_enabled = enabled; }
+    bool isChipheringEnabled()                                              { return m_chiphering_enabled; }
 
     void setInactivityTimer(long milliseconds = 10000)                      { m_inactivity_timer = milliseconds; }
     void setMaxLength(uint16_t max_length = 1500)                           { m_max_length = max_length; }

@@ -122,20 +122,16 @@ void SocketThread::stopSocket(const IpPort& local_ip_Port) {
         it->second->stopServer();
 }
 
-bool SocketThread::send(const IpPort &source, const IpPort &destination, const Packet &packet) {
+void SocketThread::send(const IpPort &source, const IpPort &destination, const Packet &packet) {
     auto it = m_sockets.find(source);
     if(it != m_sockets.end())
-        return it->second->sendMsg(destination, packet);
-    return false;
+        it->second->sendMsg(destination, packet);
 }
 
-//TODO: переделать на void!
-//если шифр, но ключа нет, то убрать в другую очередь, иначе отправить сразу
-bool SocketThread::send(const IpPort &source, const IpPort &destination, const Json &json) {
+void SocketThread::send(const IpPort &source, const IpPort &destination, const Json &json) {
     auto it = m_sockets.find(source);
     if(it != m_sockets.end())
-        return it->second->sendMsg(destination, json);
-    return false;
+        it->second->sendMsg(destination, json);
 }
 
 void SocketThread::startThread() {

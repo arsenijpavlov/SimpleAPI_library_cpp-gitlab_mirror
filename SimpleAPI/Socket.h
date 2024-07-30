@@ -28,6 +28,10 @@ enum SocketType {
 };
 std::string to_string(SocketType type);
 
+struct ChipheringKey {
+    std::string key;
+};
+
 
 class Connection {
 public:
@@ -37,15 +41,18 @@ public:
     EECounter           m_in_sn_last_recv; //влияет на границу окна ожидания фрагментов
     EECounter           m_in_next_sn;
 
+    ChipheringKey       m_chip_key;
+
     std::map<EECounter, PacketMessage> m_map_recv_fragments;        //фрагменты сообщений (в беспорядке)
-    std::map<EECounter, PacketMessage> m_map_recv_builded_messages;  //собранные по очереди фрагменты сообщений
+    std::map<EECounter, PacketMessage> m_map_recv_builded_messages; //собранные по очереди фрагменты сообщений
 
     Connection() :
         m_last_output_activity(std::chrono::system_clock::now()),
         m_last_input_activity(std::chrono::system_clock::now()),
         m_out_sn(255),
         m_in_sn_last_recv(255),
-        m_in_next_sn(255)
+        m_in_next_sn(255),
+        m_chip_key({})
     {}
 };
 
@@ -71,8 +78,9 @@ protected:
     //ONLY FOR USE IN SOCKET_THREAD!
     //для доступа извне------------------------
     std::mutex                  m_output_threads_mutex;
-    std::deque<PacketMessage>   m_send_packets_buffer;      //sendFragments(), sendAutoMsg()
-    std::vector<PacketMessage>  m_sent_global_packets;      //запоминаем до тех пор, пока не придёт подтверждение о передаче всех фрагментов
+    std::deque<PacketMessage>   m_send_packets_buffer;  //sendFragments(), sendAutoMsg()
+    std::vector<PacketMessage>  m_sent_global_packets;  //запоминаем до тех пор, пока не придёт подтверждение о передаче всех фрагментов
+    std::vector<PacketMessage>  m_packets_wait_chip_key;//запоминаем до тех пор, пока не придёт ключ для шифрования сообщения
 
     std::mutex                  m_input_threads_mutex;
     //собранные пакеты
@@ -88,7 +96,7 @@ protected:
     void            appendNewFragment(const PacketMessage& received_pm);
     PacketMessage   buildPacket(MapConnectionsIterator& it);
     MapConnectionsIterator
-                    createConnection(const IpPort& remote_ip_port);
+                    findOrCreateConnection(const IpPort& remote_ip_port);
     void            updateLastOutputActivityTime(const IpPort& remote_ip_port);
 
     void            log(const logs::LEVEL level, const std::string& log_message, const std::string& color_log_message = "");
@@ -138,10 +146,10 @@ public:
     /* пользователь библиотеки вызывает эти функции
      *  внутри функции проверяется корректность адреса назначения
      *  и вызывается sendFragments() */
-    bool            sendMsg(const std::string& remote_ip, const uint16_t remote_port, const Packet& packet);
-    bool            sendMsg(const std::string& remote_ip, const uint16_t remote_port, const Json& json);
-    virtual bool    sendMsg(const IpPort& remote_ip_port, const Packet& packet) = 0;
-    virtual bool    sendMsg(const IpPort& remote_ip_port, const Json& json) = 0;
+    void            sendMsg(const std::string& remote_ip, const uint16_t remote_port, const Packet& packet);
+    void            sendMsg(const std::string& remote_ip, const uint16_t remote_port, const Json& json);
+    virtual void    sendMsg(const IpPort& remote_ip_port, const Packet& packet) = 0;
+    virtual void    sendMsg(const IpPort& remote_ip_port, const Json& json) = 0;
     //-----------------------------------------
     //Эти функции работают в связке с tick()
     virtual PacketMessage   getOutPacket() = 0; //выдаст пустой пакет, если очередь пуста
@@ -188,8 +196,8 @@ public:
     //УПРАВЛЕНИЕ АВТОМАТИЧЕСКИМ СЕРВЕРОМ
     void            setDeliveryNeed(bool enabled = true); //только UDP
 
-    bool            sendMsg(const IpPort& remote_ip_port, const Packet& packet);
-    bool            sendMsg(const IpPort& remote_ip_port, const Json& json);
+    void            sendMsg(const IpPort& remote_ip_port, const Packet& packet);
+    void            sendMsg(const IpPort& remote_ip_port, const Json& json);
 
     PacketMessage   getOutPacket();
     JsonMessage     getOutJson();

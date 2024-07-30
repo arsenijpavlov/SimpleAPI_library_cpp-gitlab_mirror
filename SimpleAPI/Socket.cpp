@@ -43,18 +43,14 @@ PacketHeader Socket::unpackHeader(uint8_t header) {
 }
 
 EECounter& Socket::getOutSeqNumber(const IpPort& ip_port) {
-    auto it = m_map_connections.find(ip_port);
-    if(it == m_map_connections.end())
-        it = createConnection(ip_port);
+    auto it = findOrCreateConnection(ip_port);
 
     return it->second.m_out_sn;
 }
 
 void Socket::appendNewFragment(const PacketMessage& received_pm)
 {
-    auto it = m_map_connections.find(received_pm.ipPort);
-    if(it == m_map_connections.end())
-        it = createConnection(received_pm.ipPort);
+    auto it = findOrCreateConnection(received_pm.ipPort);
 
     it->second.m_last_input_activity = std::chrono::system_clock::now();
 
@@ -268,14 +264,16 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) {
     return pm;
 }
 
-Socket::MapConnectionsIterator Socket::createConnection(const IpPort &remote_ip_port)
+Socket::MapConnectionsIterator Socket::findOrCreateConnection(const IpPort &remote_ip_port)
 {
+    auto it = m_map_connections.find(remote_ip_port);
+    if(it != m_map_connections.end()) return it;
+
     log(logs::eDEBUG,
         "add connection(1): " + remote_ip_port.to_string()
             + ", map_size:" + std::to_string(m_map_connections.size()),
         logs::to_color_string(logs::eBRIGHT_GREEN_BG, "add connection(1): " + remote_ip_port.to_string())
             + ", " + "map_size:" + std::to_string(m_map_connections.size()));
-    //TODO: запрос открытой части ключа шифрования (не факт, что здесь)
     return m_map_connections.insert(std::make_pair(remote_ip_port, Connection())).first;
 }
 
@@ -284,7 +282,7 @@ void Socket::updateLastOutputActivityTime(const IpPort& remote_ip_port) {
 
     auto it = m_map_connections.find(remote_ip_port);
     if(it == m_map_connections.end()) {
-        it = createConnection(remote_ip_port);
+        it = findOrCreateConnection(remote_ip_port);
 
         //сигнализировать о новом подключении
         if(m_settings.getNewConnectionCallback())
@@ -380,16 +378,66 @@ bool Socket::sendRawMsg(const PacketMessage &packet_message) {
     return sendRawMsg(packet_message.ipPort.ip, packet_message.ipPort.port, packet_message.packet);
 }
 
-bool Socket::sendMsg(const std::string& remote_ip, const uint16_t remote_port, const Packet& packet) {
-    if(!checkCorrectIp(remote_ip)) return false;
+void Socket::sendMsg(const std::string& remote_ip, const uint16_t remote_port, const Packet& packet) {
+    if(!checkCorrectIp(remote_ip))
+        throw std::invalid_argument("incorrect destination IP/port");
 
-    return sendMsg(IpPort{remote_ip, remote_port}, packet);
+    IpPort remote_ip_port{remote_ip, remote_port};
+    if(!m_settings.isChipheringEnabled())
+        sendMsg(remote_ip_port, packet);
+    else {
+        //создать подключение
+        auto connection_it = m_map_connections.find(remote_ip_port);
+        if(connection_it == m_map_connections.end())
+            connection_it = createConnection(remote_ip_port);
+
+        //отправить запрос ключа
+        Json jRequest;
+        Array array;
+        array.push_back("chip_key");
+        jRequest.put("get", array);
+        sendFragments(remote_ip_port, eControlType, convert_to_packet(jRequest.to_string(-1)));
+
+        //положить текущее сообщение в очередь шифрованных сообщений на отправку
+        m_output_threads_mutex.lock();
+        PacketMessage pm;
+        pm.packet = std::move(packet);
+        pm.ipPort = std::move(remote_ip_port);
+        m_packets_wait_chip_key.push_back(pm);
+        m_output_threads_mutex.unlock();
+        //продолжение алогоритма в sendAutoMsg...
+    }
 }
 
-bool Socket::sendMsg(const std::string& remote_ip, const uint16_t remote_port, const Json& json) {
-    if(!checkCorrectIp(remote_ip)) return false;
+void Socket::sendMsg(const std::string& remote_ip, const uint16_t remote_port, const Json& json) {
+    if(!checkCorrectIp(remote_ip))
+        throw std::invalid_argument("incorrect destination IP/port");
 
-    return sendMsg(IpPort{remote_ip, remote_port}, json);
+    IpPort remote_ip_port{remote_ip, remote_port};
+    if(!m_settings.isChipheringEnabled())
+        sendMsg(IpPort{remote_ip, remote_port}, json);
+    else {
+        //создать подключение
+        auto connection_it = m_map_connections.find(remote_ip_port);
+        if(connection_it == m_map_connections.end())
+            connection_it = createConnection(remote_ip_port);
+
+        //отправить запрос ключа
+        Json jRequest;
+        Array array;
+        array.push_back("chip_key");
+        jRequest.put("get", array);
+        sendFragments(remote_ip_port, eControlType, convert_to_packet(jRequest.to_string(-1)));
+
+        //положить текущее сообщение в очередь шифрованных сообщений на отправку
+        m_output_threads_mutex.lock();
+        PacketMessage pm;
+        pm.packet = std::move(convert_to_packet(json.to_string(-1)));
+        pm.ipPort = std::move(remote_ip_port);
+        m_packets_wait_chip_key.push_back(pm);
+        m_output_threads_mutex.unlock();
+        //продолжение алогоритма в sendAutoMsg...
+    }
 }
 
 void Socket::close() {
@@ -731,12 +779,27 @@ void UDPSocket::sendAutoMsg() {
             m_send_packets_buffer.push_front(pm);
             log(logs::eDEBUG, "New try to send [" + std::to_string(it->second.sn.get()) + "] fragment");
 
-            counter++;
+//            counter++; скорее всего не нужно
             if(it == m_map_auto_sent_packets.end()) break;
         }
     }
     //================================================================================
 
+    //отправка шифрованных пакетов если есть ключ=====================================
+    for(auto it = m_packets_wait_chip_key.begin();
+         it != m_packets_wait_chip_key.end();
+         it++
+         ) {
+        auto connection_it = findOrCreateConnection(it->ipPort);
+        connection_it->second.m_chip_key.key = jm.json["key"].getString();
+
+        if() {
+            log(logs::eDEBUG, "send chiphering message...");
+        }
+
+        if(it == m_packets_wait_chip_key.end()) break;
+    }
+    //================================================================================
 
     //постепенная отправка пакетов в сокет ===========================================
     while(!m_send_packets_buffer.empty()
@@ -892,6 +955,33 @@ Json UDPSocket::processingBuiltPacket(const PacketMessage &pm) {
                     sendFragments(ipPort, type, packet); //переотправка
                 }
             }
+            if(jm.json.contains("get")) {
+                //get = ArrayElement
+                Array requestes = jm.json["get"].getArray();
+                for(auto it_req : requestes) {
+                    switch(it_req.first) {
+                    case eString: {
+                        if(it_req.getString() == "chip_key") {
+                            Json jChipKey;
+                            jChipKey.put("key", "abcdefgjiklmnopqrstuvwxyz0123456789");
+                            sendFragments(pm.ipPort, eControlType,
+                                          convert_to_packet(jChipKey.to_string(-1)));
+                        }
+                        break;
+                    }
+                    case eNumber:
+                    case eBool:
+                    case eJson:
+                    case eArray:
+                    case eNull:
+                        break;
+                    }
+                }
+            }
+            if(jm.json.contains("key")) {
+                auto connection_it = findOrCreateConnection(pm.ipPort);
+                connection_it->second.m_chip_key.key = jm.json["key"].getString();
+            }
         } else {
             m_input_threads_mutex.lock();
             if(jm.json.isEmpty()) {
@@ -920,7 +1010,6 @@ Json UDPSocket::processingBuiltPacket(const PacketMessage &pm) {
     //=========================================================================================
     return controlAcknowledgement;
 }
-
 
 UDPSocket::UDPSocket(const IpPort &local_ip_port, const SocketSettings& settings) {
     m_socket_type = SocketType::eUDP;
@@ -1052,15 +1141,13 @@ bool UDPSocket::isConnected(const IpPort &remote_ip_port)
     else                                return false;
 }
 
-bool UDPSocket::sendMsg(const IpPort& remote_ip_port, const Packet& packet) {
+void UDPSocket::sendMsg(const IpPort& remote_ip_port, const Packet& packet) {
     sendFragments(remote_ip_port, eDataType, packet);
-    return true;
 }
 
-bool UDPSocket::sendMsg(const IpPort& remote_ip_port, const Json& json) {
+void UDPSocket::sendMsg(const IpPort& remote_ip_port, const Json& json) {
     //отправит Json в текстовом формате без пробелов
     sendFragments(remote_ip_port, eDataType, convert_to_packet(json.to_string(-1)));
-    return true;
 }
 
 PacketMessage UDPSocket::getOutPacket()

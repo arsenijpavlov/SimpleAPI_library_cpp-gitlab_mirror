@@ -73,11 +73,8 @@ int main(int argc, char** argv) {
     Json json;
     json.add("Hello", "WORLD!");
 
-    bool isSent;
-//    isSent = st.send(server, {"127.0.0.15", 31115}, packet);
-//    std::cout << "Sent: " << (isSent ? "true" : "false") << std::endl;
-    isSent = st.send(server, {"127.0.0.15", 31115}, json);
-//    std::cout << "Sent: " << (isSent ? "true" : "false") << std::endl;
+//    st.send(server, {"127.0.0.15", 31115}, packet);
+    st.send(server, {"127.0.0.15", 31115}, json);
 
     while(1) {
         if(!isRunning) {

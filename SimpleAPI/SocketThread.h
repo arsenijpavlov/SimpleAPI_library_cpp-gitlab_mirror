@@ -48,8 +48,8 @@ public:
     void startSocket(const IpPort& local_ip_port);
     void stopSocket(const IpPort& local_ip_port);
 
-    bool send(const IpPort& source, const IpPort& destination, const Packet& packet);
-    bool send(const IpPort& source, const IpPort& destination, const Json& json);
+    void send(const IpPort& source, const IpPort& destination, const Packet& packet);
+    void send(const IpPort& source, const IpPort& destination, const Json& json);
 
     bool isActive()                                 { return m_active; }
     void startThread();
