@@ -67,8 +67,8 @@ struct Element {
     Json        getJson();
     Array       getArray();
 
-    Element     getInnerValue(std::string name);
-    Element     getInnerValue(size_t index);
+    Element     getInnerValue(const std::string& key);
+    Element     getInnerValue(const size_t index);
 };
 
 //TODO: общий тип для всех числовых значений JSON
@@ -83,16 +83,16 @@ public:
                 Array()                             {}
                 Array(const Array& array);
                 template<typename ... Types>
-                Array(Types... args)                { push_back(args...); }
+                Array(const Types... args)          { push_back(args...); }
                 ~Array();
 
     bool        parseArray(const std::string& str);
 
                 __ONLY_ALLOWED_TYPES__(T)
-    Array&      push_front(const T value)           { m_values.insert(m_values.cbegin(), Element(value));
+    Array&      push_front(const T& value)          { m_values.insert(m_values.cbegin(), Element(value));
                                                         return *this; }
                 __ONLY_ALLOWED_TYPES__(T)
-    Array&      push_back(const T value)            { m_values.push_back(Element(value));
+    Array&      push_back(const T& value)           { m_values.push_back(Element(value));
                                                         return *this; }
 
     ValueType   getType(const size_t index)         { return m_values[index].first; }
@@ -117,32 +117,32 @@ public:
     Element     operator[](const std::vector<std::string>& complex_name);
                 template<std::size_t SIZE>
     Element     operator[](const std::array<std::string, SIZE>& complex_name)
-    {
-        if(m_values.empty()) return {};
+                {
+                    if(m_values.empty()) return {};
 
-        Element el = (*this)[complex_name[0]]; //находим первый элемент списка
-        typename std::array<std::string, SIZE>::const_iterator it = complex_name.begin() + 1; //первый элемент пропускаем
-        for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
-            bool isNumber = utils::isNumber(*it, false);
-            switch(el.first) {
-            case eJson:
-                el = el.getInnerValue(*it);
-                if(el.first == ValueType::eNull) {
-                    if(isNumber)    el = el.getInnerValue(stoi(*it));
-                    else            el = {};
+                    Element el = (*this)[complex_name[0]]; //находим первый элемент списка
+                    typename std::array<std::string, SIZE>::const_iterator it = complex_name.begin() + 1; //первый элемент пропускаем
+                    for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
+                        bool isNumber = utils::isNumber(*it, false);
+                        switch(el.first) {
+                        case eJson:
+                            el = el.getInnerValue(*it);
+                            if(el.first == ValueType::eNull) {
+                                if(isNumber)    el = el.getInnerValue(stoi(*it));
+                                else            el = {};
+                            }
+                            break;
+                        case eArray:
+                            //для массива возможно обращение только по числовому индексу!
+                            if(isNumber)    el = el.getInnerValue(stoi(*it));
+                            else            el = {};
+                            break;
+                        default: return {}; //продолжать поиск можно только по двум структурам!
+                        }
+                    }
+
+                    return el;
                 }
-                break;
-            case eArray:
-                //для массива возможно обращение только по числовому индексу!
-                if(isNumber)    el = el.getInnerValue(stoi(*it));
-                else            el = {};
-                break;
-            default: return {}; //продолжать поиск можно только по двум структурам!
-            }
-        }
-
-        return el;
-    }
 
     Element     value(const size_t index)           { return (*this)[index]; }
     Element     value(const std::vector<std::string>& complex_name)
@@ -155,25 +155,25 @@ public:
 
     //если индекс больше количества вложенных элементов, то добавятся в конец
                 __ONLY_ALLOWED_TYPES__(T)
-    Array&      insert(const size_t index, const T value)
-    {
-        if(index > m_values.size() - 1)
-            this->push_back(value);
-        else
-            m_values.insert(m_values.cbegin() + index, Element(value));
-        return *this;
-    }
+    Array&      insert(const size_t index, const T& value)
+                {
+                    if(index > m_values.size() - 1)
+                        this->push_back(value);
+                    else
+                        m_values.insert(m_values.cbegin() + index, Element(value));
+                    return *this;
+                }
 
                 __ONLY_ALLOWED_TYPES__(T)
-    Array&      insert(AVector::iterator iterator, const T value)
+    Array&      insert(const AVector::iterator& iterator, const T& value)
                                                     { m_values.insert(iterator, value);
                                                         return *this; }
 
     Array&      erase(const size_t index);
-    Array&      erase(const AVector::iterator iterator)
+    Array&      erase(const AVector::iterator& iterator)
                                                     { m_values.erase(m_values.cbegin());
                                                         return *this; }
-    Array&      erase(const AVector::iterator begin, const AVector::iterator end)
+    Array&      erase(const AVector::iterator& begin, const AVector::iterator& end)
                                                     { m_values.erase(begin, end);
                                                         return *this; }
 }; /// class Array
@@ -197,14 +197,14 @@ public:
     Json&       operator=(const Json& other);
 
                 __ONLY_ALLOWED_TYPES__(T)
-    Json&        put(const std::string& key, const T value, const bool rewrite = true)
-    {
-        if(!contains(key))
-            m_values.push_back(JPair(key, Element(value)));
-        else if(rewrite)
-            updateValue(key, value);
-        return *this;
-    }
+    Json&       put(const std::string& key, const T& value, const bool rewrite = true)
+                {
+                    if(!contains(key))
+                        m_values.push_back(JPair(key, Element(value)));
+                    else if(rewrite)
+                        updateValue(key, value);
+                    return *this;
+                }
 
     Json&       put(const Json& json, const bool rewrite = true);
 
@@ -225,12 +225,13 @@ public:
     bool        isEmpty()                                       { return m_values.size() == 0; }
     bool        contains(const std::string& key);
                 __ONLY_ALLOWED_TYPES__(T)//TODO: тест на эту функцию
-    Json&       updateValue(const std::string& key, const T& new_value) {
-        delete (*this)[key].second;
-        (*this)[key] = Element(new_value);
-        return *this;
-    }
-    Json&        clear()                                        { m_values.clear();
+    Json&       updateValue(const std::string& key, const T& new_value)
+                {
+                    delete (*this)[key].second;
+                    (*this)[key] = Element(new_value);
+                    return *this;
+                }
+    Json&       clear()                                         { m_values.clear();
                                                                     return *this; }
 
     JVector::iterator begin()                                   { return m_values.begin(); }
@@ -243,34 +244,34 @@ public:
     Element     operator[](const size_t index);
     Element     operator[](const std::string& name);
     Element     operator[](const std::vector<std::string>& complex_name);
-    template<std::size_t SIZE>
+                template<std::size_t SIZE>
     Element     operator[](const std::array<std::string, SIZE>& complex_name)
-    {
-        if(m_values.empty()) return {};
+                {
+                    if(m_values.empty()) return {};
 
-        Element el = (*this)[complex_name[0]]; //находим первый элемент списка
-        typename std::array<std::string, SIZE>::const_iterator it = complex_name.begin() + 1; //первый элемент пропускаем
-        for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
-            bool isNumber = utils::isNumber(*it, false);
-            switch(el.first) {
-            case eJson:
-                el = el.getInnerValue(*it);
-                if(el.first == ValueType::eNull) {
-                    if(isNumber)    el = el.getInnerValue(stoi(*it));
-                    else            el = {};
+                    Element el = (*this)[complex_name[0]]; //находим первый элемент списка
+                    typename std::array<std::string, SIZE>::const_iterator it = complex_name.begin() + 1; //первый элемент пропускаем
+                    for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
+                        bool isNumber = utils::isNumber(*it, false);
+                        switch(el.first) {
+                        case eJson:
+                            el = el.getInnerValue(*it);
+                            if(el.first == ValueType::eNull) {
+                                if(isNumber)    el = el.getInnerValue(stoi(*it));
+                                else            el = {};
+                            }
+                            break;
+                        case eArray:
+                            //для массива возможно обращение только по числовому индексу!
+                            if(isNumber)    el = el.getInnerValue(stoi(*it));
+                            else            el = {};
+                            break;
+                        default: return {}; //продолжать поиск можно только по двум структурам!
+                        }
+                    }
+
+                    return el;
                 }
-                break;
-            case eArray:
-                //для массива возможно обращение только по числовому индексу!
-                if(isNumber)    el = el.getInnerValue(stoi(*it));
-                else            el = {};
-                break;
-            default: return {}; //продолжать поиск можно только по двум структурам!
-            }
-        }
-
-        return el;
-    }
     Element     value(const size_t index)                       { return (*this)[index]; }
     Element     value(const std::string& name)                  { return (*this)[name]; }
     Element     value(const std::vector<std::string>& complex_name)
@@ -281,11 +282,11 @@ public:
     //если индекс больше количества вложенных элементов, то добавятся в конец
                 __ONLY_ALLOWED_TYPES__(T)
     Json&       insert(const size_t index, const std::string& key,
-                       const T value, const bool rewrite = true)
+                       const T& value, const bool rewrite = true)
                 {
-                    if(contains(key) && rewrite) {
+                    if(contains(key) && rewrite)
                         erase(key);
-                    } else {
+                    else {
                         if(index > m_values.size() - 1)
                             this->put(key, value);
                         else
@@ -295,56 +296,76 @@ public:
                     }
                     return *this;
                 }
-
-    //если индекс больше количества вложенных элементов, то добавятся в конец
                 __ONLY_ALLOWED_TYPES__(T)
-    Json&       insert(JVector::iterator iterator, const std::string& key,
-                       const T value, const bool rewrite = true)
+    Json&       insert(const JVector::iterator& iterator, const std::string& key,
+                       const T& value, const bool rewrite = true)
                 {
-                    if(!this->contains(key))
-                        m_values.insert(iterator, std::make_pair(key, Element(value)), rewrite);
+                    if(contains(key) && rewrite)
+                        erase(key);
+                    else {
+                        if(iterator == m_values.end())
+                            this->put(key, value);
+                        else
+                            m_values.insert(iterator, std::make_pair(key, Element(value)));
+                    }
+                    return *this;
+                }
+    //если ключ не найден, добавится в конец
+                __ONLY_ALLOWED_TYPES__(T)
+    Json&       insertBefore(const std::string& keyIndex, const std::string& key,
+                             const T& value, const bool rewrite = true)
+                {
+                    bool key_exists = false; //чтобы второй раз не искать
+                    //поиск индекса указанного ключа
+                    auto key_found_it = m_values.begin();
+                    for(; key_found_it == m_values.end(); key_found_it++) {
+                        if(key_found_it->first == keyIndex) {
+                            key_exists = true;
+                            break;
+                        }
+                    }
 
+                    if(key_exists && rewrite)
+                        erase(key);
+                    else {
+                        if(key_found_it == m_values.end())
+                            this->put(key, value);
+                        else
+                            m_values.insert(key_found_it, std::make_pair(key, Element(value)));
+                    }
+                    return *this;
+                }
+                __ONLY_ALLOWED_TYPES__(T)
+    Json&       insertAfter(const std::string& keyIndex, const std::string& key,
+                            const T& value, const bool rewrite = true)
+                {
+                    bool key_exists = false; //чтобы второй раз не искать
+                    //поиск индекса указанного ключа
+                    auto key_found_it = m_values.begin();
+                    for(; key_found_it == m_values.end(); key_found_it++) {
+                        if(key_found_it->first == keyIndex) {
+                            key_exists = true;
+                            key_found_it++; //нужен следующий итератор
+                            break;
+                        }
+                    }
+
+                    if(key_exists && rewrite)
+                        erase(key);
+                    else {
+                        if(key_found_it == m_values.end())
+                            this->put(key, value);
+                        else
+                            m_values.insert(key_found_it, std::make_pair(key, Element(value)));
+                    }
                     return *this;
                 }
 
-    //если индекс больше количества вложенных элементов, то добавятся в конец
-                __ONLY_ALLOWED_TYPES__(T)
-    Json&       insertBefore(const std::string& keyIndex, const std::string& key, const T value)
-    {
-        if(this->contains(key)) return false; //без дубликатов
-
-        //поиск индекса указанного ключа
-        for(JPair& it : m_values) {
-            if(it.first == keyIndex) {
-//FIXME:                this->insert(it, std::make_pair(key, value));
-                return true;
-            }
-        }
-        return false;
-    }
-
-    //если индекс больше количества вложенных элементов, то добавятся в конец
-                __ONLY_ALLOWED_TYPES__(T)
-    Json&       insertAfter(const std::string& keyIndex, const std::string& key, const T value)
-    {
-        if(this->contains(key)) return false; //без дубликатов
-
-        //поиск индекса указанного ключа
-        for(JPair& it : m_values) {
-            if(it.first == keyIndex) {
-//FIXME:                this->insert(it + 1, std::make_pair(key, value));
-                return true;
-            }
-        }
-        return false;
-
-    }
-
     Json&       erase(const size_t index);
-    Json&       erase(const JVector::iterator iterator)
+    Json&       erase(const JVector::iterator& iterator)
                                                                 { m_values.erase(m_values.cbegin());
                                                                     return *this; }
-    Json&       erase(const JVector::iterator begin, const JVector::iterator end)
+    Json&       erase(const JVector::iterator& begin, const JVector::iterator& end)
                                                                 { m_values.erase(begin, end);
                                                                     return *this; }
     Json&       erase(const std::string& key);

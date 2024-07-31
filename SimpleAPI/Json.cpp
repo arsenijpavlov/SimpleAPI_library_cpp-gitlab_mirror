@@ -70,8 +70,7 @@ Element::Element(const std::string value) : first(ValueType::eString) {
     second = reinterpret_cast<BaseElement*>(new StringElement(value));
 }
 
-Element::Element(const char *value) : first(ValueType::eString)
-{
+Element::Element(const char *value) : first(ValueType::eString) {
     second = reinterpret_cast<BaseElement*>(new StringElement(std::string(value)));
 }
 
@@ -159,15 +158,15 @@ Array Element::getArray()
     else return {}; //TODO: вызвать exception
 }
 
-Element Element::getInnerValue(std::string name)
+Element Element::getInnerValue(const std::string& key)
 {
     if(this->first == ValueType::eJson)
-        return reinterpret_cast<JsonElement*>(this->second)->m_value[name];
+        return reinterpret_cast<JsonElement*>(this->second)->m_value[key];
     else
         return {}; //TODO: вызвать exception
 }
 
-Element Element::getInnerValue(size_t index)
+Element Element::getInnerValue(const size_t index)
 {
     if(this->first == ValueType::eJson)
         return reinterpret_cast<JsonElement*>(this->second)->m_value[index];
@@ -427,8 +426,9 @@ Json &Json::operator=(const Json &other) {
     return *this;
 }
 
-bool Json::put(const Json &other/*, TODO: bool для обновления дублей*/)
+Json& Json::put(const Json &other, const bool rewrite)
 {
+    /*TODO: bool для обновления дублей*/
     for(const JPair &el : other.m_values) {
         if(contains(el.first)) continue; //NOTE: дубли пропустятся
 
@@ -467,16 +467,7 @@ bool Json::put(const Json &other/*, TODO: bool для обновления ду�
             m_values.push_back(std::make_pair(el.first, new_element));
     }
 
-    return true;
-}
-
-bool Json::isValueExists(const std::string& name)
-{
-    for(const auto &it : m_values) {
-        if(it.first == name)
-            return true;
-    }
-    return false;
+    return *this;
 }
 
 bool Json::readFile(const std::string& path)
@@ -583,14 +574,15 @@ bool Json::operator==(const Json &other) const
     return true;
 }
 
-void Json::erase(const size_t index)
+Json& Json::erase(const size_t index)
 {
-    if(index > m_values.size() - 1) return;
+    if(index <= m_values.size() - 1)
+        m_values.erase(m_values.cbegin() + index);
 
-    m_values.erase(m_values.cbegin() + index);
+    return *this;
 }
 
-void Json::erase(const std::string &key)
+Json& Json::erase(const std::string &key)
 {
     bool flag = false;
     size_t index;
@@ -602,12 +594,16 @@ void Json::erase(const std::string &key)
     }
 
     if(flag) m_values.erase(m_values.cbegin() + index);
+
+    return *this;
 }
 
-void Json::erase(const std::vector<std::string> &keys)
+Json& Json::erase(const std::vector<std::string> &keys)
 {
     for(const std::string &key : keys)
         this->erase(key);
+
+    return *this;
 }
 
 Element Json::operator[](const std::vector<std::string> &complex_name)
