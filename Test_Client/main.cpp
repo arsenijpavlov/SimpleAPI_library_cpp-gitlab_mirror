@@ -68,11 +68,10 @@ int main(int argc, char** argv) {
 
     st.startThread();
 
-    Packet packet;
-    packet = convert_to_packet("Hello world!");
-    Json json;
-    json.add("Hello", "WORLD!");
+    Packet packet = convert_to_packet("Hello world!");
+    Json json("Hello", std::string("WORLD!"));
 
+    st.findSocket(server)->m_settings.enableChiphering(true);
 //    st.send(server, {"127.0.0.15", 31115}, packet);
     st.send(server, {"127.0.0.15", 31115}, json);
 

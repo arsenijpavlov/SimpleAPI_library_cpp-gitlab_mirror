@@ -82,14 +82,18 @@ class Array {
 public:
                 Array()                             {}
                 Array(const Array& array);
+                template<typename ... Types>
+                Array(Types... args)                { push_back(args...); }
                 ~Array();
 
     bool        parseArray(const std::string& str);
 
-    __ONLY_ALLOWED_TYPES__(T)
-    void        push_front(const T value)           { m_values.insert(m_values.cbegin(), Element(value)); }
-    __ONLY_ALLOWED_TYPES__(T)
-    void        push_back(const T value)            { m_values.push_back(Element(value)); }
+                __ONLY_ALLOWED_TYPES__(T)
+    Array&      push_front(const T value)           { m_values.insert(m_values.cbegin(), Element(value));
+                                                        return *this; }
+                __ONLY_ALLOWED_TYPES__(T)
+    Array&      push_back(const T value)            { m_values.push_back(Element(value));
+                                                        return *this; }
 
     ValueType   getType(const size_t index)         { return m_values[index].first; }
     ValueType   getTypeFront(const size_t index)    { return getType(0); }
@@ -111,7 +115,7 @@ public:
 
     Element     operator[](const size_t index);
     Element     operator[](const std::vector<std::string>& complex_name);
-    template<std::size_t SIZE>
+                template<std::size_t SIZE>
     Element     operator[](const std::array<std::string, SIZE>& complex_name)
     {
         if(m_values.empty()) return {};
@@ -142,30 +146,36 @@ public:
 
     Element     value(const size_t index)           { return (*this)[index]; }
     Element     value(const std::vector<std::string>& complex_name)
-                { return (*this)[complex_name]; }
+                                                    { return (*this)[complex_name]; }
 
     AVector::iterator begin()                       { return m_values.begin(); }
     AVector::iterator end()                         { return m_values.end(); }
-    AVector::const_iterator cbegin()          const { return m_values.begin(); }
-    AVector::const_iterator cend()            const { return m_values.end(); }
+    AVector::const_iterator cbegin()          const { return m_values.cbegin(); }
+    AVector::const_iterator cend()            const { return m_values.cend(); }
 
     //если индекс больше количества вложенных элементов, то добавятся в конец
-    __ONLY_ALLOWED_TYPES__(T)
-    void        insert(const size_t index, const T value)
+                __ONLY_ALLOWED_TYPES__(T)
+    Array&      insert(const size_t index, const T value)
     {
-        if(index > m_values.size() - 1) this->push_back(value);
-        else                            m_values.insert(m_values.cbegin() + index, Element(value));
+        if(index > m_values.size() - 1)
+            this->push_back(value);
+        else
+            m_values.insert(m_values.cbegin() + index, Element(value));
+        return *this;
     }
 
-    __ONLY_ALLOWED_TYPES__(T)
-    void        insert(AVector::iterator iterator, const T value)
-                { m_values.insert(iterator, value); }
+                __ONLY_ALLOWED_TYPES__(T)
+    Array&      insert(AVector::iterator iterator, const T value)
+                                                    { m_values.insert(iterator, value);
+                                                        return *this; }
 
-    void        erase(const size_t index);
-    void        erase(const AVector::iterator iterator)
-                { m_values.erase(m_values.cbegin()); }
-    void        erase(const AVector::iterator begin, const AVector::iterator end)
-                { m_values.erase(begin, end); }
+    Array&      erase(const size_t index);
+    Array&      erase(const AVector::iterator iterator)
+                                                    { m_values.erase(m_values.cbegin());
+                                                        return *this; }
+    Array&      erase(const AVector::iterator begin, const AVector::iterator end)
+                                                    { m_values.erase(begin, end);
+                                                        return *this; }
 }; /// class Array
 
 using JPair     = std::pair<std::string, Element>;
@@ -180,28 +190,31 @@ public:
                 Json()                                          {}
                 Json(const Json& json);
                 Json(const std::string& json_string)            { this->parseJson(json_string); }
+                __ONLY_ALLOWED_TYPES__(T)
+                Json(const std::string& key, const T& value)    { put(key, value); }
                 ~Json();
 
     Json&       operator=(const Json& other);
 
-    //TODO: возврат bool не имеет смысла
-    __ONLY_ALLOWED_TYPES__(T)
-    bool        put(const std::string& key, const T value)
+                __ONLY_ALLOWED_TYPES__(T)
+    Json&        put(const std::string& key, const T value, const bool rewrite = true)
     {
-        if(!isValueExists(key)) { //без дубликатов
+        if(!contains(key))
             m_values.push_back(JPair(key, Element(value)));
-            return true;
-        } else
-            return false;
+        else if(rewrite)
+            updateValue(key, value);
+        return *this;
     }
-    bool        put(const Json& json);
 
-    __ONLY_ALLOWED_TYPES__(T)
-    bool        add(const std::string& key, const T value)      { return this->put(key, value); }
-    bool        add(const Json& json)                           { return this->put(json); }
-    bool        append(const Json& json)                        { return this->put(json); }
+    Json&       put(const Json& json, const bool rewrite = true);
 
-    bool        isValueExists(const std::string& name);
+                __ONLY_ALLOWED_TYPES__(T)
+    Json&       add(const std::string& key, const T& value, const bool rewrite = true)
+                                                                { return this->put(key, value, rewrite); }
+    Json&       add(const Json& json, const bool rewrite = true)
+                                                                { return this->put(json, rewrite); }
+    Json&       append(const Json& json, const bool rewrite = true)
+                                                                { return this->put(json, rewrite); }
 
     bool        parseJson(const std::string& str);
     bool        readFile(const std::string& path);
@@ -211,7 +224,14 @@ public:
     size_t      size()                                    const { return m_values.size(); }
     bool        isEmpty()                                       { return m_values.size() == 0; }
     bool        contains(const std::string& key);
-    void        clear()                                         { m_values.clear(); }
+                __ONLY_ALLOWED_TYPES__(T)//TODO: тест на эту функцию
+    Json&       updateValue(const std::string& key, const T& new_value) {
+        delete (*this)[key].second;
+        (*this)[key] = Element(new_value);
+        return *this;
+    }
+    Json&        clear()                                        { m_values.clear();
+                                                                    return *this; }
 
     JVector::iterator begin()                                   { return m_values.begin(); }
     JVector::iterator end()                                     { return m_values.end(); }
@@ -251,39 +271,47 @@ public:
 
         return el;
     }
-    Element     value(const size_t index)                           { return (*this)[index]; }
-    Element     value(const std::string& name)                      { return (*this)[name]; }
-    Element     value(const std::vector<std::string>& complex_name) { return (*this)[complex_name]; }
+    Element     value(const size_t index)                       { return (*this)[index]; }
+    Element     value(const std::string& name)                  { return (*this)[name]; }
+    Element     value(const std::vector<std::string>& complex_name)
+                                                                { return (*this)[complex_name]; }
+
+    //положить значение в указанную позицию
+    //если значение существует и флаг поднят - удалить существующее значение
+    //если индекс больше количества вложенных элементов, то добавятся в конец
+                __ONLY_ALLOWED_TYPES__(T)
+    Json&       insert(const size_t index, const std::string& key,
+                       const T value, const bool rewrite = true)
+                {
+                    if(contains(key) && rewrite) {
+                        erase(key);
+                    } else {
+                        if(index > m_values.size() - 1)
+                            this->put(key, value);
+                        else
+                            m_values.insert(
+                                m_values.cbegin() + index,
+                                std::make_pair(key, Element(value)));
+                    }
+                    return *this;
+                }
 
     //если индекс больше количества вложенных элементов, то добавятся в конец
-    __ONLY_ALLOWED_TYPES__(T)
-    bool        insert(const size_t index, const std::string& key, const T value)
-    {
-        if(this->isValueExists(key)) return false; //без дубликатов
-        if(index > m_values.size() - 1)
-            this->put(key, value);
-        else {
-            m_values.insert(
-                m_values.cbegin() + index,
-                std::make_pair(key, Element(value)));
-        }
-        return true;
-    }
+                __ONLY_ALLOWED_TYPES__(T)
+    Json&       insert(JVector::iterator iterator, const std::string& key,
+                       const T value, const bool rewrite = true)
+                {
+                    if(!this->contains(key))
+                        m_values.insert(iterator, std::make_pair(key, Element(value)), rewrite);
+
+                    return *this;
+                }
 
     //если индекс больше количества вложенных элементов, то добавятся в конец
-    __ONLY_ALLOWED_TYPES__(T)
-    bool        insert(JVector::iterator iterator, const std::string& key, const T value)
+                __ONLY_ALLOWED_TYPES__(T)
+    Json&       insertBefore(const std::string& keyIndex, const std::string& key, const T value)
     {
-        if(this->isValueExists(key)) return false; //без дубликатов
-        m_values.insert(iterator, std::make_pair(key, Element(value)));
-        return true;
-    }
-
-    //если индекс больше количества вложенных элементов, то добавятся в конец
-    __ONLY_ALLOWED_TYPES__(T)
-    bool        insertBefore(const std::string& keyIndex, const std::string& key, const T value)
-    {
-        if(this->isValueExists(key)) return false; //без дубликатов
+        if(this->contains(key)) return false; //без дубликатов
 
         //поиск индекса указанного ключа
         for(JPair& it : m_values) {
@@ -296,10 +324,10 @@ public:
     }
 
     //если индекс больше количества вложенных элементов, то добавятся в конец
-    __ONLY_ALLOWED_TYPES__(T)
-    bool        insertAfter(const std::string& keyIndex, const std::string& key, const T value)
+                __ONLY_ALLOWED_TYPES__(T)
+    Json&       insertAfter(const std::string& keyIndex, const std::string& key, const T value)
     {
-        if(this->isValueExists(key)) return false; //без дубликатов
+        if(this->contains(key)) return false; //без дубликатов
 
         //поиск индекса указанного ключа
         for(JPair& it : m_values) {
@@ -312,13 +340,15 @@ public:
 
     }
 
-    void        erase(const size_t index);
-    void        erase(const JVector::iterator iterator)
-                { m_values.erase(m_values.cbegin()); }
-    void        erase(const JVector::iterator begin, const JVector::iterator end)
-                { m_values.erase(begin, end); }
-    void        erase(const std::string& key);
-    void        erase(const std::vector<std::string>& keys);
+    Json&       erase(const size_t index);
+    Json&       erase(const JVector::iterator iterator)
+                                                                { m_values.erase(m_values.cbegin());
+                                                                    return *this; }
+    Json&       erase(const JVector::iterator begin, const JVector::iterator end)
+                                                                { m_values.erase(begin, end);
+                                                                    return *this; }
+    Json&       erase(const std::string& key);
+    Json&       erase(const std::vector<std::string>& keys);
 }; ///class Json
 
 static ValueType    CheckValue(std::string& value);

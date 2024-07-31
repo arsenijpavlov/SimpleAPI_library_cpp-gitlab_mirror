@@ -1,5 +1,5 @@
-#ifndef SIMPLEAPI_H
-#define SIMPLEAPI_H
+#ifndef SIMPLE_API_H
+#define SIMPLE_API_H
 
 #include "utils.h"
 
@@ -8,4 +8,4 @@
 #include "SocketThread.h"
 #include "Logger.h"
 
-#endif // SIMPLEAPI_H
+#endif // SIMPLE_API_H

@@ -126,7 +126,6 @@ public:
     //-----------------------------------------
     void            setLogLevel(logs::LEVEL log_level)  { m_settings.setLogLevel(log_level); }
     IpPort          getLocalIpPort()                    { return IpPort{m_local_ip, m_local_port}; }
-    bool            isChiphering()                      { /*TODO: isChiphering()*/ return false; }
     virtual bool    isConnected(const IpPort& remote_ip_port) = 0;
     bool            isServerActive()                    { return m_socket_fd > 0; }
     //-----------------------------------------
@@ -146,8 +145,10 @@ public:
     /* пользователь библиотеки вызывает эти функции
      *  внутри функции проверяется корректность адреса назначения
      *  и вызывается sendFragments() */
-    void            sendMsg(const std::string& remote_ip, const uint16_t remote_port, const Packet& packet);
-    void            sendMsg(const std::string& remote_ip, const uint16_t remote_port, const Json& json);
+    void            sendMsg(const std::string& remote_ip, const uint16_t remote_port, const Packet& packet)
+                                                        { sendMsg(IpPort{remote_ip, remote_port}, packet); }
+    void            sendMsg(const std::string& remote_ip, const uint16_t remote_port, const Json& json)
+                                                        { sendMsg(IpPort{remote_ip, remote_port}, json); }
     virtual void    sendMsg(const IpPort& remote_ip_port, const Packet& packet) = 0;
     virtual void    sendMsg(const IpPort& remote_ip_port, const Json& json) = 0;
     //-----------------------------------------

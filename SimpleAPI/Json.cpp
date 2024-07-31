@@ -277,11 +277,12 @@ bool Array::operator==(const Array &other) const
     return true;
 }
 
-void Array::erase(const size_t index)
+Array& Array::erase(const size_t index)
 {
-    if(index > m_values.size() - 1) return;
+    if(index <= m_values.size() - 1)
+        m_values.erase(m_values.cbegin() + index);
 
-    m_values.erase(m_values.cbegin() + index);
+    return *this;
 }
 
 Element Array::operator[](const std::vector<std::string> &complex_name)
