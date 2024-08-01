@@ -9,16 +9,14 @@
 //TODO: add "noexcept"
 //namespace json {
 
-//std::is_integral<ARG>::value
 #define __ONLY_ALLOWED_TYPES__(ARG) \
     template<typename ARG, \
         typename std::enable_if< \
-            std::is_same<ARG, double>::value \
-            || std::is_same<ARG, bool>::value \
-            || std::is_same<ARG, std::string>::value \
-            || std::is_same<ARG, const char*>::value \
-            || std::is_same<ARG, Json>::value \
+            std::is_same<ARG, Json>::value \
             || std::is_same<ARG, Array>::value \
+            || std::is_convertible<ARG, std::string>::value \
+            || std::is_arithmetic<ARG>::value \
+            || std::is_same<ARG, bool>::value \
         >::type* = nullptr>
 
 enum ValueType {
@@ -41,7 +39,27 @@ public:
 
 class Array;
 class DoubleElement;
+class DoubleElement : BaseElement {
+public:
+    double m_value;
+
+    DoubleElement()                                     {}
+    DoubleElement(const double& d) : m_value(d)         {}
+    ~DoubleElement()                                    {}
+
+    std::string to_string(int16_t tabulation_level = 0) { return utils::toString(m_value); }
+};
 class BoolElement;
+class BoolElement : BaseElement {
+public:
+    bool m_value;
+
+    BoolElement()                                       {}
+    BoolElement(const bool& b) : m_value(b)             {}
+    ~BoolElement()                                      {}
+
+    std::string to_string(int16_t tabulation_level = 0) { return m_value ? "true" : "false"; }
+};
 class StringElement;
 class JsonElement;
 class ArrayElement;
@@ -51,8 +69,21 @@ struct Element {
 
                 Element() : first(ValueType::eNull), second(nullptr) {}
                 Element(ValueType type, BaseElement* ptr) : first(type), second(ptr) {}
-                Element(const double value);
-                Element(const bool value);
+                template<typename T,
+                         typename std::enable_if<std::is_arithmetic<T>::value
+                                                 && !std::is_same<T, bool>::value>
+                         ::type* = nullptr>
+                Element(const T& value)
+                {
+                    first   = eNumber;
+                    second  = reinterpret_cast<BaseElement*>(
+                        new DoubleElement(static_cast<double>(value)));
+                }
+                Element(const bool value)
+                {
+                    first   = eBool;
+                    second  = reinterpret_cast<BaseElement*>(new BoolElement(value));
+                }
                 Element(const std::string value);
                 Element(const char* value);
                 Element(const Json& value);
@@ -71,7 +102,6 @@ struct Element {
     Element     getInnerValue(const size_t index);
 };
 
-//TODO: общий тип для всех числовых значений JSON
 
 using AVector = std::vector<Element>;
 // Упорядоченный список значений
@@ -379,26 +409,26 @@ static bool         CheckString(std::string& value);
 static bool         CheckJson(std::string& value);
 static bool         CheckArray(std::string& value);
 
-class DoubleElement : BaseElement {
-public:
-    double m_value;
+//class DoubleElement : BaseElement {
+//public:
+//    double m_value;
 
-    DoubleElement()                                     {}
-    DoubleElement(const double& d) : m_value(d)         {}
-    ~DoubleElement()                                    {}
+//    DoubleElement()                                     {}
+//    DoubleElement(const double& d) : m_value(d)         {}
+//    ~DoubleElement()                                    {}
 
-    std::string to_string(int16_t tabulation_level = 0) { return utils::toString(m_value); }
-};
-class BoolElement : BaseElement {
-public:
-    bool m_value;
+//    std::string to_string(int16_t tabulation_level = 0) { return utils::toString(m_value); }
+//};
+//class BoolElement : BaseElement {
+//public:
+//    bool m_value;
 
-    BoolElement()                                       {}
-    BoolElement(const bool& b) : m_value(b)             {}
-    ~BoolElement()                                      {}
+//    BoolElement()                                       {}
+//    BoolElement(const bool& b) : m_value(b)             {}
+//    ~BoolElement()                                      {}
 
-    std::string to_string(int16_t tabulation_level = 0) { return m_value ? "true" : "false"; }
-};
+//    std::string to_string(int16_t tabulation_level = 0) { return m_value ? "true" : "false"; }
+//};
 class StringElement : BaseElement {
 public:
     std::string m_value;

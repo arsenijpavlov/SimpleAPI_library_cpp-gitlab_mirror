@@ -58,13 +58,13 @@ std::string to_string(const ValueType type) {
 
 
 // struct Element
-Element::Element(const double value) : first(ValueType::eNumber) {
-    second = reinterpret_cast<BaseElement*>(new DoubleElement(value));
-}
+//Element::Element(const double value) : first(ValueType::eNumber) {
+//    second = reinterpret_cast<BaseElement*>(new DoubleElement(value));
+//}
 
-Element::Element(const bool value) : first(ValueType::eBool) {
-    second = reinterpret_cast<BaseElement*>(new BoolElement(value));
-}
+//Element::Element(const bool value) : first(ValueType::eBool) {
+//    second = reinterpret_cast<BaseElement*>(new BoolElement(value));
+//}
 
 Element::Element(const std::string value) : first(ValueType::eString) {
     second = reinterpret_cast<BaseElement*>(new StringElement(value));
@@ -954,14 +954,34 @@ bool Json::parseJson(const std::string& json_str)
                 valueType = CheckValue(value);
 
                 switch(valueType) {
-                case eNumber:   { return_code = this->put(key, std::stod(value)); break; }
+                case eNumber:   {
+                    return_code = true;
+                    double num;
+                    try {
+                        num = std::stod(value);
+                    } catch (...) {
+                        return_code = false;
+                    }
+
+                    if(return_code)
+                        this->put(key, std::stod(value));
+
+                    break;
+                }
                 case eBool:     {
                     return_code = utils::isBool(value);
                     if(return_code)
-                        return_code = this->put(key, utils::toBool(value));
+                        this->put(key, utils::toBool(value));
+
                     break;
                 }
-                case eString:   { return_code = this->put(key, value); break; }
+                case eString:   {
+                    return_code = true; //NOTE: выше уже проверили синтаксис
+
+                    if(return_code)
+                        this->put(key, value);
+                    break;
+                }
                 case eJson:     {
                     Json _innerJson;
                     if(!_innerJson.parseJson(value)) {
@@ -970,7 +990,8 @@ bool Json::parseJson(const std::string& json_str)
                                   << std::endl;
                         exit = true;
                     } else {
-                        return_code = this->put(key, _innerJson);
+                        return_code = true;
+                        this->put(key, _innerJson);
                     }
                     break;
                 }
@@ -982,8 +1003,10 @@ bool Json::parseJson(const std::string& json_str)
                                   << "valueType:" << to_string(valueType)
                                   << std::endl;
                         exit = true;
-                    } else
-                        return_code = this->put(key, _innerArray);
+                    } else {
+                        return_code = true;
+                        this->put(key, _innerArray);
+                    }
                     break;
                 }
                 case eNull:     { //значение ещё не прочитано!

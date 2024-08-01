@@ -18,6 +18,12 @@ TEST(ELEMENT, compare) {
     Element el_json(Json{});
     Element el_array(Array{});
 
+    EXPECT_EQ(el_num.first,     eNumber);
+    EXPECT_EQ(el_bool.first,    eBool);
+    EXPECT_EQ(el_string.first,  eString);
+    EXPECT_EQ(el_json.first,    eJson);
+    EXPECT_EQ(el_array.first,   eArray);
+
     EXPECT_EQ(el_num,   Element(15.0));
     EXPECT_EQ(el_bool,  Element(true));
     EXPECT_EQ(el_string,Element("true"));
@@ -41,7 +47,7 @@ TEST(JSON, put_and_get_elements) {
 
     Array array;
     array.push_back("str");
-    array.push_back((double)15);
+    array.push_back(15);
 
     Json json2;
     json2.put("json", json);
