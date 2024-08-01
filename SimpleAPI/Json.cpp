@@ -429,6 +429,7 @@ Json &Json::operator=(const Json &other) {
 Json& Json::put(const Json &other, const bool rewrite)
 {
     /*TODO: bool для обновления дублей*/
+//    TODO: тест для перезаписи(нет) дублей
     for(const JPair &el : other.m_values) {
         if(contains(el.first)) continue; //NOTE: дубли пропустятся
 
