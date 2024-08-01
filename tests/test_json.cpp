@@ -11,6 +11,64 @@ int main(int argc, char **argv)
     return RUN_ALL_TESTS();
 }
 
+TEST(ELEMENT, create_num) {
+    Element el_int(1);
+    Element el_double(1.1);
+    Element el_uint(11);
+    Element el_float(11.f);
+
+    EXPECT_EQ(eNumber, el_int.first);
+    EXPECT_EQ(eNumber, el_double.first);
+    EXPECT_EQ(eNumber, el_uint.first);
+    EXPECT_EQ(eNumber, el_float.first);
+
+    delete el_int.second;
+    delete el_double.second;
+    delete el_uint.second;
+    delete el_float.second;
+}
+
+TEST(ELEMENT, create_srting) {
+    Element el_string(std::string("asd"));
+    Element el_char_arr("asd");
+    const char* chr = "asd";
+    Element el_char_star(chr);
+
+    EXPECT_EQ(eString, el_string.first);
+    EXPECT_EQ(eString, el_char_arr.first);
+    EXPECT_EQ(eString, el_char_star.first);
+
+    delete el_string.second;
+    delete el_char_arr.second;
+    delete el_char_star.second;
+}
+
+TEST(ELEMENT, create_bool) {
+    Element el_bool(true);
+
+    EXPECT_EQ(eBool, el_bool.first);
+
+    delete el_bool.second;
+}
+
+TEST(ELEMENT, create_json) {
+    Json js;
+    Element el_json(js);
+
+    EXPECT_EQ(eJson, el_json.first);
+
+    delete el_json.second;
+}
+
+TEST(ELEMENT, create_array) {
+    Array ar;
+    Element el_array(ar);
+
+    EXPECT_EQ(eArray, el_array.first);
+
+    delete el_array.second;
+}
+
 TEST(ELEMENT, compare) {
     Element el_num(15.0);
     Element el_bool(true);
@@ -29,6 +87,12 @@ TEST(ELEMENT, compare) {
     EXPECT_EQ(el_string,Element("true"));
     EXPECT_EQ(el_json,  Element(Json{}));
     EXPECT_EQ(el_array, Element(Array{}));
+
+    delete el_num.second;
+    delete el_bool.second;
+    delete el_string.second;
+    delete el_json.second;
+    delete el_array.second;
 }
 
 TEST(JSON, put_and_get_elements) {
