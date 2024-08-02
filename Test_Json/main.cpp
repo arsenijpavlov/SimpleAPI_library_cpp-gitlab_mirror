@@ -92,11 +92,11 @@ int main(int argc, char **argv) {
         std::cout << j.to_string(tabLvl) << std::endl;
 //        double* dd = j.value<double>(0);
 
-        Array ja;
+        JArray ja;
         ja.push_back(j);
         j.put("ja", ja);
 
-        Array a;
+        JArray a;
         a.push_back(true);
         a.push_back(15.0);
         a.push_back(ja);
@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
 //        *a.value<double>(0) = 21;
 
 
-        Array aa;
+        JArray aa;
         aa.push_back(j);
         aa.push_back(a);
         aa.push_front((double)15.0f);

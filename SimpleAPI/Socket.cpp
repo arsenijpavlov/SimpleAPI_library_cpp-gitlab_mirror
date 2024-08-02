@@ -900,8 +900,8 @@ Json UDPSocket::processingBuiltPacket(const PacketMessage &pm) {
                 }
             }
             if(jm.json.contains("get")) {
-                //get = ArrayElement
-                Array requests = jm.json["get"].getArray();
+                //get = JArrayElement
+                JArray requests = jm.json["get"].getArray();
                 for(auto it_req : requests) {
                     switch(it_req.first) {
                     case eString: {
@@ -1096,7 +1096,7 @@ void UDPSocket::sendMsg(const IpPort& remote_ip_port, const Packet& packet) {
         auto connection_it = findOrCreateConnection(remote_ip_port);
 
         //отправить запрос ключа
-        Json jRequest("get", Array("chip_key"));
+        Json jRequest("get", JArray("chip_key"));
         sendFragments(remote_ip_port, eControlType, convert_to_packet(jRequest.to_string(-1)));
 
         //положить текущее сообщение в очередь шифрованных сообщений на отправку
@@ -1122,7 +1122,7 @@ void UDPSocket::sendMsg(const IpPort& remote_ip_port, const Json& json) {
         auto connection_it = findOrCreateConnection(remote_ip_port);
 
         //отправить запрос ключа
-        Json jRequest("get", Array("chip_key"));
+        Json jRequest("get", JArray("chip_key"));
         sendFragments(remote_ip_port, eControlType, convert_to_packet(jRequest.to_string(-1)));
 
         //положить текущее сообщение в очередь шифрованных сообщений на отправку

@@ -61,7 +61,7 @@ TEST(ELEMENT, create_json) {
 }
 
 TEST(ELEMENT, create_array) {
-    Array ar;
+    JArray ar;
     Element el_array(ar);
 
     EXPECT_EQ(eArray, el_array.first);
@@ -74,7 +74,7 @@ TEST(ELEMENT, compare) {
     Element el_bool(true);
     Element el_string("true");
     Element el_json(Json{});
-    Element el_array(Array{});
+    Element el_array(JArray{});
 
     EXPECT_EQ(el_num.first,     eNumber);
     EXPECT_EQ(el_bool.first,    eBool);
@@ -86,7 +86,7 @@ TEST(ELEMENT, compare) {
     EXPECT_EQ(el_bool,  Element(true));
     EXPECT_EQ(el_string,Element("true"));
     EXPECT_EQ(el_json,  Element(Json{}));
-    EXPECT_EQ(el_array, Element(Array{}));
+    EXPECT_EQ(el_array, Element(JArray{}));
 
     delete el_num.second;
     delete el_bool.second;
@@ -109,7 +109,7 @@ TEST(JSON, put_and_get_elements) {
     EXPECT_EQ(test_num, json["number"].getNum());
     EXPECT_EQ(test_bool, json["bool"].getBool());
 
-    Array array;
+    JArray array;
     array.push_back("str");
     array.push_back(15);
 

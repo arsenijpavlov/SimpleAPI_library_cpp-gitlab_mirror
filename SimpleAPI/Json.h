@@ -7,18 +7,20 @@
 #include <vector>
 
 //TODO: add "noexcept"
-//namespace json {
 
 #define __ONLY_ALLOWED_TYPES__(ARG) \
     template<typename ARG, \
         typename std::enable_if< \
             std::is_same<ARG, Json>::value \
-            || std::is_same<ARG, Array>::value \
+            || std::is_same<ARG, JArray>::value \
             || std::is_convertible<ARG, std::string>::value \
             || std::is_arithmetic<ARG>::value \
             || std::is_same<ARG, bool>::value \
         >::type* = nullptr>
 
+class Json;
+class JArray;
+// Element =====================================================================================
 enum ValueType {
     eNull,
 
@@ -30,15 +32,16 @@ enum ValueType {
 };
 static std::string to_string(const ValueType type);
 
-class Json;
-class Array;
 class BaseElement {
 public:
     virtual ~BaseElement(){}
     virtual std::string to_string(int16_t tabultation_level) = 0;
 };
 
-class DoubleElement : BaseElement {
+class JsonElement;      //описан после соответствующего класса
+class JArrayElement;    //описан после соответствующего класса
+
+class DoubleElement : BaseElement { //все числовые типы
 public:
     double m_value;
 
@@ -48,6 +51,7 @@ public:
 
     std::string to_string(int16_t tabulation_level = 0) { return utils::toString(m_value); }
 };
+
 class BoolElement : BaseElement {
 public:
     bool m_value;
@@ -58,6 +62,7 @@ public:
 
     std::string to_string(int16_t tabulation_level = 0) { return m_value ? "true" : "false"; }
 };
+
 class StringElement : BaseElement {
 public:
     std::string m_value;
@@ -68,14 +73,13 @@ public:
 
     std::string to_string(int16_t tabulation_level = 0) { return "\"" + m_value + "\""; }
 };
-class JsonElement;
-class ArrayElement;
+
 struct Element {
     ValueType       first;
     BaseElement*    second;
 
-                Element() : first(ValueType::eNull), second(nullptr) {}
-                Element(ValueType type, BaseElement* ptr) : first(type), second(ptr) {}
+                Element() : first(ValueType::eNull), second(nullptr)                    {}
+                Element(ValueType type, BaseElement* ptr) : first(type), second(ptr)    {}
                 template<typename T,
                          typename std::enable_if<std::is_arithmetic<T>::value
                                                  && !std::is_same<T, bool>::value>
@@ -91,46 +95,54 @@ struct Element {
                     first   = eBool;
                     second  = reinterpret_cast<BaseElement*>(new BoolElement(value));
                 }
-                Element(const std::string value);
-                Element(const char* value);
+                template<typename T,
+                         typename std::enable_if<std::is_convertible<T, std::string>::value>
+                         ::type* = nullptr>
+                Element(const T& value)
+                {
+                    first   = eString;
+                    second  = second = reinterpret_cast<BaseElement*>(new StringElement(std::string(value)));
+                }
                 Element(const Json& value);
-                Element(const Array& value);
+                Element(const JArray& value);
 //                ~Element() { delete second; } //NOTE: удалять надо извне
 
     bool        operator==(const Element& other) const;
-    bool        operator!=(const Element& other) const;
+    bool        operator!=(const Element& other) const                                  { return !(*this == other); }
 
     double      getNum();
     bool        getBool();
     std::string getString();
     Json        getJson();
-    Array       getArray();
+    JArray      getArray();
 
     Element     getInnerValue(const std::string& key);
     Element     getInnerValue(const size_t index);
 };
-
-
+// ===================================================================================== Element
+// *
+// *
+// JArray ======================================================================================
 using AVector = std::vector<Element>;
 // Упорядоченный список значений
-class Array {
+class JArray {
     AVector m_values;
 
     bool        checkIndexes(const size_t index);
 public:
-                Array()                             {}
-                Array(const Array& array);
+                JArray()                             {}
+                JArray(const JArray& array);
                 template<typename ... Types>
-                Array(const Types... args)          { push_back(args...); }
-                ~Array();
+                JArray(const Types... args)          { push_back(args...); }
+                ~JArray();
 
     bool        parseArray(const std::string& str);
 
                 __ONLY_ALLOWED_TYPES__(T)
-    Array&      push_front(const T& value)          { m_values.insert(m_values.cbegin(), Element(value));
+    JArray&      push_front(const T& value)          { m_values.insert(m_values.cbegin(), Element(value));
                                                         return *this; }
                 __ONLY_ALLOWED_TYPES__(T)
-    Array&      push_back(const T& value)           { m_values.push_back(Element(value));
+    JArray&      push_back(const T& value)           { m_values.push_back(Element(value));
                                                         return *this; }
 
     ValueType   getType(const size_t index)         { return m_values[index].first; }
@@ -149,7 +161,9 @@ public:
     size_t      size()                        const { return m_values.size(); }
     bool        isEmpty()                           { return m_values.size() == 0; }
 
-    bool        operator==(const Array& other) const;
+    bool        operator==(const JArray& other) const;
+    bool        operator!=(const JArray& other)
+                                              const { return !(*this == other); }
 
     Element     operator[](const size_t index);
     Element     operator[](const std::vector<std::string>& complex_name);
@@ -193,7 +207,7 @@ public:
 
     //если индекс больше количества вложенных элементов, то добавятся в конец
                 __ONLY_ALLOWED_TYPES__(T)
-    Array&      insert(const size_t index, const T& value)
+    JArray&      insert(const size_t index, const T& value)
                 {
                     if(index > m_values.size() - 1)
                         this->push_back(value);
@@ -203,19 +217,21 @@ public:
                 }
 
                 __ONLY_ALLOWED_TYPES__(T)
-    Array&      insert(const AVector::iterator& iterator, const T& value)
+    JArray&      insert(const AVector::iterator& iterator, const T& value)
                                                     { m_values.insert(iterator, value);
                                                         return *this; }
 
-    Array&      erase(const size_t index);
-    Array&      erase(const AVector::iterator& iterator)
+    JArray&      erase(const size_t index);
+    JArray&      erase(const AVector::iterator& iterator)
                                                     { m_values.erase(m_values.cbegin());
                                                         return *this; }
-    Array&      erase(const AVector::iterator& begin, const AVector::iterator& end)
+    JArray&      erase(const AVector::iterator& begin, const AVector::iterator& end)
                                                     { m_values.erase(begin, end);
                                                         return *this; }
-}; /// class Array
+};
+// ====================================================================================== JArray
 
+// Json ========================================================================================
 using JPair     = std::pair<std::string, Element>;
 using JVector   = std::vector<JPair>;
 // Неупорядоченный список "ключ-значение" (в данном случае упорядочен)
@@ -265,10 +281,14 @@ public:
                 __ONLY_ALLOWED_TYPES__(T)//TODO: тест на эту функцию
     Json&       updateValue(const std::string& key, const T& new_value)
                 {
-                    delete (*this)[key].second;
-                    (*this)[key] = Element(new_value);
+                    if(contains(key)) {
+                        delete (*this)[key].second;
+                        (*this)[key] = Element(new_value);
+                    } else
+                        put(key, new_value);
                     return *this;
                 }
+    Json&       updateValue(const std::string& key, const Element& new_value);
     Json&       clear()                                         { m_values.clear();
                                                                     return *this; }
 
@@ -278,6 +298,7 @@ public:
     JVector::const_iterator cend()                        const { return m_values.end(); }
 
     bool        operator==(const Json& other) const;
+    bool        operator!=(const Json& other)             const { return !(*this == other); }
 
     Element     operator[](const size_t index);
     Element     operator[](const std::string& name);
@@ -318,6 +339,7 @@ public:
     //положить значение в указанную позицию
     //если значение существует и флаг поднят - удалить существующее значение
     //если индекс больше количества вложенных элементов, то добавятся в конец
+    //если ключ не найден, добавится в конец
                 __ONLY_ALLOWED_TYPES__(T)
     Json&       insert(const size_t index, const std::string& key,
                        const T& value, const bool rewrite = true)
@@ -348,7 +370,6 @@ public:
                     }
                     return *this;
                 }
-    //если ключ не найден, добавится в конец
                 __ONLY_ALLOWED_TYPES__(T)
     Json&       insertBefore(const std::string& keyIndex, const std::string& key,
                              const T& value, const bool rewrite = true)
@@ -408,16 +429,21 @@ public:
                                                                     return *this; }
     Json&       erase(const std::string& key);
     Json&       erase(const std::vector<std::string>& keys);
-}; ///class Json
-
+};
+// ======================================================================================== Json
+// *
+// *
+// STATIC FUNCTIONS ============================================================================
 static ValueType    CheckValue(std::string& value);
 static bool         CheckDouble(std::string& value);
 static bool         CheckBool(std::string& value);
 static bool         CheckString(std::string& value);
 static bool         CheckJson(std::string& value);
 static bool         CheckArray(std::string& value);
-
-
+// ============================================================================ STATIC FUNCTIONS
+// *
+// *
+// Element (продолжение) =======================================================================
 class JsonElement : BaseElement {
 public:
     Json m_value;
@@ -428,17 +454,17 @@ public:
 
     std::string to_string(int16_t tabulation_level = 0) { return m_value.to_string(tabulation_level); }
 };
-class ArrayElement : BaseElement {
+class JArrayElement : BaseElement {
 public:
-    Array m_value;
+    JArray m_value;
 
-    ArrayElement()                                      {}
-    ArrayElement(const Array& a) : m_value(a)           {}
-    ~ArrayElement()                                     {}
+    JArrayElement()                                     {}
+    JArrayElement(const JArray& a) : m_value(a)         {}
+    ~JArrayElement()                                    {}
 
     std::string to_string(int16_t tabulation_level = 0) { return m_value.to_string(tabulation_level); }
 };
+// ======================================================================= Element (продолжение)
 
-//} /// namespace json
 
 #endif // JSON_H
