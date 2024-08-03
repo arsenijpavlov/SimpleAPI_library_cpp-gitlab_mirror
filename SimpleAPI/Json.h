@@ -38,9 +38,6 @@ public:
     virtual std::string to_string(int16_t tabultation_level) = 0;
 };
 
-class JsonElement;      //описан после соответствующего класса
-class JArrayElement;    //описан после соответствующего класса
-
 class DoubleElement : BaseElement { //все числовые типы
 public:
     double m_value;
@@ -73,6 +70,9 @@ public:
 
     std::string to_string(int16_t tabulation_level = 0) { return "\"" + m_value + "\""; }
 };
+
+class JsonElement;      //описан после соответствующего класса
+class JArrayElement;    //описан после соответствующего класса
 
 struct Element {
     ValueType       first;

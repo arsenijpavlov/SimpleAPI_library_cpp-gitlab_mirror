@@ -175,13 +175,16 @@ bool checkCrc8(std::vector<uint8_t>& data)
 
     while(sum > 0xFF)
         sum = (sum & 0xFF) + (sum >> 8);
-    sum = !sum;
+    sum = static_cast<uint8_t>(~sum);
 
-    data[0] = sum & 0xFF;
-
-    if(needCheck && data[0] != 0)
-        return false;
-    return true;
+    if(needCheck) {
+        needCheck = sum == data[0];
+        data[0] = (needCheck ? 0 : sum);
+        return needCheck;
+    } else {
+        data[0] = sum;
+        return true;
+    }
 }
 
 //на вход подаётся массив данных, в начале которого 2 байта отвечают за CRC
@@ -196,14 +199,21 @@ bool checkCrc16(std::vector<uint8_t>& data)
 
     while(sum > 0xFFFF)
         sum = (sum & 0xFFFF) + (sum >> 16);
-    sum = !sum;
+    sum = static_cast<uint16_t>(~sum);
 
-    data[0] = (sum >> 8) & 0xFF;
-    data[1] = sum & 0xFF;
+    uint8_t byte_0 = (sum >> 8) & 0xFF;
+    uint8_t byte_1 = sum & 0xFF;
 
-    if(needCheck && (data[0] != 0 || data[1] != 0))
-        return false;
-    return true;
+    if(needCheck) {
+        needCheck = byte_0 == data[0] && byte_1 == data[1];
+        data[0] = (needCheck ? 0 : byte_0);
+        data[1] = (needCheck ? 0 : byte_1);
+        return needCheck;
+    } else {
+        data[0] = byte_0;
+        data[1] = byte_1;
+        return true;
+    }
 }
 
 //на вход подаётся массив данных, в начале которого 4 байта отвечают за CRC
@@ -221,16 +231,27 @@ bool checkCrc32(std::vector<uint8_t>& data)
 
     while(sum > 0xFFFFFFFF)
         sum = (sum & 0xFFFFFFFF) + (sum >> 32);
-    sum = !sum;
+    sum = static_cast<uint32_t>(~sum);
 
-    data[0] = (sum >> 24) & 0xFF;
-    data[1] = (sum >> 16) & 0xFF;
-    data[2] = (sum >> 8) & 0xFF;
-    data[3] = sum & 0xFF;
+    uint8_t byte_0 = (sum >> 24) & 0xFF;
+    uint8_t byte_1 = (sum >> 16) & 0xFF;
+    uint8_t byte_2 = (sum >> 8) & 0xFF;
+    uint8_t byte_3 = sum & 0xFF;
 
-    if(needCheck && (data[0] != 0 || data[1] != 0 || data[2] != 0 || data[3] != 0))
-        return false;
-    return true;
+    if(needCheck) {
+        needCheck = byte_0 == data[0] && byte_1 == data[1] && byte_2 == data[2] && byte_3 == data[3];
+        data[0] = (needCheck ? 0 : byte_0);
+        data[1] = (needCheck ? 0 : byte_1);
+        data[2] = (needCheck ? 0 : byte_2);
+        data[3] = (needCheck ? 0 : byte_3);
+        return needCheck;
+    } else {
+        data[0] = byte_0;
+        data[1] = byte_1;
+        data[2] = byte_2;
+        data[3] = byte_3;
+        return true;
+    }
 }
 
 
