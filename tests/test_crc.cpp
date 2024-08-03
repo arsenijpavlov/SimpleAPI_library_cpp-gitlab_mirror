@@ -11,7 +11,8 @@ int main(int argc, char **argv)
     return RUN_ALL_TESTS();
 }
 
-const std::string data_template = "127B2248656C6C6F223A22574F524C4421227D";
+//NOTE: должно быть const, но это создаёт warning
+std::string data_template("127B2248656C6C6F223A22574F524C4421227D");
 
 TEST(CRC, CRC8_ENCODE_DECODE) {
     Packet prep_packet = utils::from_hex_string("00" + data_template);
