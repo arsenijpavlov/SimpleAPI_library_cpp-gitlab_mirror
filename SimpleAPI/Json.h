@@ -78,25 +78,32 @@ struct Element {
     ValueType       first;
     BaseElement*    second;
 
-                Element() : first(ValueType::eNull), second(nullptr)                    {}
-                Element(ValueType type, BaseElement* ptr) : first(type), second(ptr)    {}
+                Element() : first(ValueType::eNull), second(nullptr)
+                                                                {}
+                Element(ValueType type, BaseElement* ptr) : first(type), second(ptr)
+                                                                {}
                 template<typename T, typename std::enable_if<std::is_arithmetic<T>::value
                                                              && !std::is_same<T, bool>::value>
                          ::type* = nullptr>
                 Element(const T& value) : first(eNumber)
-                { second  = reinterpret_cast<BaseElement*>(new DoubleElement(static_cast<double>(value))); }
+                                                                { second  = reinterpret_cast<BaseElement*>(
+                                                                        new DoubleElement(static_cast<double>(value))); }
                 Element(const bool value) : first(eBool)
-                { second  = reinterpret_cast<BaseElement*>(new BoolElement(value)); }
+                                                                { second  = reinterpret_cast<BaseElement*>(
+                                                                        new BoolElement(value)); }
                 template<typename T, typename std::enable_if<std::is_convertible<T, std::string>::value>
                          ::type* = nullptr>
                 Element(const T& value) : first(eString)
-                { second  = second = reinterpret_cast<BaseElement*>(new StringElement(std::string(value))); }
+                                                                { second  = second = reinterpret_cast<BaseElement*>(
+                                                                        new StringElement(std::string(value))); }
                 Element(const Json& value);
                 Element(const JArray& value);
-//                ~Element() { delete second; } //NOTE: удалять надо извне
+                Element(const Element& other);
+                ~Element();
 
     bool        operator==(const Element& other) const;
-    bool        operator!=(const Element& other) const                                  { return !(*this == other); }
+    bool        operator!=(const Element& other)          const { return !(*this == other); }
+    Element&    operator=(const Element& other);
 
     double      getNum();
     bool        getBool();
@@ -136,7 +143,6 @@ public:
     JArray&     push_back(const T& value)           { m_values.push_back(Element(value));
                                                         return *this; }
     JArray&     append(const JArray& array);
-
 
     ValueType   getType(const size_t index)         { return m_values[index].first; }
     ValueType   getTypeFront(const size_t index)    { return getType(0); }

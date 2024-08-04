@@ -24,11 +24,6 @@ TEST(ELEMENT, create_num) {
     EXPECT_EQ(eNumber, el_double.first);
     EXPECT_EQ(eNumber, el_uint.first);
     EXPECT_EQ(eNumber, el_float.first);
-
-    delete el_int.second;
-    delete el_double.second;
-    delete el_uint.second;
-    delete el_float.second;
 }
 
 TEST(ELEMENT, create_srting) {
@@ -40,18 +35,12 @@ TEST(ELEMENT, create_srting) {
     EXPECT_EQ(eString, el_string.first);
     EXPECT_EQ(eString, el_char_arr.first);
     EXPECT_EQ(eString, el_char_star.first);
-
-    delete el_string.second;
-    delete el_char_arr.second;
-    delete el_char_star.second;
 }
 
 TEST(ELEMENT, create_bool) {
     Element el_bool(true);
 
     EXPECT_EQ(eBool, el_bool.first);
-
-    delete el_bool.second;
 }
 
 TEST(ELEMENT, create_json) {
@@ -59,8 +48,6 @@ TEST(ELEMENT, create_json) {
     Element el_json(js);
 
     EXPECT_EQ(eJson, el_json.first);
-
-    delete el_json.second;
 }
 
 TEST(ELEMENT, create_array) {
@@ -68,8 +55,6 @@ TEST(ELEMENT, create_array) {
     Element el_array(ar);
 
     EXPECT_EQ(eArray, el_array.first);
-
-    delete el_array.second;
 }
 
 TEST(ELEMENT, compare_all_types) {
@@ -90,12 +75,6 @@ TEST(ELEMENT, compare_all_types) {
     EXPECT_EQ(el_string,Element("true"));
     EXPECT_EQ(el_json,  Element(Json{}));
     EXPECT_EQ(el_array, Element(JArray{}));
-
-    delete el_num.second;
-    delete el_bool.second;
-    delete el_string.second;
-    delete el_json.second;
-    delete el_array.second;
 }
 
 TEST(ELEMENT, not_compare_all_types) {
@@ -116,12 +95,6 @@ TEST(ELEMENT, not_compare_all_types) {
     EXPECT_NE(el_string,Element("asd"));
     EXPECT_NE(el_json,  Element(Json().put("asd", "asd")));
     EXPECT_NE(el_array, Element(JArray().push_front("asd")));
-
-    delete el_num.second;
-    delete el_bool.second;
-    delete el_string.second;
-    delete el_json.second;
-    delete el_array.second;
 }
 
 //========================================================================================
@@ -186,6 +159,10 @@ TEST(JSON, put_and_get_elements) {
     Json json2;
     json2.put("json", json);
     json2.put("array", array);
+
+    {
+        Json j3 = json2["json"].getJson();
+    }
 
     EXPECT_EQ(json, json2["json"].getJson());
     EXPECT_EQ(json["string"], json2["json"].getJson()["string"]);
