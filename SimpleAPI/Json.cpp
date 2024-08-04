@@ -163,8 +163,7 @@ Element Element::getInnerValue(const size_t index)
 // JArray ======================================================================================
 bool JArray::checkIndexes(const size_t index) {
     if(index + 1 > m_values.size()) {
-        //TODO: std::outofrange
-        throw "Going beyond JArray boundaries";
+        throw std::out_of_range("Going beyond JArray boundaries");
         return false;
     }
     return true;
@@ -342,6 +341,41 @@ bool JArray::parseArray(const std::string& array_str)
     return return_code;
 }
 
+JArray &JArray::append(const JArray &array) {
+    for(const Element& el : array.m_values) {
+        switch(el.first) {
+        case eNumber: {
+            double value = reinterpret_cast<DoubleElement*>(el.second)->m_value;
+            push_back(value);
+            break;
+        }
+        case eBool: {
+            bool value = reinterpret_cast<BoolElement*>(el.second)->m_value;
+            push_back(value);
+            break;
+        }
+        case eString: {
+            std::string value = reinterpret_cast<StringElement*>(el.second)->m_value;
+            push_back(value);
+            break;
+        }
+        case eJson: {
+            Json value = reinterpret_cast<JsonElement*>(el.second)->m_value;
+            push_back(value);
+            break;
+        }
+        case eArray: {
+            JArray value = reinterpret_cast<JArrayElement*>(el.second)->m_value;
+            push_back(value);
+            break;
+        }
+        case eNull: break;
+        }
+    }
+
+    return *this;
+}
+
 std::string JArray::to_string(int16_t tabulation_level)
 {
     if(m_values.empty()) return "[]";
@@ -399,19 +433,20 @@ Element JArray::operator[](const size_t index)
     return Element(m_values[index].first, m_values[index].second);
 }
 
+//FIXME: эта функция не роботает
 Element JArray::operator[](const std::vector<std::string> &complex_name)
 {
     if(m_values.empty()) return {};
 
     std::vector<std::string>::const_iterator it = complex_name.begin();
-    if(!utils::isNumber(*it++, false))
+    if(!utils::isNumber(*it, false))
         return {};
     Element el = (*this)[stoi(*it)]; //находим первый элемент списка
     for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
         bool isNumber = utils::isNumber(*it, false);
         switch(el.first) {
         case eJson:
-            el = el.getInnerValue(*it);
+            el = el.getInnerValue(*it++);
             if(el.first == ValueType::eNull) {
                 if(isNumber)    el = el.getInnerValue(stoi(*it));
                 else            el = {};
@@ -429,8 +464,7 @@ Element JArray::operator[](const std::vector<std::string> &complex_name)
     return el;
 }
 
-JArray& JArray::erase(const size_t index)
-{
+JArray& JArray::erase(const size_t index) {
     if(index <= m_values.size() - 1)
         m_values.erase(m_values.cbegin() + index);
 
@@ -448,8 +482,7 @@ bool Json::checkIndexes(const size_t index) {
     return true;
 }
 
-Json::Json(const Json& json)
-{
+Json::Json(const Json& json) {
     for(const JPair &el : json.m_values) {
         switch(el.second.first) {
         case eNumber: {
@@ -492,12 +525,19 @@ Json::Json(const Json& json)
     }
 }
 
+Json::Json(const JVector &vec) {
+    for(JVector::const_iterator j_it = vec.begin(); j_it != vec.end(); j_it++)
+        put(*j_it);
+}
+
 Json::~Json() {
     for(JPair& el : m_values)
         delete el.second.second;
 }
 
 Json &Json::operator=(const Json &other) {
+    this->clear();
+
     for(const JPair &el : other.m_values) {
         switch(el.second.first) {
         case eNumber: {
@@ -542,15 +582,22 @@ Json &Json::operator=(const Json &other) {
     return *this;
 }
 
+Json &Json::put(const std::string &key, const Element &element, const bool rewrite) {
+    if(!contains(key))
+        m_values.push_back(JPair(key, element));
+    else if(rewrite)
+        updateValue(key, element);
+    return *this;
+}
+
 //    TODO: тест для перезаписи(нет) дублей
-Json& Json::put(const Json &json, const bool rewrite)
-{
+Json& Json::put(const Json &json, const bool rewrite) {
     for(const JPair &el : json.m_values) {
         if(contains(el.first)) {
             if(!rewrite)    continue;
             else            updateValue(el.first, el.second);
         } else {
-//TODO:            put(el.first, el.second);
+            //TODO:            put(el.first, el.second);
             Element new_element;
 
             switch(el.second.first) {

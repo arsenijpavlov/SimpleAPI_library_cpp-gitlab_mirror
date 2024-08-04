@@ -80,29 +80,17 @@ struct Element {
 
                 Element() : first(ValueType::eNull), second(nullptr)                    {}
                 Element(ValueType type, BaseElement* ptr) : first(type), second(ptr)    {}
-                template<typename T,
-                         typename std::enable_if<std::is_arithmetic<T>::value
-                                                 && !std::is_same<T, bool>::value>
+                template<typename T, typename std::enable_if<std::is_arithmetic<T>::value
+                                                             && !std::is_same<T, bool>::value>
                          ::type* = nullptr>
-                Element(const T& value)
-                {
-                    first   = eNumber;
-                    second  = reinterpret_cast<BaseElement*>(
-                        new DoubleElement(static_cast<double>(value)));
-                }
-                Element(const bool value)
-                {
-                    first   = eBool;
-                    second  = reinterpret_cast<BaseElement*>(new BoolElement(value));
-                }
-                template<typename T,
-                         typename std::enable_if<std::is_convertible<T, std::string>::value>
+                Element(const T& value) : first(eNumber)
+                { second  = reinterpret_cast<BaseElement*>(new DoubleElement(static_cast<double>(value))); }
+                Element(const bool value) : first(eBool)
+                { second  = reinterpret_cast<BaseElement*>(new BoolElement(value)); }
+                template<typename T, typename std::enable_if<std::is_convertible<T, std::string>::value>
                          ::type* = nullptr>
-                Element(const T& value)
-                {
-                    first   = eString;
-                    second  = second = reinterpret_cast<BaseElement*>(new StringElement(std::string(value)));
-                }
+                Element(const T& value) : first(eString)
+                { second  = second = reinterpret_cast<BaseElement*>(new StringElement(std::string(value))); }
                 Element(const Json& value);
                 Element(const JArray& value);
 //                ~Element() { delete second; } //NOTE: удалять надо извне
@@ -130,31 +118,39 @@ class JArray {
 
     bool        checkIndexes(const size_t index);
 public:
-                JArray()                             {}
+                JArray()                            {}
                 JArray(const JArray& array);
                 template<typename ... Types>
-                JArray(const Types... args)          { push_back(args...); }
+                JArray(const Types... args)         { for(Element el : {Element(args)...}) push_back(el); }
                 ~JArray();
 
     bool        parseArray(const std::string& str);
 
                 __ONLY_ALLOWED_TYPES__(T)
-    JArray&      push_front(const T& value)          { m_values.insert(m_values.cbegin(), Element(value));
+    JArray&     push_front(const T& value)          { m_values.insert(m_values.cbegin(), Element(value));
                                                         return *this; }
+    JArray&     push_front(const JArray& array)     { /*TODO: */ return *this; }
+                template<typename ... Types>
+    JArray&     push_back(const Types... args)      { m_values.push_back(Element(args)...); return *this; }
                 __ONLY_ALLOWED_TYPES__(T)
-    JArray&      push_back(const T& value)           { m_values.push_back(Element(value));
+    JArray&     push_back(const T& value)           { m_values.push_back(Element(value));
                                                         return *this; }
+    JArray&     append(const JArray& array);
+
 
     ValueType   getType(const size_t index)         { return m_values[index].first; }
     ValueType   getTypeFront(const size_t index)    { return getType(0); }
     ValueType   getTypeBack(const size_t index)     { return getType(m_values.size() - 1); }
 
-    Element     getAt(const size_t index)           { return m_values[index]; }
     Element     getFront()                          { return m_values.front(); }
     Element     getBack()                           { return m_values.back(); }
 
-    void        popBack()                           { m_values.pop_back(); }
-    void        clear()                             { m_values.clear(); }
+    JArray&     popFornt()                          { m_values.erase(m_values.begin());
+                                                        return *this; }
+    JArray&     popBack()                           { m_values.pop_back();
+                                                        return *this; }
+    JArray&     clear()                             { m_values.clear();
+                                                        return *this; }
 
     std::string to_string(int16_t tabulation_level = 0);
 
@@ -196,8 +192,8 @@ public:
                     return el;
                 }
 
-    Element     value(const size_t index)           { return (*this)[index]; }
-    Element     value(const std::vector<std::string>& complex_name)
+    Element     getValue(const size_t index)        { return (*this)[index]; }
+    Element     getValue(const std::vector<std::string>& complex_name)
                                                     { return (*this)[complex_name]; }
 
     AVector::iterator begin()                       { return m_values.begin(); }
@@ -207,7 +203,7 @@ public:
 
     //если индекс больше количества вложенных элементов, то добавятся в конец
                 __ONLY_ALLOWED_TYPES__(T)
-    JArray&      insert(const size_t index, const T& value)
+    JArray&     insert(const size_t index, const T& value)
                 {
                     if(index > m_values.size() - 1)
                         this->push_back(value);
@@ -217,20 +213,21 @@ public:
                 }
 
                 __ONLY_ALLOWED_TYPES__(T)
-    JArray&      insert(const AVector::iterator& iterator, const T& value)
+    JArray&     insert(const AVector::iterator& iterator, const T& value)
                                                     { m_values.insert(iterator, value);
                                                         return *this; }
 
-    JArray&      erase(const size_t index);
-    JArray&      erase(const AVector::iterator& iterator)
+    JArray&     erase(const size_t index);
+    JArray&     erase(const AVector::iterator& iterator)
                                                     { m_values.erase(m_values.cbegin());
                                                         return *this; }
-    JArray&      erase(const AVector::iterator& begin, const AVector::iterator& end)
+    JArray&     erase(const AVector::iterator& begin, const AVector::iterator& end)
                                                     { m_values.erase(begin, end);
                                                         return *this; }
 };
 // ====================================================================================== JArray
-
+// *
+// *
 // Json ========================================================================================
 using JPair     = std::pair<std::string, Element>;
 using JVector   = std::vector<JPair>;
@@ -243,23 +240,19 @@ class Json
 public:
                 Json()                                          {}
                 Json(const Json& json);
+                Json(const JPair& pair)                         { put(pair.first, pair.second); }
                 Json(const std::string& json_string)            { this->parseJson(json_string); }
                 __ONLY_ALLOWED_TYPES__(T)
                 Json(const std::string& key, const T& value)    { put(key, value); }
+                Json(const JVector& vec);
                 ~Json();
 
     Json&       operator=(const Json& other);
 
                 __ONLY_ALLOWED_TYPES__(T)
     Json&       put(const std::string& key, const T& value, const bool rewrite = true)
-                {
-                    if(!contains(key))
-                        m_values.push_back(JPair(key, Element(value)));
-                    else if(rewrite)
-                        updateValue(key, value);
-                    return *this;
-                }
-
+                                                                { return put(key, Element(value), rewrite); }
+    Json&       put(const std::string& key, const Element& element, const bool rewrite = true);
     Json&       put(const Json& json, const bool rewrite = true);
 
                 __ONLY_ALLOWED_TYPES__(T)
@@ -331,9 +324,9 @@ public:
 
                     return el;
                 }
-    Element     value(const size_t index)                       { return (*this)[index]; }
-    Element     value(const std::string& name)                  { return (*this)[name]; }
-    Element     value(const std::vector<std::string>& complex_name)
+    Element     getValue(const size_t index)                    { return (*this)[index]; }
+    Element     getValue(const std::string& name)               { return (*this)[name]; }
+    Element     getValue(const std::vector<std::string>& complex_name)
                                                                 { return (*this)[complex_name]; }
 
     //положить значение в указанную позицию
@@ -377,14 +370,14 @@ public:
                     bool key_exists = false; //чтобы второй раз не искать
                     //поиск индекса указанного ключа
                     auto key_found_it = m_values.begin();
-                    for(; key_found_it == m_values.end(); key_found_it++) {
+                    for(; key_found_it != m_values.end(); key_found_it++) {
                         if(key_found_it->first == keyIndex) {
                             key_exists = true;
                             break;
                         }
                     }
 
-                    if(key_exists && rewrite)
+                    if(key_exists && (key_found_it->first == key) && rewrite)
                         erase(key);
                     else {
                         if(key_found_it == m_values.end())
@@ -401,7 +394,7 @@ public:
                     bool key_exists = false; //чтобы второй раз не искать
                     //поиск индекса указанного ключа
                     auto key_found_it = m_values.begin();
-                    for(; key_found_it == m_values.end(); key_found_it++) {
+                    for(; key_found_it != m_values.end(); key_found_it++) {
                         if(key_found_it->first == keyIndex) {
                             key_exists = true;
                             key_found_it++; //нужен следующий итератор
@@ -409,7 +402,7 @@ public:
                         }
                     }
 
-                    if(key_exists && rewrite)
+                    if(key_exists && (key_found_it->first == key) && rewrite)
                         erase(key);
                     else {
                         if(key_found_it == m_values.end())

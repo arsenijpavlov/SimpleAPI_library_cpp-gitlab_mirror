@@ -25,8 +25,8 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(UNIT_TESTS               "Google tests enabled"          on)
-option(ENABLE_JSON_TEST_APP     "Json testing app enabled"      on)
-option(ENABLE_SOCKETS_TEST_APP  "Sockets testing app enabled"   off)
+option(ENABLE_JSON_TEST_APP     "Json testing app enabled"      off)
+option(ENABLE_SOCKETS_TEST_APP  "Sockets testing app enabled"   on)
 option(ENABLE_COLORS_TEST_APP   "Color choiser app enabled"     off)
 
 #library
