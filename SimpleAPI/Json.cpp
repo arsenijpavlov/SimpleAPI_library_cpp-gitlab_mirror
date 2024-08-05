@@ -532,7 +532,7 @@ Element JArray::operator[](const size_t index)
     if(m_values.empty()) return {};
     if(!checkIndexes(index)) return {};
 
-    return Element(m_values[index].first, m_values[index].second);
+    return Element(m_values[index]);
 }
 
 //FIXME: эта функция не роботает
@@ -630,7 +630,7 @@ Json::Json(const Json& other) {
 
 Json::Json(const JVector &vec) {
     for(JVector::const_iterator j_it = vec.begin(); j_it != vec.end(); j_it++)
-        put(*j_it);
+        put(j_it->first, j_it->second);
 }
 
 Json::~Json() {
@@ -1096,8 +1096,7 @@ Element Json::operator[](const std::string &name) {
 
     for(size_t i = 0; i < m_values.size(); i++)
         if(m_values[i].first == name)
-            return Element(m_values[i].second.first,
-                           m_values[i].second.second);
+            return Element(m_values[i].second);
     return {};
 }
 

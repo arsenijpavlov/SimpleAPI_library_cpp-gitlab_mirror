@@ -86,15 +86,15 @@ struct Element {
                                                              && !std::is_same<T, bool>::value>
                          ::type* = nullptr>
                 Element(const T& value) : first(eNumber)
-                                                                { second  = reinterpret_cast<BaseElement*>(
+                                                                { second = reinterpret_cast<BaseElement*>(
                                                                         new DoubleElement(static_cast<double>(value))); }
                 Element(const bool value) : first(eBool)
-                                                                { second  = reinterpret_cast<BaseElement*>(
+                                                                { second = reinterpret_cast<BaseElement*>(
                                                                         new BoolElement(value)); }
                 template<typename T, typename std::enable_if<std::is_convertible<T, std::string>::value>
                          ::type* = nullptr>
                 Element(const T& value) : first(eString)
-                                                                { second  = second = reinterpret_cast<BaseElement*>(
+                                                                { second = reinterpret_cast<BaseElement*>(
                                                                         new StringElement(std::string(value))); }
                 Element(const Json& value);
                 Element(const JArray& value);
