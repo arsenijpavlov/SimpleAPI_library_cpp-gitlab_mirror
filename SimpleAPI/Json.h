@@ -99,20 +99,20 @@ struct Element {
                 Element(const Json& value);
                 Element(const JArray& value);
                 Element(const Element& other);
-                ~Element();
+                ~Element()                                      { delete second; }
 
     bool        operator==(const Element& other) const;
     bool        operator!=(const Element& other)          const { return !(*this == other); }
     Element&    operator=(const Element& other);
 
-    double      getNum();
-    bool        getBool();
-    std::string getString();
-    Json        getJson();
-    JArray      getArray();
+    double      getNum() const;
+    bool        getBool() const;
+    std::string getString() const;
+    Json        getJson() const;
+    JArray      getArray() const;
 
-    Element     getInnerValue(const std::string& key);
-    Element     getInnerValue(const size_t index);
+    Element     getInnerValue(const std::string& key) const;
+    Element     getInnerValue(const size_t index) const;
 };
 // ===================================================================================== Element
 // *
@@ -129,7 +129,7 @@ public:
                 JArray(const JArray& array);
                 template<typename ... Types>
                 JArray(const Types... args)         { for(Element el : {Element(args)...}) push_back(el); }
-                ~JArray();
+                ~JArray()                           {}
 
     bool        parseArray(const std::string& str);
 
@@ -251,7 +251,7 @@ public:
                 __ONLY_ALLOWED_TYPES__(T)
                 Json(const std::string& key, const T& value)    { put(key, value); }
                 Json(const JVector& vec);
-                ~Json();
+                ~Json()                                         {}
 
     Json&       operator=(const Json& other);
 
@@ -281,7 +281,6 @@ public:
     Json&       updateValue(const std::string& key, const T& new_value)
                 {
                     if(contains(key)) {
-                        delete (*this)[key].second;
                         (*this)[key] = Element(new_value);
                     } else
                         put(key, new_value);

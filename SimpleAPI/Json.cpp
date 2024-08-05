@@ -68,186 +68,116 @@ Element::Element(const JArray& value) : first(ValueType::eArray) {
     second = reinterpret_cast<BaseElement*>(new JArrayElement(value));
 }
 
-Element::Element(const Element &other)
-{
+Element::Element(const Element &other) {
     first = other.first;
     switch(first) {
-    case eNumber: {
-        double value = reinterpret_cast<DoubleElement*>(other.second)->m_value;
-        second = reinterpret_cast<BaseElement*>(new DoubleElement(value));
-        break;
-    }
-    case eBool: {
-        bool value = reinterpret_cast<BoolElement*>(other.second)->m_value;
-        second = reinterpret_cast<BaseElement*>(new BoolElement(value));
-        break;
-    }
-    case eString: {
-//        std::string value = reinterpret_cast<StringElement*>(other.second)->m_value;
-        std::string value;
-        StringElement *_other_string = reinterpret_cast<StringElement*>(other.second);
-        std::copy(_other_string->m_value.begin(), _other_string->m_value.end(), value.begin());
-        second = reinterpret_cast<BaseElement*>(new StringElement(value));
-        break;
-    }
-    case eJson: {
-        Json value = reinterpret_cast<JsonElement*>(other.second)->m_value;
-        second = reinterpret_cast<BaseElement*>(new JsonElement(value));
-        break;
-    }
-    case eArray: {
-        JArray value = reinterpret_cast<JArrayElement*>(other.second)->m_value;
-        second = reinterpret_cast<BaseElement*>(new JArrayElement(value));
-        break;
-    }
-    case eNull:
-        break;
-    }
-}
-
-Element::~Element() {
-    switch(first) {
     case eNumber:
-        delete reinterpret_cast<DoubleElement*>(second);
+        second = reinterpret_cast<BaseElement*>(new DoubleElement(other.getNum()));
         break;
     case eBool:
-        delete reinterpret_cast<BoolElement*>(second);
+        second = reinterpret_cast<BaseElement*>(new BoolElement(other.getBool()));
         break;
     case eString:
-        delete reinterpret_cast<StringElement*>(second);
+        second = reinterpret_cast<BaseElement*>(new StringElement(other.getString()));
         break;
     case eJson:
-        delete reinterpret_cast<JsonElement*>(second);
+        second = reinterpret_cast<BaseElement*>(new JsonElement(other.getJson()));
         break;
     case eArray:
-        delete reinterpret_cast<JArrayElement*>(second);
+        second = reinterpret_cast<BaseElement*>(new JArrayElement(other.getArray()));
         break;
-    case eNull:
-        break;
+    case eNull: break;
     }
-
-    //                    delete second;
 }
 
-bool Element::operator==(const Element &other) const
-{
+bool Element::operator==(const Element &other) const {
     if(this->first != other.first) return false;
 
     switch(this->first) {
-    case eNull:
-        return true;
+    case eNull:                                 return true;
     case eNumber:
-        if(reinterpret_cast<DoubleElement*>(this->second)->m_value
-            == reinterpret_cast<DoubleElement*>(other.second)->m_value)
-            return true;
+        if(getNum() == other.getNum())          return true;
         break;
     case eBool:
-        if(reinterpret_cast<BoolElement*>(this->second)->m_value
-            == reinterpret_cast<BoolElement*>(other.second)->m_value)
-            return true;
+        if(getBool() == other.getBool())        return true;
         break;
     case eString:
-        if(reinterpret_cast<StringElement*>(this->second)->m_value
-            == reinterpret_cast<StringElement*>(other.second)->m_value)
-            return true;
+        if(getString() == other.getString())    return true;
         break;
     case eJson:
-        if(reinterpret_cast<JsonElement*>(this->second)->m_value
-            == reinterpret_cast<JsonElement*>(other.second)->m_value)
-            return true;
+        if(getJson() == other.getJson())        return true;
         break;
     case eArray:
-        if(reinterpret_cast<JArrayElement*>(this->second)->m_value
-            == reinterpret_cast<JArrayElement*>(other.second)->m_value)
-            return true;
+        if(getArray() == other.getArray())      return true;
         break;
     }
 
     return false;
 }
 
-Element &Element::operator=(const Element &other)
-{
+Element &Element::operator=(const Element &other) {
     delete second;
     first = other.first;
     switch(first) {
-    case eNumber: {
-        double value = reinterpret_cast<DoubleElement*>(other.second)->m_value;
-        second = reinterpret_cast<BaseElement*>(new DoubleElement(value));
+    case eNumber:
+        second = reinterpret_cast<BaseElement*>(new DoubleElement(other.getNum()));
         break;
-    }
-    case eBool: {
-        bool value = reinterpret_cast<BoolElement*>(other.second)->m_value;
-        second = reinterpret_cast<BaseElement*>(new BoolElement(value));
+    case eBool:
+        second = reinterpret_cast<BaseElement*>(new BoolElement(other.getBool()));
         break;
-    }
-    case eString: {
-        std::string value = reinterpret_cast<StringElement*>(other.second)->m_value;
-        second = reinterpret_cast<BaseElement*>(new StringElement(value));
+    case eString:
+        second = reinterpret_cast<BaseElement*>(new StringElement(other.getString()));
         break;
-    }
-    case eJson: {
-        Json value = reinterpret_cast<JsonElement*>(other.second)->m_value;
-        second = reinterpret_cast<BaseElement*>(new JsonElement(value));
+    case eJson:
+        second = reinterpret_cast<BaseElement*>(new JsonElement(other.getJson()));
         break;
-    }
-    case eArray: {
-        JArray value = reinterpret_cast<JArrayElement*>(other.second)->m_value;
-        second = reinterpret_cast<BaseElement*>(new JArrayElement(value));
+    case eArray:
+        second = reinterpret_cast<BaseElement*>(new JArrayElement(other.getArray()));
         break;
-    }
-    case eNull:
-        break;
+    case eNull: break;
     }
 
     return *this;
 }
 
-double Element::getNum()
-{
+double Element::getNum() const {
     if(first == ValueType::eNumber)
         return reinterpret_cast<DoubleElement*>(this->second)->m_value;
     else return 0; //TODO: вызвать exception
 }
 
-bool Element::getBool()
-{
+bool Element::getBool() const {
     if(first == ValueType::eBool)
         return reinterpret_cast<BoolElement*>(this->second)->m_value;
     else return false; //TODO: вызвать exception
 }
 
-std::string Element::getString()
-{
+std::string Element::getString() const {
     if(first == ValueType::eString)
         return reinterpret_cast<StringElement*>(this->second)->m_value;
     else return ""; //TODO: вызвать exception
 }
 
-Json Element::getJson()
-{
+Json Element::getJson() const {
     if(first == ValueType::eJson)
         return reinterpret_cast<JsonElement*>(this->second)->m_value;
     else return {}; //TODO: вызвать exception
 }
 
-JArray Element::getArray()
-{
+JArray Element::getArray() const {
     if(first == ValueType::eArray)
         return reinterpret_cast<JArrayElement*>(this->second)->m_value;
     else return {}; //TODO: вызвать exception
 }
 
-Element Element::getInnerValue(const std::string& key)
-{
+Element Element::getInnerValue(const std::string& key) const {
     if(this->first == ValueType::eJson)
         return reinterpret_cast<JsonElement*>(this->second)->m_value[key];
     else
         return {}; //TODO: вызвать exception
 }
 
-Element Element::getInnerValue(const size_t index)
-{
+Element Element::getInnerValue(const size_t index) const {
     if(this->first == ValueType::eJson)
         return reinterpret_cast<JsonElement*>(this->second)->m_value[index];
     else if(this->first == ValueType::eArray)
@@ -267,52 +197,14 @@ bool JArray::checkIndexes(const size_t index) {
     return true;
 }
 
-JArray::JArray(const JArray& other)
-{
+JArray::JArray(const JArray& other) {
     for(AVector::const_iterator it = other.m_values.cbegin();
          it != other.m_values.cend(); it++) {
-//    for(Element el : array.m_values) {
         m_values.push_back(Element(*it));
-//        switch(el.first) {
-//        case eNumber:
-//            m_values.push_back(Element(
-//                el.first, reinterpret_cast<BaseElement*>(
-//                    new DoubleElement(*reinterpret_cast<DoubleElement*>(el.second)))));
-//            break;
-//        case eBool:
-//            m_values.push_back(Element(
-//                el.first, reinterpret_cast<BaseElement*>(
-//                    new BoolElement(*reinterpret_cast<BoolElement*>(el.second)))));
-//            break;
-//        case eString:
-//            m_values.push_back(Element(
-//                el.first, reinterpret_cast<BaseElement*>(
-//                    new StringElement(*reinterpret_cast<StringElement*>(el.second)))));
-//            break;
-//        case eJson:
-//            m_values.push_back(Element(
-//                el.first, reinterpret_cast<BaseElement*>(
-//                    new JsonElement(*reinterpret_cast<JsonElement*>(el.second)))));
-//            break;
-//        case eArray:
-//            m_values.push_back(Element(
-//                el.first, reinterpret_cast<BaseElement*>(
-//                    new JArrayElement(*reinterpret_cast<JArrayElement*>(el.second)))));
-//            break;
-//        case eNull:
-//            break;
-//        }
     }
 }
 
-JArray::~JArray() {
-//    for(Element& el : m_values)
-//        delete el.second;
-    clear();
-}
-
-bool JArray::parseArray(const std::string& array_str)
-{
+bool JArray::parseArray(const std::string& array_str) {
     //    std::cout << "ParseArray(): " << array_str << std::endl;
     bool return_code = true;
 
@@ -446,40 +338,19 @@ bool JArray::parseArray(const std::string& array_str)
 JArray &JArray::append(const JArray &array) {
     for(const Element& el : array.m_values) {
         switch(el.first) {
-        case eNumber: {
-            double value = reinterpret_cast<DoubleElement*>(el.second)->m_value;
-            push_back(value);
-            break;
-        }
-        case eBool: {
-            bool value = reinterpret_cast<BoolElement*>(el.second)->m_value;
-            push_back(value);
-            break;
-        }
-        case eString: {
-            std::string value = reinterpret_cast<StringElement*>(el.second)->m_value;
-            push_back(value);
-            break;
-        }
-        case eJson: {
-            Json value = reinterpret_cast<JsonElement*>(el.second)->m_value;
-            push_back(value);
-            break;
-        }
-        case eArray: {
-            JArray value = reinterpret_cast<JArrayElement*>(el.second)->m_value;
-            push_back(value);
-            break;
-        }
-        case eNull: break;
+        case eNumber:   push_back(el.getNum());     break;
+        case eBool:     push_back(el.getBool());    break;
+        case eString:   push_back(el.getString());  break;
+        case eJson:     push_back(el.getJson());    break;
+        case eArray:    push_back(el.getArray());   break;
+        case eNull:     break;
         }
     }
 
     return *this;
 }
 
-std::string JArray::to_string(int16_t tabulation_level)
-{
+std::string JArray::to_string(int16_t tabulation_level) {
     if(m_values.empty()) return "[]";
 
     std::string ret;
@@ -511,38 +382,31 @@ std::string JArray::to_string(int16_t tabulation_level)
     return ret;
 }
 
-bool JArray::operator==(const JArray &other) const
-{
-    if(this->size() != other.size())
-        return false;
+bool JArray::operator==(const JArray &other) const {
+    if(this->size() != other.size()) return false;
 
     for(auto it1 = this->m_values.begin(), it2 = other.m_values.begin();
          it1 != this->m_values.end() && it2 != other.m_values.end();
-         it1++, it2++
-         ) {
-        if(*it1 != *it2)
-            return false;
+         it1++, it2++) {
+        if(*it1 != *it2) return false;
     }
 
     return true;
 }
 
-Element JArray::operator[](const size_t index)
-{
-    if(m_values.empty()) return {};
-    if(!checkIndexes(index)) return {};
+Element JArray::operator[](const size_t index) {
+    if(m_values.empty())        return {};
+    if(!checkIndexes(index))    return {};
 
     return Element(m_values[index]);
 }
 
 //FIXME: эта функция не роботает
-Element JArray::operator[](const std::vector<std::string> &complex_name)
-{
-    if(m_values.empty()) return {};
+Element JArray::operator[](const std::vector<std::string> &complex_name) {
+    if(m_values.empty())                return {};
 
     std::vector<std::string>::const_iterator it = complex_name.begin();
-    if(!utils::isNumber(*it, false))
-        return {};
+    if(!utils::isNumber(*it, false))    return {};
     Element el = (*this)[stoi(*it)]; //находим первый элемент списка
     for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
         bool isNumber = utils::isNumber(*it, false);
@@ -585,47 +449,8 @@ bool Json::checkIndexes(const size_t index) {
 }
 
 Json::Json(const Json& other) {
-    for(const JPair &el : other.m_values) {
+    for(const JPair &el : other.m_values)
         m_values.push_back(std::make_pair(el.first, Element(el.second)));
-//        switch(el.second.first) {
-//        case eNumber: {
-//            double value = reinterpret_cast<DoubleElement*>(el.second.second)->m_value;
-//            m_values.push_back(std::make_pair(
-//                el.first,
-//                Element(el.second.first, reinterpret_cast<BaseElement*>(new DoubleElement(value)))));
-//            break;
-//        }
-//        case eBool: {
-//            bool value = reinterpret_cast<BoolElement*>(el.second.second)->m_value;
-//            m_values.push_back(std::make_pair(
-//                el.first,
-//                Element(el.second.first, reinterpret_cast<BaseElement*>(new BoolElement(value)))));
-//            break;
-//        }
-//        case eString: {
-//            std::string value = reinterpret_cast<StringElement*>(el.second.second)->m_value;
-//            m_values.push_back(std::make_pair(
-//                el.first,
-//                Element(el.second.first, reinterpret_cast<BaseElement*>(new StringElement(value)))));
-//            break;
-//        }
-//        case eJson: {
-//            Json value = reinterpret_cast<JsonElement*>(el.second.second)->m_value;
-//            m_values.push_back(std::make_pair(
-//                el.first,
-//                Element(el.second.first, reinterpret_cast<BaseElement*>(new JsonElement(value)))));
-//            break;
-//        }
-//        case eArray: {
-//            JArray value = reinterpret_cast<JArrayElement*>(el.second.second)->m_value;
-//            m_values.push_back(std::make_pair(
-//                el.first,
-//                Element(el.second.first, reinterpret_cast<BaseElement*>(new JArrayElement(value)))));
-//            break;
-//        }
-//        case eNull: break;
-//        }
-    }
 }
 
 Json::Json(const JVector &vec) {
@@ -633,57 +458,10 @@ Json::Json(const JVector &vec) {
         put(j_it->first, j_it->second);
 }
 
-Json::~Json() {
-//    for(JPair& el : m_values)
-//        delete el.second.second;
-    clear();
-}
-
 Json &Json::operator=(const Json &other) {
     this->clear();
-
-    for(const JPair &el : other.m_values) {
+    for(const JPair &el : other.m_values)
         m_values.push_back(std::make_pair(el.first, Element(el.second)));
-
-//        switch(el.second.first) {
-//        case eNumber: {
-//            double value = reinterpret_cast<DoubleElement*>(el.second.second)->m_value;
-//            m_values.push_back(std::make_pair(
-//                el.first,
-//                Element(el.second.first, reinterpret_cast<BaseElement*>(new DoubleElement(value)))));
-//            break;
-//        }
-//        case eBool: {
-//            bool value = reinterpret_cast<BoolElement*>(el.second.second)->m_value;
-//            m_values.push_back(std::make_pair(
-//                el.first,
-//                Element(el.second.first, reinterpret_cast<BaseElement*>(new BoolElement(value)))));
-//            break;
-//        }
-//        case eString: {
-//            std::string value = reinterpret_cast<StringElement*>(el.second.second)->m_value;
-//            m_values.push_back(std::make_pair(
-//                el.first,
-//                Element(el.second.first, reinterpret_cast<BaseElement*>(new StringElement(value)))));
-//            break;
-//        }
-//        case eJson: {
-//            Json value = reinterpret_cast<JsonElement*>(el.second.second)->m_value;
-//            m_values.push_back(std::make_pair(
-//                el.first,
-//                Element(el.second.first, reinterpret_cast<BaseElement*>(new JsonElement(value)))));
-//            break;
-//        }
-//        case eArray: {
-//            JArray value = reinterpret_cast<JArrayElement*>(el.second.second)->m_value;
-//            m_values.push_back(std::make_pair(
-//                el.first,
-//                Element(el.second.first, reinterpret_cast<BaseElement*>(new JArrayElement(value)))));
-//            break;
-//        }
-//        case eNull: break;
-//        }
-    }
 
     return *this;
 }
@@ -698,45 +476,12 @@ Json &Json::put(const std::string &key, const Element &element, const bool rewri
 
 //    TODO: тест для перезаписи(нет) дублей
 Json& Json::put(const Json &json, const bool rewrite) {
-    for(const JPair &el : json.m_values) {
-        if(contains(el.first)) {
+    for(const JPair &pair : json.m_values) {
+        if(contains(pair.first)) {
             if(!rewrite)    continue;
-            else            updateValue(el.first, el.second);
+            else            updateValue(pair.first, pair.second);
         } else {
-            //TODO:            put(el.first, el.second);
-            Element new_element;
-
-            switch(el.second.first) {
-            case eNumber: {
-                double value = reinterpret_cast<DoubleElement*>(el.second.second)->m_value;
-                new_element = Element(el.second.first, reinterpret_cast<BaseElement*>(new DoubleElement(value)));
-                break;
-            }
-            case eBool: {
-                bool value = reinterpret_cast<BoolElement*>(el.second.second)->m_value;
-                new_element = Element(el.second.first, reinterpret_cast<BaseElement*>(new BoolElement(value)));
-                break;
-            }
-            case eString: {
-                std::string value = reinterpret_cast<StringElement*>(el.second.second)->m_value;
-                new_element = Element(el.second.first, reinterpret_cast<BaseElement*>(new StringElement(value)));
-                break;
-            }
-            case eJson: {
-                Json value = reinterpret_cast<JsonElement*>(el.second.second)->m_value;
-                new_element = Element(el.second.first, reinterpret_cast<BaseElement*>(new JsonElement(value)));
-                break;
-            }
-            case eArray: {
-                JArray value = reinterpret_cast<JArrayElement*>(el.second.second)->m_value;
-                new_element = Element(el.second.first, reinterpret_cast<BaseElement*>(new JArrayElement(value)));
-                break;
-            }
-            case eNull: break;
-            }
-
-            if(el.second.first != eNull)
-                m_values.push_back(std::make_pair(el.first, new_element));
+            put(pair.first, pair.second);
         }
     }
 
@@ -1025,60 +770,22 @@ bool Json::contains(const std::string &key) {
 }
 
 Json &Json::updateValue(const std::string &key, const Element &new_value) {
-    if(contains(key)) {
-        delete (*this)[key].second;
-        switch(new_value.first) {
-        case eNumber:
-            (*this)[key] = Element(reinterpret_cast<DoubleElement*>(new_value.second)->m_value);
-            break;
-        case eBool:
-            (*this)[key] = Element(reinterpret_cast<BoolElement*>(new_value.second)->m_value);
-            break;
-        case eString:
-            (*this)[key] = Element(reinterpret_cast<StringElement*>(new_value.second)->m_value);
-            break;
-        case eJson:
-            (*this)[key] = Element(reinterpret_cast<JsonElement*>(new_value.second)->m_value);
-            break;
-        case eArray:
-            (*this)[key] = Element(reinterpret_cast<JArrayElement*>(new_value.second)->m_value);
-            break;
-        case eNull:     break;
-        }
-    } else {
-        switch(new_value.first) {
-        case eNumber:
-            put(key, reinterpret_cast<DoubleElement*>(new_value.second)->m_value);
-            break;
-        case eBool:
-            put(key, reinterpret_cast<BoolElement*>(new_value.second)->m_value);
-            break;
-        case eString:
-            put(key, reinterpret_cast<StringElement*>(new_value.second)->m_value);
-            break;
-        case eJson:
-            put(key, reinterpret_cast<JsonElement*>(new_value.second)->m_value);
-            break;
-        case eArray:
-            put(key, reinterpret_cast<JArrayElement*>(new_value.second)->m_value);
-            break;
-        case eNull:     break;
-        }
-    }
+    if(contains(key))
+        (*this)[key] = Element(new_value);
+    else
+        put(key, Element(new_value));
 
     return *this;
 }
 
 bool Json::operator==(const Json &other) const {
-    if(this->size() != other.size())
-        return false;
+    if(this->size() != other.size()) return false;
 
     for(auto it1 = this->m_values.begin(), it2 = other.m_values.begin();
          it1 != this->m_values.end() && it2 != other.m_values.end();
          it1++, it2++
          ) {
-        if(it1->second != it2->second)
-            return false;
+        if(it1->second != it2->second) return false;
     }
 
     return true;
@@ -1088,7 +795,7 @@ Element Json::operator[](const size_t index) {
     if(m_values.empty())        return {};
     if(!checkIndexes(index))    return {};
 
-    return Element(m_values[index].second.first, m_values[index].second.second);
+    return Element(m_values[index].second);
 }
 
 Element Json::operator[](const std::string &name) {
