@@ -86,7 +86,9 @@ Element::Element(const Element &other) {
     case eArray:
         second = reinterpret_cast<BaseElement*>(new JArrayElement(other.getArray()));
         break;
-    case eNull: break;
+    case eNull:
+        second = nullptr;
+        break;
     }
 }
 
@@ -134,7 +136,9 @@ Element &Element::operator=(const Element &other) {
     case eArray:
         second = reinterpret_cast<BaseElement*>(new JArrayElement(other.getArray()));
         break;
-    case eNull: break;
+    case eNull:
+        second = nullptr;
+        break;
     }
 
     return *this;
