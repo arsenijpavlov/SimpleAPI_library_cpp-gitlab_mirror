@@ -165,9 +165,6 @@ TEST(JSON, put_and_get_elements) {
     EXPECT_EQ(json["string"].getString(), json2["json"].getJson()["string"].getString());
 
     EXPECT_EQ(array, json2["array"].getArray());
-    {
-        JArray array = json2["array"].getArray();
-    }
     EXPECT_EQ(array[0], json2["array"].getArray()[0]);
     EXPECT_EQ(array[0].getString(), json2["array"].getArray()[0].getString());
 }

@@ -17,6 +17,20 @@
             || std::is_arithmetic<ARG>::value \
             || std::is_same<ARG, bool>::value \
         >::type* = nullptr>
+#define __JSON_EMPTY_EXCEPTION__    throw std::invalid_argument("Json is empty");
+#define __ARRAY_EMPTY_EXCEPTION__   throw std::invalid_argument("JArray is empty");
+#define __CHECK_INDEX_BOUND__(object, index) \
+                                    if(index + 1 > object->size()) \
+                                        throw std::out_of_range("going beyond the object");
+#define __KEY_NOT_FOUND_EXCEPTION__(key) \
+                                    throw std::invalid_argument("key not found: " + key);
+#define __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__ \
+                                    throw std::invalid_argument( \
+                                        "index operator may be used only for Json or JArray elements");
+#define __ARRAY_INCORRECT_INDEX_EXCEPTION__ \
+                                    throw std::invalid_argument("index for JArray must be a number only");
+#define __JSON_KEY_NOT_FOUND_EXCEPTION__ \
+                                    throw std::invalid_argument("Json key not found");
 
 class Json;
 class JArray;
@@ -105,12 +119,13 @@ struct Element {
     bool        operator!=(const Element& other)          const { return !(*this == other); }
     Element&    operator=(const Element& other);
 
-    double      getNum() const;
-    bool        getBool() const;
-    std::string getString() const;
-    Json        getJson() const;
-    JArray      getArray() const;
+    double&     getNum() const;
+    bool&       getBool() const;
+    std::string&getString() const;
+    Json&       getJson() const;
+    JArray&     getArray() const;
 
+    //NOTE: кандидаты на удаление
     Element     getInnerValue(const std::string& key) const;
     Element     getInnerValue(const size_t index) const;
 };
@@ -123,7 +138,7 @@ using AVector = std::vector<Element>;
 class JArray {
     AVector m_values;
 
-    bool        checkIndexes(const size_t index);
+//    bool        checkIndexes(const size_t index);
 public:
                 JArray()                            {}
                 JArray(const JArray& array);
@@ -167,14 +182,15 @@ public:
     bool        operator!=(const JArray& other)
                                               const { return !(*this == other); }
 
-    Element     operator[](const size_t index);
-    Element     operator[](const std::vector<std::string>& complex_name);
+    Element&    operator[](const size_t index);
+    Element&    operator[](const std::vector<std::string>& complex_name);
                 template<std::size_t SIZE>
-    Element     operator[](const std::array<std::string, SIZE>& complex_name)
+    Element&    operator[](const std::array<std::string, SIZE>& complex_name)
                 {
-                    if(m_values.empty()) return {};
+                    if(m_values.empty())
+                        __ARRAY_EMPTY_EXCEPTION__
 
-                    Element el = (*this)[complex_name[0]]; //находим первый элемент списка
+                    Element &el = (*this)[complex_name[0]]; //находим первый элемент списка
                     typename std::array<std::string, SIZE>::const_iterator it = complex_name.begin() + 1; //первый элемент пропускаем
                     for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
                         bool isNumber = utils::isNumber(*it, false);
@@ -182,24 +198,30 @@ public:
                         case eJson:
                             el = el.getInnerValue(*it);
                             if(el.first == ValueType::eNull) {
-                                if(isNumber)    el = el.getInnerValue(stoi(*it));
-                                else            el = {};
+                                if(isNumber)
+                                    el = el.getInnerValue(stoi(*it));
+                                else
+                                    __JSON_KEY_NOT_FOUND_EXCEPTION__
                             }
                             break;
                         case eArray:
                             //для массива возможно обращение только по числовому индексу!
-                            if(isNumber)    el = el.getInnerValue(stoi(*it));
-                            else            el = {};
+                            if(isNumber)
+                                el = el.getInnerValue(stoi(*it));
+                            else
+                                __ARRAY_INCORRECT_INDEX_EXCEPTION__
                             break;
-                        default: return {}; //продолжать поиск можно только по двум структурам!
+                        default:
+                            //продолжать поиск можно только по двум структурам!
+                            __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__
                         }
                     }
 
                     return el;
                 }
 
-    Element     getValue(const size_t index)        { return (*this)[index]; }
-    Element     getValue(const std::vector<std::string>& complex_name)
+    Element&    getValue(const size_t index)        { return (*this)[index]; }
+    Element&    getValue(const std::vector<std::string>& complex_name)
                                                     { return (*this)[complex_name]; }
 
     AVector::iterator begin()                       { return m_values.begin(); }
@@ -242,7 +264,7 @@ class Json
 {
     JVector m_values;
 
-    bool        checkIndexes(const size_t index);
+//    bool        checkIndexes(const size_t index);
 public:
                 Json()                                          {}
                 Json(const Json& json);
@@ -298,15 +320,16 @@ public:
     bool        operator==(const Json& other) const;
     bool        operator!=(const Json& other)             const { return !(*this == other); }
 
-    Element     operator[](const size_t index);
-    Element     operator[](const std::string& name);
-    Element     operator[](const std::vector<std::string>& complex_name);
+    Element&    operator[](const size_t index);
+    Element&    operator[](const std::string& name);
+    Element&    operator[](const std::vector<std::string>& complex_name);
                 template<std::size_t SIZE>
-    Element     operator[](const std::array<std::string, SIZE>& complex_name)
+    Element&    operator[](const std::array<std::string, SIZE>& complex_name)
                 {
-                    if(m_values.empty()) return {};
+                    if(m_values.empty())
+                        __JSON_EMPTY_EXCEPTION__;
 
-                    Element el = (*this)[complex_name[0]]; //находим первый элемент списка
+                    Element& el = (*this)[complex_name[0]]; //находим первый элемент списка
                     typename std::array<std::string, SIZE>::const_iterator it = complex_name.begin() + 1; //первый элемент пропускаем
                     for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
                         bool isNumber = utils::isNumber(*it, false);
@@ -314,24 +337,30 @@ public:
                         case eJson:
                             el = el.getInnerValue(*it);
                             if(el.first == ValueType::eNull) {
-                                if(isNumber)    el = el.getInnerValue(stoi(*it));
-                                else            el = {};
+                                if(isNumber)
+                                    el = el.getInnerValue(stoi(*it));
+                                else
+                                    __JSON_KEY_NOT_FOUND_EXCEPTION__
                             }
                             break;
                         case eArray:
                             //для массива возможно обращение только по числовому индексу!
-                            if(isNumber)    el = el.getInnerValue(stoi(*it));
-                            else            el = {};
+                            if(isNumber)
+                                el = el.getInnerValue(stoi(*it));
+                            else
+                                __ARRAY_INCORRECT_INDEX_EXCEPTION__
                             break;
-                        default: return {}; //продолжать поиск можно только по двум структурам!
+                        default:
+                            //продолжать поиск можно только по двум структурам!
+                            __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__;
                         }
                     }
 
                     return el;
                 }
-    Element     getValue(const size_t index)                    { return (*this)[index]; }
-    Element     getValue(const std::string& name)               { return (*this)[name]; }
-    Element     getValue(const std::vector<std::string>& complex_name)
+    Element&    getValue(const size_t index)                    { return (*this)[index]; }
+    Element&    getValue(const std::string& name)               { return (*this)[name]; }
+    Element&    getValue(const std::vector<std::string>& complex_name)
                                                                 { return (*this)[complex_name]; }
 
     //положить значение в указанную позицию

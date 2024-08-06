@@ -118,6 +118,8 @@ bool Element::operator==(const Element &other) const {
 }
 
 Element &Element::operator=(const Element &other) {
+    if(this == &other) return *this;
+
     delete second;
     first = other.first;
     switch(first) {
@@ -144,48 +146,48 @@ Element &Element::operator=(const Element &other) {
     return *this;
 }
 
-double Element::getNum() const {
-    if(first == ValueType::eNumber)
-        return reinterpret_cast<DoubleElement*>(this->second)->m_value;
-    else return 0; //TODO: вызвать exception
+double &Element::getNum() const {
+    if(first != ValueType::eNumber)
+        throw std::invalid_argument("This element is not a 'Number' type: " + to_string(first));
+    return reinterpret_cast<DoubleElement*>(second)->m_value;
 }
 
-bool Element::getBool() const {
-    if(first == ValueType::eBool)
-        return reinterpret_cast<BoolElement*>(this->second)->m_value;
-    else return false; //TODO: вызвать exception
+bool &Element::getBool() const {
+    if(first != ValueType::eBool)
+        throw std::invalid_argument("This element is not a 'Bool' type: " + to_string(first));
+    return reinterpret_cast<BoolElement*>(second)->m_value;
 }
 
-std::string Element::getString() const {
-    if(first == ValueType::eString)
-        return reinterpret_cast<StringElement*>(this->second)->m_value;
-    else return ""; //TODO: вызвать exception
+std::string &Element::getString() const {
+    if(first != ValueType::eString)
+        throw std::invalid_argument("This element is not a 'String' type: " + to_string(first));
+    return reinterpret_cast<StringElement*>(second)->m_value;
 }
 
-Json Element::getJson() const {
-    if(first == ValueType::eJson)
-        return reinterpret_cast<JsonElement*>(this->second)->m_value;
-    else return {}; //TODO: вызвать exception
+Json &Element::getJson() const {
+    if(first != ValueType::eJson)
+        throw std::invalid_argument("This element is not a 'Json' type: " + to_string(first));
+    return reinterpret_cast<JsonElement*>(second)->m_value;
 }
 
-JArray Element::getArray() const {
-    if(first == ValueType::eArray)
-        return reinterpret_cast<JArrayElement*>(this->second)->m_value;
-    else return {}; //TODO: вызвать exception
+JArray &Element::getArray() const {
+    if(first != ValueType::eArray)
+        throw std::invalid_argument("This element is not a 'JArray' type: " + to_string(first));
+    return reinterpret_cast<JArrayElement*>(second)->m_value;
 }
 
 Element Element::getInnerValue(const std::string& key) const {
     if(this->first == ValueType::eJson)
-        return reinterpret_cast<JsonElement*>(this->second)->m_value[key];
+        return reinterpret_cast<JsonElement*>(second)->m_value[key];
     else
         return {}; //TODO: вызвать exception
 }
 
 Element Element::getInnerValue(const size_t index) const {
     if(this->first == ValueType::eJson)
-        return reinterpret_cast<JsonElement*>(this->second)->m_value[index];
+        return reinterpret_cast<JsonElement*>(second)->m_value[index];
     else if(this->first == ValueType::eArray)
-        return reinterpret_cast<JArrayElement*>(this->second)->m_value[index];
+        return reinterpret_cast<JArrayElement*>(second)->m_value[index];
     else
         return {}; //TODO: вызвать exception
 }
@@ -193,13 +195,13 @@ Element Element::getInnerValue(const size_t index) const {
 // *
 // *
 // JArray ======================================================================================
-bool JArray::checkIndexes(const size_t index) {
-    if(index + 1 > m_values.size()) {
-        throw std::out_of_range("Going beyond JArray boundaries");
-        return false;
-    }
-    return true;
-}
+//bool JArray::checkIndexes(const size_t index) {
+//    if(index + 1 > m_values.size()) {
+//        throw std::out_of_range("Going beyond JArray boundaries");
+//        return false;
+//    }
+//    return true;
+//}
 
 JArray::JArray(const JArray& other) {
     for(AVector::const_iterator it = other.m_values.cbegin();
@@ -398,36 +400,45 @@ bool JArray::operator==(const JArray &other) const {
     return true;
 }
 
-Element JArray::operator[](const size_t index) {
-    if(m_values.empty())        return {};
-    if(!checkIndexes(index))    return {};
+Element &JArray::operator[](const size_t index) {
+    if(m_values.empty())
+        __ARRAY_EMPTY_EXCEPTION__
+    __CHECK_INDEX_BOUND__(this, index)
 
-    return Element(m_values[index]);
+    return m_values[index];
 }
 
 //FIXME: эта функция не роботает
-Element JArray::operator[](const std::vector<std::string> &complex_name) {
-    if(m_values.empty())                return {};
+Element &JArray::operator[](const std::vector<std::string> &complex_name) {
+    if(m_values.empty())
+        __ARRAY_EMPTY_EXCEPTION__
 
     std::vector<std::string>::const_iterator it = complex_name.begin();
-    if(!utils::isNumber(*it, false))    return {};
-    Element el = (*this)[stoi(*it)]; //находим первый элемент списка
+    if(!utils::isNumber(*it, false))
+        __ARRAY_INCORRECT_INDEX_EXCEPTION__
+    Element& el = (*this)[stoi(*it)]; //находим первый элемент списка
     for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
         bool isNumber = utils::isNumber(*it, false);
         switch(el.first) {
         case eJson:
             el = el.getInnerValue(*it++);
             if(el.first == ValueType::eNull) {
-                if(isNumber)    el = el.getInnerValue(stoi(*it));
-                else            el = {};
+                if(isNumber)
+                    el = el.getInnerValue(stoi(*it));
+                else
+                    __JSON_KEY_NOT_FOUND_EXCEPTION__
             }
             break;
         case eArray:
             //для массива возможно обращение только по числовому индексу!
-            if(isNumber)    el = el.getInnerValue(stoi(*it));
-            else            el = {};
+            if(isNumber)
+                el = el.getInnerValue(stoi(*it));
+            else
+                __ARRAY_INCORRECT_INDEX_EXCEPTION__
             break;
-        default: return {}; //продолжать поиск можно только по двум структурам!
+        default:
+            //продолжать поиск можно только по двум структурам!
+            __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__
         }
     }
 
@@ -444,14 +455,6 @@ JArray& JArray::erase(const size_t index) {
 // *
 // *
 // Json ========================================================================================
-bool Json::checkIndexes(const size_t index) {
-    if(index + 1 > m_values.size()) {
-        throw "Going beyond Json boundaries";
-        return false;
-    }
-    return true;
-}
-
 Json::Json(const Json& other) {
     for(const JPair &el : other.m_values)
         m_values.push_back(std::make_pair(el.first, Element(el.second)));
@@ -795,26 +798,38 @@ bool Json::operator==(const Json &other) const {
     return true;
 }
 
-Element Json::operator[](const size_t index) {
-    if(m_values.empty())        return {};
-    if(!checkIndexes(index))    return {};
+Element &Json::operator[](const size_t index) {
+    if(m_values.empty())
+        __JSON_EMPTY_EXCEPTION__
+    __CHECK_INDEX_BOUND__(this, index)
 
-    return Element(m_values[index].second);
+    return m_values[index].second;
 }
 
-Element Json::operator[](const std::string &name) {
-    if(m_values.empty()) return {};
+Element &Json::operator[](const std::string &name) {
+    if(m_values.empty())
+        __JSON_EMPTY_EXCEPTION__
 
+    bool element_found = false;
+    Element* el = &m_values[0].second;
     for(size_t i = 0; i < m_values.size(); i++)
-        if(m_values[i].first == name)
-            return Element(m_values[i].second);
-    return {};
+        if(m_values[i].first == name) {
+            el = &m_values[i].second;
+            element_found = true;
+            break;
+        }
+
+    if(!element_found)
+        __KEY_NOT_FOUND_EXCEPTION__(name)
+
+    return *el;
 }
 
-Element Json::operator[](const std::vector<std::string> &complex_name) {
-    if(m_values.empty()) return {};
+Element &Json::operator[](const std::vector<std::string> &complex_name) {
+    if(m_values.empty())
+        __JSON_EMPTY_EXCEPTION__
 
-    Element el = (*this)[complex_name[0]]; //находим первый элемент списка
+    Element& el = (*this)[complex_name[0]]; //находим первый элемент списка
     std::vector<std::string>::const_iterator it = complex_name.begin() + 1; //первый элемент пропускаем
     for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
         bool isNumber = utils::isNumber(*it, false);
@@ -822,16 +837,22 @@ Element Json::operator[](const std::vector<std::string> &complex_name) {
         case eJson:
             el = el.getInnerValue(*it);
             if(el.first == ValueType::eNull) {
-                if(isNumber)    el = el.getInnerValue(stoi(*it));
-                else            el = {};
+                if(isNumber)
+                    el = el.getInnerValue(stoi(*it));
+                else
+                    __JSON_KEY_NOT_FOUND_EXCEPTION__
             }
             break;
         case eArray:
             //для массива возможно обращение только по числовому индексу!
-            if(isNumber)    el = el.getInnerValue(stoi(*it));
-            else            el = {};
+            if(isNumber)
+                el = el.getInnerValue(stoi(*it));
+            else
+                __ARRAY_INCORRECT_INDEX_EXCEPTION__
             break;
-        default: return {}; //продолжать поиск можно только по двум структурам!
+        default:
+            //продолжать поиск можно только по двум структурам!
+            __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__
         }
     }
 
