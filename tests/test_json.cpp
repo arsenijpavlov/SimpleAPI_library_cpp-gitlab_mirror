@@ -126,9 +126,63 @@ TEST(JSON, append_json) {
     EXPECT_EQ(pre_size + j2.size(), j1.size());
 }
 
-TEST(JSON, parse)               { FAIL(); }
+TEST(JSON, parse) {
+    std::string string_json = "{"
+                              "   \t"   //пробелы и табуляции
+                              "//\n"    //однострочные комментарии
+                              "/*\n*/"  //многострочные комментарии
+                              "\"number\":182,"
+                              "\"bool\":true,"
+                              "\"string\":\"string_value\","
+                              "\"json\":{\"string\":\"inner_string_value\"},"
+                              "\"array\":[\"string_value\", true]"
+                              "}";
+    Json json;
+    json.parseJson(string_json);
 
-TEST(JSON, parse_error)         { FAIL(); }
+    EXPECT_EQ(5, json.size());
+    EXPECT_EQ(182, json["number"].getNum());
+    EXPECT_EQ(true, json["bool"].getBool());
+    EXPECT_EQ("string_value", json["string"].getString());
+
+    EXPECT_EQ(1, json["json"].getJson().size());
+    EXPECT_EQ("inner_string_value", json["json"].getJson()["string"].getString());
+
+    EXPECT_EQ(2, json["array"].getArray().size());
+    EXPECT_EQ("string_value", json["array"].getArray()[0].getString());
+    EXPECT_EQ(true, json["array"].getArray()[1].getBool());
+
+    //повторная обработка (очистка, новое заполнение)
+    json.parseJson(string_json);
+    EXPECT_EQ(5, json.size());
+}
+
+TEST(JSON, parse_error) {
+    //строка не обрамлена кавычками
+    std::string string_json = "{\"key\":string_value}";
+    Json json(string_json);
+    EXPECT_EQ(0, json.size());
+
+    //ключ не обрамлён кавычками
+    string_json = "{key:\"string_value\"}";
+    json.parseJson(string_json);
+    EXPECT_EQ(0, json.size());
+
+    //некорректное значение числа
+    string_json = "{key:15.4.3}";
+    json.parseJson(string_json);
+    EXPECT_EQ(0, json.size());
+
+    //некорректное значение числа
+    string_json = "{key:15e43}"; //TODO: добавить поддержку экспоненты в значении числа
+    json.parseJson(string_json);
+    EXPECT_EQ(0, json.size());
+
+    //пробелы в значении bool
+    string_json = "{key:tru e}";
+    json.parseJson(string_json);
+    EXPECT_EQ(0, json.size());
+}
 
 TEST(JSON, write_file)          { FAIL(); }
 
@@ -270,9 +324,24 @@ TEST(ARRAY, append_array) {
     EXPECT_EQ(pre_size + a2.size(), a1.size());
 }
 
-TEST(ARRAY, parse)              { FAIL(); }
+TEST(ARRAY, parse) {
+    std::string string_array = "[15, true, \"string\"]";
+    JArray array; //TODO: JArray(std::string)
+    array.parseArray(string_array);
 
-TEST(ARRAY, parse_error)        { FAIL(); }
+    EXPECT_EQ(3, array.size());
+    EXPECT_EQ(15, array[0].getNum());
+    EXPECT_EQ(true, array[1].getBool());
+    EXPECT_EQ("string", array[2].getString());
+}
+
+TEST(ARRAY, parse_error) {
+    //нет запятой между элементами
+    std::string string_array = "[15 true, \"string\"]";
+    JArray array;
+    array.parseArray(string_array);
+    EXPECT_EQ(0, array.size());
+}
 
 TEST(ARRAY, get_index) {
     JArray array = example_array;
@@ -284,12 +353,12 @@ TEST(ARRAY, get_index) {
 }
 
 TEST(ARRAY, get_complex_name) {
-//    Json j("json_num", 15);
-//    JArray a;
-//    a.push_back(j);
+    Json j("json_num", 15);
+    JArray a;
+    a.push_back(j);
 
-//    double d = a[{"0", "json_num"}].getNum();
-    FAIL();
+    double d = a[{"0", "json_num"}].getNum();
+    EXPECT_EQ(15, d);
 }
 
 TEST(ARRAY, get_index_error) {
