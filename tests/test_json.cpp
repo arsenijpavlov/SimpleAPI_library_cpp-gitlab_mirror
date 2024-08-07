@@ -116,6 +116,7 @@ std::string json_string_example = "{"
                                   "<-\n->"
                                   "<#\n#>"
                                   "/#\n#/"
+                                  //поля
                                   "\"number\":182,\n"
                                   "\"bool\":true,\n"
                                   "\"string\":\"string_value\",\n"
