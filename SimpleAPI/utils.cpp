@@ -38,7 +38,9 @@ void RemoveComments(std::string& str, bool& startComment, char& quote,
                         if((start_comment_sym == '/' && stop_comment_sym == '*')
                             || (start_comment_sym == '/' && stop_comment_sym == '#')
                             || (start_comment_sym == '<' && stop_comment_sym == '#')
-                            || (start_comment_sym == '<' && stop_comment_sym == '-')) {
+                            || (start_comment_sym == '<' && stop_comment_sym == '-')
+                            || (start_comment_sym == '#' && stop_comment_sym == '#')
+                            || (start_comment_sym == '!' && stop_comment_sym == '!')) {
                             isFullComment = true;
                             i++;
                             if(start_comment_sym == '<') start_comment_sym = '>';

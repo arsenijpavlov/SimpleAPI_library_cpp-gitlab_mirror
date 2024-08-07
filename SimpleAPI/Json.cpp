@@ -5,7 +5,8 @@
 
 //#define DEBUG_OUTPUT TODO: когда-нибудь потом...
 
-#define SPACES " \n\t"
+#define __SPACES__          " \n\t"
+#define __POSIBLE_COLON__   ":="
 
 
 // NextReadState ===============================================================================
@@ -196,14 +197,6 @@ Element Element::getInnerValue(const size_t index) const {
 // *
 // *
 // JArray ======================================================================================
-//bool JArray::checkIndexes(const size_t index) {
-//    if(index + 1 > m_values.size()) {
-//        throw std::out_of_range("Going beyond JArray boundaries");
-//        return false;
-//    }
-//    return true;
-//}
-
 JArray::JArray(const JArray& other) {
     for(AVector::const_iterator it = other.m_values.cbegin();
          it != other.m_values.cend(); it++) {
@@ -242,7 +235,7 @@ bool JArray::parseArray(const std::string& array_str) {
         //чтение данных
         switch(state) {
         case eArrayStart: {
-            if(utils::CharsInString(array_str[i], SPACES)) continue;
+            if(utils::CharsInString(array_str[i], __SPACES__)) continue;
             else if(array_str[i] == '[')
                 ChangeNextState(state, NextReadState::eValue);
             else
@@ -250,7 +243,7 @@ bool JArray::parseArray(const std::string& array_str) {
             break;
         }
         case eArrayEnd: {
-            if(utils::CharsInString(array_str[i], SPACES)) continue;
+            if(utils::CharsInString(array_str[i], __SPACES__)) continue;
             else if(array_str[i] == ']')
                 ChangeNextState(state, NextReadState::eUnknown);
             else
@@ -317,7 +310,7 @@ bool JArray::parseArray(const std::string& array_str) {
             break;
         }
         case eComma: {
-            if(utils::CharsInString(array_str[i], SPACES)) continue;
+            if(utils::CharsInString(array_str[i], __SPACES__)) continue;
 
             if(array_str[i] != ',') {
                 if(array_str[i] != ']') {
@@ -527,7 +520,7 @@ bool Json::parseJson(const std::string& json_str) {
         //чтение данных
         switch(state) {
         case eJsonStart: {
-            if(utils::CharsInString(json_str[i], SPACES)) continue;
+            if(utils::CharsInString(json_str[i], __SPACES__)) continue;
             else if(json_str[i] == '{')
                 ChangeNextState(state, NextReadState::eKey);
             else
@@ -535,7 +528,7 @@ bool Json::parseJson(const std::string& json_str) {
             break;
         }
         case eJsonEnd: {
-            if(utils::CharsInString(json_str[i], SPACES)) continue;
+            if(utils::CharsInString(json_str[i], __SPACES__)) continue;
             else if(json_str[i] == '}')
                 ChangeNextState(state, NextReadState::eUnknown);
             else
@@ -548,7 +541,7 @@ bool Json::parseJson(const std::string& json_str) {
 
             //значение считано полностью?
             if(i + 1 < json_str.length()) { //следующий символ существует
-                if(json_str[i + 1] == ':' || (json_str[i + 1] == '}' && (i + 1 == endIndex)))
+                if(utils::CharsInString(json_str[i + 1], __POSIBLE_COLON__) || (json_str[i + 1] == '}' && (i + 1 == endIndex)))
                     isKey = false;
             }
 
@@ -648,11 +641,11 @@ bool Json::parseJson(const std::string& json_str) {
             break;
         }
         case eColon: {
-            if(utils::CharsInString(json_str[i], SPACES))
+            if(utils::CharsInString(json_str[i], __SPACES__))
                 continue;
 
-            if(json_str[i] != ':') {
-                std::cout << "exp: ':'" << std::endl;
+            if(!utils::CharsInString(json_str[i], __POSIBLE_COLON__)) {
+                std::cout << "exp: ':' or '='" << std::endl;
                 return_code = false;
                 exit = true;
             } else {
@@ -661,7 +654,7 @@ bool Json::parseJson(const std::string& json_str) {
             break;
         }
         case eComma: {
-            if(utils::CharsInString(json_str[i], SPACES))
+            if(utils::CharsInString(json_str[i], __SPACES__))
                 continue;
 
             if(json_str[i] != ',') {
@@ -898,7 +891,7 @@ ValueType CheckValue(std::string& value) {
     std::string _value;
     ValueType vType = eNull;
     for(size_t i = 0; i < value.length(); i++) {
-        if(!isValue && !utils::CharsInString(value[i], SPACES))
+        if(!isValue && !utils::CharsInString(value[i], __SPACES__))
             isValue = true;
 
         if(isValue) {
@@ -907,7 +900,7 @@ ValueType CheckValue(std::string& value) {
                 else if(value[i] == '"')        vType = ValueType::eString;
                 else if(value[i] == '{')        vType = ValueType::eJson;
                 else if(value[i] == '[')        vType = ValueType::eArray;
-                else if(!utils::CharsInString(value[i], SPACES))
+                else if(!utils::CharsInString(value[i], __SPACES__))
                                                 vType = ValueType::eBool;
             }
             _value += value[i];
@@ -936,7 +929,7 @@ bool CheckDouble(std::string& value) {
     //remove spaces
     std::string temp;
     for(char ch : value)
-        if(!utils::CharsInString(ch, SPACES)) temp += ch;
+        if(!utils::CharsInString(ch, __SPACES__)) temp += ch;
 
     for(char ch : temp) {
         if(ch == '.') pCounter++;
@@ -955,7 +948,7 @@ bool CheckBool(std::string& value) {
     std::string temp;
     bool flag = false;
     for(char c : value) {
-        if(utils::CharsInString(c, SPACES)) {
+        if(utils::CharsInString(c, __SPACES__)) {
             if(flag) break;
         } else {
             if(!flag)   flag = true;
@@ -990,7 +983,7 @@ bool CheckString(std::string& value) {
                 else
                     temp += value[i];
             } else { //замкнули слово, надо проверить оставшиеся символы
-                if(!utils::CharsInString(value[i], SPACES)) {
+                if(!utils::CharsInString(value[i], __SPACES__)) {
                     std::cout << "Error with parse String in: " << value << std::endl;
                     return false;
                 }
@@ -1034,12 +1027,12 @@ bool CheckJson(std::string& value) {
                 }
                 temp += value[i];
             } else { //замкнули слово, надо проверить оставшиеся символы
-                if(!utils::CharsInString(value[i], SPACES)) {
+                if(!utils::CharsInString(value[i], __SPACES__)) {
                     std::cout << "Error with parse Json in: [" << value[i] << "]" << std::endl;
                     return false;
                 }
             }
-        } else if(!utils::CharsInString(value[i], SPACES)) {
+        } else if(!utils::CharsInString(value[i], __SPACES__)) {
             if (value[i] == '{') {
                 temp += value[i];
                 ch = '}';
@@ -1084,12 +1077,12 @@ bool CheckArray(std::string& value) {
                 }
                 temp += value[i];
             } else { //замкнули слово, надо проверить оставшиеся символы
-                if(!utils::CharsInString(value[i], SPACES)) {
+                if(!utils::CharsInString(value[i], __SPACES__)) {
                     std::cout << "Error with parse JArray in: [" << value[i] << "]" << std::endl;
                     return false;
                 }
             }
-        } else if(!utils::CharsInString(value[i], SPACES)) {
+        } else if(!utils::CharsInString(value[i], __SPACES__)) {
             if (value[i] == '[') {
                 temp += value[i];
                 ch = ']';
