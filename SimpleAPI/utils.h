@@ -10,7 +10,8 @@ namespace utils {
 bool isNumber(const std::string& str, bool use_point = true);
 bool isNumber(const char ch, bool use_point = true);
 std::string Tab(uint8_t tabs_counter);
-void RemoveComments(std::string& str, bool& startComment, char& quote);
+void RemoveComments(std::string& str, bool& startComment, char& quote,
+                    char& start_comment_sym, char& stop_comment_sym);
 size_t CountSymInStr(const std::string& str, const char ch);
 bool CharsInString(const char ch, std::string symbols);
 std::string toString(double d); //исключить лишние знаки при выводе чисел

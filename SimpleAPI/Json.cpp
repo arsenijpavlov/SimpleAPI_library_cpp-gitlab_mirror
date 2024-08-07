@@ -700,10 +700,12 @@ bool Json::readFile(const std::string& path) {
     std::string temp_string;
     bool nextStrStartFromComment = false;
     char quote = 0;
+    char start_comment = 0;
+    char stop_comment = 0;
     std::string json_str;
     while(getline(file, temp_string)) {
         std::cout << "prepare(" << (nextStrStartFromComment ? "true" : "false") << "): " << temp_string << std::endl;
-        utils::RemoveComments(temp_string, nextStrStartFromComment, quote);
+        utils::RemoveComments(temp_string, nextStrStartFromComment, quote, start_comment, stop_comment);
         if(!temp_string.empty() && !utils::OnlySpaces(temp_string)) {
             json_str += temp_string + '\n';
             std::cout << "temp: " << temp_string << std::endl;

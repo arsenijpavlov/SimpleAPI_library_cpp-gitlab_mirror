@@ -24,8 +24,8 @@ std::string Tab(uint8_t tabs_counter) {
     return ret;
 }
 
-void RemoveComments(std::string& str, bool& startComment, char& quote)
-{
+void RemoveComments(std::string& str, bool& startComment, char& quote,
+                    char& start_comment_sym, char& stop_comment_sym) {
     std::string tempString;
     bool isOneComment = false;
     bool isFullComment = startComment;
@@ -33,22 +33,36 @@ void RemoveComments(std::string& str, bool& startComment, char& quote)
         if(i <= str.length() + 1) { //проверка на границы строки
             if(quote == 0) { //если не часть строкового значения
                 if(!isFullComment) { //многострочные комментарии имеют приоритет
-                    if(str[i] == '/' && str[i + 1] == '*' && !isOneComment) {
-                        isFullComment = true;
-                        i++;
-                        continue;
-                    }
                     if(!isOneComment) {
+                        start_comment_sym = str[i];
+                        stop_comment_sym = str[i + 1];
+                        if((start_comment_sym == '/' && stop_comment_sym == '*')
+                            || (start_comment_sym == '/' && stop_comment_sym == '#')
+                            || (start_comment_sym == '<' && stop_comment_sym == '#')
+                            || (start_comment_sym == '<' && stop_comment_sym == '-')) {
+                            isFullComment = true;
+                            i++;
+                            if(start_comment_sym == '<') start_comment_sym = '>';
+                            continue;
+                        }
                         if(str[i] == '/' && str[i+1] == '/') {
                             isOneComment = true;
                             i++;
                             continue;
                         }
+                        if(utils::CharsInString(str[i], "#!;")) {
+                            isOneComment = true;
+                            i++;
+                            continue;
+                        }
                     }
-                } else if(str[i] == '*' && str[i + 1] == '/') {
-                    isFullComment = false;
-                    i++;
-                    continue;
+                } else {
+//                    if(str[i] == '*' && str[i + 1] == '/') {
+                    if(str[i] == stop_comment_sym && str[i + 1] == start_comment_sym) {
+                        isFullComment = false;
+                        i++;
+                        continue;
+                    }
                 }
             }
         }
