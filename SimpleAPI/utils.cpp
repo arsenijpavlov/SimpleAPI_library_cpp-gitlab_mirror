@@ -5,8 +5,7 @@
 
 namespace utils {
 
-bool isNumber(const std::string &str, bool use_point)
-{
+bool isNumber(const std::string &str, bool use_point) {
     for(int i = 0; i < str.size(); i++)
         if(!isNumber(str[i], use_point))
             return false;
@@ -56,13 +55,10 @@ void RemoveComments(std::string& str, bool& startComment, char& quote,
                             continue;
                         }
                     }
-                } else {
-//                    if(str[i] == '*' && str[i + 1] == '/') {
-                    if(str[i] == stop_comment_sym && str[i + 1] == start_comment_sym) {
-                        isFullComment = false;
-                        i++;
-                        continue;
-                    }
+                } else if(str[i] == stop_comment_sym && str[i + 1] == start_comment_sym) {
+                    isFullComment = false;
+                    i++;
+                    continue;
                 }
             }
         }
@@ -90,8 +86,7 @@ void RemoveComments(std::string& str, bool& startComment, char& quote,
     startComment = isFullComment;
 }
 
-size_t CountSymInStr(const std::string &str, const char ch)
-{
+size_t CountSymInStr(const std::string &str, const char ch) {
     size_t counter = 0;
     for(char temp : str)
         if(temp == ch) counter++;
@@ -99,8 +94,7 @@ size_t CountSymInStr(const std::string &str, const char ch)
     return counter;
 }
 
-bool CharsInString(const char ch, std::string symbols)
-{
+bool CharsInString(const char ch, std::string symbols) {
     for(char c : symbols)
         if(c == ch) return true;
     return false;
@@ -122,16 +116,14 @@ bool toBool(std::string& str) {
     else                return false;
 }
 
-bool OnlySpaces(const std::string& str)
-{
+bool OnlySpaces(const std::string& str) {
     for(char c : str)
         if(!CharsInString(c, " \n\t"))
             return false;
     return true;
 }
 
-std::string to_hex_string(const std::vector<uint8_t>& data)
-{
+std::string to_hex_string(const std::vector<uint8_t>& data) {
     auto getHex = [&](uint8_t halfByte) -> char {
         halfByte = halfByte & 0xF;
         switch(halfByte) {
@@ -164,8 +156,7 @@ std::string to_hex_string(const std::vector<uint8_t>& data)
     return str;
 }
 
-std::vector<uint8_t> from_hex_string(std::string str)
-{
+std::vector<uint8_t> from_hex_string(std::string str) {
     if(str.size() % 2 != 0) str.push_back('0');
 
     std::vector<uint8_t> vec;
@@ -178,8 +169,7 @@ std::vector<uint8_t> from_hex_string(std::string str)
 }
 
 //на вход подаётся массив данных, в начале которого 1 байт отвечает за CRC
-bool checkCrc8(std::vector<uint8_t>& data)
-{
+bool checkCrc8(std::vector<uint8_t>& data) {
     bool needCheck = data[0] != 0;
 
     uint16_t sum = 0;
@@ -202,8 +192,7 @@ bool checkCrc8(std::vector<uint8_t>& data)
 }
 
 //на вход подаётся массив данных, в начале которого 2 байта отвечают за CRC
-bool checkCrc16(std::vector<uint8_t>& data)
-{
+bool checkCrc16(std::vector<uint8_t>& data) {
     bool needCheck = data[0] != 0 || data[1] != 0;
 
     uint32_t sum = 0;
@@ -231,8 +220,7 @@ bool checkCrc16(std::vector<uint8_t>& data)
 }
 
 //на вход подаётся массив данных, в начале которого 4 байта отвечают за CRC
-bool checkCrc32(std::vector<uint8_t>& data)
-{
+bool checkCrc32(std::vector<uint8_t>& data) {
     bool needCheck = data[0] != 0 || data[1] != 0 || data[2] != 0 || data[3] != 0;
 
     uint64_t sum = 0;
