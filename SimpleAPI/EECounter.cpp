@@ -1,7 +1,9 @@
 #include "EECounter.h"
+#include <stdexcept>
 
-//TODO: _INCOMPATIBLE_EXCEPTION_
-#define _INCOMPATIBLE_EXCEPTION_     if(this->maxSize != other.maxSize) return false;
+#define __INCOMPATIBLE_SIZE_EXCEPTION__ \
+            if(this->maxSize != other.maxSize) \
+                throw std::invalid_argument("try using incompatible size format");
 
 
 EECounter::EECounter(uint64_t size) {
@@ -27,28 +29,28 @@ void EECounter::set_glob_pos(uint64_t glob_pos)
 }
 
 bool EECounter::operator==(const EECounter &other) const {
-    _INCOMPATIBLE_EXCEPTION_
+    __INCOMPATIBLE_SIZE_EXCEPTION__
 
     if(this->pos == other.pos && this->global_pos == other.global_pos)  return true;
     else                                                                return false;
 }
 
 bool EECounter::operator!=(const EECounter &other) const {
-    _INCOMPATIBLE_EXCEPTION_
+    __INCOMPATIBLE_SIZE_EXCEPTION__
 
     if(this->pos != other.pos || this->global_pos != other.global_pos)  return true;
     else                                                                return false;
 }
 
 bool EECounter::operator<(const EECounter &other) const {
-    _INCOMPATIBLE_EXCEPTION_
+    __INCOMPATIBLE_SIZE_EXCEPTION__
 
     if(this->pos < other.pos && this->global_pos <= other.global_pos)   return true;
     else                                                                return false;
 }
 
 bool EECounter::operator>(const EECounter &other) const {
-    _INCOMPATIBLE_EXCEPTION_
+    __INCOMPATIBLE_SIZE_EXCEPTION__
 
     if(this->pos > other.pos && this->global_pos >= other.global_pos)   return true;
     else                                                                return false;
@@ -130,7 +132,7 @@ uint64_t EECounter::get_glob() {
 }
 
 EECounter EECounter::operator+(const EECounter& other) {
-    _INCOMPATIBLE_EXCEPTION_
+    __INCOMPATIBLE_SIZE_EXCEPTION__
 
     EECounter saved(*this);
     saved.global_pos += other.pos;
@@ -144,7 +146,7 @@ EECounter EECounter::operator+(const EECounter& other) {
 }
 
 EECounter EECounter::operator-(const EECounter& other) {
-    _INCOMPATIBLE_EXCEPTION_
+    __INCOMPATIBLE_SIZE_EXCEPTION__
 
     EECounter saved(*this);
     saved.global_pos -= other.pos;

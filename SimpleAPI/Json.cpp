@@ -177,19 +177,20 @@ JArray &Element::getArray() const {
 }
 
 Element Element::getInnerValue(const std::string& key) const {
-    if(this->first == ValueType::eJson)
-        return reinterpret_cast<JsonElement*>(second)->m_value[key];
-    else
-        return {}; //TODO: вызвать exception
+    if(first != ValueType::eJson)
+        throw std::invalid_argument("This element is not a 'Json' type: " + to_string(first));
+    return reinterpret_cast<JsonElement*>(second)->m_value[key];
 }
 
 Element Element::getInnerValue(const size_t index) const {
-    if(this->first == ValueType::eJson)
+    switch(first) {
+    case eJson:
         return reinterpret_cast<JsonElement*>(second)->m_value[index];
-    else if(this->first == ValueType::eArray)
+    case eArray:
         return reinterpret_cast<JArrayElement*>(second)->m_value[index];
-    else
-        return {}; //TODO: вызвать exception
+    default:
+        throw std::invalid_argument("This element is not a 'Json' ot 'JArray' type: " + to_string(first));
+    }
 }
 // ===================================================================================== Element
 // *
@@ -408,7 +409,6 @@ Element &JArray::operator[](const size_t index) {
     return m_values[index];
 }
 
-//FIXME: эта функция не роботает
 Element &JArray::operator[](const std::vector<std::string> &complex_name) {
     if(m_values.empty())
         __ARRAY_EMPTY_EXCEPTION__
@@ -416,12 +416,12 @@ Element &JArray::operator[](const std::vector<std::string> &complex_name) {
     std::vector<std::string>::const_iterator it = complex_name.begin();
     if(!utils::isNumber(*it, false))
         __ARRAY_INCORRECT_INDEX_EXCEPTION__
-    Element& el = (*this)[stoi(*it)]; //находим первый элемент списка
+    Element& el = (*this)[stoi(*it++)]; //находим первый элемент списка
     for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
         bool isNumber = utils::isNumber(*it, false);
         switch(el.first) {
         case eJson:
-            el = el.getInnerValue(*it++);
+            el = el.getInnerValue(*it);
             if(el.first == ValueType::eNull) {
                 if(isNumber)
                     el = el.getInnerValue(stoi(*it));
@@ -481,7 +481,6 @@ Json &Json::put(const std::string &key, const Element &element, const bool rewri
     return *this;
 }
 
-//    TODO: тест для перезаписи(нет) дублей
 Json& Json::put(const Json &json, const bool rewrite) {
     for(const JPair &pair : json.m_values) {
         if(contains(pair.first)) {

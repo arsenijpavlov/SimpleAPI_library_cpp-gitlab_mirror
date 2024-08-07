@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-
+#include <fstream>
 
 int main(int argc, char **argv)
 {
@@ -100,9 +100,24 @@ TEST(ELEMENT, not_compare_all_types) {
 //========================================================================================
 Json json_example({{"key_0", "first"},
                    {"key_1", 2},
-                   {"key_2", 3.0},
+                   {"key_2", 3.1},
                    {"key_3", true}
 });
+std::string json_string_example = "{"
+                                  "   \t"   //пробелы и табуляции
+                                  "//\n"    //однострочные комментарии
+//TODO:                                   "#\n"  //однострочные комментарии
+//TODO:                                   ";\n"  //однострочные комментарии
+                                  "/*\n*/"  //многострочные комментарии
+//TODO:                                   "<-\n->"  //многострочные комментарии
+//TODO:                                   "\n"   //многострочные комментарии
+                                  "\"number\":182,\n"
+                                  "\"bool\":true,\n"
+                                  "\"string\":\"string_value\",\n"
+                                  "\"json\":{\"string\":\"inner_string_value\"},\n"
+                                  "\"array\":[\"string_value\", true]\n"
+                                  "}";
+
 
 TEST(JSON, copy) {
     Json j1("asd", "123");
@@ -127,16 +142,7 @@ TEST(JSON, append_json) {
 }
 
 TEST(JSON, parse) {
-    std::string string_json = "{"
-                              "   \t"   //пробелы и табуляции
-                              "//\n"    //однострочные комментарии
-                              "/*\n*/"  //многострочные комментарии
-                              "\"number\":182,"
-                              "\"bool\":true,"
-                              "\"string\":\"string_value\","
-                              "\"json\":{\"string\":\"inner_string_value\"},"
-                              "\"array\":[\"string_value\", true]"
-                              "}";
+    std::string string_json = json_string_example;
     Json json;
     json.parseJson(string_json);
 
@@ -184,13 +190,35 @@ TEST(JSON, parse_error) {
     EXPECT_EQ(0, json.size());
 }
 
-TEST(JSON, write_file)          { FAIL(); }
+TEST(JSON, write_file) {
+    Json json = json_example;
 
-TEST(JSON, write_file_error)    { FAIL(); }
+    json.writeFile("../tests/test_writer_with_spaces.json");
+    json.writeFile("../tests/test_writer.json", -1);
+}
 
-TEST(JSON, read_file)           { FAIL(); }
+TEST(JSON, read_file) {
+    std::string path = "../tests/test_reader.json";
 
-TEST(JSON, read_file_error)     { FAIL(); }
+    std::ofstream file_example_creator(path);
+    if(!file_example_creator.is_open())
+        FAIL();
+    file_example_creator.write(json_string_example.c_str(), json_string_example.size());
+    file_example_creator.close();
+
+    Json json;
+    json.readFile(path);
+
+    EXPECT_EQ(json.size(), Json(json_string_example).size());
+}
+
+TEST(JSON, read_file_error) {
+    //файла не существует
+    Json json;
+    json.readFile("json_file_not_found.json");
+
+    EXPECT_EQ(json.size(), 0);
+}
 
 TEST(JSON, put_and_get_elements) {
     std::string test_str    = "abc";
@@ -239,13 +267,58 @@ TEST(JSON, update_value) {
     EXPECT_EQ(json["key"].getBool(), true);
 }
 
-TEST(JSON, get_index)           { FAIL(); }
+TEST(JSON, get_index) {
+    Json json = json_example;
 
-TEST(JSON, get_index_error)     { FAIL(); }
+    EXPECT_EQ(json.getValue(0).getString(), "first");
+    EXPECT_EQ(json.getValue(1).getNum(), 2);
+    EXPECT_EQ(json.getValue(2).getNum(), 3.1);
+    EXPECT_EQ(json.getValue(3).getBool(), true);
+}
 
-TEST(JSON, get_key)             { FAIL(); }
+TEST(JSON, get_index_error) {
+    Json json = json_example;
 
-TEST(JSON, get_key_error)       { FAIL(); }
+    try {
+        json[5];
+    } catch (std::out_of_range& e) {
+        return SUCCEED();
+    }
+
+    FAIL();
+}
+
+TEST(JSON, get_complex_name) {
+    Json j("json_num", 15);
+    JArray a;
+    a.push_back(j);
+    Json j_main;
+    j_main.put("array", a);
+
+    double d = j_main[{"array", "0", "json_num"}].getNum();
+    EXPECT_EQ(15, d);
+}
+
+TEST(JSON, get_key) {
+    Json json = json_example;
+
+    EXPECT_EQ(json.getValue("key_0").getString(), "first");
+    EXPECT_EQ(json.getValue("key_1").getNum(), 2);
+    EXPECT_EQ(json.getValue("key_2").getNum(), 3.1);
+    EXPECT_EQ(json.getValue("key_3").getBool(), true);
+}
+
+TEST(JSON, get_key_error) {
+    Json json = json_example;
+
+    try {
+        Element el = json.getValue("azaza");
+    } catch (std::invalid_argument& e) {
+        return SUCCEED();
+    }
+
+    FAIL();
+}
 
 TEST(JSON, insert) {
     Json json = json_example;
@@ -300,7 +373,7 @@ TEST(JSON, erase_keys) {
 }
 
 //========================================================================================
-JArray example_array("first", 2, 3.0, true);
+JArray array_example("first", 2, 3.1, true);
 
 
 TEST(ARRAY, copy) {
@@ -311,7 +384,7 @@ TEST(ARRAY, copy) {
 }
 
 TEST(ARRAY, append_array) {
-    JArray a1 = example_array;
+    JArray a1 = array_example;
     uint8_t pre_size = a1.size();
 
     JArray a2;
@@ -344,11 +417,11 @@ TEST(ARRAY, parse_error) {
 }
 
 TEST(ARRAY, get_index) {
-    JArray array = example_array;
+    JArray array = array_example;
 
     EXPECT_EQ(array.getValue(0).getString(), "first");
     EXPECT_EQ(array.getValue(1).getNum(), 2);
-    EXPECT_EQ(array.getValue(2).getNum(), 3.0);
+    EXPECT_EQ(array.getValue(2).getNum(), 3.1);
     EXPECT_EQ(array.getValue(3).getBool(), true);
 }
 
@@ -362,7 +435,7 @@ TEST(ARRAY, get_complex_name) {
 }
 
 TEST(ARRAY, get_index_error) {
-    JArray array = example_array;
+    JArray array = array_example;
 
     try {
         array[5];
@@ -374,7 +447,7 @@ TEST(ARRAY, get_index_error) {
 }
 
 TEST(ARRAY, insert) {
-    JArray array = example_array;
+    JArray array = array_example;
 
     array.insert(1, "insert1");
     EXPECT_EQ(array[1].getString(), "insert1");
@@ -384,17 +457,17 @@ TEST(ARRAY, insert) {
 }
 
 TEST(ARRAY, erase_it) {
-    JArray array = example_array;
+    JArray array = array_example;
 
     array.erase(1);
-    EXPECT_EQ(array[1].getNum(), 3);
+    EXPECT_EQ(array[1].getNum(), 3.1);
  }
 
 TEST(ARRAY, erase_index) {
-    JArray array = example_array;
+    JArray array = array_example;
 
     array.erase(array.begin() + 1);
-    EXPECT_EQ(array[1].getNum(), 3);
+    EXPECT_EQ(array[1].getNum(), 3.1);
 }
 
 //========================================================================================

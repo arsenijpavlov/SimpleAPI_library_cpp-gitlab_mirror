@@ -151,11 +151,14 @@ public:
                 __ONLY_ALLOWED_TYPES__(T)
     JArray&     push_front(const T& value)          { m_values.insert(m_values.cbegin(), Element(value));
                                                         return *this; }
-    JArray&     push_front(const JArray& array)     { /*TODO: */ return *this; }
                 template<typename ... Types>
-    JArray&     push_back(const Types... args)      { m_values.push_back(Element(args)...); return *this; }
+    JArray&     push_front(const Types... args)     { push_front(Element(args)...);
+                                                        return *this; }
                 __ONLY_ALLOWED_TYPES__(T)
-    JArray&     push_back(const T& value)           { m_values.push_back(Element(value));
+    JArray&     push_back(const T& value)           { push_back(Element(value));
+                                                        return *this; }
+                template<typename ... Types>
+    JArray&     push_back(const Types... args)      { m_values.push_back(Element(args)...);
                                                         return *this; }
     JArray&     append(const JArray& array);
 
@@ -299,7 +302,7 @@ public:
     size_t      size()                                    const { return m_values.size(); }
     bool        isEmpty()                                       { return m_values.size() == 0; }
     bool        contains(const std::string& key);
-                __ONLY_ALLOWED_TYPES__(T)//TODO: тест на эту функцию
+                __ONLY_ALLOWED_TYPES__(T)
     Json&       updateValue(const std::string& key, const T& new_value)
                 {
                     if(contains(key)) {
