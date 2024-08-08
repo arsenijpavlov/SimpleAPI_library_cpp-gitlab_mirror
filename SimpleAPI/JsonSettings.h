@@ -20,6 +20,17 @@
  *
  */
 
+/* Через функции setOrUpdate() можно задать комментарий
+ * если Element - это список или Json, то он печатается в изначальном виде без комментариев!
+*/
+
+enum class ConfigType {
+//TODO:    eIni,
+    eJson,
+//TODO:    eYaml,
+    eSimpleApiConfig
+};
+
 enum class CommentType {
     eBeforeValue,           // пользователь сам распределяет переносы строки
     eBeforeValueMultiLine,  // автоматическая расстановка переносов строки
