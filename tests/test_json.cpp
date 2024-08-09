@@ -122,7 +122,8 @@ std::string json_string_example = "{"
                                   "\"number\":182,\n"
                                   //иной вариант разделителя '='
                                   "\"bool\"=true,\n"
-                                  "\"string\":\"string_value\",\n"
+                                  //перенос строки равнозначен разделителю ','
+                                  "\"string\":\"string_value\"\n"
                                   "\"json\":{\"string\":\"inner_string_value\"},\n"
                                   "\"array\":[\"string_value\", true]\n"
                                   "}";

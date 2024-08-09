@@ -256,7 +256,8 @@ bool JArray::parseArray(const std::string& array_str) {
 
             //значение считано полностью?
             if(i + 1 < array_str.length()) //следующий символ существует
-                if(array_str[i + 1] == ',' || (array_str[i + 1] == ']' && ((i + 1) == endIndex)))
+                if(utils::CharsInString(array_str[i + 1], ",\n")
+                    || (array_str[i + 1] == ']' && ((i + 1) == endIndex)))
                     isValue = false;
 
             if(!isValue) { //это конец значения?
@@ -312,9 +313,10 @@ bool JArray::parseArray(const std::string& array_str) {
         case eComma: {
             if(utils::CharsInString(array_str[i], __SPACES__)) continue;
 
-            if(array_str[i] != ',') {
+//            if(array_str[i] != ',') {
+            if(!utils::CharsInString(array_str[i], ",\n")) {
                 if(array_str[i] != ']') {
-                    std::cout << "exp: ','" << std::endl;
+                    std::cout << "exp: ',' or '\n'" << std::endl;
                     return_code = false;
                 }
                 exit = true;
@@ -559,7 +561,8 @@ bool Json::parseJson(const std::string& json_str) {
 
             //значение считано полностью?
             if(i + 1 < json_str.length()) { //следующий символ существует
-                if(json_str[i + 1] == ',' || (json_str[i + 1] == '}' && ((i + 1) == endIndex)))
+                if(utils::CharsInString(json_str[i + 1], ",\n")
+                    || (json_str[i + 1] == '}' && ((i + 1) == endIndex)))
                     isValue = false;
             }
 
@@ -657,9 +660,10 @@ bool Json::parseJson(const std::string& json_str) {
             if(utils::CharsInString(json_str[i], __SPACES__))
                 continue;
 
-            if(json_str[i] != ',') {
+//            if(json_str[i] != ',') {
+            if(!utils::CharsInString(json_str[i], ",\n")) {
                 if(json_str[i] != '}') {
-                    std::cout << "exp: ','" << std::endl;
+                    std::cout << "exp: ',' or '\n'" << std::endl;
                     return_code = false;
                 }
                 exit = true;
