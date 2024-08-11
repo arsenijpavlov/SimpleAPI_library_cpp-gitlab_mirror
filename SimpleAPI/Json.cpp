@@ -5,8 +5,9 @@
 
 //#define DEBUG_OUTPUT TODO: когда-нибудь потом...
 
-#define __SPACES__          " \n\t"
-#define __POSIBLE_COLON__   ":="
+#define __SPACES__                  " \n\t"
+#define __SPACES_WITHOUT_NEWLINE__  " \t"
+#define __POSIBLE_COLON__           ":="
 
 
 // NextReadState ===============================================================================
@@ -177,7 +178,7 @@ JArray &Element::getArray() const {
     return reinterpret_cast<JArrayElement*>(second)->m_value;
 }
 
-Element Element::getInnerValue(const std::string& key) const {
+Element &Element::getInnerValue(const std::string& key) const {
     if(first != ValueType::eJson)
         throw std::invalid_argument("This element is not a 'Json' type: " + to_string(first));
     return reinterpret_cast<JsonElement*>(second)->m_value[key];
@@ -311,12 +312,11 @@ bool JArray::parseArray(const std::string& array_str) {
             break;
         }
         case eComma: {
-            if(utils::CharsInString(array_str[i], __SPACES__)) continue;
+            if(utils::CharsInString(array_str[i], __SPACES_WITHOUT_NEWLINE__)) continue;
 
-//            if(array_str[i] != ',') {
             if(!utils::CharsInString(array_str[i], ",\n")) {
                 if(array_str[i] != ']') {
-                    std::cout << "exp: ',' or '\n'" << std::endl;
+                    std::cout << "exp: ',' or '\\n'" << std::endl;
                     return_code = false;
                 }
                 exit = true;
@@ -440,7 +440,7 @@ Element &JArray::operator[](const std::vector<std::string> &complex_name) {
     return el;
 }
 
-JArray& JArray::erase(const size_t index) {
+JArray &JArray::erase(const size_t index) {
     if(index <= m_values.size() - 1)
         m_values.erase(m_values.cbegin() + index);
 
@@ -476,7 +476,7 @@ Json &Json::put(const std::string &key, const Element &element, const bool rewri
     return *this;
 }
 
-Json& Json::put(const Json &json, const bool rewrite) {
+Json &Json::put(const Json &json, const bool rewrite) {
     for(const JPair &pair : json.m_values) {
         if(contains(pair.first)) {
             if(!rewrite)    continue;
@@ -657,13 +657,13 @@ bool Json::parseJson(const std::string& json_str) {
             break;
         }
         case eComma: {
-            if(utils::CharsInString(json_str[i], __SPACES__))
+            if(utils::CharsInString(json_str[i], __SPACES_WITHOUT_NEWLINE__))
                 continue;
 
 //            if(json_str[i] != ',') {
             if(!utils::CharsInString(json_str[i], ",\n")) {
                 if(json_str[i] != '}') {
-                    std::cout << "exp: ',' or '\n'" << std::endl;
+                    std::cout << "exp: ',' or '\\n'" << std::endl;
                     return_code = false;
                 }
                 exit = true;
@@ -857,14 +857,14 @@ Element &Json::operator[](const std::vector<std::string> &complex_name) {
     return el;
 }
 
-Json& Json::erase(const size_t index) {
+Json &Json::erase(const size_t index) {
     if(index <= m_values.size() - 1)
         m_values.erase(m_values.cbegin() + index);
 
     return *this;
 }
 
-Json& Json::erase(const std::string &key) {
+Json &Json::erase(const std::string &key) {
     bool flag = false;
     size_t index;
     for(index = 0; index < this->size(); index++) {
@@ -879,7 +879,7 @@ Json& Json::erase(const std::string &key) {
     return *this;
 }
 
-Json& Json::erase(const std::vector<std::string> &keys) {
+Json &Json::erase(const std::vector<std::string> &keys) {
     for(const std::string &key : keys)
         this->erase(key);
 

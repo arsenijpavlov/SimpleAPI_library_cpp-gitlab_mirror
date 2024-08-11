@@ -126,8 +126,9 @@ struct Element {
     JArray&     getArray() const;
 
     //NOTE: кандидаты на удаление
-    Element     getInnerValue(const std::string& key) const;
-    Element     getInnerValue(const size_t index) const;
+    Element&    getInnerValue(const std::string& key) const;
+    //FIXME: должно возвращать значение по ссылке
+    Element    getInnerValue(const size_t index) const;
 };
 // ===================================================================================== Element
 // *
