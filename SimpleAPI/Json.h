@@ -264,11 +264,9 @@ public:
 using JPair     = std::pair<std::string, Element>;
 using JVector   = std::vector<JPair>;
 // Неупорядоченный список "ключ-значение" (в данном случае упорядочен)
-class Json
-{
+class Json {
     JVector m_values;
 
-//    bool        checkIndexes(const size_t index);
 public:
                 Json()                                          {}
                 Json(const Json& json);

@@ -5,9 +5,10 @@
 
 //#define DEBUG_OUTPUT TODO: когда-нибудь потом...
 
-#define __SPACES__                  " \n\t"
-#define __SPACES_WITHOUT_NEWLINE__  " \t"
-#define __POSIBLE_COLON__           ":="
+#define __SPACES__                      " \n\t"
+#define __SEPARATORS__                  ",\n"
+#define __SPACES_WITHOUT_SEPARATORS__   " \t"
+#define __POSIBLE_COLON__               ":="
 
 
 // NextReadState ===============================================================================
@@ -312,9 +313,9 @@ bool JArray::parseArray(const std::string& array_str) {
             break;
         }
         case eComma: {
-            if(utils::CharsInString(array_str[i], __SPACES_WITHOUT_NEWLINE__)) continue;
+            if(utils::CharsInString(array_str[i], __SPACES_WITHOUT_SEPARATORS__)) continue;
 
-            if(!utils::CharsInString(array_str[i], ",\n")) {
+            if(!utils::CharsInString(array_str[i], __SEPARATORS__)) {
                 if(array_str[i] != ']') {
                     std::cout << "exp: ',' or '\\n'" << std::endl;
                     return_code = false;
@@ -657,11 +658,11 @@ bool Json::parseJson(const std::string& json_str) {
             break;
         }
         case eComma: {
-            if(utils::CharsInString(json_str[i], __SPACES_WITHOUT_NEWLINE__))
+            if(utils::CharsInString(json_str[i], __SPACES_WITHOUT_SEPARATORS__))
                 continue;
 
 //            if(json_str[i] != ',') {
-            if(!utils::CharsInString(json_str[i], ",\n")) {
+            if(!utils::CharsInString(json_str[i], __SEPARATORS__)) {
                 if(json_str[i] != '}') {
                     std::cout << "exp: ',' or '\\n'" << std::endl;
                     return_code = false;
