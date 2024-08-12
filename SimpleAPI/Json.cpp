@@ -353,34 +353,145 @@ JArray &JArray::append(const JArray &array) {
     return *this;
 }
 
-std::string JArray::to_string(int16_t tabulation_level) {
+std::string JArray::to_string(int16_t tabulation_level, const PrintType print_type, const uint8_t column_size) const {
     if(m_values.empty()) return "[]";
 
     std::string ret;
-    bool withoutSpaces = tabulation_level < 0;
-    ret += "[";
+    bool withoutSpaces = tabulation_level < 0 && print_type == PrintType::eWithoutComment;
+
+    if(print_type == PrintType::eWithComment
+        && m_preview_comment_type != CommentType::eAfterValueOneLine
+        && !m_preview_comment.empty()
+        ) {
+        ret += "\n";
+        switch(m_preview_comment_type) {
+        case CommentType::eBeforeValueMultiLine: {
+            ret += utils::RepeatSymToStr('\t', tabulation_level)
+                   + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
+            ret += ToComment(m_preview_comment, tabulation_level, m_comment_column_size) + "\n";
+            ret += utils::RepeatSymToStr('\t', tabulation_level)
+                   + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
+            break;
+        }
+        case CommentType::eBeforeValue: {
+            ret += ToComment(m_preview_comment, tabulation_level) + "\n";
+            break;
+        }
+        default: break;
+        }
+    }
+
+    ret += "["; //start of array
 
     if(m_values.size() == 1
         && m_values[0].first != ValueType::eJson
-        && m_values[0].first != ValueType::eArray) {
+        && m_values[0].first != ValueType::eArray
+        ) {
+
+        //===========================================================================
+        auto comment_it = m_comments.find(0);
+        if(comment_it != m_comments.end()
+            && print_type == PrintType::eWithComment
+            && comment_it->second.type != CommentType::eAfterValueOneLine
+            ) {
+            ret += "\n";
+            switch(comment_it->second.type) {
+            case CommentType::eBeforeValueMultiLine: {
+                ret += utils::RepeatSymToStr('\t', tabulation_level + 1)
+                       + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
+                ret += ToComment(comment_it->second.value, tabulation_level + 1, m_comment_column_size) + "\n";
+                ret += utils::RepeatSymToStr('\t', tabulation_level + 1)
+                       + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
+                break;
+            }
+            case CommentType::eBeforeValue: {
+                ret += utils::RepeatSymToStr('\t', tabulation_level + 1)
+                       + ToComment(comment_it->second.value, tabulation_level + 1) + "\n";
+                break;
+            }
+            default: break;
+            }
+            ret += utils::RepeatSymToStr('\t', tabulation_level + 1);
+        }
+        //===========================================================================
+        else if(!withoutSpaces)
+            ret += " ";
+
+        ret += m_values[0].second->to_string(tabulation_level, print_type);
         if(!withoutSpaces) ret += " ";
-        ret += m_values[0].second->to_string(tabulation_level);
-        if(!withoutSpaces) ret += " ";
+
+        //===========================================================================
+        if(comment_it != m_comments.end()
+            && print_type == PrintType::eWithComment
+            && comment_it->second.type == CommentType::eAfterValueOneLine
+            ) {
+            ret += ToComment(comment_it->second.value)
+                   + "\n" + utils::RepeatSymToStr('\t', tabulation_level);
+        }
+        //===========================================================================
     } else {
         if(!withoutSpaces) ret += "\n";
         std::string tabs_str = !withoutSpaces ? utils::Tab(++tabulation_level) : "";
 
         for(size_t i = 0; i < m_values.size(); i++) {
+            //===========================================================================
+            auto comment_it = m_comments.find(i);
+            if(comment_it != m_comments.end()
+                && print_type == PrintType::eWithComment
+                && comment_it->second.type != CommentType::eAfterValueOneLine
+                ) {
+                ret += "\n";
+                switch(comment_it->second.type) {
+                case CommentType::eBeforeValueMultiLine: {
+                    ret += utils::RepeatSymToStr('\t', tabulation_level)
+                           + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
+                    ret += ToComment(comment_it->second.value, tabulation_level, m_comment_column_size) + "\n";
+                    ret += utils::RepeatSymToStr('\t', tabulation_level)
+                           + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
+                    break;
+                }
+                case CommentType::eBeforeValue: {
+                    ret += ToComment(comment_it->second.value, tabulation_level, 0) + "\n";
+                    break;
+                }
+                default: break;
+                }
+            }
+            //===========================================================================
+
             if(!withoutSpaces) ret += tabs_str;
-            ret += m_values[i].second->to_string(tabulation_level);
+            if(column_size != 0) {
+                if (m_values[i].first == ValueType::eJson)
+                    m_values[i].getJson().setCommentColumnSize(column_size);
+                else if(m_values[i].first == ValueType::eArray)
+                    m_values[i].getArray().setCommentColumnSize(column_size);
+            }
+            ret += m_values[i].second->to_string(tabulation_level, print_type);
             if(i < m_values.size() - 1) ret += ",";
+
+            //===========================================================================
+            if(comment_it != m_comments.end()
+                && print_type == PrintType::eWithComment
+                && comment_it->second.type == CommentType::eAfterValueOneLine
+                ) {
+                ret += " " + ToComment(comment_it->second.value);
+            }
+            //===========================================================================
+
             if(!withoutSpaces) ret += "\n";
         }
 
         if(!withoutSpaces) ret += utils::Tab(--tabulation_level);
     }
 
-    ret += "]";
+    ret += "]"; //end of array
+
+    if(print_type == PrintType::eWithComment
+        && m_preview_comment_type == CommentType::eAfterValueOneLine
+        && !m_preview_comment.empty()
+        ) {
+        ret += " " + ToComment(m_preview_comment);
+    }
 
     return ret;
 }
@@ -446,6 +557,15 @@ JArray &JArray::erase(const size_t index) {
         m_values.erase(m_values.cbegin() + index);
 
     return *this;
+}
+
+void JArray::addPreviewComment(const std::string &comment, const CommentType type) {
+    m_preview_comment = comment;
+    m_preview_comment_type = type;
+}
+
+void JArray::addComment(const size_t index, const std::string &comment, const CommentType type) {
+    m_comments.insert(std::make_pair(index, Comment{type, comment}));
 }
 // ====================================================================================== JArray
 // *
@@ -727,34 +847,144 @@ bool Json::writeFile(const std::string& path, int16_t tabulation_level) {
     return true;
 }
 
-std::string Json::to_string(int16_t tabulation_level) const {
+std::string Json::to_string(int16_t tabulation_level, const PrintType print_type, const uint8_t column_size) const {
+    if(m_values.empty()) return "{}";
+
     std::string ret;
-    bool withoutSpaces = tabulation_level < 0;
+    bool withoutSpaces = tabulation_level < 0 && print_type == PrintType::eWithoutComment;
+
+    if(print_type == PrintType::eWithComment
+        && m_preview_comment_type != CommentType::eAfterValueOneLine
+        && !m_preview_comment.empty()
+        ) {
+        ret += "\n";
+        switch(m_preview_comment_type) {
+        case CommentType::eBeforeValueMultiLine: {
+            ret += utils::RepeatSymToStr('\t', tabulation_level)
+                   + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
+            ret += ToComment(m_preview_comment, tabulation_level, m_comment_column_size) + "\n";
+            ret += utils::RepeatSymToStr('\t', tabulation_level)
+                   + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
+            break;
+        }
+        case CommentType::eBeforeValue: {
+            ret += ToComment(m_preview_comment, tabulation_level) + "\n";
+            break;
+        }
+        default: break;
+        }
+    }
+
     ret += "{"; //start of json
 
     if(m_values.size() == 1
         && m_values[0].second.first != ValueType::eJson
-        && m_values[0].second.first != ValueType::eArray) {
-        if(!withoutSpaces) ret += " ";
+        && m_values[0].second.first != ValueType::eArray
+        ) {
+        //===========================================================================
+        auto comment_it = m_comments.find(m_values[0].first);
+        if(comment_it != m_comments.end()
+            && print_type == PrintType::eWithComment
+            && comment_it->second.type != CommentType::eAfterValueOneLine
+            ) {
+            ret += "\n";
+            switch(comment_it->second.type) {
+            case CommentType::eBeforeValueMultiLine: {
+                ret += utils::RepeatSymToStr('\t', tabulation_level + 1)
+                       + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
+                ret += ToComment(comment_it->second.value, tabulation_level + 1, m_comment_column_size) + "\n";
+                ret += utils::RepeatSymToStr('\t', tabulation_level + 1)
+                       + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
+                break;
+            }
+            case CommentType::eBeforeValue: {
+                ret += utils::RepeatSymToStr('\t', tabulation_level + 1)
+                       + ToComment(comment_it->second.value, tabulation_level + 1) + "\n";
+                break;
+            }
+            default: break;
+            }
+            ret += utils::RepeatSymToStr('\t', tabulation_level + 1);
+        }
+        //===========================================================================
+        else if(!withoutSpaces)
+            ret += " ";
+
         ret += "\"" + m_values[0].first + "\"";
         if(!withoutSpaces) ret += " ";
         ret += ":";
         if(!withoutSpaces) ret += " ";
-        ret += m_values[0].second.second->to_string(tabulation_level);
+        if(column_size != 0) {
+            if (m_values[0].second.first == ValueType::eJson)
+                m_values[0].second.getJson().setCommentColumnSize(column_size);
+            else if(m_values[0].second.first == ValueType::eArray)
+                m_values[0].second.getArray().setCommentColumnSize(column_size);
+        }
+        ret += m_values[0].second.second->to_string(tabulation_level, print_type);
         if(!withoutSpaces) ret += " ";
+
+        //===========================================================================
+        if(comment_it != m_comments.end()
+            && print_type == PrintType::eWithComment
+            && comment_it->second.type == CommentType::eAfterValueOneLine
+            ) {
+            ret += ToComment(comment_it->second.value)
+                   + "\n" + utils::RepeatSymToStr('\t', tabulation_level);
+        }
+        //===========================================================================
     } else {
         if(!withoutSpaces) ret += "\n";
-
         std::string tabs_str = !withoutSpaces ? utils::Tab(++tabulation_level) : "";
 
         size_t i = 0;
         for(const JPair& el : m_values) {
+            //===========================================================================
+            auto comment_it = m_comments.find(el.first);
+            if(comment_it != m_comments.end()
+                && print_type == PrintType::eWithComment
+                && comment_it->second.type != CommentType::eAfterValueOneLine
+                ) {
+                ret += "\n";
+                switch(comment_it->second.type) {
+                case CommentType::eBeforeValueMultiLine: {
+                    ret += utils::RepeatSymToStr('\t', tabulation_level)
+                           + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
+                    ret += ToComment(comment_it->second.value, tabulation_level, m_comment_column_size) + "\n";
+                    ret += utils::RepeatSymToStr('\t', tabulation_level)
+                           + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
+                    break;
+                }
+                case CommentType::eBeforeValue: {
+                    ret += ToComment(comment_it->second.value, tabulation_level, 0) + "\n";
+                    break;
+                }
+                default: break;
+                }
+            }
+            //===========================================================================
+
             ret += tabs_str + "\"" + el.first + "\"";
             if(!withoutSpaces) ret += " ";
             ret += ":";
             if(!withoutSpaces) ret += " ";
-            ret += el.second.second->to_string(tabulation_level);
+            if(column_size != 0) {
+                if (el.second.first == ValueType::eJson)
+                    el.second.getJson().setCommentColumnSize(column_size);
+                else if(el.second.first == ValueType::eArray)
+                    el.second.getArray().setCommentColumnSize(column_size);
+            }
+            ret += el.second.second->to_string(tabulation_level, print_type);
             if(i < m_values.size() - 1) ret += ",";
+
+            //===========================================================================
+            if(comment_it != m_comments.end()
+                && print_type == PrintType::eWithComment
+                && comment_it->second.type == CommentType::eAfterValueOneLine
+                ) {
+                ret += " " + ToComment(comment_it->second.value);
+            }
+            //===========================================================================
+
             if(!withoutSpaces) ret += "\n";
             i++;
         }
@@ -763,6 +993,14 @@ std::string Json::to_string(int16_t tabulation_level) const {
     }
 
     ret += "}"; //end of json
+
+    if(print_type == PrintType::eWithComment
+        && m_preview_comment_type == CommentType::eAfterValueOneLine
+        && !m_preview_comment.empty()
+        ) {
+        ret += " " + ToComment(m_preview_comment);
+    }
+
     return ret;
 }
 
@@ -885,6 +1123,19 @@ Json &Json::erase(const std::vector<std::string> &keys) {
         this->erase(key);
 
     return *this;
+}
+
+void Json::addPreviewComment(const std::string &comment, const CommentType type) {
+    m_preview_comment = comment;
+    m_preview_comment_type = type;
+}
+
+void Json::addComment(const std::string &key, const std::string &comment, const CommentType type) {
+    m_comments.insert(std::make_pair(key, Comment{type, comment}));
+}
+
+void Json::addComment(const size_t index, const std::string &comment, const CommentType type) {
+    m_comments.insert(std::make_pair(m_values[index].first, Comment{type, comment}));
 }
 // ======================================================================================== Json
 // *
@@ -1101,5 +1352,25 @@ bool CheckArray(std::string& value) {
     value = temp;
     return true;
 }
+
+//TODO: перенос между пробелами для длинных слов
+//TODO: два пробела подряд игнорируются
+std::string ToComment(const std::string &comment_string, const uint8_t tabulation_level, const uint8_t column_size) {
+    std::string ret;
+    uint8_t column_counter = 0;
+
+    ret += utils::RepeatSymToStr('\t', tabulation_level) + "# ";
+    for(char ch : comment_string) {
+        if((column_size != 0 && column_counter >= column_size) || ch == '\n') {
+            ret += utils::RepeatSymToStr('\t', tabulation_level) + "\n# ";
+            column_counter = 0;
+        } else
+            ret += ch;
+        column_counter++;
+    }
+
+    return ret;
+}
 // ============================================================================ STATIC FUNCTIONS
+
 

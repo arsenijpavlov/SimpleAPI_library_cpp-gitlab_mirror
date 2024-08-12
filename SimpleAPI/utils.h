@@ -22,6 +22,8 @@ bool OnlySpaces(const std::string& str);
 std::string to_hex_string(const std::vector<uint8_t>& data);
 std::vector<uint8_t> from_hex_string(std::string str);
 
+std::string RepeatSymToStr(const char ch, const uint16_t size);
+
 bool checkCrc8(std::vector<uint8_t>& data);
 bool checkCrc16(std::vector<uint8_t>& data);
 bool checkCrc32(std::vector<uint8_t>& data);

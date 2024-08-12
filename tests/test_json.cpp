@@ -208,6 +208,35 @@ TEST(JSON, write_file) {
     json.writeFile("../tests/test_writer.json", -1);
 }
 
+TEST(JSON, write_file_comment) {
+    Json json(json_string_example);
+    json.setCommentColumnSize(20);
+    json.addPreviewComment("a;losdihfga;slopighsdf;pogihvds;pfgvibhdfnsv;ipnbedfr r;voihnaerni some words...",
+                           CommentType::eBeforeValueMultiLine);
+    json.addComment("bool",     "some words...",        CommentType::eBeforeValueMultiLine);
+    json.addComment("string",   "some many words...",   CommentType::eBeforeValue);
+    json.addComment("array",    "some many words...",   CommentType::eAfterValueOneLine);
+
+    json.clearPreviewComment();
+    json.clearComment("bool");
+
+    json["json"].getJson().addComment(0, "json element comment", CommentType::eBeforeValueMultiLine);
+    json["array"].getArray().addComment(0, "array element comment", CommentType::eBeforeValueMultiLine);
+
+    std::string path = "../tests/test_writer_with_comments.json";
+
+    std::ofstream file(path);
+    if (!file.is_open())
+        FAIL();
+
+    file << json.to_string(0, PrintType::eWithComment, json.getCommentColumnSize()) << std::endl;
+
+    file.flush();
+    file.close();
+
+    return SUCCEED();
+}
+
 TEST(JSON, read_file) {
     std::string path = "../tests/test_reader.json";
 

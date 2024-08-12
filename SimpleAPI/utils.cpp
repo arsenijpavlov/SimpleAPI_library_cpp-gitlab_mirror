@@ -170,6 +170,17 @@ std::vector<uint8_t> from_hex_string(std::string str) {
     return vec;
 }
 
+
+std::string RepeatSymToStr(const char ch, const uint16_t size)
+{
+    std::string ret;
+    for(uint16_t i = 0; i < size; i++)
+        ret += ch;
+
+    return ret;
+}
+
+
 //на вход подаётся массив данных, в начале которого 1 байт отвечает за CRC
 bool checkCrc8(std::vector<uint8_t>& data) {
     bool needCheck = data[0] != 0;

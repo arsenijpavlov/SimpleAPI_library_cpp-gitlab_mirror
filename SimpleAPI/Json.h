@@ -32,6 +32,25 @@
 #define __JSON_KEY_NOT_FOUND_EXCEPTION__ \
                                     throw std::invalid_argument("Json key not found");
 
+// Comment =====================================================================================
+enum class PrintType {
+    eWithoutComment,
+    eWithComment
+};
+
+enum class CommentType {
+    eBeforeValue,           // пользователь сам распределяет переносы строки
+    eBeforeValueMultiLine,  // автоматическая расстановка переносов строки
+    eAfterValueOneLine      // подсказка на той же строке
+};
+
+struct Comment {
+    CommentType type;
+    std::string value;
+};
+// ===================================================================================== Comment
+// *
+// *
 class Json;
 class JArray;
 // Element =====================================================================================
@@ -49,7 +68,7 @@ static std::string to_string(const ValueType type);
 class BaseElement {
 public:
     virtual ~BaseElement(){}
-    virtual std::string to_string(int16_t tabultation_level) = 0;
+    virtual std::string to_string(int16_t tabulation_level, const PrintType print_type) = 0;
 };
 
 class DoubleElement : BaseElement { //все числовые типы
@@ -60,7 +79,9 @@ public:
     DoubleElement(const double& d) : m_value(d)         {}
     ~DoubleElement()                                    {}
 
-    std::string to_string(int16_t tabulation_level = 0) { return utils::toString(m_value); }
+    std::string to_string(int16_t tabulation_level = 0,
+                          const PrintType print_type = PrintType::eWithoutComment)
+                                                        { return utils::toString(m_value); }
 };
 
 class BoolElement : BaseElement {
@@ -71,7 +92,9 @@ public:
     BoolElement(const bool& b) : m_value(b)             {}
     ~BoolElement()                                      {}
 
-    std::string to_string(int16_t tabulation_level = 0) { return m_value ? "true" : "false"; }
+    std::string to_string(int16_t tabulation_level = 0,
+                          const PrintType print_type = PrintType::eWithoutComment)
+                                                        { return m_value ? "true" : "false"; }
 };
 
 class StringElement : BaseElement {
@@ -82,7 +105,9 @@ public:
     StringElement(const std::string& s) : m_value(s)    {}
     ~StringElement()                                    {}
 
-    std::string to_string(int16_t tabulation_level = 0) { return "\"" + m_value + "\""; }
+    std::string to_string(int16_t tabulation_level = 0,
+                          const PrintType print_type = PrintType::eWithoutComment)
+                                                        { return "\"" + m_value + "\""; }
 };
 
 class JsonElement;      //описан после соответствующего класса
@@ -139,7 +164,14 @@ using AVector = std::vector<Element>;
 class JArray {
     AVector m_values;
 
-//    bool        checkIndexes(const size_t index);
+    std::map<size_t, Comment> m_comments;
+
+    char        m_comment_sym; //многострочные комментарии всегда имеют этот символ в начале строки
+    uint8_t     m_comment_column_size;
+
+    std::string m_preview_comment;
+    CommentType m_preview_comment_type;
+
 public:
                 JArray()                            {}
                 JArray(const JArray& array);
@@ -177,7 +209,8 @@ public:
     JArray&     clear()                             { m_values.clear();
                                                         return *this; }
 
-    std::string to_string(int16_t tabulation_level = 0);
+    std::string to_string(int16_t tabulation_level = 0, const PrintType print_type = PrintType::eWithoutComment,
+                          const uint8_t column_size = 0) const;
 
     size_t      size()                        const { return m_values.size(); }
     bool        isEmpty()                           { return m_values.size() == 0; }
@@ -228,8 +261,8 @@ public:
     Element&    getValue(const std::vector<std::string>& complex_name)
                                                     { return (*this)[complex_name]; }
 
-    AVector::iterator begin()                       { return m_values.begin(); }
-    AVector::iterator end()                         { return m_values.end(); }
+    AVector::iterator       begin()                 { return m_values.begin(); }
+    AVector::iterator       end()                   { return m_values.end(); }
     AVector::const_iterator cbegin()          const { return m_values.cbegin(); }
     AVector::const_iterator cend()            const { return m_values.cend(); }
 
@@ -256,6 +289,15 @@ public:
     JArray&     erase(const AVector::iterator& begin, const AVector::iterator& end)
                                                     { m_values.erase(begin, end);
                                                         return *this; }
+
+    //комментирование
+    void        setCommentColumnSize(const uint8_t new_comment_column_size)
+                                                    { m_comment_column_size = new_comment_column_size; }
+    uint8_t     getCommentColumnSize()              { return m_comment_column_size; }
+    void        addPreviewComment(const std::string& comment, const CommentType type = CommentType::eBeforeValue);
+    void        addComment(const size_t index, const std::string& comment, const CommentType type = CommentType::eBeforeValue);
+    void        clearPreviewComment()               { m_preview_comment = ""; }
+    void        clearComment(const size_t index)    { m_comments.erase(index); }
 };
 // ====================================================================================== JArray
 // *
@@ -267,6 +309,13 @@ using JVector   = std::vector<JPair>;
 class Json {
     JVector m_values;
 
+    std::map<std::string, Comment> m_comments;
+
+    char        m_comment_sym; //многострочные комментарии всегда имеют этот символ в начале строки
+    uint8_t     m_comment_column_size;
+
+    std::string m_preview_comment;
+    CommentType m_preview_comment_type;
 public:
                 Json()                                          {}
                 Json(const Json& json);
@@ -297,7 +346,8 @@ public:
     bool        readFile(const std::string& path);
     bool        writeFile(const std::string& path, int16_t tabulation_level = 0);
 
-    std::string to_string(int16_t tabulation_level = 0) const;
+    std::string to_string(int16_t tabulation_level = 0, const PrintType print_type = PrintType::eWithoutComment,
+                          const uint8_t column_size = 0) const;
     size_t      size()                                    const { return m_values.size(); }
     bool        isEmpty()                                       { return m_values.size() == 0; }
     bool        contains(const std::string& key);
@@ -314,8 +364,8 @@ public:
     Json&       clear()                                         { m_values.clear();
                                                                     return *this; }
 
-    JVector::iterator begin()                                   { return m_values.begin(); }
-    JVector::iterator end()                                     { return m_values.end(); }
+    JVector::iterator       begin()                             { return m_values.begin(); }
+    JVector::iterator       end()                               { return m_values.end(); }
     JVector::const_iterator cbegin()                      const { return m_values.begin(); }
     JVector::const_iterator cend()                        const { return m_values.end(); }
 
@@ -458,6 +508,16 @@ public:
                                                                     return *this; }
     Json&       erase(const std::string& key);
     Json&       erase(const std::vector<std::string>& keys);
+
+    //комментирование
+    void        setCommentColumnSize(const uint8_t new_comment_column_size)
+                                                                { m_comment_column_size = new_comment_column_size; }
+    uint8_t     getCommentColumnSize()                          { return m_comment_column_size; }
+    void        addPreviewComment(const std::string& comment, const CommentType type = CommentType::eBeforeValue);
+    void        addComment(const std::string& key, const std::string& comment, const CommentType type = CommentType::eBeforeValue);
+    void        addComment(const size_t index, const std::string& comment, const CommentType type = CommentType::eBeforeValue);
+    void        clearPreviewComment()                           { m_preview_comment = ""; }
+    void        clearComment(const std::string& key)            { m_comments.erase(key); }
 };
 // ======================================================================================== Json
 // *
@@ -469,6 +529,7 @@ static bool         CheckBool(std::string& value);
 static bool         CheckString(std::string& value);
 static bool         CheckJson(std::string& value);
 static bool         CheckArray(std::string& value);
+static std::string  ToComment(const std::string& comment_string, const uint8_t tabulation_level = 0, const uint8_t column_size = 0);
 // ============================================================================ STATIC FUNCTIONS
 // *
 // *
@@ -481,7 +542,9 @@ public:
     JsonElement(const Json& j) : m_value(j)             {}
     ~JsonElement()                                      {}
 
-    std::string to_string(int16_t tabulation_level = 0) { return m_value.to_string(tabulation_level); }
+    std::string to_string(int16_t tabulation_level = 0,
+                          const PrintType print_type = PrintType::eWithoutComment)
+                                                        { return m_value.to_string(tabulation_level, print_type); }
 };
 class JArrayElement : BaseElement {
 public:
@@ -491,7 +554,9 @@ public:
     JArrayElement(const JArray& a) : m_value(a)         {}
     ~JArrayElement()                                    {}
 
-    std::string to_string(int16_t tabulation_level = 0) { return m_value.to_string(tabulation_level); }
+    std::string to_string(int16_t tabulation_level = 0,
+                          const PrintType print_type = PrintType::eWithoutComment)
+                                                        { return m_value.to_string(tabulation_level, print_type); }
 };
 // ======================================================================= Element (продолжение)
 
