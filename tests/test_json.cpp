@@ -97,6 +97,133 @@ TEST(ELEMENT, not_compare_all_types) {
     EXPECT_NE(el_array, Element(JArray().push_front("asd")));
 }
 
+////========================================================================================
+////удалить пробелы в начале и конце строки
+//void RemoveIllegalSpaces(std::string& string) {
+//    if(!string.empty()) {
+//        if(string.find(' ') == -1) return;
+//        auto start_index = string.find_first_not_of(' ');
+
+//        while(string.back() == ' ')
+//            string.pop_back();
+
+//        string = string.substr((start_index != -1) ? start_index : 0, string.size());
+//    }
+//}
+
+//std::string separators_symbols(" \t.,;:->+?!/\\*$#@&()[]\n");
+//std::string ToComment_test(const std::string &comment_string, const uint8_t tabulation_level, const uint8_t column_size) {
+//    std::string ret;
+//    uint8_t column_counter = 0;
+//    std::string current_string = "";
+//    std::string prefix = utils::RepeatSymToStr('\t', tabulation_level) + "# ";
+//    char last_symbol = ' ';
+//    std::vector<size_t> separators;
+//    separators.reserve(10);
+//    bool isLastSymbol = false;
+
+//    for(size_t i = 0; i < comment_string.size(); i++) {
+//        char ch = comment_string[i];
+
+//        //игнор "двойного" пробела
+//        if(last_symbol == ' ' && ch == ' ')
+//            continue;
+
+//        if(i == comment_string.size() - 1)
+//            isLastSymbol = true;
+
+//        //если встретили разделитель
+//        if(utils::CharsInString(ch, separators_symbols))
+//            separators.push_back(current_string.size());
+
+//        current_string += ch;
+//        column_counter++;
+//        last_symbol = ch;
+
+//        if(ch == '\n') {
+//            //удалить пробелы в начале и конце строки
+//            RemoveIllegalSpaces(current_string);
+
+//            //вывести если не пустое
+//            if(!current_string.empty())
+//                ret += prefix + current_string;
+
+//            current_string = "";
+//            separators.clear();
+//        }
+
+//        if((column_counter >= column_size)
+//            && (utils::CharsInString(ch, separators_symbols) || isLastSymbol)
+//            && column_size != 0
+//            ) {
+//            column_counter = 0;
+
+//            //удалить пробелы в начале и конце строки
+//            RemoveIllegalSpaces(current_string);
+
+//            //вывести если не пустое
+//            if(!current_string.empty()) {
+//                ret += prefix;
+
+//                //если превышен максимальный размер строки
+//                if(current_string.size() > column_size) {
+//                    std::string left = current_string.substr(0, separators[separators.size() - ((!isLastSymbol) ? 2 : 1)] + 1);
+//                    RemoveIllegalSpaces(left);
+//                    current_string = current_string.substr(separators[separators.size() - ((!isLastSymbol) ? 2 : 1)] + 1);
+//                    if(!utils::CharsInString(current_string.back(), separators_symbols))
+//                        current_string += ' ';
+//                    ret += left + "\n";
+
+//                    //снова найти индексы разделителей
+//                    column_counter = current_string.size();
+//                    separators.clear();
+//                    for(size_t j = 0; j < current_string.size(); j++) {
+//                        if(utils::CharsInString(current_string[j], separators_symbols))
+//                            separators.push_back(j);
+//                    }
+//                } else {
+//                    ret += current_string;
+//                    current_string = "";
+//                    if(!isLastSymbol)
+//                        ret += "\n";
+//                    separators.clear();
+//                }
+//            }
+//        }
+//    }
+
+//    if(!current_string.empty())
+//        ret += prefix + current_string;
+
+
+//    return ret;
+//}
+
+//TEST(COMMENT, __asd__) {
+////    std::string comment("1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...");
+////    std::string comment("some words...");
+//    std::string comment("array element comment_");
+//    std::string comment2("some many words...");
+////    std::string comment("json element comment");
+
+//    std::string path = "../tests/comment.json";
+
+//    std::ofstream file(path);
+//    if (!file.is_open())
+//        FAIL();
+
+//    file << utils::RepeatSymToStr('_', 22) << std::endl
+//         << ToComment_test(comment, 0, 20) << std::endl
+//         << std::endl << std::endl;
+
+//    file << ToComment_test(comment2, 0, 0) << std::endl;
+
+//    file.flush();
+//    file.close();
+
+//    return SUCCEED();
+//}
+
 //========================================================================================
 Json json_example({{"key_0", "first"},
                    {"key_1", 2},
@@ -211,17 +338,17 @@ TEST(JSON, write_file) {
 TEST(JSON, write_file_comment) {
     Json json(json_string_example);
     json.setCommentColumnSize(20);
-    json.addPreviewComment("a;losdihfga;slopighsdf;pogihvds;pfgvibhdfnsv;ipnbedfr r;voihnaerni some words...",
+    json.addPreviewComment("1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...",
                            CommentType::eBeforeValueMultiLine);
     json.addComment("bool",     "some words...",        CommentType::eBeforeValueMultiLine);
-    json.addComment("string",   "some many words...",   CommentType::eBeforeValue);
-    json.addComment("array",    "some many words...",   CommentType::eAfterValueOneLine);
+    json.addComment("string",   "some many words1...",   CommentType::eBeforeValue);
+    json.addComment("array",    "some many words2...",   CommentType::eAfterValueOneLine);
 
-    json.clearPreviewComment();
-    json.clearComment("bool");
+//    json.clearPreviewComment();
+//    json.clearComment("bool");
 
     json["json"].getJson().addComment(0, "json element comment", CommentType::eBeforeValueMultiLine);
-    json["array"].getArray().addComment(0, "array element comment", CommentType::eBeforeValueMultiLine);
+    json["array"].getArray().addComment(0, "array element comment_", CommentType::eBeforeValueMultiLine);
 
     std::string path = "../tests/test_writer_with_comments.json";
 

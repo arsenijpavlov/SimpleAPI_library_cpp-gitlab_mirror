@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <set>
 
 //#define DEBUG_OUTPUT TODO: когда-нибудь потом...
 
@@ -808,7 +809,7 @@ bool Json::parseJson(const std::string& json_str) {
     return return_code;
 }
 
-bool Json::readFile(const std::string& path) {
+bool Json::readFile(const std::string& path) { //TODO: read from INI/YAML
     std::ifstream file(path);
     if (!file.is_open()) {
         std::cout << "File not found" << std::endl;
@@ -835,7 +836,7 @@ bool Json::readFile(const std::string& path) {
     return this->parseJson(json_str);
 }
 
-bool Json::writeFile(const std::string& path, int16_t tabulation_level) {
+bool Json::writeFile(const std::string& path, int16_t tabulation_level) { //TODO: нужно расширить!
     std::ofstream file(path);
     if (!file.is_open())
         return false;
@@ -848,7 +849,6 @@ bool Json::writeFile(const std::string& path, int16_t tabulation_level) {
 }
 
 std::string Json::to_string(int16_t tabulation_level, const PrintType print_type, const uint8_t column_size) const {
-    if(m_values.empty()) return "{}";
 
     std::string ret;
     bool withoutSpaces = tabulation_level < 0 && print_type == PrintType::eWithoutComment;
@@ -1353,21 +1353,103 @@ bool CheckArray(std::string& value) {
     return true;
 }
 
-//TODO: перенос между пробелами для длинных слов
-//TODO: два пробела подряд игнорируются
+//удалить пробелы в начале и конце строки
+void RemoveIllegalSpaces(std::string& string) {
+    if(!string.empty()) {
+        if(string.find(' ') == -1) return;
+        auto start_index = string.find_first_not_of(' ');
+
+        while(string.back() == ' ')
+            string.pop_back();
+
+        string = string.substr((start_index != -1) ? start_index : 0, string.size());
+    }
+}
+
+std::string separators_symbols(" \t.,;:->+?!/\\*$#@&()[]\n");
 std::string ToComment(const std::string &comment_string, const uint8_t tabulation_level, const uint8_t column_size) {
     std::string ret;
     uint8_t column_counter = 0;
+    std::string current_string = "";
+    std::string prefix = utils::RepeatSymToStr('\t', tabulation_level) + "# ";
+    char last_symbol = ' ';
+    std::vector<size_t> separators;
+    separators.reserve(10);
+    bool isLastSymbol = false;
 
-    ret += utils::RepeatSymToStr('\t', tabulation_level) + "# ";
-    for(char ch : comment_string) {
-        if((column_size != 0 && column_counter >= column_size) || ch == '\n') {
-            ret += utils::RepeatSymToStr('\t', tabulation_level) + "\n# ";
-            column_counter = 0;
-        } else
-            ret += ch;
+    for(size_t i = 0; i < comment_string.size(); i++) {
+        char ch = comment_string[i];
+
+        //игнор "двойного" пробела
+        if(last_symbol == ' ' && ch == ' ')
+            continue;
+
+        if(i == comment_string.size() - 1)
+            isLastSymbol = true;
+
+        //если встретили разделитель
+        if(utils::CharsInString(ch, separators_symbols))
+            separators.push_back(current_string.size());
+
+        current_string += ch;
         column_counter++;
+        last_symbol = ch;
+
+        if(ch == '\n') {
+            //удалить пробелы в начале и конце строки
+            RemoveIllegalSpaces(current_string);
+
+            //вывести если не пустое
+            if(!current_string.empty())
+                ret += prefix + current_string;
+
+            current_string = "";
+            separators.clear();
+        }
+
+        if((column_counter >= column_size)
+            && (utils::CharsInString(ch, separators_symbols) || isLastSymbol)
+            && column_size != 0
+            ) {
+            column_counter = 0;
+
+            //удалить пробелы в начале и конце строки
+            RemoveIllegalSpaces(current_string);
+
+            //вывести если не пустое
+            if(!current_string.empty()) {
+                ret += prefix;
+
+                //если превышен максимальный размер строки
+                if(current_string.size() > column_size) {
+                    std::string left = current_string.substr(0, separators[separators.size() - ((!isLastSymbol) ? 2 : 1)] + 1);
+                    RemoveIllegalSpaces(left);
+                    current_string = current_string.substr(separators[separators.size() - ((!isLastSymbol) ? 2 : 1)] + 1);
+                    if(!utils::CharsInString(current_string.back(), separators_symbols))
+                        current_string += ' ';
+                    ret += left + "\n";
+
+                    //снова найти индексы разделителей
+                    column_counter = current_string.size();
+                    separators.clear();
+                    for(size_t j = 0; j < current_string.size(); j++) {
+                        if(utils::CharsInString(current_string[j], separators_symbols))
+                            separators.push_back(j);
+                    }
+                } else {
+                    ret += current_string;
+                    current_string = "";
+                    if(!isLastSymbol)
+                        ret += "\n";
+                    separators.clear();
+                }
+            }
+        }
     }
+
+    if(!current_string.empty())
+        ret += prefix + current_string;
+
 
     return ret;
 }
