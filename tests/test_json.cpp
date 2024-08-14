@@ -252,6 +252,34 @@ TEST(JSON, read_file) {
     EXPECT_EQ(json.size(), Json(json_string_example).size());
 }
 
+TEST(JSON, read_file_comment) {
+    Json json(json_string_example);
+    json.setCommentColumnSize(20);
+
+    std::string preview_comment = "1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...";
+    json.addPreviewComment(preview_comment, CommentType::eBeforeValueMultiLine);
+    std::string comment = "some words...";
+    json.addComment("bool",     comment,                CommentType::eBeforeValueMultiLine);
+//    json.addComment("string",   "some many words1...",   CommentType::eBeforeValue);
+//    json.addComment("array",    "some many words2...",   CommentType::eAfterValueOneLine);
+//    json["json"].getJson().addComment(0, "json element comment", CommentType::eBeforeValueMultiLine);
+//    json["array"].getArray().addComment(0, "array element comment_", CommentType::eBeforeValueMultiLine);
+    std::string path = "../tests/test_writer_with_comments.json";
+
+    std::ofstream file(path);
+    if (!file.is_open())
+        FAIL();
+    file << json.to_string(0, PrintType::eWithComment, json.getCommentColumnSize()) << std::endl;
+    file.flush();
+    file.close();
+    //========================================================================
+    Json json2;
+    json2.readFile(path/*, ConfigType::eJson*/); //по умолчанию считывается JSON формат
+
+    EXPECT_EQ(preview_comment, json2.getPreviewComment().value);
+    EXPECT_EQ(comment, json2.getComment("bool").value);
+}
+
 TEST(JSON, read_file_error) {
     //файла не существует
     Json json;

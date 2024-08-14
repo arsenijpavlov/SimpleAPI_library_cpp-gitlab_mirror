@@ -361,21 +361,21 @@ std::string JArray::to_string(int16_t tabulation_level, const PrintType print_ty
     bool withoutSpaces = tabulation_level < 0 && print_type == PrintType::eWithoutComment;
 
     if(print_type == PrintType::eWithComment
-        && m_preview_comment_type != CommentType::eAfterValueOneLine
-        && !m_preview_comment.empty()
+        && m_preview_comment.type != CommentType::eAfterValueOneLine
+        && !m_preview_comment.value.empty()
         ) {
         ret += "\n";
-        switch(m_preview_comment_type) {
+        switch(m_preview_comment.type) {
         case CommentType::eBeforeValueMultiLine: {
             ret += utils::RepeatSymToStr('\t', tabulation_level)
                    + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
-            ret += ToComment(m_preview_comment, tabulation_level, m_comment_column_size) + "\n";
+            ret += ToComment(m_preview_comment.value, tabulation_level, m_comment_column_size) + "\n";
             ret += utils::RepeatSymToStr('\t', tabulation_level)
                    + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
             break;
         }
         case CommentType::eBeforeValue: {
-            ret += ToComment(m_preview_comment, tabulation_level) + "\n";
+            ret += ToComment(m_preview_comment.value, tabulation_level) + "\n";
             break;
         }
         default: break;
@@ -488,10 +488,10 @@ std::string JArray::to_string(int16_t tabulation_level, const PrintType print_ty
     ret += "]"; //end of array
 
     if(print_type == PrintType::eWithComment
-        && m_preview_comment_type == CommentType::eAfterValueOneLine
-        && !m_preview_comment.empty()
+        && m_preview_comment.type == CommentType::eAfterValueOneLine
+        && !m_preview_comment.value.empty()
         ) {
-        ret += " " + ToComment(m_preview_comment);
+        ret += " " + ToComment(m_preview_comment.value);
     }
 
     return ret;
@@ -560,14 +560,16 @@ JArray &JArray::erase(const size_t index) {
     return *this;
 }
 
-void JArray::addPreviewComment(const std::string &comment, const CommentType type) {
-    m_preview_comment = comment;
-    m_preview_comment_type = type;
+Comment &JArray::getComment(const size_t index) {
+    __CHECK_INDEX_BOUND2__(m_values, index);
+
+    auto it = m_comments.find(index);
+    if(it == m_comments.end())
+        throw std::invalid_argument("comment for index '" + std::to_string(index) + "' not found");
+    return it->second;
 }
 
-void JArray::addComment(const size_t index, const std::string &comment, const CommentType type) {
-    m_comments.insert(std::make_pair(index, Comment{type, comment}));
-}
+
 // ====================================================================================== JArray
 // *
 // *
@@ -854,21 +856,21 @@ std::string Json::to_string(int16_t tabulation_level, const PrintType print_type
     bool withoutSpaces = tabulation_level < 0 && print_type == PrintType::eWithoutComment;
 
     if(print_type == PrintType::eWithComment
-        && m_preview_comment_type != CommentType::eAfterValueOneLine
-        && !m_preview_comment.empty()
+        && m_preview_comment.type != CommentType::eAfterValueOneLine
+        && !m_preview_comment.value.empty()
         ) {
         ret += "\n";
-        switch(m_preview_comment_type) {
+        switch(m_preview_comment.type) {
         case CommentType::eBeforeValueMultiLine: {
             ret += utils::RepeatSymToStr('\t', tabulation_level)
                    + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
-            ret += ToComment(m_preview_comment, tabulation_level, m_comment_column_size) + "\n";
+            ret += ToComment(m_preview_comment.value, tabulation_level, m_comment_column_size) + "\n";
             ret += utils::RepeatSymToStr('\t', tabulation_level)
                    + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
             break;
         }
         case CommentType::eBeforeValue: {
-            ret += ToComment(m_preview_comment, tabulation_level) + "\n";
+            ret += ToComment(m_preview_comment.value, tabulation_level) + "\n";
             break;
         }
         default: break;
@@ -995,10 +997,10 @@ std::string Json::to_string(int16_t tabulation_level, const PrintType print_type
     ret += "}"; //end of json
 
     if(print_type == PrintType::eWithComment
-        && m_preview_comment_type == CommentType::eAfterValueOneLine
-        && !m_preview_comment.empty()
+        && m_preview_comment.type == CommentType::eAfterValueOneLine
+        && !m_preview_comment.value.empty()
         ) {
-        ret += " " + ToComment(m_preview_comment);
+        ret += " " + ToComment(m_preview_comment.value);
     }
 
     return ret;
@@ -1125,17 +1127,20 @@ Json &Json::erase(const std::vector<std::string> &keys) {
     return *this;
 }
 
-void Json::addPreviewComment(const std::string &comment, const CommentType type) {
-    m_preview_comment = comment;
-    m_preview_comment_type = type;
+Comment &Json::getComment(const std::string &key) {
+    auto it = m_comments.find(key);
+    if(it == m_comments.end())
+        throw std::invalid_argument("key '" + key + "' not found");
+    return it->second;
 }
 
-void Json::addComment(const std::string &key, const std::string &comment, const CommentType type) {
-    m_comments.insert(std::make_pair(key, Comment{type, comment}));
-}
+Comment &Json::getComment(const size_t index) {
+    __CHECK_INDEX_BOUND2__(m_values, index);
 
-void Json::addComment(const size_t index, const std::string &comment, const CommentType type) {
-    m_comments.insert(std::make_pair(m_values[index].first, Comment{type, comment}));
+    auto it = m_comments.find(m_values[index].first);
+    if(it == m_comments.end())
+        throw std::invalid_argument("key '" + m_values[index].first + "' not found");
+    return it->second;
 }
 // ======================================================================================== Json
 // *

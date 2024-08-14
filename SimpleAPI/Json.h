@@ -22,6 +22,9 @@
 #define __CHECK_INDEX_BOUND__(object, index) \
                                     if(index + 1 > object->size()) \
                                         throw std::out_of_range("going beyond the object");
+#define __CHECK_INDEX_BOUND2__(object, index) \
+                                    if(index + 1 > object.size()) \
+                                        throw std::out_of_range("going beyond the object");
 #define __KEY_NOT_FOUND_EXCEPTION__(key) \
                                     throw std::invalid_argument("key not found: " + key);
 #define __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__ \
@@ -47,6 +50,9 @@ enum class CommentType {
 struct Comment {
     CommentType type;
     std::string value;
+
+    Comment() : type(CommentType::eBeforeValue) {}
+    Comment(const std::string& comment, const CommentType type = CommentType::eBeforeValue) : type(type), value(comment) {}
 };
 // ===================================================================================== Comment
 // *
@@ -169,8 +175,7 @@ class JArray {
     char        m_comment_sym; //многострочные комментарии всегда имеют этот символ в начале строки
     uint8_t     m_comment_column_size;
 
-    std::string m_preview_comment;
-    CommentType m_preview_comment_type;
+    Comment     m_preview_comment;
 
 public:
                 JArray()                            {}
@@ -294,9 +299,17 @@ public:
     void        setCommentColumnSize(const uint8_t new_comment_column_size)
                                                     { m_comment_column_size = new_comment_column_size; }
     uint8_t     getCommentColumnSize()              { return m_comment_column_size; }
-    void        addPreviewComment(const std::string& comment, const CommentType type = CommentType::eBeforeValue);
-    void        addComment(const size_t index, const std::string& comment, const CommentType type = CommentType::eBeforeValue);
-    void        clearPreviewComment()               { m_preview_comment = ""; }
+    void        addPreviewComment(const std::string& comment, const CommentType type = CommentType::eBeforeValue)
+                                                    { m_preview_comment = Comment(comment, type); }
+    void        addPreviewComment(const Comment& comment)
+                                                    { m_preview_comment = comment; }
+    Comment&    getPreviewComment()                 { return m_preview_comment; }
+    void        addComment(const size_t index, const std::string& comment, const CommentType type = CommentType::eBeforeValue)
+                                                    { m_comments.insert(std::make_pair(index, Comment(comment, type))); }
+    void        addComment(const size_t index, const Comment& comment)
+                                                    { m_comments.insert(std::make_pair(index, comment)); }
+    Comment&    getComment(const size_t index);
+    void        clearPreviewComment()               { m_preview_comment = {}; }
     void        clearComment(const size_t index)    { m_comments.erase(index); }
 };
 // ====================================================================================== JArray
@@ -314,8 +327,7 @@ class Json {
     char        m_comment_sym; //многострочные комментарии всегда имеют этот символ в начале строки
     uint8_t     m_comment_column_size;
 
-    std::string m_preview_comment;
-    CommentType m_preview_comment_type;
+    Comment     m_preview_comment;
 public:
                 Json()                                          {}
                 Json(const Json& json);
@@ -513,10 +525,21 @@ public:
     void        setCommentColumnSize(const uint8_t new_comment_column_size)
                                                                 { m_comment_column_size = new_comment_column_size; }
     uint8_t     getCommentColumnSize()                          { return m_comment_column_size; }
-    void        addPreviewComment(const std::string& comment, const CommentType type = CommentType::eBeforeValue);
-    void        addComment(const std::string& key, const std::string& comment, const CommentType type = CommentType::eBeforeValue);
-    void        addComment(const size_t index, const std::string& comment, const CommentType type = CommentType::eBeforeValue);
-    void        clearPreviewComment()                           { m_preview_comment = ""; }
+    void        addPreviewComment(const std::string &comment, const CommentType type = CommentType::eBeforeValue)
+                                                                { m_preview_comment = Comment{comment, type}; }
+    void        addPreviewComment(const Comment& comment)       { m_preview_comment = comment; }
+    Comment&    getPreviewComment()                             { return m_preview_comment; }
+    void        addComment(const std::string& key, const std::string& comment, const CommentType type = CommentType::eBeforeValue)
+                                                                { m_comments.insert(std::make_pair(key, Comment(comment, type))); }
+    void        addComment(const std::string& key, const Comment& comment)
+                                                                { m_comments.insert(std::make_pair(key, comment)); }
+    Comment&    getComment(const std::string& key);
+    void        addComment(const size_t index, const std::string& comment, const CommentType type = CommentType::eBeforeValue)
+                                                                { m_comments.insert(std::make_pair(m_values[index].first, Comment(comment, type))); }
+    void        addComment(const size_t index, const Comment& comment)
+                                                                { m_comments.insert(std::make_pair(m_values[index].first, comment)); }
+    Comment&    getComment(const size_t index);
+    void        clearPreviewComment()                           { m_preview_comment = {}; }
     void        clearComment(const std::string& key)            { m_comments.erase(key); }
 };
 // ======================================================================================== Json
