@@ -7,26 +7,25 @@
 
 namespace utils {
 
-bool isNumber(const std::string& str, bool use_point = true);
-bool isNumber(const char ch, bool use_point = true);
-std::string Tab(uint8_t tabs_counter);
-void RemoveComments(std::string& str, bool& startComment, char& quote,
+bool        isNumber(const std::string& str, bool use_point = true);
+bool        isNumber(const char ch, bool use_point = true);
+void        RemoveComments(std::string& str, bool& startComment, char& quote,
                     char& start_comment_sym, char& stop_comment_sym);
-size_t CountSymInStr(const std::string& str, const char ch);
-bool CharsInString(const char ch, std::string symbols);
+size_t      CountSymInStr(const std::string& str, const char ch);
+bool        CharsInString(const char ch, std::string symbols);
 std::string toString(double d); //исключить лишние знаки при выводе чисел
-bool isBool(std::string& str);
-bool toBool(std::string& str);
-bool OnlySpaces(const std::string& str);
+bool        isBool(std::string& str);
+bool        toBool(std::string& str);
+bool        OnlySpaces(const std::string& str);
 
 std::string to_hex_string(const std::vector<uint8_t>& data);
 std::vector<uint8_t> from_hex_string(std::string str);
 
 std::string RepeatSymToStr(const char ch, const uint16_t size);
 
-bool checkCrc8(std::vector<uint8_t>& data);
-bool checkCrc16(std::vector<uint8_t>& data);
-bool checkCrc32(std::vector<uint8_t>& data);
+bool        checkCrc8(std::vector<uint8_t>& data);
+bool        checkCrc16(std::vector<uint8_t>& data);
+bool        checkCrc32(std::vector<uint8_t>& data);
 
 }
 

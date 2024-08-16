@@ -48,11 +48,12 @@ enum class CommentType {
 };
 
 struct Comment {
-    CommentType type;
-    std::string value;
+    std::string before;
+    std::string after;
 
-    Comment() : type(CommentType::eBeforeValue) {}
-    Comment(const std::string& comment, const CommentType type = CommentType::eBeforeValue) : type(type), value(comment) {}
+    Comment(){}
+    Comment(const std::string& comment_before, const std::string& comment_after) :
+        before(comment_before), after(comment_after) {}
 };
 // ===================================================================================== Comment
 // *
@@ -185,6 +186,7 @@ public:
                 ~JArray()                           {}
 
     bool        parseArray(const std::string& str);
+    void        parseArrayWithComment(const std::string& string_of_array, const PrintType print_type = PrintType::eWithoutComment);
 
                 __ONLY_ALLOWED_TYPES__(T)
     JArray&     push_front(const T& value)          { m_values.insert(m_values.cbegin(), Element(value));
@@ -295,22 +297,54 @@ public:
                                                     { m_values.erase(begin, end);
                                                         return *this; }
 
-    //комментирование
+    //комментирование ------------------------------------------------------------------
     void        setCommentColumnSize(const uint8_t new_comment_column_size)
-                                                    { m_comment_column_size = new_comment_column_size; }
-    uint8_t     getCommentColumnSize()              { return m_comment_column_size; }
-    void        addPreviewComment(const std::string& comment, const CommentType type = CommentType::eBeforeValue)
-                                                    { m_preview_comment = Comment(comment, type); }
-    void        addPreviewComment(const Comment& comment)
-                                                    { m_preview_comment = comment; }
-    Comment&    getPreviewComment()                 { return m_preview_comment; }
-    void        addComment(const size_t index, const std::string& comment, const CommentType type = CommentType::eBeforeValue)
-                                                    { m_comments.insert(std::make_pair(index, Comment(comment, type))); }
+                                                                { m_comment_column_size = new_comment_column_size; }
+    uint8_t     getCommentColumnSize()                          { return m_comment_column_size; }
+    //-----
+    void        addPreviewComment(const std::string &comment_before = "", const std::string &comment_after = "")
+                                                                { m_preview_comment = Comment(comment_before, comment_after); }
+    void        addPreviewComment_before(const std::string &comment = "")
+                                                                { m_preview_comment.before = comment; }
+    void        addPreviewComment_aftrer(const std::string &comment = "")
+                                                                { m_preview_comment.after = comment; }
+    void        addPreviewComment(const Comment& comment)       { m_preview_comment = comment; }
+    //-----
+    Comment&    getPreviewComment()                             { return m_preview_comment; }
+    //-----
+    void        addComment(const size_t index,
+                    const std::string &comment_before = "", const std::string &comment_after = "")
+                                                                { Comment ct = getOrCreateComment(index);
+                                                                    ct = Comment(comment_before, comment_after); }
     void        addComment(const size_t index, const Comment& comment)
-                                                    { m_comments.insert(std::make_pair(index, comment)); }
-    Comment&    getComment(const size_t index);
-    void        clearPreviewComment()               { m_preview_comment = {}; }
-    void        clearComment(const size_t index)    { m_comments.erase(index); }
+                                                                { Comment ct = getOrCreateComment(index);
+                                                                    ct = comment; }
+    void        addComment_before(const size_t index, const std::string &comment = "")
+                                                                { Comment ct = getOrCreateComment(index);
+                                                                    ct.before = comment; }
+    void        addComment_after(const size_t index, const std::string &comment = "")
+                                                                { Comment ct = getOrCreateComment(index);
+                                                                    ct.after = comment; }
+    //-----
+    Comment&    getComment(const size_t index)
+                {
+                    __CHECK_INDEX_BOUND2__(m_values, index);
+                    auto it = m_comments.find(index);
+                    if(it == m_comments.end())
+                        throw std::invalid_argument("comment for index '" + std::to_string(index) + "' not found");
+                    return it->second;
+                }
+    Comment&    getOrCreateComment(const size_t index)
+                {
+                    __CHECK_INDEX_BOUND2__(m_values, index);
+                    auto it = m_comments.find(index);
+                    if(it == m_comments.end())
+                        m_comments.insert(std::make_pair(m_values[index].first, Comment()));
+                    return it->second;
+                }
+    //-----
+    void        clearPreviewComment()                           { m_preview_comment = {}; }
+    void        clearComment(const size_t index)                { m_comments.erase(m_values[index].first); }
 };
 // ====================================================================================== JArray
 // *
@@ -355,6 +389,7 @@ public:
                                                                 { return this->put(json, rewrite); }
 
     bool        parseJson(const std::string& str);
+    void        parseJsonWithComment(const std::string& string_of_json, const PrintType print_type = PrintType::eWithoutComment);
     bool        readFile(const std::string& path);
     bool        writeFile(const std::string& path, int16_t tabulation_level = 0);
 
@@ -521,31 +556,94 @@ public:
     Json&       erase(const std::string& key);
     Json&       erase(const std::vector<std::string>& keys);
 
-    //комментирование
+    //комментирование ------------------------------------------------------------------
     void        setCommentColumnSize(const uint8_t new_comment_column_size)
                                                                 { m_comment_column_size = new_comment_column_size; }
     uint8_t     getCommentColumnSize()                          { return m_comment_column_size; }
-    void        addPreviewComment(const std::string &comment, const CommentType type = CommentType::eBeforeValue)
-                                                                { m_preview_comment = Comment{comment, type}; }
+    //-----
+    void        addPreviewComment(const std::string &comment_before = "", const std::string &comment_after = "")
+                                                                { m_preview_comment = Comment(comment_before, comment_after); }
+    void        addPreviewComment_before(const std::string &comment = "")
+                                                                { m_preview_comment.before = comment; }
+    void        addPreviewComment_aftrer(const std::string &comment = "")
+                                                                { m_preview_comment.after = comment; }
     void        addPreviewComment(const Comment& comment)       { m_preview_comment = comment; }
+    //-----
     Comment&    getPreviewComment()                             { return m_preview_comment; }
-    void        addComment(const std::string& key, const std::string& comment, const CommentType type = CommentType::eBeforeValue)
-                                                                { m_comments.insert(std::make_pair(key, Comment(comment, type))); }
+    //-----
+    void        addComment(const std::string& key,
+                    const std::string &comment_before = "", const std::string &comment_after = "")
+                                                                { Comment ct = getOrCreateComment(key);
+                                                                    ct = Comment(comment_before, comment_after); }
     void        addComment(const std::string& key, const Comment& comment)
-                                                                { m_comments.insert(std::make_pair(key, comment)); }
-    Comment&    getComment(const std::string& key);
-    void        addComment(const size_t index, const std::string& comment, const CommentType type = CommentType::eBeforeValue)
-                                                                { m_comments.insert(std::make_pair(m_values[index].first, Comment(comment, type))); }
+                                                                { Comment ct = getOrCreateComment(key);
+                                                                    ct = comment; }
+    void        addComment_before(const std::string& key, const std::string &comment = "")
+                                                                { Comment ct = getOrCreateComment(key);
+                                                                    ct.before = comment; }
+    void        addComment_after(const std::string& key, const std::string &comment = "")
+                                                                { Comment ct = getOrCreateComment(key);
+                                                                    ct.after = comment; }
+    void        addComment(const size_t index,
+                    const std::string &comment_before = "", const std::string &comment_after = "")
+                                                                { Comment ct = getOrCreateComment(index);
+                                                                    ct = Comment(comment_before, comment_after); }
     void        addComment(const size_t index, const Comment& comment)
-                                                                { m_comments.insert(std::make_pair(m_values[index].first, comment)); }
-    Comment&    getComment(const size_t index);
+                                                                { Comment ct = getOrCreateComment(index);
+                                                                    ct = comment; }
+    void        addComment_before(const size_t index, const std::string &comment = "")
+                                                                { Comment ct = getOrCreateComment(index);
+                                                                    ct.before = comment; }
+    void        addComment_after(const size_t index, const std::string &comment = "")
+                                                                { Comment ct = getOrCreateComment(index);
+                                                                    ct.after = comment; }
+    //-----
+    Comment&    getComment(const std::string& key)
+                {
+                    auto it = m_comments.find(key);
+                    if(it == m_comments.end())
+                        throw std::invalid_argument("key '" + key + "' not found");
+                    return it->second;
+                }
+    Comment&    getComment(const size_t index)
+                {
+                    __CHECK_INDEX_BOUND2__(m_values, index);
+                    auto it = m_comments.find(m_values[index].first);
+                    if(it == m_comments.end())
+                        throw std::invalid_argument("key for index '" + std::to_string(index) + "' not found");
+                    return it->second;
+                }
+    Comment&    getOrCreateComment(const std::string& key)
+                {
+                    auto it = m_comments.find(key);
+                    if(it == m_comments.end())
+                        m_comments.insert(std::make_pair(key, Comment()));
+                    return it->second;
+                }
+    Comment&    getOrCreateComment(const size_t index)
+                {
+                    __CHECK_INDEX_BOUND2__(m_values, index);
+                    auto it = m_comments.find(m_values[index].first);
+                    if(it == m_comments.end())
+                        m_comments.insert(std::make_pair(m_values[index].first, Comment()));
+                    return it->second;
+                }
+    //-----
     void        clearPreviewComment()                           { m_preview_comment = {}; }
     void        clearComment(const std::string& key)            { m_comments.erase(key); }
+    void        clearComment(const size_t index)                { m_comments.erase(m_values[index].first); }
+    //----------------------------------------------------------------------------------
 };
 // ======================================================================================== Json
 // *
 // *
 // STATIC FUNCTIONS ============================================================================
+enum class CommentBool { //TODO: переименовать
+    eNotComment,
+    eOneLineComment,
+    eMultiLineComment
+};
+static CommentBool  CheckComment(char& first, const char second, size_t& iterator);
 static ValueType    CheckValue(std::string& value);
 static bool         CheckDouble(std::string& value);
 static bool         CheckBool(std::string& value);
@@ -554,6 +652,7 @@ static bool         CheckJson(std::string& value);
 static bool         CheckArray(std::string& value);
 static void         RemoveIllegalSpaces(std::string& string);
 static std::string  ToComment(const std::string& comment_string, const uint8_t tabulation_level = 0, const uint8_t column_size = 0);
+static std::string  FromComment(const std::string& comment_string, uint8_t& column_size); //TODO: создать
 // ============================================================================ STATIC FUNCTIONS
 // *
 // *

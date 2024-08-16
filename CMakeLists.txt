@@ -28,6 +28,7 @@ option(UNIT_TESTS               "Google tests enabled"          on)
 option(ENABLE_JSON_TEST_APP     "Json testing app enabled"      off)
 option(ENABLE_SOCKETS_TEST_APP  "Sockets testing app enabled"   off)
 option(ENABLE_COLORS_TEST_APP   "Color choiser app enabled"     off)
+option(ENABLE_SIMPLE_TEST_APP   ""                              on)
 
 #library
 add_subdirectory(SimpleAPI)
@@ -50,6 +51,12 @@ if(ENABLE_COLORS_TEST_APP)
     add_subdirectory(Test_COLORS)
 endif()
 unset(ENABLE_COLORS_TEST_APP CACHE)
+
+#simple test
+if(ENABLE_SIMPLE_TEST_APP)
+    add_subdirectory(tests/simple_test)
+endif()
+unset(ENABLE_SIMPLE_TEST_APP CACHE)
 
 #TESTS
 if(UNIT_TESTS)

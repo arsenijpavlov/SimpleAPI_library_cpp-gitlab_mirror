@@ -16,13 +16,6 @@ bool isNumber(const char ch, bool use_point) {
     return (std::isdigit(ch) || (use_point && (ch == '.')));
 }
 
-std::string Tab(uint8_t tabs_counter) {
-    std::string ret = "";
-    for(uint8_t i = 0; i < tabs_counter; i++)
-        ret += "\t";
-    return ret;
-}
-
 void RemoveComments(std::string& str, bool& startComment, char& quote,
                     char& start_comment_sym, char& stop_comment_sym) {
     std::string tempString;
@@ -40,7 +33,8 @@ void RemoveComments(std::string& str, bool& startComment, char& quote,
                             || (start_comment_sym == '<' && stop_comment_sym == '#')
                             || (start_comment_sym == '<' && stop_comment_sym == '-')
                             || (start_comment_sym == '#' && stop_comment_sym == '#')
-                            || (start_comment_sym == '!' && stop_comment_sym == '!')) {
+                            || (start_comment_sym == '!' && stop_comment_sym == '!')
+                            ) {
                             isFullComment = true;
                             i++;
                             if(start_comment_sym == '<') start_comment_sym = '>';
@@ -171,8 +165,7 @@ std::vector<uint8_t> from_hex_string(std::string str) {
 }
 
 
-std::string RepeatSymToStr(const char ch, const uint16_t size)
-{
+std::string RepeatSymToStr(const char ch, const uint16_t size) {
     std::string ret;
     for(uint16_t i = 0; i < size; i++)
         ret += ch;
