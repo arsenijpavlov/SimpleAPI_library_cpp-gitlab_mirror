@@ -181,13 +181,13 @@ JArray &Element::getArray() const {
     return reinterpret_cast<JArrayElement*>(second)->m_value;
 }
 
-Element &Element::getInnerValue(const std::string& key) const {
+Element &Element::getInnerValue(const std::string& key) const { //TODO: переделать на использование getValue()
     if(first != ValueType::eJson)
         throw std::invalid_argument("This element is not a 'Json' type: " + to_string(first));
     return reinterpret_cast<JsonElement*>(second)->m_value[key];
 }
 
-Element Element::getInnerValue(const size_t index) const {
+Element Element::getInnerValue(const size_t index) const { //TODO: переделать на использование getValue()
     switch(first) {
     case eJson:
         return reinterpret_cast<JsonElement*>(second)->m_value[index];
@@ -362,8 +362,8 @@ void JArray::parseArrayWithComment(const std::string &string_of_array, const Pri
     bool isValueCommentAfterSaved = true; //изначально TRUE, чтобы не сработало для первого прохода
     Element value_element;
 
-    uint16_t line_counter   = 0; //NOTE: ограничение на FFFF строк
-    uint16_t symbol_counter = 0; //NOTE: ограничение на FFFF символов в строке
+    uint16_t line_counter   = 0; //NOTE: (JArray) ограничение на FFFF строк
+    uint16_t symbol_counter = 0; //NOTE: (JArray) ограничение на FFFF символов в строке
 
     enum States {
         ARRAY_START,
@@ -1161,8 +1161,8 @@ void Json::parseJsonWithComment(const std::string &string_of_json, const PrintTy
     bool isValueCommentAfterSaved = true; //изначально TRUE, чтобы не сработало для первого прохода
     Element value_element;
 
-    uint16_t line_counter   = 0; //NOTE: ограничение на FFFF строк
-    uint16_t symbol_counter = 0; //NOTE: ограничение на FFFF символов в строке
+    uint16_t line_counter   = 0; //NOTE: (Json) ограничение на FFFF строк
+    uint16_t symbol_counter = 0; //NOTE: (Json) ограничение на FFFF символов в строке
 
     enum States {
         JSON_START,
@@ -1566,7 +1566,7 @@ bool Json::readFile(const std::string& path) { //TODO: read from INI/YAML
     return this->parseJson(json_str);
 }
 
-bool Json::writeFile(const std::string& path, int16_t tabulation_level) { //TODO: нужно расширить!
+bool Json::writeFile(const std::string& path, int16_t tabulation_level) { //TODO: write to INI/YAML
     std::ofstream file(path);
     if (!file.is_open())
         return false;

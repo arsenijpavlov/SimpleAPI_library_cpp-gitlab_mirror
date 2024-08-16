@@ -467,7 +467,8 @@ TEST(ARRAY, append_array) {
 
 TEST(ARRAY, parse) {
     std::string string_array = "[15, true, \"string\"]";
-    JArray array; //TODO: JArray(std::string)
+    JArray array; //JArray(std::string) нельзя, т.к. положит это в значения, а не распарсит
+    //TODO: JArray(std::string, SettingFormat::eJSON)
     array.parseArray(string_array);
 
     EXPECT_EQ(3, array.size());
