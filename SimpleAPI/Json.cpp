@@ -242,7 +242,7 @@ void JArray::parseArray(const std::string &string_of_array, const bool enable_co
             case CommentBool::eNotComment: break;
             case CommentBool::eOneLineComment: {
                 isOneLineComment = true;
-                if(!currentComment.empty())
+                if(!currentComment.empty() && enable_comment)
                     currentComment += "\n";
                 //счётчик строк и столбцов =============================================
                 if(current == '\n') {
@@ -256,7 +256,7 @@ void JArray::parseArray(const std::string &string_of_array, const bool enable_co
                 secondMLCSym = next;
 
                 isMultiLineComment = true;
-                if(!currentComment.empty())
+                if(!currentComment.empty() && enable_comment)
                     currentComment += "\n";
                 //счётчик строк и столбцов =============================================
                 if(current == '\n') {
@@ -316,7 +316,7 @@ void JArray::parseArray(const std::string &string_of_array, const bool enable_co
                 //=====================================================================
 
                 //работа с комментариями (первичный) ==================================
-                if(!currentComment.empty()) {
+                if(!currentComment.empty() && enable_comment) {
                     addPreviewComment(FromComment(currentComment, m_comment_column_size));
                     currentComment = "";
                 } //===================================================================
@@ -333,7 +333,7 @@ void JArray::parseArray(const std::string &string_of_array, const bool enable_co
                 //пропуск пробелов ====================================================
                 if(current == '\n' && !isValueCommentAfterSaved) {
                     //работа с комментариями (после значения #2) ==========================
-                    if(!currentComment.empty()) {
+                    if(!currentComment.empty() && enable_comment) {
                         addComment_after(m_values.size() - 1, FromComment(currentComment, m_comment_column_size));
                         currentComment = "";
                     } //===================================================================
@@ -476,7 +476,7 @@ void JArray::parseArray(const std::string &string_of_array, const bool enable_co
                     }
 
                     //работа с комментариями (перед значением) ============================
-                    if(!currentComment.empty()) {
+                    if(!currentComment.empty() && enable_comment) {
                         addComment_before(m_values.size() - 1, FromComment(currentComment, m_comment_column_size));
                         currentComment = "";
                     } //===================================================================
@@ -498,7 +498,7 @@ void JArray::parseArray(const std::string &string_of_array, const bool enable_co
 
                 if(current == '\n') {
                     //работа с комментариями (после значения #1) ==========================
-                    if(!currentComment.empty()) {
+                    if(!currentComment.empty() && enable_comment) {
                         addComment_after(m_values.size() - 1, FromComment(currentComment, m_comment_column_size));
                         currentComment = "";
                     } //===================================================================
@@ -819,7 +819,7 @@ void Json::parseJson(const std::string &string_of_json, const bool enable_commen
             case CommentBool::eNotComment: break;
             case CommentBool::eOneLineComment: {
                 isOneLineComment = true;
-                if(!currentComment.empty())
+                if(!currentComment.empty() && enable_comment)
                     currentComment += "\n";
                 //счётчик строк и столбцов =============================================
                 if(current == '\n') {
@@ -833,7 +833,7 @@ void Json::parseJson(const std::string &string_of_json, const bool enable_commen
                 secondMLCSym = next;
 
                 isMultiLineComment = true;
-                if(!currentComment.empty())
+                if(!currentComment.empty() && enable_comment)
                     currentComment += "\n";
                 //счётчик строк и столбцов =============================================
                 if(current == '\n') {
@@ -893,7 +893,7 @@ void Json::parseJson(const std::string &string_of_json, const bool enable_commen
                 //=====================================================================
 
                 //работа с комментариями (первичный) ==================================
-                if(!currentComment.empty()) {
+                if(!currentComment.empty() && enable_comment) {
                     addPreviewComment(FromComment(currentComment, m_comment_column_size));
                     currentComment = "";
                 } //===================================================================
@@ -910,7 +910,7 @@ void Json::parseJson(const std::string &string_of_json, const bool enable_commen
                 //пропуск пробелов ====================================================
                 if(current == '\n' && !isValueCommentAfterSaved) {
                     //работа с комментариями (после значения #2) ==========================
-                    if(!currentComment.empty()) {
+                    if(!currentComment.empty() && enable_comment) {
                         addComment_after(key_string, FromComment(currentComment, m_comment_column_size));
                         currentComment = "";
                     } //===================================================================
@@ -955,7 +955,7 @@ void Json::parseJson(const std::string &string_of_json, const bool enable_commen
                     isWordFinished = false;
 
                     //работа с комментариями (перед ключом) ===============================
-                    if(!currentComment.empty()) {
+                    if(!currentComment.empty() && enable_comment) {
                         addComment_before(key_string, FromComment(currentComment, m_comment_column_size));
                         currentComment = "";
                     } //===================================================================
@@ -977,7 +977,7 @@ void Json::parseJson(const std::string &string_of_json, const bool enable_commen
                 }
 
                 //работа с комментариями (после ключа (НЕ используется)) ==============
-                if(!currentComment.empty()) {
+                if(!currentComment.empty() && enable_comment) {
 //                    addComment_after(key_string, FromComment(currentComment, m_comment_column_size));
                     currentComment = "";
                 } //===================================================================
@@ -1118,7 +1118,7 @@ void Json::parseJson(const std::string &string_of_json, const bool enable_commen
                     }
 
                     //работа с комментариями (перед значением (НЕ используется)) ==========
-                    if(!currentComment.empty()) {
+                    if(!currentComment.empty() && enable_comment) {
 //                        addComment_before(key_string, FromComment(currentComment, m_comment_column_size));
                         currentComment = "";
                     } //===================================================================
@@ -1140,7 +1140,7 @@ void Json::parseJson(const std::string &string_of_json, const bool enable_commen
 
                 if(current == '\n') {
                     //работа с комментариями (после значения #1) ==========================
-                    if(!currentComment.empty()) {
+                    if(!currentComment.empty() && enable_comment) {
                         addComment_after(key_string, FromComment(currentComment, m_comment_column_size));
                         currentComment = "";
                     } //===================================================================
