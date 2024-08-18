@@ -328,7 +328,7 @@ public:
                     __CHECK_INDEX_BOUND2__(m_values, index);
                     auto it = m_comments.find(index);
                     if(it == m_comments.end())
-                        m_comments.insert(std::make_pair(m_values[index].first, Comment()));
+                        it = m_comments.insert(std::make_pair(m_values[index].first, Comment())).first;
                     return it->second;
                 }
     //-----
@@ -605,7 +605,7 @@ public:
                 {
                     auto it = m_comments.find(key);
                     if(it == m_comments.end())
-                        m_comments.insert(std::make_pair(key, Comment()));
+                        it = m_comments.insert(std::make_pair(key, Comment())).first;
                     return it->second;
                 }
     Comment&    getOrCreateComment(const size_t index)
@@ -613,7 +613,7 @@ public:
                     __CHECK_INDEX_BOUND2__(m_values, index);
                     auto it = m_comments.find(m_values[index].first);
                     if(it == m_comments.end())
-                        m_comments.insert(std::make_pair(m_values[index].first, Comment()));
+                        it = m_comments.insert(std::make_pair(m_values[index].first, Comment())).first;
                     return it->second;
                 }
     //-----

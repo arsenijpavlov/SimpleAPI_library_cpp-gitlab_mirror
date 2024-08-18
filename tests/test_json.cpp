@@ -210,29 +210,29 @@ TEST(JSON, write_file) {
 }
 
 TEST(JSON, write_file_comment) {
-//    Json json(json_string_example);
-//    json.setCommentColumnSize(20);
-//    json.addPreviewComment("1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...");
-//    json.addComment_before("bool", "some \nwords...");
-//    json.addComment_before("string", "some many words1...");
-//    json.addComment_after("array", "some many words2...");
+    Json json(json_string_example);
+    json.setCommentColumnSize(20);
+    json.addPreviewComment("1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...");
+    json.addComment_before("bool", "some \nwords...");
+    json.addComment_before("string", "some many words1...");
+    json.addComment_after("array", "some many words2...");
 
-////    json.clearPreviewComment();
-////    json.clearComment("bool");
+//    json.clearPreviewComment();
+//    json.clearComment("bool");
 
-//    json["json"].getJson().addComment_before(0, "json element\n comment");
-//    json["array"].getArray().addComment_before(0, "array element\n comment_");
+    json["json"].getJson().addComment_before(0, "json element\n comment");
+    json["array"].getArray().addComment_before(0, "array element\n comment_");
 
-//    std::string path = "../tests/test_writer_with_comments.json";
+    std::string path = "../tests/test_writer_with_comments.json";
 
-//    std::ofstream file(path);
-//    if (!file.is_open())
-//        FAIL();
+    std::ofstream file(path);
+    if (!file.is_open())
+        FAIL();
 
-//    file << json.to_string(0, true, json.getCommentColumnSize()) << std::endl;
+    file << json.to_string(0, true, json.getCommentColumnSize()) << std::endl;
 
-//    file.flush();
-//    file.close();
+    file.flush();
+    file.close();
 
     return SUCCEED();
 }
@@ -357,7 +357,7 @@ TEST(JSON, get_index_error) {
     FAIL();
 }
 
-//TEST(JSON, get_complex_name) {
+//FIXME: TEST(JSON, get_complex_name) {
 //    Json j("json_num", 15);
 //    JArray a;
 //    a.push_back(j);
