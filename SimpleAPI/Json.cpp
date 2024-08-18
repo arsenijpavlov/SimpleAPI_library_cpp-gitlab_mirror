@@ -182,22 +182,6 @@ JArray &Element::getArray() const {
         throw std::invalid_argument("This element is not a 'JArray' type: " + to_string(first));
     return reinterpret_cast<JArrayElement*>(second)->m_value;
 }
-
-Element &Element::getInnerValue(const std::string& key) const { //TODO: переделать на использование getValue()
-    if(first != ValueType::eJson)
-        throw std::invalid_argument("This element is not a 'Json' type: " + to_string(first));
-    return /*reinterpret_cast<JsonElement*>(second)->m_value*/getJson().getValue(key);
-}
-
-Element& Element::getInnerValue(const size_t index) const { //TODO: переделать на использование getValue()
-    if(first != ValueType::eArray && first != ValueType::eJson)
-        throw std::invalid_argument("This element is not a 'Json' ot 'JArray' type: " + to_string(first));
-
-    if(first == eJson)
-        return getJson().getValue(index);//reinterpret_cast<JsonElement*>(second)->m_value[index];
-    else
-        return getArray().getValue(index);//reinterpret_cast<JArrayElement*>(second)->m_value[index];
-}
 // ===================================================================================== Element
 // *
 // *
@@ -356,7 +340,7 @@ void JArray::parseArray(const std::string &string_of_array, const bool enable_co
                     isValueCommentAfterSaved = true;
                     break;
                 }
-                if(utils::CharsInString(current, __SPACES__) && !isQuotes)
+                if(utils::CharsInString(current, __SPACES__) && !isQuotes && value_format == ValueFormat::VALUE_NOPE)
                     break;
                 //=====================================================================
                 if(current == ']') {
@@ -437,6 +421,7 @@ void JArray::parseArray(const std::string &string_of_array, const bool enable_co
                 if(isWordFinished) {
                     isWordStarted = false; //страховка
                     isWordFinished = false;
+                    value_format = ValueFormat::VALUE_NOPE;
 
                     switch(CheckValue(value_string)) {
                     case eNumber:   {
@@ -530,8 +515,10 @@ void JArray::parseArray(const std::string &string_of_array, const bool enable_co
             }
         }
 
-        if(isCriticalError)
-            throw std::invalid_argument("JArray parse error at line " + std::to_string(line_counter) + ":" + std::to_string(symbol_counter));;
+        if(isCriticalError) {
+            clear();
+            throw std::invalid_argument("JArray parse error at line " + std::to_string(line_counter) + ":" + std::to_string(symbol_counter));
+        }
 
         //счётчик строк и столбцов =============================================
         if(current == '\n') {
@@ -703,10 +690,10 @@ Element &JArray::operator[](const std::vector<std::string> &complex_name) {
         bool isNumber = utils::isNumber(*it, false);
         switch(el.first) {
         case eJson:
-            el = el.getInnerValue(*it);
+            el = el.getJson()[*it];
             if(el.first == ValueType::eNull) {
                 if(isNumber)
-                    el = el.getInnerValue(stoi(*it));
+                    el = el.getJson()[stoi(*it)];
                 else
                     __JSON_KEY_NOT_FOUND_EXCEPTION__
             }
@@ -714,7 +701,7 @@ Element &JArray::operator[](const std::vector<std::string> &complex_name) {
         case eArray:
             //для массива возможно обращение только по числовому индексу!
             if(isNumber)
-                el = el.getInnerValue(stoi(*it));
+                el = el.getArray()[stoi(*it)];
             else
                 __ARRAY_INCORRECT_INDEX_EXCEPTION__
             break;
@@ -1170,8 +1157,10 @@ void Json::parseJson(const std::string &string_of_json, const bool enable_commen
             }
         }
 
-        if(isCriticalError)
-            throw std::invalid_argument("Json parse error at line " + std::to_string(line_counter) + ":" + std::to_string(symbol_counter));;
+        if(isCriticalError) {
+            clear();
+            throw std::invalid_argument("Json parse error at line " + std::to_string(line_counter) + ":" + std::to_string(symbol_counter));
+        }
 
         //счётчик строк и столбцов =============================================
         if(current == '\n') {
@@ -1422,10 +1411,12 @@ Element &Json::operator[](const std::vector<std::string> &complex_name) {
         bool isNumber = utils::isNumber(*it, false);
         switch(el.first) {
         case eJson:
-            el = el.getInnerValue(*it);
+//            el = el.getInnerValue(*it);
+            el = el.getJson()[*it];
             if(el.first == ValueType::eNull) {
                 if(isNumber)
-                    el = el.getInnerValue(stoi(*it));
+//                    el = el.getInnerValue(stoi(*it));
+                    el = el.getJson()[stoi(*it)];
                 else
                     __JSON_KEY_NOT_FOUND_EXCEPTION__
             }
@@ -1433,7 +1424,8 @@ Element &Json::operator[](const std::vector<std::string> &complex_name) {
         case eArray:
             //для массива возможно обращение только по числовому индексу!
             if(isNumber)
-                el = el.getInnerValue(stoi(*it));
+//                el = el.getInnerValue(stoi(*it));
+                el = el.getArray()[stoi(*it)];
             else
                 __ARRAY_INCORRECT_INDEX_EXCEPTION__
             break;
@@ -1501,34 +1493,36 @@ CommentBool CheckComment(char& first, const char second, size_t& iterator) {
 }
 
 ValueType CheckValue(std::string& value) {
-    //    std::cout << "CheckValue(): \"" << value << "\"" << std::endl;
+//    std::cout << "CheckValue(): \"" << value << "\"" << std::endl;
     bool isValue = false;
     std::string _value;
     ValueType vType = eNull;
     for(size_t i = 0; i < value.length(); i++) {
-//        if(!isValue)// && !utils::CharsInString(value[i], __SPACES__))
-//            isValue = true;
-
-//        if(isValue) {
-            if(vType == ValueType::eNull) {
-                RemoveIllegalSpaces(value);
-                if(utils::isNumber(value[i]))   vType = ValueType::eNumber;
-                else if(value[i] == '{')        vType = ValueType::eJson;
-                else if(value[i] == '[')        vType = ValueType::eArray;
-                else if(!utils::CharsInString(value[i], __SPACES__)
-                         && (value[0] == 't'
-                             || value[0] == 'f'
-                             || value[0] == 'T'
-                             || value[0] == 'F'))
-                    vType = ValueType::eBool;
-                else /*if(value[i] == '"')*/    vType = ValueType::eString;
-            }
-            _value += value[i];
-//        }
+        if(vType == ValueType::eNull) {
+            RemoveIllegalSpaces(value);
+            if(utils::isNumber(value[i]))   vType = ValueType::eNumber;
+            else if(value[i] == '{')        vType = ValueType::eJson;
+            else if(value[i] == '[')        vType = ValueType::eArray;
+            else if(!utils::CharsInString(value[i], __SPACES__)
+                     && (value[0] == 't'
+                         || value[0] == 'f'
+                         || value[0] == 'T'
+                         || value[0] == 'F'))
+                                            vType = ValueType::eBool;
+            else                            vType = ValueType::eString;
+        }
+        _value += value[i];
     }
 
     switch(vType) {
-    case ValueType::eNumber:    { isValue = CheckDouble(_value);    break; }
+    case ValueType::eNumber:    {
+        isValue = CheckDouble(_value);
+        if(!isValue) {
+            vType = ValueType::eString;
+            isValue = CheckString(_value);
+        }
+        break;
+    }
     case ValueType::eBool:      { isValue = CheckBool(_value);      break; }
     case ValueType::eString:    { isValue = CheckString(_value);    break; }
     case ValueType::eJson:      { isValue = CheckJson(_value);      break; }

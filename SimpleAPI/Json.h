@@ -36,11 +36,6 @@
                                     throw std::invalid_argument("Json key not found");
 
 // Comment =====================================================================================
-enum class PrintType {
-    eWithoutComment,
-    eWithComment
-};
-
 enum class CommentType {
     eBeforeValue,           // пользователь сам распределяет переносы строки
     eBeforeValueMultiLine,  // автоматическая расстановка переносов строки
@@ -156,11 +151,6 @@ struct Element {
     std::string&getString() const;
     Json&       getJson() const;
     JArray&     getArray() const;
-
-    //NOTE: кандидаты на удаление
-    Element&    getInnerValue(const std::string& key) const;
-    //FIXME: должно возвращать значение по ссылке
-    Element&    getInnerValue(const size_t index) const;
 };
 // ===================================================================================== Element
 // *
@@ -212,7 +202,7 @@ public:
                                                         return *this; }
     JArray&     popBack()                           { m_values.pop_back();
                                                         return *this; }
-    JArray&     clear()                             { m_values.clear();
+    JArray&     clear()                             { m_values.clear(); m_comments.clear();
                                                         return *this; }
 
     std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
@@ -239,10 +229,10 @@ public:
                         bool isNumber = utils::isNumber(*it, false);
                         switch(el.first) {
                         case eJson:
-                            el = el.getInnerValue(*it);
+                            el = el.getJson()[*it];
                             if(el.first == ValueType::eNull) {
                                 if(isNumber)
-                                    el = el.getInnerValue(stoi(*it));
+                                    el = el.getJson()[stoi(*it)];
                                 else
                                     __JSON_KEY_NOT_FOUND_EXCEPTION__
                             }
@@ -250,7 +240,7 @@ public:
                         case eArray:
                             //для массива возможно обращение только по числовому индексу!
                             if(isNumber)
-                                el = el.getInnerValue(stoi(*it));
+                                el = el.getArray()[stoi(*it)];
                             else
                                 __ARRAY_INCORRECT_INDEX_EXCEPTION__
                             break;
@@ -406,7 +396,7 @@ public:
                     return *this;
                 }
     Json&       updateValue(const std::string& key, const Element& new_value);
-    Json&       clear()                                         { m_values.clear();
+    Json&       clear()                                         { m_values.clear(); m_comments.clear();
                                                                     return *this; }
 
     JVector::iterator       begin()                             { return m_values.begin(); }
@@ -432,10 +422,10 @@ public:
                         bool isNumber = utils::isNumber(*it, false);
                         switch(el.first) {
                         case eJson:
-                            el = el.getInnerValue(*it);
+                            el = el.getJson()[*it];
                             if(el.first == ValueType::eNull) {
                                 if(isNumber)
-                                    el = el.getInnerValue(stoi(*it));
+                                    el = el.getJson()[stoi(*it)];
                                 else
                                     __JSON_KEY_NOT_FOUND_EXCEPTION__
                             }
@@ -443,7 +433,7 @@ public:
                         case eArray:
                             //для массива возможно обращение только по числовому индексу!
                             if(isNumber)
-                                el = el.getInnerValue(stoi(*it));
+                                el = el.getArray()[stoi(*it)];
                             else
                                 __ARRAY_INCORRECT_INDEX_EXCEPTION__
                             break;
