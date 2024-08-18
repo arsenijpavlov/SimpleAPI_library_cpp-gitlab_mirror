@@ -34,7 +34,7 @@ std::string test_string_2 = "{string:inner_string_value}";
 
 int main() {
     Json json;
-    json.parseJsonWithComment(test_string_2);//, PrintType::eWithComment);
+    json.parseJson(test_string_2);//, true);
 
     std::string test_1 = "часть коммента №1\n"
                          "часть коммента №2\n"

@@ -75,7 +75,7 @@ static std::string to_string(const ValueType type);
 class BaseElement {
 public:
     virtual ~BaseElement(){}
-    virtual std::string to_string(int16_t tabulation_level, const PrintType print_type) = 0;
+    virtual std::string to_string(int16_t tabulation_level, const bool enable_comment) = 0;
 };
 
 class DoubleElement : BaseElement { //все числовые типы
@@ -87,7 +87,7 @@ public:
     ~DoubleElement()                                    {}
 
     std::string to_string(int16_t tabulation_level = 0,
-                          const PrintType print_type = PrintType::eWithoutComment)
+                          const bool enable_comment = false)
                                                         { return utils::toString(m_value); }
 };
 
@@ -100,7 +100,7 @@ public:
     ~BoolElement()                                      {}
 
     std::string to_string(int16_t tabulation_level = 0,
-                          const PrintType print_type = PrintType::eWithoutComment)
+                          const bool enable_comment = false)
                                                         { return m_value ? "true" : "false"; }
 };
 
@@ -113,7 +113,7 @@ public:
     ~StringElement()                                    {}
 
     std::string to_string(int16_t tabulation_level = 0,
-                          const PrintType print_type = PrintType::eWithoutComment)
+                          const bool enable_comment = false)
                                                         { return "\"" + m_value + "\""; }
 };
 
@@ -160,7 +160,7 @@ struct Element {
     //NOTE: кандидаты на удаление
     Element&    getInnerValue(const std::string& key) const;
     //FIXME: должно возвращать значение по ссылке
-    Element    getInnerValue(const size_t index) const;
+    Element&    getInnerValue(const size_t index) const;
 };
 // ===================================================================================== Element
 // *
@@ -185,8 +185,7 @@ public:
                 JArray(const Types... args)         { for(Element el : {Element(args)...}) push_back(el); }
                 ~JArray()                           {}
 
-    bool        parseArray(const std::string& str);
-    void        parseArrayWithComment(const std::string& string_of_array, const PrintType print_type = PrintType::eWithoutComment);
+    void        parseArray(const std::string& string_of_array, const bool enable_comment = false);
 
                 __ONLY_ALLOWED_TYPES__(T)
     JArray&     push_front(const T& value)          { m_values.insert(m_values.cbegin(), Element(value));
@@ -216,7 +215,7 @@ public:
     JArray&     clear()                             { m_values.clear();
                                                         return *this; }
 
-    std::string to_string(int16_t tabulation_level = 0, const PrintType print_type = PrintType::eWithoutComment,
+    std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
                           const uint8_t column_size = 0) const;
 
     size_t      size()                        const { return m_values.size(); }
@@ -366,7 +365,7 @@ public:
                 Json()                                          {}
                 Json(const Json& json);
                 Json(const JPair& pair)                         { put(pair.first, pair.second); }
-                Json(const std::string& json_string)            { this->parseJson(json_string); }
+                Json(const std::string& json_string)            { parseJson(json_string); }
                 __ONLY_ALLOWED_TYPES__(T)
                 Json(const std::string& key, const T& value)    { put(key, value); }
                 Json(const JVector& vec);
@@ -388,12 +387,11 @@ public:
     Json&       append(const Json& json, const bool rewrite = true)
                                                                 { return this->put(json, rewrite); }
 
-    bool        parseJson(const std::string& str);
-    void        parseJsonWithComment(const std::string& string_of_json, const PrintType print_type = PrintType::eWithoutComment);
+    void        parseJson(const std::string& string_of_json, const bool enable_comment = false);
     bool        readFile(const std::string& path);
     bool        writeFile(const std::string& path, int16_t tabulation_level = 0);
 
-    std::string to_string(int16_t tabulation_level = 0, const PrintType print_type = PrintType::eWithoutComment,
+    std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
                           const uint8_t column_size = 0) const;
     size_t      size()                                    const { return m_values.size(); }
     bool        isEmpty()                                       { return m_values.size() == 0; }
@@ -666,8 +664,8 @@ public:
     ~JsonElement()                                      {}
 
     std::string to_string(int16_t tabulation_level = 0,
-                          const PrintType print_type = PrintType::eWithoutComment)
-                                                        { return m_value.to_string(tabulation_level, print_type); }
+                          const bool enable_comment = false)
+                                                        { return m_value.to_string(tabulation_level, enable_comment); }
 };
 class JArrayElement : BaseElement {
 public:
@@ -678,8 +676,8 @@ public:
     ~JArrayElement()                                    {}
 
     std::string to_string(int16_t tabulation_level = 0,
-                          const PrintType print_type = PrintType::eWithoutComment)
-                                                        { return m_value.to_string(tabulation_level, print_type); }
+                          const bool enable_comment = false)
+                                                        { return m_value.to_string(tabulation_level, enable_comment); }
 };
 // ======================================================================= Element (продолжение)
 

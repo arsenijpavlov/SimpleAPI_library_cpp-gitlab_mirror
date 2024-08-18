@@ -186,18 +186,17 @@ JArray &Element::getArray() const {
 Element &Element::getInnerValue(const std::string& key) const { //TODO: переделать на использование getValue()
     if(first != ValueType::eJson)
         throw std::invalid_argument("This element is not a 'Json' type: " + to_string(first));
-    return reinterpret_cast<JsonElement*>(second)->m_value[key];
+    return /*reinterpret_cast<JsonElement*>(second)->m_value*/getJson().getValue(key);
 }
 
-Element Element::getInnerValue(const size_t index) const { //TODO: переделать на использование getValue()
-    switch(first) {
-    case eJson:
-        return reinterpret_cast<JsonElement*>(second)->m_value[index];
-    case eArray:
-        return reinterpret_cast<JArrayElement*>(second)->m_value[index];
-    default:
+Element& Element::getInnerValue(const size_t index) const { //TODO: переделать на использование getValue()
+    if(first != ValueType::eArray && first != ValueType::eJson)
         throw std::invalid_argument("This element is not a 'Json' ot 'JArray' type: " + to_string(first));
-    }
+
+    if(first == eJson)
+        return getJson().getValue(index);//reinterpret_cast<JsonElement*>(second)->m_value[index];
+    else
+        return getArray().getValue(index);//reinterpret_cast<JArrayElement*>(second)->m_value[index];
 }
 // ===================================================================================== Element
 // *
@@ -210,139 +209,7 @@ JArray::JArray(const JArray& other) {
     }
 }
 
-bool JArray::parseArray(const std::string& array_str) {
-    //    std::cout << "ParseArray(): " << array_str << std::endl;
-    bool return_code = true;
-
-    //ищем границы JArray конструкции
-    size_t startIndex = array_str.find('[');
-    size_t endIndex = array_str.find_last_of(']');
-    if((startIndex == -1) || (endIndex == -1)) {
-        std::cout << "Array not found in: " << array_str << std::endl;
-        return false;
-    }
-
-    uint32_t    strCounter = 1;
-    uint32_t    chCounter = 0;
-    ValueType   valueType = ValueType::eNull;
-
-    bool exit = false;
-    bool isValue = false;
-    std::string value = "";
-    NextReadState state = NextReadState::eArrayStart;
-    for(size_t i = 0; i < array_str.length() && !exit; i++) {
-        //счётчик строк и символов, для вывода ошибки
-        if ((array_str[i] == '\n') || (i == 0)) {
-            strCounter++;
-            chCounter = 0;
-        } else
-            chCounter++;
-
-        //чтение данных
-        switch(state) {
-        case eArrayStart: {
-            if(utils::CharsInString(array_str[i], __SPACES__)) continue;
-            else if(array_str[i] == '[')
-                ChangeNextState(state, NextReadState::eValue);
-            else
-                exit = true;
-            break;
-        }
-        case eArrayEnd: {
-            if(utils::CharsInString(array_str[i], __SPACES__)) continue;
-            else if(array_str[i] == ']')
-                ChangeNextState(state, NextReadState::eUnknown);
-            else
-                exit = true;
-            break;
-        }
-        case eValue: {
-            if(value.empty())   isValue = true;
-            if(isValue)         value += array_str[i];
-
-            //значение считано полностью?
-            if(i + 1 < array_str.length()) //следующий символ существует
-                if(utils::CharsInString(array_str[i + 1], ",\n")
-                    || (array_str[i + 1] == ']' && ((i + 1) == endIndex)))
-                    isValue = false;
-
-            if(!isValue) { //это конец значения?
-                valueType = CheckValue(value);
-                return_code = valueType != ValueType::eNull;
-
-                switch(valueType) {
-                case eNumber:   { this->push_back(std::stod(value));       break; }
-                case eBool:     {
-                    return_code = utils::isBool(value);
-                    if(return_code) this->push_back(utils::toBool(value));
-                    break;
-                }
-                case eString:   { this->push_back(value);                  break; }
-                case eJson:     {
-                    Json _innerJson;
-                    return_code = _innerJson.parseJson(value);
-                    if(return_code)
-                        this->push_back(_innerJson);
-                    else {
-                        std::cout << "parse error valueType:" << to_string(valueType) << std::endl;
-                        exit = true;
-                    }
-                    break;
-                }
-                case eArray:    {
-                    JArray _innerArray;
-                    return_code = _innerArray.parseArray(value);
-                    if(return_code)
-                        this->push_back(_innerArray);
-                    else {
-                        std::cout << "parse error valueType:" << to_string(valueType) << std::endl;
-                        exit = true;
-                    }
-                    break;
-                }
-                case eNull:     { //значение ещё не прочитано!
-                    return_code = false;
-                    isValue = true;
-                    continue;
-                }
-                default: break;
-                }
-
-                //                std::cout << "Array value: \"" << value << "\"" << std::endl;
-
-                //обнуление временных переменных, переход к следующему элементу
-                value = "";
-                ChangeNextState(state, NextReadState::eComma);
-            }
-            break;
-        }
-        case eComma: {
-            if(utils::CharsInString(array_str[i], __SPACES_WITHOUT_SEPARATORS__)) continue;
-
-            if(!utils::CharsInString(array_str[i], __SEPARATORS__)) {
-                if(array_str[i] != ']') {
-                    std::cout << "exp: ',' or '\\n'" << std::endl;
-                    return_code = false;
-                }
-                exit = true;
-            } else ChangeNextState(state, NextReadState::eValue);
-            break;
-        }
-        default:
-        case eUnknown: {
-            exit = true;
-            break;
-        }
-        }
-    }
-
-    if(!return_code)
-        std::cout << "Syntax error, parse error value \"" << value << "\"" << std::endl;
-
-    return return_code;
-}
-
-void JArray::parseArrayWithComment(const std::string &string_of_array, const PrintType print_type) {
+void JArray::parseArray(const std::string &string_of_array, const bool enable_comment) {
     bool isOneLineComment   = false;
     bool isMultiLineComment = false;
     char firstMLCSym, secondMLCSym;
@@ -540,21 +407,15 @@ void JArray::parseArrayWithComment(const std::string &string_of_array, const Pri
                 switch(value_format) {
                 case VALUE_JSON: {
                     value_string += current;
-                    if(innerJsonCounter == 0) {
+                    if(innerJsonCounter == 0)
                         isWordFinished = true;
-//                        value_element = Element(Json(value_string));
-                    }
 
                     break;
                 }
                 case VALUE_ARRAY: {
                     value_string += current;
-                    if(innerArrayCounter == 0) {
+                    if(innerArrayCounter == 0)
                         isWordFinished = true;
-//                        JArray array;
-//                        array.parseArray(value_string);
-//                        value_element = Element(array);
-                    }
 
                     break;
                 }
@@ -604,7 +465,7 @@ void JArray::parseArrayWithComment(const std::string &string_of_array, const Pri
                     case eJson:     {
                         Json _innerJson;
                         try {
-                            _innerJson.parseJsonWithComment(value_string, print_type);
+                            _innerJson.parseJson(value_string, enable_comment);
                             push_back(_innerJson);
                         } catch (std::invalid_argument& e) {
                             isCriticalError = true;
@@ -615,7 +476,7 @@ void JArray::parseArrayWithComment(const std::string &string_of_array, const Pri
                     case eArray:    {
                         JArray _innerArray;
                         try {
-                            _innerArray.parseArrayWithComment(value_string, print_type);
+                            _innerArray.parseArray(value_string, enable_comment);
                             push_back(_innerArray);
                         } catch (std::invalid_argument& e) {
                             isCriticalError = true;
@@ -695,13 +556,13 @@ JArray &JArray::append(const JArray &array) {
     return *this;
 }
 
-std::string JArray::to_string(int16_t tabulation_level, const PrintType print_type, const uint8_t column_size) const {
+std::string JArray::to_string(int16_t tabulation_level, const bool enable_comment, const uint8_t column_size) const {
     if(m_values.empty()) return "[]";
 
     std::string ret;
-    bool withoutSpaces = tabulation_level < 0 && print_type == PrintType::eWithoutComment;
+    bool withoutSpaces = tabulation_level < 0 && !enable_comment;
 
-    if(print_type == PrintType::eWithComment && !m_preview_comment.before.empty()) {
+    if(enable_comment && !m_preview_comment.before.empty()) {
         ret += "\n";
         if(m_preview_comment.before.find('\n') != -1) {
             ret += utils::RepeatSymToStr('\t', tabulation_level)
@@ -723,7 +584,7 @@ std::string JArray::to_string(int16_t tabulation_level, const PrintType print_ty
         //===========================================================================
         auto comment_it = m_comments.find(0);
         if(comment_it != m_comments.end()
-            && print_type == PrintType::eWithComment
+            && enable_comment
             && !comment_it->second.before.empty()
             ) {
             ret += "\n";
@@ -742,12 +603,12 @@ std::string JArray::to_string(int16_t tabulation_level, const PrintType print_ty
         else if(!withoutSpaces)
             ret += " ";
 
-        ret += m_values[0].second->to_string(tabulation_level, print_type);
+        ret += m_values[0].second->to_string(tabulation_level, enable_comment);
         if(!withoutSpaces) ret += " ";
 
         //===========================================================================
         if(comment_it != m_comments.end()
-            && print_type == PrintType::eWithComment
+            && enable_comment
             && !comment_it->second.after.empty()
             ) {
             ret += ToComment(comment_it->second.after)
@@ -762,7 +623,7 @@ std::string JArray::to_string(int16_t tabulation_level, const PrintType print_ty
             //===========================================================================
             auto comment_it = m_comments.find(i);
             if(comment_it != m_comments.end()
-                && print_type == PrintType::eWithComment
+                && enable_comment
                 && !comment_it->second.before.empty()
                 ) {
                 ret += "\n";
@@ -784,12 +645,12 @@ std::string JArray::to_string(int16_t tabulation_level, const PrintType print_ty
                 else if(m_values[i].first == ValueType::eArray)
                     m_values[i].getArray().setCommentColumnSize(column_size);
             }
-            ret += m_values[i].second->to_string(tabulation_level, print_type);
+            ret += m_values[i].second->to_string(tabulation_level, enable_comment);
             if(i < m_values.size() - 1) ret += ",";
 
             //===========================================================================
             if(comment_it != m_comments.end()
-                && print_type == PrintType::eWithComment
+                && enable_comment
                 && !comment_it->second.after.empty()
                 ) {
                 ret += " " + ToComment(comment_it->second.after);
@@ -804,7 +665,7 @@ std::string JArray::to_string(int16_t tabulation_level, const PrintType print_ty
 
     ret += "]"; //end of array
 
-    if(print_type == PrintType::eWithComment && !m_preview_comment.before.empty())
+    if(enable_comment && !m_preview_comment.before.empty())
         ret += " " + ToComment(m_preview_comment.after);
 
     return ret;
@@ -915,213 +776,7 @@ Json &Json::put(const Json &json, const bool rewrite) {
     return *this;
 }
 
-bool Json::parseJson(const std::string& json_str) {
-    //    std::cout << "ParseJson(): " << json_str << std::endl;
-    bool return_code = true;
-
-    //---
-    bool a = false;
-    char b = 0;
-    char c = 0;
-    char d = 0;
-    std::string _json_str = json_str;
-    utils::RemoveComments(_json_str, a, b, c, d);
-    //---
-
-    //ищем границы Json конструкции
-    size_t startIndex = _json_str.find('{');
-    size_t endIndex = _json_str.find_last_of('}');
-    if((startIndex == -1) || (endIndex == -1)) {
-        //        std::cout << "JSON not found in: " << json_str << std::endl;
-        return false;
-    }
-
-    uint32_t    strCounter = 1;
-    uint32_t    chCounter = 0;
-    ValueType   valueType = ValueType::eNull;
-
-    bool exit = false;
-    bool isKey = false;
-    bool isValue = false;
-    std::string key = "";
-    std::string value = "";
-    NextReadState state = NextReadState::eJsonStart;
-    for(size_t i = 0; i < _json_str.length() && !exit; i++) {
-        //счётчик строк и символов, для вывода ошибки
-        if ((_json_str[i] == '\n') || (i == 0)) {
-            strCounter++;
-            chCounter = 0;
-        } else
-            chCounter++;
-
-        //чтение данных
-        switch(state) {
-        case eJsonStart: {
-            if(utils::CharsInString(_json_str[i], __SPACES__)) continue;
-            else if(_json_str[i] == '{')
-                ChangeNextState(state, NextReadState::eKey);
-            else
-                exit = true;
-            break;
-        }
-        case eJsonEnd: {
-            if(utils::CharsInString(_json_str[i], __SPACES__)) continue;
-            else if(_json_str[i] == '}')
-                ChangeNextState(state, NextReadState::eUnknown);
-            else
-                exit = true;
-            break;
-        }
-        case eKey: {
-            if(key.empty()) isKey = true;
-            if(isKey)       key += _json_str[i];
-
-            //значение считано полностью?
-            if(i + 1 < _json_str.length()) { //следующий символ существует
-                if(utils::CharsInString(_json_str[i + 1], __POSIBLE_COLON__) || (_json_str[i + 1] == '}' && (i + 1 == endIndex)))
-                    isKey = false;
-            }
-
-            if(!isKey) {
-                if(!CheckString(key))
-                    isKey = true;
-                else
-                    ChangeNextState(state, NextReadState::eColon);
-            }
-            break;
-        }
-        case eValue: { //может быть числом, строкой, Json или JArray
-            if(value.empty())   isValue = true;
-            if(isValue)         value += _json_str[i];
-
-            //значение считано полностью?
-            if(i + 1 < _json_str.length()) { //следующий символ существует
-                if(utils::CharsInString(_json_str[i + 1], ",\n")
-                    || (_json_str[i + 1] == '}' && ((i + 1) == endIndex)))
-                    isValue = false;
-            }
-
-            if(!isValue) { //это конец значения?
-                valueType = CheckValue(value);
-
-                switch(valueType) {
-                case eNumber:   {
-                    return_code = true;
-                    double num;
-                    try {
-                        num = std::stod(value);
-                    } catch (...) {
-                        return_code = false;
-                    }
-
-                    if(return_code)
-                        this->put(key, std::stod(value));
-
-                    break;
-                }
-                case eBool:     {
-                    return_code = utils::isBool(value);
-                    if(return_code)
-                        this->put(key, utils::toBool(value));
-
-                    break;
-                }
-                case eString:   {
-                    return_code = true; //NOTE: выше уже проверили синтаксис
-
-                    if(return_code)
-                        this->put(key, value);
-                    break;
-                }
-                case eJson:     {
-                    Json _innerJson;
-                    if(!_innerJson.parseJson(value)) {
-                        std::cout << "parse error in key:" << key
-                                  << "valueType:" << to_string(valueType)
-                                  << std::endl;
-                        exit = true;
-                    } else {
-                        return_code = true;
-                        this->put(key, _innerJson);
-                    }
-                    break;
-                }
-                case eArray:    {
-                    JArray _innerArray;
-                    return_code = _innerArray.parseArray(value);
-                    if(!return_code) {
-                        std::cout << "parse error in key:" << key
-                                  << "valueType:" << to_string(valueType)
-                                  << std::endl;
-                        exit = true;
-                    } else {
-                        return_code = true;
-                        this->put(key, _innerArray);
-                    }
-                    break;
-                }
-                case eNull:     { //значение ещё не прочитано!
-                    return_code = false;
-                    isValue = true;
-                    continue;
-                }
-                default: break;
-                }
-
-                //                std::cout << "Json key: \"" << key << "\""
-                //                          << ", value: \"" << value << "\"" << std::endl;
-
-                //обнуление временных переменных, переход к следующему элементу
-                key = "";
-                value = "";
-                ChangeNextState(state, NextReadState::eComma);
-            }
-            break;
-        }
-        case eColon: {
-            if(utils::CharsInString(_json_str[i], __SPACES__))
-                continue;
-
-            if(!utils::CharsInString(_json_str[i], __POSIBLE_COLON__)) {
-                std::cout << "exp: ':' or '='" << std::endl;
-                return_code = false;
-                exit = true;
-            } else {
-                ChangeNextState(state, NextReadState::eValue);
-            }
-            break;
-        }
-        case eComma: {
-            if(utils::CharsInString(_json_str[i], __SPACES_WITHOUT_SEPARATORS__))
-                continue;
-
-            if(!utils::CharsInString(_json_str[i], __SEPARATORS__)) {
-                if(_json_str[i] != '}') {
-                    std::cout << "exp: ',' or '\\n'" << std::endl;
-                    return_code = false;
-                }
-                exit = true;
-            } else
-                ChangeNextState(state, NextReadState::eKey);
-            break;
-        }
-        default:
-        case eUnknown: {
-            exit = true;
-            break;
-        }
-        }
-    }
-
-    if(!return_code)
-        std::cout << "Syntax error, parse error value for key \"" << key << "\""
-                  << " readed VALUE:\"" << value << "\""
-                  << std::endl;
-
-    return return_code;
-}
-
-void Json::parseJsonWithComment(const std::string &string_of_json, const PrintType print_type) {
+void Json::parseJson(const std::string &string_of_json, const bool enable_comment) {
     bool isOneLineComment   = false;
     bool isMultiLineComment = false;
     char firstMLCSym, secondMLCSym;
@@ -1391,21 +1046,15 @@ void Json::parseJsonWithComment(const std::string &string_of_json, const PrintTy
                 switch(value_format) {
                 case VALUE_JSON: {
                     value_string += current;
-                    if(innerJsonCounter == 0) {
+                    if(innerJsonCounter == 0)
                         isWordFinished = true;
-//                        value_element = Element(Json(value_string));
-                    }
 
                     break;
                 }
                 case VALUE_ARRAY: {
                     value_string += current;
-                    if(innerArrayCounter == 0) {
+                    if(innerArrayCounter == 0)
                         isWordFinished = true;
-//                        JArray array;
-//                        array.parseArray(value_string);
-//                        value_element = Element(array);
-                    }
 
                     break;
                 }
@@ -1456,7 +1105,7 @@ void Json::parseJsonWithComment(const std::string &string_of_json, const PrintTy
                     case eJson:     {
                         Json _innerJson;
                         try {
-                            _innerJson.parseJsonWithComment(value_string, print_type);
+                            _innerJson.parseJson(value_string, enable_comment);
                             put(key_string, _innerJson);
                         } catch (std::invalid_argument& e) {
                             isCriticalError = true;
@@ -1467,7 +1116,7 @@ void Json::parseJsonWithComment(const std::string &string_of_json, const PrintTy
                     case eArray:    {
                         JArray _innerArray;
                         try {
-                            _innerArray.parseArrayWithComment(value_string, print_type);
+                            _innerArray.parseArray(value_string, enable_comment);
                             put(key_string, _innerArray);
                         } catch (std::invalid_argument& e) {
                             isCriticalError = true;
@@ -1532,6 +1181,7 @@ void Json::parseJsonWithComment(const std::string &string_of_json, const PrintTy
     }
 }
 
+//TODO: with comment flag
 bool Json::readFile(const std::string& path) { //TODO: read from INI/YAML
     std::ifstream file(path);
     if (!file.is_open()) {
@@ -1556,7 +1206,12 @@ bool Json::readFile(const std::string& path) { //TODO: read from INI/YAML
     file.close();
 
     //обработка JSON
-    return this->parseJson(json_str);
+    try{
+        parseJson(json_str);
+        return true;
+    } catch (...) {
+        return false;
+    }
 }
 
 bool Json::writeFile(const std::string& path, int16_t tabulation_level) { //TODO: write to INI/YAML
@@ -1571,12 +1226,12 @@ bool Json::writeFile(const std::string& path, int16_t tabulation_level) { //TODO
     return true;
 }
 
-std::string Json::to_string(int16_t tabulation_level, const PrintType print_type, const uint8_t column_size) const {
+std::string Json::to_string(int16_t tabulation_level, const bool enable_comment, const uint8_t column_size) const {
 
     std::string ret;
-    bool withoutSpaces = tabulation_level < 0 && print_type == PrintType::eWithoutComment;
+    bool withoutSpaces = tabulation_level < 0 && !enable_comment;
 
-    if(print_type == PrintType::eWithComment && !m_preview_comment.before.empty()) {
+    if(enable_comment && !m_preview_comment.before.empty()) {
         ret += "\n";
         if(m_preview_comment.before.find('\n') != -1) {
             ret += utils::RepeatSymToStr('\t', tabulation_level)
@@ -1597,7 +1252,7 @@ std::string Json::to_string(int16_t tabulation_level, const PrintType print_type
         //===========================================================================
         auto comment_it = m_comments.find(m_values[0].first);
         if(comment_it != m_comments.end()
-            && print_type == PrintType::eWithComment
+            && enable_comment
             && !comment_it->second.before.empty()
             ) {
             ret += "\n";
@@ -1626,12 +1281,12 @@ std::string Json::to_string(int16_t tabulation_level, const PrintType print_type
             else if(m_values[0].second.first == ValueType::eArray)
                 m_values[0].second.getArray().setCommentColumnSize(column_size);
         }
-        ret += m_values[0].second.second->to_string(tabulation_level, print_type);
+        ret += m_values[0].second.second->to_string(tabulation_level, enable_comment);
         if(!withoutSpaces) ret += " ";
 
         //===========================================================================
         if(comment_it != m_comments.end()
-            && print_type == PrintType::eWithComment
+            && enable_comment
             && !comment_it->second.after.empty()
             ) {
             ret += ToComment(comment_it->second.after)
@@ -1647,7 +1302,7 @@ std::string Json::to_string(int16_t tabulation_level, const PrintType print_type
             //===========================================================================
             auto comment_it = m_comments.find(el.first);
             if(comment_it != m_comments.end()
-                && print_type == PrintType::eWithComment
+                && enable_comment
                 && !comment_it->second.before.empty()
                 ) {
                 ret += "\n";
@@ -1672,12 +1327,12 @@ std::string Json::to_string(int16_t tabulation_level, const PrintType print_type
                 else if(el.second.first == ValueType::eArray)
                     el.second.getArray().setCommentColumnSize(column_size);
             }
-            ret += el.second.second->to_string(tabulation_level, print_type);
+            ret += el.second.second->to_string(tabulation_level, enable_comment);
             if(i < m_values.size() - 1) ret += ",";
 
             //===========================================================================
             if(comment_it != m_comments.end()
-                && print_type == PrintType::eWithComment
+                && enable_comment
                 && !comment_it->second.after.empty()
                 ) {
                 ret += " " + ToComment(comment_it->second.after);
@@ -1693,7 +1348,7 @@ std::string Json::to_string(int16_t tabulation_level, const PrintType print_type
 
     ret += "}"; //end of json
 
-    if(print_type == PrintType::eWithComment && !m_preview_comment.after.empty())
+    if(enable_comment && !m_preview_comment.after.empty())
         ret += " " + ToComment(m_preview_comment.after);
 
     return ret;

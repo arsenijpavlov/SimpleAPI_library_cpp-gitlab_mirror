@@ -157,7 +157,7 @@ TEST(JSON, append_json) {
 TEST(JSON, parse) {
     std::string string_json = json_string_example;
     Json json;
-    json.parseJsonWithComment(string_json);
+    json.parseJson(string_json);
 
     EXPECT_EQ(5, json.size());
     EXPECT_EQ(182, json["number"].getNum());
@@ -235,7 +235,7 @@ TEST(JSON, write_file_comment) {
     if (!file.is_open())
         FAIL();
 
-    file << json.to_string(0, PrintType::eWithComment, json.getCommentColumnSize()) << std::endl;
+    file << json.to_string(0, true, json.getCommentColumnSize()) << std::endl;
 
     file.flush();
     file.close();
@@ -276,7 +276,7 @@ TEST(JSON, read_file) {
 //    std::ofstream file(path);
 //    if (!file.is_open())
 //        FAIL();
-//    file << json.to_string(0, PrintType::eWithComment, json.getCommentColumnSize()) << std::endl;
+//    file << json.to_string(0, true, json.getCommentColumnSize()) << std::endl;
 //    file.flush();
 //    file.close();
 //    //========================================================================
@@ -488,7 +488,9 @@ TEST(ARRAY, parse_error) {
     //нет запятой между элементами
     std::string string_array = "[15 true, \"string\"]";
     JArray array;
-    array.parseArray(string_array);
+    try {
+        array.parseArray(string_array);
+    } catch (...) {}
     EXPECT_EQ(0, array.size());
 }
 
