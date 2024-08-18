@@ -19,67 +19,78 @@ bool isNumber(const char ch, bool use_point) {
 void RemoveComments(std::string& str, bool& startComment, char& quote,
                     char& start_comment_sym, char& stop_comment_sym) {
     std::string tempString;
-    bool isOneComment = false;
-    bool isFullComment = startComment;
+    bool isOneLineComment = false;
+    bool isMultiLineComment = startComment;
     for(size_t i = 0; i < str.length(); i++) {
-        if(i <= str.length() + 1) { //проверка на границы строки
-            if(quote == 0) { //если не часть строкового значения
-                if(!isFullComment) { //многострочные комментарии имеют приоритет
-                    if(!isOneComment) {
-                        start_comment_sym = str[i];
-                        stop_comment_sym = str[i + 1];
-                        if((start_comment_sym == '/' && stop_comment_sym == '*')
-                            || (start_comment_sym == '/' && stop_comment_sym == '#')
-                            || (start_comment_sym == '<' && stop_comment_sym == '#')
-                            || (start_comment_sym == '<' && stop_comment_sym == '-')
-                            || (start_comment_sym == '#' && stop_comment_sym == '#')
-                            || (start_comment_sym == '!' && stop_comment_sym == '!')
-                            ) {
-                            isFullComment = true;
-                            i++;
-                            if(start_comment_sym == '<') start_comment_sym = '>';
-                            continue;
-                        }
-                        if(str[i] == '/' && str[i+1] == '/') {
-                            isOneComment = true;
-                            i++;
-                            continue;
-                        }
-                        if(utils::CharsInString(str[i], "#!;")) {
-                            isOneComment = true;
-                            i++;
-                            continue;
-                        }
+        char previous = (i - 1 >= 0) ? str[i - 1] : 0; //TODO: добавить в логику проверки строк
+        char current = str[i];
+        char next = (str.length() > i + 1 ? str[i + 1] : 0);
+
+        if(quote == 0) { //если не часть строкового значения
+            //поиск комментариев ===========================================================
+            if(!isOneLineComment && !isMultiLineComment) {
+                //сперва искать многострочные комментарии!
+                for(uint8_t j = 0; j < utils::cmt::SIZE_comment_multi_line; j++) {
+                    if(current == utils::cmt::comment_multi_line[j][0] && next == utils::cmt::comment_multi_line[j][1]) {
+                        start_comment_sym = current;
+                        stop_comment_sym = next;
+                        //изменение завершающего символа
+                        if(current == '<') start_comment_sym = '>';
+                        i++; //проскакиваем следующий символ при парсинге
+                        isMultiLineComment = true;
+                        break;
                     }
-                } else if(str[i] == stop_comment_sym && str[i + 1] == start_comment_sym) {
-                    isFullComment = false;
+                }
+                if(isMultiLineComment) continue;
+                //поиск однострочных комментариев
+                for(uint8_t j = 0; j < utils::cmt::SIZE_comment_one_line; j++) {
+                    if(current == utils::cmt::comment_one_line[j][0]) {
+                        if((utils::cmt::comment_one_line[j][1] != 0) && (next == utils::cmt::comment_one_line[j][1]))
+                            i++;
+                        isOneLineComment = true;
+                        break;
+                    }
+                }
+                if(isOneLineComment) continue;
+            }
+            //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+            //обработка комментариев
+            if(isOneLineComment) {
+                //если следующий символ должен обрабатываться другим кодом
+                if((current == '\n') || ((str.length() > i + 1) && (str[i + 1] == '\n'))) {
+                    isOneLineComment = false;
                     i++;
-                    continue;
                 }
+                continue;
             }
+            if(isMultiLineComment) {
+                //нужен следующий символ, если нет - исключение
+                if(str.length() <= i + 1)
+                    throw std::invalid_argument("invalid length of input JSON string");
+
+                if((current == stop_comment_sym) && (next == start_comment_sym)) {
+                    isMultiLineComment = false;
+                    i++; //многострочные комментарии всегда обособляются двумя символами
+                }
+                continue;
+            }
+            //==============================================================================
         }
-        if(!isFullComment && str[i] == '\n' && quote == 0) //действует только до конца строки
-            isOneComment = false;
 
-        if(!isFullComment && !isOneComment) {
-            if(str[i] == '"') { //пропускать \"
-                bool isIgnore = false;
-                if( i - 1 >= 0) {
-                    if(str[i - 1] == '\\')
-                        isIgnore = true;
-                }
-
-                if(!isIgnore) {
-                    if(str[i] == quote) quote = 0;
-                    else                quote = str[i];
-                }
+        if(!isMultiLineComment && !isOneLineComment) {
+            //пропускать \"
+            if(current == '"' && previous != '\\'){
+                if(current == quote)
+                    quote = 0;
+                else
+                    quote = current;
             }
-            tempString += str[i];
+            tempString += current;
         }
     }
 
     str = tempString;
-    startComment = isFullComment;
+    startComment = isMultiLineComment;
 }
 
 size_t CountSymInStr(const std::string &str, const char ch) {

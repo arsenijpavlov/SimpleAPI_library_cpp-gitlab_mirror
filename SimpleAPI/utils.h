@@ -7,6 +7,29 @@
 
 namespace utils {
 
+namespace cmt {
+    //первый символ в случае многострочного комментария может быть другим
+    constexpr uint8_t SIZE_comment_multi_line = 6;
+    constexpr char comment_multi_line[SIZE_comment_multi_line][2] {
+        {'/', '*'},
+        {'/', '#'},
+        {'<', '#'},
+        {'<', '-'},
+        {'!', '.'},
+        {'?', '.'}
+        //нельзя использовать двойной символ из второй таблицы как границу многострочного комментария
+    };
+    constexpr uint8_t SIZE_comment_one_line = 6;
+    constexpr char comment_one_line[SIZE_comment_one_line][2] {
+        {'%', 0},
+        {'#', 0},
+        {'!', 0},
+        {';', 0},
+        {'?', 0},
+        {'/', '/'}
+    };
+}
+
 bool        isNumber(const std::string& str, bool use_point = true);
 bool        isNumber(const char ch, bool use_point = true);
 void        RemoveComments(std::string& str, bool& startComment, char& quote,

@@ -11,6 +11,8 @@
 #define __SEPARATORS__                  ",\n"
 #define __SPACES_WITHOUT_SEPARATORS__   " \t"
 #define __POSIBLE_COLON__               ":="
+#define __BORDER_SYMBOLS__              "@#*-=@"
+#define __COMMENT_SEPARATOR_SYMBOLS__   " \t.,;:->+?!/\\*$#@&()[]\n"
 
 
 // NextReadState ===============================================================================
@@ -504,8 +506,10 @@ void JArray::parseArrayWithComment(const std::string &string_of_array, const Pri
 
                 switch(current) {
                 case '{': {
-                    if(value_format == ValueFormat::VALUE_NOPE) value_format = ValueFormat::VALUE_JSON;
-                    if(!isQuotes) innerJsonCounter++;
+                    if(!isQuotes) {
+                        if(value_format == ValueFormat::VALUE_NOPE) value_format = ValueFormat::VALUE_JSON;
+                        innerJsonCounter++;
+                    }
                     break;
                 }
                 case '}': {
@@ -513,8 +517,10 @@ void JArray::parseArrayWithComment(const std::string &string_of_array, const Pri
                     break;
                 }
                 case '[': {
-                    if(value_format == ValueFormat::VALUE_NOPE) value_format = ValueFormat::VALUE_ARRAY;
-                    if(!isQuotes) innerArrayCounter++;
+                    if(!isQuotes) {
+                        if(value_format == ValueFormat::VALUE_NOPE) value_format = ValueFormat::VALUE_ARRAY;
+                        innerArrayCounter++;
+                    }
                     break;
                 }
                 case ']': {
@@ -536,7 +542,7 @@ void JArray::parseArrayWithComment(const std::string &string_of_array, const Pri
                     value_string += current;
                     if(innerJsonCounter == 0) {
                         isWordFinished = true;
-                        value_element = Element(Json(value_string));
+//                        value_element = Element(Json(value_string));
                     }
 
                     break;
@@ -545,9 +551,9 @@ void JArray::parseArrayWithComment(const std::string &string_of_array, const Pri
                     value_string += current;
                     if(innerArrayCounter == 0) {
                         isWordFinished = true;
-                        JArray array;
-                        array.parseArray(value_string);
-                        value_element = Element(array);
+//                        JArray array;
+//                        array.parseArray(value_string);
+//                        value_element = Element(array);
                     }
 
                     break;
@@ -563,7 +569,8 @@ void JArray::parseArrayWithComment(const std::string &string_of_array, const Pri
                 }
                 //если следующий символ должен обрабатываться другим кодом
                 if(!isQuotes && (innerJsonCounter == 0) && (innerArrayCounter == 0))
-                    if((string_of_array.length() > i + 1) && utils::CharsInString(string_of_array[i + 1], __SEPARATORS__))
+                    if((string_of_array.length() > i + 1)
+                        && utils::CharsInString(string_of_array[i + 1], __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : "")))
                         isWordFinished = true;
 
                 if(isWordFinished) {
@@ -638,7 +645,7 @@ void JArray::parseArrayWithComment(const std::string &string_of_array, const Pri
                 if(utils::CharsInString(current, __SPACES_WITHOUT_SEPARATORS__))
                     break;
                 //=====================================================================
-                if(!utils::CharsInString(current, __SEPARATORS__ "}")) {
+                if(!utils::CharsInString(current, __SEPARATORS__ "]")) {
                     isCriticalError = true;
                     break;
                 }
@@ -694,26 +701,16 @@ std::string JArray::to_string(int16_t tabulation_level, const PrintType print_ty
     std::string ret;
     bool withoutSpaces = tabulation_level < 0 && print_type == PrintType::eWithoutComment;
 
-    if(print_type == PrintType::eWithComment
-        && m_preview_comment.type != CommentType::eAfterValueOneLine
-        && !m_preview_comment.value.empty()
-        ) {
+    if(print_type == PrintType::eWithComment && !m_preview_comment.before.empty()) {
         ret += "\n";
-        switch(m_preview_comment.type) {
-        case CommentType::eBeforeValueMultiLine: {
+        if(m_preview_comment.before.find('\n') != -1) {
             ret += utils::RepeatSymToStr('\t', tabulation_level)
                    + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
-            ret += ToComment(m_preview_comment.value, tabulation_level, m_comment_column_size) + "\n";
+            ret += ToComment(m_preview_comment.before, tabulation_level, m_comment_column_size) + "\n";
             ret += utils::RepeatSymToStr('\t', tabulation_level)
                    + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
-            break;
-        }
-        case CommentType::eBeforeValue: {
-            ret += ToComment(m_preview_comment.value, tabulation_level) + "\n";
-            break;
-        }
-        default: break;
-        }
+        } else
+            ret += ToComment(m_preview_comment.before, tabulation_level) + "\n";
     }
 
     ret += "["; //start of array
@@ -727,25 +724,18 @@ std::string JArray::to_string(int16_t tabulation_level, const PrintType print_ty
         auto comment_it = m_comments.find(0);
         if(comment_it != m_comments.end()
             && print_type == PrintType::eWithComment
-            && comment_it->second.type != CommentType::eAfterValueOneLine
+            && !comment_it->second.before.empty()
             ) {
             ret += "\n";
-            switch(comment_it->second.type) {
-            case CommentType::eBeforeValueMultiLine: {
+            if(comment_it->second.before.find('\n') != -1) {
                 ret += utils::RepeatSymToStr('\t', tabulation_level + 1)
                        + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
-                ret += ToComment(comment_it->second.value, tabulation_level + 1, m_comment_column_size) + "\n";
+                ret += ToComment(comment_it->second.before, tabulation_level + 1, m_comment_column_size) + "\n";
                 ret += utils::RepeatSymToStr('\t', tabulation_level + 1)
                        + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
-                break;
-            }
-            case CommentType::eBeforeValue: {
+            } else
                 ret += utils::RepeatSymToStr('\t', tabulation_level + 1)
-                       + ToComment(comment_it->second.value, tabulation_level + 1) + "\n";
-                break;
-            }
-            default: break;
-            }
+                       + ToComment(comment_it->second.before, tabulation_level + 1) + "\n";
             ret += utils::RepeatSymToStr('\t', tabulation_level + 1);
         }
         //===========================================================================
@@ -758,9 +748,9 @@ std::string JArray::to_string(int16_t tabulation_level, const PrintType print_ty
         //===========================================================================
         if(comment_it != m_comments.end()
             && print_type == PrintType::eWithComment
-            && comment_it->second.type == CommentType::eAfterValueOneLine
+            && !comment_it->second.after.empty()
             ) {
-            ret += ToComment(comment_it->second.value)
+            ret += ToComment(comment_it->second.after)
                    + "\n" + utils::RepeatSymToStr('\t', tabulation_level);
         }
         //===========================================================================
@@ -773,24 +763,17 @@ std::string JArray::to_string(int16_t tabulation_level, const PrintType print_ty
             auto comment_it = m_comments.find(i);
             if(comment_it != m_comments.end()
                 && print_type == PrintType::eWithComment
-                && comment_it->second.type != CommentType::eAfterValueOneLine
+                && !comment_it->second.before.empty()
                 ) {
                 ret += "\n";
-                switch(comment_it->second.type) {
-                case CommentType::eBeforeValueMultiLine: {
+                if(comment_it->second.before.find('\n') != -1) {
                     ret += utils::RepeatSymToStr('\t', tabulation_level)
                            + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
-                    ret += ToComment(comment_it->second.value, tabulation_level, m_comment_column_size) + "\n";
+                    ret += ToComment(comment_it->second.before, tabulation_level, m_comment_column_size) + "\n";
                     ret += utils::RepeatSymToStr('\t', tabulation_level)
                            + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
-                    break;
-                }
-                case CommentType::eBeforeValue: {
-                    ret += ToComment(comment_it->second.value, tabulation_level, 0) + "\n";
-                    break;
-                }
-                default: break;
-                }
+                } else
+                    ret += ToComment(comment_it->second.before, tabulation_level, 0) + "\n";
             }
             //===========================================================================
 
@@ -807,9 +790,9 @@ std::string JArray::to_string(int16_t tabulation_level, const PrintType print_ty
             //===========================================================================
             if(comment_it != m_comments.end()
                 && print_type == PrintType::eWithComment
-                && comment_it->second.type == CommentType::eAfterValueOneLine
+                && !comment_it->second.after.empty()
                 ) {
-                ret += " " + ToComment(comment_it->second.value);
+                ret += " " + ToComment(comment_it->second.after);
             }
             //===========================================================================
 
@@ -821,12 +804,8 @@ std::string JArray::to_string(int16_t tabulation_level, const PrintType print_ty
 
     ret += "]"; //end of array
 
-    if(print_type == PrintType::eWithComment
-        && m_preview_comment.type == CommentType::eAfterValueOneLine
-        && !m_preview_comment.value.empty()
-        ) {
-        ret += " " + ToComment(m_preview_comment.value);
-    }
+    if(print_type == PrintType::eWithComment && !m_preview_comment.before.empty())
+        ret += " " + ToComment(m_preview_comment.after);
 
     return ret;
 }
@@ -940,9 +919,18 @@ bool Json::parseJson(const std::string& json_str) {
     //    std::cout << "ParseJson(): " << json_str << std::endl;
     bool return_code = true;
 
+    //---
+    bool a = false;
+    char b = 0;
+    char c = 0;
+    char d = 0;
+    std::string _json_str = json_str;
+    utils::RemoveComments(_json_str, a, b, c, d);
+    //---
+
     //ищем границы Json конструкции
-    size_t startIndex = json_str.find('{');
-    size_t endIndex = json_str.find_last_of('}');
+    size_t startIndex = _json_str.find('{');
+    size_t endIndex = _json_str.find_last_of('}');
     if((startIndex == -1) || (endIndex == -1)) {
         //        std::cout << "JSON not found in: " << json_str << std::endl;
         return false;
@@ -958,9 +946,9 @@ bool Json::parseJson(const std::string& json_str) {
     std::string key = "";
     std::string value = "";
     NextReadState state = NextReadState::eJsonStart;
-    for(size_t i = 0; i < json_str.length() && !exit; i++) {
+    for(size_t i = 0; i < _json_str.length() && !exit; i++) {
         //счётчик строк и символов, для вывода ошибки
-        if ((json_str[i] == '\n') || (i == 0)) {
+        if ((_json_str[i] == '\n') || (i == 0)) {
             strCounter++;
             chCounter = 0;
         } else
@@ -969,16 +957,16 @@ bool Json::parseJson(const std::string& json_str) {
         //чтение данных
         switch(state) {
         case eJsonStart: {
-            if(utils::CharsInString(json_str[i], __SPACES__)) continue;
-            else if(json_str[i] == '{')
+            if(utils::CharsInString(_json_str[i], __SPACES__)) continue;
+            else if(_json_str[i] == '{')
                 ChangeNextState(state, NextReadState::eKey);
             else
                 exit = true;
             break;
         }
         case eJsonEnd: {
-            if(utils::CharsInString(json_str[i], __SPACES__)) continue;
-            else if(json_str[i] == '}')
+            if(utils::CharsInString(_json_str[i], __SPACES__)) continue;
+            else if(_json_str[i] == '}')
                 ChangeNextState(state, NextReadState::eUnknown);
             else
                 exit = true;
@@ -986,11 +974,11 @@ bool Json::parseJson(const std::string& json_str) {
         }
         case eKey: {
             if(key.empty()) isKey = true;
-            if(isKey)       key += json_str[i];
+            if(isKey)       key += _json_str[i];
 
             //значение считано полностью?
-            if(i + 1 < json_str.length()) { //следующий символ существует
-                if(utils::CharsInString(json_str[i + 1], __POSIBLE_COLON__) || (json_str[i + 1] == '}' && (i + 1 == endIndex)))
+            if(i + 1 < _json_str.length()) { //следующий символ существует
+                if(utils::CharsInString(_json_str[i + 1], __POSIBLE_COLON__) || (_json_str[i + 1] == '}' && (i + 1 == endIndex)))
                     isKey = false;
             }
 
@@ -1004,12 +992,12 @@ bool Json::parseJson(const std::string& json_str) {
         }
         case eValue: { //может быть числом, строкой, Json или JArray
             if(value.empty())   isValue = true;
-            if(isValue)         value += json_str[i];
+            if(isValue)         value += _json_str[i];
 
             //значение считано полностью?
-            if(i + 1 < json_str.length()) { //следующий символ существует
-                if(utils::CharsInString(json_str[i + 1], ",\n")
-                    || (json_str[i + 1] == '}' && ((i + 1) == endIndex)))
+            if(i + 1 < _json_str.length()) { //следующий символ существует
+                if(utils::CharsInString(_json_str[i + 1], ",\n")
+                    || (_json_str[i + 1] == '}' && ((i + 1) == endIndex)))
                     isValue = false;
             }
 
@@ -1091,10 +1079,10 @@ bool Json::parseJson(const std::string& json_str) {
             break;
         }
         case eColon: {
-            if(utils::CharsInString(json_str[i], __SPACES__))
+            if(utils::CharsInString(_json_str[i], __SPACES__))
                 continue;
 
-            if(!utils::CharsInString(json_str[i], __POSIBLE_COLON__)) {
+            if(!utils::CharsInString(_json_str[i], __POSIBLE_COLON__)) {
                 std::cout << "exp: ':' or '='" << std::endl;
                 return_code = false;
                 exit = true;
@@ -1104,12 +1092,11 @@ bool Json::parseJson(const std::string& json_str) {
             break;
         }
         case eComma: {
-            if(utils::CharsInString(json_str[i], __SPACES_WITHOUT_SEPARATORS__))
+            if(utils::CharsInString(_json_str[i], __SPACES_WITHOUT_SEPARATORS__))
                 continue;
 
-//            if(json_str[i] != ',') {
-            if(!utils::CharsInString(json_str[i], __SEPARATORS__)) {
-                if(json_str[i] != '}') {
+            if(!utils::CharsInString(_json_str[i], __SEPARATORS__)) {
+                if(_json_str[i] != '}') {
                     std::cout << "exp: ',' or '\\n'" << std::endl;
                     return_code = false;
                 }
@@ -1296,14 +1283,14 @@ void Json::parseJsonWithComment(const std::string &string_of_json, const PrintTy
                     break;
                 }
                 //=====================================================================
-
+                if(!isWordStarted) isWordStarted = true;
 
                 if(current == '"') {
                     isQuotes = !isQuotes;
                     if(isQuotes) {
                         isWordStarted = true;
                         key_string.clear();
-                        break; //кавычки не считаются частью значения
+                        break; //кавычки не считаfются частью значения
                     } else {
                         isWordFinished = true;
                         isWordStarted = false; //чтобы символ вне ключа не попал в выборку
@@ -1359,7 +1346,7 @@ void Json::parseJsonWithComment(const std::string &string_of_json, const PrintTy
             }
             case JSON_VALUE: {
                 //пропуск пробелов ====================================================
-                if(utils::CharsInString(current, __SPACES__) && !isQuotes)
+                if(utils::CharsInString(current, __SPACES__) && !isQuotes && value_format == ValueFormat::VALUE_NOPE)
                     break;
                 //=====================================================================
                 if(!isWordStarted) {
@@ -1370,8 +1357,10 @@ void Json::parseJsonWithComment(const std::string &string_of_json, const PrintTy
 
                 switch(current) {
                 case '{': {
-                    if(value_format == ValueFormat::VALUE_NOPE) value_format = ValueFormat::VALUE_JSON;
-                    if(!isQuotes) innerJsonCounter++;
+                    if(!isQuotes) {
+                        if(value_format == ValueFormat::VALUE_NOPE) value_format = ValueFormat::VALUE_JSON;
+                        innerJsonCounter++;
+                    }
                     break;
                 }
                 case '}': {
@@ -1379,8 +1368,10 @@ void Json::parseJsonWithComment(const std::string &string_of_json, const PrintTy
                     break;
                 }
                 case '[': {
-                    if(value_format == ValueFormat::VALUE_NOPE) value_format = ValueFormat::VALUE_ARRAY;
-                    if(!isQuotes) innerArrayCounter++;
+                    if(!isQuotes) {
+                        if(value_format == ValueFormat::VALUE_NOPE) value_format = ValueFormat::VALUE_ARRAY;
+                        innerArrayCounter++;
+                    }
                     break;
                 }
                 case ']': {
@@ -1402,7 +1393,7 @@ void Json::parseJsonWithComment(const std::string &string_of_json, const PrintTy
                     value_string += current;
                     if(innerJsonCounter == 0) {
                         isWordFinished = true;
-                        value_element = Element(Json(value_string));
+//                        value_element = Element(Json(value_string));
                     }
 
                     break;
@@ -1411,9 +1402,9 @@ void Json::parseJsonWithComment(const std::string &string_of_json, const PrintTy
                     value_string += current;
                     if(innerArrayCounter == 0) {
                         isWordFinished = true;
-                        JArray array;
-                        array.parseArray(value_string);
-                        value_element = Element(array);
+//                        JArray array;
+//                        array.parseArray(value_string);
+//                        value_element = Element(array);
                     }
 
                     break;
@@ -1429,12 +1420,14 @@ void Json::parseJsonWithComment(const std::string &string_of_json, const PrintTy
                 }
                 //если следующий символ должен обрабатываться другим кодом
                 if(!isQuotes && (innerJsonCounter == 0) && (innerArrayCounter == 0))
-                    if((string_of_json.length() > i + 1) && utils::CharsInString(string_of_json[i + 1], __SEPARATORS__))
+                    if((string_of_json.length() > i + 1)
+                        && utils::CharsInString(string_of_json[i + 1], __SEPARATORS__ + std::string((value_format != VALUE_JSON) ? "}" : "")))
                         isWordFinished = true;
 
                 if(isWordFinished) {
                     isWordStarted = false; //страховка
                     isWordFinished = false;
+                    value_format = VALUE_NOPE;
 
                     switch(CheckValue(value_string)) {
                     case eNumber:   {
@@ -1583,26 +1576,16 @@ std::string Json::to_string(int16_t tabulation_level, const PrintType print_type
     std::string ret;
     bool withoutSpaces = tabulation_level < 0 && print_type == PrintType::eWithoutComment;
 
-    if(print_type == PrintType::eWithComment
-        && m_preview_comment.type != CommentType::eAfterValueOneLine
-        && !m_preview_comment.value.empty()
-        ) {
+    if(print_type == PrintType::eWithComment && !m_preview_comment.before.empty()) {
         ret += "\n";
-        switch(m_preview_comment.type) {
-        case CommentType::eBeforeValueMultiLine: {
+        if(m_preview_comment.before.find('\n') != -1) {
             ret += utils::RepeatSymToStr('\t', tabulation_level)
                    + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
-            ret += ToComment(m_preview_comment.value, tabulation_level, m_comment_column_size) + "\n";
+            ret += ToComment(m_preview_comment.before, tabulation_level, m_comment_column_size) + "\n";
             ret += utils::RepeatSymToStr('\t', tabulation_level)
                    + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
-            break;
-        }
-        case CommentType::eBeforeValue: {
-            ret += ToComment(m_preview_comment.value, tabulation_level) + "\n";
-            break;
-        }
-        default: break;
-        }
+        } else
+            ret += ToComment(m_preview_comment.before, tabulation_level) + "\n";
     }
 
     ret += "{"; //start of json
@@ -1615,25 +1598,18 @@ std::string Json::to_string(int16_t tabulation_level, const PrintType print_type
         auto comment_it = m_comments.find(m_values[0].first);
         if(comment_it != m_comments.end()
             && print_type == PrintType::eWithComment
-            && comment_it->second.type != CommentType::eAfterValueOneLine
+            && !comment_it->second.before.empty()
             ) {
             ret += "\n";
-            switch(comment_it->second.type) {
-            case CommentType::eBeforeValueMultiLine: {
+            if(comment_it->second.before.find('\n') != -1) {
                 ret += utils::RepeatSymToStr('\t', tabulation_level + 1)
                        + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
-                ret += ToComment(comment_it->second.value, tabulation_level + 1, m_comment_column_size) + "\n";
+                ret += ToComment(comment_it->second.before, tabulation_level + 1, m_comment_column_size) + "\n";
                 ret += utils::RepeatSymToStr('\t', tabulation_level + 1)
                        + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
-                break;
-            }
-            case CommentType::eBeforeValue: {
+            } else
                 ret += utils::RepeatSymToStr('\t', tabulation_level + 1)
-                       + ToComment(comment_it->second.value, tabulation_level + 1) + "\n";
-                break;
-            }
-            default: break;
-            }
+                       + ToComment(comment_it->second.before, tabulation_level + 1) + "\n";
             ret += utils::RepeatSymToStr('\t', tabulation_level + 1);
         }
         //===========================================================================
@@ -1656,9 +1632,9 @@ std::string Json::to_string(int16_t tabulation_level, const PrintType print_type
         //===========================================================================
         if(comment_it != m_comments.end()
             && print_type == PrintType::eWithComment
-            && comment_it->second.type == CommentType::eAfterValueOneLine
+            && !comment_it->second.after.empty()
             ) {
-            ret += ToComment(comment_it->second.value)
+            ret += ToComment(comment_it->second.after)
                    + "\n" + utils::RepeatSymToStr('\t', tabulation_level);
         }
         //===========================================================================
@@ -1672,24 +1648,17 @@ std::string Json::to_string(int16_t tabulation_level, const PrintType print_type
             auto comment_it = m_comments.find(el.first);
             if(comment_it != m_comments.end()
                 && print_type == PrintType::eWithComment
-                && comment_it->second.type != CommentType::eAfterValueOneLine
+                && !comment_it->second.before.empty()
                 ) {
                 ret += "\n";
-                switch(comment_it->second.type) {
-                case CommentType::eBeforeValueMultiLine: {
+                if(comment_it->second.before.find('\n') != -1) {
                     ret += utils::RepeatSymToStr('\t', tabulation_level)
                            + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
-                    ret += ToComment(comment_it->second.value, tabulation_level, m_comment_column_size) + "\n";
+                    ret += ToComment(comment_it->second.before, tabulation_level, m_comment_column_size) + "\n";
                     ret += utils::RepeatSymToStr('\t', tabulation_level)
                            + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
-                    break;
-                }
-                case CommentType::eBeforeValue: {
-                    ret += ToComment(comment_it->second.value, tabulation_level, 0) + "\n";
-                    break;
-                }
-                default: break;
-                }
+                } else
+                    ret += ToComment(comment_it->second.before, tabulation_level, 0) + "\n";
             }
             //===========================================================================
 
@@ -1709,9 +1678,9 @@ std::string Json::to_string(int16_t tabulation_level, const PrintType print_type
             //===========================================================================
             if(comment_it != m_comments.end()
                 && print_type == PrintType::eWithComment
-                && comment_it->second.type == CommentType::eAfterValueOneLine
+                && !comment_it->second.after.empty()
                 ) {
-                ret += " " + ToComment(comment_it->second.value);
+                ret += " " + ToComment(comment_it->second.after);
             }
             //===========================================================================
 
@@ -1724,12 +1693,8 @@ std::string Json::to_string(int16_t tabulation_level, const PrintType print_type
 
     ret += "}"; //end of json
 
-    if(print_type == PrintType::eWithComment
-        && m_preview_comment.type == CommentType::eAfterValueOneLine
-        && !m_preview_comment.value.empty()
-        ) {
-        ret += " " + ToComment(m_preview_comment.value);
-    }
+    if(print_type == PrintType::eWithComment && !m_preview_comment.after.empty())
+        ret += " " + ToComment(m_preview_comment.after);
 
     return ret;
 }
@@ -1858,30 +1823,10 @@ Json &Json::erase(const std::vector<std::string> &keys) {
 // *
 // *
 // STATIC FUNCTIONS ============================================================================
-//первый символ в случае многострочного комментария может быть другим
-constexpr uint8_t SIZE_comment_multi_line = 6;
-constexpr char comment_multi_line[SIZE_comment_multi_line][2] {
-    {'/', '*'},
-    {'/', '#'},
-    {'<', '#'},
-    {'<', '-'},
-    {'!', '.'},
-    {'?', '.'}
-    //нельзя использовать двойной символ из второй таблицы как границу многострочного комментария
-};
-constexpr uint8_t SIZE_comment_one_line = 6;
-constexpr char comment_one_line[SIZE_comment_one_line][2] {
-    {'%', 0},
-    {'#', 0},
-    {'!', 0},
-    {';', 0},
-    {'?', 0},
-    {'/', '/'}
-};
 CommentBool CheckComment(char& first, const char second, size_t& iterator) {
     //сперва искать многострочные комментарии!
-    for(uint8_t i = 0; i < SIZE_comment_multi_line; i++) {
-        if(first == comment_multi_line[i][0] && second == comment_multi_line[i][1]) {
+    for(uint8_t i = 0; i < utils::cmt::SIZE_comment_multi_line; i++) {
+        if(first == utils::cmt::comment_multi_line[i][0] && second == utils::cmt::comment_multi_line[i][1]) {
             //изменение завершающего символа
             if(first == '<') first = '>';
             iterator++; //проскакиваем следующий символ при парсинге
@@ -1889,9 +1834,9 @@ CommentBool CheckComment(char& first, const char second, size_t& iterator) {
         }
     }
     //поиск однострочных комментариев
-    for(uint8_t i = 0; i < SIZE_comment_one_line; i++) {
-        if(first == comment_one_line[i][0]) {
-            if((comment_one_line[i][1] != 0) && (second == comment_one_line[i][1]))
+    for(uint8_t i = 0; i < utils::cmt::SIZE_comment_one_line; i++) {
+        if(first == utils::cmt::comment_one_line[i][0]) {
+            if((utils::cmt::comment_one_line[i][1] != 0) && (second == utils::cmt::comment_one_line[i][1]))
                 iterator++;
             return CommentBool::eOneLineComment;
         }
@@ -1906,21 +1851,25 @@ ValueType CheckValue(std::string& value) {
     std::string _value;
     ValueType vType = eNull;
     for(size_t i = 0; i < value.length(); i++) {
-        if(!isValue && !utils::CharsInString(value[i], __SPACES__))
-            isValue = true;
+//        if(!isValue)// && !utils::CharsInString(value[i], __SPACES__))
+//            isValue = true;
 
-        if(isValue) {
+//        if(isValue) {
             if(vType == ValueType::eNull) {
+                RemoveIllegalSpaces(value);
                 if(utils::isNumber(value[i]))   vType = ValueType::eNumber;
                 else if(value[i] == '{')        vType = ValueType::eJson;
                 else if(value[i] == '[')        vType = ValueType::eArray;
                 else if(!utils::CharsInString(value[i], __SPACES__)
-                         && (value[0] == 't' || value[0] == 'f' || value[0] == 'T' || value[0] == 'F'))
+                         && (value[0] == 't'
+                             || value[0] == 'f'
+                             || value[0] == 'T'
+                             || value[0] == 'F'))
                     vType = ValueType::eBool;
-                else /*if(value[i] == '"')*/        vType = ValueType::eString;
+                else /*if(value[i] == '"')*/    vType = ValueType::eString;
             }
             _value += value[i];
-        }
+//        }
     }
 
     switch(vType) {
@@ -2136,7 +2085,6 @@ void RemoveIllegalSpaces(std::string& string) {
     }
 }
 
-std::string separators_symbols(" \t.,;:->+?!/\\*$#@&()[]\n");
 std::string ToComment(const std::string &comment_string, const uint8_t tabulation_level, const uint8_t column_size) {
     //TODO: исправить
     std::string ret;
@@ -2159,7 +2107,7 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
             isLastSymbol = true;
 
         //если встретили разделитель
-        if(utils::CharsInString(ch, separators_symbols))
+        if(utils::CharsInString(ch, __COMMENT_SEPARATOR_SYMBOLS__))
             separators.push_back(current_string.size());
 
         current_string += ch;
@@ -2179,7 +2127,7 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
         }
 
         if((column_counter >= column_size)
-            && (utils::CharsInString(ch, separators_symbols) || isLastSymbol)
+            && (utils::CharsInString(ch, __COMMENT_SEPARATOR_SYMBOLS__) || isLastSymbol)
             && column_size != 0
             ) {
             column_counter = 0;
@@ -2196,7 +2144,7 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
                     std::string left = current_string.substr(0, separators[separators.size() - ((!isLastSymbol) ? 2 : 1)] + 1);
                     RemoveIllegalSpaces(left);
                     current_string = current_string.substr(separators[separators.size() - ((!isLastSymbol) ? 2 : 1)] + 1);
-                    if(!utils::CharsInString(current_string.back(), separators_symbols))
+                    if(!utils::CharsInString(current_string.back(), __COMMENT_SEPARATOR_SYMBOLS__))
                         current_string += ' ';
                     ret += left + "\n";
 
@@ -2204,7 +2152,7 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
                     column_counter = current_string.size();
                     separators.clear();
                     for(size_t j = 0; j < current_string.size(); j++) {
-                        if(utils::CharsInString(current_string[j], separators_symbols))
+                        if(utils::CharsInString(current_string[j], __COMMENT_SEPARATOR_SYMBOLS__))
                             separators.push_back(j);
                     }
                 } else {
@@ -2224,4 +2172,69 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
 
     return ret;
 }
+
+//NOTE: если символ в списке и в первой строке комментария повторяется минимум 5 раз - это граница, иначе - часть комментария
+//NOTE: для всего файла конфига подменяется символ границы только если не задан (первый комментарий с границей)
+std::string FromComment(const std::string &comment_string, uint8_t &column_size) {
+    std::string ret;
+
+    bool isBorderExists = utils::CharsInString(comment_string[0], __BORDER_SYMBOLS__); //от 5 до 0xFF символов
+    bool isFirstBorderLine = isBorderExists;
+    uint8_t border_size = 0;
+
+    std::string current_string;
+    bool isBorderLine = isBorderExists;
+    for(char ch : comment_string) {
+        if(ch == '\n') {
+            if(isFirstBorderLine) isFirstBorderLine = false;
+            if(isBorderLine && border_size < 5) {
+                isBorderExists = false;
+                isBorderLine = false;
+            }
+            if(isBorderLine) {
+                current_string = "";
+                continue;
+            }
+
+            RemoveIllegalSpaces(current_string);
+            if(isBorderExists) {
+                if(((comment_string[0] == '-' || comment_string[0] == '=') && current_string[0] == '|')
+                    || (current_string[0] == comment_string[0]))
+                    current_string.erase(current_string.begin());
+            }
+            RemoveIllegalSpaces(current_string);
+
+            if(!current_string.empty()) {
+                if(!ret.empty())
+                    ret += "\n";
+                ret += current_string;
+            }
+            current_string = "";
+            isBorderLine = isBorderExists;
+        } else {
+            //сработает только для первой строки
+            if(isFirstBorderLine) {
+                if(ch == comment_string[0])
+                    border_size++;
+                else { //встречен лишний символ, строка - часть комментария
+                    isBorderExists = false;
+                    border_size = 0;
+                }
+            }
+            //является ли строка границей
+            if(isBorderLine && ch != comment_string[0])
+                isBorderLine = false;
+            current_string += ch;
+        }
+    }
+    if(!isBorderLine && !current_string.empty())
+        ret += current_string;
+
+    if(isBorderExists && column_size != 0 && border_size != 0)
+        column_size = border_size;
+
+    return ret;
+}
+
+
 // ============================================================================ STATIC FUNCTIONS
