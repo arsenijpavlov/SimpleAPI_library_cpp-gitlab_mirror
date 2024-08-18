@@ -53,6 +53,15 @@ struct Comment {
 // ===================================================================================== Comment
 // *
 // *
+// Format ======================================================================================
+enum class ConfigFormat {
+    eJSON,
+    eYAML,
+    eINI
+};
+// ====================================================================================== Format
+// *
+// *
 class Json;
 class JArray;
 // Element =====================================================================================
@@ -70,7 +79,9 @@ static std::string to_string(const ValueType type);
 class BaseElement {
 public:
     virtual ~BaseElement(){}
-    virtual std::string to_string(int16_t tabulation_level, const bool enable_comment) = 0;
+    //TODO: to_string YAML INI
+    virtual std::string to_string(int16_t tabulation_level, const bool enable_comment,
+                                  const ConfigFormat config_format = ConfigFormat::eJSON) = 0;
 };
 
 class DoubleElement : BaseElement { //все числовые типы
@@ -81,8 +92,8 @@ public:
     DoubleElement(const double& d) : m_value(d)         {}
     ~DoubleElement()                                    {}
 
-    std::string to_string(int16_t tabulation_level = 0,
-                          const bool enable_comment = false)
+    std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
+                          const ConfigFormat config_format = ConfigFormat::eJSON)
                                                         { return utils::toString(m_value); }
 };
 
@@ -94,8 +105,8 @@ public:
     BoolElement(const bool& b) : m_value(b)             {}
     ~BoolElement()                                      {}
 
-    std::string to_string(int16_t tabulation_level = 0,
-                          const bool enable_comment = false)
+    std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
+                          const ConfigFormat config_format = ConfigFormat::eJSON)
                                                         { return m_value ? "true" : "false"; }
 };
 
@@ -107,8 +118,8 @@ public:
     StringElement(const std::string& s) : m_value(s)    {}
     ~StringElement()                                    {}
 
-    std::string to_string(int16_t tabulation_level = 0,
-                          const bool enable_comment = false)
+    std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
+                          const ConfigFormat config_format = ConfigFormat::eJSON)
                                                         { return "\"" + m_value + "\""; }
 };
 
@@ -206,7 +217,7 @@ public:
                                                         return *this; }
 
     std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
-                          const uint8_t column_size = 0) const;
+                          const uint8_t column_size = 0, const ConfigFormat config_format = ConfigFormat::eJSON) const;
 
     size_t      size()                        const { return m_values.size(); }
     bool        isEmpty()                           { return m_values.size() == 0; }
@@ -355,7 +366,8 @@ public:
                 Json()                                          {}
                 Json(const Json& json);
                 Json(const JPair& pair)                         { put(pair.first, pair.second); }
-                Json(const std::string& json_string)            { parseJson(json_string); }
+                Json(const std::string& json_string/*, ConfigFormat = eJSON*/)
+                                                                { parseJSON(json_string); }
                 __ONLY_ALLOWED_TYPES__(T)
                 Json(const std::string& key, const T& value)    { put(key, value); }
                 Json(const JVector& vec);
@@ -372,26 +384,43 @@ public:
                 __ONLY_ALLOWED_TYPES__(T)
     Json&       add(const std::string& key, const T& value, const bool rewrite = true)
                                                                 { return this->put(key, value, rewrite); }
-    Json&       add(const Json& json, const bool rewrite = true)
-                                                                { return this->put(json, rewrite); }
+    Json&       add(const Json& json, const bool rewrite = true){ return this->put(json, rewrite); }
     Json&       append(const Json& json, const bool rewrite = true)
                                                                 { return this->put(json, rewrite); }
 
-    void        parseJson(const std::string& string_of_json, const bool enable_comment = false);
-    bool        readFile(const std::string& path);
-    bool        writeFile(const std::string& path, int16_t tabulation_level = 0);
+    void        parseJSON(const std::string& string_of_json, const bool enable_comment = false);
+    void        parseYAML(const std::string& string_of_yaml, const bool enable_comment = false);
+    void        parseINI(const std::string& string_of_ini, const bool enable_comment = false);
+
+    bool        readFile(const std::string& path, const bool enable_comment = false,
+                   const ConfigFormat config_format = ConfigFormat::eJSON);
+    bool        readJSON(const std::string& path, const bool enable_comment = false)
+                                                                { return readFile(path, enable_comment); }
+    bool        readYAML(const std::string& path, const bool enable_comment = false)
+                                                                { return readFile(path, enable_comment, ConfigFormat::eYAML); }
+    bool        readINI(const std::string& path, const bool enable_comment = false)
+                                                                { return readFile(path, enable_comment, ConfigFormat::eINI); }
+
+    bool        writeFile(const std::string& path, int16_t tabulation_level = 0,
+                   const bool enable_comment = false, const ConfigFormat config_format = ConfigFormat::eJSON);
+    bool        writeJSON(const std::string& path, int16_t tabulation_level = 0,
+                   const bool enable_comment = false)           { return writeFile(path, tabulation_level, enable_comment); }
+    bool        writeYAML(const std::string& path, int16_t tabulation_level = 0,
+                   const bool enable_comment = false)           { return writeFile(path, tabulation_level, enable_comment, ConfigFormat::eYAML); }
+    bool        writeINI(const std::string& path, int16_t tabulation_level = 0,
+                   const bool enable_comment = false)           { return writeFile(path, tabulation_level, enable_comment, ConfigFormat::eINI); }
 
     std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
-                          const uint8_t column_size = 0) const;
+                          const uint8_t column_size = 0, const ConfigFormat config_format = ConfigFormat::eJSON) const;
     size_t      size()                                    const { return m_values.size(); }
     bool        isEmpty()                                       { return m_values.size() == 0; }
     bool        contains(const std::string& key);
                 __ONLY_ALLOWED_TYPES__(T)
     Json&       updateValue(const std::string& key, const T& new_value)
                 {
-                    if(contains(key)) {
+                    if(contains(key))
                         (*this)[key] = Element(new_value);
-                    } else
+                    else
                         put(key, new_value);
                     return *this;
                 }
@@ -653,9 +682,10 @@ public:
     JsonElement(const Json& j) : m_value(j)             {}
     ~JsonElement()                                      {}
 
-    std::string to_string(int16_t tabulation_level = 0,
-                          const bool enable_comment = false)
-                                                        { return m_value.to_string(tabulation_level, enable_comment); }
+    std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
+                          const ConfigFormat config_format = ConfigFormat::eJSON)
+                                                        { return m_value.to_string(tabulation_level, enable_comment,
+                                                            m_value.getCommentColumnSize(), config_format); }
 };
 class JArrayElement : BaseElement {
 public:
@@ -665,9 +695,10 @@ public:
     JArrayElement(const JArray& a) : m_value(a)         {}
     ~JArrayElement()                                    {}
 
-    std::string to_string(int16_t tabulation_level = 0,
-                          const bool enable_comment = false)
-                                                        { return m_value.to_string(tabulation_level, enable_comment); }
+    std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
+                          const ConfigFormat config_format = ConfigFormat::eJSON)
+                                                        { return m_value.to_string(tabulation_level, enable_comment,
+                                                            m_value.getCommentColumnSize(), config_format); }
 };
 // ======================================================================= Element (продолжение)
 

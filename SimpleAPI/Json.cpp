@@ -194,6 +194,8 @@ JArray::JArray(const JArray& other) {
 }
 
 void JArray::parseArray(const std::string &string_of_array, const bool enable_comment) {
+    clear();
+
     bool isOneLineComment   = false;
     bool isMultiLineComment = false;
     char firstMLCSym, secondMLCSym;
@@ -450,7 +452,7 @@ void JArray::parseArray(const std::string &string_of_array, const bool enable_co
                     case eJson:     {
                         Json _innerJson;
                         try {
-                            _innerJson.parseJson(value_string, enable_comment);
+                            _innerJson.parseJSON(value_string, enable_comment);
                             push_back(_innerJson);
                         } catch (std::invalid_argument& e) {
                             isCriticalError = true;
@@ -543,7 +545,9 @@ JArray &JArray::append(const JArray &array) {
     return *this;
 }
 
-std::string JArray::to_string(int16_t tabulation_level, const bool enable_comment, const uint8_t column_size) const {
+//TODO: to_string to YAML/INI
+std::string JArray::to_string(int16_t tabulation_level, const bool enable_comment, const
+                              uint8_t column_size, const ConfigFormat config_format) const {
     if(m_values.empty()) return "[]";
 
     std::string ret;
@@ -763,7 +767,9 @@ Json &Json::put(const Json &json, const bool rewrite) {
     return *this;
 }
 
-void Json::parseJson(const std::string &string_of_json, const bool enable_comment) {
+void Json::parseJSON(const std::string &string_of_json, const bool enable_comment) {
+    clear();
+
     bool isOneLineComment   = false;
     bool isMultiLineComment = false;
     char firstMLCSym, secondMLCSym;
@@ -1092,7 +1098,7 @@ void Json::parseJson(const std::string &string_of_json, const bool enable_commen
                     case eJson:     {
                         Json _innerJson;
                         try {
-                            _innerJson.parseJson(value_string, enable_comment);
+                            _innerJson.parseJSON(value_string, enable_comment);
                             put(key_string, _innerJson);
                         } catch (std::invalid_argument& e) {
                             isCriticalError = true;
@@ -1170,8 +1176,16 @@ void Json::parseJson(const std::string &string_of_json, const bool enable_commen
     }
 }
 
-//TODO: with comment flag
-bool Json::readFile(const std::string& path) { //TODO: read from INI/YAML
+void Json::parseYAML(const std::string &string_of_yaml, const bool enable_comment) {
+    //TODO: parseYAML()
+}
+
+void Json::parseINI(const std::string &string_of_ini, const bool enable_comment) {
+    //TODO: parseINI()
+}
+
+bool Json::readFile(const std::string& path, const bool enable_comment,
+                    const ConfigFormat config_format) { //TODO: read from INI/YAML
     std::ifstream file(path);
     if (!file.is_open()) {
         std::cout << "File not found" << std::endl;
@@ -1183,40 +1197,40 @@ bool Json::readFile(const std::string& path) { //TODO: read from INI/YAML
     char quote = 0;
     char start_comment = 0;
     char stop_comment = 0;
-    std::string json_str;
-    while(getline(file, temp_string)) {
-        std::cout << "prepare(" << (nextStrStartFromComment ? "true" : "false") << "): " << temp_string << std::endl;
-        utils::RemoveComments(temp_string, nextStrStartFromComment, quote, start_comment, stop_comment);
-        if(!temp_string.empty() && !utils::OnlySpaces(temp_string)) {
-            json_str += temp_string + '\n';
-            std::cout << "temp: " << temp_string << std::endl;
-        }
-    }
+    std::string config_str;
+    while(getline(file, temp_string))
+            config_str += temp_string + '\n';
     file.close();
 
-    //обработка JSON
+    //обработка
     try{
-        parseJson(json_str);
+        switch(config_format) {
+        case ConfigFormat::eJSON:   parseJSON(config_str, enable_comment);  break;
+        case ConfigFormat::eYAML:   parseYAML(config_str, enable_comment);  break;
+        case ConfigFormat::eINI:    parseINI(config_str, enable_comment);   break;
+        }
         return true;
     } catch (...) {
         return false;
     }
 }
 
-bool Json::writeFile(const std::string& path, int16_t tabulation_level) { //TODO: write to INI/YAML
+bool Json::writeFile(const std::string& path, int16_t tabulation_level,
+                     const bool enable_comment, const ConfigFormat config_format) {
     std::ofstream file(path);
     if (!file.is_open())
         return false;
 
-    file << this->to_string(tabulation_level) << std::endl;
+    file << this->to_string(tabulation_level, enable_comment, m_comment_column_size, config_format) << std::endl;
 
     file.flush();
     file.close();
     return true;
 }
 
-std::string Json::to_string(int16_t tabulation_level, const bool enable_comment, const uint8_t column_size) const {
-
+//TODO: to_string to YAML/INI
+std::string Json::to_string(int16_t tabulation_level, const bool enable_comment,
+                            const uint8_t column_size, const ConfigFormat config_format) const {
     std::string ret;
     bool withoutSpaces = tabulation_level < 0 && !enable_comment;
 

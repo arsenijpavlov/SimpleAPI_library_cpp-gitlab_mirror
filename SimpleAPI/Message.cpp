@@ -51,7 +51,7 @@ std::string PacketMessage::to_string() {
 
 JsonMessage::JsonMessage(const PacketMessage &pm) {
     this->ipPort = pm.ipPort;
-    this->json.parseJson(convert_from_packet(pm.packet));
+    this->json.parseJSON(convert_from_packet(pm.packet));
 }
 
 void JsonMessage::clear() {

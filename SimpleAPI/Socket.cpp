@@ -389,7 +389,7 @@ void Socket::close() {
 void UDPSocket::sendFragments(const IpPort &remote_ip_port, const PacketType type,
                               const Packet &packet, const bool need_ack) {
     Json json;
-    json.parseJson(convert_from_packet(packet));
+    json.parseJSON(convert_from_packet(packet));
 
     log(type != eControlType ? logs::eINFO : logs::eDEBUG, //TODO: придумать более логичное решение log()
         "Send: " + to_string(type) + " "

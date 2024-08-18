@@ -157,7 +157,7 @@ TEST(JSON, append_json) {
 TEST(JSON, parse) {
     std::string string_json = json_string_example;
     Json json;
-    json.parseJson(string_json);
+    json.parseJSON(string_json);
 
     EXPECT_EQ(5, json.size());
     EXPECT_EQ(182, json["number"].getNum());
@@ -172,7 +172,7 @@ TEST(JSON, parse) {
     EXPECT_EQ(true, json["array"].getArray()[1].getBool());
 
     //повторная обработка (очистка, новое заполнение)
-    json.parseJson(string_json);
+    json.parseJSON(string_json);
     EXPECT_EQ(5, json.size());
 }
 
@@ -182,14 +182,14 @@ TEST(JSON, parse_error) {
 
     //некорректное значение числа, пробелов нет ==> это строка!
     string_json = "{key:15.4.3}"; //TODO: исправить, т.к. сейчас это некорректное значение
-    json.parseJson(string_json);
+    json.parseJSON(string_json);
     EXPECT_EQ(1, json.size());
     EXPECT_EQ(eString, json[0].first);
 
     //некорректное значение числа, пробелов нет ==> это строка!
     string_json = "{key:15e43}"; //TODO: добавить поддержку экспоненты в значении числа
     try {
-        json.parseJson(string_json);
+        json.parseJSON(string_json);
     } catch(...) {}
     EXPECT_EQ(1, json.size());
     EXPECT_EQ(eString, json[0].first); //временно такое значение является строкой
@@ -197,7 +197,7 @@ TEST(JSON, parse_error) {
     //пробелы в значении bool
     string_json = "{key:tru e}";
     try {
-        json.parseJson(string_json);
+        json.parseJSON(string_json);
     } catch(...) {}
     EXPECT_EQ(0, json.size());
 }
