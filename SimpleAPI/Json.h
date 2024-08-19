@@ -41,7 +41,7 @@ struct Comment {
     std::string after;
 
     Comment(){}
-    Comment(const std::string& comment_before, const std::string& comment_after) :
+    Comment(const std::string& comment_before, const std::string& comment_after = "") :
         before(comment_before), after(comment_after) {}
 };
 // ===================================================================================== Comment
