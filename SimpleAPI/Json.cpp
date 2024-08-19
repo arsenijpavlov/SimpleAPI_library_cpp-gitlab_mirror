@@ -4,7 +4,7 @@
 #include <iostream>
 #include <set>
 
-//#define DEBUG_OUTPUT TODO: когда-нибудь потом...
+//TODO: #define DEBUG_OUTPUT когда-нибудь потом...
 
 #define __SPACES__                      " \n\t"
 #define __KEY_VALUE_SEPARATOR__         ":="
@@ -241,8 +241,8 @@ void JArray::parseArray(const std::string &string_of_array, const bool enable_co
         if(!isOneLineComment && !isMultiLineComment) {
             char next = (string_of_array.length() > i + 1 ? string_of_array[i + 1] : 0);
             switch(CheckComment(current, next, i)) {
-            case CommentBool::eNotComment: break;
-            case CommentBool::eOneLineComment: {
+            case CommentType::eNotComment: break;
+            case CommentType::eOneLineComment: {
                 isOneLineComment = true;
                 if(!currentComment.empty() && enable_comment)
                     currentComment += "\n";
@@ -253,7 +253,7 @@ void JArray::parseArray(const std::string &string_of_array, const bool enable_co
                 } //====================================================================
                 continue;
             }
-            case CommentBool::eMultiLineComment: {
+            case CommentType::eMultiLineComment: {
                 firstMLCSym = current;
                 secondMLCSym = next;
 
@@ -682,40 +682,36 @@ Element &JArray::operator[](const size_t index) {
     return m_values[index];
 }
 
-Element &JArray::operator[](const std::vector<std::string> &complex_name) {
+Element &JArray::operator[](const std::vector<std::string> &complex_key) {
     if(m_values.empty())
         __ARRAY_EMPTY_EXCEPTION__
 
-    std::vector<std::string>::const_iterator it = complex_name.begin();
-    if(!utils::isNumber(*it, false))
+    if(complex_key.size() == 0)
+        throw std::invalid_argument("complex_key argument cannot be empty");
+
+    size_t index;
+    try {
+        index = std::stoi(complex_key[0]);
+    } catch(...) {
         __ARRAY_INCORRECT_INDEX_EXCEPTION__
-    Element& el = (*this)[stoi(*it++)]; //находим первый элемент списка
-    for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
-        bool isNumber = utils::isNumber(*it, false);
-        switch(el.first) {
-        case eJson:
-            el = el.getJson()[*it];
-            if(el.first == ValueType::eNull) {
-                if(isNumber)
-                    el = el.getJson()[stoi(*it)];
-                else
-                    __JSON_KEY_NOT_FOUND_EXCEPTION__
-            }
-            break;
-        case eArray:
-            //для массива возможно обращение только по числовому индексу!
-            if(isNumber)
-                el = el.getArray()[stoi(*it)];
-            else
-                __ARRAY_INCORRECT_INDEX_EXCEPTION__
-            break;
-        default:
-            //продолжать поиск можно только по двум структурам!
-            __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__
-        }
     }
 
-    return el;
+    if(index < size()) { //если индекс внутри допустимого диапазона
+        if(complex_key.size() == 1)
+            return (*this)[index];
+        else {
+            Element& el = (*this)[index];
+
+            auto new_complex_key = complex_key;
+            new_complex_key.erase(new_complex_key.begin());
+            switch(el.first) {
+            case eJson:     return (*this)[index].getJson()[new_complex_key];
+            case eArray:    return (*this)[index].getArray()[new_complex_key];
+            default: __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__
+            }
+        }
+    } else
+        __ARRAY_INCORRECT_INDEX_EXCEPTION__
 }
 
 JArray &JArray::erase(const size_t index) {
@@ -822,8 +818,8 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
         if(!isOneLineComment && !isMultiLineComment) {
             char next = (string_of_json.length() > i + 1 ? string_of_json[i + 1] : 0);
             switch(CheckComment(current, next, i)) {
-            case CommentBool::eNotComment: break;
-            case CommentBool::eOneLineComment: {
+            case CommentType::eNotComment: break;
+            case CommentType::eOneLineComment: {
                 isOneLineComment = true;
                 if(!currentComment.empty() && enable_comment)
                     currentComment += "\n";
@@ -834,7 +830,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                 } //====================================================================
                 continue;
             }
-            case CommentBool::eMultiLineComment: {
+            case CommentType::eMultiLineComment: {
                 firstMLCSym = current;
                 secondMLCSym = next;
 
@@ -1396,60 +1392,65 @@ Element &Json::operator[](const size_t index) {
     return m_values[index].second;
 }
 
-Element &Json::operator[](const std::string &name) {
+Element &Json::operator[](const std::string &key) {
     if(m_values.empty())
         __JSON_EMPTY_EXCEPTION__
 
     bool element_found = false;
-    Element* el = &m_values[0].second;
     for(size_t i = 0; i < m_values.size(); i++)
-        if(m_values[i].first == name) {
-            el = &m_values[i].second;
-            element_found = true;
-            break;
-        }
+        if(m_values[i].first == key)
+            return m_values[i].second;
 
-    if(!element_found)
-        __KEY_NOT_FOUND_EXCEPTION__(name)
-
-    return *el;
+    __KEY_NOT_FOUND_EXCEPTION__(key)
 }
 
-Element &Json::operator[](const std::vector<std::string> &complex_name) {
+Element &Json::operator[](const std::vector<std::string> &complex_key) {
     if(m_values.empty())
         __JSON_EMPTY_EXCEPTION__
 
-    Element& el = (*this)[complex_name[0]]; //находим первый элемент списка
-    std::vector<std::string>::const_iterator it = complex_name.begin() + 1; //первый элемент пропускаем
-    for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
-        bool isNumber = utils::isNumber(*it, false);
-        switch(el.first) {
-        case eJson:
-//            el = el.getInnerValue(*it);
-            el = el.getJson()[*it];
-            if(el.first == ValueType::eNull) {
-                if(isNumber)
-//                    el = el.getInnerValue(stoi(*it));
-                    el = el.getJson()[stoi(*it)];
-                else
-                    __JSON_KEY_NOT_FOUND_EXCEPTION__
+    if(complex_key.size() == 0)
+        throw std::invalid_argument("complex_key argument cannot be empty");
+
+    if(contains(complex_key[0])) { //если ключ с таким именем существует
+        if(complex_key.size() == 1)
+            return (*this)[complex_key[0]];
+        else {
+            std::string key = complex_key[0];
+            Element& el = (*this)[key];
+
+            auto new_complex_key = complex_key;
+            new_complex_key.erase(new_complex_key.begin());
+            switch(el.first) {
+            case eJson:     return (*this)[key].getJson()[new_complex_key];
+            case eArray:    return (*this)[key].getArray()[new_complex_key];
+            default: __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__
             }
-            break;
-        case eArray:
-            //для массива возможно обращение только по числовому индексу!
-            if(isNumber)
-//                el = el.getInnerValue(stoi(*it));
-                el = el.getArray()[stoi(*it)];
-            else
-                __ARRAY_INCORRECT_INDEX_EXCEPTION__
-            break;
-        default:
-            //продолжать поиск можно только по двум структурам!
-            __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__
         }
     }
 
-    return el;
+    size_t index;
+    try {
+        index = std::stoi(complex_key[0]);
+    } catch(...) {
+        __JSON_KEY_NOT_FOUND_EXCEPTION__
+    }
+
+    if(index < size()) { //если индекс внутри допустимого диапазона
+        if(complex_key.size() == 1)
+            return (*this)[index];
+        else {
+            Element& el = (*this)[index];
+
+            auto new_complex_key = complex_key;
+            new_complex_key.erase(new_complex_key.begin());
+            switch(el.first) {
+            case eJson:     return (*this)[index].getJson()[new_complex_key];
+            case eArray:    return (*this)[index].getArray()[new_complex_key];
+            default: __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__
+            }
+        }
+    } else
+        __JSON_KEY_NOT_FOUND_EXCEPTION__
 }
 
 Json &Json::erase(const size_t index) {
@@ -1484,14 +1485,14 @@ Json &Json::erase(const std::vector<std::string> &keys) {
 // *
 // *
 // STATIC FUNCTIONS ============================================================================
-CommentBool CheckComment(char& first, const char second, size_t& iterator) {
+CommentType CheckComment(char& first, const char second, size_t& iterator) {
     //сперва искать многострочные комментарии!
     for(uint8_t i = 0; i < utils::cmt::SIZE_comment_multi_line; i++) {
         if(first == utils::cmt::comment_multi_line[i][0] && second == utils::cmt::comment_multi_line[i][1]) {
             //изменение завершающего символа
             if(first == '<') first = '>';
             iterator++; //проскакиваем следующий символ при парсинге
-            return CommentBool::eMultiLineComment;
+            return CommentType::eMultiLineComment;
         }
     }
     //поиск однострочных комментариев
@@ -1499,11 +1500,11 @@ CommentBool CheckComment(char& first, const char second, size_t& iterator) {
         if(first == utils::cmt::comment_one_line[i][0]) {
             if((utils::cmt::comment_one_line[i][1] != 0) && (second == utils::cmt::comment_one_line[i][1]))
                 iterator++;
-            return CommentBool::eOneLineComment;
+            return CommentType::eOneLineComment;
         }
     }
 
-    return CommentBool::eNotComment;
+    return CommentType::eNotComment;
 }
 
 ValueType CheckValue(std::string& value) {

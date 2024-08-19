@@ -357,16 +357,16 @@ TEST(JSON, get_index_error) {
     FAIL();
 }
 
-//FIXME: TEST(JSON, get_complex_name) {
-//    Json j("json_num", 15);
-//    JArray a;
-//    a.push_back(j);
-//    Json j_main;
-//    j_main.put("array", a);
+TEST(JSON, get_complex_name) {
+    Json j("json_num", 15);
+    JArray a;
+    a.push_back(j);
+    Json j_main;
+    j_main.put("array", a);
 
-//    double d = j_main[{"array", "0", "json_num"}].getNum();
-//    EXPECT_EQ(15, d);
-//}
+    double d = j_main[{"array", "0", "json_num"}].getNum();
+    EXPECT_EQ(15, d);
+}
 
 TEST(JSON, get_key) {
     Json json = json_example;

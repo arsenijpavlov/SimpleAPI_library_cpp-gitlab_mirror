@@ -36,12 +36,6 @@
                                     throw std::invalid_argument("Json key not found");
 
 // Comment =====================================================================================
-enum class CommentType {
-    eBeforeValue,           // пользователь сам распределяет переносы строки
-    eBeforeValueMultiLine,  // автоматическая расстановка переносов строки
-    eAfterValueOneLine      // подсказка на той же строке
-};
-
 struct Comment {
     std::string before;
     std::string after;
@@ -227,46 +221,45 @@ public:
                                               const { return !(*this == other); }
 
     Element&    operator[](const size_t index);
-    Element&    operator[](const std::vector<std::string>& complex_name);
+    Element&    operator[](const std::vector<std::string>& complex_key);
                 template<std::size_t SIZE>
-    Element&    operator[](const std::array<std::string, SIZE>& complex_name)
+    Element&    operator[](const std::array<std::string, SIZE>& complex_key)
                 {
                     if(m_values.empty())
                         __ARRAY_EMPTY_EXCEPTION__
 
-                    Element &el = (*this)[complex_name[0]]; //находим первый элемент списка
-                    typename std::array<std::string, SIZE>::const_iterator it = complex_name.begin() + 1; //первый элемент пропускаем
-                    for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
-                        bool isNumber = utils::isNumber(*it, false);
-                        switch(el.first) {
-                        case eJson:
-                            el = el.getJson()[*it];
-                            if(el.first == ValueType::eNull) {
-                                if(isNumber)
-                                    el = el.getJson()[stoi(*it)];
-                                else
-                                    __JSON_KEY_NOT_FOUND_EXCEPTION__
-                            }
-                            break;
-                        case eArray:
-                            //для массива возможно обращение только по числовому индексу!
-                            if(isNumber)
-                                el = el.getArray()[stoi(*it)];
-                            else
-                                __ARRAY_INCORRECT_INDEX_EXCEPTION__
-                            break;
-                        default:
-                            //продолжать поиск можно только по двум структурам!
-                            __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__
-                        }
+                    if(complex_key.size() == 0)
+                        throw std::invalid_argument("complex_key argument cannot be empty");
+
+                    size_t index;
+                    try {
+                        index = std::stoi(complex_key[0]);
+                    } catch(...) {
+                        __ARRAY_INCORRECT_INDEX_EXCEPTION__
                     }
 
-                    return el;
+                    if(index < size()) { //если индекс внутри допустимого диапазона
+                        if(complex_key.size() == 1)
+                            return (*this)[index];
+                        else {
+                            Element& el = (*this)[index];
+
+                            std::array<std::string, SIZE-1> new_complex_key;
+                            std::copy(complex_key.begin() + 1, complex_key.end(), new_complex_key);
+
+                            switch(el.first) {
+                            case eJson:     return (*this)[index].getJson()[new_complex_key];
+                            case eArray:    return (*this)[index].getArray()[new_complex_key];
+                            default: __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__
+                            }
+                        }
+                    } else
+                        __ARRAY_INCORRECT_INDEX_EXCEPTION__
                 }
 
     Element&    getValue(const size_t index)        { return (*this)[index]; }
-    Element&    getValue(const std::vector<std::string>& complex_name)
-                                                    { return (*this)[complex_name]; }
+    Element&    getValue(std::vector<std::string>& complex_key)
+                                                    { return (*this)[complex_key]; }
 
     AVector::iterator       begin()                 { return m_values.begin(); }
     AVector::iterator       end()                   { return m_values.end(); }
@@ -437,47 +430,61 @@ public:
     bool        operator!=(const Json& other)             const { return !(*this == other); }
 
     Element&    operator[](const size_t index);
-    Element&    operator[](const std::string& name);
-    Element&    operator[](const std::vector<std::string>& complex_name);
+    Element&    operator[](const std::string& key);
+    Element&    operator[](const std::vector<std::string>& complex_key);
                 template<std::size_t SIZE>
-    Element&    operator[](const std::array<std::string, SIZE>& complex_name)
+    Element&    operator[](const std::array<std::string, SIZE>& complex_key)
                 {
                     if(m_values.empty())
-                        __JSON_EMPTY_EXCEPTION__;
+                        __JSON_EMPTY_EXCEPTION__
 
-                    Element& el = (*this)[complex_name[0]]; //находим первый элемент списка
-                    typename std::array<std::string, SIZE>::const_iterator it = complex_name.begin() + 1; //первый элемент пропускаем
-                    for (; el.first != ValueType::eNull && it != complex_name.end(); it++) {
-                        bool isNumber = utils::isNumber(*it, false);
-                        switch(el.first) {
-                        case eJson:
-                            el = el.getJson()[*it];
-                            if(el.first == ValueType::eNull) {
-                                if(isNumber)
-                                    el = el.getJson()[stoi(*it)];
-                                else
-                                    __JSON_KEY_NOT_FOUND_EXCEPTION__
+                    if(complex_key.size() == 0)
+                        throw std::invalid_argument("complex_key argument cannot be empty");
+
+                    if(contains(complex_key[0])) { //если ключ с таким именем существует
+                        if(complex_key.size() == 1)
+                            return (*this)[complex_key[0]];
+                        else {
+                            std::string key = complex_key[0];
+                            Element& el = (*this)[key];
+
+                            std::array<std::string, SIZE-1> new_complex_key;
+                            std::copy(complex_key.begin() + 1, complex_key.end(), new_complex_key);
+                            switch(el.first) {
+                            case eJson:     return (*this)[key].getJson()[new_complex_key];
+                            case eArray:    return (*this)[key].getArray()[new_complex_key];
+                            default: __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__
                             }
-                            break;
-                        case eArray:
-                            //для массива возможно обращение только по числовому индексу!
-                            if(isNumber)
-                                el = el.getArray()[stoi(*it)];
-                            else
-                                __ARRAY_INCORRECT_INDEX_EXCEPTION__
-                            break;
-                        default:
-                            //продолжать поиск можно только по двум структурам!
-                            __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__;
                         }
                     }
 
-                    return el;
+                    size_t index;
+                    try{
+                        index = std::stoi(complex_key[0]);
+                    } catch(...) {
+                        __JSON_KEY_NOT_FOUND_EXCEPTION__
+                    }
+
+                    if(index < size()) { //если индекс внутри допустимого диапазона
+                        if(complex_key.size() == 1)
+                            return (*this)[index];
+                        else {
+                            Element& el = (*this)[index];
+
+                            std::array<std::string, SIZE-1> new_complex_key;
+                            std::copy(complex_key.begin() + 1, complex_key.end(), new_complex_key);
+                            switch(el.first) {
+                            case eJson:     return (*this)[index].getJson()[new_complex_key];
+                            case eArray:    return (*this)[index].getArray()[new_complex_key];
+                            default: __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__
+                            }
+                        }
+                    } else
+                        __JSON_KEY_NOT_FOUND_EXCEPTION__
                 }
     Element&    getValue(const size_t index)                    { return (*this)[index]; }
-    Element&    getValue(const std::string& name)               { return (*this)[name]; }
-    Element&    getValue(const std::vector<std::string>& complex_name)
-                                                                { return (*this)[complex_name]; }
+    Element&    getValue(const std::string& key)                { return (*this)[key]; }
+    Element&    getValue(std::vector<std::string>& complex_key) { return (*this)[complex_key]; }
 
     //положить значение в указанную позицию
     //если значение существует и флаг поднят - удалить существующее значение
@@ -655,12 +662,12 @@ public:
 // *
 // *
 // STATIC FUNCTIONS ============================================================================
-enum class CommentBool { //TODO: переименовать
+enum class CommentType {
     eNotComment,
     eOneLineComment,
     eMultiLineComment
 };
-static CommentBool  CheckComment(char& first, const char second, size_t& iterator);
+static CommentType  CheckComment(char& first, const char second, size_t& iterator);
 static ValueType    CheckValue(std::string& value);
 static bool         CheckDouble(std::string& value);
 static bool         CheckBool(std::string& value);
