@@ -15,46 +15,6 @@
 #define __COMMENT_SEPARATOR_SYMBOLS__   " \t.,;:->+?!/\\*$#@&()[]\n"
 
 
-// NextReadState ===============================================================================
-enum NextReadState {
-    eUnknown,
-
-    eKey,
-    eValue,
-    eColon,
-    eComma,
-    eJsonStart,
-    eJsonEnd,
-    eArrayStart,
-    eArrayEnd
-};
-
-std::string to_string(const NextReadState state) {
-    switch(state) {
-    case eKey:          return "Key";
-    case eValue:        return "Value";
-    case eColon:        return "Colon";
-    case eComma:        return "Comma";
-    case eJsonStart:    return "JsonStart";
-    case eJsonEnd:      return "JsonEnd";
-    case eArrayStart:   return "ArrayStart";
-    case eArrayEnd:     return "ArrayEnd";
-    default:            return "unexpected state";
-    }
-}
-
-void ChangeNextState(NextReadState &state, const NextReadState nextState) {
-    if(state == nextState) return;
-//    std::cout << "state changed: "
-//              << to_string(state)
-//              << "->"
-//              << to_string(nextState)
-//              << std::endl;
-    state = nextState;
-}
-// =============================================================================== NextReadState
-// *
-// *
 // Element =====================================================================================
 std::string to_string(const ValueType type) {
     switch(type) {
