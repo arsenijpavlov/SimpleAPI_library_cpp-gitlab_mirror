@@ -500,6 +500,12 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
             symbol_counter = 0; //должен перескочить строго на следующей строке
         } //====================================================================
     }
+
+
+    if(state != ARRAY_FINISH) {
+        clear();
+        throw std::invalid_argument("JArray parse error, end of JSON array structure not found");
+    }
 }
 
 void JArray::parseYAML_array(const std::string &string_of_array, const bool enable_comment) {
@@ -933,7 +939,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                     isValueCommentAfterSaved = true;
                     break;
                 }
-                if(utils::CharsInString(current, __SPACES__) && !isQuotes)
+                if(utils::CharsInString(current, __SPACES__) && !isQuotes && !isWordStarted)
                     break;
                 //=====================================================================
                 if(current == '}') {
@@ -959,8 +965,17 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                     if(!isQuotes && utils::CharsInString(current, __SPACES__))
                         isWordFinished = true;
                     //если следующий символ должен обрабатываться другим кодом
-                    if((string_of_json.length() > i + 1) && utils::CharsInString(string_of_json[i + 1], __KEY_VALUE_SEPARATOR__))
-                        isWordFinished = true;
+                    if(string_of_json.length() > i + 1) {
+                        if(isQuotes && string_of_json[i + 1] == '"') {
+                            i++;
+                            isQuotes = false;
+                            isWordFinished = true;
+                        } else if(utils::CharsInString(string_of_json[i + 1], __KEY_VALUE_SEPARATOR__)
+                                   || (!isQuotes && utils::CharsInString(string_of_json[i + 1], __SPACES__))
+                                   ) {
+                            isWordFinished = true;
+                        }
+                    }
 
                     key_string += current;
                 }
@@ -1064,17 +1079,26 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                 case VALUE_OTHER: {
                     if(!isQuotes && utils::CharsInString(current, __SPACES__))
                         isWordFinished = true;
-                    else if(current != '"')
+                    else if(isQuotes
+                             && string_of_json.length() > i + 1
+                             && utils::CharsInString(string_of_json[i + 1], __SEPARATORS__ + std::string((value_format != VALUE_JSON) ? "}" : ""))) {
+                        isWordFinished = true;
+                        i++;
+                        value_string += current;
+                    } else if(current != '"')
                         value_string += current;
                     break;
                 }
                 default: break;
                 }
                 //если следующий символ должен обрабатываться другим кодом
-                if(!isQuotes && (innerJsonCounter == 0) && (innerArrayCounter == 0))
+                if(!isWordFinished
+                    && !isQuotes
+                    && (innerJsonCounter == 0) && (innerArrayCounter == 0)) {
                     if((string_of_json.length() > i + 1)
                         && utils::CharsInString(string_of_json[i + 1], __SEPARATORS__ + std::string((value_format != VALUE_JSON) ? "}" : "")))
                         isWordFinished = true;
+                }
 
                 if(isWordFinished) {
                     isWordStarted = false; //страховка
@@ -1175,7 +1199,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 
         if(isCriticalError) {
             clear();
-            throw std::invalid_argument("Json parse error at line " + std::to_string(line_counter) + ":" + std::to_string(symbol_counter));
+            throw std::invalid_argument("Json parse syntax error at line " + std::to_string(line_counter) + ":" + std::to_string(symbol_counter));
         }
 
         //счётчик строк и столбцов =============================================
@@ -1183,6 +1207,11 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
             line_counter++;
             symbol_counter = 0; //должен перескочить строго на следующей строке
         } //====================================================================
+    }
+
+    if(state != JSON_FINISH) {
+        clear();
+        throw std::invalid_argument("JSON parse error, end of JSON structure not found");
     }
 }
 
@@ -1793,7 +1822,7 @@ void RemoveIllegalSpaces(std::string& string) {
     }
 }
 
-//TODO: доп. параметр - comment_symbols
+//TODO: ToComment(), доп. параметр - comment_symbols
 std::string ToComment(const std::string &comment_string, const uint8_t tabulation_level,
                       const uint8_t column_size) {
     //TODO: исправить ToComment()
