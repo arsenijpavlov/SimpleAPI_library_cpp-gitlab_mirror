@@ -153,7 +153,19 @@ JArray::JArray(const JArray& other) {
     }
 }
 
-void JArray::parseArray(const std::string &string_of_array, const bool enable_comment) {
+void JArray::parseArray(const std::string &string_of_array, const bool enable_comment,
+                        const ConfigFormat config_format) {
+    switch(config_format) {
+    case ConfigFormat::eJSON:
+        parseJSON_array(string_of_array, enable_comment);
+    case ConfigFormat::eYAML:
+        parseYAML_array(string_of_array, enable_comment);
+    case ConfigFormat::eINI:
+        parseINI_array(string_of_array, enable_comment);
+    }
+}
+
+void JArray::parseJSON_array(const std::string &string_of_array, const bool enable_comment) {
     clear();
 
     bool isOneLineComment   = false;
@@ -490,6 +502,14 @@ void JArray::parseArray(const std::string &string_of_array, const bool enable_co
     }
 }
 
+void JArray::parseYAML_array(const std::string &string_of_array, const bool enable_comment) {
+    //TODO: JArray::parseYAML_array()
+}
+
+void JArray::parseINI_array(const std::string &string_of_array, const bool enable_comment) {
+    //TODO: JArray::parseINI_array()
+}
+
 JArray &JArray::append(const JArray &array) {
     for(const Element& el : array.m_values) {
         switch(el.first) {
@@ -505,9 +525,20 @@ JArray &JArray::append(const JArray &array) {
     return *this;
 }
 
-//TODO: to_string to YAML/INI
 std::string JArray::to_string(int16_t tabulation_level, const bool enable_comment, const
                               uint8_t column_size, const ConfigFormat config_format) const {
+    switch(config_format) {
+    case ConfigFormat::eJSON:
+        return to_JSON_string(tabulation_level, enable_comment, column_size);
+    case ConfigFormat::eYAML:
+        return to_YAML_string(tabulation_level, enable_comment, column_size);
+    case ConfigFormat::eINI:
+        return to_INI_string(tabulation_level, enable_comment, column_size);
+    }
+}
+
+std::string JArray::to_JSON_string(int16_t tabulation_level, const bool enable_comment,
+                                   const uint8_t column_size) const {
     if(m_values.empty()) return "[]";
 
     std::string ret;
@@ -554,7 +585,7 @@ std::string JArray::to_string(int16_t tabulation_level, const bool enable_commen
         else if(!withoutSpaces)
             ret += " ";
 
-        ret += m_values[0].second->to_string(tabulation_level, enable_comment);
+        ret += m_values[0].second->to_string(tabulation_level, enable_comment, ConfigFormat::eJSON);
         if(!withoutSpaces) ret += " ";
 
         //===========================================================================
@@ -596,7 +627,7 @@ std::string JArray::to_string(int16_t tabulation_level, const bool enable_commen
                 else if(m_values[i].first == ValueType::eArray)
                     m_values[i].getArray().setCommentColumnSize(column_size);
             }
-            ret += m_values[i].second->to_string(tabulation_level, enable_comment);
+            ret += m_values[i].second->to_string(tabulation_level, enable_comment, ConfigFormat::eJSON);
             if(i < m_values.size() - 1) ret += ",";
 
             //===========================================================================
@@ -620,6 +651,18 @@ std::string JArray::to_string(int16_t tabulation_level, const bool enable_commen
         ret += " " + ToComment(m_preview_comment.after);
 
     return ret;
+}
+
+std::string JArray::to_YAML_string(int16_t tabulation_level, const bool enable_comment,
+                                   const uint8_t column_size) const {
+    //TODO: JArray::to_YAML_string
+    return "";
+}
+
+std::string JArray::to_INI_string(int16_t tabulation_level, const bool enable_comment,
+                                   const uint8_t column_size) const {
+    //TODO: JArray::to_INI_string
+    return "";
 }
 
 bool JArray::operator==(const JArray &other) const {
@@ -687,6 +730,17 @@ JArray &JArray::erase(const size_t index) {
 Json::Json(const Json& other) {
     for(const JPair &el : other.m_values)
         m_values.push_back(std::make_pair(el.first, Element(el.second)));
+}
+
+Json::Json(const std::string &input_string, ConfigFormat config_format) {
+    switch (config_format) {
+    case ConfigFormat::eJSON:
+        parseJSON(input_string);
+    case ConfigFormat::eYAML:
+        parseYAML(input_string);
+    case ConfigFormat::eINI:
+        parseINI(input_string);
+    }
 }
 
 Json::Json(const JVector &vec) {
@@ -1133,15 +1187,15 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 }
 
 void Json::parseYAML(const std::string &string_of_yaml, const bool enable_comment) {
-    //TODO: parseYAML()
+    //TODO: Json::parseYAML()
 }
 
 void Json::parseINI(const std::string &string_of_ini, const bool enable_comment) {
-    //TODO: parseINI()
+    //TODO: Json::parseINI()
 }
 
 bool Json::readFile(const std::string& path, const bool enable_comment,
-                    const ConfigFormat config_format) { //TODO: read from INI/YAML
+                    const ConfigFormat config_format) {
     std::ifstream file(path);
     if (!file.is_open()) {
         std::cout << "File not found" << std::endl;
@@ -1177,16 +1231,34 @@ bool Json::writeFile(const std::string& path, int16_t tabulation_level,
     if (!file.is_open())
         return false;
 
-    file << this->to_string(tabulation_level, enable_comment, m_comment_column_size, config_format) << std::endl;
+    switch(config_format) {
+    case ConfigFormat::eJSON:
+        file << this->to_JSON_string(tabulation_level, enable_comment, m_comment_column_size) << std::endl;
+    case ConfigFormat::eYAML:
+        file << this->to_YAML_string(tabulation_level, enable_comment, m_comment_column_size) << std::endl;
+    case ConfigFormat::eINI:
+        file << this->to_INI_string(tabulation_level, enable_comment, m_comment_column_size) << std::endl;
+    }
 
     file.flush();
     file.close();
     return true;
 }
 
-//TODO: to_string to YAML/INI
 std::string Json::to_string(int16_t tabulation_level, const bool enable_comment,
                             const uint8_t column_size, const ConfigFormat config_format) const {
+    switch(config_format) {
+    case ConfigFormat::eJSON:
+        return to_JSON_string(tabulation_level, enable_comment, column_size);
+    case ConfigFormat::eYAML:
+        return to_YAML_string(tabulation_level, enable_comment, column_size);
+    case ConfigFormat::eINI:
+        return to_INI_string(tabulation_level, enable_comment, column_size);
+    }
+}
+
+std::string Json::to_JSON_string(int16_t tabulation_level, const bool enable_comment,
+                                 const uint8_t column_size) const {
     std::string ret;
     bool withoutSpaces = tabulation_level < 0 && !enable_comment;
 
@@ -1240,7 +1312,7 @@ std::string Json::to_string(int16_t tabulation_level, const bool enable_comment,
             else if(m_values[0].second.first == ValueType::eArray)
                 m_values[0].second.getArray().setCommentColumnSize(column_size);
         }
-        ret += m_values[0].second.second->to_string(tabulation_level, enable_comment);
+        ret += m_values[0].second.second->to_string(tabulation_level, enable_comment, ConfigFormat::eJSON);
         if(!withoutSpaces) ret += " ";
 
         //===========================================================================
@@ -1286,7 +1358,7 @@ std::string Json::to_string(int16_t tabulation_level, const bool enable_comment,
                 else if(el.second.first == ValueType::eArray)
                     el.second.getArray().setCommentColumnSize(column_size);
             }
-            ret += el.second.second->to_string(tabulation_level, enable_comment);
+            ret += el.second.second->to_string(tabulation_level, enable_comment, ConfigFormat::eJSON);
             if(i < m_values.size() - 1) ret += ",";
 
             //===========================================================================
@@ -1311,6 +1383,18 @@ std::string Json::to_string(int16_t tabulation_level, const bool enable_comment,
         ret += " " + ToComment(m_preview_comment.after);
 
     return ret;
+}
+
+std::string Json::to_YAML_string(int16_t tabulation_level, const bool enable_comment,
+                                   const uint8_t column_size) const {
+    //TODO: Json::to_YAML_string
+    return "";
+}
+
+std::string Json::to_INI_string(int16_t tabulation_level, const bool enable_comment,
+                                  const uint8_t column_size) const {
+    //TODO: Json::to_INI_string
+    return "";
 }
 
 bool Json::contains(const std::string &key) {
@@ -1709,8 +1793,10 @@ void RemoveIllegalSpaces(std::string& string) {
     }
 }
 
-std::string ToComment(const std::string &comment_string, const uint8_t tabulation_level, const uint8_t column_size) {
-    //TODO: исправить
+//TODO: доп. параметр - comment_symbols
+std::string ToComment(const std::string &comment_string, const uint8_t tabulation_level,
+                      const uint8_t column_size) {
+    //TODO: исправить ToComment()
     std::string ret;
     uint8_t column_counter = 0;
     std::string current_string = "";

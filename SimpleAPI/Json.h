@@ -73,7 +73,6 @@ static std::string to_string(const ValueType type);
 class BaseElement {
 public:
     virtual ~BaseElement(){}
-    //TODO: to_string YAML INI
     virtual std::string to_string(int16_t tabulation_level, const bool enable_comment,
                                   const ConfigFormat config_format = ConfigFormat::eJSON) = 0;
 };
@@ -180,7 +179,11 @@ public:
                 JArray(const Types... args)         { for(Element el : {Element(args)...}) push_back(el); }
                 ~JArray()                           {}
 
-    void        parseArray(const std::string& string_of_array, const bool enable_comment = false);
+    void        parseArray(const std::string& string_of_array, const bool enable_comment = false,
+                                const ConfigFormat config_format = ConfigFormat::eJSON);
+    void        parseJSON_array(const std::string& string_of_array, const bool enable_comment = false);
+    void        parseYAML_array(const std::string& string_of_array, const bool enable_comment = false);
+    void        parseINI_array(const std::string& string_of_array, const bool enable_comment = false);
 
                 __ONLY_ALLOWED_TYPES__(T)
     JArray&     push_front(const T& value)          { m_values.insert(m_values.cbegin(), Element(value));
@@ -212,6 +215,12 @@ public:
 
     std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
                           const uint8_t column_size = 0, const ConfigFormat config_format = ConfigFormat::eJSON) const;
+    std::string to_JSON_string(int16_t tabulation_level = 0, const bool enable_comment = false,
+                               const uint8_t column_size = 0) const;
+    std::string to_YAML_string(int16_t tabulation_level = 0, const bool enable_comment = false,
+                               const uint8_t column_size = 0) const;
+    std::string to_INI_string(int16_t tabulation_level = 0, const bool enable_comment = false,
+                               const uint8_t column_size = 0) const;
 
     size_t      size()                        const { return m_values.size(); }
     bool        isEmpty()                           { return m_values.size() == 0; }
@@ -359,8 +368,7 @@ public:
                 Json()                                          {}
                 Json(const Json& json);
                 Json(const JPair& pair)                         { put(pair.first, pair.second); }
-                Json(const std::string& json_string/*, ConfigFormat = eJSON*/)
-                                                                { parseJSON(json_string); }
+                Json(const std::string& input_string, ConfigFormat config_format = ConfigFormat::eJSON);
                 __ONLY_ALLOWED_TYPES__(T)
                 Json(const std::string& key, const T& value)    { put(key, value); }
                 Json(const JVector& vec);
@@ -405,6 +413,12 @@ public:
 
     std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
                           const uint8_t column_size = 0, const ConfigFormat config_format = ConfigFormat::eJSON) const;
+    std::string to_JSON_string(int16_t tabulation_level = 0, const bool enable_comment = false,
+                               const uint8_t column_size = 0) const;
+    std::string to_YAML_string(int16_t tabulation_level = 0, const bool enable_comment = false,
+                               const uint8_t column_size = 0) const;
+    std::string to_INI_string(int16_t tabulation_level = 0, const bool enable_comment = false,
+                              const uint8_t column_size = 0) const;
     size_t      size()                                    const { return m_values.size(); }
     bool        isEmpty()                                       { return m_values.size() == 0; }
     bool        contains(const std::string& key);
