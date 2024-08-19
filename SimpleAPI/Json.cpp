@@ -361,6 +361,16 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
                 }
                 }
 
+                //экранированные кавычки ВСЕГДА заносится в значение
+                if(current == '\\'
+                    && string_of_array.length() > i + 1
+                    && string_of_array[i + 1] == '"') {
+                    value_string += "\\\"";
+                    i++;
+                    break;
+                }
+
+
                 //поиск конца значения
                 switch(value_format) {
                 case VALUE_JSON: {
@@ -380,17 +390,29 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
                 case VALUE_OTHER: {
                     if(!isQuotes && utils::CharsInString(current, __SPACES__))
                         isWordFinished = true;
-                    else if(current != '"')
+                    if(isQuotes
+                        && (innerJsonCounter == 0) && (innerArrayCounter == 0)
+                        && string_of_array.length() > i + 1
+                        && string_of_array[i + 1] == '"') {
+                        isWordFinished = true;
+                        i++;
+                    }
+
+                    if(current != '"')
                         value_string += current;
                     break;
                 }
                 default: break;
                 }
                 //если следующий символ должен обрабатываться другим кодом
-                if(!isQuotes && (innerJsonCounter == 0) && (innerArrayCounter == 0))
+                if(!isWordFinished
+                    && !isQuotes
+                    && (innerJsonCounter == 0) && (innerArrayCounter == 0)) {
                     if((string_of_array.length() > i + 1)
-                        && utils::CharsInString(string_of_array[i + 1], __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : "")))
+                        && utils::CharsInString(string_of_array[i + 1], __SEPARATORS__ + std::string((value_format != VALUE_JSON) ? "}" : "")))
                         isWordFinished = true;
+                }
+
 
                 if(isWordFinished) {
                     isWordStarted = false; //страховка
@@ -401,7 +423,6 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
                     case eNumber:   {
                         double num;
                         try {
-                            num = std::stod(value_string);
                             push_back(std::stod(value_string));
                         } catch (...) {
                             isCriticalError = true;
@@ -541,6 +562,8 @@ std::string JArray::to_string(int16_t tabulation_level, const bool enable_commen
     case ConfigFormat::eINI:
         return to_INI_string(tabulation_level, enable_comment, column_size);
     }
+
+    return "";
 }
 
 std::string JArray::to_JSON_string(int16_t tabulation_level, const bool enable_comment,
@@ -1060,6 +1083,16 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                 }
                 }
 
+                //экранированные кавычки ВСЕГДА заносится в значение
+                if(current == '\\'
+                    && string_of_json.length() > i + 1
+                    && string_of_json[i + 1] == '"') {
+                    value_string += "\\\"";
+                    i++;
+                    break;
+                }
+
+
                 //поиск конца значения
                 switch(value_format) {
                 case VALUE_JSON: {
@@ -1079,13 +1112,15 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                 case VALUE_OTHER: {
                     if(!isQuotes && utils::CharsInString(current, __SPACES__))
                         isWordFinished = true;
-                    else if(isQuotes
-                             && string_of_json.length() > i + 1
-                             && utils::CharsInString(string_of_json[i + 1], __SEPARATORS__ + std::string((value_format != VALUE_JSON) ? "}" : ""))) {
+                    if(isQuotes
+                        && (innerJsonCounter == 0) && (innerArrayCounter == 0)
+                        && string_of_json.length() > i + 1
+                        && string_of_json[i + 1] == '"') {
                         isWordFinished = true;
                         i++;
-                        value_string += current;
-                    } else if(current != '"')
+                    }
+
+                    if(current != '"')
                         value_string += current;
                     break;
                 }
@@ -1109,7 +1144,6 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                     case eNumber:   {
                         double num;
                         try {
-                            num = std::stod(value_string);
                             put(key_string, std::stod(value_string));
                         } catch (...) {
                             isCriticalError = true;
@@ -1284,6 +1318,8 @@ std::string Json::to_string(int16_t tabulation_level, const bool enable_comment,
     case ConfigFormat::eINI:
         return to_INI_string(tabulation_level, enable_comment, column_size);
     }
+
+    return "";
 }
 
 std::string Json::to_JSON_string(int16_t tabulation_level, const bool enable_comment,
@@ -1709,6 +1745,7 @@ bool CheckString(std::string& value) {
     }
 }
 
+//TODO: CheckJson() не проходит тест
 bool CheckJson(std::string& value) {
 //    std::cout << "CheckJson(): \"" << value << "\"" << std::endl;
     char ch = 0;
@@ -1759,6 +1796,7 @@ bool CheckJson(std::string& value) {
     return true;
 }
 
+//TODO: CheckArray() не проходит тест
 bool CheckArray(std::string& value) {
 //    std::cout << "CheckArray(): \"" << value << "\"" << std::endl;
     char ch = 0;
@@ -1769,6 +1807,15 @@ bool CheckArray(std::string& value) {
     uint32_t innerLvlQBrace = 0;
     for(size_t i = 0; i < value.length(); i++) {
         if(ch != 0) { //начинаем запись слова
+            //экранированные кавычки ВСЕГДА заносится в значение
+            if(value[i] == '\\'
+                && value.length() > i + 1
+                && value[i + 1] == '"') {
+                temp += "\\\"";
+                i++;
+                break;
+            }
+
             if(value[i] == '"') {
                 if(innerWord == 0)              innerWord = value[i];
                 else if(value[i] == innerWord)  innerWord = 0;
@@ -1794,7 +1841,7 @@ bool CheckArray(std::string& value) {
                     return false;
                 }
             }
-        } else if(!utils::CharsInString(value[i], __SPACES__)) {
+        } else if(!utils::CharsInString(value[i], __SPACES_WITHOUT_SEPARATORS__)) {
             if (value[i] == '[') {
                 temp += value[i];
                 ch = ']';
