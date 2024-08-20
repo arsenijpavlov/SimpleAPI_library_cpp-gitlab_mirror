@@ -71,7 +71,7 @@ int main() {
     std::string json_string = "{ array: " + jarray_string + "\nstring:" + temp_string + "}";
 
 //    Json json(json_string_example);
-    Json json(test_json_string);
+//    Json json(test_json_string);
 //    Json json;
 //    try {
 //        json.parseJSON(test_string);//, true); //FIXME: не работает
@@ -107,6 +107,9 @@ int main() {
 //    result = FromComment(test_2, size);
 //    result = FromComment(test_3, size);
 //    std::cout << result << std::endl;
+
+    double d = std::stod("1.2e15"); //TODO: закончить идею
+    std::cout << "d: " << std::to_string(d) << std::endl;
 
     return 0;
 }
