@@ -367,11 +367,14 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
                 //экранированные кавычки ВСЕГДА заносится в значение
                 if(current == '\\'
                     && string_of_array.length() > i + 1
-                    && string_of_array[i + 1] == '"'
+//                    && string_of_array[i + 1], __ESCAPE_CHARACTERS__ == '"'
                     ) {
-                    value_string += "\\\"";
-                    i++;
-                    break;
+                    char e_ch = utils::getEscChar(string_of_array[i + 1]);
+                    if(e_ch != 0) {
+                        value_string += '\\' + e_ch;
+                        i++;
+                        break;
+                    }
                 }
 
 

@@ -63,6 +63,7 @@ std::string json_string_example = "{"                               //ПРИМЕ
 std::string test_string_2 = "{string:inner_string_value}";
 std::string string_array = "[15, true, \"string\"]";
 std::string string_array_2 = "[\"string_value\"\n true]\n";
+std::string test_json_string = "{key:\\\\}";
 
 int main() {
     std::string temp_string = "\"asd\\\"asd\"";
@@ -70,6 +71,7 @@ int main() {
     std::string json_string = "{ array: " + jarray_string + "\nstring:" + temp_string + "}";
 
 //    Json json(json_string_example);
+    Json json(test_json_string);
 //    Json json;
 //    try {
 //        json.parseJSON(test_string);//, true); //FIXME: не работает
@@ -77,9 +79,9 @@ int main() {
 //        std::cout << "exception: " << e.what() << std::endl;
 //    }
 
-    JArray array;
+//    JArray array;
 //    array.parseArray(string_array);
-    array.parseArray(string_array_2);
+//    array.parseArray(string_array_2);
 
 //    std::string test_1 = "часть коммента №1\n"
 //                         "часть коммента №2\n"

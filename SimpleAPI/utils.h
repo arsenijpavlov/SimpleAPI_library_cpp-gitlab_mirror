@@ -50,6 +50,8 @@ bool        checkCrc8(std::vector<uint8_t>& data);
 bool        checkCrc16(std::vector<uint8_t>& data);
 bool        checkCrc32(std::vector<uint8_t>& data);
 
+char        getEscChar(const char ch);
+
 }
 
 #endif // UTILS_H
