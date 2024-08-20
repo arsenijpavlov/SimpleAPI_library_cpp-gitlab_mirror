@@ -176,6 +176,18 @@ TEST(JSON, parse) {
     EXPECT_EQ(5, json.size());
 }
 
+TEST(JSON, parse_custom_string_elements) {
+    std::string temp_string = "\"asd\\\"asd\"";
+    std::string jarray_string = "[" + temp_string + "]";
+    std::string json_string = "{ array: " + jarray_string + "\nstring:" + temp_string + "}";
+
+    Json json(json_string);
+    ASSERT_EQ(2, json.size());
+    EXPECT_EQ(temp_string, json["string"].to_string());
+    ASSERT_EQ(1, json["array"].getArray().size());
+    EXPECT_EQ(temp_string, json["array"].getArray()[0].to_string());
+}
+
 TEST(JSON, parse_error) {
     std::string string_json;
     Json json;

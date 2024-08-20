@@ -155,6 +155,8 @@ struct Element {
     std::string&getString() const;
     Json&       getJson() const;
     JArray&     getArray() const;
+
+    std::string to_string()                               const { return second->to_string(0, false); }
 };
 // ===================================================================================== Element
 // *

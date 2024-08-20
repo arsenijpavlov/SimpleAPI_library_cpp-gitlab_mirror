@@ -115,31 +115,31 @@ Element &Element::operator=(const Element &other) {
 
 double &Element::getNum() const {
     if(first != ValueType::eNumber)
-        throw std::invalid_argument("This element is not a 'Number' type: " + to_string(first));
+        throw std::invalid_argument("This element is not a 'Number' type: " + ::to_string(first));
     return reinterpret_cast<DoubleElement*>(second)->m_value;
 }
 
 bool &Element::getBool() const {
     if(first != ValueType::eBool)
-        throw std::invalid_argument("This element is not a 'Bool' type: " + to_string(first));
+        throw std::invalid_argument("This element is not a 'Bool' type: " + ::to_string(first));
     return reinterpret_cast<BoolElement*>(second)->m_value;
 }
 
 std::string &Element::getString() const {
     if(first != ValueType::eString)
-        throw std::invalid_argument("This element is not a 'String' type: " + to_string(first));
+        throw std::invalid_argument("This element is not a 'String' type: " + ::to_string(first));
     return reinterpret_cast<StringElement*>(second)->m_value;
 }
 
 Json &Element::getJson() const {
     if(first != ValueType::eJson)
-        throw std::invalid_argument("This element is not a 'Json' type: " + to_string(first));
+        throw std::invalid_argument("This element is not a 'Json' type: " + ::to_string(first));
     return reinterpret_cast<JsonElement*>(second)->m_value;
 }
 
 JArray &Element::getArray() const {
     if(first != ValueType::eArray)
-        throw std::invalid_argument("This element is not a 'JArray' type: " + to_string(first));
+        throw std::invalid_argument("This element is not a 'JArray' type: " + ::to_string(first));
     return reinterpret_cast<JArrayElement*>(second)->m_value;
 }
 // ===================================================================================== Element
@@ -158,10 +158,13 @@ void JArray::parseArray(const std::string &string_of_array, const bool enable_co
     switch(config_format) {
     case ConfigFormat::eJSON:
         parseJSON_array(string_of_array, enable_comment);
+        break;
     case ConfigFormat::eYAML:
         parseYAML_array(string_of_array, enable_comment);
+        break;
     case ConfigFormat::eINI:
         parseINI_array(string_of_array, enable_comment);
+        break;
     }
 }
 
@@ -364,7 +367,8 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
                 //экранированные кавычки ВСЕГДА заносится в значение
                 if(current == '\\'
                     && string_of_array.length() > i + 1
-                    && string_of_array[i + 1] == '"') {
+                    && string_of_array[i + 1] == '"'
+                    ) {
                     value_string += "\\\"";
                     i++;
                     break;
@@ -409,7 +413,7 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
                     && !isQuotes
                     && (innerJsonCounter == 0) && (innerArrayCounter == 0)) {
                     if((string_of_array.length() > i + 1)
-                        && utils::CharsInString(string_of_array[i + 1], __SEPARATORS__ + std::string((value_format != VALUE_JSON) ? "}" : "")))
+                        && utils::CharsInString(string_of_array[i + 1], __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : "")))
                         isWordFinished = true;
                 }
 
@@ -417,32 +421,40 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
                 if(isWordFinished) {
                     isWordStarted = false; //страховка
                     isWordFinished = false;
-                    value_format = ValueFormat::VALUE_NOPE;
 
-                    switch(CheckValue(value_string)) {
-                    case eNumber:   {
-                        double num;
-                        try {
-                            push_back(std::stod(value_string));
-                        } catch (...) {
+                    switch(value_format) {
+                    case VALUE_OTHER: {
+                        switch(CheckValue(value_string)) {
+                        case eNumber:   {
+                            double num;
+                            try {
+                                push_back(std::stod(value_string));
+                            } catch (...) {
+                                isCriticalError = true;
+                            }
+
+                            break;
+                        }
+                        case eBool:     {
+                            if(utils::isBool(value_string))
+                                push_back(utils::toBool(value_string));
+                            else
+                                isCriticalError = true;
+
+                            break;
+                        }
+                        case eString:   {
+                            push_back(value_string);
+                            break;
+                        }
+                        default: //значение не определено
                             isCriticalError = true;
+                            break;
                         }
 
                         break;
                     }
-                    case eBool:     {
-                        if(utils::isBool(value_string))
-                            push_back(utils::toBool(value_string));
-                        else
-                            isCriticalError = true;
-
-                        break;
-                    }
-                    case eString:   {
-                        push_back(value_string);
-                        break;
-                    }
-                    case eJson:     {
+                    case VALUE_JSON: {
                         Json _innerJson;
                         try {
                             _innerJson.parseJSON(value_string, enable_comment);
@@ -453,7 +465,7 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
 
                         break;
                     }
-                    case eArray:    {
+                    case VALUE_ARRAY:    {
                         JArray _innerArray;
                         try {
                             _innerArray.parseArray(value_string, enable_comment);
@@ -464,10 +476,9 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
 
                         break;
                     }
-                    case eNull:     { //значение не определено
+                    default:
                         isCriticalError = true;
-                    }
-                    default: break;
+                        break;
                     }
 
                     //работа с комментариями (перед значением) ============================
@@ -477,6 +488,8 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
                     } //===================================================================
 
                     state = ARRAY_ELEMENT_SEPARATOR;
+                    value_format = ValueFormat::VALUE_NOPE;
+                    isQuotes = false;
                 }
 
                 break;
@@ -765,10 +778,13 @@ Json::Json(const std::string &input_string, ConfigFormat config_format) {
     switch (config_format) {
     case ConfigFormat::eJSON:
         parseJSON(input_string);
+        break;
     case ConfigFormat::eYAML:
         parseYAML(input_string);
+        break;
     case ConfigFormat::eINI:
         parseINI(input_string);
+        break;
     }
 }
 
@@ -970,37 +986,43 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                     break;
                 }
                 //=====================================================================
-                if(!isWordStarted) isWordStarted = true;
+                if(!isWordStarted) {
+                    isWordStarted = true;
+                    key_string.clear();
+                    isQuotes = false;
+                }
+
+                //экранированные кавычки ВСЕГДА заносятся в значение
+                if(current == '\\'
+                    && string_of_json.length() > i + 1
+                    && string_of_json[i + 1] == '"'
+                    ) {
+                    key_string += "\\\"";
+                    i++;
+                    break;
+                }
 
                 if(current == '"') {
                     isQuotes = !isQuotes;
-                    if(isQuotes) {
-                        isWordStarted = true;
-                        key_string.clear();
-                        break; //кавычки не считаfются частью значения
-                    } else {
-                        isWordFinished = true;
-                        isWordStarted = false; //чтобы символ вне ключа не попал в выборку
-                    }
+                }
+                //поиск конца значения
+                if(!isQuotes && utils::CharsInString(current, __SPACES__))
+                    isWordFinished = true;
+                if(isQuotes
+                    && string_of_json.length() > i + 1
+                    && string_of_json[i + 1] == '"') {
+                    isWordFinished = true;
+                    i++;
                 }
 
-                if(isWordStarted) {
-                    if(!isQuotes && utils::CharsInString(current, __SPACES__))
-                        isWordFinished = true;
-                    //если следующий символ должен обрабатываться другим кодом
-                    if(string_of_json.length() > i + 1) {
-                        if(isQuotes && string_of_json[i + 1] == '"') {
-                            i++;
-                            isQuotes = false;
-                            isWordFinished = true;
-                        } else if(utils::CharsInString(string_of_json[i + 1], __KEY_VALUE_SEPARATOR__)
-                                   || (!isQuotes && utils::CharsInString(string_of_json[i + 1], __SPACES__))
-                                   ) {
-                            isWordFinished = true;
-                        }
-                    }
-
+                if(current != '"')
                     key_string += current;
+
+                //если следующий символ должен обрабатываться другим кодом
+                if(!isWordFinished && !isQuotes) {
+                    if((string_of_json.length() > i + 1)
+                        && utils::CharsInString(string_of_json[i + 1], __KEY_VALUE_SEPARATOR__))
+                        isWordFinished = true;
                 }
 
 
@@ -1049,6 +1071,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                     isWordStarted = true;
                     isValueCommentAfterSaved = false;
                     value_string.clear();
+                    isQuotes = false;
                 }
 
                 switch(current) {
@@ -1083,10 +1106,11 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                 }
                 }
 
-                //экранированные кавычки ВСЕГДА заносится в значение
+                //экранированные кавычки ВСЕГДА заносятся в значение
                 if(current == '\\'
                     && string_of_json.length() > i + 1
-                    && string_of_json[i + 1] == '"') {
+                    && string_of_json[i + 1] == '"'
+                    ) {
                     value_string += "\\\"";
                     i++;
                     break;
@@ -1138,32 +1162,40 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                 if(isWordFinished) {
                     isWordStarted = false; //страховка
                     isWordFinished = false;
-                    value_format = VALUE_NOPE;
 
-                    switch(CheckValue(value_string)) {
-                    case eNumber:   {
-                        double num;
-                        try {
-                            put(key_string, std::stod(value_string));
-                        } catch (...) {
+                    switch(value_format) {
+                    case VALUE_OTHER: {
+                        switch(CheckValue(value_string)) {
+                        case eNumber:   {
+                            double num;
+                            try {
+                                put(key_string, std::stod(value_string));
+                            } catch (...) {
+                                isCriticalError = true;
+                            }
+
+                            break;
+                        }
+                        case eBool:     {
+                            if(utils::isBool(value_string))
+                                put(key_string, utils::toBool(value_string));
+                            else
+                                isCriticalError = true;
+
+                            break;
+                        }
+                        case eString:   {
+                            put(key_string, value_string);
+                            break;
+                        }
+                        default: //значение не определено
                             isCriticalError = true;
+                            break;
                         }
 
                         break;
                     }
-                    case eBool:     {
-                        if(utils::isBool(value_string))
-                            put(key_string, utils::toBool(value_string));
-                        else
-                            isCriticalError = true;
-
-                        break;
-                    }
-                    case eString:   {
-                        put(key_string, value_string);
-                        break;
-                    }
-                    case eJson:     {
+                    case VALUE_JSON: {
                         Json _innerJson;
                         try {
                             _innerJson.parseJSON(value_string, enable_comment);
@@ -1174,7 +1206,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 
                         break;
                     }
-                    case eArray:    {
+                    case VALUE_ARRAY: {
                         JArray _innerArray;
                         try {
                             _innerArray.parseArray(value_string, enable_comment);
@@ -1185,10 +1217,9 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 
                         break;
                     }
-                    case eNull:     { //значение не определено
+                    default:
                         isCriticalError = true;
-                    }
-                    default: break;
+                        break;
                     }
 
                     //работа с комментариями (перед значением (НЕ используется)) ==========
@@ -1198,6 +1229,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                     } //===================================================================
 
                     state = JSON_ELEMENT_SEPARATOR;
+                    value_format = VALUE_NOPE;
                 }
 
                 break;
@@ -1297,10 +1329,13 @@ bool Json::writeFile(const std::string& path, int16_t tabulation_level,
     switch(config_format) {
     case ConfigFormat::eJSON:
         file << this->to_JSON_string(tabulation_level, enable_comment, m_comment_column_size) << std::endl;
+        break;
     case ConfigFormat::eYAML:
         file << this->to_YAML_string(tabulation_level, enable_comment, m_comment_column_size) << std::endl;
+        break;
     case ConfigFormat::eINI:
         file << this->to_INI_string(tabulation_level, enable_comment, m_comment_column_size) << std::endl;
+        break;
     }
 
     file.flush();
@@ -1616,6 +1651,7 @@ CommentType CheckComment(char& first, const char second, size_t& iterator) {
     return CommentType::eNotComment;
 }
 
+//только для ЧИСЕЛ, BOOL и СТРОК
 ValueType CheckValue(std::string& value) {
 //    std::cout << "CheckValue(): \"" << value << "\"" << std::endl;
     bool isValue = false;
@@ -1625,8 +1661,8 @@ ValueType CheckValue(std::string& value) {
         if(vType == ValueType::eNull) {
             RemoveIllegalSpaces(value);
             if(utils::isNumber(value[i]))   vType = ValueType::eNumber;
-            else if(value[i] == '{')        vType = ValueType::eJson;
-            else if(value[i] == '[')        vType = ValueType::eArray;
+//            else if(value[i] == '{')        vType = ValueType::eJson;
+//            else if(value[i] == '[')        vType = ValueType::eArray;
             else if(!utils::CharsInString(value[i], __SPACES__)
                      && (value[0] == 't'
                          || value[0] == 'f'
@@ -1649,8 +1685,8 @@ ValueType CheckValue(std::string& value) {
     }
     case ValueType::eBool:      { isValue = CheckBool(_value);      break; }
     case ValueType::eString:    { isValue = CheckString(_value);    break; }
-    case ValueType::eJson:      { isValue = CheckJson(_value);      break; }
-    case ValueType::eArray:     { isValue = CheckArray(_value);     break; }
+//    case ValueType::eJson:      { isValue = CheckJson(_value);      break; }
+//    case ValueType::eArray:     { isValue = CheckArray(_value);     break; }
     default:                    return ValueType::eNull;
     }
 

@@ -32,17 +32,54 @@ std::string test_string = "\n"
 //                          "    \"bool\" : true,\n"
                           "}\n";
 
+std::string json_string_example = "{"                               //ПРИМЕР ИЗ ТЕСТОВ
+                                  //пробелы и табуляции
+                                  "   \t"
+                                  //однострочные комментарии
+                                  "%\n"
+                                  "#\n"
+                                  "!\n"
+                                  ";\n"
+                                  "?\n"
+                                  "//\n"
+                                  //многострочные комментарии
+                                  "/*\n*/"
+                                  "/#\n#/"
+                                  "<-\n->"
+                                  "<#\n#>"
+                                  "!.\n.!"
+                                  "?.\n.?"
+                                  //поля
+                                  "\"number\":182,\n"
+                                  //иной вариант разделителя '='
+                                  "\"bool\"=true,\n"
+                                  //перенос строки равнозначен разделителю ','
+                                  "\"string\":\"string_value\"\n"
+                                  "\"json\":{\"string\":\"inner_string_value\"},\n"
+                                  //перенос строки равнозначен разделителю ',' (массивы)
+                                  "\"array\":[\"string_value\"\n true]\n"
+                                  "}";
+
 std::string test_string_2 = "{string:inner_string_value}";
+std::string string_array = "[15, true, \"string\"]";
+std::string string_array_2 = "[\"string_value\"\n true]\n";
 
 int main() {
-    Json json;
-    try {
-        json.parseJSON(test_string);//, true); //FIXME: не работает
-    } catch (std::invalid_argument e) {
-        std::cout << "exception: " << e.what() << std::endl;
-    }
+    std::string temp_string = "\"asd\\\"asd\"";
+    std::string jarray_string = "[" + temp_string + "]";
+    std::string json_string = "{ array: " + jarray_string + "\nstring:" + temp_string + "}";
 
-//    json.parseJSON(test_string_2);//, true);
+//    Json json(json_string_example);
+//    Json json;
+//    try {
+//        json.parseJSON(test_string);//, true); //FIXME: не работает
+//    } catch (std::invalid_argument e) {
+//        std::cout << "exception: " << e.what() << std::endl;
+//    }
+
+    JArray array;
+//    array.parseArray(string_array);
+    array.parseArray(string_array_2);
 
 //    std::string test_1 = "часть коммента №1\n"
 //                         "часть коммента №2\n"
