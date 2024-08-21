@@ -691,8 +691,9 @@ static bool         CheckString(std::string& value);
 static bool         CheckJson(std::string& value);
 static bool         CheckArray(std::string& value);
 static void         RemoveIllegalSpaces(std::string& string);
-static std::string  ToComment(const std::string& comment_string, const uint8_t tabulation_level = 0, const uint8_t column_size = 0);
-/*static*/ std::string  FromComment(const std::string& comment_string, uint8_t& column_size);
+/*static*/ std::string  ToComment(const std::string& comment_string, const uint8_t tabulation_level = 0,
+                             const uint8_t column_size = 0, const char border_symbol = 0);
+/*static*/ std::string  FromComment(const std::string& comment_string, uint8_t& column_size, char& border_symbol);
 // ============================================================================ STATIC FUNCTIONS
 // *
 // *

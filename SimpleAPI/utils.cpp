@@ -276,14 +276,38 @@ bool checkCrc32(std::vector<uint8_t>& data) {
 char getEscChar(const char ch) {
     switch(ch) {
     case '"':   return '\"';
-    case '\\':  return '\\'; //NOTE: ???
+    case '\\':  return '\\';
     case 'b':   return '\b';
     case 'f':   return '\f';
     case 'n':   return '\n';
     case 'r':   return '\r';
     case 't':   return '\t';
+
+//    case '\"':   return '"';
+//    case '\b':   return 'b';
+//    case '\f':   return 'f';
+//    case '\n':   return 'n';
+//    case '\r':   return 'r';
+//    case '\t':   return 't';
+
     default:    return 0;
     }
+}
+
+size_t getStrignSize(const std::string &str) {
+    size_t size = 0;
+
+    bool flag = false;
+    for(char ch : str) {
+        if(ch < 0) {
+            flag = !flag;
+            if(flag)
+                size++;
+        } else
+            size++;
+    }
+
+    return size;
 }
 
 

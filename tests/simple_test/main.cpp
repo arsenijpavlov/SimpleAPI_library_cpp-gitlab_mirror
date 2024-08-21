@@ -60,37 +60,30 @@ std::string json_string_example = "{"                               //ПРИМЕ
                                   "\"array\":[\"string_value\"\n true]\n"
                                   "}";
 
+std::string temp_string = "\"asd\\\"asd\"";
 std::string test_string_2 = "{string:inner_string_value}";
 std::string string_array = "[15, true, \"string\"]";
 std::string string_array_2 = "[\"string_value\"\n true]\n";
+
 std::string test_json_string = "{key:\\\\}";
+std::string jarray_string = "[" + temp_string + "]";
+std::string json_string = "{ array: " + jarray_string + "\nstring:" + temp_string + "}";
 
 int main() {
-    std::string temp_string = "\"asd\\\"asd\"";
-    std::string jarray_string = "[" + temp_string + "]";
-    std::string json_string = "{ array: " + jarray_string + "\nstring:" + temp_string + "}";
 
-//    Json json(json_string_example);
-//    Json json(test_json_string);
-//    Json json;
-//    try {
-//        json.parseJSON(test_string);//, true); //FIXME: не работает
-//    } catch (std::invalid_argument e) {
-//        std::cout << "exception: " << e.what() << std::endl;
-//    }
-
-//    JArray array;
-//    array.parseArray(string_array);
-//    array.parseArray(string_array_2);
-
-//    std::string test_1 = "часть коммента №1\n"
-//                         "часть коммента №2\n"
-//                         "часть коммента №3\n";
-//    std::string test_2 = "#####################\n"
-//                         "# часть коммента №1\n"
-//                         "# часть коммента №2\n"
-//                         "# часть коммента №3\n"
-//                         "#####################";
+    std::string test_1 = "часть коммента №1\n"
+                         "часть коммента №2\n"
+                         "часть коммента №3\n";
+    std::string test_2 = "#####################\n"
+                         "# часть коммента №1\n"
+                         "# часть коммента №2\n"
+                         "# часть коммента №3\n"
+                         "#####################";
+    std::string test_5 = "=====================\n"
+                         "| часть коммента №1\n"
+                         "| часть коммента №2\n"
+                         "| часть коммента №3\n"
+                         "=====================";
 //    std::string test_3 = "####\n" //нет границы, весь контент - комментарий
 //                         "# часть коммента №1\n"
 //                         "# часть коммента №2\n"
@@ -101,15 +94,32 @@ int main() {
 //                         "# часть коммента №2\n"
 //                         "# часть коммента №3\n"
 //                         "#####################";
-//    uint8_t size = 0;
-//    std::string result = test_string;
-//    result = FromComment(test_1, size);
-//    result = FromComment(test_2, size);
-//    result = FromComment(test_3, size);
-//    std::cout << result << std::endl;
+    uint8_t size = 0;
+    char sym = 0;
+    std::string result = test_string;
+//    result = FromComment(test_1, size, sym);
+//    result = FromComment(test_2, size, sym);
+//    result = FromComment(test_3, size, sym);
+    result = FromComment(test_5, size, sym);
+//    std::cout << result
+//              << ", sym:" << (char)sym
+//              << ", size:" << std::to_string(size)
+//              << std::endl;
 
-    double d = std::stod("1.2e15"); //TODO: закончить идею
-    std::cout << "d: " << std::to_string(d) << std::endl;
+    std::cout << "-=--=--=--=--=--=--=--=--=--=--=--=--=-" << std::endl;
+
+    result = ToComment(result, 0, size, sym);
+    std::cout << result << std::endl;
+
+    std::string eng_string = "hello";   //5
+    std::string rus_string = "привет";  //6
+
+    std::cout << "size eng_string:" << utils::getStrignSize(eng_string)
+              << std::endl
+              << "size rus_string:" << utils::getStrignSize(rus_string)
+              << std::endl;
+
+//TODO: std::stod("1.2e15") закончить идею
 
     return 0;
 }

@@ -294,7 +294,7 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
 
                 //работа с комментариями (первичный) ==================================
                 if(!currentComment.empty() && enable_comment) {
-                    addPreviewComment(FromComment(currentComment, m_comment_column_size));
+                    addPreviewComment(FromComment(currentComment, m_comment_column_size, m_comment_sym));
                     currentComment = "";
                 } //===================================================================
 
@@ -311,7 +311,7 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
                 if(current == '\n' && !isValueCommentAfterSaved) {
                     //работа с комментариями (после значения #2) ==========================
                     if(!currentComment.empty() && enable_comment) {
-                        addComment_after(m_values.size() - 1, FromComment(currentComment, m_comment_column_size));
+                        addComment_after(m_values.size() - 1, FromComment(currentComment, m_comment_column_size, m_comment_sym));
                         currentComment = "";
                     } //===================================================================
                     isValueCommentAfterSaved = true;
@@ -483,7 +483,7 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
 
                     //работа с комментариями (перед значением) ============================
                     if(!currentComment.empty() && enable_comment) {
-                        addComment_before(m_values.size() - 1, FromComment(currentComment, m_comment_column_size));
+                        addComment_before(m_values.size() - 1, FromComment(currentComment, m_comment_column_size, m_comment_sym));
                         currentComment = "";
                     } //===================================================================
 
@@ -507,7 +507,7 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
                 if(current == '\n') {
                     //работа с комментариями (после значения #1) ==========================
                     if(!currentComment.empty() && enable_comment) {
-                        addComment_after(m_values.size() - 1, FromComment(currentComment, m_comment_column_size));
+                        addComment_after(m_values.size() - 1, FromComment(currentComment, m_comment_column_size, m_comment_sym));
                         currentComment = "";
                     } //===================================================================
                     isValueCommentAfterSaved = true;
@@ -955,7 +955,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 
                 //работа с комментариями (первичный) ==================================
                 if(!currentComment.empty() && enable_comment) {
-                    addPreviewComment(FromComment(currentComment, m_comment_column_size));
+                    addPreviewComment(FromComment(currentComment, m_comment_column_size, m_comment_sym));
                     currentComment = "";
                 } //===================================================================
 
@@ -972,7 +972,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                 if(current == '\n' && !isValueCommentAfterSaved) {
                     //работа с комментариями (после значения #2) ==========================
                     if(!currentComment.empty() && enable_comment) {
-                        addComment_after(key_string, FromComment(currentComment, m_comment_column_size));
+                        addComment_after(key_string, FromComment(currentComment, m_comment_column_size, m_comment_sym));
                         currentComment = "";
                     } //===================================================================
                     isValueCommentAfterSaved = true;
@@ -1032,7 +1032,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 
                     //работа с комментариями (перед ключом) ===============================
                     if(!currentComment.empty() && enable_comment) {
-                        addComment_before(key_string, FromComment(currentComment, m_comment_column_size));
+                        addComment_before(key_string, FromComment(currentComment, m_comment_column_size, m_comment_sym));
                         currentComment = "";
                     } //===================================================================
 
@@ -1054,7 +1054,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 
                 //работа с комментариями (после ключа (НЕ используется)) ==============
                 if(!currentComment.empty() && enable_comment) {
-//                    addComment_after(key_string, FromComment(currentComment, m_comment_column_size));
+//                    addComment_after(key_string, FromComment(currentComment, m_comment_column_size, m_comment_sym));
                     currentComment = "";
                 } //===================================================================
 
@@ -1224,7 +1224,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 
                     //работа с комментариями (перед значением (НЕ используется)) ==========
                     if(!currentComment.empty() && enable_comment) {
-//                        addComment_before(key_string, FromComment(currentComment, m_comment_column_size));
+//                        addComment_before(key_string, FromComment(currentComment, m_comment_column_size, m_comment_sym));
                         currentComment = "";
                     } //===================================================================
 
@@ -1247,7 +1247,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                 if(current == '\n') {
                     //работа с комментариями (после значения #1) ==========================
                     if(!currentComment.empty() && enable_comment) {
-                        addComment_after(key_string, FromComment(currentComment, m_comment_column_size));
+                        addComment_after(key_string, FromComment(currentComment, m_comment_column_size, m_comment_sym));
                         currentComment = "";
                     } //===================================================================
                     isValueCommentAfterSaved = true;
@@ -1906,53 +1906,62 @@ void RemoveIllegalSpaces(std::string& string) {
 }
 
 //TODO: ToComment(), доп. параметр - comment_symbols
+//TODO: исправить ToComment()
 std::string ToComment(const std::string &comment_string, const uint8_t tabulation_level,
-                      const uint8_t column_size) {
-    //TODO: исправить ToComment()
+                      const uint8_t column_size, const char border_symbol) {
     std::string ret;
-    uint8_t column_counter = 0;
     std::string current_string = "";
-    std::string prefix = utils::RepeatSymToStr('\t', tabulation_level) + "# ";
+    std::string prefix = utils::RepeatSymToStr('\t', tabulation_level);
+    if(border_symbol != 0)
+        prefix += border_symbol + std::string(" ");
     char last_symbol = ' ';
     std::vector<size_t> separators;
     separators.reserve(10);
     bool isLastSymbol = false;
 
-    for(size_t i = 0; i < comment_string.size(); i++) {
+    for(size_t i = 0; i < comment_string.length(); i++) {
         char ch = comment_string[i];
 
         //игнор "двойного" пробела
         if(last_symbol == ' ' && ch == ' ')
             continue;
 
-        if(i == comment_string.size() - 1)
+        if(i == comment_string.length() - 1)
             isLastSymbol = true;
 
         //если встретили разделитель
         if(utils::CharsInString(ch, __COMMENT_SEPARATOR_SYMBOLS__))
-            separators.push_back(current_string.size());
+            separators.push_back(current_string.length());
 
         current_string += ch;
-        column_counter++;
         last_symbol = ch;
+
+//        char number[20];
+//        sprintf(number, "%x", current_string.back());
+//        std::cout << "current_string(" << current_string.length() << "): <"
+//                  << current_string << ">"
+//                  << " [" << number << "]"
+//                  << std::endl;
 
         if(ch == '\n') {
             //удалить пробелы в начале и конце строки
             RemoveIllegalSpaces(current_string);
 
             //вывести если не пустое
-            if(!current_string.empty())
+            if(!current_string.empty()) {
                 ret += prefix + current_string;
+                std::cout << "\\n.current_string:" << std::to_string(current_string.length()) << std::endl;
+            }
 
             current_string = "";
             separators.clear();
         }
 
-        if((column_counter >= column_size)
+        if((utils::getStrignSize(current_string) >= column_size)
             && (utils::CharsInString(ch, __COMMENT_SEPARATOR_SYMBOLS__) || isLastSymbol)
-            && column_size != 0
             ) {
-            column_counter = 0;
+            std::cout << "PV.current_string_size:" << std::to_string(current_string.length()) << std::endl;
+            std::cout << "current_string: <" << current_string << ">" << std::endl;
 
             //удалить пробелы в начале и конце строки
             RemoveIllegalSpaces(current_string);
@@ -1962,18 +1971,21 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
                 ret += prefix;
 
                 //если превышен максимальный размер строки
-                if(current_string.size() > column_size) {
+                if(utils::getStrignSize(current_string) > column_size) {
                     std::string left = current_string.substr(0, separators[separators.size() - ((!isLastSymbol) ? 2 : 1)] + 1);
                     RemoveIllegalSpaces(left);
                     current_string = current_string.substr(separators[separators.size() - ((!isLastSymbol) ? 2 : 1)] + 1);
+                    std::cout << "left:" << std::to_string(left.length())
+                              << ", new current_string:" << std::to_string(current_string.length())
+                              << std::endl;
+
                     if(!utils::CharsInString(current_string.back(), __COMMENT_SEPARATOR_SYMBOLS__))
                         current_string += ' ';
                     ret += left + "\n";
 
                     //снова найти индексы разделителей
-                    column_counter = current_string.size();
                     separators.clear();
-                    for(size_t j = 0; j < current_string.size(); j++) {
+                    for(size_t j = 0; j < current_string.length(); j++) {
                         if(utils::CharsInString(current_string[j], __COMMENT_SEPARATOR_SYMBOLS__))
                             separators.push_back(j);
                     }
@@ -1988,8 +2000,14 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
         }
     }
 
-    if(!current_string.empty())
+    if(!current_string.empty()) {
         ret += prefix + current_string;
+        std::cout << "(last) current_string_size:" << std::to_string(current_string.length())
+                  << std::endl;
+    }
+
+    ret = "/*" + utils::RepeatSymToStr(border_symbol, column_size) + "\n" + ret;
+    ret += "\n" + utils::RepeatSymToStr(border_symbol, column_size) + "*/";
 
 
     return ret;
@@ -1997,10 +2015,11 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
 
 //NOTE: если символ в списке и в первой строке комментария повторяется минимум 5 раз - это граница, иначе - часть комментария
 //NOTE: для всего файла конфига подменяется символ границы только если не задан (первый комментарий с границей)
-std::string FromComment(const std::string &comment_string, uint8_t &column_size) {
+std::string FromComment(const std::string &comment_string, uint8_t &column_size, char &border_symbol) {
     std::string ret;
 
     bool isBorderExists = utils::CharsInString(comment_string[0], __BORDER_SYMBOLS__); //от 5 до 0xFF символов
+    if(border_symbol == 0 && isBorderExists) border_symbol = comment_string[0];
     bool isFirstBorderLine = isBorderExists;
     uint8_t border_size = 0;
 
@@ -2052,7 +2071,7 @@ std::string FromComment(const std::string &comment_string, uint8_t &column_size)
     if(!isBorderLine && !current_string.empty())
         ret += current_string;
 
-    if(isBorderExists && column_size != 0 && border_size != 0)
+    if(isBorderExists && column_size == 0 && border_size != 0)
         column_size = border_size;
 
     return ret;
