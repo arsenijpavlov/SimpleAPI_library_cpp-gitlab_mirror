@@ -318,16 +318,16 @@ public:
     //-----
     void        addComment(const size_t index,
                     const std::string &comment_before = "", const std::string &comment_after = "")
-                                                                { Comment ct = getOrCreateComment(index);
+                                                                { Comment& ct = getOrCreateComment(index);
                                                                     ct = Comment(comment_before, comment_after); }
     void        addComment(const size_t index, const Comment& comment)
-                                                                { Comment ct = getOrCreateComment(index);
+                                                                { Comment& ct = getOrCreateComment(index);
                                                                     ct = comment; }
     void        addComment_before(const size_t index, const std::string &comment = "")
-                                                                { Comment ct = getOrCreateComment(index);
+                                                                { Comment& ct = getOrCreateComment(index);
                                                                     ct.before = comment; }
     void        addComment_after(const size_t index, const std::string &comment = "")
-                                                                { Comment ct = getOrCreateComment(index);
+                                                                { Comment& ct = getOrCreateComment(index);
                                                                     ct.after = comment; }
     //-----
     Comment&    getComment(const size_t index)
@@ -615,29 +615,29 @@ public:
     //-----
     void        addComment(const std::string& key,
                     const std::string &comment_before = "", const std::string &comment_after = "")
-                                                                { Comment ct = getOrCreateComment(key);
+                                                                { Comment& ct = getOrCreateComment(key);
                                                                     ct = Comment(comment_before, comment_after); }
     void        addComment(const std::string& key, const Comment& comment)
-                                                                { Comment ct = getOrCreateComment(key);
+                                                                { Comment& ct = getOrCreateComment(key);
                                                                     ct = comment; }
     void        addComment_before(const std::string& key, const std::string &comment = "")
-                                                                { Comment ct = getOrCreateComment(key);
+                                                                { Comment& ct = getOrCreateComment(key);
                                                                     ct.before = comment; }
     void        addComment_after(const std::string& key, const std::string &comment = "")
-                                                                { Comment ct = getOrCreateComment(key);
+                                                                { Comment& ct = getOrCreateComment(key);
                                                                     ct.after = comment; }
     void        addComment(const size_t index,
                     const std::string &comment_before = "", const std::string &comment_after = "")
-                                                                { Comment ct = getOrCreateComment(index);
+                                                                { Comment& ct = getOrCreateComment(index);
                                                                     ct = Comment(comment_before, comment_after); }
     void        addComment(const size_t index, const Comment& comment)
-                                                                { Comment ct = getOrCreateComment(index);
+                                                                { Comment& ct = getOrCreateComment(index);
                                                                     ct = comment; }
     void        addComment_before(const size_t index, const std::string &comment = "")
-                                                                { Comment ct = getOrCreateComment(index);
+                                                                { Comment& ct = getOrCreateComment(index);
                                                                     ct.before = comment; }
     void        addComment_after(const size_t index, const std::string &comment = "")
-                                                                { Comment ct = getOrCreateComment(index);
+                                                                { Comment& ct = getOrCreateComment(index);
                                                                     ct.after = comment; }
     //-----
     Comment&    getComment(const std::string& key)
