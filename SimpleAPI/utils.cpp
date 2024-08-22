@@ -294,21 +294,46 @@ char getEscChar(const char ch) {
     }
 }
 
-size_t getStrignSize(const std::string &str) {
+size_t getStringSize(const std::string &str) {
     size_t size = 0;
 
     bool flag = false;
     for(char ch : str) {
         if(ch < 0) {
-            flag = !flag;
             if(flag)
                 size++;
+            flag = !flag;
         } else
             size++;
     }
 
     return size;
 }
+
+std::string SeparateString(std::string &str, const size_t length) {
+    std::string res;
+
+    size_t counter = 0;
+    bool flag = false;
+    size_t i = 0;
+    for(; i < str.length() && counter < length; i++) {
+        char ch = str[i];
+//        res += ch;
+
+        if(ch < 0) {
+            if(flag)
+                counter++;
+            flag = !flag;
+        } else
+            counter++;
+    }
+    res = str.substr(0, i);
+    str = str.substr(i, str.size() - 1);
+
+    return res;
+}
+
+
 
 
 }

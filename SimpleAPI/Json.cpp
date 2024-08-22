@@ -1957,7 +1957,7 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
             separators.clear();
         }
 
-        if((utils::getStrignSize(current_string) >= column_size)
+        if((utils::getStringSize(current_string) >= column_size)
             && (utils::CharsInString(ch, __COMMENT_SEPARATOR_SYMBOLS__) || isLastSymbol)
             ) {
             std::cout << "PV.current_string_size:" << std::to_string(current_string.length()) << std::endl;
@@ -1971,7 +1971,7 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
                 ret += prefix;
 
                 //если превышен максимальный размер строки
-                if(utils::getStrignSize(current_string) > column_size) {
+                if(utils::getStringSize(current_string) > column_size) {
                     std::string left = current_string.substr(0, separators[separators.size() - ((!isLastSymbol) ? 2 : 1)] + 1);
                     RemoveIllegalSpaces(left);
                     current_string = current_string.substr(separators[separators.size() - ((!isLastSymbol) ? 2 : 1)] + 1);

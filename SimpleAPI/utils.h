@@ -51,7 +51,8 @@ bool        checkCrc16(std::vector<uint8_t>& data);
 bool        checkCrc32(std::vector<uint8_t>& data);
 
 char        getEscChar(const char ch);
-size_t      getStrignSize(const std::string& str);
+size_t      getStringSize(const std::string& str);
+std::string SeparateString(std::string& str, const size_t length);
 
 }
 
