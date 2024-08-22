@@ -318,7 +318,6 @@ std::string SeparateString(std::string &str, const size_t length) {
     size_t i = 0;
     for(; i < str.length() && counter < length; i++) {
         char ch = str[i];
-//        res += ch;
 
         if(ch < 0) {
             if(flag)
