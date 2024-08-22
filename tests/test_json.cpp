@@ -224,7 +224,9 @@ TEST(JSON, write_file) {
 
 TEST(JSON, write_file_comment) {
     Json json(json_string_example);
+
     json.setCommentColumnSize(20);
+    json.setCommentSymbol('$');
     json.addPreviewComment("1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...");
     json.addComment_before("bool", "some \nwords...");
     json.addComment_before("string", "some many words1...");

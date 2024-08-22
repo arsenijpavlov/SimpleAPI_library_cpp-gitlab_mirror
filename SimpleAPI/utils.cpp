@@ -332,6 +332,13 @@ std::string SeparateString(std::string &str, const size_t length) {
     return res;
 }
 
+bool isMultiLine(const std::string &str, const size_t column_size) {
+    if(column_size == 0)
+        return str.find('\n') != -1;
+
+    return false;
+}
+
 
 
 

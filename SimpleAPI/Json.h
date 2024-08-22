@@ -600,6 +600,8 @@ public:
     void        setCommentColumnSize(const uint8_t new_comment_column_size)
                                                                 { m_comment_column_size = new_comment_column_size; }
     uint8_t     getCommentColumnSize()                          { return m_comment_column_size; }
+    void        setCommentSymbol(const char new_comment_sym)    { m_comment_sym = new_comment_sym; }
+    char        getCommentSymbol()                              { return m_comment_sym; }
     //-----
     void        addPreviewComment(const std::string &comment_before = "", const std::string &comment_after = "")
                                                                 { m_preview_comment = Comment(comment_before, comment_after); }

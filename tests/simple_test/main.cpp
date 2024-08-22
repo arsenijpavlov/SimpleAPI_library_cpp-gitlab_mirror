@@ -106,23 +106,31 @@ int main() {
 //              << ", size:" << std::to_string(size)
 //              << std::endl;
 
-    std::cout << "-=--=--=--=--=--=--=--=--=--=--=--=--=-" << std::endl;
 
     result = ToComment(result, 0, size, sym);
     std::cout << result << std::endl;
+    std::cout << "-=--=--=--=--=--=--=--=--=--=--=--=--=-" << std::endl;
+    result.pop_back();
+    result.pop_back();
+    result.erase(0, 2);
+    result = FromComment(result, size, sym);
+    std::cout << result << std::endl;
+    std::cout << "-=--=--=--=--=--=--=--=--=--=--=--=--=-" << std::endl;
+    result = ToComment(result, 0, size, sym);
+    std::cout << result << std::endl;
 
-    std::string eng_string = "hello";   //5
-    std::string rus_string = "привет";  //6
+//    std::string eng_string = "hello";   //5
+//    std::string rus_string = "привет";  //6
 
-    std::cout << "size eng_string:" << utils::getStringSize(eng_string)
-              << std::endl
-              << "size rus_string:" << utils::getStringSize(rus_string)
-              << std::endl;
+//    std::cout << "size eng_string:" << utils::getStringSize(eng_string)
+//              << std::endl
+//              << "size rus_string:" << utils::getStringSize(rus_string)
+//              << std::endl;
 
-    result = utils::SeparateString(eng_string, 3);
-    std::cout << "sub3: " << result << ", " << eng_string << std::endl;
-    result = utils::SeparateString(rus_string, 3);
-    std::cout << "sub3: " << result << ", " << rus_string << std::endl;
+//    result = utils::SeparateString(eng_string, 3);
+//    std::cout << "sub3: " << result << ", " << eng_string << std::endl;
+//    result = utils::SeparateString(rus_string, 3);
+//    std::cout << "sub3: " << result << ", " << rus_string << std::endl;
 
 //TODO: std::stod("1.2e15") закончить идею
 

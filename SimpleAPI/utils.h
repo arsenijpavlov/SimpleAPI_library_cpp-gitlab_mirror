@@ -53,6 +53,7 @@ bool        checkCrc32(std::vector<uint8_t>& data);
 char        getEscChar(const char ch);
 size_t      getStringSize(const std::string& str);
 std::string SeparateString(std::string& str, const size_t length);
+bool        isMultiLine(const std::string& str, const size_t column_size = 0);
 
 }
 

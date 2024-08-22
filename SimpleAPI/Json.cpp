@@ -589,11 +589,7 @@ std::string JArray::to_JSON_string(int16_t tabulation_level, const bool enable_c
     if(enable_comment && !m_preview_comment.before.empty()) {
         ret += "\n";
         if(m_preview_comment.before.find('\n') != -1) {
-            ret += utils::RepeatSymToStr('\t', tabulation_level)
-                   + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
             ret += ToComment(m_preview_comment.before, tabulation_level, m_comment_column_size) + "\n";
-            ret += utils::RepeatSymToStr('\t', tabulation_level)
-                   + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
         } else
             ret += ToComment(m_preview_comment.before, tabulation_level) + "\n";
     }
@@ -613,11 +609,7 @@ std::string JArray::to_JSON_string(int16_t tabulation_level, const bool enable_c
             ) {
             ret += "\n";
             if(comment_it->second.before.find('\n') != -1) {
-                ret += utils::RepeatSymToStr('\t', tabulation_level + 1)
-                       + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
                 ret += ToComment(comment_it->second.before, tabulation_level + 1, m_comment_column_size) + "\n";
-                ret += utils::RepeatSymToStr('\t', tabulation_level + 1)
-                       + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
             } else
                 ret += utils::RepeatSymToStr('\t', tabulation_level + 1)
                        + ToComment(comment_it->second.before, tabulation_level + 1) + "\n";
@@ -652,11 +644,7 @@ std::string JArray::to_JSON_string(int16_t tabulation_level, const bool enable_c
                 ) {
                 ret += "\n";
                 if(comment_it->second.before.find('\n') != -1) {
-                    ret += utils::RepeatSymToStr('\t', tabulation_level)
-                           + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
                     ret += ToComment(comment_it->second.before, tabulation_level, m_comment_column_size) + "\n";
-                    ret += utils::RepeatSymToStr('\t', tabulation_level)
-                           + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
                 } else
                     ret += ToComment(comment_it->second.before, tabulation_level, 0) + "\n";
             }
@@ -1364,14 +1352,7 @@ std::string Json::to_JSON_string(int16_t tabulation_level, const bool enable_com
 
     if(enable_comment && !m_preview_comment.before.empty()) {
         ret += "\n";
-        if(m_preview_comment.before.find('\n') != -1) {
-            ret += utils::RepeatSymToStr('\t', tabulation_level)
-                   + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
-            ret += ToComment(m_preview_comment.before, tabulation_level, m_comment_column_size) + "\n";
-            ret += utils::RepeatSymToStr('\t', tabulation_level)
-                   + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
-        } else
-            ret += ToComment(m_preview_comment.before, tabulation_level) + "\n";
+        ret += ToComment(m_preview_comment.before, tabulation_level, m_comment_column_size, m_comment_sym) + "\n";
     }
 
     ret += "{"; //start of json
@@ -1387,16 +1368,7 @@ std::string Json::to_JSON_string(int16_t tabulation_level, const bool enable_com
             && !comment_it->second.before.empty()
             ) {
             ret += "\n";
-            if(comment_it->second.before.find('\n') != -1) {
-                ret += utils::RepeatSymToStr('\t', tabulation_level + 1)
-                       + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
-                ret += ToComment(comment_it->second.before, tabulation_level + 1, m_comment_column_size) + "\n";
-                ret += utils::RepeatSymToStr('\t', tabulation_level + 1)
-                       + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
-            } else
-                ret += utils::RepeatSymToStr('\t', tabulation_level + 1)
-                       + ToComment(comment_it->second.before, tabulation_level + 1) + "\n";
-            ret += utils::RepeatSymToStr('\t', tabulation_level + 1);
+            ret += ToComment(comment_it->second.before, tabulation_level + 1, m_comment_column_size, m_comment_sym) + "\n";
         }
         //===========================================================================
         else if(!withoutSpaces)
@@ -1437,14 +1409,7 @@ std::string Json::to_JSON_string(int16_t tabulation_level, const bool enable_com
                 && !comment_it->second.before.empty()
                 ) {
                 ret += "\n";
-                if(comment_it->second.before.find('\n') != -1) {
-                    ret += utils::RepeatSymToStr('\t', tabulation_level)
-                           + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
-                    ret += ToComment(comment_it->second.before, tabulation_level, m_comment_column_size) + "\n";
-                    ret += utils::RepeatSymToStr('\t', tabulation_level)
-                           + utils::RepeatSymToStr('#', m_comment_column_size + 2) + "\n";
-                } else
-                    ret += ToComment(comment_it->second.before, tabulation_level, 0) + "\n";
+                ret += ToComment(comment_it->second.before, tabulation_level, m_comment_column_size, m_comment_sym) + "\n";
             }
             //===========================================================================
 
@@ -1781,7 +1746,6 @@ bool CheckString(std::string& value) {
     }
 }
 
-//TODO: CheckJson() не проходит тест
 bool CheckJson(std::string& value) {
 //    std::cout << "CheckJson(): \"" << value << "\"" << std::endl;
     char ch = 0;
@@ -1905,15 +1869,17 @@ void RemoveIllegalSpaces(std::string& string) {
     }
 }
 
-//TODO: ToComment(), доп. параметр - comment_symbols
-//TODO: исправить ToComment()
 std::string ToComment(const std::string &comment_string, const uint8_t tabulation_level,
                       const uint8_t column_size, const char border_symbol) {
     std::string ret;
     std::string current_string = "";
     std::string prefix = utils::RepeatSymToStr('\t', tabulation_level);
-    if(border_symbol != 0)
-        prefix += border_symbol + std::string(" ");
+    if(border_symbol != 0) {
+        char border = border_symbol;
+        if(border == '=' || border == '-')
+            border = '|';
+        prefix += border + std::string(" ");
+    }
     char last_symbol = ' ';
     std::vector<size_t> separators;
     separators.reserve(10);
@@ -1936,13 +1902,6 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
         current_string += ch;
         last_symbol = ch;
 
-//        char number[20];
-//        sprintf(number, "%x", current_string.back());
-//        std::cout << "current_string(" << current_string.length() << "): <"
-//                  << current_string << ">"
-//                  << " [" << number << "]"
-//                  << std::endl;
-
         if(ch == '\n') {
             //удалить пробелы в начале и конце строки
             RemoveIllegalSpaces(current_string);
@@ -1950,7 +1909,6 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
             //вывести если не пустое
             if(!current_string.empty()) {
                 ret += prefix + current_string;
-                std::cout << "\\n.current_string:" << std::to_string(current_string.length()) << std::endl;
             }
 
             current_string = "";
@@ -1960,9 +1918,6 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
         if((utils::getStringSize(current_string) >= column_size)
             && (utils::CharsInString(ch, __COMMENT_SEPARATOR_SYMBOLS__) || isLastSymbol)
             ) {
-            std::cout << "PV.current_string_size:" << std::to_string(current_string.length()) << std::endl;
-            std::cout << "current_string: <" << current_string << ">" << std::endl;
-
             //удалить пробелы в начале и конце строки
             RemoveIllegalSpaces(current_string);
 
@@ -1972,12 +1927,8 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
 
                 //если превышен максимальный размер строки
                 if(utils::getStringSize(current_string) > column_size) {
-                    std::string left = current_string.substr(0, separators[separators.size() - ((!isLastSymbol) ? 2 : 1)] + 1);
+                    std::string left = utils::SeparateString(current_string, column_size);
                     RemoveIllegalSpaces(left);
-                    current_string = current_string.substr(separators[separators.size() - ((!isLastSymbol) ? 2 : 1)] + 1);
-                    std::cout << "left:" << std::to_string(left.length())
-                              << ", new current_string:" << std::to_string(current_string.length())
-                              << std::endl;
 
                     if(!utils::CharsInString(current_string.back(), __COMMENT_SEPARATOR_SYMBOLS__))
                         current_string += ' ';
@@ -2000,14 +1951,15 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
         }
     }
 
-    if(!current_string.empty()) {
+    if(!current_string.empty())
         ret += prefix + current_string;
-        std::cout << "(last) current_string_size:" << std::to_string(current_string.length())
-                  << std::endl;
-    }
 
-    ret = "/*" + utils::RepeatSymToStr(border_symbol, column_size) + "\n" + ret;
-    ret += "\n" + utils::RepeatSymToStr(border_symbol, column_size) + "*/";
+    ret = "/*"
+          + (border_symbol != 0 ? utils::RepeatSymToStr(border_symbol, column_size) : "")
+          + "\n" + ret;
+    ret += "\n"
+           + (border_symbol != 0 ? utils::RepeatSymToStr(border_symbol, column_size) : "")
+           + "*/";
 
 
     return ret;
