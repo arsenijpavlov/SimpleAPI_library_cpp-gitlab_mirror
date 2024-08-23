@@ -74,50 +74,22 @@ int main() {
     std::string test_1 = "часть коммента №1\n"
                          "часть коммента №2\n"
                          "часть коммента №3\n";
-    std::string test_2 = "#####################\n"
-                         "# часть коммента №1\n"
-                         "# часть коммента №2\n"
-                         "# часть коммента №3\n"
-                         "#####################";
-    std::string test_5 = "=====================\n"
-                         "| часть коммента №1\n"
-                         "| часть коммента №2\n"
-                         "| часть коммента №3\n"
-                         "=====================";
-//    std::string test_3 = "####\n" //нет границы, весь контент - комментарий
-//                         "# часть коммента №1\n"
-//                         "# часть коммента №2\n"
-//                         "# часть коммента №3\n"
-//                         "#####################";
-//    std::string test_4 = "#####\n"
-//                         "# часть коммента №1\n"
-//                         "# часть коммента №2\n"
-//                         "# часть коммента №3\n"
-//                         "#####################";
     uint8_t size = 0;
     char sym = 0;
     std::string result = test_string;
-//    result = FromComment(test_1, size, sym);
-//    result = FromComment(test_2, size, sym);
-//    result = FromComment(test_3, size, sym);
-    result = FromComment(test_5, size, sym);
-//    std::cout << result
-//              << ", sym:" << (char)sym
-//              << ", size:" << std::to_string(size)
-//              << std::endl;
 
 
-    result = ToComment(result, 0, size, sym);
-    std::cout << result << std::endl;
-    std::cout << "-=--=--=--=--=--=--=--=--=--=--=--=--=-" << std::endl;
-    result.pop_back();
-    result.pop_back();
-    result.erase(0, 2);
-    result = FromComment(result, size, sym);
-    std::cout << result << std::endl;
-    std::cout << "-=--=--=--=--=--=--=--=--=--=--=--=--=-" << std::endl;
-    result = ToComment(result, 0, size, sym);
-    std::cout << result << std::endl;
+//    result = ToComment(result, 0, size, sym);
+//    std::cout << result << std::endl;
+//    std::cout << "-=--=--=--=--=--=--=--=--=--=--=--=--=-" << std::endl;
+//    result.pop_back();
+//    result.pop_back();
+//    result.erase(0, 2);
+//    result = FromComment(result, size, sym);
+//    std::cout << result << std::endl;
+//    std::cout << "-=--=--=--=--=--=--=--=--=--=--=--=--=-" << std::endl;
+//    result = ToComment(result, 0, size, sym);
+//    std::cout << result << std::endl;
 
 //    std::string eng_string = "hello";   //5
 //    std::string rus_string = "привет";  //6
@@ -133,6 +105,36 @@ int main() {
 //    std::cout << "sub3: " << result << ", " << rus_string << std::endl;
 
 //TODO: std::stod("1.2e15") закончить идею
+    std::vector<std::string> strings = {"1", "1.1",
+                                        "1e1", "1.1e1",
+                                        "1.1.1", "e1",
+                                        ".1", "a1e2"};
+    for(size_t i = 0; i < strings.size(); i++) {
+        std::string res;
+        try{
+            res = std::to_string(std::stod(strings[i]));
+        }
+        catch(...){
+            res = "exc";
+        }
+        std::cout << "[" << i << "]" << res << std::endl;
+    }
+
+//    std::string temp_string = "\"asd\\\"asd\"";
+//    std::string jarray_string = "[" + temp_string + "]";
+//    std::string json_string = "{ array: " + jarray_string + "\nstring:" + temp_string + "}";
+//    std::cout << "temp_string: " << temp_string << std::endl
+//              << "jarray_string: " << jarray_string << std::endl
+//              << "json_string: " << json_string << std::endl
+//              << std::endl;
+
+//    Json json("123", temp_string);
+//    std::cout << json[0].to_string() << std::endl;
+
+//    Json json2(json_string);
+//    std::cout << json2.to_JSON_string(-1) << std::endl;
+//    std::cout << json2["string"].to_string() << std::endl;
+//    std::cout << json2["array"].getArray()[0].to_string() << std::endl;
 
     return 0;
 }
