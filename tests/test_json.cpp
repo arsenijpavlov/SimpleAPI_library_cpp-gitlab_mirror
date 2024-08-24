@@ -194,18 +194,18 @@ TEST(JSON, parse_error) {
     Json json;
 
     //некорректное значение числа, пробелов нет ==> это строка!
-    string_json = "{key:15.4.3}"; //TODO: исправить, т.к. сейчас это некорректное значение
+    string_json = "{key:15.4.3}";
     json.parseJSON(string_json);
     EXPECT_EQ(1, json.size());
     EXPECT_EQ(eString, json[0].first);
 
     //некорректное значение числа, пробелов нет ==> это строка!
-    string_json = "{key:15e43}"; //TODO: добавить поддержку экспоненты в значении числа
+    string_json = "{key:15e43}";
     try {
         json.parseJSON(string_json);
     } catch(...) {}
     EXPECT_EQ(1, json.size());
-    EXPECT_EQ(eString, json[0].first); //временно такое значение является строкой
+    EXPECT_EQ(eNumber, json[0].first);
 
     //пробелы в значении bool
     string_json = "{key:tru e}";
@@ -213,6 +213,12 @@ TEST(JSON, parse_error) {
         json.parseJSON(string_json);
     } catch(...) {}
     EXPECT_EQ(0, json.size());
+
+    //некорректное значение bool ==> это строка!
+    string_json = "{key:truee}";
+    json.parseJSON(string_json);
+    EXPECT_EQ(1, json.size());
+    EXPECT_EQ(eString, json[0].first);
 }
 
 TEST(JSON, write_file) {

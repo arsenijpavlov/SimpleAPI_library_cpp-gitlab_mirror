@@ -92,19 +92,6 @@ int main() {
 //    result = ToComment(result, 0, size, sym);
 //    std::cout << result << std::endl;
 
-//    std::string eng_string = "hello";   //5
-//    std::string rus_string = "привет";  //6
-
-//    std::cout << "size eng_string:" << utils::getStringSize(eng_string)
-//              << std::endl
-//              << "size rus_string:" << utils::getStringSize(rus_string)
-//              << std::endl;
-
-//    result = utils::SeparateString(eng_string, 3);
-//    std::cout << "sub3: " << result << ", " << eng_string << std::endl;
-//    result = utils::SeparateString(rus_string, 3);
-//    std::cout << "sub3: " << result << ", " << rus_string << std::endl;
-
 
 //    std::string temp_string = "\"asd\\\"asd\"";
 //    std::string jarray_string = "[" + temp_string + "]";
