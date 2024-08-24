@@ -1,4 +1,5 @@
 #include <SimpleAPI.h>
+#include <iomanip>
 #include <iostream>
 
 std::string test_string = "\n"
@@ -104,21 +105,6 @@ int main() {
 //    result = utils::SeparateString(rus_string, 3);
 //    std::cout << "sub3: " << result << ", " << rus_string << std::endl;
 
-//TODO: std::stod("1.2e15") закончить идею
-    std::vector<std::string> strings = {"1", "1.1",
-                                        "1e1", "1.1e1",
-                                        "1.1.1", "e1",
-                                        ".1", "a1e2"};
-    for(size_t i = 0; i < strings.size(); i++) {
-        std::string res;
-        try{
-            res = std::to_string(std::stod(strings[i]));
-        }
-        catch(...){
-            res = "exc";
-        }
-        std::cout << "[" << i << "]" << res << std::endl;
-    }
 
 //    std::string temp_string = "\"asd\\\"asd\"";
 //    std::string jarray_string = "[" + temp_string + "]";

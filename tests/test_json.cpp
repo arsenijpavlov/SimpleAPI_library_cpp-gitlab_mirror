@@ -457,6 +457,35 @@ TEST(JSON, erase_keys) {
     EXPECT_EQ(json[0].first, ValueType::eBool);
 }
 
+TEST(JSON, check_numbers) {
+    std::map<std::string, bool> map_numbers;
+    map_numbers.insert(std::make_pair("1",          true));
+    map_numbers.insert(std::make_pair("1.1",        true));
+    map_numbers.insert(std::make_pair("1e1",        true));
+    map_numbers.insert(std::make_pair("1.1e1",      true));
+    map_numbers.insert(std::make_pair("1.1.1",      false));
+    map_numbers.insert(std::make_pair("e1",         false));
+    map_numbers.insert(std::make_pair("f1",         false));
+    map_numbers.insert(std::make_pair(".1",         true));
+    map_numbers.insert(std::make_pair("a1e2",       false));
+    map_numbers.insert(std::make_pair("145o",       false));
+    map_numbers.insert(std::make_pair("1eu2",       false));
+    map_numbers.insert(std::make_pair("1E5",        true));
+    map_numbers.insert(std::make_pair("1f",         true));
+    map_numbers.insert(std::make_pair("1e",         false));
+    map_numbers.insert(std::make_pair("1ef",        false));
+    map_numbers.insert(std::make_pair("1e1.1",      false));
+    map_numbers.insert(std::make_pair("1.1e-1",     true));
+    map_numbers.insert(std::make_pair("-1.1e-1",    true));
+    map_numbers.insert(std::make_pair("-1.1e+1",    true));
+    map_numbers.insert(std::make_pair("-1.1e+1e",   false));
+    map_numbers.insert(std::make_pair("f",          false));
+
+    for(auto it = map_numbers.cbegin(); it != map_numbers.cend(); it++) {
+        Json json("{number:" + it->first + "}");
+        EXPECT_EQ((json[0].first == eNumber), it->second);
+    }
+}
 //========================================================================================
 JArray array_example("first", 2, 3.1, true);
 

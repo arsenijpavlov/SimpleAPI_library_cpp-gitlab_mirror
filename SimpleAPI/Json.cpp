@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <regex>
 #include <set>
 
 //TODO: #define DEBUG_OUTPUT когда-нибудь потом...
@@ -402,7 +403,7 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
                         i++;
                     }
 
-                    if(current != '"')
+                    if(current != '"') //FIXME: строковый косяк
                         value_string += current;
                     break;
                 }
@@ -1624,8 +1625,12 @@ ValueType CheckValue(std::string& value) {
     ValueType vType = eNull;
     for(size_t i = 0; i < value.length(); i++) {
         if(vType == ValueType::eNull) {
+            //удалить пустоту в начале и конце строки
             RemoveIllegalSpaces(value);
-            if(utils::isNumber(value[i]))   vType = ValueType::eNumber;
+
+            if(utils::isNumber(value[i])
+                || utils::CharsInString(value[i], "-+"))
+                vType = ValueType::eNumber;
 //            else if(value[i] == '{')        vType = ValueType::eJson;
 //            else if(value[i] == '[')        vType = ValueType::eArray;
             else if(!utils::CharsInString(value[i], __SPACES__)
@@ -1641,14 +1646,21 @@ ValueType CheckValue(std::string& value) {
 
     switch(vType) {
     case ValueType::eNumber:    {
-        isValue = CheckDouble(_value);
+        isValue = CheckNumber(_value);
         if(!isValue) {
             vType = ValueType::eString;
             isValue = CheckString(_value);
         }
         break;
     }
-    case ValueType::eBool:      { isValue = CheckBool(_value);      break; }
+    case ValueType::eBool:      {
+        isValue = CheckBool(_value);
+        if(!isValue) {
+            vType = ValueType::eString;
+            isValue = CheckString(_value);
+        }
+        break;
+    }
     case ValueType::eString:    { isValue = CheckString(_value);    break; }
 //    case ValueType::eJson:      { isValue = CheckJson(_value);      break; }
 //    case ValueType::eArray:     { isValue = CheckArray(_value);     break; }
@@ -1662,24 +1674,22 @@ ValueType CheckValue(std::string& value) {
         return ValueType::eNull;
 }
 
-bool CheckDouble(std::string& value) {
-//    std::cout << "CheckDouble(): \"" << value << "\"" << std::endl;
-    uint32_t pCounter = 0;
-    //remove spaces
-    std::string temp;
-    for(char ch : value)
-        if(!utils::CharsInString(ch, __SPACES__)) temp += ch;
+bool CheckNumber(const std::string &value) {
+    if(value.empty()) return false;
+    if(value[0] == 'e' || value[0] == 'E' || value[0] == 'f' || value[0] == 'F')
+        return false;
 
-    for(char ch : temp) {
-        if(ch == '.') pCounter++;
-        if(!utils::isNumber(ch) || pCounter > 1) {
-            std::cout << "Error with parse Number in: " << value << std::endl;
-            return false;
-        }
+    std::regex reg("^[+-]?[0-9]*[.]?[0-9]*[eE]?[+-]?[0-9]*[fF]?$");
+    bool matched = std::regex_match(value, reg);
+
+    bool e_is_last = value[value.length() - 1] == 'e' || value[value.length() - 1] == 'E';
+    bool f_is_last = value[value.length() - 1] == 'f' || value[value.length() - 1] == 'F';
+
+    if(f_is_last && value.length() > 1) {
+        e_is_last = value[value.length() - 2] == 'e' || value[value.length() - 2] == 'E';
     }
 
-    value = temp;
-    return true;
+    return matched && !e_is_last;
 }
 
 bool CheckBool(std::string& value) {

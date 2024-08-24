@@ -39,6 +39,7 @@ bool        CharsInString(const char ch, std::string symbols);
 std::string toString(double d); //исключить лишние знаки при выводе чисел
 bool        isBool(std::string& str);
 bool        toBool(std::string& str);
+std::string to_string(bool b);
 bool        OnlySpaces(const std::string& str);
 
 std::string to_hex_string(const std::vector<uint8_t>& data);

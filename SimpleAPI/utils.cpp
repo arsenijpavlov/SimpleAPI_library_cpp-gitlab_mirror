@@ -123,6 +123,11 @@ bool toBool(std::string& str) {
     else                return false;
 }
 
+std::string to_string(bool b) {
+    if(b) return "true";
+    else  return "false";
+}
+
 bool OnlySpaces(const std::string& str) {
     for(char c : str)
         if(!CharsInString(c, " \n\t"))
@@ -338,6 +343,7 @@ bool isMultiLine(const std::string &str, const size_t column_size) {
 
     return false;
 }
+
 
 
 

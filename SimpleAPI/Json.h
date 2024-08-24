@@ -687,7 +687,7 @@ enum class CommentType {
 };
 static CommentType  CheckComment(char& first, const char second, size_t& iterator);
 static ValueType    CheckValue(std::string& value);
-static bool         CheckDouble(std::string& value);
+/*static*/ bool         CheckNumber(const std::string& value);
 static bool         CheckBool(std::string& value);
 static bool         CheckString(std::string& value);
 static bool         CheckJson(std::string& value);
