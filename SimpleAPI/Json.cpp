@@ -210,12 +210,14 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
     } value_format = VALUE_NOPE;
 
     for(size_t i = 0; (i < string_of_array.length()) && (state != ARRAY_FINISH); i++) {
+        char previous = (i - 1 >= 0) ? string_of_array[i - 1] : 0;
         char current = string_of_array[i];
+        char next = (i + 1 < string_of_array.length()) ? string_of_array[i + 1] : 0;
+
         symbol_counter++; //TODO: проверить точность
 
         //поиск комментариев
         if(!isOneLineComment && !isMultiLineComment) {
-            char next = (string_of_array.length() > i + 1 ? string_of_array[i + 1] : 0);
             switch(CheckComment(current, next, i)) {
             case CommentType::eNotComment: break;
             case CommentType::eOneLineComment: {
@@ -357,24 +359,14 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
                     break;
                 }
                 case '"': {
-                    isQuotes = !isQuotes;
+                    if(previous != '\\')
+                        isQuotes = !isQuotes;
                 }
                 default: {
                     if(value_format == ValueFormat::VALUE_NOPE) value_format = ValueFormat::VALUE_OTHER;
                     break;
                 }
                 }
-
-                //экранированные кавычки ВСЕГДА заносится в значение
-                if(current == '\\' && string_of_array.length() > i + 1) {
-                    char e_ch = utils::getEscChar(string_of_array[i + 1]);
-                    if(e_ch != 0) {
-                        value_string += '\\' + e_ch;
-                        i++;
-                        break;
-                    }
-                }
-
 
                 //поиск конца значения
                 switch(value_format) {
@@ -395,16 +387,15 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
                 case VALUE_OTHER: {
                     if(!isQuotes && utils::CharsInString(current, __SPACES__))
                         isWordFinished = true;
-                    if(isQuotes
-                        && (innerJsonCounter == 0) && (innerArrayCounter == 0)
-                        && string_of_array.length() > i + 1
-                        && string_of_array[i + 1] == '"') {
-                        isWordFinished = true;
-                        i++;
-                    }
+//                    if(isQuotes
+//                        && (innerJsonCounter == 0) && (innerArrayCounter == 0)
+//                        && string_of_array.length() > i + 1
+//                        && string_of_array[i + 1] == '"') {
+//                        isWordFinished = true;
+//                        i++;
+//                    }
 
-                    if(current != '"') //FIXME: строковый косяк
-                        value_string += current;
+                    value_string += current;
                     break;
                 }
                 default: break;
@@ -413,8 +404,7 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
                 if(!isWordFinished
                     && !isQuotes
                     && (innerJsonCounter == 0) && (innerArrayCounter == 0)) {
-                    if((string_of_array.length() > i + 1)
-                        && utils::CharsInString(string_of_array[i + 1], __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : "")))
+                    if(utils::CharsInString(next, __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : "")))
                         isWordFinished = true;
                 }
 
@@ -859,12 +849,13 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
     } value_format = VALUE_NOPE;
 
     for(size_t i = 0; (i < string_of_json.length()) && (state != JSON_FINISH); i++) {
+        char previous = (i - 1 >= 0) ? string_of_json[i - 1] : 0;
         char current = string_of_json[i];
+        char next = (i + 1 < string_of_json.length()) ? string_of_json[i + 1] : 0;
         symbol_counter++; //TODO: проверить точность
 
         //поиск комментариев
         if(!isOneLineComment && !isMultiLineComment) {
-            char next = (string_of_json.length() > i + 1 ? string_of_json[i + 1] : 0);
             switch(CheckComment(current, next, i)) {
             case CommentType::eNotComment: break;
             case CommentType::eOneLineComment: {
@@ -1087,24 +1078,14 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                     break;
                 }
                 case '"': {
-                    isQuotes = !isQuotes;
+                    if(previous != '\\')
+                        isQuotes = !isQuotes;
                 }
                 default: {
                     if(value_format == ValueFormat::VALUE_NOPE) value_format = ValueFormat::VALUE_OTHER;
                     break;
                 }
                 }
-
-                //экранированные кавычки ВСЕГДА заносится в значение
-                if(current == '\\' && string_of_json.length() > i + 1) {
-                    char e_ch = utils::getEscChar(string_of_json[i + 1]);
-                    if(e_ch != 0) {
-                        value_string += '\\' + e_ch;
-                        i++;
-                        break;
-                    }
-                }
-
 
                 //поиск конца значения
                 switch(value_format) {
@@ -1125,16 +1106,15 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                 case VALUE_OTHER: {
                     if(!isQuotes && utils::CharsInString(current, __SPACES__))
                         isWordFinished = true;
-                    if(isQuotes
-                        && (innerJsonCounter == 0) && (innerArrayCounter == 0)
-                        && string_of_json.length() > i + 1
-                        && string_of_json[i + 1] == '"') {
-                        isWordFinished = true;
-                        i++;
-                    }
+//                    if(isQuotes
+//                        && (innerJsonCounter == 0) && (innerArrayCounter == 0)
+//                        && previous != '\\'
+//                        && current == '"') {
+//                        isWordFinished = true;
+//                        i++;
+//                    }
 
-                    if(current != '"')
-                        value_string += current;
+                    value_string += current;
                     break;
                 }
                 default: break;
@@ -1143,8 +1123,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                 if(!isWordFinished
                     && !isQuotes
                     && (innerJsonCounter == 0) && (innerArrayCounter == 0)) {
-                    if((string_of_json.length() > i + 1)
-                        && utils::CharsInString(string_of_json[i + 1], __SEPARATORS__ + std::string((value_format != VALUE_JSON) ? "}" : "")))
+                    if(utils::CharsInString(next, __SEPARATORS__ + std::string((value_format != VALUE_JSON) ? "}" : "")))
                         isWordFinished = true;
                 }
 
@@ -1723,15 +1702,16 @@ bool CheckString(std::string& value) {
         for(size_t i = 0; i < value.length(); i++) {
             if(ch != 0) { //начинаем запись слова
                 if(!done) {
-                    //экранирование?
-                    if(i <= value.size()) { //следующий символ существует?
-                        if(value[i] == '\\' && value[i+1] == ch) {
-                            temp += value[i];
-                            temp += value[i + 1];
+                    //экранированные кавычки ВСЕГДА заносятся в значение
+                    if(value[i] == '\\' && value.length() > i + 1) {
+                        char e_ch = utils::getEscChar(value[i + 1]);
+                        if(e_ch != 0) {
+                            temp += e_ch;
                             i++;
                             continue;
                         }
                     }
+
                     if(value[i] == '"')
                         done = true;
                     else

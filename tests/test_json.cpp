@@ -176,11 +176,10 @@ TEST(JSON, parse) {
     EXPECT_EQ(5, json.size());
 }
 
-//TODO: расширить тест - все escape символы должны быть обработаны
 TEST(JSON, parse_custom_string_elements) {
-    std::string temp_string = "\"asd\\\"asd\"";
+    std::string temp_string = "\"\\\"\\b\\f\\n\\r\\t\"";
     std::string jarray_string = "[" + temp_string + "]";
-    std::string json_string = "{ array: " + jarray_string + "\nstring:" + temp_string + "}";
+    std::string json_string = "{ string:" + temp_string + ", array:[" + temp_string + "]" + "}";
 
     Json json(json_string);
     ASSERT_EQ(2, json.size());

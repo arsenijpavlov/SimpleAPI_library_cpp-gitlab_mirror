@@ -278,6 +278,7 @@ bool checkCrc32(std::vector<uint8_t>& data) {
     }
 }
 
+//TODO: \u0000
 char getEscChar(const char ch) {
     switch(ch) {
     case '"':   return '\"';
@@ -288,12 +289,19 @@ char getEscChar(const char ch) {
     case 'r':   return '\r';
     case 't':   return '\t';
 
-//    case '\"':   return '"';
-//    case '\b':   return 'b';
-//    case '\f':   return 'f';
-//    case '\n':   return 'n';
-//    case '\r':   return 'r';
-//    case '\t':   return 't';
+    default:    return 0;
+    }
+}
+
+char getFromEscChar(const char ch) {
+    switch(ch) {
+    case '"':   return '\"';
+    case '\\':  return '\\';
+    case '\b':   return 'b';
+    case '\f':   return 'f';
+    case '\n':   return 'n';
+    case '\r':   return 'r';
+    case '\t':   return 't';
 
     default:    return 0;
     }
@@ -342,6 +350,22 @@ bool isMultiLine(const std::string &str, const size_t column_size) {
         return str.find('\n') != -1;
 
     return false;
+}
+
+std::string to_string_with_esc(const std::string &str) {
+    std::string ret;
+
+    for(size_t i = 0; i < str.length(); i++) {
+        char current    = str[i];
+
+        char c = getFromEscChar(current);
+        if(c != 0)
+            ret += {'\\', c};
+        else
+            ret += current;
+    }
+
+    return ret;
 }
 
 

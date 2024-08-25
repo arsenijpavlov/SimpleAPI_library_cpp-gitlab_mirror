@@ -113,7 +113,7 @@ public:
 
     std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
                           const ConfigFormat config_format = ConfigFormat::eJSON)
-                                                        { return "\"" + m_value + "\""; }
+                                                        { return "\"" + utils::to_string_with_esc(m_value) + "\""; }
 };
 
 class JsonElement;      //описан после соответствующего класса
@@ -687,7 +687,7 @@ enum class CommentType {
 };
 static CommentType  CheckComment(char& first, const char second, size_t& iterator);
 static ValueType    CheckValue(std::string& value);
-/*static*/ bool         CheckNumber(const std::string& value);
+static bool         CheckNumber(const std::string& value);
 static bool         CheckBool(std::string& value);
 static bool         CheckString(std::string& value);
 static bool         CheckJson(std::string& value);
