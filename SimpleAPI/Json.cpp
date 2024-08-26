@@ -1849,13 +1849,11 @@ bool CheckArray(std::string& value) {
 //удалить пробелы в начале и конце строки
 void RemoveIllegalSpaces(std::string& string) {
     if(!string.empty()) {
-        if(string.find(' ') == -1) return;
-        auto start_index = string.find_first_not_of(' ');
-
-        while(string.back() == ' ')
+        while(utils::CharsInString(string.back(), __SPACES_WITHOUT_SEPARATORS__))
             string.pop_back();
 
-        string = string.substr((start_index != -1) ? start_index : 0, string.size());
+        while(utils::CharsInString(*string.begin(), __SPACES_WITHOUT_SEPARATORS__))
+            string = string.erase(0, 1);
     }
 }
 
@@ -1873,7 +1871,6 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
     char last_symbol = ' ';
     std::vector<size_t> separators;
     separators.reserve(10);
-    bool isLastSymbol = false;
 
     for(size_t i = 0; i < comment_string.length(); i++) {
         char ch = comment_string[i];
@@ -1881,9 +1878,6 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
         //игнор "двойного" пробела
         if(last_symbol == ' ' && ch == ' ')
             continue;
-
-        if(i == comment_string.length() - 1)
-            isLastSymbol = true;
 
         //если встретили разделитель
         if(utils::CharsInString(ch, __COMMENT_SEPARATOR_SYMBOLS__))
@@ -1906,7 +1900,7 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
         }
 
         if((utils::getStringSize(current_string) >= column_size)
-            && (utils::CharsInString(ch, __COMMENT_SEPARATOR_SYMBOLS__) || isLastSymbol)
+            && (utils::CharsInString(ch, __COMMENT_SEPARATOR_SYMBOLS__) || (i == comment_string.length() - 1))
             ) {
             //удалить пробелы в начале и конце строки
             RemoveIllegalSpaces(current_string);
@@ -1933,8 +1927,6 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
                 } else {
                     ret += current_string;
                     current_string = "";
-                    if(!isLastSymbol)
-                        ret += "\n";
                     separators.clear();
                 }
             }
@@ -1944,12 +1936,11 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
     if(!current_string.empty())
         ret += prefix + current_string;
 
-    ret = "/*"
+    ret = utils::RepeatSymToStr('\t', tabulation_level) + "/*"
           + (border_symbol != 0 ? utils::RepeatSymToStr(border_symbol, column_size) : "")
           + "\n" + ret;
-    ret += "\n"
-           + (border_symbol != 0 ? utils::RepeatSymToStr(border_symbol, column_size) : "")
-           + "*/";
+    ret += (border_symbol != 0 ? utils::RepeatSymToStr(border_symbol, column_size) : "")
+           + utils::RepeatSymToStr('\t', tabulation_level) + "*/";
 
 
     return ret;
@@ -2010,6 +2001,8 @@ std::string FromComment(const std::string &comment_string, uint8_t &column_size,
             current_string += ch;
         }
     }
+
+    RemoveIllegalSpaces(current_string);
     if(!isBorderLine && !current_string.empty())
         ret += current_string;
 
