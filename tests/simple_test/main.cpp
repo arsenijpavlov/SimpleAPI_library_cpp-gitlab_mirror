@@ -41,17 +41,28 @@ int main() {
     char sym = 0;
     std::string result = test_1;
 
-    result = ToComment(result, 1, size, sym);
-    std::cout << result << std::endl;
-    std::cout << "-=--=--=--=--=--=--=--=--=--=--=--=--=-" << std::endl;
-    result.pop_back();
-    result.pop_back();
-    result.erase(0, 3);
-    result = FromComment(result, size, sym);
-    std::cout << result << std::endl;
-    std::cout << "-=--=--=--=--=--=--=--=--=--=--=--=--=-" << std::endl;
-    result = ToComment(result, 1, size, sym);
-    std::cout << result << std::endl;
+//    result = ToComment(result, 1, size, sym);
+//    std::cout << result << std::endl;
+//    std::cout << "-=--=--=--=--=--=--=--=--=--=--=--=--=-" << std::endl;
+//    result.pop_back();
+//    result.pop_back();
+//    result.erase(0, 3);
+//    result = FromComment(result, size, sym);
+//    std::cout << result << std::endl;
+//    std::cout << "-=--=--=--=--=--=--=--=--=--=--=--=--=-" << std::endl;
+//    result = ToComment(result, 1, size, sym);
+//    std::cout << result << std::endl;
+
+    std::array<std::string, 3> index_1({"aa", "1", "a"});
+    for(size_t i = 0; i < index_1.size(); i++) {
+        std::cout << "index_1: " << index_1[i] << std::endl;
+    }
+
+    std::array<std::string, 2> index_2;
+    std::copy(index_1.begin() + 1, index_1.end(), index_2.begin());
+    for(size_t i = 0; i < index_2.size(); i++) {
+        std::cout << "index_2: " << index_2[i] << std::endl;
+    }
 
     return 0;
 }

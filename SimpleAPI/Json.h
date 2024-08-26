@@ -256,7 +256,7 @@ public:
                             Element& el = (*this)[index];
 
                             std::array<std::string, SIZE-1> new_complex_key;
-                            std::copy(complex_key.begin() + 1, complex_key.end(), new_complex_key);
+                            std::copy(complex_key.begin() + 1, complex_key.end(), new_complex_key.begin());
 
                             switch(el.first) {
                             case eJson:     return (*this)[index].getJson()[new_complex_key];
@@ -465,7 +465,7 @@ public:
                             Element& el = (*this)[key];
 
                             std::array<std::string, SIZE-1> new_complex_key;
-                            std::copy(complex_key.begin() + 1, complex_key.end(), new_complex_key);
+                            std::copy(complex_key.begin() + 1, complex_key.end(), new_complex_key.begin());
                             switch(el.first) {
                             case eJson:     return (*this)[key].getJson()[new_complex_key];
                             case eArray:    return (*this)[key].getArray()[new_complex_key];
@@ -488,7 +488,7 @@ public:
                             Element& el = (*this)[index];
 
                             std::array<std::string, SIZE-1> new_complex_key;
-                            std::copy(complex_key.begin() + 1, complex_key.end(), new_complex_key);
+                            std::copy(complex_key.begin() + 1, complex_key.end(), new_complex_key.begin());
                             switch(el.first) {
                             case eJson:     return (*this)[index].getJson()[new_complex_key];
                             case eArray:    return (*this)[index].getArray()[new_complex_key];
