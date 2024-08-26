@@ -1939,7 +1939,7 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
     ret = utils::RepeatSymToStr('\t', tabulation_level) + "/*"
           + (border_symbol != 0 ? utils::RepeatSymToStr(border_symbol, column_size) : "")
           + "\n" + ret;
-    ret += (border_symbol != 0 ? utils::RepeatSymToStr(border_symbol, column_size) : "")
+    ret += (ret.back() == '\n' ? "" : "\n") + (border_symbol != 0 ? utils::RepeatSymToStr(border_symbol, column_size) : "")
            + utils::RepeatSymToStr('\t', tabulation_level) + "*/";
 
 

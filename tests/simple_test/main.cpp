@@ -31,25 +31,27 @@ std::string json_string_example = "{"                               //ПРИМЕ
                                   "}";
 
 int main() {
+    system("tabs 4");
 
     std::string test_1 = "часть коммента №1\n"
                          "часть коммента №2\n"
                          "часть коммента №3\n";
-    uint8_t size = 0;
+    std::string test_2 = "/*" + test_1 + "/";
+    uint8_t size = 20;
     char sym = 0;
-    std::string result;
+    std::string result = test_1;
 
-//    result = ToComment(result, 1, size, sym);
-//    std::cout << result << std::endl;
-//    std::cout << "-=--=--=--=--=--=--=--=--=--=--=--=--=-" << std::endl;
-//    result.pop_back();
-//    result.pop_back();
-//    result.erase(0, 2);
-//    result = FromComment(result, size, sym);
-//    std::cout << result << std::endl;
-//    std::cout << "-=--=--=--=--=--=--=--=--=--=--=--=--=-" << std::endl;
-//    result = ToComment(result, 1, size, sym);
-//    std::cout << result << std::endl;
+    result = ToComment(result, 1, size, sym);
+    std::cout << result << std::endl;
+    std::cout << "-=--=--=--=--=--=--=--=--=--=--=--=--=-" << std::endl;
+    result.pop_back();
+    result.pop_back();
+    result.erase(0, 3);
+    result = FromComment(result, size, sym);
+    std::cout << result << std::endl;
+    std::cout << "-=--=--=--=--=--=--=--=--=--=--=--=--=-" << std::endl;
+    result = ToComment(result, 1, size, sym);
+    std::cout << result << std::endl;
 
     return 0;
 }
