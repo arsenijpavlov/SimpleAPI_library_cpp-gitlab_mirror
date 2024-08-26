@@ -236,36 +236,10 @@ public:
                 template<std::size_t SIZE>
     Element&    operator[](const std::array<std::string, SIZE>& complex_key)
                 {
-                    if(m_values.empty())
-                        __ARRAY_EMPTY_EXCEPTION__
-
-                    if(complex_key.size() == 0)
-                        throw std::invalid_argument("complex_key argument cannot be empty");
-
-                    size_t index;
-                    try {
-                        index = std::stoi(complex_key[0]);
-                    } catch(...) {
-                        __ARRAY_INCORRECT_INDEX_EXCEPTION__
-                    }
-
-                    if(index < size()) { //если индекс внутри допустимого диапазона
-                        if(complex_key.size() == 1)
-                            return (*this)[index];
-                        else {
-                            Element& el = (*this)[index];
-
-                            std::array<std::string, SIZE-1> new_complex_key;
-                            std::copy(complex_key.begin() + 1, complex_key.end(), new_complex_key.begin());
-
-                            switch(el.first) {
-                            case eJson:     return (*this)[index].getJson()[new_complex_key];
-                            case eArray:    return (*this)[index].getArray()[new_complex_key];
-                            default: __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__
-                            }
-                        }
-                    } else
-                        __ARRAY_INCORRECT_INDEX_EXCEPTION__
+                    std::vector<std::string> complex_key_vec;
+                    complex_key_vec.reserve(SIZE);
+                    std::copy(complex_key.begin(), complex_key.end(), complex_key_vec.begin());
+                    return (*this)[complex_key_vec];
                 }
 
     Element&    getValue(const size_t index)        { return (*this)[index]; }
@@ -451,52 +425,10 @@ public:
                 template<std::size_t SIZE>
     Element&    operator[](const std::array<std::string, SIZE>& complex_key)
                 {
-                    if(m_values.empty())
-                        __JSON_EMPTY_EXCEPTION__
-
-                    if(complex_key.size() == 0)
-                        throw std::invalid_argument("complex_key argument cannot be empty");
-
-                    if(contains(complex_key[0])) { //если ключ с таким именем существует
-                        if(complex_key.size() == 1)
-                            return (*this)[complex_key[0]];
-                        else {
-                            std::string key = complex_key[0];
-                            Element& el = (*this)[key];
-
-                            std::array<std::string, SIZE-1> new_complex_key;
-                            std::copy(complex_key.begin() + 1, complex_key.end(), new_complex_key.begin());
-                            switch(el.first) {
-                            case eJson:     return (*this)[key].getJson()[new_complex_key];
-                            case eArray:    return (*this)[key].getArray()[new_complex_key];
-                            default: __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__
-                            }
-                        }
-                    }
-
-                    size_t index;
-                    try{
-                        index = std::stoi(complex_key[0]);
-                    } catch(...) {
-                        __JSON_KEY_NOT_FOUND_EXCEPTION__
-                    }
-
-                    if(index < size()) { //если индекс внутри допустимого диапазона
-                        if(complex_key.size() == 1)
-                            return (*this)[index];
-                        else {
-                            Element& el = (*this)[index];
-
-                            std::array<std::string, SIZE-1> new_complex_key;
-                            std::copy(complex_key.begin() + 1, complex_key.end(), new_complex_key.begin());
-                            switch(el.first) {
-                            case eJson:     return (*this)[index].getJson()[new_complex_key];
-                            case eArray:    return (*this)[index].getArray()[new_complex_key];
-                            default: __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__
-                            }
-                        }
-                    } else
-                        __JSON_KEY_NOT_FOUND_EXCEPTION__
+                    std::vector<std::string> complex_key_vec;
+                    complex_key_vec.reserve(SIZE);
+                    std::copy(complex_key.begin(), complex_key.end(), complex_key_vec.begin());
+                    return (*this)[complex_key_vec];
                 }
     Element&    getValue(const size_t index)                    { return (*this)[index]; }
     Element&    getValue(const std::string& key)                { return (*this)[key]; }
