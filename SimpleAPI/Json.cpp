@@ -1411,7 +1411,10 @@ std::string Json::to_JSON_string(int16_t tabulation_level, const bool enable_com
                 && enable_comment
                 && !comment_it->second.after.empty()
                 ) {
-                ret += " " + ToComment(comment_it->second.after);
+                if(comment_it->second.after.find('\n') == -1)
+                    ret += " " + ToComment(comment_it->second.after);
+                else
+                    ret += " " + ToComment(comment_it->second.after, tabulation_level, m_comment_column_size, m_comment_sym);
             }
             //===========================================================================
 
@@ -1899,7 +1902,8 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
             separators.clear();
         }
 
-        if((utils::getStringSize(current_string) >= column_size)
+        if((column_size != 0
+            && utils::getStringSize(current_string) >= column_size)
             && (utils::CharsInString(ch, __COMMENT_SEPARATOR_SYMBOLS__) || (i == comment_string.length() - 1))
             ) {
             //удалить пробелы в начале и конце строки
@@ -1952,7 +1956,8 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
     }
     ret += result;
     if(isMulti) {
-        ret += (ret.back() == '\n' ? "" : "\n") + (border_symbol != 0 ? utils::RepeatSymToStr(border_symbol, column_size) : "")
+        ret += (ret.back() == '\n' ? "" : "\n")
+               + (border_symbol != 0 ? utils::RepeatSymToStr(border_symbol, column_size) : "")
                + utils::RepeatSymToStr('\t', tabulation_level) + "*/";
     }
 
