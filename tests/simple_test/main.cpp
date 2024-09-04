@@ -37,6 +37,7 @@ int main() {
                          "часть коммента №2\n"
                          "часть коммента №3\n";
     std::string test_2 = "/*" + test_1 + "/";
+    std::string test_3 = "часть коммента №1";
     uint8_t size = 20;
     char sym = 0;
     std::string result = test_1;
@@ -53,11 +54,18 @@ int main() {
 //    result = ToComment(result, 1, size, sym);
 //    std::cout << result << std::endl;
 
+//    result = "some many words2...";
+//    std::cout << result << std::endl;
+//    std::cout << "-=--=--=--=--=--=--=--=--=--=--=--=--=-" << std::endl;
+//    result = ToComment(result, 1, size, sym);
+//    std::cout << result << std::endl;
+//    std::cout << "-=--=--=--=--=--=--=--=--=--=--=--=--=-" << std::endl;
+
     Json json(json_string_example);
 
     json.setCommentColumnSize(20);
     json.setCommentSymbol('#');
-    json.addPreviewComment("1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...");
+    json.addPreviewComment("очень даже невероятно такие большие комментарии");
     json.addComment_before("bool", "some \nwords...");
     json.addComment_before("string", "some many words1...");
     json.addComment_after("array", "some many words2...");
@@ -65,7 +73,7 @@ int main() {
     json["json"].getJson().addComment_before(0, "json element\n comment");
     json["array"].getArray().addComment_before(0, "array element\n comment_");
 
-    json.erase("number");
+//    json.erase("number");
     std::cout << json.to_string(0, true, json.getCommentColumnSize()) << std::endl;
 
     return 0;
