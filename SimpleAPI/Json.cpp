@@ -172,6 +172,8 @@ void JArray::parseArray(const std::string &string_of_array, const bool enable_co
 void JArray::parseJSON_array(const std::string &string_of_array, const bool enable_comment) {
     clear();
 
+    if(string_of_array.empty()) return;
+
     bool isOneLineComment   = false;
     bool isMultiLineComment = false;
     char firstMLCSym, secondMLCSym;
@@ -217,7 +219,7 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
         symbol_counter++; //TODO: проверить точность
 
         //поиск комментариев
-        if(!isOneLineComment && !isMultiLineComment) {
+        if(!isOneLineComment && !isMultiLineComment && !isQuotes) {
             switch(CheckComment(current, next, i)) {
             case CommentType::eNotComment: break;
             case CommentType::eOneLineComment: {
@@ -804,6 +806,8 @@ Json &Json::put(const Json &json, const bool rewrite) {
 void Json::parseJSON(const std::string &string_of_json, const bool enable_comment) {
     clear();
 
+    if(string_of_json.empty()) return;
+
     bool isOneLineComment   = false;
     bool isMultiLineComment = false;
     char firstMLCSym, secondMLCSym;
@@ -855,7 +859,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
         symbol_counter++; //TODO: проверить точность
 
         //поиск комментариев
-        if(!isOneLineComment && !isMultiLineComment) {
+        if(!isOneLineComment && !isMultiLineComment && !isQuotes) {
             switch(CheckComment(current, next, i)) {
             case CommentType::eNotComment: break;
             case CommentType::eOneLineComment: {

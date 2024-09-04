@@ -176,6 +176,22 @@ TEST(JSON, parse) {
     EXPECT_EQ(5, json.size());
 }
 
+TEST(JSON, parse2) {
+    std::string string_json = R"({"get":["chip_key"]})";
+    Json json;
+    json.parseJSON(string_json);
+
+    EXPECT_EQ(1, json.size());
+}
+
+TEST(JSON, parse3) {
+    std::string string_json = R"({"Hello":"WORLD!"})";
+    Json json;
+    json.parseJSON(string_json);
+
+    EXPECT_EQ(1, json.size());
+}
+
 TEST(JSON, parse_custom_string_elements) {
     std::string temp_string = "\"\\\"\\b\\f\\n\\r\\t\"";
     std::string jarray_string = "[" + temp_string + "]";
