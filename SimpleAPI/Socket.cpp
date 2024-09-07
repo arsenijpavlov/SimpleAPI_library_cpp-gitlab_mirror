@@ -539,7 +539,6 @@ void UDPSocket::sendFragments(const IpPort &remote_ip_port, const PacketType typ
         for(PacketMessage& p : fragments)
             m_send_packets_buffer.push_back(p);
     }
-    m_output_threads_mutex.unlock();
     //дальнейшая обработка пакета происходит в функции tick()
 
     PacketMessage pm;
@@ -567,6 +566,7 @@ void UDPSocket::sendFragments(const IpPort &remote_ip_port, const PacketType typ
 //                                     : "Json:" + jm.json.to_string(-1))
 //                + "] " + appendString));
     }
+    m_output_threads_mutex.unlock();
 }
 
 void UDPSocket::tick() {
@@ -667,6 +667,7 @@ void UDPSocket::checkConnections()
 
             //перепосылка недоставленных глобальных пакетов ==================================
             log(logs::eDEBUG3, "checkConnections(), prepare to resend global packets");
+            m_output_threads_mutex.lock();
             for(auto it_global_packet = m_sent_global_packets.begin();
                  it_global_packet != m_sent_global_packets.end(); it_global_packet++
                  ) {
@@ -680,6 +681,7 @@ void UDPSocket::checkConnections()
                     if(it_global_packet == m_sent_global_packets.end()) break;
                 }
             }
+            m_output_threads_mutex.unlock();
 
             //если дошли до конца диапазона
             if(it == m_map_connections.end()) break;
@@ -703,9 +705,9 @@ void UDPSocket::sendAutoMsg() {
     log(logs::eDEBUG2, "sendAutoMsg()");
 
     int counter = 0; //общий счётчик за проход функции
-//    m_output_threads_mutex.lock();    //TODO: проверить все места с этим мьютексом
 
     //перепосылка недоставленных пакетов =============================================
+    m_output_threads_mutex.lock();
     for(auto it = m_map_auto_sent_packets.begin();
          it != m_map_auto_sent_packets.end() && ((counter < m_settings.getMaxMsgsSentOnTick())
                                                   || (m_settings.getMaxMsgsSentOnTick() < 0));
@@ -722,9 +724,11 @@ void UDPSocket::sendAutoMsg() {
             if(it == m_map_auto_sent_packets.end()) break;
         }
     }
+    m_output_threads_mutex.unlock();
     //================================================================================
 
     //отправка шифрованных пакетов если есть ключ=====================================
+    m_output_threads_chip_mutex.lock();
     for(auto it = m_packets_wait_chip_key.begin();
          it != m_packets_wait_chip_key.end();
          it++
@@ -735,7 +739,7 @@ void UDPSocket::sendAutoMsg() {
             && !connection_it->second.m_chip_key.key.empty()
             ) {
             log(logs::eDEBUG, "send chiphering message...");
-            sendFragments(it->ipPort, eDataType, it->packet);
+            sendFragments(it->ipPort, eDataType, it->packet);   //внутри используется мьютекс
 //            log(logs::eDEBUG, "chiphering message sent.");      //TEST
 
             //запоминание отправленных шифрованных пакетов
@@ -746,9 +750,11 @@ void UDPSocket::sendAutoMsg() {
 
         if(it == m_packets_wait_chip_key.end()) break;
     }
+    m_output_threads_chip_mutex.unlock();
     //================================================================================
 
     //постепенная отправка пакетов в сокет ===========================================
+    m_output_threads_mutex.lock();
     while(!m_send_packets_buffer.empty()
            && ((counter < m_settings.getMaxMsgsSentOnTick()) || (m_settings.getMaxMsgsSentOnTick() < 0))
            ) {
@@ -772,9 +778,9 @@ void UDPSocket::sendAutoMsg() {
 
         counter++;
     }
+    m_output_threads_mutex.unlock();
     //================================================================================
 
-//    m_output_threads_mutex.unlock();
 }
 
 Json UDPSocket::recvAutoMsg(int timeout) {
@@ -850,6 +856,7 @@ Json UDPSocket::processingBuiltPacket(const PacketMessage &pm) {
             if(jm.json.contains("ack_all_packet")) {
                 uint8_t first_sn = jm.json["ack_all_packet"].getNum(); //номер первого фрагмента сообщения
 
+                m_output_threads_mutex.lock();
                 for(auto it = m_sent_global_packets.begin(); it != m_sent_global_packets.end(); it++) {
                     if(it->range.start.get() == first_sn) {
                         PacketMessage tempPM;
@@ -871,6 +878,7 @@ Json UDPSocket::processingBuiltPacket(const PacketMessage &pm) {
                         break;
                     }
                 }
+                m_output_threads_mutex.unlock();
             }
             if(jm.json.contains("packet_error_last_sn")) {
                 uint8_t last_err_sn = jm.json["packet_error_last_sn"].getNum(); //номер первого фрагмента сообщения
@@ -887,6 +895,7 @@ Json UDPSocket::processingBuiltPacket(const PacketMessage &pm) {
                 Packet packet;
                 IpPort ipPort;
                 PacketType type;
+                m_output_threads_mutex.lock();
                 for(auto it = m_sent_global_packets.begin(); it != m_sent_global_packets.end(); it++) {
                     if(it->range.finish.get() == last_err_sn) {
                         packet  = it->packet;
@@ -896,6 +905,7 @@ Json UDPSocket::processingBuiltPacket(const PacketMessage &pm) {
                         break;
                     }
                 }
+                m_output_threads_mutex.unlock();
 
                 if(!packet.empty() && type != eControlType) {
                     log(logs::eDEBUG, "New try to send packet fragment " + to_string(type)
@@ -1089,6 +1099,7 @@ bool UDPSocket::isConnected(const IpPort &remote_ip_port)
     else                                return false;
 }
 
+//TODO: UDPSocket::sendMsg(), одинаковые функции надо совместить по поведению!
 void UDPSocket::sendMsg(const IpPort& remote_ip_port, const Packet& packet) {    
     if(!checkCorrectIp(remote_ip_port.ip))
         throw std::invalid_argument("incorrect destination IP");
@@ -1104,16 +1115,17 @@ void UDPSocket::sendMsg(const IpPort& remote_ip_port, const Packet& packet) {
         sendFragments(remote_ip_port, eControlType, convert_to_packet(jRequest.to_string(-1)));
 
         //положить текущее сообщение в очередь шифрованных сообщений на отправку
-        m_output_threads_mutex.lock();
+        m_output_threads_chip_mutex.lock();
         PacketMessage pm;
         pm.packet = std::move(packet);
         pm.ipPort = std::move(remote_ip_port);
         m_packets_wait_chip_key.push_back(pm);
-        m_output_threads_mutex.unlock();
+        m_output_threads_chip_mutex.unlock();
         //продолжение алогоритма в sendAutoMsg...
     }
 }
 
+//TODO: UDPSocket::sendMsg(), одинаковые функции надо совместить по поведению!
 void UDPSocket::sendMsg(const IpPort& remote_ip_port, const Json& json) {
     if(!checkCorrectIp(remote_ip_port.ip))
         throw std::invalid_argument("incorrect destination IP");
@@ -1130,12 +1142,12 @@ void UDPSocket::sendMsg(const IpPort& remote_ip_port, const Json& json) {
         sendFragments(remote_ip_port, eControlType, convert_to_packet(jRequest.to_string(-1)));
 
         //положить текущее сообщение в очередь шифрованных сообщений на отправку
-        m_output_threads_mutex.lock();
+        m_output_threads_chip_mutex.lock();
         PacketMessage pm;
         pm.packet = std::move(convert_to_packet(json.to_string(-1)));
         pm.ipPort = std::move(remote_ip_port);
         m_packets_wait_chip_key.push_back(pm);
-        m_output_threads_mutex.unlock();
+        m_output_threads_chip_mutex.unlock();
         //продолжение алогоритма в sendAutoMsg...
     }
 }

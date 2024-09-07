@@ -80,6 +80,8 @@ protected:
     std::mutex                  m_output_threads_mutex;
     std::deque<PacketMessage>   m_send_packets_buffer;  //sendFragments(), sendAutoMsg()
     std::vector<PacketMessage>  m_sent_global_packets;  //запоминаем до тех пор, пока не придёт подтверждение о передаче всех фрагментов
+
+    std::mutex                  m_output_threads_chip_mutex;
     std::vector<PacketMessage>  m_packets_wait_chip_key;//запоминаем до тех пор, пока не придёт ключ для шифрования сообщения
 
     std::mutex                  m_input_threads_mutex;
