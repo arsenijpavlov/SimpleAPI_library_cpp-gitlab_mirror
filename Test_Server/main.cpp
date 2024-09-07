@@ -40,7 +40,7 @@ void RecvJson(JsonMessage jm) {
     if(!isBigPacketSent) {
         isNeedAck = true;
         jsonAck.clear();
-        jsonAck.put("Chapter #1", "Some test text... Some test text... Some test text... Some test text... Some test text...");
+        jsonAck.put("Chapter #1", "SERVER: Some test text... Some test text... Some test text... Some test text... Some test text...");
         ipPortAck = jm.ipPort;
 
         isBigPacketSent = true;

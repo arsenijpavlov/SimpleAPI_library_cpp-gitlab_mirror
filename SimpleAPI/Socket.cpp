@@ -690,8 +690,9 @@ void UDPSocket::checkConnections()
     //перепосылка недоставленных глобальных пакетов ==================================
     log(logs::eDEBUG3, "checkConnections(), send found prepared packets");
     for(const prepPacket& current : packetsForSend) {
-        if(!current.packet.empty()) {
-            log(logs::eDEBUG, "New try to send packet [0x" + utils::to_hex_string(current.packet) + "]");
+        if(!current.packet.empty() && current.type != eControlType) {
+            log(logs::eDEBUG, "New try to send global packet " + to_string(current.type)
+                                  + " [0x" + utils::to_hex_string(current.packet) + "]");
             sendFragments(current.ipPort, current.type, current.packet); //переотправка
         }
     }
@@ -702,7 +703,7 @@ void UDPSocket::sendAutoMsg() {
     log(logs::eDEBUG2, "sendAutoMsg()");
 
     int counter = 0; //общий счётчик за проход функции
-    m_output_threads_mutex.lock();
+//    m_output_threads_mutex.lock();    //TODO: проверить все места с этим мьютексом
 
     //перепосылка недоставленных пакетов =============================================
     for(auto it = m_map_auto_sent_packets.begin();
@@ -735,6 +736,8 @@ void UDPSocket::sendAutoMsg() {
             ) {
             log(logs::eDEBUG, "send chiphering message...");
             sendFragments(it->ipPort, eDataType, it->packet);
+//            log(logs::eDEBUG, "chiphering message sent.");      //TEST
+
             //запоминание отправленных шифрованных пакетов
 
             //удаление текущего пакета из списка
@@ -771,7 +774,7 @@ void UDPSocket::sendAutoMsg() {
     }
     //================================================================================
 
-    m_output_threads_mutex.unlock();
+//    m_output_threads_mutex.unlock();
 }
 
 Json UDPSocket::recvAutoMsg(int timeout) {
@@ -894,8 +897,9 @@ Json UDPSocket::processingBuiltPacket(const PacketMessage &pm) {
                     }
                 }
 
-                if(!packet.empty()) {
-                    log(logs::eDEBUG, "New try to send packet [0x" + utils::to_hex_string(packet) + "]");
+                if(!packet.empty() && type != eControlType) {
+                    log(logs::eDEBUG, "New try to send packet fragment " + to_string(type)
+                                          + " [0x" + utils::to_hex_string(packet) + "]");
                     sendFragments(ipPort, type, packet); //переотправка
                 }
             }
@@ -906,10 +910,10 @@ Json UDPSocket::processingBuiltPacket(const PacketMessage &pm) {
                     switch(it_req.first) {
                     case eString: {
                         if(it_req.getString() == "chip_key") {
+                            log(logs::eDEBUG, "append chiphering key");
                             Json jChipKey;
                             jChipKey.put("key", "abcdefgjiklmnopqrstuvwxyz0123456789");
-                            sendFragments(pm.ipPort, eControlType,
-                                          convert_to_packet(jChipKey.to_string(-1)));
+                            sendFragments(pm.ipPort, eControlType, convert_to_packet(jChipKey.to_string(-1)));
                         }
                         break;
                     }
