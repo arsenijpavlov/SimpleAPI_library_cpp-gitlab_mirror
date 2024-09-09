@@ -1099,7 +1099,6 @@ bool UDPSocket::isConnected(const IpPort &remote_ip_port)
     else                                return false;
 }
 
-//TODO: UDPSocket::sendMsg(), одинаковые функции надо совместить по поведению!
 void UDPSocket::sendMsg(const IpPort& remote_ip_port, const Packet& packet) {    
     if(!checkCorrectIp(remote_ip_port.ip))
         throw std::invalid_argument("incorrect destination IP");
@@ -1127,29 +1126,7 @@ void UDPSocket::sendMsg(const IpPort& remote_ip_port, const Packet& packet) {
 
 //TODO: UDPSocket::sendMsg(), одинаковые функции надо совместить по поведению!
 void UDPSocket::sendMsg(const IpPort& remote_ip_port, const Json& json) {
-    if(!checkCorrectIp(remote_ip_port.ip))
-        throw std::invalid_argument("incorrect destination IP");
-
-    if(!m_settings.isChipheringEnabled())
-        //отправит Json в текстовом формате без пробелов
-        sendFragments(remote_ip_port, eDataType, convert_to_packet(json.to_string(-1)));
-    else {
-        //создать подключение
-        auto connection_it = findOrCreateConnection(remote_ip_port);
-
-        //отправить запрос ключа
-        Json jRequest("get", JArray("chip_key"));
-        sendFragments(remote_ip_port, eControlType, convert_to_packet(jRequest.to_string(-1)));
-
-        //положить текущее сообщение в очередь шифрованных сообщений на отправку
-        m_output_threads_chip_mutex.lock();
-        PacketMessage pm;
-        pm.packet = std::move(convert_to_packet(json.to_string(-1)));
-        pm.ipPort = std::move(remote_ip_port);
-        m_packets_wait_chip_key.push_back(pm);
-        m_output_threads_chip_mutex.unlock();
-        //продолжение алогоритма в sendAutoMsg...
-    }
+    sendMsg(remote_ip_port, convert_to_packet(json.to_string(-1)));
 }
 
 PacketMessage UDPSocket::getOutPacket()
