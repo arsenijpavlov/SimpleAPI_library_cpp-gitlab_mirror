@@ -22,7 +22,7 @@ void RemoveComments(std::string& str, bool& startComment, char& quote,
     bool isOneLineComment = false;
     bool isMultiLineComment = startComment;
     for(size_t i = 0; i < str.length(); i++) {
-        char previous = (i - 1 >= 0) ? str[i - 1] : 0; //TODO: добавить в логику проверки строк
+        char previous = (i - 1 >= 0) ? str[i - 1] : 0;
         char current = str[i];
         char next = (str.length() > i + 1 ? str[i + 1] : 0);
 

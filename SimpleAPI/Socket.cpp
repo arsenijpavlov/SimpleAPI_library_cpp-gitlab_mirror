@@ -790,7 +790,9 @@ Json UDPSocket::recvAutoMsg(int timeout) {
     if(pm.packet.empty()) return {};
 
     pm.header = unpackHeader(pm.packet[0]);
-    uint8_t glob_sn = pm.packet[1]; //TODO: нужна защита от некорректного размера чтения!
+
+    if(pm.packet.size() < 3) return {};
+    uint8_t glob_sn = pm.packet[1];
     uint8_t sn      = pm.packet[2];
     pm.sn = EECounter(255);
     pm.sn.set_glob_pos(glob_sn);
@@ -808,6 +810,7 @@ Json UDPSocket::recvAutoMsg(int timeout) {
             + ", data:[0x"
             + utils::to_hex_string(pm.packet) + "] " + pm.ipPort.to_string("from"));
 
+    if(pm.packet.empty()) return {};
     Json outputJson;
     auto it = m_map_connections.find(pm.ipPort);
     if(it == m_map_connections.end() && pm.header.type == eControlType) {
@@ -1124,7 +1127,6 @@ void UDPSocket::sendMsg(const IpPort& remote_ip_port, const Packet& packet) {
     }
 }
 
-//TODO: UDPSocket::sendMsg(), одинаковые функции надо совместить по поведению!
 void UDPSocket::sendMsg(const IpPort& remote_ip_port, const Json& json) {
     sendMsg(remote_ip_port, convert_to_packet(json.to_string(-1)));
 }
