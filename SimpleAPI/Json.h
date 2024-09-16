@@ -341,12 +341,13 @@ class Json {
 
     Comment     m_preview_comment;
 public:
-                Json()                                          {}
+                Json() : m_comment_sym(0)                       {}
                 Json(const Json& json);
-                Json(const JPair& pair)                         { put(pair.first, pair.second); }
+                Json(const JPair& pair) : m_comment_sym(0)      { put(pair.first, pair.second); }
                 Json(const std::string& input_string, ConfigFormat config_format = ConfigFormat::eJSON);
                 __ONLY_ALLOWED_TYPES__(T)
-                Json(const std::string& key, const T& value)    { put(key, value); }
+                Json(const std::string& key, const T& value) : m_comment_sym(0)
+                                                                { put(key, value); }
                 Json(const JVector& vec);
                 ~Json()                                         {}
 

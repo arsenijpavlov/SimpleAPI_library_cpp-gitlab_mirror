@@ -750,12 +750,12 @@ JArray &JArray::erase(const size_t index) {
 // *
 // *
 // Json ========================================================================================
-Json::Json(const Json& other) {
+Json::Json(const Json& other) : m_comment_sym(0) {
     for(const JPair &el : other.m_values)
         m_values.push_back(std::make_pair(el.first, Element(el.second)));
 }
 
-Json::Json(const std::string &input_string, ConfigFormat config_format) {
+Json::Json(const std::string &input_string, ConfigFormat config_format) : m_comment_sym(0) {
     switch (config_format) {
     case ConfigFormat::eJSON:
         parseJSON(input_string);
@@ -769,13 +769,14 @@ Json::Json(const std::string &input_string, ConfigFormat config_format) {
     }
 }
 
-Json::Json(const JVector &vec) {
+Json::Json(const JVector &vec) : m_comment_sym(0) {
     for(JVector::const_iterator j_it = vec.begin(); j_it != vec.end(); j_it++)
         put(j_it->first, j_it->second);
 }
 
 Json &Json::operator=(const Json &other) {
     this->clear();
+    this->m_comment_sym = other.m_comment_sym;
     for(const JPair &el : other.m_values)
         m_values.push_back(std::make_pair(el.first, Element(el.second)));
 

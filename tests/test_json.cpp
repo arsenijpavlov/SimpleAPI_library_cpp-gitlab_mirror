@@ -290,33 +290,39 @@ TEST(JSON, read_file) {
 }
 
 //TODO: JSON, read_file_comment
-//TEST(JSON, read_file_comment) {
-//    Json json(json_string_example);
-//    json.setCommentColumnSize(20);
+TEST(JSON, read_file_comment) {
+    Json json(json_string_example);
+    json.setCommentColumnSize(20);
 
-//    std::string preview_comment = "1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...";
-//    json.addPreviewComment(preview_comment);
-//    std::string comment = "some words...";
-//    json.addComment("bool", comment);
-////    json.addComment("string",   "some many words1...",   CommentType::eBeforeValue);
-////    json.addComment("array",    "some many words2...",   CommentType::eAfterValueOneLine);
-////    json["json"].getJson().addComment(0, "json element comment", CommentType::eBeforeValueMultiLine);
-////    json["array"].getArray().addComment(0, "array element comment_", CommentType::eBeforeValueMultiLine);
-//    std::string path = "../tests/test_writer_with_comments.json";
+    std::string preview_comment = "1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...";
+    std::string preview_comment_result = "1;losdihfg2;\n"
+                                         "slopighsd3;pogihvd4;\n"
+                                         "pfgvibhdfns5;\n"
+                                         "ipnbedf6 7;\n"
+                                         "voihnaern8 som9\n"
+                                         "word1...";
+    json.addPreviewComment(preview_comment);
+    std::string comment = "some words...";
+    json.addComment("bool", comment);
+//    json.addComment("string",   "some many words1...",   CommentType::eBeforeValue);
+//    json.addComment("array",    "some many words2...",   CommentType::eAfterValueOneLine);
+//    json["json"].getJson().addComment(0, "json element comment", CommentType::eBeforeValueMultiLine);
+//    json["array"].getArray().addComment(0, "array element comment_", CommentType::eBeforeValueMultiLine);
+    std::string path = "../tests/test_writer_with_comments.json";
 
-//    std::ofstream file(path);
-//    if (!file.is_open())
-//        FAIL();
-//    file << json.to_string(0, true, json.getCommentColumnSize()) << std::endl;
-//    file.flush();
-//    file.close();
-//    //========================================================================
-//    Json json2;
-//    json2.readFile(path/*, ConfigType::eJson*/); //по умолчанию считывается JSON формат
+    std::ofstream file(path);
+    if (!file.is_open())
+        FAIL();
+    file << json.to_string(0, true, json.getCommentColumnSize()) << std::endl;
+    file.flush();
+    file.close();
+    //========================================================================
+    Json json2;
+    json2.readFile(path, true, ConfigFormat::eJSON); //по умолчанию считывается JSON формат
 
-//    EXPECT_EQ(preview_comment, json2.getPreviewComment().value);
-//    EXPECT_EQ(comment, json2.getComment("bool").value);
-//}
+    EXPECT_EQ(preview_comment_result, json2.getPreviewComment().before);
+    EXPECT_EQ(comment, json2.getComment("bool").before);
+}
 
 TEST(JSON, read_file_error) {
     //файла не существует
