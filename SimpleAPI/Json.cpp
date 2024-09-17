@@ -1015,6 +1015,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                     isWordStarted = false; //страховка
                     isWordFinished = false;
 
+//FIXME: исправить применение комментария на ПОСЛЕ получения значения и добавления его в Json
                     //работа с комментариями (перед ключом) ===============================
                     if(!currentComment.empty() && enable_comment) {
                         addComment_before(key_string, FromComment(currentComment, m_comment_column_size, m_comment_sym));
@@ -1919,8 +1920,20 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
                 result += prefix;
 
                 //если превышен максимальный размер строки
-                if(utils::getStringSize(current_string) > column_size) {
-                    std::string left = utils::SeparateString(current_string, column_size);
+                if(utils::getStringSize(current_string) > column_size && separators.size() > 0) {
+                    uint8_t separate_size;
+                    switch(separators.size()) {
+                    case 0:     separate_size = 0;              break;
+                    case 1:     separate_size = 0;              break;
+                    default:    separate_size = separators.size() - 2;
+                    }
+                    if(current_string.size() > separators[separate_size])
+                        separate_size = separators[separate_size] + 1;
+                    else
+                        separate_size = separators[separate_size];
+
+
+                    std::string left = utils::SeparateString(current_string, separate_size);
                     RemoveIllegalSpaces(left);
 
                     if(!utils::CharsInString(current_string.back(), __COMMENT_SEPARATOR_SYMBOLS__))
@@ -1934,7 +1947,7 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
                             separators.push_back(j);
                     }
                 } else {
-                    result += current_string;
+                    result += current_string + "\n";
                     current_string = "";
                     separators.clear();
                 }

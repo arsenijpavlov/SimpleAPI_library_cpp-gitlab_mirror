@@ -61,20 +61,25 @@ int main() {
 //    std::cout << result << std::endl;
 //    std::cout << "-=--=--=--=--=--=--=--=--=--=--=--=--=-" << std::endl;
 
-    Json json(json_string_example);
+//    Json json(json_string_example);
 
-    json.setCommentColumnSize(20);
-    json.setCommentSymbol('#');
-    json.addPreviewComment("очень даже невероятно такие большие комментарии");
-    json.addComment_before("bool", "some \nwords...");
-    json.addComment_before("string", "some many words1...");
-    json.addComment_after("array", "some many words2...");
+//    json.setCommentColumnSize(20);
+//    json.setCommentSymbol('#');
+//    json.addPreviewComment("очень даже невероятно такие большие комментарии");
+//    json.addComment_before("bool", "some \nwords...");
+//    json.addComment_before("string", "some many words1...");
+//    json.addComment_after("array", "some many words2...");
 
-    json["json"].getJson().addComment_before(0, "json element\n comment");
-    json["array"].getArray().addComment_before(0, "array element\n comment_");
+//    json["json"].getJson().addComment_before(0, "json element\n comment");
+//    json["array"].getArray().addComment_before(0, "array element\n comment_");
 
 //    json.erase("number");
-    std::cout << json.to_string(0, true, json.getCommentColumnSize()) << std::endl;
+//    std::cout << json.to_string(0, true, json.getCommentColumnSize()) << std::endl;
+
+    std::cout << "####################" << std::endl;
+    std::string preview_comment = "1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...";
+    result = ToComment(preview_comment, 0, size, sym);
+    std::cout << result << std::endl;
 
     return 0;
 }
