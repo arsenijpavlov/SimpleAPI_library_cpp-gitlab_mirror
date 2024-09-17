@@ -318,7 +318,19 @@ TEST(JSON, read_file_comment) {
     file.close();
     //========================================================================
     Json json2;
-    json2.readFile(path, true, ConfigFormat::eJSON); //по умолчанию считывается JSON формат
+
+//    json2.readFile(path, false, ConfigFormat::eJSON); //по умолчанию считывается JSON формат
+    std::ifstream file2(path);
+    if (!file2.is_open()) {
+        FAIL();
+    }
+
+    std::string temp_string;
+    std::string config_str;
+    while(getline(file2, temp_string))
+        config_str += temp_string + '\n';
+    file2.close();
+    json2.parseJSON(config_str, true);
 
     EXPECT_EQ(preview_comment_result, json2.getPreviewComment().before);
     EXPECT_EQ(comment, json2.getComment("bool").before);

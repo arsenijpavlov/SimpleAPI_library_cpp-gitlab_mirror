@@ -1,6 +1,7 @@
 #include <SimpleAPI.h>
 #include <iomanip>
 #include <iostream>
+#include <fstream>
 
 std::string json_string_example = "{"                               //ПРИМЕР ИЗ ТЕСТОВ
                                   //пробелы и табуляции
@@ -20,66 +21,53 @@ std::string json_string_example = "{"                               //ПРИМЕ
                                   "!.\n.!"
                                   "?.\n.?"
                                   //поля
-                                  "\"number\":182,\n"
+//                                  "\"number\":182,\n"
                                   //иной вариант разделителя '='
                                   "\"bool\"=true,\n"
                                   //перенос строки равнозначен разделителю ','
-                                  "\"string\":\"string_value\"\n"
-                                  "\"json\":{\"string\":\"inner_string_value\"},\n"
+//                                  "\"string\":\"string_value\"\n"
+//                                  "\"json\":{\"string\":\"inner_string_value\"},\n"
                                   //перенос строки равнозначен разделителю ',' (массивы)
-                                  "\"array\":[\"string_value\"\n true]\n"
+//                                  "\"array\":[\"string_value\"\n true]\n"
                                   "}";
 
 int main() {
     system("tabs 4");
 
-    std::string test_1 = "часть коммента №1\n"
-                         "часть коммента №2\n"
-                         "часть коммента №3\n";
-    std::string test_2 = "/*" + test_1 + "/";
-    std::string test_3 = "часть коммента №1";
-    uint8_t size = 20;
-    char sym = 0;
-    std::string result = test_1;
+    Json json(json_string_example);
+    std::cout << "json size: " << json.size() << std::endl;
 
-//    result = ToComment(result, 1, size, sym);
-//    std::cout << result << std::endl;
-//    std::cout << "-=--=--=--=--=--=--=--=--=--=--=--=--=-" << std::endl;
-//    result.pop_back();
-//    result.pop_back();
-//    result.erase(0, 3);
-//    result = FromComment(result, size, sym);
-//    std::cout << result << std::endl;
-//    std::cout << "-=--=--=--=--=--=--=--=--=--=--=--=--=-" << std::endl;
-//    result = ToComment(result, 1, size, sym);
-//    std::cout << result << std::endl;
+    json.setCommentColumnSize(20);
 
-//    result = "some many words2...";
-//    std::cout << result << std::endl;
-//    std::cout << "-=--=--=--=--=--=--=--=--=--=--=--=--=-" << std::endl;
-//    result = ToComment(result, 1, size, sym);
-//    std::cout << result << std::endl;
-//    std::cout << "-=--=--=--=--=--=--=--=--=--=--=--=--=-" << std::endl;
-
-//    Json json(json_string_example);
-
-//    json.setCommentColumnSize(20);
-//    json.setCommentSymbol('#');
-//    json.addPreviewComment("очень даже невероятно такие большие комментарии");
-//    json.addComment_before("bool", "some \nwords...");
-//    json.addComment_before("string", "some many words1...");
-//    json.addComment_after("array", "some many words2...");
-
-//    json["json"].getJson().addComment_before(0, "json element\n comment");
-//    json["array"].getArray().addComment_before(0, "array element\n comment_");
-
-//    json.erase("number");
-//    std::cout << json.to_string(0, true, json.getCommentColumnSize()) << std::endl;
-
-    std::cout << "####################" << std::endl;
     std::string preview_comment = "1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...";
-    result = ToComment(preview_comment, 0, size, sym);
-    std::cout << result << std::endl;
+    std::string preview_comment_result = "1;losdihfg2;\n"
+                                         "slopighsd3;pogihvd4;\n"
+                                         "pfgvibhdfns5;\n"
+                                         "ipnbedf6 7;\n"
+                                         "voihnaern8 som9\n"
+                                         "word1...";
+    json.addPreviewComment(preview_comment);
+    std::string comment = "some words...";
+    json.addComment("bool", comment);
+    //    json.addComment("string",   "some many words1...",   CommentType::eBeforeValue);
+    //    json.addComment("array",    "some many words2...",   CommentType::eAfterValueOneLine);
+    //    json["json"].getJson().addComment(0, "json element comment", CommentType::eBeforeValueMultiLine);
+    //    json["array"].getArray().addComment(0, "array element comment_", CommentType::eBeforeValueMultiLine);
+    std::string path = "../test_writer_with_comments.json";
+
+    std::ofstream file(path);
+    if (!file.is_open())
+        return 1;
+    file << json.to_string(0, true, json.getCommentColumnSize()) << std::endl;
+    file.flush();
+    file.close();
+    //========================================================================
+    Json json2;
+    bool b = json2.readFile(path, false, ConfigFormat::eJSON); //по умолчанию считывается JSON формат
+
+    std::cout << "json2 size: " << json2.size() << " (" << utils::to_string(b) << ")"<< std::endl;
+//    EXPECT_EQ(preview_comment_result, json2.getPreviewComment().before);
+//    EXPECT_EQ(comment, json2.getComment("bool").before);
 
     return 0;
 }
