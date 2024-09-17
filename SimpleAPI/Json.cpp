@@ -190,8 +190,7 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
     uint16_t innerArrayCounter  = 0;
     std::string value_string;
     value_string.reserve(100);
-    Comment valueComment_before;
-    Comment valueComment_after;
+    Comment valueComment;
     bool isValueCommentAfterSaved = true; //изначально TRUE, чтобы не сработало для первого прохода
     Element value_element;
 
@@ -476,7 +475,7 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
 
                     //работа с комментариями (перед значением) ============================
                     if(!currentComment.empty() && enable_comment) {
-                        addComment_before(m_values.size() - 1, FromComment(currentComment, m_comment_column_size, m_comment_sym));
+                        valueComment.before = FromComment(currentComment, m_comment_column_size, m_comment_sym);
                         currentComment = "";
                     } //===================================================================
 
@@ -499,9 +498,12 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
 
                 if(current == '\n') {
                     //работа с комментариями (после значения #1) ==========================
-                    if(!currentComment.empty() && enable_comment) {
-                        addComment_after(m_values.size() - 1, FromComment(currentComment, m_comment_column_size, m_comment_sym));
-                        currentComment = "";
+                    if(enable_comment) {
+                        if(!currentComment.empty()) {
+                            valueComment.after = FromComment(currentComment, m_comment_column_size, m_comment_sym);
+                            currentComment = "";
+                        }
+                        addComment(m_values.size() - 1, valueComment);
                     } //===================================================================
                     isValueCommentAfterSaved = true;
                 } else if(current == ']') {
@@ -823,15 +825,13 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 
     std::string key_string;
     key_string.reserve(20);
-    Comment keyComment_before;
-    Comment keyComment_after;
+    Comment keyComment;
 
     uint16_t innerJsonCounter   = 0;
     uint16_t innerArrayCounter  = 0;
     std::string value_string;
     value_string.reserve(100);
-    Comment valueComment_before;
-    Comment valueComment_after;
+    Comment valueComment;
     bool isValueCommentAfterSaved = true; //изначально TRUE, чтобы не сработало для первого прохода
     Element value_element;
 
@@ -974,6 +974,8 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                 if(!isWordStarted) {
                     isWordStarted = true;
                     key_string.clear();
+                    keyComment = Comment();
+                    valueComment = Comment();
                     isQuotes = false;
                 }
 
@@ -1015,10 +1017,9 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                     isWordStarted = false; //страховка
                     isWordFinished = false;
 
-//FIXME: исправить применение комментария на ПОСЛЕ получения значения и добавления его в Json
                     //работа с комментариями (перед ключом) ===============================
                     if(!currentComment.empty() && enable_comment) {
-                        addComment_before(key_string, FromComment(currentComment, m_comment_column_size, m_comment_sym));
+                        keyComment.before = FromComment(currentComment, m_comment_column_size, m_comment_sym);
                         currentComment = "";
                     } //===================================================================
 
@@ -1040,7 +1041,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 
                 //работа с комментариями (после ключа (НЕ используется)) ==============
                 if(!currentComment.empty() && enable_comment) {
-//                    addComment_after(key_string, FromComment(currentComment, m_comment_column_size, m_comment_sym));
+//                    keyComment.after = FromComment(currentComment, m_comment_column_size, m_comment_sym);
                     currentComment = "";
                 } //===================================================================
 
@@ -1198,7 +1199,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 
                     //работа с комментариями (перед значением (НЕ используется)) ==========
                     if(!currentComment.empty() && enable_comment) {
-//                        addComment_before(key_string, FromComment(currentComment, m_comment_column_size, m_comment_sym));
+//                        valueComment.before = FromComment(currentComment, m_comment_column_size, m_comment_sym);
                         currentComment = "";
                     } //===================================================================
 
@@ -1220,12 +1221,16 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 
                 if(current == '\n') {
                     //работа с комментариями (после значения #1) ==========================
-                    if(!currentComment.empty() && enable_comment) {
-                        addComment_after(key_string, FromComment(currentComment, m_comment_column_size, m_comment_sym));
-                        currentComment = "";
+                    if(enable_comment) {
+                        if(!currentComment.empty()) {
+                            valueComment.after = FromComment(currentComment, m_comment_column_size, m_comment_sym);
+                            currentComment = "";
+                        }
+                        addComment(key_string, keyComment);
                     } //===================================================================
                     isValueCommentAfterSaved = true;
-                } else if(current == '}') {
+                }
+                else if(current == '}') {
                     state = JSON_FINISH;
                     break;
                 }
