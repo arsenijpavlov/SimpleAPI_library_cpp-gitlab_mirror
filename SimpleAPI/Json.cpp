@@ -991,6 +991,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 
                 if(current == '"') {
                     isQuotes = !isQuotes;
+                    std::cout << "key.isQuotes: " << utils::to_string(isQuotes) << std::endl;
                 }
                 //поиск конца значения
                 if(!isQuotes && utils::CharsInString(current, __SPACES__))
@@ -1016,6 +1017,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                 if(isWordFinished) {
                     isWordStarted = false; //страховка
                     isWordFinished = false;
+                    std::cout << "key: " << key_string << std::endl;
 
                     //работа с комментариями (перед ключом) ===============================
                     if(!currentComment.empty() && enable_comment) {
@@ -1029,6 +1031,8 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                 break;
             }
             case JSON_KEY_VALUE_SEPARATOR: {
+                std::cout << "sep.symbols: '" << previous << current << next << "'" << std::endl;
+                std::cout << "sep.isQuotes: " << utils::to_string(isQuotes) << std::endl;
                 //пропуск пробелов ====================================================
                 if(utils::CharsInString(current, __SPACES__) && !isQuotes)
                     break;
@@ -1138,6 +1142,8 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                     isWordStarted = false; //страховка
                     isWordFinished = false;
 
+                    std::cout << "value: " << value_string << std::endl;
+
                     switch(value_format) {
                     case VALUE_OTHER: {
                         switch(CheckValue(value_string)) {
@@ -1243,6 +1249,18 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
         }
 
         if(isCriticalError) {
+            std::cout << "last state: ";
+            switch(state) {
+            case JSON_START:                std::cout << "JSON_START ";                 break;
+            case JSON_KEY:                  std::cout << "JSON_KEY ";                   break;
+            case JSON_KEY_VALUE_SEPARATOR:  std::cout << "JSON_KEY_VALUE_SEPARATOR ";   break;
+            case JSON_VALUE:                std::cout << "JSON_VALUE ";                 break;
+            case JSON_ELEMENT_SEPARATOR:    std::cout << "JSON_ELEMENT_SEPARATOR ";     break;
+            case JSON_FINISH:               std::cout << "JSON_FINISH ";                break;
+            }
+            std::cout << std::endl;
+            std::cout << "symbols: '" << previous << current << next << "'" << std::endl;
+            //--------------------------
             clear();
             throw std::invalid_argument("Json parse syntax error at line " + std::to_string(line_counter) + ":" + std::to_string(symbol_counter));
         }
@@ -1253,6 +1271,17 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
             symbol_counter = 0; //должен перескочить строго на следующей строке
         } //====================================================================
     }
+
+    std::cout << "last state: ";
+    switch(state) {
+    case JSON_START:                std::cout << "JSON_START ";                 break;
+    case JSON_KEY:                  std::cout << "JSON_KEY ";                   break;
+    case JSON_KEY_VALUE_SEPARATOR:  std::cout << "JSON_KEY_VALUE_SEPARATOR ";   break;
+    case JSON_VALUE:                std::cout << "JSON_VALUE ";                 break;
+    case JSON_ELEMENT_SEPARATOR:    std::cout << "JSON_ELEMENT_SEPARATOR ";     break;
+    case JSON_FINISH:               std::cout << "JSON_FINISH ";                break;
+    }
+    std::cout << std::endl;
 
     if(state != JSON_FINISH) {
         clear();
@@ -1277,10 +1306,6 @@ bool Json::readFile(const std::string& path, const bool enable_comment,
     }
 
     std::string temp_string;
-    bool nextStrStartFromComment = false;
-    char quote = 0;
-    char start_comment = 0;
-    char stop_comment = 0;
     std::string config_str;
     while(getline(file, temp_string))
             config_str += temp_string + '\n';

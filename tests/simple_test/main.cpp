@@ -34,8 +34,8 @@ std::string json_string_example = "{"                               //ПРИМЕ
 int main() {
     system("tabs 4");
 
-    Json json(json_string_example);
-    std::cout << "json size: " << json.size() << std::endl;
+    Json json(json_string_example, ConfigFormat::eJSON);
+    std::cout << "json size: " << json.size() << std::endl << std::endl;
 
     json.setCommentColumnSize(20);
 
@@ -59,7 +59,6 @@ int main() {
     if (!file.is_open())
         return 1;
     file << json.to_string(0, true, json.getCommentColumnSize()) << std::endl;
-    file.flush();
     file.close();
     //========================================================================
     Json json2;
