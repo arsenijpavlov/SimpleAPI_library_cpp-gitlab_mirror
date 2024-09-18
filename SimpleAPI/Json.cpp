@@ -360,8 +360,13 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
                     break;
                 }
                 case '"': {
-                    if(previous != '\\')
+                    if(previous != '\\') {
                         isQuotes = !isQuotes;
+//                        std::cout << "value."
+//                                  << "isQuotes: (" << utils::to_string(isQuotes) << ") "
+//                                  << "'" << previous << current << next << "'"
+//                                  << std::endl;
+                    }
                 }
                 default: {
                     if(value_format == ValueFormat::VALUE_NOPE) value_format = ValueFormat::VALUE_OTHER;
@@ -991,7 +996,10 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 
                 if(current == '"') {
                     isQuotes = !isQuotes;
-                    std::cout << "key.isQuotes: " << utils::to_string(isQuotes) << std::endl;
+//                    std::cout << "key."
+//                              << "isQuotes: (" << utils::to_string(isQuotes) << ") "
+//                              << "'" << previous << current << next << "'"
+//                              << std::endl;
                 }
                 //поиск конца значения
                 if(!isQuotes && utils::CharsInString(current, __SPACES__))
@@ -999,6 +1007,13 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                 if(isQuotes
                     && string_of_json.length() > i + 1
                     && string_of_json[i + 1] == '"') {
+                    //сброс флага для корректной обработки
+                    isQuotes = !isQuotes;
+//                    std::cout << "key."
+//                              << "isQuotes: (" << utils::to_string(isQuotes) << ") "
+//                              << "'" << previous << current << next << "'"
+//                              << std::endl;
+
                     isWordFinished = true;
                     i++;
                 }
@@ -1031,8 +1046,10 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                 break;
             }
             case JSON_KEY_VALUE_SEPARATOR: {
-                std::cout << "sep.symbols: '" << previous << current << next << "'" << std::endl;
-                std::cout << "sep.isQuotes: " << utils::to_string(isQuotes) << std::endl;
+//                std::cout << "separator."
+//                          << "isQuotes: (" << utils::to_string(isQuotes) << ") "
+//                          << "'" << previous << current << next << "'"
+//                          << std::endl;
                 //пропуск пробелов ====================================================
                 if(utils::CharsInString(current, __SPACES__) && !isQuotes)
                     break;
@@ -1089,8 +1106,13 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                     break;
                 }
                 case '"': {
-                    if(previous != '\\')
+                    if(previous != '\\') {
                         isQuotes = !isQuotes;
+//                        std::cout << "value."
+//                                  << "isQuotes: (" << utils::to_string(isQuotes) << ") "
+//                                  << "'" << previous << current << next << "'"
+//                                  << std::endl;
+                    }
                 }
                 default: {
                     if(value_format == ValueFormat::VALUE_NOPE) value_format = ValueFormat::VALUE_OTHER;
@@ -1249,7 +1271,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
         }
 
         if(isCriticalError) {
-            std::cout << "last state: ";
+            std::cout << "error, last state: ";
             switch(state) {
             case JSON_START:                std::cout << "JSON_START ";                 break;
             case JSON_KEY:                  std::cout << "JSON_KEY ";                   break;
@@ -1272,7 +1294,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
         } //====================================================================
     }
 
-    std::cout << "last state: ";
+    std::cout << "finish, last state: ";
     switch(state) {
     case JSON_START:                std::cout << "JSON_START ";                 break;
     case JSON_KEY:                  std::cout << "JSON_KEY ";                   break;
@@ -1299,17 +1321,22 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
 
 bool Json::readFile(const std::string& path, const bool enable_comment,
                     const ConfigFormat config_format) {
-    std::ifstream file(path);
-    if (!file.is_open()) {
-        std::cout << "File not found" << std::endl;
-        return false;
-    }
-
-    std::string temp_string;
     std::string config_str;
-    while(getline(file, temp_string))
+
+    try{
+        std::ifstream file(path);
+        if (!file.is_open()) {
+            std::cout << "File not found" << std::endl;
+            return false;
+        }
+
+        std::string temp_string;
+        while(getline(file, temp_string))
             config_str += temp_string + '\n';
-    file.close();
+        file.close();
+    } catch (...) {
+        std::cout << "exception for read file !!!" << std::endl;
+    }
 
     //обработка
     try{

@@ -575,6 +575,7 @@ public:
     //-----
     Comment&    getComment(const std::string& key)
                 {
+                    if(contains(key)) __KEY_NOT_FOUND_EXCEPTION__(key)
                     auto it = m_comments.find(key);
                     if(it == m_comments.end())
                         throw std::invalid_argument("key '" + key + "' not found");
@@ -590,6 +591,7 @@ public:
                 }
     Comment&    getOrCreateComment(const std::string& key)
                 {
+                    if(contains(key)) __KEY_NOT_FOUND_EXCEPTION__(key)
                     auto it = m_comments.find(key);
                     if(it == m_comments.end())
                         it = m_comments.insert(std::make_pair(key, Comment())).first;

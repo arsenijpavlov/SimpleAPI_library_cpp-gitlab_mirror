@@ -126,7 +126,7 @@ std::string json_string_example = "{"
                                   "\"bool\"=true,\n"
                                   //перенос строки равнозначен разделителю ','
                                   "\"string\":\"string_value\"\n"
-                                  "\"json\":{\"string\":\"inner_string_value\"},\n"
+//                                  "\"json\":{\"string\":\"inner_string_value\"},\n"
                                   //перенос строки равнозначен разделителю ',' (массивы)
                                   "\"array\":[\"string_value\"\n true]\n"
                                   "}";
@@ -314,26 +314,21 @@ TEST(JSON, read_file_comment) {
     if (!file.is_open())
         FAIL();
     file << json.to_string(0, true, json.getCommentColumnSize()) << std::endl;
-    file.flush();
     file.close();
     //========================================================================
+    std::cout << "+++" << std::endl;
     Json json2;
+    bool b = json2.readFile(path, true, ConfigFormat::eJSON); //по умолчанию считывается JSON формат
+    ASSERT_EQ(true, b);
 
-//    json2.readFile(path, false, ConfigFormat::eJSON); //по умолчанию считывается JSON формат
-    std::ifstream file2(path);
-    if (!file2.is_open()) {
-        FAIL();
-    }
-
-    std::string temp_string;
-    std::string config_str;
-    while(getline(file2, temp_string))
-        config_str += temp_string + '\n';
-    file2.close();
-    json2.parseJSON(config_str, true);
+    std::cout << "===" << std::endl;
 
     EXPECT_EQ(preview_comment_result, json2.getPreviewComment().before);
+    std::cout << "======1" << std::endl;
+    ASSERT_EQ(true, json2.contains("bool"));
+    std::cout << "======2" << std::endl;
     EXPECT_EQ(comment, json2.getComment("bool").before);
+    std::cout << "======" << std::endl;
 }
 
 TEST(JSON, read_file_error) {

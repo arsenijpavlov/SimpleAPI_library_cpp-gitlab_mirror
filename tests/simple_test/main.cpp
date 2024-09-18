@@ -21,14 +21,14 @@ std::string json_string_example = "{"                               //ПРИМЕ
                                   "!.\n.!"
                                   "?.\n.?"
                                   //поля
-//                                  "\"number\":182,\n"
+                                  "\"number\":182,\n"
                                   //иной вариант разделителя '='
                                   "\"bool\"=true,\n"
                                   //перенос строки равнозначен разделителю ','
-//                                  "\"string\":\"string_value\"\n"
-//                                  "\"json\":{\"string\":\"inner_string_value\"},\n"
+                                  "\"string\":\"string_value\"\n"
+                                  "\"json\":{\"string\":\"inner_string_value\"},\n"
                                   //перенос строки равнозначен разделителю ',' (массивы)
-//                                  "\"array\":[\"string_value\"\n true]\n"
+                                  "\"array\":[\"string_value\"\n true]\n"
                                   "}";
 
 int main() {
