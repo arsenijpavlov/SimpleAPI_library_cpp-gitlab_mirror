@@ -126,7 +126,7 @@ std::string json_string_example = "{"
                                   "\"bool\"=true,\n"
                                   //перенос строки равнозначен разделителю ','
                                   "\"string\":\"string_value\"\n"
-//                                  "\"json\":{\"string\":\"inner_string_value\"},\n"
+                                  "\"json\":{\"string\":\"inner_string_value\"},\n"
                                   //перенос строки равнозначен разделителю ',' (массивы)
                                   "\"array\":[\"string_value\"\n true]\n"
                                   "}";
@@ -316,19 +316,14 @@ TEST(JSON, read_file_comment) {
     file << json.to_string(0, true, json.getCommentColumnSize()) << std::endl;
     file.close();
     //========================================================================
-    std::cout << "+++" << std::endl;
+
     Json json2;
     bool b = json2.readFile(path, true, ConfigFormat::eJSON); //по умолчанию считывается JSON формат
     ASSERT_EQ(true, b);
 
-    std::cout << "===" << std::endl;
-
     EXPECT_EQ(preview_comment_result, json2.getPreviewComment().before);
-    std::cout << "======1" << std::endl;
     ASSERT_EQ(true, json2.contains("bool"));
-    std::cout << "======2" << std::endl;
     EXPECT_EQ(comment, json2.getComment("bool").before);
-    std::cout << "======" << std::endl;
 }
 
 TEST(JSON, read_file_error) {
