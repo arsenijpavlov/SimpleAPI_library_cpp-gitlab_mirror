@@ -30,29 +30,17 @@ std::string json_string_example = "{"                               //ПРИМЕ
                                   //перенос строки равнозначен разделителю ',' (массивы)
                                   "\"array\":[\"string_value\"\n true]\n"
                                   "}";
+std::string array_string_example = "[\"string_value\"\n true]";
 
 int main() {
     system("tabs 4");
-
-    std::string path = "../test_writer_with_comments.json";
     Json json;
-    bool b = json.readFile(path, true, ConfigFormat::eJSON); //по умолчанию считывается JSON формат
+    json.parseJSON(json_string_example);
+    std::cout << "size: " << json.size() << std::endl;
 
-    std::cout << "json size: " << json.size() << std::endl << std::endl;
-
-    std::cout << "PC: " << "\"" << json.getPreviewComment().before << "\"" << std::endl;
-    for(uint8_t i = 0; i < json.size(); i++) {
-        try{
-            Comment comment = json.getComment(i);
-            std::cout << "[" << (int)i << "]" << std::endl
-                      //<< TODO: json.key
-                      << "\tbefore: " << comment.before << std::endl
-                      << "\tafter: " << comment.after << std::endl;
-        } catch (...) {
-            std::cout << "[" << (int)i << "]"
-                      << "comments not found" << std::endl;
-        }
-    }
+//    JArray array;
+//    array.parseJSON_array(array_string_example);
+//    std::cout << "size: " << array.size() << std::endl;
 
     return 0;
 }

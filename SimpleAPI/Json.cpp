@@ -514,7 +514,8 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
 //                        addComment(m_values.size() - 1, valueComment);
                     } //===================================================================
                     isValueCommentAfterSaved = true;
-                } else if(current == ']') {
+                }
+                if(current == ']') {
                     state = ARRAY_FINISH;
                 } else
                     state = ARRAY_VALUE;
@@ -1167,8 +1168,9 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                 if(!isWordFinished
                     && !isQuotes
                     && (innerJsonCounter == 0) && (innerArrayCounter == 0)) {
-                    if(utils::CharsInString(next, __SEPARATORS__ + std::string((value_format != VALUE_JSON) ? "}" : "")))
+                    if(utils::CharsInString(next, __SEPARATORS__ + std::string((value_format != VALUE_JSON) ? "}" : ""))) {
                         isWordFinished = true;
+                    }
                 }
 
                 if(isWordFinished) {
@@ -1269,7 +1271,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                     } //===================================================================
                     isValueCommentAfterSaved = true;
                 }
-                else if(current == '}') {
+                if(current == '}') {
                     state = JSON_FINISH;
 //                    break;
                 } else
