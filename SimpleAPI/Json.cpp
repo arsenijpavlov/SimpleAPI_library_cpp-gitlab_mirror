@@ -299,7 +299,7 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
                 //работа с комментариями (первичный) ==================================
                 if(!currentComment.empty() && enable_comment) {
                     addPreviewComment(FromComment(currentComment, m_comment_column_size, m_comment_sym));
-                    std::cout << "JArray:PreviewComment: " << "\"" << currentComment << "\"" << std::endl;
+//                    std::cout << "JArray:PreviewComment: " << "\"" << currentComment << "\"" << std::endl;
                     currentComment = "";
                 } //===================================================================
 
@@ -317,7 +317,7 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
                     //работа с комментариями (после значения #2) ==========================
                     if(!currentComment.empty() && enable_comment) {
                         addComment_after(m_values.size() - 1, FromComment(currentComment, m_comment_column_size, m_comment_sym));
-                        std::cout << "JArray:comment:after: " << "\"" << currentComment << "\"" << std::endl;
+//                        std::cout << "JArray:comment:after: " << "\"" << currentComment << "\"" << std::endl;
                         currentComment = "";
                     } //===================================================================
                     isValueCommentAfterSaved = true;
@@ -409,8 +409,7 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
                 default: break;
                 }
                 //если следующий символ должен обрабатываться другим кодом
-                if(!isWordFinished
-                    && !isQuotes
+                if(!isWordFinished && !isQuotes
                     && (innerJsonCounter == 0) && (innerArrayCounter == 0)) {
                     if(utils::CharsInString(next, __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : "")))
                         isWordFinished = true;
@@ -483,7 +482,7 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
                     //работа с комментариями (перед значением) ============================
                     if(!currentComment.empty() && enable_comment) {
                         valueComment.before = FromComment(currentComment, m_comment_column_size, m_comment_sym);
-                        std::cout << "JArray:comment:before: " << "\"" << currentComment << "\"" << std::endl;
+//                        std::cout << "JArray:comment:before: " << "\"" << currentComment << "\"" << std::endl;
                         currentComment = "";
                     } //===================================================================
 
@@ -508,7 +507,7 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
                     if(enable_comment) {
                         if(!currentComment.empty()) {
                             valueComment.after = FromComment(currentComment, m_comment_column_size, m_comment_sym);
-                            std::cout << "JArray:comment:after: " << "\"" << currentComment << "\"" << std::endl;
+//                            std::cout << "JArray:comment:after: " << "\"" << currentComment << "\"" << std::endl;
                             currentComment = "";
                         }
 //                        addComment(m_values.size() - 1, valueComment);
@@ -521,8 +520,8 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
                     state = ARRAY_VALUE;
 
                 if(enable_comment && (!valueComment.before.empty() || !valueComment.after.empty())) {
-                    std::cout << "\tvalue_before: " << valueComment.before << std::endl
-                              << "\tvalue_after: " << valueComment.after << std::endl;
+//                    std::cout << "\tvalue_before: " << valueComment.before << std::endl
+//                              << "\tvalue_after: " << valueComment.after << std::endl;
                     addComment(m_values.size() - 1, valueComment.before, valueComment.after);
                 }
 
@@ -533,8 +532,19 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
         }
 
         if(isCriticalError) {
+            std::string state_str = "";
+            switch(state) {
+            case ARRAY_START:               state_str = "JSON_START ";             break;
+            case ARRAY_VALUE:               state_str = "JSON_VALUE ";             break;
+            case ARRAY_ELEMENT_SEPARATOR:   state_str = "JSON_ELEMENT_SEPARATOR "; break;
+            case ARRAY_FINISH:              state_str = "JSON_FINISH ";            break;
+            }
+//            std::cout << "symbols: '" << previous << current << next << "'" << std::endl;
+            //--------------------------
             clear();
-            throw std::invalid_argument("JArray parse error at line " + std::to_string(line_counter) + ":" + std::to_string(symbol_counter));
+            throw std::invalid_argument("JArray parse error at line "
+                                        + std::to_string(line_counter) + ":" + std::to_string(symbol_counter)
+                                        + " '" + current + "', current state:" + state_str);
         }
 
         //счётчик строк и столбцов =============================================
@@ -955,7 +965,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                 //работа с комментариями (первичный) ==================================
                 if(!currentComment.empty() && enable_comment) {
                     addPreviewComment(FromComment(currentComment, m_comment_column_size, m_comment_sym));
-                    std::cout << "Json:PreviewComment: " << "\"" << currentComment << "\"" << std::endl;
+//                    std::cout << "Json:PreviewComment: " << "\"" << currentComment << "\"" << std::endl;
                     currentComment = "";
                 } //===================================================================
 
@@ -973,7 +983,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                     //работа с комментариями (после значения #2) ==========================
                     if(!currentComment.empty() && enable_comment) {
                         addComment_after(key_string, FromComment(currentComment, m_comment_column_size, m_comment_sym));
-                        std::cout << "Json:comment:after: " << "\"" << currentComment << "\"" << std::endl;
+//                        std::cout << "Json:comment:after: " << "\"" << currentComment << "\"" << std::endl;
                         currentComment = "";
                     } //===================================================================
                     isValueCommentAfterSaved = true;
@@ -1048,7 +1058,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                     //работа с комментариями (перед ключом) ===============================
                     if(!currentComment.empty() && enable_comment) {
                         keyComment.before = FromComment(currentComment, m_comment_column_size, m_comment_sym);
-                        std::cout << "Json:comment:before: " << "\"" << currentComment << "\"" << std::endl;
+//                        std::cout << "Json:comment:before: " << "\"" << currentComment << "\"" << std::endl;
                         currentComment = "";
                     } //===================================================================
 
@@ -1151,13 +1161,6 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                 case VALUE_OTHER: {
                     if(!isQuotes && utils::CharsInString(current, __SPACES__))
                         isWordFinished = true;
-//                    if(isQuotes
-//                        && (innerJsonCounter == 0) && (innerArrayCounter == 0)
-//                        && previous != '\\'
-//                        && current == '"') {
-//                        isWordFinished = true;
-//                        i++;
-//                    }
 
                     value_string += current;
                     break;
@@ -1265,7 +1268,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                     if(enable_comment) {
                         if(!currentComment.empty()) {
                             valueComment.after = FromComment(currentComment, m_comment_column_size, m_comment_sym);
-                            std::cout << "Json:comment:after: " << "\"" << currentComment << "\"" << std::endl;
+//                            std::cout << "Json:comment:after: " << "\"" << currentComment << "\"" << std::endl;
                             currentComment = "";
                         }
                     } //===================================================================
@@ -1278,10 +1281,10 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                     state = JSON_KEY;
 
                 if(enable_comment && (!keyComment.before.empty() || !valueComment.after.empty())) {
-                    std::cout << "\tkey_before: " << keyComment.before << std::endl
-                              << "\tkey_after: " << keyComment.after << std::endl;
-                    std::cout << "\tvalue_before: " << valueComment.before << std::endl
-                              << "\tvalue_after: " << valueComment.after << std::endl;
+//                    std::cout << "\tkey_before: " << keyComment.before << std::endl
+//                              << "\tkey_after: " << keyComment.after << std::endl;
+//                    std::cout << "\tvalue_before: " << valueComment.before << std::endl
+//                              << "\tvalue_after: " << valueComment.after << std::endl;
                     addComment(key_string, keyComment.before, valueComment.after);
                 }
 
@@ -1292,20 +1295,21 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
         }
 
         if(isCriticalError) {
-            std::cout << "error, last state: ";
+            std::string state_str = "";
             switch(state) {
-            case JSON_START:                std::cout << "JSON_START ";                 break;
-            case JSON_KEY:                  std::cout << "JSON_KEY ";                   break;
-            case JSON_KEY_VALUE_SEPARATOR:  std::cout << "JSON_KEY_VALUE_SEPARATOR ";   break;
-            case JSON_VALUE:                std::cout << "JSON_VALUE ";                 break;
-            case JSON_ELEMENT_SEPARATOR:    std::cout << "JSON_ELEMENT_SEPARATOR ";     break;
-            case JSON_FINISH:               std::cout << "JSON_FINISH ";                break;
+            case JSON_START:                state_str = "JSON_START ";                 break;
+            case JSON_KEY:                  state_str = "JSON_KEY ";                   break;
+            case JSON_KEY_VALUE_SEPARATOR:  state_str = "JSON_KEY_VALUE_SEPARATOR ";   break;
+            case JSON_VALUE:                state_str = "JSON_VALUE ";                 break;
+            case JSON_ELEMENT_SEPARATOR:    state_str = "JSON_ELEMENT_SEPARATOR ";     break;
+            case JSON_FINISH:               state_str = "JSON_FINISH ";                break;
             }
-            std::cout << std::endl;
-            std::cout << "symbols: '" << previous << current << next << "'" << std::endl;
+//            std::cout << "symbols: '" << previous << current << next << "'" << std::endl;
             //--------------------------
             clear();
-            throw std::invalid_argument("Json parse syntax error at line " + std::to_string(line_counter) + ":" + std::to_string(symbol_counter));
+            throw std::invalid_argument("Json parse syntax error at line "
+                                        + std::to_string(line_counter) + ":" + std::to_string(symbol_counter)
+                                        + " '" + current + "', current state:" + state_str);
         }
 
         //счётчик строк и столбцов =============================================
@@ -1315,16 +1319,16 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
         } //====================================================================
     }
 
-    std::cout << "finish, last state: ";
-    switch(state) {
-    case JSON_START:                std::cout << "JSON_START ";                 break;
-    case JSON_KEY:                  std::cout << "JSON_KEY ";                   break;
-    case JSON_KEY_VALUE_SEPARATOR:  std::cout << "JSON_KEY_VALUE_SEPARATOR ";   break;
-    case JSON_VALUE:                std::cout << "JSON_VALUE ";                 break;
-    case JSON_ELEMENT_SEPARATOR:    std::cout << "JSON_ELEMENT_SEPARATOR ";     break;
-    case JSON_FINISH:               std::cout << "JSON_FINISH ";                break;
-    }
-    std::cout << std::endl;
+//    std::cout << "finish, last state: ";
+//    switch(state) {
+//    case JSON_START:                std::cout << "JSON_START ";                 break;
+//    case JSON_KEY:                  std::cout << "JSON_KEY ";                   break;
+//    case JSON_KEY_VALUE_SEPARATOR:  std::cout << "JSON_KEY_VALUE_SEPARATOR ";   break;
+//    case JSON_VALUE:                std::cout << "JSON_VALUE ";                 break;
+//    case JSON_ELEMENT_SEPARATOR:    std::cout << "JSON_ELEMENT_SEPARATOR ";     break;
+//    case JSON_FINISH:               std::cout << "JSON_FINISH ";                break;
+//    }
+//    std::cout << std::endl;
 
     if(state != JSON_FINISH) {
         clear();
