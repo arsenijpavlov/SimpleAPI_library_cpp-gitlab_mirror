@@ -164,7 +164,7 @@ TEST(JSON, parse) {
     EXPECT_EQ(true, json["bool"].getBool());
     EXPECT_EQ("string_value", json["string"].getString());
 
-    EXPECT_EQ(1, json["json"].getJson().size());
+    EXPECT_EQ(2, json["json"].getJson().size());
     EXPECT_EQ("inner_string_value", json["json"].getJson()["string"].getString());
 
     EXPECT_EQ(2, json["array"].getArray().size());
