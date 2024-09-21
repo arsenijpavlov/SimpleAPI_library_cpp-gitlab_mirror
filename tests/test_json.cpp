@@ -126,7 +126,7 @@ std::string json_string_example = "{"
                                   "\"bool\"=true,\n"
                                   //перенос строки равнозначен разделителю ','
                                   "\"string\":\"string_value\"\n"
-                                  "\"json\":{\"string\":\"inner_string_value\"},\n"
+                                  "\"json\":{\"string\":\"inner_string_value\",\n \"string2\" : 150 },\n"
                                   //перенос строки равнозначен разделителю ',' (массивы)
                                   "\"array\":[\"string_value\"\n true]\n"
                                   "}";
@@ -243,6 +243,7 @@ TEST(JSON, write_file) {
     json.writeFile("../tests/test_writer.json", -1);
 }
 
+//TODO: тест не завершён
 TEST(JSON, write_file_comment) {
     Json json(json_string_example);
 
@@ -289,7 +290,6 @@ TEST(JSON, read_file) {
     EXPECT_EQ(json.size(), Json(json_string_example).size());
 }
 
-//TODO: JSON, read_file_comment
 TEST(JSON, read_file_comment) {
     Json json(json_string_example);
     json.setCommentColumnSize(20);
@@ -302,12 +302,17 @@ TEST(JSON, read_file_comment) {
                                          "voihnaern8 som9\n"
                                          "word1...";
     json.addPreviewComment(preview_comment);
-    std::string comment = "some words...";
-    json.addComment("bool", comment);
-//    json.addComment("string",   "some many words1...",   CommentType::eBeforeValue);
-//    json.addComment("array",    "some many words2...",   CommentType::eAfterValueOneLine);
-//    json["json"].getJson().addComment(0, "json element comment", CommentType::eBeforeValueMultiLine);
-//    json["array"].getArray().addComment(0, "array element comment_", CommentType::eBeforeValueMultiLine);
+    std::string comment1 = "some words...";
+    std::string comment2 = "some many words1...";
+    std::string comment3 = "some many words2...";
+    std::string comment4 = "json element comment";
+    std::string comment5 = "array element comment_";
+    json.addComment("bool",         comment1);
+    json.addComment("string",       comment2);
+    json.addComment_after("array",  comment3);
+    json["json"].getJson().addComment(0,    comment4);
+    json["json"].getJson().addComment(1,    comment4);
+    json["array"].getArray().addComment(0,  comment5);
     std::string path = "../tests/test_writer_with_comments.json";
 
     std::ofstream file(path);
@@ -321,9 +326,19 @@ TEST(JSON, read_file_comment) {
     bool b = json2.readFile(path, true, ConfigFormat::eJSON); //по умолчанию считывается JSON формат
     ASSERT_EQ(true, b);
 
-    EXPECT_EQ(preview_comment_result, json2.getPreviewComment().before);
-    ASSERT_EQ(true, json2.contains("bool"));
-    EXPECT_EQ(comment, json2.getComment("bool").before);
+    EXPECT_EQ(json2.getPreviewComment().before, preview_comment_result);
+    ASSERT_EQ(json2.contains("bool"), true);
+    EXPECT_EQ(json2.getComment("bool").before, comment1);
+    ASSERT_EQ(json2.contains("string"), true);
+    EXPECT_EQ(json2.getComment("string").before, comment2);
+    ASSERT_EQ(json2.contains("array"), true);
+    EXPECT_EQ(json2.getComment("array").after, comment3);
+    ASSERT_EQ(json2.contains("json"), true);
+    ASSERT_EQ(json2["json"].getJson().size() > 0, true);
+    EXPECT_EQ(json2["json"].getJson().getComment(0).before, comment4);
+    EXPECT_EQ(json2["json"].getJson().getComment(1).before, comment4);
+    ASSERT_EQ(json2.contains("array"), true);
+    EXPECT_EQ(json2["array"].getArray().getComment(0).before, comment5);
 }
 
 TEST(JSON, read_file_error) {

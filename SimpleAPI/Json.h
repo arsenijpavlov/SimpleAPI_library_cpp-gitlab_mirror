@@ -34,6 +34,10 @@
                                     throw std::invalid_argument("index for JArray must be a number only");
 #define __JSON_KEY_NOT_FOUND_EXCEPTION__ \
                                     throw std::invalid_argument("Json key not found");
+#define __NOT_ARRAY_OR_JSON_ELEMENT_EXCEPTION__ \
+                                    throw std::invalid_argument("This element cannot contain internal elements");
+#define __NOT_JSON_ELEMENT_EXCEPTION__ \
+                                    throw std::invalid_argument("This element cannot contain internal named elements");
 
 // Comment =====================================================================================
 struct Comment {
@@ -149,6 +153,8 @@ struct Element {
     bool        operator==(const Element& other) const;
     bool        operator!=(const Element& other)          const { return !(*this == other); }
     Element&    operator=(const Element& other);
+    Element&    operator[](const std::string& key);
+    Element&    operator[](const size_t index);
 
     double&     getNum() const;
     bool&       getBool() const;
@@ -317,7 +323,7 @@ public:
                     __CHECK_INDEX_BOUND2__(m_values, index);
                     auto it = m_comments.find(index);
                     if(it == m_comments.end())
-                        it = m_comments.insert(std::make_pair(m_values[index].first, Comment())).first;
+                        it = m_comments.insert(std::make_pair(index, Comment())).first;
                     return it->second;
                 }
     //-----

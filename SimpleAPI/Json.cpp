@@ -114,6 +114,22 @@ Element &Element::operator=(const Element &other) {
     return *this;
 }
 
+Element &Element::operator[](const std::string &key) {
+    if(first != ValueType::eJson)
+        __NOT_JSON_ELEMENT_EXCEPTION__
+            return getJson()[key];
+}
+
+Element &Element::operator[](const size_t index) {
+    if(first != ValueType::eJson && first != ValueType::eArray)
+        __NOT_ARRAY_OR_JSON_ELEMENT_EXCEPTION__
+    if(first == ValueType::eJson)
+        return getJson()[index];
+    else
+        return getArray()[index];
+}
+
+
 double &Element::getNum() const {
     if(first != ValueType::eNumber)
         throw std::invalid_argument("This element is not a 'Number' type: " + ::to_string(first));
@@ -152,6 +168,12 @@ JArray::JArray(const JArray& other) {
          it != other.m_values.cend(); it++) {
         m_values.push_back(Element(*it));
     }
+
+    //save comment's logic
+    m_comment_column_size   = other.m_comment_column_size;
+    m_comment_sym           = other.m_comment_sym;
+    m_preview_comment       = other.m_preview_comment;
+    m_comments              = other.m_comments;
 }
 
 void JArray::parseArray(const std::string &string_of_array, const bool enable_comment,
@@ -218,7 +240,9 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
         symbol_counter++; //TODO: проверить точность
 
         //поиск комментариев
-        if(!isOneLineComment && !isMultiLineComment && !isQuotes) {
+        if(!isOneLineComment && !isMultiLineComment && !isQuotes
+            && value_format != VALUE_JSON
+            && value_format != VALUE_ARRAY) {
             switch(CheckComment(current, next, i)) {
             case CommentType::eNotComment: break;
             case CommentType::eOneLineComment: {
@@ -779,8 +803,15 @@ JArray &JArray::erase(const size_t index) {
 Json::Json(const Json& other) : m_comment_sym(0) {
     for(const JPair &el : other.m_values)
         m_values.push_back(std::make_pair(el.first, Element(el.second)));
+
+    //save comment's logic
+    m_comment_column_size   = other.m_comment_column_size;
+    m_comment_sym           = other.m_comment_sym;
+    m_preview_comment       = other.m_preview_comment;
+    m_comments              = other.m_comments;
 }
 
+//TODO: bool read_with_comment
 Json::Json(const std::string &input_string, ConfigFormat config_format) : m_comment_sym(0) {
     switch (config_format) {
     case ConfigFormat::eJSON:
@@ -884,7 +915,9 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
         symbol_counter++; //TODO: проверить точность
 
         //поиск комментариев
-        if(!isOneLineComment && !isMultiLineComment && !isQuotes) {
+        if(!isOneLineComment && !isMultiLineComment && !isQuotes
+            && value_format != VALUE_ARRAY
+            && value_format != VALUE_JSON) {
             switch(CheckComment(current, next, i)) {
             case CommentType::eNotComment: break;
             case CommentType::eOneLineComment: {
