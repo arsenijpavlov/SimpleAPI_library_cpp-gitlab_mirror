@@ -78,19 +78,19 @@ class BaseElement {
 public:
     virtual ~BaseElement(){}
     virtual std::string to_string(int16_t tabulation_level, const bool enable_comment,
-                                  const ConfigFormat config_format = ConfigFormat::eJSON) = 0;
+                                  const ConfigFormat config_format = ConfigFormat::eJSON) noexcept = 0;
 };
 
 class DoubleElement : BaseElement { //все числовые типы
 public:
     double m_value;
 
-    DoubleElement()                                     {}
-    DoubleElement(const double& d) : m_value(d)         {}
-    ~DoubleElement()                                    {}
+    DoubleElement() noexcept                            {}
+    DoubleElement(const double& d) noexcept : m_value(d){}
+    ~DoubleElement() noexcept                           {}
 
     std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
-                          const ConfigFormat config_format = ConfigFormat::eJSON)
+                          const ConfigFormat config_format = ConfigFormat::eJSON) noexcept override
                                                         { return utils::toString(m_value); }
 };
 
@@ -98,12 +98,12 @@ class BoolElement : BaseElement {
 public:
     bool m_value;
 
-    BoolElement()                                       {}
-    BoolElement(const bool& b) : m_value(b)             {}
-    ~BoolElement()                                      {}
+    BoolElement() noexcept                              {}
+    BoolElement(const bool& b) noexcept : m_value(b)    {}
+    ~BoolElement() noexcept                             {}
 
     std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
-                          const ConfigFormat config_format = ConfigFormat::eJSON)
+                          const ConfigFormat config_format = ConfigFormat::eJSON) noexcept override
                                                         { return m_value ? "true" : "false"; }
 };
 
@@ -127,32 +127,32 @@ struct Element {
     ValueType       first;
     BaseElement*    second;
 
-                Element() : first(ValueType::eNull), second(nullptr)
+                Element() noexcept : first(ValueType::eNull), second(nullptr)
                                                                 {}
-                Element(ValueType type, BaseElement* ptr) : first(type), second(ptr)
+                Element(ValueType type, BaseElement* ptr) noexcept : first(type), second(ptr)
                                                                 {}
                 template<typename T, typename std::enable_if<std::is_arithmetic<T>::value
                                                              && !std::is_same<T, bool>::value>
                          ::type* = nullptr>
-                Element(const T& value) : first(eNumber)
+                Element(const T& value) noexcept : first(eNumber)
                                                                 { second = reinterpret_cast<BaseElement*>(
                                                                         new DoubleElement(static_cast<double>(value))); }
-                Element(const bool value) : first(eBool)
+                Element(const bool value) noexcept : first(eBool)
                                                                 { second = reinterpret_cast<BaseElement*>(
                                                                         new BoolElement(value)); }
                 template<typename T, typename std::enable_if<std::is_convertible<T, std::string>::value>
                          ::type* = nullptr>
-                Element(const T& value) : first(eString)
+                Element(const T& value) noexcept : first(eString)
                                                                 { second = reinterpret_cast<BaseElement*>(
                                                                         new StringElement(std::string(value))); }
-                Element(const Json& value);
-                Element(const JArray& value);
-                Element(const Element& other);
-                ~Element()                                      { delete second; }
+                Element(const Json& value) noexcept;
+                Element(const JArray& value) noexcept;
+                Element(const Element& other) noexcept;
+                ~Element() noexcept                             { delete second; }
 
-    bool        operator==(const Element& other) const;
-    bool        operator!=(const Element& other)          const { return !(*this == other); }
-    Element&    operator=(const Element& other);
+    bool        operator==(const Element& other) const noexcept;
+    bool        operator!=(const Element& other) const noexcept { return !(*this == other); }
+    Element&    operator=(const Element& other) noexcept;
     Element&    operator[](const std::string& key);
     Element&    operator[](const size_t index);
 
@@ -162,7 +162,7 @@ struct Element {
     Json&       getJson() const;
     JArray&     getArray() const;
 
-    std::string to_string()                               const { return second->to_string(0, false); }
+    std::string to_string() const noexcept                      { return second->to_string(0, false); }
 };
 // ===================================================================================== Element
 // *
@@ -181,11 +181,11 @@ class JArray {
     Comment     m_preview_comment;
 
 public:
-                JArray()                            {}
-                JArray(const JArray& array);
+                JArray() noexcept                   {}
+                JArray(const JArray& array) noexcept;
                 template<typename ... Types>
-                JArray(const Types... args)         { for(Element el : {Element(args)...}) push_back(el); }
-                ~JArray()                           {}
+                JArray(const Types... args) noexcept{ for(Element el : {Element(args)...}) push_back(el); }
+                ~JArray() noexcept                  {}
 
     void        parseArray(const std::string& string_of_array, const bool enable_comment = false,
                                 const ConfigFormat config_format = ConfigFormat::eJSON);
@@ -194,48 +194,58 @@ public:
     void        parseINI_array(const std::string& string_of_array, const bool enable_comment = false);
 
                 __ONLY_ALLOWED_TYPES__(T)
-    JArray&     push_front(const T& value)          { m_values.insert(m_values.cbegin(), Element(value));
+    JArray&     push_front(const T& value) noexcept { m_values.insert(m_values.cbegin(), Element(value));
                                                         return *this; }
                 template<typename ... Types>
-    JArray&     push_front(const Types... args)     { push_front(Element(args)...);
+    JArray&     push_front(const Types... args) noexcept
+                                                    { push_front(Element(args)...);
                                                         return *this; }
                 __ONLY_ALLOWED_TYPES__(T)
-    JArray&     push_back(const T& value)           { push_back(Element(value));
+    JArray&     push_back(const T& value) noexcept  { push_back(Element(value));
                                                         return *this; }
                 template<typename ... Types>
-    JArray&     push_back(const Types... args)      { m_values.push_back(Element(args)...);
+    JArray&     push_back(const Types... args) noexcept
+                                                    { m_values.push_back(Element(args)...);
                                                         return *this; }
-    JArray&     append(const JArray& array);
+    JArray&     append(const JArray& array) noexcept;
 
-    ValueType   getType(const size_t index)         { return m_values[index].first; }
+    //TODO: return std::exception
+    ValueType   getType(const size_t index) { return m_values[index].first; }
+    //TODO: return std::exception
     ValueType   getTypeFront(const size_t index)    { return getType(0); }
-    ValueType   getTypeBack(const size_t index)     { return getType(m_values.size() - 1); }
+    //TODO: return std::exception
+    ValueType   getTypeBack(const size_t index)
+                                                    { return getType(m_values.size() - 1); }
 
+    //TODO: return std::exception
     Element     getFront()                          { return m_values.front(); }
+    //TODO: return std::exception
     Element     getBack()                           { return m_values.back(); }
 
+    //TODO: return std::exception
     JArray&     popFornt()                          { m_values.erase(m_values.begin());
                                                         return *this; }
+    //TODO: return std::exception
     JArray&     popBack()                           { m_values.pop_back();
                                                         return *this; }
     JArray&     clear()                             { m_values.clear(); m_comments.clear();
                                                         return *this; }
 
     std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
-                          const uint8_t column_size = 0, const ConfigFormat config_format = ConfigFormat::eJSON) const;
+                          const uint8_t column_size = 0, const ConfigFormat config_format = ConfigFormat::eJSON) const noexcept;
     std::string to_JSON_string(int16_t tabulation_level = 0, const bool enable_comment = false,
-                               const uint8_t column_size = 0) const;
+                               const uint8_t column_size = 0) const noexcept;
     std::string to_YAML_string(int16_t tabulation_level = 0, const bool enable_comment = false,
-                               const uint8_t column_size = 0) const;
+                               const uint8_t column_size = 0) const noexcept;
     std::string to_INI_string(int16_t tabulation_level = 0, const bool enable_comment = false,
-                               const uint8_t column_size = 0) const;
+                               const uint8_t column_size = 0) const noexcept;
 
-    size_t      size()                        const { return m_values.size(); }
-    bool        isEmpty()                           { return m_values.size() == 0; }
+    size_t      size() const noexcept               { return m_values.size(); }
+    bool        isEmpty() const noexcept            { return m_values.size() == 0; }
 
-    bool        operator==(const JArray& other) const;
-    bool        operator!=(const JArray& other)
-                                              const { return !(*this == other); }
+    bool        operator==(const JArray& other) const noexcept;
+    bool        operator!=(const JArray& other) const noexcept
+                                                    { return !(*this == other); }
 
     Element&    operator[](const size_t index);
     Element&    operator[](const std::vector<std::string>& complex_key);
@@ -252,14 +262,14 @@ public:
     Element&    getValue(std::vector<std::string>& complex_key)
                                                     { return (*this)[complex_key]; }
 
-    AVector::iterator       begin()                 { return m_values.begin(); }
-    AVector::iterator       end()                   { return m_values.end(); }
-    AVector::const_iterator cbegin()          const { return m_values.cbegin(); }
-    AVector::const_iterator cend()            const { return m_values.cend(); }
+    AVector::iterator       begin() noexcept        { return m_values.begin(); }
+    AVector::iterator       end() noexcept          { return m_values.end(); }
+    AVector::const_iterator cbegin() const noexcept { return m_values.cbegin(); }
+    AVector::const_iterator cend() const noexcept   { return m_values.cend(); }
 
     //если индекс больше количества вложенных элементов, то добавятся в конец
                 __ONLY_ALLOWED_TYPES__(T)
-    JArray&     insert(const size_t index, const T& value)
+    JArray&     insert(const size_t index, const T& value) noexcept
                 {
                     if(index > m_values.size() - 1)
                         this->push_back(value);
@@ -269,43 +279,50 @@ public:
                 }
 
                 __ONLY_ALLOWED_TYPES__(T)
-    JArray&     insert(const AVector::iterator& iterator, const T& value)
+    JArray&     insert(const AVector::iterator& iterator, const T& value) noexcept
                                                     { m_values.insert(iterator, value);
                                                         return *this; }
 
     JArray&     erase(const size_t index);
+    //TODO: return std::exception
     JArray&     erase(const AVector::iterator& iterator)
                                                     { m_values.erase(m_values.cbegin());
                                                         return *this; }
+    //TODO: return std::exception
     JArray&     erase(const AVector::iterator& begin, const AVector::iterator& end)
                                                     { m_values.erase(begin, end);
                                                         return *this; }
 
     //комментирование ------------------------------------------------------------------
-    void        setCommentColumnSize(const uint8_t new_comment_column_size)
+    void        setCommentColumnSize(const uint8_t new_comment_column_size) noexcept
                                                                 { m_comment_column_size = new_comment_column_size; }
-    uint8_t     getCommentColumnSize()                          { return m_comment_column_size; }
+    uint8_t     getCommentColumnSize() noexcept                 { return m_comment_column_size; }
     //-----
-    void        addPreviewComment(const std::string &comment_before = "", const std::string &comment_after = "")
+    void        addPreviewComment(const std::string &comment_before = "", const std::string &comment_after = "") noexcept
                                                                 { m_preview_comment = Comment(comment_before, comment_after); }
-    void        addPreviewComment_before(const std::string &comment = "")
+    void        addPreviewComment_before(const std::string &comment = "") noexcept
                                                                 { m_preview_comment.before = comment; }
-    void        addPreviewComment_aftrer(const std::string &comment = "")
+    void        addPreviewComment_aftrer(const std::string &comment = "") noexcept
                                                                 { m_preview_comment.after = comment; }
-    void        addPreviewComment(const Comment& comment)       { m_preview_comment = comment; }
+    void        addPreviewComment(const Comment& comment) noexcept
+                                                                { m_preview_comment = comment; }
     //-----
     Comment&    getPreviewComment()                             { return m_preview_comment; }
     //-----
+    //TODO: return std::exception
     void        addComment(const size_t index,
                     const std::string &comment_before = "", const std::string &comment_after = "")
                                                                 { Comment& ct = getOrCreateComment(index);
                                                                     ct = Comment(comment_before, comment_after); }
+    //TODO: return std::exception
     void        addComment(const size_t index, const Comment& comment)
                                                                 { Comment& ct = getOrCreateComment(index);
                                                                     ct = comment; }
+    //TODO: return std::exception
     void        addComment_before(const size_t index, const std::string &comment = "")
                                                                 { Comment& ct = getOrCreateComment(index);
                                                                     ct.before = comment; }
+    //TODO: return std::exception
     void        addComment_after(const size_t index, const std::string &comment = "")
                                                                 { Comment& ct = getOrCreateComment(index);
                                                                     ct.after = comment; }
@@ -327,13 +344,15 @@ public:
                     return it->second;
                 }
     //-----
-    void        clearPreviewComment()                           { m_preview_comment = {}; }
+    void        clearPreviewComment() noexcept                  { m_preview_comment = {}; }
+    //TODO: return std::exception
     void        clearComment(const size_t index)                { m_comments.erase(m_values[index].first); }
 };
 // ====================================================================================== JArray
 // *
 // *
 // Json ========================================================================================
+//TODO: noexcept for next strings...
 using JPair     = std::pair<std::string, Element>;
 using JVector   = std::vector<JPair>;
 // Неупорядоченный список "ключ-значение" (в данном случае упорядочен)

@@ -28,15 +28,15 @@ std::string to_string(const ValueType type) {
     }
 }
 
-Element::Element(const Json& value) : first(ValueType::eJson) {
+Element::Element(const Json& value) noexcept : first(ValueType::eJson) {
     second = reinterpret_cast<BaseElement*>(new JsonElement(value));
 }
 
-Element::Element(const JArray& value) : first(ValueType::eArray) {
+Element::Element(const JArray& value) noexcept : first(ValueType::eArray) {
     second = reinterpret_cast<BaseElement*>(new JArrayElement(value));
 }
 
-Element::Element(const Element &other) {
+Element::Element(const Element &other) noexcept {
     first = other.first;
     switch(first) {
     case eNumber:
@@ -60,7 +60,7 @@ Element::Element(const Element &other) {
     }
 }
 
-bool Element::operator==(const Element &other) const {
+bool Element::operator==(const Element &other) const noexcept {
     if(this->first != other.first) return false;
 
     switch(this->first) {
@@ -85,7 +85,7 @@ bool Element::operator==(const Element &other) const {
     return false;
 }
 
-Element &Element::operator=(const Element &other) {
+Element &Element::operator=(const Element &other) noexcept {
     if(this == &other) return *this;
 
     delete second;
@@ -163,7 +163,7 @@ JArray &Element::getArray() const {
 // *
 // *
 // JArray ======================================================================================
-JArray::JArray(const JArray& other) {
+JArray::JArray(const JArray& other) noexcept {
     for(AVector::const_iterator it = other.m_values.cbegin();
          it != other.m_values.cend(); it++) {
         m_values.push_back(Element(*it));
@@ -189,6 +189,8 @@ void JArray::parseArray(const std::string &string_of_array, const bool enable_co
         parseINI_array(string_of_array, enable_comment);
         break;
     }
+
+//TODO: return std::exception
 }
 
 void JArray::parseJSON_array(const std::string &string_of_array, const bool enable_comment) {
@@ -587,13 +589,15 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
 
 void JArray::parseYAML_array(const std::string &string_of_array, const bool enable_comment) {
     //TODO: JArray::parseYAML_array()
+    //TODO: return std::exception
 }
 
 void JArray::parseINI_array(const std::string &string_of_array, const bool enable_comment) {
     //TODO: JArray::parseINI_array()
+    //TODO: return std::exception
 }
 
-JArray &JArray::append(const JArray &array) {
+JArray &JArray::append(const JArray &array) noexcept {
     for(const Element& el : array.m_values) {
         switch(el.first) {
         case eNumber:   push_back(el.getNum());     break;
@@ -609,7 +613,7 @@ JArray &JArray::append(const JArray &array) {
 }
 
 std::string JArray::to_string(int16_t tabulation_level, const bool enable_comment, const
-                              uint8_t column_size, const ConfigFormat config_format) const {
+                              uint8_t column_size, const ConfigFormat config_format) const noexcept {
     switch(config_format) {
     case ConfigFormat::eJSON:
         return to_JSON_string(tabulation_level, enable_comment, column_size);
@@ -623,7 +627,7 @@ std::string JArray::to_string(int16_t tabulation_level, const bool enable_commen
 }
 
 std::string JArray::to_JSON_string(int16_t tabulation_level, const bool enable_comment,
-                                   const uint8_t column_size) const {
+                                   const uint8_t column_size) const noexcept {
     if(m_values.empty()) return "[]";
 
     std::string ret;
@@ -727,18 +731,18 @@ std::string JArray::to_JSON_string(int16_t tabulation_level, const bool enable_c
 }
 
 std::string JArray::to_YAML_string(int16_t tabulation_level, const bool enable_comment,
-                                   const uint8_t column_size) const {
+                                   const uint8_t column_size) const noexcept {
     //TODO: JArray::to_YAML_string
     return "";
 }
 
 std::string JArray::to_INI_string(int16_t tabulation_level, const bool enable_comment,
-                                   const uint8_t column_size) const {
+                                   const uint8_t column_size) const noexcept {
     //TODO: JArray::to_INI_string
     return "";
 }
 
-bool JArray::operator==(const JArray &other) const {
+bool JArray::operator==(const JArray &other) const noexcept {
     if(this->size() != other.size()) return false;
 
     for(auto it1 = this->m_values.begin(), it2 = other.m_values.begin();
@@ -790,6 +794,7 @@ Element &JArray::operator[](const std::vector<std::string> &complex_key) {
         __ARRAY_INCORRECT_INDEX_EXCEPTION__
 }
 
+//TODO: return std::exception
 JArray &JArray::erase(const size_t index) {
     if(index <= m_values.size() - 1)
         m_values.erase(m_values.cbegin() + index);
