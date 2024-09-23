@@ -7,6 +7,7 @@
 
 #include <functional>
 #include <string>
+//TODO: add "noexcept"
 
 
 class SocketSettings : public LoggerSettings {

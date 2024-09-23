@@ -15,6 +15,7 @@
 
 #include <arpa/inet.h>
 #include <sys/socket.h>
+//TODO: add "noexcept"
 
 
 #define MAX_PACKET_LENGTH 65535

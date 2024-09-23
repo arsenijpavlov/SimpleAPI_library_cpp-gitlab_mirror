@@ -4,6 +4,7 @@
 #include <set>
 #include <thread>
 #include "Socket.h"
+//TODO: add "noexcept"
 
 class SocketThread {
     std::thread     m_thread;

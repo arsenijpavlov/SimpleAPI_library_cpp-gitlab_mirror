@@ -3,6 +3,7 @@
 
 
 #include <cstdint>
+//TODO: add "noexcept"
 
 class EECounter {
     uint64_t maxSize;

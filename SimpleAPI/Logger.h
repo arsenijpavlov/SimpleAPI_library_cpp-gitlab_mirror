@@ -4,6 +4,7 @@
 #include <chrono>
 #include <string>
 #include <vector>
+//TODO: add "noexcept"
 
 namespace logs {
 

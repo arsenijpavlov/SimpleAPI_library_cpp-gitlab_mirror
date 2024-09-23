@@ -2,7 +2,7 @@
 #define IP_PORT_H
 
 #include <string>
-
+//TODO: add "noexcept"
 
 struct IpPort {
     std::string ip;

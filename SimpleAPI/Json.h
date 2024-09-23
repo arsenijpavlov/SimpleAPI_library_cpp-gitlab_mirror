@@ -6,8 +6,6 @@
 #include <memory>
 #include <vector>
 
-//TODO: add "noexcept"
-
 #define __ONLY_ALLOWED_TYPES__(ARG) \
     template<typename ARG, \
         typename std::enable_if< \

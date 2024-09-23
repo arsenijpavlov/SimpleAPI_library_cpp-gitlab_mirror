@@ -3,6 +3,7 @@
 
 #include "Logger.h"
 #include <functional>
+//TODO: add "noexcept"
 
 class LoggerSettings {
 public:
