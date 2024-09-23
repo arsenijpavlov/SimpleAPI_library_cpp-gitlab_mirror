@@ -258,7 +258,9 @@ public:
                     return (*this)[complex_key_vec];
                 }
 
+    //TODO: return std::exception
     Element&    getValue(const size_t index)        { return (*this)[index]; }
+    //TODO: return std::exception
     Element&    getValue(std::vector<std::string>& complex_key)
                                                     { return (*this)[complex_key]; }
 
@@ -352,7 +354,6 @@ public:
 // *
 // *
 // Json ========================================================================================
-//TODO: noexcept for next strings...
 using JPair     = std::pair<std::string, Element>;
 using JVector   = std::vector<JPair>;
 // Неупорядоченный список "ключ-значение" (в данном случае упорядочен)
@@ -366,66 +367,72 @@ class Json {
 
     Comment     m_preview_comment;
 public:
-                Json() : m_comment_sym(0)                       {}
-                Json(const Json& json);
-                Json(const JPair& pair) : m_comment_sym(0)      { put(pair.first, pair.second); }
-                Json(const std::string& input_string, ConfigFormat config_format = ConfigFormat::eJSON);
+                Json() noexcept : m_comment_sym(0)              {}
+                Json(const Json& json) noexcept;
+                Json(const JPair& pair) noexcept : m_comment_sym(0)
+                                                                { put(pair.first, pair.second); }
+                Json(const std::string& input_string, ConfigFormat config_format = ConfigFormat::eJSON) noexcept;
                 __ONLY_ALLOWED_TYPES__(T)
-                Json(const std::string& key, const T& value) : m_comment_sym(0)
+                Json(const std::string& key, const T& value) noexcept : m_comment_sym(0)
                                                                 { put(key, value); }
-                Json(const JVector& vec);
-                ~Json()                                         {}
+                Json(const JVector& vec) noexcept;
+                ~Json() noexcept                                {}
 
-    Json&       operator=(const Json& other);
+    Json&       operator=(const Json& other) noexcept;
 
                 __ONLY_ALLOWED_TYPES__(T)
-    Json&       put(const std::string& key, const T& value, const bool rewrite = true)
+    Json&       put(const std::string& key, const T& value, const bool rewrite = true) noexcept
                                                                 { return put(key, Element(value), rewrite); }
-    Json&       put(const std::string& key, const Element& element, const bool rewrite = true);
-    Json&       put(const Json& json, const bool rewrite = true);
+    Json&       put(const std::string& key, const Element& element, const bool rewrite = true) noexcept;
+    Json&       put(const Json& json, const bool rewrite = true) noexcept;
 
                 __ONLY_ALLOWED_TYPES__(T)
-    Json&       add(const std::string& key, const T& value, const bool rewrite = true)
-                                                                { return this->put(key, value, rewrite); }
-    Json&       add(const Json& json, const bool rewrite = true){ return this->put(json, rewrite); }
-    Json&       append(const Json& json, const bool rewrite = true)
-                                                                { return this->put(json, rewrite); }
+    Json&       add(const std::string& key, const T& value, const bool rewrite = true) noexcept
+                                                                { return put(key, value, rewrite); }
+    Json&       add(const Json& json, const bool rewrite = true) noexcept
+                                                                { return put(json, rewrite); }
+    Json&       append(const Json& json, const bool rewrite = true) noexcept
+                                                                { return put(json, rewrite); }
 
     void        parseJSON(const std::string& string_of_json, const bool enable_comment = false);
     void        parseYAML(const std::string& string_of_yaml, const bool enable_comment = false);
     void        parseINI(const std::string& string_of_ini, const bool enable_comment = false);
 
+    //TODO: return std::exception
     bool        readFile(const std::string& path, const bool enable_comment = false,
                    const ConfigFormat config_format = ConfigFormat::eJSON);
+    //TODO: return std::exception
     bool        readJSON(const std::string& path, const bool enable_comment = false)
                                                                 { return readFile(path, enable_comment); }
+    //TODO: return std::exception
     bool        readYAML(const std::string& path, const bool enable_comment = false)
                                                                 { return readFile(path, enable_comment, ConfigFormat::eYAML); }
+    //TODO: return std::exception
     bool        readINI(const std::string& path, const bool enable_comment = false)
                                                                 { return readFile(path, enable_comment, ConfigFormat::eINI); }
 
     bool        writeFile(const std::string& path, int16_t tabulation_level = 0,
-                   const bool enable_comment = false, const ConfigFormat config_format = ConfigFormat::eJSON);
+                   const bool enable_comment = false, const ConfigFormat config_format = ConfigFormat::eJSON) noexcept;
     bool        writeJSON(const std::string& path, int16_t tabulation_level = 0,
-                   const bool enable_comment = false)           { return writeFile(path, tabulation_level, enable_comment); }
+                   const bool enable_comment = false) noexcept  { return writeFile(path, tabulation_level, enable_comment); }
     bool        writeYAML(const std::string& path, int16_t tabulation_level = 0,
-                   const bool enable_comment = false)           { return writeFile(path, tabulation_level, enable_comment, ConfigFormat::eYAML); }
+                   const bool enable_comment = false) noexcept  { return writeFile(path, tabulation_level, enable_comment, ConfigFormat::eYAML); }
     bool        writeINI(const std::string& path, int16_t tabulation_level = 0,
-                   const bool enable_comment = false)           { return writeFile(path, tabulation_level, enable_comment, ConfigFormat::eINI); }
+                   const bool enable_comment = false) noexcept  { return writeFile(path, tabulation_level, enable_comment, ConfigFormat::eINI); }
 
     std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
-                          const uint8_t column_size = 0, const ConfigFormat config_format = ConfigFormat::eJSON) const;
+                          const uint8_t column_size = 0, const ConfigFormat config_format = ConfigFormat::eJSON) const noexcept;
     std::string to_JSON_string(int16_t tabulation_level = 0, const bool enable_comment = false,
-                               const uint8_t column_size = 0) const;
+                               const uint8_t column_size = 0) const noexcept;
     std::string to_YAML_string(int16_t tabulation_level = 0, const bool enable_comment = false,
-                               const uint8_t column_size = 0) const;
+                               const uint8_t column_size = 0) const noexcept;
     std::string to_INI_string(int16_t tabulation_level = 0, const bool enable_comment = false,
-                              const uint8_t column_size = 0) const;
-    size_t      size()                                    const { return m_values.size(); }
-    bool        isEmpty()                                       { return m_values.size() == 0; }
-    bool        contains(const std::string& key);
+                              const uint8_t column_size = 0) const noexcept;
+    size_t      size() const noexcept                           { return m_values.size(); }
+    bool        isEmpty() noexcept                              { return m_values.size() == 0; }
+    bool        contains(const std::string& key) noexcept;
                 __ONLY_ALLOWED_TYPES__(T)
-    Json&       updateValue(const std::string& key, const T& new_value)
+    Json&       updateValue(const std::string& key, const T& new_value) noexcept
                 {
                     if(contains(key))
                         (*this)[key] = Element(new_value);
@@ -433,17 +440,17 @@ public:
                         put(key, new_value);
                     return *this;
                 }
-    Json&       updateValue(const std::string& key, const Element& new_value);
-    Json&       clear()                                         { m_values.clear(); m_comments.clear();
+    Json&       updateValue(const std::string& key, const Element& new_value) noexcept;
+    Json&       clear() noexcept                                { m_values.clear(); m_comments.clear();
                                                                     return *this; }
 
-    JVector::iterator       begin()                             { return m_values.begin(); }
-    JVector::iterator       end()                               { return m_values.end(); }
-    JVector::const_iterator cbegin()                      const { return m_values.begin(); }
-    JVector::const_iterator cend()                        const { return m_values.end(); }
+    JVector::iterator       begin() noexcept                    { return m_values.begin(); }
+    JVector::iterator       end() noexcept                      { return m_values.end(); }
+    JVector::const_iterator cbegin() const noexcept             { return m_values.begin(); }
+    JVector::const_iterator cend() const noexcept               { return m_values.end(); }
 
-    bool        operator==(const Json& other) const;
-    bool        operator!=(const Json& other)             const { return !(*this == other); }
+    bool        operator==(const Json& other) const noexcept;
+    bool        operator!=(const Json& other) const noexcept    { return !(*this == other); }
 
     Element&    operator[](const size_t index);
     Element&    operator[](const std::string& key);
@@ -456,8 +463,11 @@ public:
                     std::copy(complex_key.begin(), complex_key.end(), complex_key_vec.begin());
                     return (*this)[complex_key_vec];
                 }
+    //TODO: return std::exception
     Element&    getValue(const size_t index)                    { return (*this)[index]; }
+    //TODO: return std::exception
     Element&    getValue(const std::string& key)                { return (*this)[key]; }
+    //TODO: return std::exception
     Element&    getValue(std::vector<std::string>& complex_key) { return (*this)[complex_key]; }
 
     //положить значение в указанную позицию
@@ -466,7 +476,7 @@ public:
     //если ключ не найден, добавится в конец
                 __ONLY_ALLOWED_TYPES__(T)
     Json&       insert(const size_t index, const std::string& key,
-                       const T& value, const bool rewrite = true)
+                       const T& value, const bool rewrite = true) noexcept
                 {
                     if(contains(key) && rewrite)
                         erase(key);
@@ -482,7 +492,7 @@ public:
                 }
                 __ONLY_ALLOWED_TYPES__(T)
     Json&       insert(const JVector::iterator& iterator, const std::string& key,
-                       const T& value, const bool rewrite = true)
+                       const T& value, const bool rewrite = true) noexcept
                 {
                     if(contains(key) && rewrite)
                         erase(key);
@@ -496,7 +506,7 @@ public:
                 }
                 __ONLY_ALLOWED_TYPES__(T)
     Json&       insertBefore(const std::string& keyIndex, const std::string& key,
-                             const T& value, const bool rewrite = true)
+                             const T& value, const bool rewrite = true) noexcept
                 {
                     bool key_exists = false; //чтобы второй раз не искать
                     //поиск индекса указанного ключа
@@ -520,7 +530,7 @@ public:
                 }
                 __ONLY_ALLOWED_TYPES__(T)
     Json&       insertAfter(const std::string& keyIndex, const std::string& key,
-                            const T& value, const bool rewrite = true)
+                            const T& value, const bool rewrite = true) noexcept
                 {
                     bool key_exists = false; //чтобы второй раз не искать
                     //поиск индекса указанного ключа
@@ -544,56 +554,71 @@ public:
                     return *this;
                 }
 
+    //TODO: return std::exception
     Json&       erase(const size_t index);
+    //TODO: return std::exception
     Json&       erase(const JVector::iterator& iterator)
                                                                 { m_values.erase(m_values.cbegin());
                                                                     return *this; }
+    //TODO: return std::exception
     Json&       erase(const JVector::iterator& begin, const JVector::iterator& end)
                                                                 { m_values.erase(begin, end);
                                                                     return *this; }
+    //TODO: return std::exception
     Json&       erase(const std::string& key);
+    //TODO: return std::exception
     Json&       erase(const std::vector<std::string>& keys);
 
     //комментирование ------------------------------------------------------------------
-    void        setCommentColumnSize(const uint8_t new_comment_column_size)
+    void        setCommentColumnSize(const uint8_t new_comment_column_size) noexcept
                                                                 { m_comment_column_size = new_comment_column_size; }
-    uint8_t     getCommentColumnSize()                          { return m_comment_column_size; }
-    void        setCommentSymbol(const char new_comment_sym)    { m_comment_sym = new_comment_sym; }
-    char        getCommentSymbol()                              { return m_comment_sym; }
+    uint8_t     getCommentColumnSize()  noexcept                { return m_comment_column_size; }
+    void        setCommentSymbol(const char new_comment_sym) noexcept
+                                                                { m_comment_sym = new_comment_sym; }
+    char        getCommentSymbol() noexcept                     { return m_comment_sym; }
     //-----
-    void        addPreviewComment(const std::string &comment_before = "", const std::string &comment_after = "")
+    void        addPreviewComment(const std::string &comment_before = "", const std::string &comment_after = "") noexcept
                                                                 { m_preview_comment = Comment(comment_before, comment_after); }
-    void        addPreviewComment_before(const std::string &comment = "")
+    void        addPreviewComment_before(const std::string &comment = "") noexcept
                                                                 { m_preview_comment.before = comment; }
-    void        addPreviewComment_aftrer(const std::string &comment = "")
+    void        addPreviewComment_aftrer(const std::string &comment = "") noexcept
                                                                 { m_preview_comment.after = comment; }
-    void        addPreviewComment(const Comment& comment)       { m_preview_comment = comment; }
+    void        addPreviewComment(const Comment& comment) noexcept
+                                                                { m_preview_comment = comment; }
     //-----
-    Comment&    getPreviewComment()                             { return m_preview_comment; }
+    Comment&    getPreviewComment() noexcept                    { return m_preview_comment; }
     //-----
+    //TODO: return std::exception
     void        addComment(const std::string& key,
                     const std::string &comment_before = "", const std::string &comment_after = "")
                                                                 { Comment& ct = getOrCreateComment(key);
                                                                     ct = Comment(comment_before, comment_after); }
+    //TODO: return std::exception
     void        addComment(const std::string& key, const Comment& comment)
                                                                 { Comment& ct = getOrCreateComment(key);
                                                                     ct = comment; }
+    //TODO: return std::exception
     void        addComment_before(const std::string& key, const std::string &comment = "")
                                                                 { Comment& ct = getOrCreateComment(key);
                                                                     ct.before = comment; }
+    //TODO: return std::exception
     void        addComment_after(const std::string& key, const std::string &comment = "")
                                                                 { Comment& ct = getOrCreateComment(key);
                                                                     ct.after = comment; }
+    //TODO: return std::exception
     void        addComment(const size_t index,
                     const std::string &comment_before = "", const std::string &comment_after = "")
                                                                 { Comment& ct = getOrCreateComment(index);
                                                                     ct = Comment(comment_before, comment_after); }
+    //TODO: return std::exception
     void        addComment(const size_t index, const Comment& comment)
                                                                 { Comment& ct = getOrCreateComment(index);
                                                                     ct = comment; }
+    //TODO: return std::exception
     void        addComment_before(const size_t index, const std::string &comment = "")
                                                                 { Comment& ct = getOrCreateComment(index);
                                                                     ct.before = comment; }
+    //TODO: return std::exception
     void        addComment_after(const size_t index, const std::string &comment = "")
                                                                 { Comment& ct = getOrCreateComment(index);
                                                                     ct.after = comment; }
@@ -631,8 +656,10 @@ public:
                     return it->second;
                 }
     //-----
-    void        clearPreviewComment()                           { m_preview_comment = {}; }
+    void        clearPreviewComment() noexcept                  { m_preview_comment = {}; }
+    //TODO: return std::exception
     void        clearComment(const std::string& key)            { m_comments.erase(key); }
+    //TODO: return std::exception
     void        clearComment(const size_t index)                { m_comments.erase(m_values[index].first); }
     //----------------------------------------------------------------------------------
 };
@@ -645,17 +672,18 @@ enum class CommentType {
     eOneLineComment,
     eMultiLineComment
 };
-static CommentType  CheckComment(char& first, const char second, size_t& iterator);
-static ValueType    CheckValue(std::string& value);
-static bool         CheckNumber(const std::string& value);
-static bool         CheckBool(std::string& value);
-static bool         CheckString(std::string& value);
-static bool         CheckJson(std::string& value);
-static bool         CheckArray(std::string& value);
-static void         RemoveIllegalSpaces(std::string& string);
+static CommentType  CheckComment(char& first, const char second, size_t& iterator) noexcept;
+static ValueType    CheckValue(std::string& value) noexcept;
+static bool         CheckNumber(const std::string& value) noexcept;
+static bool         CheckBool(std::string& value) noexcept;
+static bool         CheckString(std::string& value) noexcept;
+static bool         CheckJson(std::string& value) noexcept;
+static bool         CheckArray(std::string& value) noexcept;
+static void         RemoveIllegalSpaces(std::string& string) noexcept;
 /*static*/ std::string  ToComment(const std::string& comment_string, const uint8_t tabulation_level = 0,
-                             const uint8_t column_size = 0, const char border_symbol = 0);
-/*static*/ std::string  FromComment(const std::string& comment_string, uint8_t& column_size, char& border_symbol);
+                             const uint8_t column_size = 0, const char border_symbol = 0) noexcept;
+/*static*/ std::string  FromComment(const std::string& comment_string, uint8_t& column_size,
+                                   char& border_symbol) noexcept;
 // ============================================================================ STATIC FUNCTIONS
 // *
 // *
@@ -664,12 +692,12 @@ class JsonElement : BaseElement {
 public:
     Json m_value;
 
-    JsonElement()                                       {}
-    JsonElement(const Json& j) : m_value(j)             {}
-    ~JsonElement()                                      {}
+    JsonElement() noexcept                              {}
+    JsonElement(const Json& j) noexcept : m_value(j)    {}
+    ~JsonElement() noexcept                             {}
 
     std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
-                          const ConfigFormat config_format = ConfigFormat::eJSON)
+                          const ConfigFormat config_format = ConfigFormat::eJSON) noexcept
                                                         { return m_value.to_string(tabulation_level, enable_comment,
                                                             m_value.getCommentColumnSize(), config_format); }
 };
@@ -677,12 +705,12 @@ class JArrayElement : BaseElement {
 public:
     JArray m_value;
 
-    JArrayElement()                                     {}
-    JArrayElement(const JArray& a) : m_value(a)         {}
-    ~JArrayElement()                                    {}
+    JArrayElement() noexcept                            {}
+    JArrayElement(const JArray& a) noexcept : m_value(a){}
+    ~JArrayElement() noexcept                           {}
 
     std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
-                          const ConfigFormat config_format = ConfigFormat::eJSON)
+                          const ConfigFormat config_format = ConfigFormat::eJSON) noexcept
                                                         { return m_value.to_string(tabulation_level, enable_comment,
                                                             m_value.getCommentColumnSize(), config_format); }
 };
