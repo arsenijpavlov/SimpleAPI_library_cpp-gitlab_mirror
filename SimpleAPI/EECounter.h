@@ -3,19 +3,18 @@
 
 
 #include <cstdint>
-//TODO: add "noexcept"
 
 class EECounter {
-    uint64_t maxSize;
-    uint64_t pos;
-    uint64_t global_pos;
+    uint64_t m_max_size;
+    uint64_t m_pos;
+    uint64_t m_global_pos;
 
 public:
-    EECounter(uint64_t size);
-    EECounter(const EECounter& other);
+    EECounter(uint64_t size) noexcept;
+    EECounter(const EECounter& other) noexcept;
 
-    void        set_pos(uint64_t pos);
-    void        set_glob_pos(uint64_t glob_pos);
+    void        set_m_pos(uint64_t m_pos) noexcept;
+    void        set_glob_m_pos(uint64_t glob_m_pos) noexcept;
 
     bool        operator==(const EECounter& other) const;
     bool        operator!=(const EECounter& other) const;
@@ -24,25 +23,25 @@ public:
     bool        operator<=(const EECounter& other) const;
     bool        operator>=(const EECounter& other) const;
 
-    EECounter&  operator++();
-    EECounter&  operator--();
-    EECounter   operator++(int);
-    EECounter   operator--(int);
-    EECounter   operator+(const uint64_t step);
-    EECounter   operator-(const uint64_t step);
+    EECounter&  operator++() noexcept;
+    EECounter&  operator--() noexcept;
+    EECounter   operator++(int) noexcept;
+    EECounter   operator--(int) noexcept;
+    EECounter   operator+(const uint64_t step) noexcept;
+    EECounter   operator-(const uint64_t step) noexcept;
     EECounter   operator+(const EECounter& other);
     EECounter   operator-(const EECounter& other);
 
-    EECounter&  operator=(const EECounter& other);
+    EECounter&  operator=(const EECounter& other) noexcept;
 
-    uint64_t    get() const;
-    uint64_t    get_add();
-    uint64_t    get_next();
-    uint64_t    get_glob();
-    void        add(uint64_t step = 1);
-    void        sub(uint64_t step = 1);
-    uint64_t    size() { return maxSize; }
-    void        reset();
+    uint64_t    get() const noexcept;
+    uint64_t    get_add() noexcept;
+    uint64_t    get_next() noexcept;
+    uint64_t    get_glob() noexcept;
+    void        add(uint64_t step = 1) noexcept;
+    void        sub(uint64_t step = 1) noexcept;
+    uint64_t    size() noexcept { return m_max_size; }
+    void        reset() noexcept;
 };
 
 #endif // END_TO_END_COUNTER_H
