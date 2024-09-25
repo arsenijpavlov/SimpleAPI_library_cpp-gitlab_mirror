@@ -224,7 +224,7 @@ public:
     ValueType   getTypeBack();
 
     Element     getFront();
-    Element     getAt(const size_t index);
+    Element     getAt(const size_t index)           { return m_values[index]; }
     Element     getBack();
 
     JArray&     popFront();

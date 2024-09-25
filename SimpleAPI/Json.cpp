@@ -634,11 +634,6 @@ Element JArray::getFront() {
     return m_values.front();
 }
 
-Element JArray::getAt(const size_t index) {
-    __CHECK_INDEX_BOUND__(this, index)
-    return m_values[index];
-}
-
 Element JArray::getBack() {
     __NO_ELEMENTS_EXCEPTION__
     return m_values.back();
