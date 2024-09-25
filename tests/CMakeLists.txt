@@ -4,6 +4,8 @@ project(project_Client LANGUAGES CXX)
 message("project: project_unit_tests")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/../bin")
 
+add_subdirectory(simple_test)
+
 function (create_test test_group_name)
     file(GLOB test_group_sources
         "${test_group_name}"
@@ -22,7 +24,3 @@ file(GLOB TEST_LIST "${CMAKE_CURRENT_LIST_DIR}/test_*.cpp")
 foreach(TEST ${TEST_LIST})
     create_test(${TEST})
 endforeach()
-
-#create_test(test_crc)
-#create_test(test_json)
-#create_test(test_json_settings)
