@@ -1449,8 +1449,145 @@ void Json::parseYAML(const std::string &string_of_yaml, const bool enable_commen
     //TODO: Json::parseYAML()
 }
 
+//TODO: Json::parseINI()
 void Json::parseINI(const std::string &string_of_ini, const bool enable_comment) {
-    //TODO: Json::parseINI()
+    clear();
+
+    if(string_of_ini.empty()) return;
+
+    bool isOneLineComment   = false;
+    bool isMultiLineComment = false;
+    char firstMLCSym, secondMLCSym;
+    uint8_t commentCounter  = 0;
+    std::string currentComment;
+    currentComment.reserve(100);
+
+    bool isCriticalError    = false;
+    bool isQuotes           = false;
+    bool isWordStarted      = false;
+    bool isWordFinished     = false;
+
+    std::string key_string;
+    key_string.reserve(20);
+    Comment keyComment;
+
+    uint16_t innerJsonCounter   = 0;
+    uint16_t innerArrayCounter  = 0;
+    std::string value_string;
+    value_string.reserve(100);
+    Comment valueComment;
+    bool isValueCommentAfterSaved = true; //изначально TRUE, чтобы не сработало для первого прохода
+    Element value_element;
+
+    uint16_t line_counter   = 0; //NOTE: (Json) ограничение на FFFF строк
+    uint16_t symbol_counter = 0; //NOTE: (Json) ограничение на FFFF символов в строке
+
+    enum States {
+        INI_START,
+        INI_KEY,
+        INI_KEY_VALUE_SEPARATOR,
+        INI_VALUE,
+        INI_ELEMENT_SEPARATOR,
+        INI_FINISH
+    } state = INI_START;
+    enum ValueFormat {
+        VALUE_NOPE,
+        VALUE_JSON,
+        VALUE_ARRAY,
+        VALUE_OTHER
+    } value_format = VALUE_NOPE;
+
+    for(size_t i = 0; (i < string_of_ini.length()) && (state != INI_FINISH); i++) {
+        char previous = (i - 1 >= 0) ? string_of_ini[i - 1] : 0;
+        char current = string_of_ini[i];
+        char next = (i + 1 < string_of_ini.length()) ? string_of_ini[i + 1] : 0;
+        symbol_counter++; //TODO: проверить точность
+
+        //поиск комментариев
+        if(!isOneLineComment && !isMultiLineComment && !isQuotes
+            && value_format != VALUE_ARRAY
+            && value_format != VALUE_JSON) {
+            switch(CheckComment(current, next, i)) {
+            case CommentType::eNotComment: break;
+            case CommentType::eOneLineComment: {
+                isOneLineComment = true;
+                if(!currentComment.empty() && enable_comment)
+                    currentComment += "\n";
+                //счётчик строк и столбцов =============================================
+                if(current == '\n') {
+                    line_counter++;
+                    symbol_counter = 0; //должен перескочить строго на следующей строке
+                } //====================================================================
+                continue;
+            }
+            case CommentType::eMultiLineComment: {
+                firstMLCSym = current;
+                secondMLCSym = next;
+
+                isMultiLineComment = true;
+                if(!currentComment.empty() && enable_comment)
+                    currentComment += "\n";
+                //счётчик строк и столбцов =============================================
+                if(current == '\n') {
+                    line_counter++;
+                    symbol_counter = 0; //должен перескочить строго на следующей строке
+                } //====================================================================
+                continue;
+            }
+            }
+        }
+
+        //обработка комментариев
+        if(isOneLineComment) {
+            //если следующий символ должен обрабатываться другим кодом
+            if((current == '\n') || ((string_of_ini.length() > i + 1) && (string_of_ini[i + 1] == '\n'))) {
+                isOneLineComment = false;
+                currentComment += current;
+            } else {
+                currentComment += current;
+            }
+
+            //счётчик строк и столбцов =============================================
+            if(current == '\n') {
+                line_counter++;
+                symbol_counter = 0; //должен перескочить строго на следующей строке
+            } //====================================================================
+            continue;
+        }
+        if(isMultiLineComment) {
+            //нужен следующий символ, если нет - исключение
+            if(string_of_ini.length() <= i + 1)
+                throw std::invalid_argument("invalid length of input JSON string");
+
+            if((current == secondMLCSym) && (string_of_ini[i + 1] == firstMLCSym)) {
+                isMultiLineComment = false;
+                i++;    //многострочные комментарии всегда обособляются двумя символами
+            } else {
+                currentComment += current;
+            }
+
+            //счётчик строк и столбцов =============================================
+            if(current == '\n') {
+                line_counter++;
+                symbol_counter = 0; //должен перескочить строго на следующей строке
+            } //====================================================================
+            continue;
+        }
+
+
+        //работа с синтаксисом JSON
+        if(!isOneLineComment && !isMultiLineComment) {
+            switch (state) {
+            case INI_START:
+            case INI_KEY:
+            case INI_KEY_VALUE_SEPARATOR:
+            case INI_VALUE:
+            case INI_ELEMENT_SEPARATOR:
+            case INI_FINISH:
+                break;
+            }
+        }
+    }
 }
 
 bool Json::readFile(const std::string& path, const bool enable_comment,
