@@ -469,6 +469,11 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
 
                             break;
                         }
+                        case eNull:     {
+                            push_back(Element());
+
+                            break;
+                        }
                         case eString:   {
                             push_back(value_string);
                             break;

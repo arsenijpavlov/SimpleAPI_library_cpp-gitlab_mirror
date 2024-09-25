@@ -393,7 +393,7 @@ void UDPSocket::sendFragments(const IpPort &remote_ip_port, const PacketType typ
     Json json;
     json.parseJSON(convert_from_packet(packet));
 
-    log(type != eControlType ? logs::eINFO : logs::eDEBUG, //TODO: придумать более логичное решение log()
+    log(type != eControlType ? logs::eINFO : logs::eDEBUG,
         "Send: " + to_string(type) + " "
             + (json.isEmpty() ? "[Data:0x" + utils::to_hex_string(packet) + "]"
                               : "[Json:" + json.to_string(-1) + "]"
