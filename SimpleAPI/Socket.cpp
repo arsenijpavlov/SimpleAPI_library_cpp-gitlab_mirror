@@ -346,26 +346,30 @@ void Socket::log(const logs::LEVEL level, const std::string& log_message,
     if(currentCallback)
         currentCallback(
             timeString
-            + logs::columned(std::string("[") + to_string(m_socket_type)
-                                     + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
-                                     + "]",
+            + logs::columned(std::string("[")
+                                 + to_string(m_socket_type)
+                                 + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
+                                 + "]",
                              m_settings.getNameColumnSize(),
                              m_settings.isNameColumnRightAlignEnabled())
             + " "
             + log_message
-            + "\n");
+            + "\n"
+            );
     //цветной вывод
     if(currentColorCallback)
         currentColorCallback(
             coloredTimeString
-            + logs::columned(level, std::string("[") + to_string(m_socket_type)
+            + logs::columned(level, std::string("[")
+                                        + to_string(m_socket_type)
                                         + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
                                         + "]",
                              m_settings.getNameColumnSize(),
                              m_settings.isNameColumnRightAlignEnabled())
             + " "
             + (color_log_message.empty() ? log_message : color_log_message)
-            + "\n");
+            + "\n"
+            );
 }
 
 bool Socket::sendRawMsg(const PacketMessage &packet_message) noexcept {
