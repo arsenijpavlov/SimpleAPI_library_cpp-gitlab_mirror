@@ -17,7 +17,7 @@
 
 
 // Element =====================================================================================
-std::string to_string(const ValueType type) {
+std::string to_string(const ValueType type) noexcept {
     switch(type) {
     case eNumber:   return "Number";    break;
     case eBool:     return "Bool";      break;
@@ -180,17 +180,15 @@ void JArray::parseArray(const std::string &string_of_array, const bool enable_co
                         const ConfigFormat config_format) {
     switch(config_format) {
     case ConfigFormat::eJSON:
-        parseJSON_array(string_of_array, enable_comment);
+        parseJSON_array(string_of_array, enable_comment); //функция может вернуть exception!
         break;
     case ConfigFormat::eYAML:
-        parseYAML_array(string_of_array, enable_comment);
+        parseYAML_array(string_of_array, enable_comment); //функция может вернуть exception!
         break;
     case ConfigFormat::eINI:
-        parseINI_array(string_of_array, enable_comment);
+        parseINI_array(string_of_array, enable_comment); //функция может вернуть exception!
         break;
     }
-
-//TODO: return std::exception
 }
 
 void JArray::parseJSON_array(const std::string &string_of_array, const bool enable_comment) {
@@ -612,6 +610,60 @@ JArray &JArray::append(const JArray &array) noexcept {
     return *this;
 }
 
+ValueType JArray::getType(const size_t index) {
+    __CHECK_INDEX_BOUND__(this, index)
+    return m_values[index].first;
+}
+
+ValueType JArray::getTypeFront() {
+    __NO_ELEMENTS_EXCEPTION__
+    return getType(0);
+}
+
+ValueType JArray::getTypeBack() {
+    __NO_ELEMENTS_EXCEPTION__
+    return getType(m_values.size() - 1);
+}
+
+Element JArray::getFront() {
+    __NO_ELEMENTS_EXCEPTION__
+    return m_values.front();
+}
+
+Element JArray::getAt(const size_t index) {
+    __CHECK_INDEX_BOUND__(this, index)
+    return m_values[index];
+}
+
+Element JArray::getBack() {
+    __NO_ELEMENTS_EXCEPTION__
+    return m_values.back();
+}
+
+JArray &JArray::popFront() {
+    __NO_ELEMENTS_EXCEPTION__
+    m_values.erase(m_values.begin());
+    return *this;
+}
+
+JArray &JArray::popAt(const size_t index) {
+    __CHECK_INDEX_BOUND__(this, index)
+    m_values.erase(m_values.begin() + index);
+    return *this;
+}
+
+JArray &JArray::popBack() {
+    __NO_ELEMENTS_EXCEPTION__
+    m_values.pop_back();
+    return *this;
+}
+
+JArray &JArray::clear() {
+    m_values.clear();
+    m_comments.clear();
+    return *this;
+}
+
 std::string JArray::to_string(int16_t tabulation_level, const bool enable_comment, const
                               uint8_t column_size, const ConfigFormat config_format) const noexcept {
     switch(config_format) {
@@ -754,12 +806,23 @@ bool JArray::operator==(const JArray &other) const noexcept {
     return true;
 }
 
+Element &JArray::getValue(const size_t index) {
+    __CHECK_INDEX_BOUND__(this, index)
+    return (*this)[index];
+}
+
+Element &JArray::getValue(std::vector<std::string> &complex_key) {
+    try {
+        return (*this)[complex_key];
+    } catch(std::exception e){ throw e; }
+}
+
 Element &JArray::operator[](const size_t index) {
     if(m_values.empty())
         __ARRAY_EMPTY_EXCEPTION__
-    __CHECK_INDEX_BOUND__(this, index)
+            __CHECK_INDEX_BOUND__(this, index)
 
-    return m_values[index];
+            return m_values[index];
 }
 
 Element &JArray::operator[](const std::vector<std::string> &complex_key) {
@@ -794,8 +857,8 @@ Element &JArray::operator[](const std::vector<std::string> &complex_key) {
         __ARRAY_INCORRECT_INDEX_EXCEPTION__
 }
 
-//TODO: return std::exception
 JArray &JArray::erase(const size_t index) {
+    __CHECK_INDEX_BOUND__(this, index)
     if(index <= m_values.size() - 1)
         m_values.erase(m_values.cbegin() + index);
 
@@ -816,18 +879,16 @@ Json::Json(const Json& other) noexcept : m_comment_sym(0) {
     m_comments              = other.m_comments;
 }
 
-//TODO: std::exception
-//TODO: bool read_with_comment
-Json::Json(const std::string &input_string, ConfigFormat config_format) : m_comment_sym(0) {
+Json::Json(const std::string &input_string, const bool enable_comment, ConfigFormat config_format) : m_comment_sym(0) {
     switch (config_format) {
     case ConfigFormat::eJSON:
-        parseJSON(input_string);
+        parseJSON(input_string, enable_comment); //функция может вернуть exception!
         break;
     case ConfigFormat::eYAML:
-        parseYAML(input_string);
+        parseYAML(input_string, enable_comment); //функция может вернуть exception!
         break;
     case ConfigFormat::eINI:
-        parseINI(input_string);
+        parseINI(input_string, enable_comment); //функция может вернуть exception!
         break;
     }
 }
@@ -1384,7 +1445,7 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
 }
 
 bool Json::readFile(const std::string& path, const bool enable_comment,
-                    const ConfigFormat config_format) {
+                    const ConfigFormat config_format) noexcept {
     std::string config_str;
 
     try{
@@ -1400,6 +1461,7 @@ bool Json::readFile(const std::string& path, const bool enable_comment,
         file.close();
     } catch (...) {
         std::cout << "exception for read file !!!" << std::endl;
+        return false;
     }
 
     //обработка
@@ -1673,13 +1735,14 @@ Element &Json::operator[](const std::vector<std::string> &complex_key) {
 }
 
 Json &Json::erase(const size_t index) {
+    __CHECK_INDEX_BOUND__(this, index)
     if(index <= m_values.size() - 1)
         m_values.erase(m_values.cbegin() + index);
 
     return *this;
 }
 
-Json &Json::erase(const std::string &key) {
+Json &Json::erase(const std::string &key) noexcept {
     bool flag = false;
     size_t index;
     for(index = 0; index < size(); index++) {
@@ -1694,7 +1757,7 @@ Json &Json::erase(const std::string &key) {
     return *this;
 }
 
-Json &Json::erase(const std::vector<std::string> &keys) {
+Json &Json::erase(const std::vector<std::string> &keys) noexcept {
     for(const std::string &key : keys)
         erase(key);
 

@@ -37,14 +37,15 @@
                                     throw std::invalid_argument("This element cannot contain internal elements");
 #define __NOT_JSON_ELEMENT_EXCEPTION__ \
                                     throw std::invalid_argument("This element cannot contain internal named elements");
+#define __NO_ELEMENTS_EXCEPTION__   if(size() < 1) throw std::invalid_argument("There are no elements");
 
 // Comment =====================================================================================
 struct Comment {
     std::string before;
     std::string after;
 
-    Comment(){}
-    Comment(const std::string& comment_before, const std::string& comment_after = "") :
+    Comment() noexcept {}
+    Comment(const std::string& comment_before, const std::string& comment_after = "") noexcept :
         before(comment_before), after(comment_after) {}
 };
 // ===================================================================================== Comment
@@ -71,11 +72,11 @@ enum ValueType {
     eJson,
     eArray
 };
-static std::string to_string(const ValueType type);
+static std::string to_string(const ValueType type) noexcept;
 
 class BaseElement {
 public:
-    virtual ~BaseElement(){}
+    virtual ~BaseElement() noexcept {}
     virtual std::string to_string(int16_t tabulation_level, const bool enable_comment,
                                   const ConfigFormat config_format = ConfigFormat::eJSON) noexcept = 0;
 };
@@ -110,12 +111,13 @@ class StringElement : BaseElement {
 public:
     std::string m_value;
 
-    StringElement()                                     {}
-    StringElement(const std::string& s) : m_value(s)    {}
-    ~StringElement()                                    {}
+    StringElement() noexcept                            {}
+    StringElement(const std::string& s) noexcept : m_value(s)
+                                                        {}
+    ~StringElement() noexcept                           {}
 
     std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
-                          const ConfigFormat config_format = ConfigFormat::eJSON) noexcept
+                          const ConfigFormat config_format = ConfigFormat::eJSON) noexcept override
                                                         { return "\"" + utils::to_string_with_esc(m_value) + "\""; }
 };
 
@@ -208,27 +210,18 @@ public:
                                                         return *this; }
     JArray&     append(const JArray& array) noexcept;
 
-    //TODO: return std::exception
-    ValueType   getType(const size_t index) { return m_values[index].first; }
-    //TODO: return std::exception
-    ValueType   getTypeFront(const size_t index)    { return getType(0); }
-    //TODO: return std::exception
-    ValueType   getTypeBack(const size_t index)
-                                                    { return getType(m_values.size() - 1); }
+    ValueType   getType(const size_t index);
+    ValueType   getTypeFront();
+    ValueType   getTypeBack();
 
-    //TODO: return std::exception
-    Element     getFront()                          { return m_values.front(); }
-    //TODO: return std::exception
-    Element     getBack()                           { return m_values.back(); }
+    Element     getFront();
+    Element     getAt(const size_t index);
+    Element     getBack();
 
-    //TODO: return std::exception
-    JArray&     popFornt()                          { m_values.erase(m_values.begin());
-                                                        return *this; }
-    //TODO: return std::exception
-    JArray&     popBack()                           { m_values.pop_back();
-                                                        return *this; }
-    JArray&     clear()                             { m_values.clear(); m_comments.clear();
-                                                        return *this; }
+    JArray&     popFront();
+    JArray&     popAt(const size_t index);
+    JArray&     popBack();
+    JArray&     clear();
 
     std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
                           const uint8_t column_size = 0, const ConfigFormat config_format = ConfigFormat::eJSON) const noexcept;
@@ -257,11 +250,8 @@ public:
                     return (*this)[complex_key_vec];
                 }
 
-    //TODO: return std::exception
-    Element&    getValue(const size_t index)        { return (*this)[index]; }
-    //TODO: return std::exception
-    Element&    getValue(std::vector<std::string>& complex_key)
-                                                    { return (*this)[complex_key]; }
+    Element&    getValue(const size_t index);
+    Element&    getValue(std::vector<std::string>& complex_key);
 
     AVector::iterator       begin() noexcept        { return m_values.begin(); }
     AVector::iterator       end() noexcept          { return m_values.end(); }
@@ -280,16 +270,14 @@ public:
                 }
 
                 __ONLY_ALLOWED_TYPES__(T)
-    JArray&     insert(const AVector::iterator& iterator, const T& value) noexcept
+    JArray&     insert(const AVector::iterator& iterator, const T& value)
                                                     { m_values.insert(iterator, value);
                                                         return *this; }
 
     JArray&     erase(const size_t index);
-    //TODO: return std::exception
     JArray&     erase(const AVector::iterator& iterator)
-                                                    { m_values.erase(m_values.cbegin());
+                                                    { m_values.erase(iterator);
                                                         return *this; }
-    //TODO: return std::exception
     JArray&     erase(const AVector::iterator& begin, const AVector::iterator& end)
                                                     { m_values.erase(begin, end);
                                                         return *this; }
@@ -310,20 +298,16 @@ public:
     //-----
     Comment&    getPreviewComment()                             { return m_preview_comment; }
     //-----
-    //TODO: return std::exception
-    void        addComment(const size_t index,
-                    const std::string &comment_before = "", const std::string &comment_after = "")
+    void        addComment(const size_t index, const std::string &comment_before = "",
+                            const std::string &comment_after = "")
                                                                 { Comment& ct = getOrCreateComment(index);
                                                                     ct = Comment(comment_before, comment_after); }
-    //TODO: return std::exception
     void        addComment(const size_t index, const Comment& comment)
                                                                 { Comment& ct = getOrCreateComment(index);
                                                                     ct = comment; }
-    //TODO: return std::exception
     void        addComment_before(const size_t index, const std::string &comment = "")
                                                                 { Comment& ct = getOrCreateComment(index);
                                                                     ct.before = comment; }
-    //TODO: return std::exception
     void        addComment_after(const size_t index, const std::string &comment = "")
                                                                 { Comment& ct = getOrCreateComment(index);
                                                                     ct.after = comment; }
@@ -346,7 +330,6 @@ public:
                 }
     //-----
     void        clearPreviewComment() noexcept                  { m_preview_comment = {}; }
-    //TODO: return std::exception
     void        clearComment(const size_t index)                { m_comments.erase(m_values[index].first); }
 };
 // ====================================================================================== JArray
@@ -370,7 +353,8 @@ public:
                 Json(const Json& json) noexcept;
                 Json(const JPair& pair) noexcept : m_comment_sym(0)
                                                                 { put(pair.first, pair.second); }
-                Json(const std::string& input_string, ConfigFormat config_format = ConfigFormat::eJSON);
+                Json(const std::string& input_string, const bool enable_comment = false,
+                        ConfigFormat config_format = ConfigFormat::eJSON);
                 __ONLY_ALLOWED_TYPES__(T)
                 Json(const std::string& key, const T& value) noexcept : m_comment_sym(0)
                                                                 { put(key, value); }
@@ -397,17 +381,13 @@ public:
     void        parseYAML(const std::string& string_of_yaml, const bool enable_comment = false);
     void        parseINI(const std::string& string_of_ini, const bool enable_comment = false);
 
-    //TODO: return std::exception
     bool        readFile(const std::string& path, const bool enable_comment = false,
-                   const ConfigFormat config_format = ConfigFormat::eJSON);
-    //TODO: return std::exception
-    bool        readJSON(const std::string& path, const bool enable_comment = false)
+                   const ConfigFormat config_format = ConfigFormat::eJSON) noexcept;
+    bool        readFileJSON(const std::string& path, const bool enable_comment = false) noexcept
                                                                 { return readFile(path, enable_comment); }
-    //TODO: return std::exception
-    bool        readYAML(const std::string& path, const bool enable_comment = false)
+    bool        readFileYAML(const std::string& path, const bool enable_comment = false) noexcept
                                                                 { return readFile(path, enable_comment, ConfigFormat::eYAML); }
-    //TODO: return std::exception
-    bool        readINI(const std::string& path, const bool enable_comment = false)
+    bool        readFileINI(const std::string& path, const bool enable_comment = false) noexcept
                                                                 { return readFile(path, enable_comment, ConfigFormat::eINI); }
 
     bool        writeFile(const std::string& path, int16_t tabulation_level = 0,
@@ -462,11 +442,8 @@ public:
                     std::copy(complex_key.begin(), complex_key.end(), complex_key_vec.begin());
                     return (*this)[complex_key_vec];
                 }
-    //TODO: return std::exception
     Element&    getValue(const size_t index)                    { return (*this)[index]; }
-    //TODO: return std::exception
     Element&    getValue(const std::string& key)                { return (*this)[key]; }
-    //TODO: return std::exception
     Element&    getValue(std::vector<std::string>& complex_key) { return (*this)[complex_key]; }
 
     //положить значение в указанную позицию
@@ -553,20 +530,14 @@ public:
                     return *this;
                 }
 
-    //TODO: return std::exception
     Json&       erase(const size_t index);
-    //TODO: return std::exception
-    Json&       erase(const JVector::iterator& iterator)
-                                                                { m_values.erase(m_values.cbegin());
+    Json&       erase(const JVector::iterator& iterator)        { m_values.erase(iterator);
                                                                     return *this; }
-    //TODO: return std::exception
     Json&       erase(const JVector::iterator& begin, const JVector::iterator& end)
                                                                 { m_values.erase(begin, end);
                                                                     return *this; }
-    //TODO: return std::exception
-    Json&       erase(const std::string& key);
-    //TODO: return std::exception
-    Json&       erase(const std::vector<std::string>& keys);
+    Json&       erase(const std::string& key) noexcept;
+    Json&       erase(const std::vector<std::string>& keys) noexcept;
 
     //комментирование ------------------------------------------------------------------
     void        setCommentColumnSize(const uint8_t new_comment_column_size) noexcept
@@ -587,37 +558,29 @@ public:
     //-----
     Comment&    getPreviewComment() noexcept                    { return m_preview_comment; }
     //-----
-    //TODO: return std::exception
     void        addComment(const std::string& key,
                     const std::string &comment_before = "", const std::string &comment_after = "")
                                                                 { Comment& ct = getOrCreateComment(key);
                                                                     ct = Comment(comment_before, comment_after); }
-    //TODO: return std::exception
     void        addComment(const std::string& key, const Comment& comment)
                                                                 { Comment& ct = getOrCreateComment(key);
                                                                     ct = comment; }
-    //TODO: return std::exception
     void        addComment_before(const std::string& key, const std::string &comment = "")
                                                                 { Comment& ct = getOrCreateComment(key);
                                                                     ct.before = comment; }
-    //TODO: return std::exception
     void        addComment_after(const std::string& key, const std::string &comment = "")
                                                                 { Comment& ct = getOrCreateComment(key);
                                                                     ct.after = comment; }
-    //TODO: return std::exception
     void        addComment(const size_t index,
                     const std::string &comment_before = "", const std::string &comment_after = "")
                                                                 { Comment& ct = getOrCreateComment(index);
                                                                     ct = Comment(comment_before, comment_after); }
-    //TODO: return std::exception
     void        addComment(const size_t index, const Comment& comment)
                                                                 { Comment& ct = getOrCreateComment(index);
                                                                     ct = comment; }
-    //TODO: return std::exception
     void        addComment_before(const size_t index, const std::string &comment = "")
                                                                 { Comment& ct = getOrCreateComment(index);
                                                                     ct.before = comment; }
-    //TODO: return std::exception
     void        addComment_after(const size_t index, const std::string &comment = "")
                                                                 { Comment& ct = getOrCreateComment(index);
                                                                     ct.after = comment; }
@@ -656,9 +619,7 @@ public:
                 }
     //-----
     void        clearPreviewComment() noexcept                  { m_preview_comment = {}; }
-    //TODO: return std::exception
-    void        clearComment(const std::string& key)            { m_comments.erase(key); }
-    //TODO: return std::exception
+    void        clearComment(const std::string& key) noexcept   { m_comments.erase(key); }
     void        clearComment(const size_t index)                { m_comments.erase(m_values[index].first); }
     //----------------------------------------------------------------------------------
 };
@@ -696,7 +657,7 @@ public:
     ~JsonElement() noexcept                             {}
 
     std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
-                          const ConfigFormat config_format = ConfigFormat::eJSON) noexcept
+                          const ConfigFormat config_format = ConfigFormat::eJSON) noexcept override
                                                         { return m_value.to_string(tabulation_level, enable_comment,
                                                             m_value.getCommentColumnSize(), config_format); }
 };
@@ -709,7 +670,7 @@ public:
     ~JArrayElement() noexcept                           {}
 
     std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
-                          const ConfigFormat config_format = ConfigFormat::eJSON) noexcept
+                          const ConfigFormat config_format = ConfigFormat::eJSON) noexcept override
                                                         { return m_value.to_string(tabulation_level, enable_comment,
                                                             m_value.getCommentColumnSize(), config_format); }
 };
