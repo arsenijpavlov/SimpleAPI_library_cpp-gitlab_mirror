@@ -41,7 +41,7 @@ void RecvJson(JsonMessage jm) {
         isNeedAck = true;
         jsonAck.clear();
         jsonAck.put("Chapter #1", "SERVER: Some test text... Some test text... Some test text... Some test text... Some test text...");
-        ipPortAck = jm.ipPort;
+        ipPortAck = jm.m_ip_port;
 
         isBigPacketSent = true;
     }
