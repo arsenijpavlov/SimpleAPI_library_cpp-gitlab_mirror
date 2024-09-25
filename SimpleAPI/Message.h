@@ -8,7 +8,6 @@
 #include <cstdint>
 #include <string>
 #include <vector>
-//TODO: add "noexcept"
 
 
 /* ================================================================================================
@@ -48,21 +47,21 @@
  *  JSON:{}             - текстовое представление контрольного сообщения (без шифрования)
  * ==============================================================================================*/
 using Packet = std::vector<uint8_t>;
-Packet      convert_to_packet(const std::string& str);
-Packet      convert_to_packet(const char* str);
-std::string convert_from_packet(const Packet& packet);
-std::string to_string(const Packet& packet);
+Packet      convert_to_packet(const std::string& str) noexcept;
+Packet      convert_to_packet(const char* str) noexcept;
+std::string convert_from_packet(const Packet& packet) noexcept;
+std::string to_string(const Packet& packet) noexcept;
 
 enum PacketType {
     eControlType    = 0,
     eDataType       = 1
 };
-std::string to_string(PacketType type);
+std::string to_string(PacketType type) noexcept;
 
 enum ApiVersion {
     eVersion_1   = 1
 };
-ApiVersion getLastApiVersion();
+ApiVersion getLastApiVersion() noexcept;
 
 enum CRC {
     eCRC_OFF    = 0,
@@ -83,14 +82,14 @@ struct PacketHeader {
 struct PacketError {
     EECounter sn_finish;
 
-    PacketError() : sn_finish(255){};
+    PacketError() noexcept : sn_finish(255){};
 };
 
 struct PacketRange {
     EECounter start;
     EECounter finish;
 
-    PacketRange() : start(255), finish(255) {};
+    PacketRange() noexcept : start(255), finish(255) {};
 };
 
 class PacketMessage {
@@ -106,10 +105,10 @@ public:
     bool        isBuiltComplete;
     PacketRange range;
 
-    PacketMessage() : sn(0)     { clear(); }
+    PacketMessage() noexcept : sn(0)                { clear(); }
 
-    void clear();
-    std::string to_string();
+    void clear() noexcept;
+    std::string to_string() noexcept;
 };
 
 class JsonMessage {
@@ -117,12 +116,12 @@ public:
     IpPort      ipPort;
     Json        json;
 
-    JsonMessage(){};
-    JsonMessage(const JsonMessage& jm)      { *this = jm; }
-    JsonMessage(const PacketMessage& pm);
+    JsonMessage() noexcept                          {};
+    JsonMessage(const JsonMessage& jm) noexcept     { *this = jm; }
+    JsonMessage(const PacketMessage& pm) noexcept;
 
-    void clear();
-    std::string to_string(int arg = -1);
+    void clear() noexcept;
+    std::string to_string(int arg = -1) noexcept;
 };
 
 #endif // MESSAGE_H
