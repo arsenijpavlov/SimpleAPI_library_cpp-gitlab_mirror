@@ -5,7 +5,7 @@
 
 namespace logs {
 
-const std::string to_string(const LEVEL level)  {
+const std::string to_string(const LEVEL level) noexcept {
     switch(level) {
     case eERROR:    return "[ERROR]";
     case eWARNING:  return "[WARNING]";
@@ -15,8 +15,7 @@ const std::string to_string(const LEVEL level)  {
     }
 }
 
-const std::string to_string(const COLOR color)
-{
+const std::string to_string(const COLOR color) noexcept {
     switch(color) {
     case eRESET_TEXT:           return RESET_TEXT;
     case eBOLD_TEXT:            return BOLD_TEXT;
@@ -59,7 +58,7 @@ const std::string to_string(const COLOR color)
     }
 }
 
-std::string to_color_string(const LEVEL level, const std::string& log_message) {
+std::string to_color_string(const LEVEL level, const std::string& log_message) noexcept {
     COLOR color;
     switch(level) {
     case eERROR:    color = eRED_FG;     break;
@@ -74,11 +73,10 @@ std::string to_color_string(const LEVEL level, const std::string& log_message) {
     return to_color_string(color, log_message);
 }
 
-std::string to_color_string(const COLOR color, const std::string &log_message)
+std::string to_color_string(const COLOR color, const std::string &log_message) noexcept
 { return to_color_string(std::vector<COLOR>{color}, log_message); }
 
-std::string to_color_string(const std::vector<COLOR>& colors, const std::string& log_message)
-{
+std::string to_color_string(const std::vector<COLOR>& colors, const std::string& log_message) noexcept {
     std::string result_string = "";
     for(COLOR clr : colors)
         result_string += to_string(clr);
@@ -86,16 +84,16 @@ std::string to_color_string(const std::vector<COLOR>& colors, const std::string&
     return result_string;
 }
 
-std::string get_time_string() {
+std::string get_time_string() noexcept {
     auto _now = std::chrono::system_clock::now();
     return get_time_string(_now);
 }
 
-std::string get_time_string(const long millis) {
+std::string get_time_string(const long millis) noexcept {
     return get_time_string(std::chrono::system_clock::time_point{std::chrono::milliseconds{millis}});
 }
 
-std::string get_time_string(const std::chrono::system_clock::time_point& tp_millis) {
+std::string get_time_string(const std::chrono::system_clock::time_point& tp_millis) noexcept {
     std::time_t tt = std::chrono::system_clock::to_time_t(tp_millis);
     struct tm* tmInfo = std::localtime(&tt);
 
@@ -107,9 +105,8 @@ std::string get_time_string(const std::chrono::system_clock::time_point& tp_mill
     return std::string("[") + time_buf + "." + millis + "]";
 }
 
-std::string columned(const std::string &log_message, const int column_size, const bool right_align)
-{
-//    std::cout << "log size: " << log_message.size() << ", column size:" << column_size << std::endl;
+std::string columned(const std::string &log_message, const int column_size,
+                     const bool right_align) noexcept {
     if(column_size == -1)                   return log_message;
     if(column_size <= log_message.size())   return log_message;
 
@@ -119,19 +116,20 @@ std::string columned(const std::string &log_message, const int column_size, cons
     for(int i = 0; i < _spaceSize; i++)
         _result += " ";
 
-    if(right_align)
-        return _result + log_message;
-    else
-        return log_message + _result;
+    if(right_align) return _result + log_message;
+    else            return log_message + _result;
 }
 
-std::string columned(const std::vector<COLOR> colors, const std::string &log_message, const int column_size, const bool right_align)
+std::string columned(const std::vector<COLOR> colors, const std::string &log_message,
+                     const int column_size, const bool right_align) noexcept
 { return to_color_string(colors, columned(log_message, column_size, right_align)); }
 
-std::string columned(const COLOR color, const std::string &log_message, const int column_size, const bool right_align)
+std::string columned(const COLOR color, const std::string &log_message,
+                     const int column_size, const bool right_align) noexcept
 { return columned(std::vector<COLOR>{color}, log_message, column_size, right_align); }
 
-std::string columned(const LEVEL level, const std::string &log_message, const int column_size, const bool right_align)
+std::string columned(const LEVEL level, const std::string &log_message,
+                     const int column_size, const bool right_align) noexcept
 { return to_color_string(level, columned(log_message, column_size, right_align)); }
 
 
