@@ -107,6 +107,16 @@ public:
                                                         { return m_value ? "true" : "false"; }
 };
 
+class NullElement : BaseElement {
+public:
+    NullElement() noexcept                              {}
+    ~NullElement() noexcept                             {}
+
+    std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
+                          const ConfigFormat config_format = ConfigFormat::eJSON) noexcept override
+                                                        { return "null"; }
+};
+
 class StringElement : BaseElement {
 public:
     std::string m_value;
@@ -128,8 +138,7 @@ struct Element {
     ValueType       first;
     BaseElement*    second;
 
-                Element() noexcept : first(ValueType::eNull), second(nullptr)
-                                                                {}
+                Element() noexcept;
                 Element(ValueType type, BaseElement* ptr) noexcept : first(type), second(ptr)
                                                                 {}
                 template<typename T, typename std::enable_if<std::is_arithmetic<T>::value
@@ -636,6 +645,7 @@ static CommentType  CheckComment(char& first, const char second, size_t& iterato
 static ValueType    CheckValue(std::string& value) noexcept;
 static bool         CheckNumber(const std::string& value) noexcept;
 static bool         CheckBool(std::string& value) noexcept;
+static bool         CheckNull(std::string& value) noexcept;
 static bool         CheckString(std::string& value) noexcept;
 static bool         CheckJson(std::string& value) noexcept;
 static bool         CheckArray(std::string& value) noexcept;

@@ -28,6 +28,10 @@ std::string to_string(const ValueType type) noexcept {
     }
 }
 
+Element::Element() noexcept : first(ValueType::eNull) {
+    second = reinterpret_cast<BaseElement*>(new NullElement());
+}
+
 Element::Element(const Json& value) noexcept : first(ValueType::eJson) {
     second = reinterpret_cast<BaseElement*>(new JsonElement(value));
 }
@@ -55,7 +59,7 @@ Element::Element(const Element &other) noexcept {
         second = reinterpret_cast<BaseElement*>(new JArrayElement(other.getArray()));
         break;
     case eNull:
-        second = nullptr;
+        second = reinterpret_cast<BaseElement*>(new NullElement());
         break;
     }
 }
@@ -107,7 +111,7 @@ Element &Element::operator=(const Element &other) noexcept {
         second = reinterpret_cast<BaseElement*>(new JArrayElement(other.getArray()));
         break;
     case eNull:
-        second = nullptr;
+        second = reinterpret_cast<BaseElement*>(new NullElement());
         break;
     }
 
@@ -603,7 +607,7 @@ JArray &JArray::append(const JArray &array) noexcept {
         case eString:   push_back(el.getString());  break;
         case eJson:     push_back(el.getJson());    break;
         case eArray:    push_back(el.getArray());   break;
-        case eNull:     break;
+        case eNull:     push_back(Element());       break;
         }
     }
 
@@ -1303,6 +1307,11 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 
                             break;
                         }
+                        case eNull:     {
+                            put(key_string, Element());
+
+                            break;
+                        }
                         case eString:   {
                             put(key_string, value_string);
                             break;
@@ -1789,7 +1798,7 @@ CommentType CheckComment(char& first, const char second, size_t& iterator) noexc
     return CommentType::eNotComment;
 }
 
-//только для ЧИСЕЛ, BOOL и СТРОК
+//только для ЧИСЕЛ, BOOL, NULL и СТРОК
 ValueType CheckValue(std::string& value) noexcept {
 //    std::cout << "CheckValue(): \"" << value << "\"" << std::endl;
     bool isValue = false;
@@ -1811,6 +1820,9 @@ ValueType CheckValue(std::string& value) noexcept {
                          || value[0] == 'T'
                          || value[0] == 'F'))
                                             vType = ValueType::eBool;
+            else if(!utils::CharsInString(value[i], __SPACES__)
+                     && (value[0] == 'N' || value[0] == 'n'))
+                                            vType = ValueType::eNull;
             else                            vType = ValueType::eString;
         }
         _value += value[i];
@@ -1827,6 +1839,14 @@ ValueType CheckValue(std::string& value) noexcept {
     }
     case ValueType::eBool:      {
         isValue = CheckBool(_value);
+        if(!isValue) {
+            vType = ValueType::eString;
+            isValue = CheckString(_value);
+        }
+        break;
+    }
+    case ValueType::eNull:      {
+        isValue = CheckNull(_value);
         if(!isValue) {
             vType = ValueType::eString;
             isValue = CheckString(_value);
@@ -1878,6 +1898,24 @@ bool CheckBool(std::string& value) noexcept {
     }
 
     if(temp != "true" && temp != "false") return false;
+    value = temp;
+    return true;
+}
+
+bool CheckNull(std::string& value) noexcept {
+//    std::cout << "CheckNull(): \"" << value << "\"" << std::endl;
+    std::string temp;
+    bool flag = false;
+    for(char c : value) {
+        if(utils::CharsInString(c, __SPACES__)) {
+            if(flag) break;
+        } else {
+            if(!flag)   flag = true;
+            if(flag)    temp += std::tolower(c);
+        }
+    }
+
+    if(temp != "null") return false;
     value = temp;
     return true;
 }

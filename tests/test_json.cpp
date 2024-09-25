@@ -20,10 +20,10 @@ TEST(ELEMENT, create_num) {
     Element el_uint(11);
     Element el_float(11.f);
 
-    EXPECT_EQ(eNumber, el_int.first);
-    EXPECT_EQ(eNumber, el_double.first);
-    EXPECT_EQ(eNumber, el_uint.first);
-    EXPECT_EQ(eNumber, el_float.first);
+    EXPECT_EQ(eNumber,  el_int.first);
+    EXPECT_EQ(eNumber,  el_double.first);
+    EXPECT_EQ(eNumber,  el_uint.first);
+    EXPECT_EQ(eNumber,  el_float.first);
 }
 
 TEST(ELEMENT, create_srting) {
@@ -41,6 +41,12 @@ TEST(ELEMENT, create_bool) {
     Element el_bool(true);
 
     EXPECT_EQ(eBool, el_bool.first);
+}
+
+TEST(ELEMENT, create_null) {
+    Element el_null;
+
+    EXPECT_EQ(eNull,    el_null.first);
 }
 
 TEST(ELEMENT, create_json) {
@@ -124,6 +130,7 @@ std::string json_string_example = "{"
                                   "\"number\":182,\n"
                                   //иной вариант разделителя '='
                                   "\"bool\"=true,\n"
+                                  "\"null\"=NuLL,\n"
                                   //перенос строки равнозначен разделителю ','
                                   "\"string\":\"string_value\"\n"
                                   "\"json\":{\"string\":\"inner_string_value\",\n \"string2\" : 150 },\n"
@@ -159,9 +166,10 @@ TEST(JSON, parse) {
     Json json;
     json.parseJSON(string_json);
 
-    EXPECT_EQ(5, json.size());
+    EXPECT_EQ(6, json.size());
     EXPECT_EQ(182, json["number"].getNum());
     EXPECT_EQ(true, json["bool"].getBool());
+    EXPECT_EQ(eNull, json["null"].first);
     EXPECT_EQ("string_value", json["string"].getString());
 
     EXPECT_EQ(2, json["json"].getJson().size());
@@ -173,7 +181,7 @@ TEST(JSON, parse) {
 
     //повторная обработка (очистка, новое заполнение)
     json.parseJSON(string_json);
-    EXPECT_EQ(5, json.size());
+    EXPECT_EQ(6, json.size());
 }
 
 TEST(JSON, parse2) {
