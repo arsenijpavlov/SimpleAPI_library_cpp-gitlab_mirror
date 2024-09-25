@@ -5,46 +5,42 @@
 #include <netinet/in.h>
 
 
-bool IpPort::operator==(const IpPort &other) const {
-    if(this->ip == other.ip && this->port == other.port)    return true;
-    else                                                    return false;
+bool IpPort::operator==(const IpPort &other) const noexcept {
+    if(ip == other.ip && port == other.port)    return true;
+    else                                        return false;
 }
 
-bool IpPort::operator!=(const IpPort &other) const {
-    if(this->ip != other.ip || this->port != other.port)    return true;
-    else                                                    return false;
+bool IpPort::operator!=(const IpPort &other) const noexcept {
+    if(ip != other.ip || port != other.port)    return true;
+    else                                        return false;
 }
 
-bool IpPort::operator<(const IpPort &other) const
-{
-    if(this->ip < other.ip)
+bool IpPort::operator<(const IpPort &other) const noexcept {
+    if(ip < other.ip)
         return true;
-    else if(this->ip == other.ip) {
-        return this->port < other.port;
-    } else {
+    else if(ip == other.ip)
+        return port < other.port;
+    else
         return false;
-    }
 }
 
-bool IpPort::operator>(const IpPort &other) const
-{
-    if(this->port == other.port) {
-        if(this->ip > other.ip) return true;
-        else                    return false;
+bool IpPort::operator>(const IpPort &other) const noexcept {
+    if(port == other.port) {
+        if(ip > other.ip)   return true;
+        else                return false;
     }
 
-    if(this->port > other.port) return true;
-    else                        return false;
+    if(port > other.port)   return true;
+    else                    return false;
 }
 
-std::string IpPort::to_string(std::string info) const {
+std::string IpPort::to_string(std::string info) const noexcept {
     return std::string("[")
            + (info.empty() ? "" : info + "_")
-           + this->ip + ":" + std::to_string(this->port) + "]";
+           + ip + ":" + std::to_string(port) + "]";
 }
 
-bool IpPort::from_string(std::string ip_port_string)
-{
+bool IpPort::from_string(std::string ip_port_string) noexcept {
     std::string ip_string = ip_port_string.substr(0, ip_port_string.find(':'));
 //    std::cout << "ip_string: \"" << ip_string << "\"" << std::endl;
     std::string port_string = ip_port_string.substr(ip_port_string.find(':') + 1,

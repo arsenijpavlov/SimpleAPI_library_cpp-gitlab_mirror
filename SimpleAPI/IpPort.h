@@ -2,19 +2,18 @@
 #define IP_PORT_H
 
 #include <string>
-//TODO: add "noexcept"
 
 struct IpPort {
     std::string ip;
     uint16_t    port;
 
-    bool operator==(const IpPort& other) const;
-    bool operator!=(const IpPort& other) const;
-    bool operator<(const IpPort& other) const;
-    bool operator>(const IpPort& other) const;
+    bool operator==(const IpPort& other) const noexcept;
+    bool operator!=(const IpPort& other) const noexcept;
+    bool operator<(const IpPort& other) const noexcept;
+    bool operator>(const IpPort& other) const noexcept;
 
-    std::string to_string(std::string info = "") const;
-    bool from_string(std::string ip_port_string);
+    std::string to_string(std::string info = "") const noexcept;
+    bool from_string(std::string ip_port_string) noexcept;
 };
 
 #endif // IP_PORT_H
