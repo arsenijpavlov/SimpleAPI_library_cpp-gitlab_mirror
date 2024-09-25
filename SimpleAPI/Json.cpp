@@ -61,9 +61,9 @@ Element::Element(const Element &other) noexcept {
 }
 
 bool Element::operator==(const Element &other) const noexcept {
-    if(this->first != other.first) return false;
+    if(first != other.first) return false;
 
-    switch(this->first) {
+    switch(first) {
     case eNull:                                 return true;
     case eNumber:
         if(getNum() == other.getNum())          return true;
@@ -743,10 +743,10 @@ std::string JArray::to_INI_string(int16_t tabulation_level, const bool enable_co
 }
 
 bool JArray::operator==(const JArray &other) const noexcept {
-    if(this->size() != other.size()) return false;
+    if(size() != other.size()) return false;
 
-    for(auto it1 = this->m_values.begin(), it2 = other.m_values.begin();
-         it1 != this->m_values.end() && it2 != other.m_values.end();
+    for(auto it1 = m_values.begin(), it2 = other.m_values.begin();
+         it1 != m_values.end() && it2 != other.m_values.end();
          it1++, it2++) {
         if(*it1 != *it2) return false;
     }
@@ -805,7 +805,7 @@ JArray &JArray::erase(const size_t index) {
 // *
 // *
 // Json ========================================================================================
-Json::Json(const Json& other) : m_comment_sym(0) {
+Json::Json(const Json& other) noexcept : m_comment_sym(0) {
     for(const JPair &el : other.m_values)
         m_values.push_back(std::make_pair(el.first, Element(el.second)));
 
@@ -816,6 +816,7 @@ Json::Json(const Json& other) : m_comment_sym(0) {
     m_comments              = other.m_comments;
 }
 
+//TODO: std::exception
 //TODO: bool read_with_comment
 Json::Json(const std::string &input_string, ConfigFormat config_format) : m_comment_sym(0) {
     switch (config_format) {
@@ -831,21 +832,21 @@ Json::Json(const std::string &input_string, ConfigFormat config_format) : m_comm
     }
 }
 
-Json::Json(const JVector &vec) : m_comment_sym(0) {
+Json::Json(const JVector &vec) noexcept : m_comment_sym(0) {
     for(JVector::const_iterator j_it = vec.begin(); j_it != vec.end(); j_it++)
         put(j_it->first, j_it->second);
 }
 
-Json &Json::operator=(const Json &other) {
-    this->clear();
-    this->m_comment_sym = other.m_comment_sym;
+Json &Json::operator=(const Json &other) noexcept {
+    clear();
+    m_comment_sym = other.m_comment_sym;
     for(const JPair &el : other.m_values)
         m_values.push_back(std::make_pair(el.first, Element(el.second)));
 
     return *this;
 }
 
-Json &Json::put(const std::string &key, const Element &element, const bool rewrite) {
+Json &Json::put(const std::string &key, const Element &element, const bool rewrite) noexcept {
     if(!contains(key))
         m_values.push_back(JPair(key, element));
     else if(rewrite)
@@ -853,7 +854,7 @@ Json &Json::put(const std::string &key, const Element &element, const bool rewri
     return *this;
 }
 
-Json &Json::put(const Json &json, const bool rewrite) {
+Json &Json::put(const Json &json, const bool rewrite) noexcept {
     for(const JPair &pair : json.m_values) {
         if(contains(pair.first)) {
             if(!rewrite)    continue;
@@ -1415,20 +1416,20 @@ bool Json::readFile(const std::string& path, const bool enable_comment,
 }
 
 bool Json::writeFile(const std::string& path, int16_t tabulation_level,
-                     const bool enable_comment, const ConfigFormat config_format) {
+                     const bool enable_comment, const ConfigFormat config_format) noexcept {
     std::ofstream file(path);
     if (!file.is_open())
         return false;
 
     switch(config_format) {
     case ConfigFormat::eJSON:
-        file << this->to_JSON_string(tabulation_level, enable_comment, m_comment_column_size) << std::endl;
+        file << to_JSON_string(tabulation_level, enable_comment, m_comment_column_size) << std::endl;
         break;
     case ConfigFormat::eYAML:
-        file << this->to_YAML_string(tabulation_level, enable_comment, m_comment_column_size) << std::endl;
+        file << to_YAML_string(tabulation_level, enable_comment, m_comment_column_size) << std::endl;
         break;
     case ConfigFormat::eINI:
-        file << this->to_INI_string(tabulation_level, enable_comment, m_comment_column_size) << std::endl;
+        file << to_INI_string(tabulation_level, enable_comment, m_comment_column_size) << std::endl;
         break;
     }
 
@@ -1438,7 +1439,7 @@ bool Json::writeFile(const std::string& path, int16_t tabulation_level,
 }
 
 std::string Json::to_string(int16_t tabulation_level, const bool enable_comment,
-                            const uint8_t column_size, const ConfigFormat config_format) const {
+                            const uint8_t column_size, const ConfigFormat config_format) const noexcept {
     switch(config_format) {
     case ConfigFormat::eJSON:
         return to_JSON_string(tabulation_level, enable_comment, column_size);
@@ -1452,7 +1453,7 @@ std::string Json::to_string(int16_t tabulation_level, const bool enable_comment,
 }
 
 std::string Json::to_JSON_string(int16_t tabulation_level, const bool enable_comment,
-                                 const uint8_t column_size) const {
+                                 const uint8_t column_size) const noexcept {
     std::string ret;
     bool withoutSpaces = tabulation_level < 0 && !enable_comment;
 
@@ -1560,18 +1561,18 @@ std::string Json::to_JSON_string(int16_t tabulation_level, const bool enable_com
 }
 
 std::string Json::to_YAML_string(int16_t tabulation_level, const bool enable_comment,
-                                   const uint8_t column_size) const {
+                                   const uint8_t column_size) const noexcept {
     //TODO: Json::to_YAML_string
     return "";
 }
 
 std::string Json::to_INI_string(int16_t tabulation_level, const bool enable_comment,
-                                  const uint8_t column_size) const {
+                                  const uint8_t column_size) const noexcept {
     //TODO: Json::to_INI_string
     return "";
 }
 
-bool Json::contains(const std::string &key) {
+bool Json::contains(const std::string &key) noexcept {
     for(auto& el : m_values) {
         if(el.first == key)
             return true;
@@ -1580,7 +1581,7 @@ bool Json::contains(const std::string &key) {
     return false;
 }
 
-Json &Json::updateValue(const std::string &key, const Element &new_value) {
+Json &Json::updateValue(const std::string &key, const Element &new_value) noexcept {
     if(contains(key))
         (*this)[key] = Element(new_value);
     else
@@ -1589,11 +1590,11 @@ Json &Json::updateValue(const std::string &key, const Element &new_value) {
     return *this;
 }
 
-bool Json::operator==(const Json &other) const {
-    if(this->size() != other.size()) return false;
+bool Json::operator==(const Json &other) const noexcept {
+    if(size() != other.size()) return false;
 
-    for(auto it1 = this->m_values.begin(), it2 = other.m_values.begin();
-         it1 != this->m_values.end() && it2 != other.m_values.end();
+    for(auto it1 = m_values.begin(), it2 = other.m_values.begin();
+         it1 != m_values.end() && it2 != other.m_values.end();
          it1++, it2++
          ) {
         if(it1->second != it2->second) return false;
@@ -1681,7 +1682,7 @@ Json &Json::erase(const size_t index) {
 Json &Json::erase(const std::string &key) {
     bool flag = false;
     size_t index;
-    for(index = 0; index < this->size(); index++) {
+    for(index = 0; index < size(); index++) {
         if(m_values[index].first == key) {
             flag = true;
             break;
@@ -1695,7 +1696,7 @@ Json &Json::erase(const std::string &key) {
 
 Json &Json::erase(const std::vector<std::string> &keys) {
     for(const std::string &key : keys)
-        this->erase(key);
+        erase(key);
 
     return *this;
 }
@@ -1703,7 +1704,7 @@ Json &Json::erase(const std::vector<std::string> &keys) {
 // *
 // *
 // STATIC FUNCTIONS ============================================================================
-CommentType CheckComment(char& first, const char second, size_t& iterator) {
+CommentType CheckComment(char& first, const char second, size_t& iterator) noexcept {
     //сперва искать многострочные комментарии!
     for(uint8_t i = 0; i < utils::cmt::SIZE_comment_multi_line; i++) {
         if(first == utils::cmt::comment_multi_line[i][0] && second == utils::cmt::comment_multi_line[i][1]) {
@@ -1726,7 +1727,7 @@ CommentType CheckComment(char& first, const char second, size_t& iterator) {
 }
 
 //только для ЧИСЕЛ, BOOL и СТРОК
-ValueType CheckValue(std::string& value) {
+ValueType CheckValue(std::string& value) noexcept {
 //    std::cout << "CheckValue(): \"" << value << "\"" << std::endl;
     bool isValue = false;
     std::string _value;
@@ -1782,7 +1783,7 @@ ValueType CheckValue(std::string& value) {
         return ValueType::eNull;
 }
 
-bool CheckNumber(const std::string &value) {
+bool CheckNumber(const std::string &value) noexcept {
     if(value.empty()) return false;
     if(value[0] == 'e' || value[0] == 'E' || value[0] == 'f' || value[0] == 'F')
         return false;
@@ -1800,7 +1801,7 @@ bool CheckNumber(const std::string &value) {
     return matched && !e_is_last;
 }
 
-bool CheckBool(std::string& value) {
+bool CheckBool(std::string& value) noexcept {
 //    std::cout << "CheckBool(): \"" << value << "\"" << std::endl;
     std::string temp;
     bool flag = false;
@@ -1818,7 +1819,7 @@ bool CheckBool(std::string& value) {
     return true;
 }
 
-bool CheckString(std::string& value) {
+bool CheckString(std::string& value) noexcept {
 //    std::cout << "CheckString(): \"" << value << "\"" << std::endl;
 
     //удалить пробелы в начале и конце строки
@@ -1865,7 +1866,7 @@ bool CheckString(std::string& value) {
     }
 }
 
-bool CheckJson(std::string& value) {
+bool CheckJson(std::string& value) noexcept {
 //    std::cout << "CheckJson(): \"" << value << "\"" << std::endl;
     char ch = 0;
     std::string temp;
@@ -1915,7 +1916,7 @@ bool CheckJson(std::string& value) {
     return true;
 }
 
-bool CheckArray(std::string& value) {
+bool CheckArray(std::string& value) noexcept {
 //    std::cout << "CheckArray(): \"" << value << "\"" << std::endl;
     char ch = 0;
     std::string temp;
@@ -1976,7 +1977,7 @@ bool CheckArray(std::string& value) {
 }
 
 //удалить пробелы в начале и конце строки
-void RemoveIllegalSpaces(std::string& string) {
+void RemoveIllegalSpaces(std::string& string) noexcept {
     if(!string.empty()) {
         while(utils::CharsInString(string.back(), __SPACES_WITHOUT_SEPARATORS__))
             string.pop_back();
@@ -1987,7 +1988,7 @@ void RemoveIllegalSpaces(std::string& string) {
 }
 
 std::string ToComment(const std::string &comment_string, const uint8_t tabulation_level,
-                      const uint8_t column_size, const char border_symbol) {
+                      const uint8_t column_size, const char border_symbol) noexcept {
     std::string result;
     std::string current_string = "";
     std::string prefix = utils::RepeatSymToStr('\t', tabulation_level);
@@ -2104,7 +2105,7 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
 
 //NOTE: если символ в списке и в первой строке комментария повторяется минимум 5 раз - это граница, иначе - часть комментария
 //NOTE: для всего файла конфига подменяется символ границы только если не задан (первый комментарий с границей)
-std::string FromComment(const std::string &comment_string, uint8_t &column_size, char &border_symbol) {
+std::string FromComment(const std::string &comment_string, uint8_t &column_size, char &border_symbol) noexcept {
     std::string ret;
 
     bool isBorderExists = utils::CharsInString(comment_string[0], __BORDER_SYMBOLS__); //от 5 до 0xFF символов

@@ -4,7 +4,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
-//TODO: add "noexcept"
+
 
 namespace utils {
 
@@ -31,33 +31,33 @@ namespace cmt {
     };
 }
 
-bool        isNumber(const std::string& str, bool use_point = true);
-bool        isNumber(const char ch, bool use_point = true);
+bool        isNumber(const std::string& str, bool use_point = true) noexcept;
+bool        isNumber(const char ch, bool use_point = true) noexcept;
 void        RemoveComments(std::string& str, bool& startComment, char& quote,
                     char& start_comment_sym, char& stop_comment_sym);
-size_t      CountSymInStr(const std::string& str, const char ch);
-bool        CharsInString(const char ch, std::string symbols);
-std::string toString(double d); //исключить лишние знаки при выводе чисел
-bool        isBool(std::string& str);
-bool        toBool(std::string& str);
-std::string to_string(bool b);
-bool        OnlySpaces(const std::string& str);
+size_t      CountSymInStr(const std::string& str, const char ch) noexcept;
+bool        CharsInString(const char ch, std::string symbols) noexcept;
+std::string toString(double d) noexcept; //исключить лишние знаки при выводе чисел
+bool        isBool(std::string& str) noexcept;
+bool        toBool(std::string& str) noexcept;
+std::string to_string(bool b) noexcept;
+bool        OnlySpaces(const std::string& str) noexcept;
 
-std::string to_hex_string(const std::vector<uint8_t>& data);
-std::vector<uint8_t> from_hex_string(std::string str);
+std::string to_hex_string(const std::vector<uint8_t>& data) noexcept;
+std::vector<uint8_t> from_hex_string(std::string str) noexcept;
 
-std::string RepeatSymToStr(const char ch, const uint16_t size);
+std::string RepeatSymToStr(const char ch, const uint16_t size) noexcept;
 
-bool        checkCrc8(std::vector<uint8_t>& data);
-bool        checkCrc16(std::vector<uint8_t>& data);
-bool        checkCrc32(std::vector<uint8_t>& data);
+bool        checkCrc8(std::vector<uint8_t>& data) noexcept;
+bool        checkCrc16(std::vector<uint8_t>& data) noexcept;
+bool        checkCrc32(std::vector<uint8_t>& data) noexcept;
 
-char        getEscChar(const char ch);
-char        getFromEscChar(const char ch);
-size_t      getStringSize(const std::string& str);
-std::string SeparateString(std::string& str, const size_t length);
-bool        isMultiLine(const std::string& str, const size_t column_size = 0);
-std::string to_string_with_esc(const std::string& str);
+char        getEscChar(const char ch) noexcept;
+char        getFromEscChar(const char ch) noexcept;
+size_t      getStringSize(const std::string& str) noexcept;
+std::string SeparateString(std::string& str, const size_t length) noexcept;
+bool        isMultiLine(const std::string& str, const size_t column_size = 0) noexcept;
+std::string to_string_with_esc(const std::string& str) noexcept;
 
 }
 

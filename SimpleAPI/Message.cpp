@@ -33,37 +33,37 @@ std::string to_string(PacketType type) noexcept {
 }
 
 void PacketMessage::clear() noexcept {
-    ipPort          = IpPort{"", 0};
-    packet          = {};
-    sn.reset();
-    isError         = false;
-    isBuiltComplete = false;
+    m_ip_port   = IpPort{"", 0};
+    m_packet    = {};
+    m_sn.reset();
+    m_is_error  = false;
+    m_is_built_complete = false;
 }
 
 std::string PacketMessage::to_string() noexcept {
     std::string out;
 
-    out = this->ipPort.to_string() + " ";
-    out += "[(" + std::to_string(this->packet.size()) + ") " + ::to_string(this->packet) + "]";
+    out = m_ip_port.to_string() + " ";
+    out += "[(" + std::to_string(m_packet.size()) + ") " + ::to_string(m_packet) + "]";
 
     return out;
 }
 
 JsonMessage::JsonMessage(const PacketMessage &pm) noexcept {
-    this->ipPort = pm.ipPort;
-    this->json.parseJSON(convert_from_packet(pm.packet));
+    m_ip_port = pm.m_ip_port;
+    m_json.parseJSON(convert_from_packet(pm.m_packet));
 }
 
 void JsonMessage::clear() noexcept {
-    ipPort = IpPort{"", 0};
-    json.clear();
+    m_ip_port = IpPort{"", 0};
+    m_json.clear();
 }
 
 std::string JsonMessage::to_string(int arg) noexcept {
     std::string out;
 
-    out = this->ipPort.to_string() + " ";
-    out += "[(" + std::to_string(this->json.size()) + ")" + this->json.to_string(arg) + "]";
+    out = m_ip_port.to_string() + " ";
+    out += "[(" + std::to_string(m_json.size()) + ")" + m_json.to_string(arg) + "]";
 
     return out;
 }

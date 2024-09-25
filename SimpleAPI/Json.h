@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 
+
 #define __ONLY_ALLOWED_TYPES__(ARG) \
     template<typename ARG, \
         typename std::enable_if< \
@@ -114,7 +115,7 @@ public:
     ~StringElement()                                    {}
 
     std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
-                          const ConfigFormat config_format = ConfigFormat::eJSON)
+                          const ConfigFormat config_format = ConfigFormat::eJSON) noexcept
                                                         { return "\"" + utils::to_string_with_esc(m_value) + "\""; }
 };
 
@@ -369,7 +370,7 @@ public:
                 Json(const Json& json) noexcept;
                 Json(const JPair& pair) noexcept : m_comment_sym(0)
                                                                 { put(pair.first, pair.second); }
-                Json(const std::string& input_string, ConfigFormat config_format = ConfigFormat::eJSON) noexcept;
+                Json(const std::string& input_string, ConfigFormat config_format = ConfigFormat::eJSON);
                 __ONLY_ALLOWED_TYPES__(T)
                 Json(const std::string& key, const T& value) noexcept : m_comment_sym(0)
                                                                 { put(key, value); }

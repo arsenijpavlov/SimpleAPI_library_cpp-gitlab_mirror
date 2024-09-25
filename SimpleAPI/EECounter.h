@@ -14,8 +14,8 @@ public:
     EECounter(uint64_t size) noexcept;
     EECounter(const EECounter& other) noexcept;
 
-    void        set_m_pos(uint64_t m_pos) noexcept;
-    void        set_glob_m_pos(uint64_t glob_m_pos) noexcept;
+    void        set_pos(uint64_t pos) noexcept;
+    void        set_glob_pos(uint64_t glob_pos) noexcept;
 
     bool        operator==(const EECounter& other) const;
     bool        operator!=(const EECounter& other) const;

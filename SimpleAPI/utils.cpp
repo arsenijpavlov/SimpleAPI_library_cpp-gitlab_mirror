@@ -5,14 +5,14 @@
 
 namespace utils {
 
-bool isNumber(const std::string &str, bool use_point) {
+bool isNumber(const std::string &str, bool use_point) noexcept {
     for(int i = 0; i < str.size(); i++)
         if(!isNumber(str[i], use_point))
             return false;
     return true;
 }
 
-bool isNumber(const char ch, bool use_point) {
+bool isNumber(const char ch, bool use_point) noexcept {
     return (std::isdigit(ch) || (use_point && (ch == '.')));
 }
 
@@ -93,7 +93,7 @@ void RemoveComments(std::string& str, bool& startComment, char& quote,
     startComment = isMultiLineComment;
 }
 
-size_t CountSymInStr(const std::string &str, const char ch) {
+size_t CountSymInStr(const std::string &str, const char ch) noexcept {
     size_t counter = 0;
     for(char temp : str)
         if(temp == ch) counter++;
@@ -101,41 +101,41 @@ size_t CountSymInStr(const std::string &str, const char ch) {
     return counter;
 }
 
-bool CharsInString(const char ch, std::string symbols) {
+bool CharsInString(const char ch, std::string symbols) noexcept {
     for(char c : symbols)
         if(c == ch) return true;
     return false;
 }
 
-std::string toString(double d) {
+std::string toString(double d) noexcept {
     std::ostringstream str;
     str << d;
     return str.str();
 }
 
-bool isBool(std::string& str) {
+bool isBool(std::string& str) noexcept {
     if(str == "true" || str == "false") return true;
     else                                return false;
 }
 
-bool toBool(std::string& str) {
+bool toBool(std::string& str) noexcept {
     if(str == "true")   return true;
     else                return false;
 }
 
-std::string to_string(bool b) {
+std::string to_string(bool b) noexcept {
     if(b) return "true";
     else  return "false";
 }
 
-bool OnlySpaces(const std::string& str) {
+bool OnlySpaces(const std::string& str) noexcept {
     for(char c : str)
         if(!CharsInString(c, " \n\t"))
             return false;
     return true;
 }
 
-std::string to_hex_string(const std::vector<uint8_t>& data) {
+std::string to_hex_string(const std::vector<uint8_t>& data) noexcept {
     auto getHex = [&](uint8_t halfByte) -> char {
         halfByte = halfByte & 0xF;
         switch(halfByte) {
@@ -168,7 +168,7 @@ std::string to_hex_string(const std::vector<uint8_t>& data) {
     return str;
 }
 
-std::vector<uint8_t> from_hex_string(std::string str) {
+std::vector<uint8_t> from_hex_string(std::string str) noexcept {
     if(str.size() % 2 != 0) str.push_back('0');
 
     std::vector<uint8_t> vec;
@@ -181,7 +181,7 @@ std::vector<uint8_t> from_hex_string(std::string str) {
 }
 
 
-std::string RepeatSymToStr(const char ch, const uint16_t size) {
+std::string RepeatSymToStr(const char ch, const uint16_t size) noexcept {
     std::string ret;
     for(uint16_t i = 0; i < size; i++)
         ret += ch;
@@ -191,7 +191,7 @@ std::string RepeatSymToStr(const char ch, const uint16_t size) {
 
 
 //на вход подаётся массив данных, в начале которого 1 байт отвечает за CRC
-bool checkCrc8(std::vector<uint8_t>& data) {
+bool checkCrc8(std::vector<uint8_t>& data) noexcept {
     bool needCheck = data[0] != 0;
 
     uint16_t sum = 0;
@@ -214,7 +214,7 @@ bool checkCrc8(std::vector<uint8_t>& data) {
 }
 
 //на вход подаётся массив данных, в начале которого 2 байта отвечают за CRC
-bool checkCrc16(std::vector<uint8_t>& data) {
+bool checkCrc16(std::vector<uint8_t>& data) noexcept {
     bool needCheck = data[0] != 0 || data[1] != 0;
 
     uint32_t sum = 0;
@@ -242,7 +242,7 @@ bool checkCrc16(std::vector<uint8_t>& data) {
 }
 
 //на вход подаётся массив данных, в начале которого 4 байта отвечают за CRC
-bool checkCrc32(std::vector<uint8_t>& data) {
+bool checkCrc32(std::vector<uint8_t>& data) noexcept {
     bool needCheck = data[0] != 0 || data[1] != 0 || data[2] != 0 || data[3] != 0;
 
     uint64_t sum = 0;
@@ -279,7 +279,7 @@ bool checkCrc32(std::vector<uint8_t>& data) {
 }
 
 //TODO: \u0000
-char getEscChar(const char ch) {
+char getEscChar(const char ch) noexcept {
     switch(ch) {
     case '"':   return '\"';
     case '\\':  return '\\';
@@ -293,7 +293,7 @@ char getEscChar(const char ch) {
     }
 }
 
-char getFromEscChar(const char ch) {
+char getFromEscChar(const char ch) noexcept {
     switch(ch) {
     case '"':   return '\"';
     case '\\':  return '\\';
@@ -307,7 +307,7 @@ char getFromEscChar(const char ch) {
     }
 }
 
-size_t getStringSize(const std::string &str) {
+size_t getStringSize(const std::string &str) noexcept {
     size_t size = 0;
 
     bool flag = false;
@@ -323,7 +323,7 @@ size_t getStringSize(const std::string &str) {
     return size;
 }
 
-std::string SeparateString(std::string &str, const size_t length) {
+std::string SeparateString(std::string &str, const size_t length) noexcept {
     std::string res;
 
     size_t counter = 0;
@@ -345,14 +345,14 @@ std::string SeparateString(std::string &str, const size_t length) {
     return res;
 }
 
-bool isMultiLine(const std::string &str, const size_t column_size) {
+bool isMultiLine(const std::string &str, const size_t column_size) noexcept {
     if(column_size == 0)
         return str.find('\n') != -1;
 
     return false;
 }
 
-std::string to_string_with_esc(const std::string &str) {
+std::string to_string_with_esc(const std::string &str) noexcept {
     std::string ret;
 
     for(size_t i = 0; i < str.length(); i++) {

@@ -4,7 +4,7 @@
 
 #define SOCKETS_THREAD_NAME "SERVERS_THREAD"
 
-void SocketThread::run() {
+void SocketThread::run() noexcept {
     pthread_setname_np(pthread_self(), SOCKETS_THREAD_NAME);
 
     while(this->isActive()) {
@@ -19,8 +19,8 @@ void SocketThread::run() {
     }
 }
 
-void SocketThread::log(const logs::LEVEL level, const std::string log_message, const std::string color_log_message)
-{   
+void SocketThread::log(const logs::LEVEL level, const std::string log_message,
+                       const std::string color_log_message) noexcept {
     LoggerSettings::LogCallback currentCallback = nullptr;
     LoggerSettings::LogCallback currentColorCallback = nullptr;
     std::string levelSubstring = "";
@@ -86,7 +86,7 @@ void SocketThread::log(const logs::LEVEL level, const std::string log_message, c
 }
 
 bool SocketThread::addSocket(const SocketType type, const IpPort& local_ip_port,
-                             const SocketSettings settings) {
+                             const SocketSettings settings) noexcept {
     if(type == SocketType::eTCP) {
         return false; //TODO: TCP пока не готов
     } else if(type == SocketType::eUDP) {
@@ -98,43 +98,44 @@ bool SocketThread::addSocket(const SocketType type, const IpPort& local_ip_port,
 }
 
 bool SocketThread::addSocket(const SocketType type, const uint16_t local_port,
-                             const std::string local_ip, const bool commonSettings)
-{
+                             const std::string local_ip, const bool commonSettings) noexcept {
     if(commonSettings)  return addSocket(type, local_port, local_ip, m_common_socket_settings);
     else                return addSocket(type, local_port, local_ip, SocketSettings());
 }
 
-bool SocketThread::addSocket(const SocketType type, const IpPort &local_ip_port, bool commonSettings)
-{
+bool SocketThread::addSocket(const SocketType type, const IpPort &local_ip_port,
+                             bool commonSettings) noexcept {
     if(commonSettings)  return addSocket(type, local_ip_port, m_common_socket_settings);
     else                return addSocket(type, local_ip_port, SocketSettings());
 }
 
-void SocketThread::startSocket(const IpPort& local_ip_Port) {
+void SocketThread::startSocket(const IpPort& local_ip_Port) noexcept {
     auto it = m_sockets.find(local_ip_Port);
     if(it != m_sockets.end())
         it->second->startServer();
 }
 
-void SocketThread::stopSocket(const IpPort& local_ip_Port) {
+void SocketThread::stopSocket(const IpPort& local_ip_Port) noexcept {
     auto it = m_sockets.find(local_ip_Port);
     if(it != m_sockets.end())
         it->second->stopServer();
 }
 
-void SocketThread::send(const IpPort &source, const IpPort &destination, const Packet &packet) {
+void SocketThread::send(const IpPort &source, const IpPort &destination,
+                        const Packet &packet) noexcept {
     auto it = m_sockets.find(source);
     if(it != m_sockets.end())
         it->second->sendMsg(destination, packet);
 }
 
-void SocketThread::send(const IpPort &source, const IpPort &destination, const Json &json) {
+void SocketThread::send(const IpPort &source, const IpPort &destination,
+                        const Json &json) noexcept {
     auto it = m_sockets.find(source);
     if(it != m_sockets.end())
         it->second->sendMsg(destination, json);
 }
 
-void SocketThread::startThread() {
+void SocketThread::startThread() noexcept {
     if(!isActive()) {
         log(logs::eDEBUG, "starting...");
         m_active = true;
@@ -144,7 +145,7 @@ void SocketThread::startThread() {
     }
 }
 
-void SocketThread::stopThread() {
+void SocketThread::stopThread() noexcept {
     if(isActive()) {
         log(logs::eDEBUG, "stop...");
         m_active = false; //дали сигнал на остановку
@@ -156,20 +157,18 @@ void SocketThread::stopThread() {
     }
 }
 
-std::shared_ptr<Socket> SocketThread::findSocket(const IpPort &local_ip_Port) {
+std::shared_ptr<Socket> SocketThread::findSocket(const IpPort &local_ip_Port) noexcept {
     return m_sockets.find(local_ip_Port)->second;
 }
 
-void SocketThread::setAllSocketsSettings(const SocketSettings settings)
-{
+void SocketThread::setAllSocketsSettings(const SocketSettings settings) noexcept {
     m_common_socket_settings = settings;
 
     for(auto it = m_sockets.begin(); it != m_sockets.end(); it++)
         it->second->setSettings(settings);
 }
 
-void SocketThread::setSocketsSettings(const IpPort& local_ip_port, const SocketSettings settings)
-{
+void SocketThread::setSocketsSettings(const IpPort& local_ip_port, const SocketSettings settings) noexcept {
     auto it = m_sockets.find(local_ip_port);
     if(it != m_sockets.end())
         it->second->setSettings(settings);

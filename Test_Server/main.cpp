@@ -21,7 +21,7 @@ void RecvData(PacketMessage pm) {
               << logs::columned(MAIN_COLOR, "[SERVER]",
                                 NAME_COLUMN_SIZE,
                                 NAME_COLUMN_RIGHT_ALIGN) << " "
-              << "recv data: 0x" << utils::to_hex_string(pm.packet)
+              << "recv data: 0x" << utils::to_hex_string(pm.m_packet)
               << std::endl;
 }
 bool isBigPacketSent = false;

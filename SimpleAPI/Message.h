@@ -80,32 +80,32 @@ struct PacketHeader {
 };
 
 struct PacketError {
-    EECounter sn_finish;
+    EECounter   sn_finish;
 
     PacketError() noexcept : sn_finish(255){};
 };
 
 struct PacketRange {
-    EECounter start;
-    EECounter finish;
+    EECounter   start;
+    EECounter   finish;
 
-    PacketRange() noexcept : start(255), finish(255) {};
+    PacketRange() noexcept : start(255), finish(255){};
 };
 
 class PacketMessage {
 public:
-    IpPort      ipPort;
-    Packet      packet;
-    EECounter   sn;
-    PacketHeader header;
+    IpPort          m_ip_port;
+    Packet          m_packet;
+    EECounter       m_sn;
+    PacketHeader    m_header;
 
-    bool        isError;
-    PacketError error;
+    bool            m_is_error;
+    PacketError     m_error;
 
-    bool        isBuiltComplete;
-    PacketRange range;
+    bool            m_is_built_complete;
+    PacketRange     m_range;
 
-    PacketMessage() noexcept : sn(0)                { clear(); }
+    PacketMessage() noexcept : m_sn(0)              { clear(); }
 
     void clear() noexcept;
     std::string to_string() noexcept;
@@ -113,8 +113,8 @@ public:
 
 class JsonMessage {
 public:
-    IpPort      ipPort;
-    Json        json;
+    IpPort      m_ip_port;
+    Json        m_json;
 
     JsonMessage() noexcept                          {};
     JsonMessage(const JsonMessage& jm) noexcept     { *this = jm; }
