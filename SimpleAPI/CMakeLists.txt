@@ -1,34 +1,22 @@
 cmake_minimum_required(VERSION 3.5)
+include(${SIMPLE_API_MAIN_DIR}/utils.cmake)
 
-if(NOT WIN32)
-  string(ASCII 27 Esc)
-  set(Reset     "${Esc}[m")
-  set(Bold      "${Esc}[1m")
-  set(Red       "${Esc}[31m")
-  set(Green     "${Esc}[32m")
-  set(Yellow    "${Esc}[33m")
-  set(Blue      "${Esc}[34m")
-  set(Magenta   "${Esc}[35m")
-  set(Cyan      "${Esc}[36m")
-  set(White     "${Esc}[37m")
-endif()
-
-project(project_SimpleAPI_library LANGUAGES CXX)
+project(SimpleAPI LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 11)
-message("${Bold}project: ${Green}project_SimpleAPI_library${Reset}")
+print_project_name(${PROJECT_NAME})
 
-file(GLOB simpleAPI_sources "${PROJECT_SOURCE_DIR}/*.cpp" )
-file(GLOB simpleAPI_headers "${PROJECT_SOURCE_DIR}/*.h" )
+file(GLOB ${PROJECT_NAME}_sources "${PROJECT_SOURCE_DIR}/*.cpp" )
+file(GLOB ${PROJECT_NAME}_headers "${PROJECT_SOURCE_DIR}/*.h" )
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/../lib/")
 message("CMAKE_LIBRARY_OUTPUT_DIRECTORY: ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
 
-add_library(SimpleAPI SHARED)
-target_sources(SimpleAPI PRIVATE
-    ${simpleAPI_sources}
-    ${simpleAPI_headers}
+add_library(${PROJECT_NAME} SHARED)
+target_sources(${PROJECT_NAME} PRIVATE
+    ${${PROJECT_NAME}_sources}
+    ${${PROJECT_NAME}_headers}
 )
-target_link_libraries(SimpleAPI PUBLIC -pthread)
+target_link_libraries(${PROJECT_NAME} PUBLIC -pthread)
 
 
 execute_process(

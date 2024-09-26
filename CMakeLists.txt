@@ -1,25 +1,15 @@
 cmake_minimum_required(VERSION 3.5)
 
-if(NOT WIN32)
-  string(ASCII 27 Esc)
-  set(Reset     "${Esc}[m")
-  set(Bold      "${Esc}[1m")
-  set(Red       "${Esc}[31m")
-  set(Green     "${Esc}[32m")
-  set(Yellow    "${Esc}[33m")
-  set(Blue      "${Esc}[34m")
-  set(Magenta   "${Esc}[35m")
-  set(Cyan      "${Esc}[36m")
-  set(White     "${Esc}[37m")
-endif()
+set(SIMPLE_API_MAIN_DIR ${CMAKE_CURRENT_LIST_DIR})
+include(${SIMPLE_API_MAIN_DIR}/utils.cmake)
 
 if(CMAKE_BUILD_TYPE STREQUAL Debug )
-    message("${Yellow}Debug mode enabled${Reset}")
+    message("${Yellow}DEBUG mode enabled${Reset}")
     add_compile_definitions(__DEBUG__)
 endif()
 
-project(project_SimpleAPI_main LANGUAGES CXX)
-message("${Bold}project: ${Green}project_SimpleAPI_main${Reset}")
+project(SimpleAPI_main LANGUAGES CXX)
+print_project_name(${PROJECT_NAME})
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -53,9 +43,6 @@ unset(ENABLE_COLORS_TEST_APP CACHE)
 
 #TESTS
 if(UNIT_TESTS)
-    #Google test libs
-    add_subdirectory(googletest-1.15.0)
-
     #unit tests
     add_subdirectory(tests)
 endif()

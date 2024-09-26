@@ -4,6 +4,8 @@ project(project_Client LANGUAGES CXX)
 message("project: project_unit_tests")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/../bin")
 
+#Google test libs
+add_subdirectory(googletest-1.15.0)
 add_subdirectory(simple_test)
 
 function (create_test test_group_name)

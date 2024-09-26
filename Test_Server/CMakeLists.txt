@@ -1,29 +1,19 @@
 cmake_minimum_required(VERSION 3.5)
+include(${SIMPLE_API_MAIN_DIR}/utils.cmake)
 
-if(NOT WIN32)
-  string(ASCII 27 Esc)
-  set(Reset     "${Esc}[m")
-  set(Bold      "${Esc}[1m")
-  set(Red       "${Esc}[31m")
-  set(Green     "${Esc}[32m")
-  set(Yellow    "${Esc}[33m")
-  set(Blue      "${Esc}[34m")
-  set(Magenta   "${Esc}[35m")
-  set(Cyan      "${Esc}[36m")
-  set(White     "${Esc}[37m")
-endif()
-
-project(project_Server LANGUAGES CXX)
-message("${Bold}project: ${Green}project_Test_Server${Reset}")
+project(test_Network_Server LANGUAGES CXX)
+print_project_name(${PROJECT_NAME})
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/../bin")
 
-file(GLOB server_sources
+file(GLOB ${PROJECT_NAME}_sources
     "*.cpp"
     "*.h"
 )
-add_executable(Test_Server)
-target_sources(Test_Server PUBLIC ${server_sources})
 
-target_include_directories(Test_Server PUBLIC "${PROJECT_SOURCE_DIR}/../SimpleAPI")
-target_link_libraries(Test_Server PUBLIC SimpleAPI)
+add_executable(${PROJECT_NAME})
+target_sources(${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_sources})
+
+target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_SOURCE_DIR}/../SimpleAPI")
+target_link_libraries(${PROJECT_NAME} PUBLIC SimpleAPI)
+
