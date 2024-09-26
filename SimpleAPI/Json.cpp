@@ -423,26 +423,26 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
                 case VALUE_OTHER: {
                     if(!isQuotes && utils::CharsInString(current, __SPACES__))
                         isWordFinished = true;
-//                    if(isQuotes
-//                        && (innerJsonCounter == 0) && (innerArrayCounter == 0)
-//                        && string_of_array.length() > i + 1
-//                        && string_of_array[i + 1] == '"') {
-//                        isWordFinished = true;
-//                        i++;
-//                    }
 
                     value_string += current;
                     break;
                 }
                 default: break;
                 }
-                //если следующий символ должен обрабатываться другим кодом
+
                 if(!isWordFinished && !isQuotes
                     && (innerJsonCounter == 0) && (innerArrayCounter == 0)) {
-                    if(utils::CharsInString(next, __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : "")))
+                    //если текущий символ должен обрабатываться другим кодом
+                    if(utils::CharsInString(current, __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : ""))) {
                         isWordFinished = true;
+                        i--;
+                        value_string.pop_back();
+                    }
+                    //если следующий символ должен обрабатываться другим кодом
+                    if(utils::CharsInString(next, __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : ""))) {
+                        isWordFinished = true;
+                    }
                 }
-
 
                 if(isWordFinished) {
                     isWordStarted = false; //страховка
@@ -1241,7 +1241,9 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                     }
                 }
                 default: {
-                    if(value_format == ValueFormat::VALUE_NOPE) value_format = ValueFormat::VALUE_OTHER;
+                    if(value_format == ValueFormat::VALUE_NOPE) {
+                        value_format = ValueFormat::VALUE_OTHER;
+                    }
                     break;
                 }
                 }
@@ -1271,10 +1273,15 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                 }
                 default: break;
                 }
-                //если следующий символ должен обрабатываться другим кодом
-                if(!isWordFinished
-                    && !isQuotes
+                if(!isWordFinished && !isQuotes
                     && (innerJsonCounter == 0) && (innerArrayCounter == 0)) {
+                    //если текущий символ должен обрабатываться другим кодом
+                    if(utils::CharsInString(current, __SEPARATORS__ + std::string((value_format != VALUE_JSON) ? "}" : ""))) {
+                        isWordFinished = true;
+                        i--;
+                        value_string.pop_back();
+                    }
+                    //если следующий символ должен обрабатываться другим кодом
                     if(utils::CharsInString(next, __SEPARATORS__ + std::string((value_format != VALUE_JSON) ? "}" : ""))) {
                         isWordFinished = true;
                     }
@@ -1938,6 +1945,8 @@ CommentType CheckComment(char& first, const char second, size_t& iterator) noexc
 //только для ЧИСЕЛ, BOOL, NULL и СТРОК
 ValueType CheckValue(std::string& value) noexcept {
 //    std::cout << "CheckValue(): \"" << value << "\"" << std::endl;
+    if(value.empty()) return eNull;
+
     bool isValue = false;
     std::string _value;
     ValueType vType = eNull;

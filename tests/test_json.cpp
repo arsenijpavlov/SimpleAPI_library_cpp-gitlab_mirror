@@ -40,6 +40,7 @@ std::string json_string_example = "{"
                                   //иной вариант разделителя '='
                                   "\"bool\"=true,\n"
                                   "\"null\"=NuLL,\n"
+                                  "\"null2\"=,\n"
                                   //перенос строки равнозначен разделителю ','
                                   "\"string\":\"string_value\"\n"
                                   "\"json\":{\"string\":\"inner_string_value\",\n \"string2\" : 150 },\n"
@@ -75,10 +76,11 @@ TEST(JSON, parse) {
     Json json;
     json.parseJSON(string_json);
 
-    EXPECT_EQ(6, json.size());
+    EXPECT_EQ(7, json.size());
     EXPECT_EQ(182, json["number"].getNum());
     EXPECT_EQ(true, json["bool"].getBool());
     EXPECT_EQ(eNull, json["null"].first);
+    EXPECT_EQ(eNull, json["null2"].first);
     EXPECT_EQ("string_value", json["string"].getString());
 
     EXPECT_EQ(2, json["json"].getJson().size());
@@ -90,7 +92,7 @@ TEST(JSON, parse) {
 
     //повторная обработка (очистка, новое заполнение)
     json.parseJSON(string_json);
-    EXPECT_EQ(6, json.size());
+    EXPECT_EQ(7, json.size());
 }
 
 TEST(JSON, parse2) {
