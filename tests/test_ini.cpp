@@ -64,5 +64,11 @@ key = simple string
 key = many \
     line \
     string ; пробелы от начала строки до первого не пустого символа будут удалены при чтении
+
+key[0] = value
+key[2] = value
+=> даст итоговый объект
+    { key : [value, null, value]}
+
 */
 
