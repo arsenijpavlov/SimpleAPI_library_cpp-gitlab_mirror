@@ -1,15 +1,17 @@
 cmake_minimum_required(VERSION 3.5)
+include(${SIMPLE_API_MAIN_DIR}/utils.cmake)
 
-project(project_Client LANGUAGES CXX)
-message("project: project_simple_test")
+project(Simple_Test LANGUAGES CXX)
+print_project_name(${PROJECT_NAME})
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/../bin")
 
-file(GLOB simple_sources
+file(GLOB ${PROJECT_NAME}_sources
     "*.cpp"
     "*.h"
 )
-add_executable(Test_simple)
-target_sources(Test_simple PUBLIC ${simple_sources})
+add_executable(${PROJECT_NAME})
+target_sources(${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_sources})
 
-target_include_directories(Test_simple PUBLIC "${PROJECT_SOURCE_DIR}/../../SimpleAPI")
-target_link_libraries(Test_simple PUBLIC SimpleAPI)
+target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_SOURCE_DIR}/../../SimpleAPI")
+target_link_libraries(${PROJECT_NAME} PUBLIC SimpleAPI)
