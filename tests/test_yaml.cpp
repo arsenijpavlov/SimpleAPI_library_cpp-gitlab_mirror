@@ -44,6 +44,5 @@ std::string yaml_string_example = "{"
                                   "}";
 
 //TODO: написать тесты для YAML
-TEST(YAML, copy) {
-
-}
+//TEST(YAML, copy) {
+//}

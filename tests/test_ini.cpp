@@ -12,11 +12,8 @@ int main(int argc, char **argv)
 }
 
 //========================================================================================
-
 /*ПРИМЕР:
-
 ; простой комментарий
-; всё, что объявлено до первого описания групы, будет добавлено к группе [MAIN]
 key = value
 
 [group_1] ; строго БЕЗ пробелов!
@@ -67,4 +64,35 @@ key[2] = value
     { key : [value, null, value]}
 
 */
+//========================================================================================
+const std::string ini_example_string = "; комментарий\n"
+                                       "key =  value\n"
+                                       "\n"
+                                       "[group 1]; ещё комментарий\n"
+                                       "key : value\n"
+                                       "key2 = key3 = value2\n"
+                                       "\n"
+                                       "[group 2]\n"
+                                       "string = one line string\n"
+                                       "string2 = big\\\n"
+                                       "            line string\n"
+                                       "key\\inner_key\\inner_inner_key = inner_inner_value ; вложенные значения и группы значений\n"
+                                       "\n"
+                                       "key2\\inner_key2 = a\n"
+                                       "key2\\inner_key2 = b\n"
+                                       "key3\\inner_key3 = a\n"
+                                       "key3\\inner_key33 = b\n"
+                                       "\n"
+                                       "[group_3]\n"
+                                       "key[0] = a\n"
+                                       "key[2] = c\n";
 
+TEST(INI, parse) {
+    Json json;
+    json.parseINI(ini_example_string, true);
+
+    EXPECT_EQ(json.size(), 4);
+}
+
+
+CheckComments(is_one_line, is_multi_line, is_quotes) //TODO: перенести из функций парсинга

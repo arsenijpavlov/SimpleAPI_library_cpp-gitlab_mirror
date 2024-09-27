@@ -1478,6 +1478,10 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
     key_string.reserve(20);
     Comment keyComment;
 
+    std::string group_string;
+    group_string.reserve(20);
+    Comment groupComment;
+
     uint16_t innerJsonCounter   = 0;
     uint16_t innerArrayCounter  = 0;
     std::string value_string;
