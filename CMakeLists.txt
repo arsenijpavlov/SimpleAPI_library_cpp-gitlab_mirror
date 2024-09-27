@@ -24,20 +24,20 @@ add_subdirectory(SimpleAPI)
 
 #test Json
 if(ENABLE_JSON_TEST_APP)
-    add_subdirectory(Test_Json)
+    add_subdirectory(test_Json)
 endif()
 unset(ENABLE_JSON_TEST_APP CACHE)
 
 #test sockets
 if(ENABLE_SOCKETS_TEST_APP)
-    add_subdirectory(Test_Client)
-    add_subdirectory(Test_Server)
+    add_subdirectory(test_Network_Client)
+    add_subdirectory(test_Network_Server)
 endif()
 unset(ENABLE_SOCKETS_TEST_APP CACHE)
 
 #test colors
 if(ENABLE_COLORS_TEST_APP)
-    add_subdirectory(Test_COLORS)
+    add_subdirectory(test_COLORS)
 endif()
 unset(ENABLE_COLORS_TEST_APP CACHE)
 
