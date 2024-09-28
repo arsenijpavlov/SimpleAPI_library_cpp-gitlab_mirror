@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [[ ${1,,} == "help" ]]; then
+	echo "./create_new_class <path> <filename>"
+	exit 1
+fi
+
 if [[ ( -z $1 ) || (-z $(realpath $1) ) ]]; then
 	echo "incorrect <path> parameter"
 	exit 1
@@ -9,7 +14,7 @@ path="${path%%\/}"
 echo -n "in path [$path] create "
 
 if [[ -z $2 ]]; then
-	echo "incorrect <file_name> parameter"
+	echo "incorrect <filename> parameter"
 	exit 1
 fi
 echo "[$2] class file"

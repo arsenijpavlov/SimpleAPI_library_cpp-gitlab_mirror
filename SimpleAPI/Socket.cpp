@@ -1104,7 +1104,7 @@ bool UDPSocket::isConnected(const IpPort &remote_ip_port) noexcept {
     else                                return false;
 }
 
-void UDPSocket::sendMsg(const IpPort& remote_ip_port, const Packet& packet) noexcept {
+void UDPSocket::sendMsg(const IpPort& remote_ip_port, const Packet& packet) {
     if(!checkCorrectIp(remote_ip_port.ip))
         throw std::invalid_argument("incorrect destination IP");
 
@@ -1129,7 +1129,7 @@ void UDPSocket::sendMsg(const IpPort& remote_ip_port, const Packet& packet) noex
     }
 }
 
-void UDPSocket::sendMsg(const IpPort& remote_ip_port, const Json& json) noexcept {
+void UDPSocket::sendMsg(const IpPort& remote_ip_port, const Json& json) {
     sendMsg(remote_ip_port, convert_to_packet(json.to_string(-1)));
 }
 

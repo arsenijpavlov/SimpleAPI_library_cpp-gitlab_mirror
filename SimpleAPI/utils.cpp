@@ -368,6 +368,85 @@ std::string to_string_with_esc(const std::string &str) noexcept {
     return ret;
 }
 
+CommentType CheckComment(char& first, const char second, size_t& iter_counter) noexcept {
+    //сперва искать многострочные комментарии!
+    for(uint8_t i = 0; i < utils::cmt::SIZE_comment_multi_line; i++) {
+        if(first == utils::cmt::comment_multi_line[i][0] && second == utils::cmt::comment_multi_line[i][1]) {
+            //изменение завершающего символа
+            if(first == '<') first = '>';
+            iter_counter++; //проскакиваем следующий символ при парсинге
+            return CommentType::eMultiLineComment;
+        }
+    }
+    //поиск однострочных комментариев
+    for(uint8_t i = 0; i < utils::cmt::SIZE_comment_one_line; i++) {
+        if(first == utils::cmt::comment_one_line[i][0]) {
+            if((utils::cmt::comment_one_line[i][1] != 0) && (second == utils::cmt::comment_one_line[i][1]))
+                iter_counter++;
+            return CommentType::eOneLineComment;
+        }
+    }
+
+    return CommentType::eNotComment;
+}
+
+CommentChecker CheckComments(const char current_sym, const char next_sym,
+                   bool& is_one_line, bool& is_multi_line,
+                   char& first_ml_sym, char& second_ml_sym,
+                   const bool enable_comment, std::string& current_sym_comment_line,
+                   size_t& iter_counter, const bool external_flag) {
+    if(!external_flag) return CommentChecker::isNotComment;
+
+    if(!is_one_line && !is_multi_line) {
+        first_ml_sym    = current_sym;
+        second_ml_sym   = next_sym;
+//        std::cout << "\"" << first_ml_sym << second_ml_sym << "\"" << std::endl;
+        switch(CheckComment(first_ml_sym, second_ml_sym, iter_counter)) {
+        case CommentType::eOneLineComment: {
+            is_one_line = true;
+            if(!current_sym_comment_line.empty() && enable_comment)
+                current_sym_comment_line += "\n";
+            return CommentChecker::isComment;
+        }
+        case CommentType::eMultiLineComment: {
+            is_multi_line = true;
+            if(!current_sym_comment_line.empty() && enable_comment)
+                current_sym_comment_line += "\n";
+            return CommentChecker::isComment;
+        }
+        default: return CommentChecker::isNotComment;
+        }
+    }
+
+    //обработка комментариев
+    if(is_one_line) {
+        current_sym_comment_line += current_sym;
+
+        //если следующий символ должен обрабатываться другим кодом
+        if((current_sym == '\n') || ((next_sym != 0) && (next_sym == '\n'))) {
+            is_one_line = false;
+            return CommentChecker::isCommentEnd;
+        }
+
+        return CommentChecker::isComment;
+    }
+    if(is_multi_line) {
+        //нужен следующий символ, если нет - исключение
+        if(next_sym == 0)
+            throw std::invalid_argument("invalid length of input string, multiline comment not closed");
+
+        if((current_sym == second_ml_sym) && (next_sym == first_ml_sym)) {
+            is_multi_line = false;
+            iter_counter++; //многострочные комментарии всегда обособляются двумя символами
+            return CommentChecker::isCommentEnd;
+        }
+
+        current_sym_comment_line += current_sym;
+        return CommentChecker::isComment;
+    }
+    return CommentChecker::isNotComment;
+}
+
 
 
 

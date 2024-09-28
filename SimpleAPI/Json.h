@@ -1,6 +1,7 @@
 #ifndef JSON_H
 #define JSON_H
 
+#include "Comment.h"
 #include "utils.h"
 #include <map>
 #include <memory>
@@ -39,18 +40,6 @@
                                     throw std::invalid_argument("This element cannot contain internal named elements");
 #define __NO_ELEMENTS_EXCEPTION__   if(size() < 1) throw std::invalid_argument("There are no elements");
 
-// Comment =====================================================================================
-struct Comment {
-    std::string before;
-    std::string after;
-
-    Comment() noexcept {}
-    Comment(const std::string& comment_before, const std::string& comment_after = "") noexcept :
-        before(comment_before), after(comment_after) {}
-};
-// ===================================================================================== Comment
-// *
-// *
 // Format ======================================================================================
 enum class ConfigFormat {
     eJSON,
@@ -636,12 +625,6 @@ public:
 // *
 // *
 // STATIC FUNCTIONS ============================================================================
-enum class CommentType {
-    eNotComment,
-    eOneLineComment,
-    eMultiLineComment
-};
-static CommentType  CheckComment(char& first, const char second, size_t& iterator) noexcept;
 static ValueType    CheckValue(std::string& value) noexcept;
 static bool         CheckNumber(const std::string& value) noexcept;
 static bool         CheckBool(std::string& value) noexcept;

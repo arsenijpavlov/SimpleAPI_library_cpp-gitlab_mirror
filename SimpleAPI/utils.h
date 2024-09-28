@@ -1,6 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include "Comment.h"
 #include <string>
 #include <sstream>
 #include <vector>
@@ -58,6 +59,18 @@ size_t      getStringSize(const std::string& str) noexcept;
 std::string SeparateString(std::string& str, const size_t length) noexcept;
 bool        isMultiLine(const std::string& str, const size_t column_size = 0) noexcept;
 std::string to_string_with_esc(const std::string& str) noexcept;
+
+CommentType CheckComment(char& first, const char second, size_t& iter_counter) noexcept;
+
+enum class CommentChecker : uint8_t {
+    isComment, isNotComment, isCommentEnd //последний требует continue!
+};
+
+CommentChecker CheckComments(const char current_sym, const char next_sym,
+                             bool& is_one_line, bool& is_multi_line,
+                             char& first_ml_sym, char& second_ml_sym,
+                             const bool enable_comment, std::string& current_sym_comment_line,
+                             size_t& iter_counter, const bool external_flag = true);
 
 }
 

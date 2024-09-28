@@ -155,8 +155,8 @@ public:
                                                         { sendMsg(IpPort{remote_ip, remote_port}, packet); }
     void            sendMsg(const std::string& remote_ip, const uint16_t remote_port,
                             const Json& json) noexcept  { sendMsg(IpPort{remote_ip, remote_port}, json); }
-    virtual void    sendMsg(const IpPort& remote_ip_port, const Packet& packet) noexcept = 0;
-    virtual void    sendMsg(const IpPort& remote_ip_port, const Json& json) noexcept = 0;
+    virtual void    sendMsg(const IpPort& remote_ip_port, const Packet& packet) = 0;
+    virtual void    sendMsg(const IpPort& remote_ip_port, const Json& json) = 0;
     //-----------------------------------------
     //Эти функции работают в связке с tick():
     //выдаст пустой пакет, если очередь пуста
@@ -206,8 +206,8 @@ public:
     //УПРАВЛЕНИЕ АВТОМАТИЧЕСКИМ СЕРВЕРОМ
     void            setDeliveryNeed(bool enabled = true) noexcept; //только UDP
 
-    void            sendMsg(const IpPort& remote_ip_port, const Packet& packet) noexcept;
-    void            sendMsg(const IpPort& remote_ip_port, const Json& json) noexcept;
+    void            sendMsg(const IpPort& remote_ip_port, const Packet& packet);
+    void            sendMsg(const IpPort& remote_ip_port, const Json& json);
 
     PacketMessage   getOutPacket() noexcept;
     JsonMessage     getOutJson() noexcept;
