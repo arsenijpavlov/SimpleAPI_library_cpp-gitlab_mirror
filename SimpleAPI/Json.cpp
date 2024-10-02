@@ -1354,31 +1354,24 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
     bool isWordStarted      = false;
     bool isWordFinished     = false;
 
-    std::string key_string;
-    key_string.reserve(20);
-    Comment keyComment;
+    std::string key_value_string;
+    key_value_string.reserve(100);
+    Comment keyValueComment;
 
     std::string group_string;
     group_string.reserve(20);
     Comment groupComment;
 
-    uint16_t innerJsonCounter   = 0;
-    uint16_t innerArrayCounter  = 0;
-    std::string value_string;
-    value_string.reserve(100);
-    Comment valueComment;
     bool isValueCommentAfterSaved = true; //изначально TRUE, чтобы не сработало для первого прохода
     Element value_element;
 
-    uint16_t line_counter   = 0; //NOTE: (Json) ограничение на FFFF строк
-    uint16_t symbol_counter = 0; //NOTE: (Json) ограничение на FFFF символов в строке
+    uint16_t line_counter   = 0; //NOTE: (Ini) ограничение на FFFF строк
+    uint16_t symbol_counter = 0; //NOTE: (Ini) ограничение на FFFF символов в строке
 
     enum States {
-        INI_KEY,
-        INI_KEY_VALUE_SEPARATOR,
-        INI_VALUE,
-        INI_ELEMENT_SEPARATOR,
-    } state = INI_KEY;
+        INI_KEY_VALUE,
+        INI_ELEMENT_SEPARATOR
+    } state = INI_KEY_VALUE;
     enum ValueFormat {
         VALUE_NOPE,
         VALUE_JSON,
@@ -1411,332 +1404,106 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
 
         //работа с синтаксисом INI
         if(!isOneLineComment && !isMultiLineComment) {
-            switch (state) {
-            case INI_KEY: {
-                //пропуск пробелов ====================================================
-                if(current == '\n' && !isValueCommentAfterSaved) {
-                    //работа с комментариями (после значения #2) ==========================
-                    if(!currentComment.empty() && enable_comment) {
-                        addComment_after(key_string, FromComment(currentComment, m_comment_column_size, m_comment_sym));
-                        //                    std::cout << "Json:comment:after: " << "\"" << currentComment << "\"" << std::endl;
-                        currentComment = "";
-                    } //===================================================================
-                    isValueCommentAfterSaved = true;
-                    break;
-                }
-                if(utils::CharsInString(current, __SPACES__) && !isQuotes && !isWordStarted)
-                    break;
-                //=====================================================================
-
-                if(!isWordStarted) {
-                    isWordStarted = true;
-                    key_string.clear();
-                    keyComment = Comment();
-                    valueComment = Comment();
-                    isQuotes = false;
-                }
-
-                //экранированные кавычки ВСЕГДА заносится в значение
-                if(current == '\\' && string_of_ini.length() > i + 1) {
-                    char e_ch = utils::getEscChar(string_of_ini[i + 1]);
-                    if(e_ch != 0) {
-                        value_string += '\\' + e_ch;
-                        i++;
-                        break;
-                    }
-                }
-
-                if(current == '"')  isQuotes = !isQuotes;
-                else                key_string += current;
-                //поиск конца значения
-                if(!isQuotes && utils::CharsInString(current, __SPACES_WITHOUT_SEPARATORS__))
-                    isWordFinished = true;
-                if(isQuotes
-                    && string_of_ini.length() > i + 1
-                    && string_of_ini[i + 1] == '"')
-                {
-                    //сброс флага для корректной обработки
-                    isQuotes = !isQuotes;
-                    isWordFinished = true;
-                    i++;
-                }
-
-                //если следующий символ должен обрабатываться другим кодом
-                if(!isWordFinished && !isQuotes) {
-                    if((string_of_ini.length() > i + 1)
-                        && utils::CharsInString(string_of_ini[i + 1], __KEY_VALUE_SEPARATOR__))
-                        isWordFinished = true;
-                }
-
-                if(isWordFinished) {
-                    isWordStarted = false; //страховка
-                    isWordFinished = false;
-                    RemoveIllegalSpaces(key_string);
-                    std::cout << "key: " << key_string << std::endl;
-
-                    //работа с комментариями (перед ключом) ===============================
-                    if(!currentComment.empty() && enable_comment) {
-                        keyComment.before = FromComment(currentComment, m_comment_column_size, m_comment_sym);
-                        //                    std::cout << "Json:comment:before: " << "\"" << currentComment << "\"" << std::endl;
-                        currentComment = "";
-                    } //===================================================================
-
-                    state = INI_KEY_VALUE_SEPARATOR;
-                }
-
-                break;
-            }
-            case INI_KEY_VALUE_SEPARATOR: {
-                //пропуск пробелов ====================================================
-                if(utils::CharsInString(current, __SPACES_WITHOUT_SEPARATORS__) && !isQuotes)
-                    break;
-                //=====================================================================
-
-                if(!utils::CharsInString(current, __KEY_VALUE_SEPARATOR__)) {
-                    isCriticalError = true;
-                    break;
-                }
-
-                //работа с комментариями (после ключа (НЕ используется)) ==============
+            //пропуск пробелов ====================================================
+            if(current == '\n' && !isValueCommentAfterSaved) {
+                //работа с комментариями (после значения #2) ==========================
                 if(!currentComment.empty() && enable_comment) {
-//                keyComment.after = FromComment(currentComment, m_comment_column_size, m_comment_sym);
+                    addComment_after(key_value_string, FromComment(currentComment, m_comment_column_size, m_comment_sym));
+                    //                    std::cout << "Json:comment:after: " << "\"" << currentComment << "\"" << std::endl;
+                    currentComment = "";
+                } //===================================================================
+                isValueCommentAfterSaved = true;
+
+                //счётчик строк и столбцов =============================================
+                if(current == '\n') {
+                    line_counter++;
+                    symbol_counter = 0; //должен перескочить строго на следующей строке
+                } //====================================================================
+                continue;
+            }
+            if(utils::CharsInString(current, __SPACES__) && !isQuotes && !isWordStarted) {
+                //счётчик строк и столбцов =============================================
+                if(current == '\n') {
+                    line_counter++;
+                    symbol_counter = 0; //должен перескочить строго на следующей строке
+                } //====================================================================
+                continue;
+            }
+            //=====================================================================
+
+            if(!isWordStarted) {
+                //работа с комментариями (перед ключом) ===============================
+                if(!currentComment.empty() && enable_comment) {
+                    keyValueComment.before = FromComment(currentComment, m_comment_column_size, m_comment_sym);
+//                    std::cout << "Json:comment:before: " << "\"" << currentComment << "\"" << std::endl;
                     currentComment = "";
                 } //===================================================================
 
-                state = INI_VALUE;
-
-                break;
+                isWordStarted = true;
+                key_value_string.clear();
+                keyValueComment = Comment();
+                isQuotes = false;
             }
-            case INI_VALUE: {
-                //пропуск пробелов ====================================================
-                if(utils::CharsInString(current, __SPACES_WITHOUT_SEPARATORS__)
-                    && !isQuotes && value_format == ValueFormat::VALUE_NOPE)
-                    break;
-                //=====================================================================
-                if(!isWordStarted) {
-                    //пропуск пробелов до первого вхождения
-                    if(utils::CharsInString(current, __SPACES_WITHOUT_SEPARATORS__)) break;
-                    isWordStarted = true;
-                    isValueCommentAfterSaved = false;
-                    if(value_format == ValueFormat::VALUE_NOPE)
-                        value_string.clear();
-                    else
-                        value_string += "\n";
-                    isQuotes = false;
-                }
 
-                //определение типа переменной
-                switch(current) {
-                case '{': {
-                    if(!isQuotes) {
-                        if(value_format == ValueFormat::VALUE_NOPE) value_format = ValueFormat::VALUE_JSON;
-                        innerJsonCounter++;
-                    }
+            //экранированные кавычки ВСЕГДА заносится в значение
+            if(current == '\\' && string_of_ini.length() > i + 1) {
+                char e_ch = utils::getEscChar(string_of_ini[i + 1]);
+                if(e_ch != 0) {
+                    key_value_string += '\\' + e_ch;
+                    i++;
                     break;
                 }
-                case '}': {
-                    if(!isQuotes) innerJsonCounter--;
-                    break;
-                }
-                case '[': {
-                    if(!isQuotes) {
-                        if(value_format == ValueFormat::VALUE_NOPE) value_format = ValueFormat::VALUE_ARRAY;
-                        innerArrayCounter++;
-                    }
-                    break;
-                }
-                case ']': {
-                    if(!isQuotes) innerArrayCounter--;
-                    break;
-                }
-                case '"': {
-                    if(previous != '\\') isQuotes = !isQuotes;
-                }
-                default: {
-                    if(value_format == ValueFormat::VALUE_NOPE) {
-                        value_format = ValueFormat::VALUE_OTHER;
-                    }
-                    break;
-                }
-                }
-
-                //поиск конца значения
-                switch(value_format) {
-                case VALUE_JSON: {
-                    value_string += current;
-                    if(innerJsonCounter == 0)
-                        isWordFinished = true;
-
-                    break;
-                }
-                case VALUE_ARRAY: {
-                    value_string += current;
-                    if(innerArrayCounter == 0)
-                        isWordFinished = true;
-
-                    break;
-                }
-                case VALUE_OTHER: {
-                    if(!isQuotes && utils::CharsInString(next, __SEPARATORS__))
-                        isWordFinished = true;
-
-                    value_string += current;
-                    break;
-                }
-                default: break;
-                }
-
-                if(!isWordFinished && !isQuotes
-                    && (innerJsonCounter == 0) && (innerArrayCounter == 0)) {
-                    //если текущий символ должен обрабатываться другим кодом
-                    if(utils::CharsInString(current, __SEPARATORS__ + std::string((value_format != VALUE_JSON) ? "}" : ""))) {
-                        isWordFinished = true;
-                        i--;
-                        value_string.pop_back();
-                    }
-                    //если следующий символ должен обрабатываться другим кодом
-                    if(utils::CharsInString(next, __SEPARATORS__ + std::string((value_format != VALUE_JSON) ? "}" : ""))) {
-                        isWordFinished = true;
-                    }
-                }
-
-                if(isWordFinished) {
-                    isWordStarted = false; //страховка
-                    isWordFinished = false;
-
-                    //работа с комментариями (перед значением (НЕ используется)) ==========
-                    if(!currentComment.empty() && enable_comment) {
-                        //                    valueComment.before = FromComment(currentComment, m_comment_column_size, m_comment_sym);
-                        currentComment = "";
-                    } //===================================================================
-
-                    state = INI_ELEMENT_SEPARATOR;
-                }
-
-                break;
             }
-            case INI_ELEMENT_SEPARATOR: {
-                //пропуск пробелов ====================================================
-                if(utils::CharsInString(current, __SPACES_WITHOUT_SEPARATORS__))
-                    break;
-                //=====================================================================
-                if(!utils::CharsInString(current, __SEPARATORS__)) {
-                    isCriticalError = true;
-                    break;
-                }
 
-                if(current == '\n') {
-                    RemoveIllegalSpaces(value_string);
-                    if(value_string.back() == '\\') {
-                        state = INI_VALUE; //продолжаем считывать строковое значение
-                        break;
-                    }
-
-                    std::cout << "value: " << value_string << std::endl;
-                    switch(value_format) {
-                    case VALUE_OTHER: {
-                        switch(CheckValue(value_string, ConfigFormat::eINI)) {
-                        case eNumber:   {
-                            double num;
-                            try {
-                                put(key_string, std::stod(value_string));
-                            } catch (...) {
-                                isCriticalError = true;
-                            }
-
-                            break;
-                        }
-                        case eBool:     {
-                            if(utils::isBool(value_string))
-                                put(key_string, utils::toBool(value_string));
-                            else
-                                isCriticalError = true;
-
-                            break;
-                        }
-                        case eNull:     {
-                            put(key_string, Element());
-
-                            break;
-                        }
-                        case eString:   {
-                            put(key_string, value_string);
-                            break;
-                        }
-                        default: //значение не определено
-                            isCriticalError = true;
-                            break;
-                        }
-
-                        break;
-                    }
-                    case VALUE_JSON: {
-                        Json _innerJson;
-                        try {
-                            _innerJson.parseJSON(value_string, enable_comment);
-                            put(key_string, _innerJson);
-                        } catch (std::invalid_argument& e) {
-                            isCriticalError = true;
-                        }
-
-                        break;
-                    }
-                    case VALUE_ARRAY: {
-                        JArray _innerArray;
-                        try {
-                            _innerArray.parseArray(value_string, enable_comment);
-                            put(key_string, _innerArray);
-                        } catch (std::invalid_argument& e) {
-                            isCriticalError = true;
-                        }
-
-                        break;
-                    }
-                    default:
+            if(current == '\n') {
+                RemoveIllegalSpaces(key_value_string);
+                if(key_value_string.back() != '\\') {
+                    if(CheckString(key_value_string, ConfigFormat::eINI)) {
                         isCriticalError = true;
-                        break;
-                    }
-                    value_format = VALUE_NOPE;
+                    } else
+                        isWordFinished = true;
+                } else
+                    key_value_string += current;
+            } else {
+                key_value_string += current;
+            }
 
+            if(isWordFinished) {
+                isWordFinished = false;
+                RemoveIllegalSpaces(key_value_string);
+                std::cout << "key+value: " << key_value_string << std::endl;
+
+                //TODO: processing...
+                if(key_value_string.front() == '[' && key_value_string.back() == ']') {
+                    std::cout << "is group: " << key_value_string;
+                    groupComment = keyValueComment;
+                    keyValueComment = Comment();
+
+                    group_string = key_value_string;
+                    group_string.erase(0, 1);//erase [
+                    group_string.pop_back(); //erase ]
+                } else {
+                    std::cout << "is key_value: " << key_value_string;
                     //работа с комментариями (после значения #1) ==========================
                     if(enable_comment) {
                         if(!currentComment.empty()) {
-                            valueComment.after = FromComment(currentComment, m_comment_column_size, m_comment_sym);
+                            keyValueComment.after = FromComment(currentComment, m_comment_column_size, m_comment_sym);
                             //                        std::cout << "Json:comment:after: " << "\"" << currentComment << "\"" << std::endl;
                             currentComment = "";
                         }
                     } //===================================================================
-                    isValueCommentAfterSaved = true;
-                    state = INI_KEY;
                 }
 
-                if(enable_comment && (!keyComment.before.empty() || !valueComment.after.empty())) {
-//                std::cout << "\tkey_before: " << keyComment.before << std::endl
-//                          << "\tkey_after: " << keyComment.after << std::endl;
-//                std::cout << "\tvalue_before: " << valueComment.before << std::endl
-//                          << "\tvalue_after: " << valueComment.after << std::endl;
-                    addComment(key_string, keyComment.before, valueComment.after);
-                }
-
-                break;
-            }
-            default: break;
+                key_value_string = "";
             }
 
             if(isCriticalError) {
-                std::string state_str = "";
-                switch(state) {
-                case INI_KEY:                   state_str = "INI_KEY ";                 break;
-                case INI_KEY_VALUE_SEPARATOR:   state_str = "INI_KEY_VALUE_SEPARATOR "; break;
-                case INI_VALUE:                 state_str = "INI_VALUE ";               break;
-                case INI_ELEMENT_SEPARATOR:     state_str = "INI_ELEMENT_SEPARATOR ";   break;
-                }
-                //            std::cout << "symbols: '" << previous << current << next << "'" << std::endl;
+//                std::cout << "symbols: '" << previous << current << next << "'" << std::endl;
                 //--------------------------
                 clear();
                 throw std::invalid_argument("INI parse syntax error at line "
                                             + std::to_string(line_counter) + ":" + std::to_string(symbol_counter)
-                                            + " '" + current + "', current state:" + state_str);
+                                            + " '" + current + "'");
             }
 
             //счётчик строк и столбцов =============================================
@@ -1745,11 +1512,6 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                 symbol_counter = 0; //должен перескочить строго на следующей строке
             } //====================================================================
         }
-    }
-
-    if(state != INI_KEY) {
-        clear();
-        throw std::invalid_argument("INI parse error, incorrect INI structure");
     }
 }
 
