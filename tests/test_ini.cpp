@@ -74,8 +74,8 @@ const std::string ini_example_string = "; комментарий\n"
 //                                       "\n"
 //                                       "[group 2]\n"
 //                                       "string = one line string\n"
-//                                       "string2 = big\\\n"
-//                                       "            line string\n"
+                                       "string2 = big\\\n"
+                                       "            line string\n"
 //                                       "key\\inner_key\\inner_inner_key = inner_inner_value ; вложенные значения и группы значений\n"
 //                                       "\n"
 //                                       "key2\\inner_key2 = a\n"
@@ -92,6 +92,11 @@ TEST(INI, parse) {
     Json json;
     json.parseINI(ini_example_string, true);
 
-    EXPECT_EQ(json.size(), 1);
-    return SUCCEED();
+    ASSERT_EQ(json.size(), 2);
+
+    EXPECT_EQ(json["key"].first, eString);
+    EXPECT_EQ(json["key"].getString(), "value");
+
+    EXPECT_EQ(json["string2"].first, eString);
+    EXPECT_EQ(json["string2"].getString(), "big\nline string");
 }

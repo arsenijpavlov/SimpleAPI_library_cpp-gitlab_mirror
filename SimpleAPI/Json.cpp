@@ -9,7 +9,7 @@
 
 #define __SPACES__                      " \n\t"
 #define __KEY_VALUE_SEPARATOR__         ":="
-#define __SEPARATORS__                  ",\n"
+#define __SEPARATORS__                  ",\n" //NOTE: __SEPARATORS__, '\0' тоже надо учитывать
 #define __SPACES_WITHOUT_SEPARATORS__   " \t"
 #define __POSIBLE_COLON__               ":="
 #define __BORDER_SYMBOLS__              "@#*-=@"
@@ -1424,7 +1424,7 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                     isValueCommentAfterSaved = true;
                     break;
                 }
-                if(utils::CharsInString(current, __SPACES_WITHOUT_SEPARATORS__) && !isQuotes && !isWordStarted)
+                if(utils::CharsInString(current, __SPACES__) && !isQuotes && !isWordStarted)
                     break;
                 //=====================================================================
 
@@ -1471,6 +1471,7 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                 if(isWordFinished) {
                     isWordStarted = false; //страховка
                     isWordFinished = false;
+                    RemoveIllegalSpaces(key_string);
                     std::cout << "key: " << key_string << std::endl;
 
                     //работа с комментариями (перед ключом) ===============================
@@ -1513,9 +1514,14 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                     break;
                 //=====================================================================
                 if(!isWordStarted) {
+                    //пропуск пробелов до первого вхождения
+                    if(utils::CharsInString(current, __SPACES_WITHOUT_SEPARATORS__)) break;
                     isWordStarted = true;
                     isValueCommentAfterSaved = false;
-                    value_string.clear();
+                    if(value_format == ValueFormat::VALUE_NOPE)
+                        value_string.clear();
+                    else
+                        value_string += "\n";
                     isQuotes = false;
                 }
 
@@ -1571,7 +1577,7 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                     break;
                 }
                 case VALUE_OTHER: {
-                    if(!isQuotes && utils::CharsInString(current, __SPACES_WITHOUT_SEPARATORS__))
+                    if(!isQuotes && utils::CharsInString(next, __SEPARATORS__))
                         isWordFinished = true;
 
                     value_string += current;
@@ -1598,8 +1604,35 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                     isWordStarted = false; //страховка
                     isWordFinished = false;
 
-                    std::cout << "value: " << value_string << std::endl;
+                    //работа с комментариями (перед значением (НЕ используется)) ==========
+                    if(!currentComment.empty() && enable_comment) {
+                        //                    valueComment.before = FromComment(currentComment, m_comment_column_size, m_comment_sym);
+                        currentComment = "";
+                    } //===================================================================
 
+                    state = INI_ELEMENT_SEPARATOR;
+                }
+
+                break;
+            }
+            case INI_ELEMENT_SEPARATOR: {
+                //пропуск пробелов ====================================================
+                if(utils::CharsInString(current, __SPACES_WITHOUT_SEPARATORS__))
+                    break;
+                //=====================================================================
+                if(!utils::CharsInString(current, __SEPARATORS__)) {
+                    isCriticalError = true;
+                    break;
+                }
+
+                if(current == '\n') {
+                    RemoveIllegalSpaces(value_string);
+                    if(value_string.back() == '\\') {
+                        state = INI_VALUE; //продолжаем считывать строковое значение
+                        break;
+                    }
+
+                    std::cout << "value: " << value_string << std::endl;
                     switch(value_format) {
                     case VALUE_OTHER: {
                         switch(CheckValue(value_string, ConfigFormat::eINI)) {
@@ -1663,30 +1696,8 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                         isCriticalError = true;
                         break;
                     }
-
-                    //работа с комментариями (перед значением (НЕ используется)) ==========
-                    if(!currentComment.empty() && enable_comment) {
-                        //                    valueComment.before = FromComment(currentComment, m_comment_column_size, m_comment_sym);
-                        currentComment = "";
-                    } //===================================================================
-
-                    state = INI_ELEMENT_SEPARATOR;
                     value_format = VALUE_NOPE;
-                }
 
-                break;
-            }
-            case INI_ELEMENT_SEPARATOR: {
-                //пропуск пробелов ====================================================
-                if(utils::CharsInString(current, __SPACES_WITHOUT_SEPARATORS__))
-                    break;
-                //=====================================================================
-                if(!utils::CharsInString(current, __SEPARATORS__ "}")) {
-                    isCriticalError = true;
-                    break;
-                }
-
-                if(current == '\n') {
                     //работа с комментариями (после значения #1) ==========================
                     if(enable_comment) {
                         if(!currentComment.empty()) {
@@ -2123,7 +2134,7 @@ ValueType CheckValue(std::string& value, const ConfigFormat& format) noexcept {
         }
         break;
     }
-    case ValueType::eString:    { isValue = CheckString(_value);    break; }
+    case ValueType::eString:    { isValue = CheckString(_value, format); break; }
 //    case ValueType::eJson:      { isValue = CheckJson(_value);      break; }
 //    case ValueType::eArray:     { isValue = CheckArray(_value);     break; }
     default:                    return ValueType::eNull;
@@ -2198,44 +2209,69 @@ bool CheckString(std::string& value, const ConfigFormat& format) noexcept {
     RemoveIllegalSpaces(value);
 
     bool done = false;
-    if(value[0] == '"') {
+    switch(format) {
+    case ConfigFormat::eJSON: {
+        if(value[0] == '"') {
+            char ch = 0;
+            std::string temp;
+            for(size_t i = 0; i < value.length(); i++) {
+                                            if(ch != 0) { //начинаем запись слова
+                    if(!done) {
+                        //экранированные кавычки ВСЕГДА заносятся в значение
+                        if(value[i] == '\\' && value.length() > i + 1) {
+                            char e_ch = utils::getEscChar(value[i + 1]);
+                            if(e_ch != 0) {
+                                temp += e_ch;
+                                i++;
+                                continue;
+                            }
+                        }
+
+                        if(value[i] == '"')
+                            done = true;
+                        else
+                            temp += value[i];
+                    } else { //замкнули слово, надо проверить оставшиеся символы
+                        if(!utils::CharsInString(value[i], __SPACES__)) {
+                            std::cout << "Error with parse String in: " << value << std::endl;
+                            return false;
+                        }
+                    }
+                                            } else if(value[i] == '"') {
+                    ch = value[i];
+                                            }
+            }
+            value = temp;
+            return done;
+        } else {
+            for(char ch : value)
+                                            if(utils::CharsInString(ch, __SPACES__))
+                    return false;
+            return true;
+        }
+    }
+    case ConfigFormat::eINI: {
         char ch = 0;
         std::string temp;
         for(size_t i = 0; i < value.length(); i++) {
-            if(ch != 0) { //начинаем запись слова
-                if(!done) {
-                    //экранированные кавычки ВСЕГДА заносятся в значение
-                    if(value[i] == '\\' && value.length() > i + 1) {
-                        char e_ch = utils::getEscChar(value[i + 1]);
-                        if(e_ch != 0) {
-                            temp += e_ch;
-                            i++;
-                            continue;
-                        }
-                    }
-
-                    if(value[i] == '"')
-                        done = true;
-                    else
-                        temp += value[i];
-                } else { //замкнули слово, надо проверить оставшиеся символы
-                    if(!utils::CharsInString(value[i], __SPACES__)) {
-                        std::cout << "Error with parse String in: " << value << std::endl;
-                        return false;
-                    }
+            //экранированные кавычки ВСЕГДА заносятся в значение
+            if(value[i] == '\\' && value.length() > i + 1) {
+                char e_ch = utils::getEscChar(value[i + 1]);
+                if(e_ch != 0) {
+                    temp += e_ch;
+                    i++;
+                    continue;
                 }
-            } else if(value[i] == '"') {
-                ch = value[i];
-            }
+            } else
+                temp += value[i];
         }
         value = temp;
-        return done;
-    } else {
-        for(char ch : value)
-            if(utils::CharsInString(ch, __SPACES__))
-                return false;
         return true;
     }
+    case ConfigFormat::eYAML:
+    default: break;
+    }
+    return false;
 }
 
 bool CheckJson(std::string& value) noexcept {
