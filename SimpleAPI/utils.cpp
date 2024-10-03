@@ -307,6 +307,25 @@ char getFromEscChar(const char ch) noexcept {
     }
 }
 
+void UpdEscSymbols(std::string& string) noexcept {
+    std::string temp_string;
+    temp_string.reserve(string.capacity());
+    for(size_t i = 0; i < string.size(); i++) {
+        char current = string[i];
+        if(current == '\\' && string.length() > i + 1) {
+            char e_ch = utils::getEscChar(string[i + 1]);
+            if(e_ch != 0) {
+                std::cout << "found escape symbols <"
+                          << current << string[i+1] << ">" << std::endl;
+                temp_string += '\\' + e_ch;
+                i++;
+            }
+        } else temp_string += current;
+    }
+
+    string = temp_string;
+}
+
 size_t getStringSize(const std::string &str) noexcept {
     size_t size = 0;
 
@@ -381,9 +400,11 @@ CommentType CheckComment(char& first, const char second, size_t& iter_counter) n
     //поиск однострочных комментариев
     for(uint8_t i = 0; i < utils::cmt::SIZE_comment_one_line; i++) {
         if(first == utils::cmt::comment_one_line[i][0]) {
-            if((utils::cmt::comment_one_line[i][1] != 0) && (second == utils::cmt::comment_one_line[i][1]))
+            if((utils::cmt::comment_one_line[i][1] != 0)
+                && (second == utils::cmt::comment_one_line[i][1])) {
                 iter_counter++;
-            return CommentType::eOneLineComment;
+                return CommentType::eOneLineComment;
+            }
         }
     }
 
