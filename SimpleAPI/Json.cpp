@@ -1488,7 +1488,6 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                 isWordFinished = false;
                 std::cout << "key_value: [[" << key_value_string << "]]" << std::endl;
                 RemoveIllegalSpaces(key_value_string);
-                utils::UpdEscSymbols(key_value_string);
                 if(!key_value_string.empty()) {
 //                    std::cout << "key+value: " << key_value_string << std::endl;
 
@@ -1515,6 +1514,7 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
 
                         std::vector<std::string> keys = parseIniValue(key_value_string);
                         if(key_value_string.empty()) isCriticalError = true;
+                        utils::UpdEscSymbols(key_value_string);
 
                         std::cout << "keys: [";
                         for(uint8_t i = 0; i < keys.size(); i++) {
