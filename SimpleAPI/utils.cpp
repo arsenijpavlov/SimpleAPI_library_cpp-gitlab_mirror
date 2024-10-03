@@ -400,11 +400,13 @@ CommentType CheckComment(char& first, const char second, size_t& iter_counter) n
     //поиск однострочных комментариев
     for(uint8_t i = 0; i < utils::cmt::SIZE_comment_one_line; i++) {
         if(first == utils::cmt::comment_one_line[i][0]) {
-            if((utils::cmt::comment_one_line[i][1] != 0)
-                && (second == utils::cmt::comment_one_line[i][1])) {
-                iter_counter++;
+            if((utils::cmt::comment_one_line[i][1] != 0)) {
+                if(second == utils::cmt::comment_one_line[i][1]) {
+                    iter_counter++;
+                    return CommentType::eOneLineComment;
+                }
+            } else
                 return CommentType::eOneLineComment;
-            }
         }
     }
 
