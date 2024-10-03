@@ -377,6 +377,7 @@ public:
 
     void        parseJSON(const std::string& string_of_json, const bool enable_comment = false);
     void        parseYAML(const std::string& string_of_yaml, const bool enable_comment = false);
+    std::vector<std::string> parseIniValue(std::string& ini_key_value) noexcept;
     void        parseINI(const std::string& string_of_ini, const bool enable_comment = false);
 
     bool        readFile(const std::string& path, const bool enable_comment = false,
