@@ -135,6 +135,21 @@ bool OnlySpaces(const std::string& str) noexcept {
     return true;
 }
 
+std::string PrintVector(const std::vector<std::string> &strings) noexcept {
+    std::string ret;
+    size_t all_size = 0;
+    for(std::string s : strings)
+        all_size += s.length() + 4; //4 на спецсимволы
+    ret.reserve(all_size);
+
+    for(std::string s : strings)
+        ret += "[" + s + "], ";
+    ret.pop_back();
+    ret.pop_back();
+
+    return ret;
+}
+
 std::string to_hex_string(const std::vector<uint8_t>& data) noexcept {
     auto getHex = [&](uint8_t halfByte) -> char {
         halfByte = halfByte & 0xF;

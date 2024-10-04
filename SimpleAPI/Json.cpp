@@ -1357,6 +1357,108 @@ std::vector<std::string> Json::parseIniValue(std::string& ini_key_value) noexcep
     return ret;
 }
 
+std::vector<std::string> Json::parseIniKey(std::string& preview_key) noexcept {
+    std::vector<std::string> ret;
+    ret.reserve(2);
+
+    std::string local_string;
+    local_string.reserve(200);
+    for(char c : preview_key) {
+        if(utils::CharsInString(c, "/\\")) {
+            RemoveIllegalSpaces(local_string);
+            ret.push_back(local_string);
+            local_string = "";
+            continue;
+        }
+        local_string += c;
+    }
+    if(!local_string.empty()) {
+        RemoveIllegalSpaces(local_string);
+        ret.push_back(local_string);
+    }
+
+    return ret;
+}
+
+Json *Json::GetObjectForIniCustomKey(Json* json, std::vector<std::string> &keys) noexcept {
+    std::cout << "GetObjectForIniCustomKey: " << utils::PrintVector(keys) << std::endl;
+    if(json == nullptr) return json;
+
+    if(keys.size() == 1) {
+        std::cout << "\tGetObjectForIniCustomKey, [" << keys[0] << "] is ";
+        if(json->contains(keys[0])) {
+            switch((*json)[keys[0]].first) {
+            case eJson:
+                std::cout << "JSON" << std::endl;
+                return &(*json)[keys[0]].getJson();
+            case eNull:
+                std::cout << "NULL" << std::endl;
+            default: {
+                std::cout << "OTHER" << std::endl;
+                Element temp_e = (*json)[keys[0]];
+                JArray temp_ja(temp_e);
+                json->updateValue(keys[0], temp_ja);
+                break;
+            }
+            case eArray:
+                std::cout << "ARRAY" << std::endl;
+            }
+        } else {
+            std::cout << "NOT FOUND" << std::endl;
+            json->put(keys[0], Element());
+        }
+
+        return json;
+    } else {
+        std::string current_key = keys[0];
+        std::cout << "\tGetObjectForIniCustomKey[" << keys.size() << "], " << current_key << " is ";
+
+        keys.erase(keys.cbegin(), keys.cbegin() + 1);
+        Json* next_json = json;
+        if(json->contains(current_key)) {
+            switch((*json)[current_key].first) {
+            case eJson: {
+                std::cout << "JSON(2)" << std::endl;
+                json->put(keys[0], Json());
+                next_json = &(*json)[current_key].getJson();
+                break;
+            }
+            case eNull: {
+                std::cout << "NULL(2)" << std::endl;
+                json->updateValue(current_key, Json());
+                next_json = &(*json)[current_key].getJson();
+                break;
+            }
+            default: {
+                std::cout << "OTHER(2)" << std::endl;
+                Element temp_e = (*json)[current_key];
+                JArray temp_ja(temp_e);
+                //создаём поле для следующего ключа в списке
+                temp_ja.push_back(Json(std::make_pair(keys[0], Element())));
+
+                json->updateValue(current_key, temp_ja);
+                next_json = &(*json)[current_key].getArray().getBack().getJson();
+                break;
+            }
+            case eArray: {
+                std::cout << "ARRAY(2)" << std::endl;
+                JArray& temp_ja = (*json)[current_key].getArray();
+                //создаём поле для следующего ключа в списке
+                temp_ja.push_back(Json(std::make_pair(keys[0], Element()))); //TODO: переделать на конструктор Json(key, nullptr);
+                next_json = &(*json)[current_key].getArray().getBack().getJson();
+                break;
+            }
+            }
+        } else {
+            std::cout << "NOT FOUND(2)" << std::endl;
+            //создаём поле для следующего ключа в списке
+            json->put(current_key, Json());
+            next_json = &(*json)[current_key].getJson();
+        }
+        return GetObjectForIniCustomKey(next_json, keys);
+    }
+}
+
 //TODO: Json::parseINI()
 void Json::parseINI(const std::string &string_of_ini, const bool enable_comment) {
     clear();
@@ -1524,56 +1626,35 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                         std::cout << "], value: [" << key_value_string << "]" << std::endl;
 
                         for(std::string key : keys) {
-                            if(group_string.empty()) {
-                                if(contains(key)) {
-                                    switch((*this)[key].first) {
-                                    case eNull: { //перезапись значения
-                                        put(key, key_value_string);
-                                        break;
-                                    }
-                                    case eArray:{ //дополнить список
-                                        JArray temp_ja = (*this)[key];
-                                        temp_ja.push_back(key_value_string);
-                                        updateValue(key, temp_ja);
-                                        break;
-                                    }
-                                    default:    { //создать список значений
-                                        Element temp_e = (*this)[key];
-                                        JArray temp_ja(temp_e);
-                                        temp_ja.push_back(key_value_string);
-                                        updateValue(key, temp_ja);
-                                        break;
-                                    }
-                                    }
-                                } else
-                                    put(key, key_value_string);
+                            std::vector<std::string> inner_keys = parseIniKey(key);
+                            if(!group_string.empty()) inner_keys.insert(inner_keys.cbegin(), group_string);
+
+                            Json* current_object = this;
+                            current_object = GetObjectForIniCustomKey(current_object, inner_keys);
+                            Json& result_object = (*current_object);
+
+                            if(current_object->contains(inner_keys.back())) {
+                                switch(result_object[inner_keys.back()].first) {
+                                case eNull: { //перезапись значения
+                                    result_object.updateValue(inner_keys.back(), key_value_string);
+                                    break;
+                                }
+                                case eArray:{ //дополнить список
+                                    JArray temp_ja = result_object[inner_keys.back()];
+                                    temp_ja.push_back(key_value_string);
+                                    result_object.updateValue(inner_keys.back(), temp_ja);
+                                    break;
+                                }
+                                default:    { //создать список значений
+                                    Element temp_e = result_object[inner_keys.back()];
+                                    JArray temp_ja(temp_e);
+                                    temp_ja.push_back(key_value_string);
+                                    result_object.updateValue(inner_keys.back(), temp_ja);
+                                    break;
+                                }
+                                }
                             } else {
-                                Json inner_json;
-                                inner_json.put(key, key_value_string);
-                                if(contains(group_string)) {
-                                    //старый вид
-//                                    (*this)[group_string].getJson().append(inner_json);
-                                    switch((*this)[group_string].first) {
-                                    case eNull: { //перезапись значения
-                                        put(group_string, key_value_string);
-                                        break;
-                                    }
-                                    case eArray:{ //дополнить список
-                                        JArray temp_ja = (*this)[group_string];
-                                        temp_ja.push_back(key_value_string);
-                                        updateValue(group_string, temp_ja);
-                                        break;
-                                    }
-                                    default:    { //создать список значений
-                                        Element temp_e = (*this)[group_string];
-                                        JArray temp_ja(temp_e);
-                                        temp_ja.push_back(key_value_string);
-                                        updateValue(group_string, temp_ja);
-                                        break;
-                                    }
-                                    }
-                                } else
-                                    put(group_string, inner_json);
+                                result_object.put(inner_keys.back(), key_value_string);
                             }
                         }
 

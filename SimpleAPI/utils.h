@@ -43,6 +43,7 @@ bool        isBool(std::string& str) noexcept;
 bool        toBool(std::string& str) noexcept;
 std::string to_string(bool b) noexcept;
 bool        OnlySpaces(const std::string& str) noexcept;
+std::string PrintVector(const std::vector<std::string>& strings) noexcept;
 
 std::string to_hex_string(const std::vector<uint8_t>& data) noexcept;
 std::vector<uint8_t> from_hex_string(std::string str) noexcept;
