@@ -1381,8 +1381,8 @@ std::vector<std::string> Json::parseIniKey(std::string& preview_key) noexcept {
 }
 
 Json *Json::GetObjectForIniCustomKey(Json* json, std::vector<std::string> &keys) noexcept {
+    if(json == nullptr || keys.size() == 0) return json;
     std::cout << "GetObjectForIniCustomKey: " << utils::PrintVector(keys) << std::endl;
-    if(json == nullptr) return json;
 
     if(keys.size() == 1) {
         std::cout << "\tGetObjectForIniCustomKey, [" << keys[0] << "] is ";
@@ -1419,7 +1419,6 @@ Json *Json::GetObjectForIniCustomKey(Json* json, std::vector<std::string> &keys)
             switch((*json)[current_key].first) {
             case eJson: {
                 std::cout << "JSON(2)" << std::endl;
-                json->put(keys[0], Json());
                 next_json = &(*json)[current_key].getJson();
                 break;
             }
@@ -1434,7 +1433,7 @@ Json *Json::GetObjectForIniCustomKey(Json* json, std::vector<std::string> &keys)
                 Element temp_e = (*json)[current_key];
                 JArray temp_ja(temp_e);
                 //создаём поле для следующего ключа в списке
-                temp_ja.push_back(Json(std::make_pair(keys[0], Element())));
+//                temp_ja.push_back(Json(std::make_pair(keys[0], Element())));
 
                 json->updateValue(current_key, temp_ja);
                 next_json = &(*json)[current_key].getArray().getBack().getJson();
@@ -1444,14 +1443,13 @@ Json *Json::GetObjectForIniCustomKey(Json* json, std::vector<std::string> &keys)
                 std::cout << "ARRAY(2)" << std::endl;
                 JArray& temp_ja = (*json)[current_key].getArray();
                 //создаём поле для следующего ключа в списке
-                temp_ja.push_back(Json(std::make_pair(keys[0], Element()))); //TODO: переделать на конструктор Json(key, nullptr);
+//                temp_ja.push_back(Json(std::make_pair(keys[0], Element()))); //TODO: переделать на конструктор Json(key, nullptr);
                 next_json = &(*json)[current_key].getArray().getBack().getJson();
                 break;
             }
             }
         } else {
             std::cout << "NOT FOUND(2)" << std::endl;
-            //создаём поле для следующего ключа в списке
             json->put(current_key, Json());
             next_json = &(*json)[current_key].getJson();
         }
@@ -1662,7 +1660,7 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                         if(enable_comment) {
                             if(!currentComment.empty()) {
                                 keyValueComment.after = FromComment(currentComment, m_comment_column_size, m_comment_sym);
-                                //                        std::cout << "Json:comment:after: " << "\"" << currentComment << "\"" << std::endl;
+//                                std::cout << "Json:comment:after: " << "\"" << currentComment << "\"" << std::endl;
                                 currentComment = "";
                             }
                         } //===================================================================

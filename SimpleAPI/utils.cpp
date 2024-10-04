@@ -144,8 +144,10 @@ std::string PrintVector(const std::vector<std::string> &strings) noexcept {
 
     for(std::string s : strings)
         ret += "[" + s + "], ";
-    ret.pop_back();
-    ret.pop_back();
+    if(strings.size() > 0) {
+        ret.pop_back();
+        ret.pop_back();
+    }
 
     return ret;
 }

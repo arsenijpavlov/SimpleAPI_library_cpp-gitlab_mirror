@@ -66,21 +66,21 @@ key[2] = value
 */
 //========================================================================================
 const std::string ini_example_string = "; комментарий\n"
-//                                       "key =  value\n"
+                                       "key =  value\n"
 //                                       "\n"
 //                                       "[group 1]; ещё комментарий\n"
 //                                       "g1_key : value\n"
 //                                       "g1_key2 = g1_key3 = value2\n"
 //                                       "\n" //пустая строка после описания группы завершает группу
 //                                       "key2 = value2\n"
-//                                       "[group 2]\n"
+                                       "[group 2]\n"
 //                                       "g2_string = one line string\n"
 //                                       "g2 string2 = big\\\n"
 //                                       "            line string\n"
-//                                       "key\\inner_key\\inner_inner_key = inner_inner_value ; вложенные значения и группы значений\n"
-//                                       "\n"
-//                                       "key2\\inner_key2 = a\n"
-//                                       "key2/inner_key2 = b\n" // "/" и "\" равнозначны при обработке
+                                       "key\\inner_key\\inner_inner_key = inner_inner_value ; вложенные значения и группы значений\n"
+                                       "\n"
+                                       "key2\\inner_key2 = a\n"
+                                       "key2/inner_key2 = b\n" // "/" и "\" равнозначны при обработке
                                        "key3\\inner_key3 = a\n"
                                        "key3/inner_key33 = b\n"
 //                                       "\n"
