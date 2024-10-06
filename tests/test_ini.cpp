@@ -66,27 +66,28 @@ key[2] = value
 */
 //========================================================================================
 const std::string ini_example_string = "; комментарий\n"
-                                       "key =  value\n"
-//                                       "\n"
-//                                       "[group 1]; ещё комментарий\n"
-//                                       "g1_key : value\n"
-//                                       "g1_key2 = g1_key3 = value2\n"
-//                                       "\n" //пустая строка после описания группы завершает группу
-//                                       "key2 = value2\n"
+                                       "key =  15\n"
+                                       "\n"
+                                       "[group 1]; ещё комментарий\n"
+                                       "g1_key : value\n"
+                                       "g1_key2 = g1_key3 = value2\n"
+                                       "\n" //пустая строка после описания группы завершает группу
+                                       "key2 = value2\n"
                                        "[group 2]\n"
-//                                       "g2_string = one line string\n"
-//                                       "g2 string2 = big\\\n"
-//                                       "            line string\n"
+                                       "g2_string = one line string\n"
+                                       "g2 string2 = big\\\n"
+                                       "            line string\n"
                                        "key\\inner_key\\inner_inner_key = inner_inner_value ; вложенные значения и группы значений\n"
                                        "\n"
                                        "key2\\inner_key2 = a\n"
                                        "key2/inner_key2 = b\n" // "/" и "\" равнозначны при обработке
                                        "key3\\inner_key3 = a\n"
                                        "key3/inner_key33 = b\n"
-//                                       "\n"
-//                                       "[group_3]\n"
-//                                       "key[0] = a\n"
-//                                       "key[2] = c\n"
+                                       "\n"
+                                       "[group_3]\n"
+                                       "key = a\n"
+                                       "key = \n"
+                                       "key = c\n"
     ;
 
 //TODO: переделать парсинг под схему:
@@ -100,13 +101,13 @@ TEST(INI, parse) {
 
     std::cout << json.to_string(0, true, 0, ConfigFormat::eJSON) << std::endl;
 
-//    ASSERT_EQ(json.size(), 4);
+    ASSERT_EQ(json.size(), 6);
 
-//    EXPECT_EQ(json["key"].first, eString);
-//    EXPECT_EQ(json["key"].getString(), "value");
+    EXPECT_EQ(json["key"].first, eNumber);
+    EXPECT_EQ(json["key"].getNum(), 15);
 
-//    EXPECT_EQ(json["key2"].first, eString);
-//    EXPECT_EQ(json["key2"].getString(), "value2");
+    EXPECT_EQ(json["key2"].first, eArray);
+    EXPECT_EQ(json["key2"].getArray().size(), 2);
 
 //    EXPECT_EQ(json["g1_key"].first, eString);
 //    EXPECT_EQ(json["g1_key"].getString(), "value");

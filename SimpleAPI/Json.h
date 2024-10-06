@@ -212,9 +212,9 @@ public:
     ValueType   getTypeFront();
     ValueType   getTypeBack();
 
-    Element     getFront();
-    Element     getAt(const size_t index)           { return m_values[index]; }
-    Element     getBack();
+    Element&    getFront();
+    Element&    getAt(const size_t index)           { return m_values[index]; }
+    Element&    getBack();
 
     JArray&     popFront();
     JArray&     popAt(const size_t index);
@@ -380,6 +380,7 @@ public:
     std::vector<std::string> parseIniValue(std::string& ini_key_value) noexcept;
     std::vector<std::string> parseIniKey(std::string& preview_key) noexcept;
     Json*       GetObjectForIniCustomKey(Json* json, std::vector<std::string>& keys) noexcept;
+    Element     ParseValueFromString(std::string& value, const bool enable_comments) noexcept;
     void        parseINI(const std::string& string_of_ini, const bool enable_comment = false);
 
     bool        readFile(const std::string& path, const bool enable_comment = false,
