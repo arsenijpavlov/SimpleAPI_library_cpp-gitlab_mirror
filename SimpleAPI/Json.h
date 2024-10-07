@@ -166,6 +166,14 @@ struct Element {
 // ===================================================================================== Element
 // *
 // *
+// STATIC ======================================================================================
+std::vector<std::string> parseIniKeys(std::string& ini_key_value) noexcept;
+std::vector<std::string> parseIniCustomKeys(std::string& preview_key) noexcept;
+Json*       GetObjectForIniCustomKey(Json* json, std::vector<std::string>& keys) noexcept;
+Element     ParseValueFromString(std::string& value, const bool enable_comments, const ConfigFormat format);
+// ====================================================================================== STATIC
+// *
+// *
 // JArray ======================================================================================
 using AVector = std::vector<Element>;
 // Упорядоченный список значений
@@ -377,10 +385,6 @@ public:
 
     void        parseJSON(const std::string& string_of_json, const bool enable_comment = false);
     void        parseYAML(const std::string& string_of_yaml, const bool enable_comment = false);
-    std::vector<std::string> parseIniValue(std::string& ini_key_value) noexcept;
-    std::vector<std::string> parseIniKey(std::string& preview_key) noexcept;
-    Json*       GetObjectForIniCustomKey(Json* json, std::vector<std::string>& keys) noexcept;
-    Element     ParseValueFromString(std::string& value, const bool enable_comments) noexcept;
     void        parseINI(const std::string& string_of_ini, const bool enable_comment = false);
 
     bool        readFile(const std::string& path, const bool enable_comment = false,

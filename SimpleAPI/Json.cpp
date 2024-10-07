@@ -1336,18 +1336,24 @@ void Json::parseYAML(const std::string &string_of_yaml, const bool enable_commen
     //TODO: Json::parseYAML()
 }
 
-std::vector<std::string> Json::parseIniValue(std::string& ini_key_value) noexcept {
+std::vector<std::string> parseIniKeys(std::string& ini_key_value) noexcept {
     std::vector<std::string> ret;
-    ret.reserve(2);
+    ret.reserve(3);
+    bool flag = true;
 
     std::string local_string;
     local_string.reserve(200);
     for(char c : ini_key_value) {
-        if(utils::CharsInString(c, __KEY_VALUE_SEPARATOR__)) {
+        if(utils::CharsInString(c, __KEY_VALUE_SEPARATOR__) && !local_string.empty() && flag) {
             RemoveIllegalSpaces(local_string);
-            ret.push_back(local_string);
-            local_string = "";
-            continue;
+
+            std::regex reg("^[a-zA-Z0-9._ #@!*&\"'/\\\\]+$"); //TODO: выделить в отдельную маску
+            if(std::regex_match(local_string, reg)) {
+                ret.push_back(local_string);
+                local_string = "";
+                continue;
+            } else
+                flag = false;
         }
         local_string += c;
     }
@@ -1357,7 +1363,7 @@ std::vector<std::string> Json::parseIniValue(std::string& ini_key_value) noexcep
     return ret;
 }
 
-std::vector<std::string> Json::parseIniKey(std::string& preview_key) noexcept {
+std::vector<std::string> parseIniCustomKeys(std::string& preview_key) noexcept {
     std::vector<std::string> ret;
     ret.reserve(2);
 
@@ -1380,7 +1386,7 @@ std::vector<std::string> Json::parseIniKey(std::string& preview_key) noexcept {
     return ret;
 }
 
-Json *Json::GetObjectForIniCustomKey(Json* json, std::vector<std::string> &keys) noexcept {
+Json *GetObjectForIniCustomKey(Json* json, std::vector<std::string> &keys) noexcept {
     if(json == nullptr || keys.size() == 0) return json;
     std::cout << "GetObjectForIniCustomKey: " << utils::PrintVector(keys) << std::endl;
 
@@ -1459,7 +1465,7 @@ Json *Json::GetObjectForIniCustomKey(Json* json, std::vector<std::string> &keys)
 }
 
 //TODO: Element Json::ParseValueFromString()
-Element Json::ParseValueFromString(std::string& value, const bool enable_comments) noexcept {
+Element ParseValueFromString(std::string& value, const bool enable_comments, const ConfigFormat format) {
     std::string temp;
     temp.reserve(value.size());
     for(char c : value) temp += c;
@@ -1494,11 +1500,27 @@ Element Json::ParseValueFromString(std::string& value, const bool enable_comment
         }
     }
 
-    //TODO: ParseValueFromString() -> JSON
-    //...
+    //JSON
+    if(value[0] == '{') {
+        Json json;
+        try {
+            json.parseJSON(value, enable_comments);
+            return Element(json);
+        } catch (std::exception e) {
+            if(format == ConfigFormat::eJSON) throw e;
+        }
+    }
 
-    //TODO: ParseValueFromString() -> JSON_ARRAY
-    //...
+    //JSON_ARRAY
+    if(value[0] == '[') {
+        JArray jarray;
+        try {
+            jarray.parseJSON_array(value, enable_comments);
+            return Element(jarray);
+        } catch (std::exception e) {
+            if(format == ConfigFormat::eJSON) throw e;
+        }
+    }
 
     //STRING - всё остальное
     //кавычки по краям строкового значения актуальны только для Json, NOTE: YAML ещё не изучал
@@ -1664,8 +1686,7 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                             continue;
                         }
 
-                        std::vector<std::string> keys = parseIniValue(key_value_string);
-//                        if(key_value_string.empty()) isCriticalError = true;
+                        std::vector<std::string> keys = parseIniKeys(key_value_string);
                         utils::UpdEscSymbols(key_value_string);
 
                         std::cout << "keys: [";
@@ -1675,8 +1696,12 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                         }
                         std::cout << "], value: [" << key_value_string << "]" << std::endl;
 
+                        if(keys.size() == 0 && !key_value_string.empty()) {
+                            isCriticalError = true;
+                            break;
+                        }
                         for(std::string key : keys) {
-                            std::vector<std::string> inner_keys = parseIniKey(key);
+                            std::vector<std::string> inner_keys = parseIniCustomKeys(key);
                             if(!group_string.empty()) inner_keys.insert(inner_keys.cbegin(), group_string);
 
                             Json* current_object = this;
@@ -1686,23 +1711,23 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                             if(current_object->contains(inner_keys.back())) {
                                 switch(result_object[inner_keys.back()].first) {
                                 case eNull: { //перезапись значения
-                                    result_object.updateValue(inner_keys.back(), ParseValueFromString(key_value_string, enable_comment));
+                                    result_object.updateValue(inner_keys.back(), ParseValueFromString(key_value_string, enable_comment, ConfigFormat::eINI));
                                     break;
                                 }
                                 case eArray:{ //дополнить список
-                                    result_object[inner_keys.back()].getArray().push_back(ParseValueFromString(key_value_string, enable_comment));
+                                    result_object[inner_keys.back()].getArray().push_back(ParseValueFromString(key_value_string, enable_comment, ConfigFormat::eINI));
                                     break;
                                 }
                                 default:    { //создать список значений
                                     Element temp_e = result_object[inner_keys.back()];
                                     JArray temp_ja(temp_e);
-                                    temp_ja.push_back(ParseValueFromString(key_value_string, enable_comment));
+                                    temp_ja.push_back(ParseValueFromString(key_value_string, enable_comment, ConfigFormat::eINI));
                                     result_object.updateValue(inner_keys.back(), temp_ja);
                                     break;
                                 }
                                 }
                             } else {
-                                result_object.put(inner_keys.back(), ParseValueFromString(key_value_string, enable_comment));
+                                result_object.put(inner_keys.back(), ParseValueFromString(key_value_string, enable_comment, ConfigFormat::eINI));
                             }
                         }
 
