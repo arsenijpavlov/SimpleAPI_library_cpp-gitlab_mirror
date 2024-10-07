@@ -1746,10 +1746,8 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                                 }
                                 //применение комментариев
                                 if(!keyValueComment.before.empty() || !keyValueComment.after.empty()) {
-
-
                                     if(!group_string.empty()) //FIXME: корректно не для всех ситуаций
-                                        addComment(inner_keys[0], keyValueComment);
+                                        result_object.addComment(inner_keys.back(), keyValueComment);
                                 }
                             } //===================================================================
                         }
