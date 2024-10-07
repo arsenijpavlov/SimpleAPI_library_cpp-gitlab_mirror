@@ -1708,26 +1708,31 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                             current_object = GetObjectForIniCustomKey(current_object, inner_keys);
                             Json& result_object = (*current_object);
 
+                            Element new_value = ParseValueFromString(key_value_string, enable_comment, ConfigFormat::eINI);
                             if(current_object->contains(inner_keys.back())) {
                                 switch(result_object[inner_keys.back()].first) {
                                 case eNull: { //перезапись значения
-                                    result_object.updateValue(inner_keys.back(), ParseValueFromString(key_value_string, enable_comment, ConfigFormat::eINI));
+                                    result_object.updateValue(inner_keys.back(), new_value);
                                     break;
                                 }
                                 case eArray:{ //дополнить список
-                                    result_object[inner_keys.back()].getArray().push_back(ParseValueFromString(key_value_string, enable_comment, ConfigFormat::eINI));
+                                    if(result_object[inner_keys.back()].getArray().size() == 1
+                                        && result_object[inner_keys.back()].getArray()[0].first == eNull) {
+                                        result_object[inner_keys.back()] = JArray(new_value);
+                                    } else
+                                        result_object[inner_keys.back()].getArray().push_back(new_value);
                                     break;
                                 }
                                 default:    { //создать список значений
                                     Element temp_e = result_object[inner_keys.back()];
                                     JArray temp_ja(temp_e);
-                                    temp_ja.push_back(ParseValueFromString(key_value_string, enable_comment, ConfigFormat::eINI));
+                                    temp_ja.push_back(new_value);
                                     result_object.updateValue(inner_keys.back(), temp_ja);
                                     break;
                                 }
                                 }
                             } else {
-                                result_object.put(inner_keys.back(), ParseValueFromString(key_value_string, enable_comment, ConfigFormat::eINI));
+                                result_object.put(inner_keys.back(), new_value);
                             }
                         }
 

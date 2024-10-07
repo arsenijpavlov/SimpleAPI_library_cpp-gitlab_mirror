@@ -87,9 +87,9 @@ const std::string ini_example_string = "; комментарий\n"
                                        "key3/inner_key33 = b\n"
                                        "\n"
                                        "[group_3]\n"
-                                       "key = a\n"
+                                       "key = 15\n"
                                        "key = \n"
-                                       "key = c\n"
+                                       "key = true\n"
     ;
 
 //TODO: переделать парсинг под схему:
@@ -122,4 +122,12 @@ TEST(INI, parse) {
 
 //    EXPECT_EQ(json["string2"].first, eString);
 //    EXPECT_EQ(json["string2"].getString(), "big\nline string");
+
+    ASSERT_EQ(json["group_3"].first, eJson);
+    EXPECT_EQ(json["group_3"].getJson()["key"].getArray()[0].first, eNumber);
+    EXPECT_EQ(json["group_3"].getJson()["key"].getArray()[0].getNum(), 15);
+    EXPECT_EQ(json["group_3"].getJson()["key"].getArray()[1].first, eNull);
+    EXPECT_EQ(json["group_3"].getJson()["key"].getArray()[1], Element());
+    EXPECT_EQ(json["group_3"].getJson()["key"].getArray()[2].first, eBool);
+    EXPECT_EQ(json["group_3"].getJson()["key"].getArray()[2].getBool(), true);
 }
