@@ -80,6 +80,7 @@ const std::string ini_example_string = "; комментарий\n"
 //                                       "g2 string2 = big\\\n"
 //                                       "            line string\n"
                                        //комментарий применится только для конечного элемента
+                                       "; коммент ДО переменной\n"
                                        "key\\inner_key\\inner_inner_key = inner_inner_value ; вложенные значения и группы значений\n"
                                        "\n"
 //                                       "key2\\inner_key2 = a\n"
@@ -97,6 +98,22 @@ const std::string ini_example_string = "; комментарий\n"
                         // комментарий
 //            "key" : 15 }
 //некорректный вывод
+
+//TODO: некорректный вывод однострочных комментариев {
+//          "group 2" : {
+//              "key" : {
+//                  "inner_key" : {
+//                      /*
+//          				вложенные значения
+//          				и гр
+//          				уппы значений
+//          				*/
+//                      "inner_inner_key" : "inner_inner_value" }
+//              }
+//          }
+//      }
+
+//TODO: обозначение группы не попадает в дерево
 
 TEST(INI, parse) {
     Json json;

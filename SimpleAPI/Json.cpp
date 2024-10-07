@@ -1388,54 +1388,55 @@ std::vector<std::string> parseIniCustomKeys(std::string& preview_key) noexcept {
 
 Json *GetObjectForIniCustomKey(Json* json, std::vector<std::string> &keys) noexcept {
     if(json == nullptr || keys.size() == 0) return json;
-    std::cout << "GetObjectForIniCustomKey: " << utils::PrintVector(keys) << std::endl;
+//    std::cout << "GetObjectForIniCustomKey: " << utils::PrintVector(keys) << std::endl;
 
     if(keys.size() == 1) {
-        std::cout << "\tGetObjectForIniCustomKey, [" << keys[0] << "] is ";
+//        std::cout << "\tGetObjectForIniCustomKey, [" << keys[0] << "] is ";
         if(json->contains(keys[0])) {
             switch((*json)[keys[0]].first) {
             case eJson:
-                std::cout << "JSON" << std::endl;
+//                std::cout << "JSON" << std::endl;
                 return &(*json)[keys[0]].getJson();
             case eNull:
-                std::cout << "NULL" << std::endl;
+//                std::cout << "NULL" << std::endl;
             default: {
-                std::cout << "OTHER" << std::endl;
+//                std::cout << "OTHER" << std::endl;
                 Element temp_e = (*json)[keys[0]];
                 JArray temp_ja(temp_e);
                 json->updateValue(keys[0], temp_ja);
                 break;
             }
             case eArray:
-                std::cout << "ARRAY" << std::endl;
+//                std::cout << "ARRAY" << std::endl;
+                break;
             }
         } else {
-            std::cout << "NOT FOUND" << std::endl;
+//            std::cout << "NOT FOUND" << std::endl;
             json->put(keys[0], Element());
         }
 
         return json;
     } else {
         std::string current_key = keys[0];
-        std::cout << "\tGetObjectForIniCustomKey[" << keys.size() << "], " << current_key << " is ";
+//        std::cout << "\tGetObjectForIniCustomKey[" << keys.size() << "], " << current_key << " is ";
 
         keys.erase(keys.cbegin(), keys.cbegin() + 1);
         Json* next_json = json;
         if(json->contains(current_key)) {
             switch((*json)[current_key].first) {
             case eJson: {
-                std::cout << "JSON(2)" << std::endl;
+//                std::cout << "JSON(2)" << std::endl;
                 next_json = &(*json)[current_key].getJson();
                 break;
             }
             case eNull: {
-                std::cout << "NULL(2)" << std::endl;
+//                std::cout << "NULL(2)" << std::endl;
                 json->updateValue(current_key, Json());
                 next_json = &(*json)[current_key].getJson();
                 break;
             }
             default: {
-                std::cout << "OTHER(2)" << std::endl;
+//                std::cout << "OTHER(2)" << std::endl;
                 Element temp_e = (*json)[current_key];
                 JArray temp_ja(temp_e);
                 //создаём поле для следующего ключа в списке
@@ -1447,7 +1448,7 @@ Json *GetObjectForIniCustomKey(Json* json, std::vector<std::string> &keys) noexc
                 break;
             }
             case eArray: {
-                std::cout << "ARRAY(2)" << std::endl;
+//                std::cout << "ARRAY(2)" << std::endl;
                 JArray& temp_ja = (*json)[current_key].getArray();
                 //создаём поле для следующего ключа в списке
 //                temp_ja.push_back(Json(std::make_pair(keys[0], Element()))); //TODO: переделать на конструктор Json(key, nullptr);
@@ -1456,7 +1457,7 @@ Json *GetObjectForIniCustomKey(Json* json, std::vector<std::string> &keys) noexc
             }
             }
         } else {
-            std::cout << "NOT FOUND(2)" << std::endl;
+//            std::cout << "NOT FOUND(2)" << std::endl;
             json->put(current_key, Json());
             next_json = &(*json)[current_key].getJson();
         }
@@ -1583,8 +1584,8 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                                                                firstMLCSym, secondMLCSym,
                                                                enable_comment, currentComment,
                                                                i, ext_f);
-        if(!currentComment.empty())
-            std::cout << "comment: " << currentComment << std::endl;
+//        if(!currentComment.empty())
+//            std::cout << "comment: " << currentComment << std::endl;
         if(c_checker != utils::CommentChecker::isNotComment) {
             //сюда зайдёт, если внутри комментария
             //счётчик строк и столбцов =============================================
@@ -1650,18 +1651,18 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                 isWordStarted = false;
                 isWordFinished = true;
             } else {
+                //работа с комментариями (перед ключом) ===============================
+                if(!currentComment.empty() && enable_comment) {
+                    std::cout << "COMMENT(BEFORE): \"" << currentComment << "\"" << std::endl;
+                    keyValueComment.before = FromComment(currentComment, m_comment_column_size, m_comment_sym);
+                    //                    std::cout << "Json:comment:before: " << "\"" << currentComment << "\"" << std::endl;
+                    currentComment = "";
+                } //===================================================================
                 key_value_string += current;
             }
 
             if(isWordFinished) {
                 isWordFinished = false;
-
-                //работа с комментариями (перед ключом) ===============================
-                if(!currentComment.empty() && enable_comment) {
-                    keyValueComment.before = FromComment(currentComment, m_comment_column_size, m_comment_sym);
-                    //                    std::cout << "Json:comment:before: " << "\"" << currentComment << "\"" << std::endl;
-                    currentComment = "";
-                } //===================================================================
 
                 std::cout << "key_value: [[" << key_value_string << "]]" << std::endl;
                 RemoveIllegalSpaces(key_value_string);
@@ -1740,6 +1741,7 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                             //работа с комментариями (после значения #1) ==========================
                             if(enable_comment) {
                                 if(!currentComment.empty()) {
+                                    std::cout << "COMMENT(AFTER#1): \"" << currentComment << "\"" << std::endl;
                                     keyValueComment.after = FromComment(currentComment, m_comment_column_size, m_comment_sym);
 //                                    std::cout << "Json:comment:after: " << "\"" << currentComment << "\"" << std::endl;
                                     currentComment = "";
@@ -1772,6 +1774,7 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
             } //====================================================================
         }
     }
+    std::cout << "LAST COMMENT: " << "\"" << currentComment << "\"" << std::endl;
 }
 
 bool Json::readFile(const std::string& path, const bool enable_comment,
