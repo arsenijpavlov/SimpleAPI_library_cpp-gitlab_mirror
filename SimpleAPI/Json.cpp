@@ -1564,12 +1564,7 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
     uint16_t line_counter   = 0; //NOTE: (Ini) ограничение на FFFF строк
     uint16_t symbol_counter = 0; //NOTE: (Ini) ограничение на FFFF символов в строке
 
-    enum ValueFormat {
-        VALUE_NOPE,
-        VALUE_JSON,
-        VALUE_ARRAY,
-        VALUE_OTHER
-    } value_format = VALUE_NOPE;
+    bool isBeforeStringIsEmpty = false; //для работы с комментариями внутри групп
 
     for(size_t i = 0; (i < string_of_ini.length()); i++) {
         char previous = (i - 1 >= 0) ? string_of_ini[i - 1] : 0;
@@ -1578,14 +1573,12 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
         symbol_counter++; //TODO: проверить точность
 
         //поиск комментариев
-        const bool ext_f = !isQuotes && value_format != VALUE_ARRAY && value_format != VALUE_JSON;
+        const bool ext_f = !isQuotes;
         utils::CommentChecker c_checker = utils::CheckComments(current, next,
                                                                isOneLineComment, isMultiLineComment,
                                                                firstMLCSym, secondMLCSym,
                                                                enable_comment, currentComment,
                                                                i, ext_f);
-//        if(!currentComment.empty())
-//            std::cout << "comment: " << currentComment << std::endl;
         if(c_checker != utils::CommentChecker::isNotComment) {
             //сюда зайдёт, если внутри комментария
             //счётчик строк и столбцов =============================================
@@ -1601,41 +1594,21 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
             //пропуск пробелов ====================================================
             if(current == '\n' && !isValueCommentAfterSaved) {
                 //работа с комментариями (после значения #2) ==========================
-                if(!currentComment.empty() && enable_comment) {
+                if(!currentComment.empty() && enable_comment && !key_value_string.empty()) {
                     addComment_after(key_value_string, FromComment(currentComment, m_comment_column_size, m_comment_sym));
-                    //                    std::cout << "Json:comment:after: " << "\"" << currentComment << "\"" << std::endl;
+//                    std::cout << "Json:comment:after: " << "\"" << currentComment << "\"" << std::endl;
                     currentComment = "";
                 } //===================================================================
                 isValueCommentAfterSaved = true;
-
-                //счётчик строк и столбцов =============================================
-                if(current == '\n') {
-                    line_counter++;
-                    symbol_counter = 0; //должен перескочить строго на следующей строке
-                } //====================================================================
-                continue;
             }
-            if(utils::CharsInString(current, __SPACES__) && !isQuotes && !isWordStarted) {
-                //счётчик строк и столбцов =============================================
-                if(current == '\n') {
-                    line_counter++;
-                    symbol_counter = 0; //должен перескочить строго на следующей строке
-
-                    group_string.clear();
-                } //====================================================================
+            if(utils::CharsInString(current, __SPACES_WITHOUT_SEPARATORS__) && !isQuotes && !isWordStarted) {
                 continue;
             }
             //=====================================================================
 
             if(!isWordStarted) {
-                if(utils::CharsInString(current, __SPACES_WITHOUT_SEPARATORS__)) {
-                    //счётчик строк и столбцов =============================================
-                    if(current == '\n') {
-                        line_counter++;
-                        symbol_counter = 0; //должен перескочить строго на следующей строке
-                    } //====================================================================
+                if(utils::CharsInString(current, __SPACES_WITHOUT_SEPARATORS__))
                     continue;
-                }
 
                 isWordStarted = true;
                 if(key_value_string.back() != '\\') {
@@ -1655,7 +1628,7 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                 if(!currentComment.empty() && enable_comment) {
                     std::cout << "COMMENT(BEFORE): \"" << currentComment << "\"" << std::endl;
                     keyValueComment.before = FromComment(currentComment, m_comment_column_size, m_comment_sym);
-                    //                    std::cout << "Json:comment:before: " << "\"" << currentComment << "\"" << std::endl;
+//                    std::cout << "Json:comment:before: " << "\"" << currentComment << "\"" << std::endl;
                     currentComment = "";
                 } //===================================================================
                 key_value_string += current;
@@ -1664,12 +1637,9 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
             if(isWordFinished) {
                 isWordFinished = false;
 
-                std::cout << "key_value: [[" << key_value_string << "]]" << std::endl;
+//                std::cout << "key_value: [[" << key_value_string << "]]" << std::endl;
                 RemoveIllegalSpaces(key_value_string);
-//                if(!key_value_string.empty()) {
-//                    std::cout << "key+value: " << key_value_string << std::endl;
 
-                    //TODO: processing...
                     if(key_value_string.front() == '[' && key_value_string.back() == ']') {
                         groupComment = keyValueComment;
                         keyValueComment = Comment();
@@ -1678,6 +1648,8 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                         group_string.erase(0, 1);//erase [
                         group_string.pop_back(); //erase ]
 //                        std::cout << "is group: \"" << group_string << "\"" << std::endl;
+                        put(group_string, Json());
+                        addComment(group_string, groupComment);
                     } else {
 //                        std::cout << "is key_value: " << key_value_string << std::endl;
                         if(key_value_string.back() == '\\') {
@@ -1693,16 +1665,24 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                         std::vector<std::string> keys = parseIniKeys(key_value_string);
                         utils::UpdEscSymbols(key_value_string);
 
-                        std::cout << "keys: [";
-                        for(uint8_t i = 0; i < keys.size(); i++) {
-                            std::cout << "\"" << keys[i] << "\"";
-                            if(i < keys.size() - 1) std::cout << ", ";
-                        }
-                        std::cout << "], value: [" << key_value_string << "]" << std::endl;
+//                        std::cout << "keys: [";
+//                        for(uint8_t i = 0; i < keys.size(); i++) {
+//                            std::cout << "\"" << keys[i] << "\"";
+//                            if(i < keys.size() - 1) std::cout << ", ";
+//                        }
+//                        std::cout << "], value: [" << key_value_string << "]" << std::endl;
 
-                        if(keys.size() == 0 && !key_value_string.empty()) {
-                            isCriticalError = true;
-                            break;
+                        if(keys.size() == 0) {
+                            if(key_value_string.empty()) {
+                                if(isBeforeStringIsEmpty) {
+                                    std::cout << "disable group name \"" << group_string << "\"" << std::endl;
+                                    group_string.clear();
+                                }
+                                isBeforeStringIsEmpty = !isBeforeStringIsEmpty;
+                            } else {
+                                isCriticalError = true;
+                                break;
+                            }
                         }
                         for(std::string key : keys) {
                             std::vector<std::string> inner_keys = parseIniCustomKeys(key);
@@ -1859,7 +1839,7 @@ std::string Json::to_JSON_string(int16_t tabulation_level, const bool enable_com
 
     ret += "{"; //start of json
 
-    if(m_values.size() == 1
+    if(m_values.size() == 1 && m_comments.empty()
         && m_values[0].second.first != ValueType::eJson
         && m_values[0].second.first != ValueType::eArray
         ) {
@@ -1908,9 +1888,7 @@ std::string Json::to_JSON_string(int16_t tabulation_level, const bool enable_com
             auto comment_it = m_comments.find(el.first);
             if(comment_it != m_comments.end()
                 && enable_comment
-                && !comment_it->second.before.empty()
-                ) {
-                ret += "\n";
+                && !comment_it->second.before.empty()) {
                 ret += ToComment(comment_it->second.before, tabulation_level, m_comment_column_size, m_comment_sym) + "\n";
             }
             //===========================================================================
