@@ -1670,12 +1670,13 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                                     std::cout << "disable group name \"" << group_string << "\"" << std::endl;
                                     group_string.clear();
                                 }
-                                isBeforeStringIsEmpty = !isBeforeStringIsEmpty;
+                                isBeforeStringIsEmpty = true;
                             } else {
                                 isCriticalError = true;
                                 break;
                             }
-                        }
+                        } else if(key_value_string.empty())
+                            isBeforeStringIsEmpty = false;
                         for(std::string key : keys) {
                             std::vector<std::string> inner_keys = parseIniCustomKeys(key);
                             if(!group_string.empty()) inner_keys.insert(inner_keys.cbegin(), group_string);
@@ -2474,8 +2475,10 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
         }
     }
 
-    if(!current_string.empty())
+    if(!current_string.empty()) {
+        RemoveIllegalSpaces(current_string);
         result += prefix + current_string;
+    }
 
     std::string ret;
     bool isMulti = result.find('\n') != -1;
