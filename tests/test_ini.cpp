@@ -69,11 +69,11 @@ const std::string ini_example_string = "; комментарий\n"
                                        "; вторая строка комментария\n"
                                        "key =  15\n"
                                        "array = [a, 15, true]\n"
-                                       "json = {inner_json:[a, 4.0, \"asd string\"]}\n"
+                                       "json = {inner_array:[a, 4.0, \"asd string\"]}\n"
                                        "\n"
                                        "[group 1]; ещё комментарий\n"
                                        "g1_key : value\n"
-                                       "g1_key2 = g1_key3 = value2\n"
+                                       "g1_key2 = g1_key3 = 152\n"
                                        //пустая строка после описания группы завершает группу
                                        "\n"
                                        "key2 = value2\n"
@@ -96,21 +96,8 @@ const std::string ini_example_string = "; комментарий\n"
                                        "g3_key = true\n"
     ;
 
-//TODO: некорректный вывод однострочных комментариев {
-//          "group 2" : {
-//              "key" : {
-//                  "inner_key" : {
-//                      /*
-//          				вложенные значения
-//          				и гр
-//          				уппы значений
-//          				*/
-//                      "inner_inner_key" : "inner_inner_value" }
-//              }
-//          }
-//      }
-
-TEST(INI, parse) {
+//NOTE: можно сделать более читабельным, но пока и так норм
+TEST(INI, main_parser) {
     Json json;
     json.parseINI(ini_example_string, true);
 
@@ -118,29 +105,94 @@ TEST(INI, parse) {
 
     ASSERT_EQ(json.size(), 9);
 
-//    EXPECT_EQ(json["key"].first, eNumber);
-//    EXPECT_EQ(json["key"].getNum(), 15);
+    ASSERT_EQ(json.contains("key"), true); {
+        ASSERT_EQ(json["key"].first, eNumber);
+        EXPECT_EQ(json["key"].getNum(), 15);
+    }
 
-//    EXPECT_EQ(json["array"].first, eArray);
-//    EXPECT_EQ(json["array"].getArray().size(), 3);
+    ASSERT_EQ(json.contains("array"), true); {
+        ASSERT_EQ(json["array"].first, eArray);
+        EXPECT_EQ(json["array"].getArray().size(), 3);
+        EXPECT_EQ(json["array"].getArray()[0].first, eString);
+        EXPECT_EQ(json["array"].getArray()[1].first, eNumber);
+        EXPECT_EQ(json["array"].getArray()[2].first, eBool);
+    }
 
-//    EXPECT_EQ(json["json"].first, eJson);
-//    EXPECT_EQ(json["json"].getJson().size(), 1);
+    ASSERT_EQ(json.contains("json"), true); {
+        ASSERT_EQ(json["json"].first, eJson);
+        EXPECT_EQ(json["json"].getJson().size(), 1);
+        ASSERT_EQ(json["json"].getJson().contains("inner_array"), true);
+        ASSERT_EQ(json["json"].getJson()["inner_array"].first, eArray);
+        EXPECT_EQ(json["json"].getJson()["inner_array"].getArray().size(), 3);
+        EXPECT_EQ(json["json"].getJson()["inner_array"].getArray()[0].first, eString);
+        EXPECT_EQ(json["json"].getJson()["inner_array"].getArray()[1].first, eNumber);
+        EXPECT_EQ(json["json"].getJson()["inner_array"].getArray()[2].first, eString);
+    }
 
-//    EXPECT_EQ(json["key2"].first, eArray);
-//    EXPECT_EQ(json["key2"].getArray().size(), 2);
+    ASSERT_EQ(json.contains("key2"), true); {
+        ASSERT_EQ(json["key2"].first, eArray);
+        ASSERT_EQ(json["key2"].getArray().size(), 2);
+        ASSERT_EQ(json["key2"].getArray()[0].first, eString);
+        EXPECT_EQ(json["key2"].getArray()[0].getString(), "value2");
+        ASSERT_EQ(json["key2"].getArray()[1].first, eJson);
+        ASSERT_EQ(json["key2"].getArray()[1].getJson().size(), 1);
+        ASSERT_EQ(json["key2"].getArray()[1].getJson().contains("inner_key2"), true);
+        ASSERT_EQ(json["key2"].getArray()[1].getJson()["inner_key2"].first, eArray);
+        EXPECT_EQ(json["key2"].getArray()[1].getJson()["inner_key2"].getArray().size(), 2);
+        ASSERT_EQ(json["key2"].getArray()[1].getJson()["inner_key2"].getArray()[0].first, eString);
+        EXPECT_EQ(json["key2"].getArray()[1].getJson()["inner_key2"].getArray()[0].getString(), "a");
+        ASSERT_EQ(json["key2"].getArray()[1].getJson()["inner_key2"].getArray()[1].first, eString);
+        EXPECT_EQ(json["key2"].getArray()[1].getJson()["inner_key2"].getArray()[1].getString(), "b");
+    }
 
-//    EXPECT_EQ(json["g1_key"].first, eString);
-//    EXPECT_EQ(json["g1_key"].getString(), "value");
+    ASSERT_EQ(json.contains("key3"), true); {
+        ASSERT_EQ(json["key3"].first, eJson);
+        ASSERT_EQ(json["key3"].getJson().size(), 2);
+        ASSERT_EQ(json["key3"].getJson().contains("inner_key3"), true);
+        ASSERT_EQ(json["key3"].getJson()["inner_key3"].first, eString);
+        EXPECT_EQ(json["key3"].getJson()["inner_key3"].getString(), "a");
+        ASSERT_EQ(json["key3"].getJson().contains("inner_key33"), true);
+        ASSERT_EQ(json["key3"].getJson()["inner_key33"].first, eString);
+        ASSERT_EQ(json["key3"].getJson()["inner_key33"].getString(), "b");
+    }
 
-//    EXPECT_EQ(json["string2"].first, eString);
-//    EXPECT_EQ(json["string2"].getString(), "big\nline string");
 
-//    ASSERT_EQ(json["group_3"].first, eJson);
-//    EXPECT_EQ(json["group_3"].getJson()["key"].getArray()[0].first, eNumber);
-//    EXPECT_EQ(json["group_3"].getJson()["key"].getArray()[0].getNum(), 15);
-//    EXPECT_EQ(json["group_3"].getJson()["key"].getArray()[1].first, eNull);
-//    EXPECT_EQ(json["group_3"].getJson()["key"].getArray()[1], Element());
-//    EXPECT_EQ(json["group_3"].getJson()["key"].getArray()[2].first, eBool);
-//    EXPECT_EQ(json["group_3"].getJson()["key"].getArray()[2].getBool(), true);
+    ASSERT_EQ(json.contains("group 1"), true); {
+        ASSERT_EQ(json["group 1"].first, eJson);
+        ASSERT_EQ(json["group 1"].getJson().size(), 3);
+        ASSERT_EQ(json["group 1"].getJson().contains("g1_key"), true);
+        ASSERT_EQ(json["group 1"].getJson()["g1_key"].first, eString);
+        EXPECT_EQ(json["group 1"].getJson()["g1_key"].getString(), "value");
+        ASSERT_EQ(json["group 1"].getJson().contains("g1_key2"), true);
+        ASSERT_EQ(json["group 1"].getJson()["g1_key2"].first, eNumber);
+        EXPECT_EQ(json["group 1"].getJson()["g1_key2"].getNum(), 152);
+        ASSERT_EQ(json["group 1"].getJson().contains("g1_key3"), true);
+        ASSERT_EQ(json["group 1"].getJson()["g1_key3"].first, eNumber);
+        EXPECT_EQ(json["group 1"].getJson()["g1_key3"].getNum(), 152);
+    }
+
+    ASSERT_EQ(json.contains("group 2"), true); {
+        ASSERT_EQ(json["group 2"].first, eJson);
+        ASSERT_EQ(json["group 2"].getJson().size(), 2);
+        ASSERT_EQ(json["group 2"].getJson().contains("g2_string"), true);
+        ASSERT_EQ(json["group 2"].getJson()["g2_string"].first, eString);
+        EXPECT_EQ(json["group 2"].getJson()["g2_string"].getString(), "one line string");
+        ASSERT_EQ(json["group 2"].getJson().contains("g2 string2"), true);
+        ASSERT_EQ(json["group 2"].getJson()["g2 string2"].first, eString);
+        EXPECT_EQ(json["group 2"].getJson()["g2 string2"].getString(), "big\nline string");
+    }
+
+    ASSERT_EQ(json.contains("group_3"), true); {
+        ASSERT_EQ(json["group_3"].first, eJson);
+        ASSERT_EQ(json["group_3"].getJson().size(), 1);
+        ASSERT_EQ(json["group_3"].getJson().contains("g3_key"), true);
+        ASSERT_EQ(json["group_3"].getJson()["g3_key"].first, eArray);
+        ASSERT_EQ(json["group_3"].getJson()["g3_key"].getArray().size(), 3);
+        EXPECT_EQ(json["group_3"].getJson()["g3_key"].getArray()[0].first, eNumber);
+        ASSERT_EQ(json["group_3"].getJson()["g3_key"].getArray()[0].getNum(), 15);
+        ASSERT_EQ(json["group_3"].getJson()["g3_key"].getArray()[1].first, eNull);
+        ASSERT_EQ(json["group_3"].getJson()["g3_key"].getArray()[2].first, eBool);
+        EXPECT_EQ(json["group_3"].getJson()["g3_key"].getArray()[2].getBool(), true);
+    }
+
 }
