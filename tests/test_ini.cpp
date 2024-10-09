@@ -66,6 +66,7 @@ key[2] = value
 */
 //========================================================================================
 const std::string ini_example_string = "; комментарий\n"
+                                       "; вторая строка комментария\n"
                                        "key =  15\n"
                                        "array = [a, 15, true]\n"
                                        "json = {inner_json:[a, 4.0, \"asd string\"]}\n"
@@ -73,7 +74,8 @@ const std::string ini_example_string = "; комментарий\n"
                                        "[group 1]; ещё комментарий\n"
                                        "g1_key : value\n"
                                        "g1_key2 = g1_key3 = value2\n"
-                                       "\n" //пустая строка после описания группы завершает группу
+                                       //пустая строка после описания группы завершает группу
+                                       "\n"
                                        "key2 = value2\n"
                                        "[group 2]\n"
                                        "g2_string = one line string\n"
@@ -94,11 +96,6 @@ const std::string ini_example_string = "; комментарий\n"
                                        "g3_key = true\n"
     ;
 
-//TODO: JSON: {
-                        // комментарий
-//            "key" : 15 }
-//некорректный вывод
-
 //TODO: некорректный вывод однострочных комментариев {
 //          "group 2" : {
 //              "key" : {
@@ -112,8 +109,6 @@ const std::string ini_example_string = "; комментарий\n"
 //              }
 //          }
 //      }
-
-//TODO: обозначение группы не попадает в дерево
 
 TEST(INI, parse) {
     Json json;

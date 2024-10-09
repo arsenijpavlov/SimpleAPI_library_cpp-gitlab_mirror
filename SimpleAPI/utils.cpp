@@ -465,6 +465,7 @@ CommentChecker CheckComments(const char current_sym, const char next_sym,
         //если следующий символ должен обрабатываться другим кодом
         if((current_sym == '\n') || ((next_sym != 0) && (next_sym == '\n'))) {
             is_one_line = false;
+            if(current_sym != '\n') current_sym_comment_line += '\n';
             return CommentChecker::isCommentEnd;
         }
 

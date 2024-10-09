@@ -1579,8 +1579,7 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                                                                firstMLCSym, secondMLCSym,
                                                                enable_comment, currentComment,
                                                                i, ext_f);
-        if(c_checker != utils::CommentChecker::isNotComment) {
-            //сюда зайдёт, если внутри комментария
+        if(c_checker != utils::CommentChecker::isNotComment) { //сюда зайдёт, если внутри комментария
             //счётчик строк и столбцов =============================================
             if(current == '\n') {
                 line_counter++;
@@ -1665,13 +1664,6 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                         std::vector<std::string> keys = parseIniKeys(key_value_string);
                         utils::UpdEscSymbols(key_value_string);
 
-//                        std::cout << "keys: [";
-//                        for(uint8_t i = 0; i < keys.size(); i++) {
-//                            std::cout << "\"" << keys[i] << "\"";
-//                            if(i < keys.size() - 1) std::cout << ", ";
-//                        }
-//                        std::cout << "], value: [" << key_value_string << "]" << std::endl;
-
                         if(keys.size() == 0) {
                             if(key_value_string.empty()) {
                                 if(isBeforeStringIsEmpty) {
@@ -1728,7 +1720,7 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                                 }
                                 //применение комментариев
                                 if(!keyValueComment.before.empty() || !keyValueComment.after.empty()) {
-                                    if(!group_string.empty()) //FIXME: корректно не для всех ситуаций
+//                                    if(!group_string.empty()) //FIXME: корректно не для всех ситуаций
                                         result_object.addComment(inner_keys.back(), keyValueComment);
                                 }
                             } //===================================================================
