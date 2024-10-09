@@ -14,7 +14,7 @@ function (create_test test_group_name)
         "*.h"
     )
     string(REPLACE ".cpp" "" test_name ${test_group_name})
-    string(REGEX REPLACE ".*/" "" test_name ${test_name})
+    string(REGEX REPLACE ".*/" "unit_" test_name ${test_name})
 
     add_executable(${test_name})
     target_sources(${test_name} PUBLIC ${test_group_sources})
