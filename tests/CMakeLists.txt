@@ -26,3 +26,26 @@ file(GLOB TEST_LIST "${CMAKE_CURRENT_LIST_DIR}/test_*.cpp")
 foreach(TEST ${TEST_LIST})
     create_test(${TEST})
 endforeach()
+
+#===============================================
+#test Json
+if(ENABLE_JSON_TEST_APP)
+    add_subdirectory(Json_programtest)
+endif()
+unset(ENABLE_JSON_TEST_APP CACHE)
+
+#test sockets
+if(ENABLE_SOCKETS_TEST_APP)
+    file(GLOB NETWORK_DIRS ${CMAKE_CURRENT_LIST_DIR}/Network*_programtest)
+    foreach(NETWORK_DIR ${NETWORK_DIRS})
+        add_subdirectory(${NETWORK_DIR})
+    endforeach()
+endif()
+unset(ENABLE_SOCKETS_TEST_APP CACHE)
+
+#test colors
+if(ENABLE_COLORS_TEST_APP)
+    add_subdirectory(Colors_programtest)
+endif()
+unset(ENABLE_COLORS_TEST_APP CACHE)
+#===============================================

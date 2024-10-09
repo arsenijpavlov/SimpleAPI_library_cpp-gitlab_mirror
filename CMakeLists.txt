@@ -22,25 +22,6 @@ option(ENABLE_COLORS_TEST_APP   "Color choiser app enabled"     on)
 #library
 add_subdirectory(SimpleAPI)
 
-#test Json
-if(ENABLE_JSON_TEST_APP)
-    add_subdirectory(test_Json)
-endif()
-unset(ENABLE_JSON_TEST_APP CACHE)
-
-#test sockets
-if(ENABLE_SOCKETS_TEST_APP)
-    add_subdirectory(test_Network_Client)
-    add_subdirectory(test_Network_Server)
-endif()
-unset(ENABLE_SOCKETS_TEST_APP CACHE)
-
-#test colors
-if(ENABLE_COLORS_TEST_APP)
-    add_subdirectory(test_COLORS)
-endif()
-unset(ENABLE_COLORS_TEST_APP CACHE)
-
 #TESTS
 if(UNIT_TESTS)
     #unit tests
