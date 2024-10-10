@@ -104,12 +104,15 @@ TEST(INI, main_parser) {
 
     //TODO: удалить после отладки
     std::cout << json.to_string(0, true, 0, ConfigFormat::eJSON) << std::endl;
+//    std::cout << "comment.before: " << json.getComment("key").before << std::endl;
 
     ASSERT_EQ(json.size(), 9);
 
     ASSERT_EQ(json.contains("key"), true); {
         ASSERT_EQ(json["key"].first, eNumber);
         EXPECT_EQ(json["key"].getNum(), 15);
+        EXPECT_EQ(json.getComment("key").before,
+                  std::string("комментарий\nвторая строка комментария"));
     }
 
     ASSERT_EQ(json.contains("array"), true); {
@@ -194,6 +197,9 @@ TEST(INI, main_parser) {
             ASSERT_EQ(j.contains("g1_key3"), true);
             ASSERT_EQ(j["g1_key3"].first, eNumber);
             EXPECT_EQ(j["g1_key3"].getNum(), 152);
+
+            EXPECT_EQ(j.getComment("g1_key").before,
+                      std::string("ещё комментарий"));
         }
     }
 
@@ -208,6 +214,17 @@ TEST(INI, main_parser) {
             ASSERT_EQ(j.contains("g2 string2"), true);
             ASSERT_EQ(j["g2 string2"].first, eString);
             EXPECT_EQ(j["g2 string2"].getString(), "big\nline string");
+            ASSERT_EQ(j.contains("g2_key"), true);
+            ASSERT_EQ(j["g2_key"].first, eJson);
+            Json j2 = j["g2_key"].getJson();
+            {
+                ASSERT_EQ(j2["inner_key"].first, eJson);
+                Json j3 = j2["inner_key"].getJson();
+                {
+                    EXPECT_EQ(j3.getComment("inner_inner_key").before,
+                              std::string("коммент ДО переменной inner_inner_key"));
+                }
+            }
         }
     }
 
