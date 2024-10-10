@@ -1465,7 +1465,6 @@ Json *GetObjectForIniCustomKey(Json* json, std::vector<std::string> &keys) noexc
     }
 }
 
-//TODO: Element Json::ParseValueFromString()
 Element ParseValueFromString(std::string& value, const bool enable_comments, const ConfigFormat format) {
     std::string temp;
     temp.reserve(value.size());
@@ -1595,7 +1594,7 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                 //работа с комментариями (после значения #2) ==========================
                 if(!currentComment.empty() && enable_comment && !key_value_string.empty()) {
                     addComment_after(key_value_string, FromComment(currentComment, m_comment_column_size, m_comment_sym));
-//                    std::cout << "Json:comment:after: " << "\"" << currentComment << "\"" << std::endl;
+//                    std::cout << "Ini:comment:after: " << "\"" << currentComment << "\"" << std::endl;
                     currentComment = "";
                 } //===================================================================
                 isValueCommentAfterSaved = true;
@@ -1625,9 +1624,9 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
             } else {
                 //работа с комментариями (перед ключом) ===============================
                 if(!currentComment.empty() && enable_comment) {
-                    std::cout << "COMMENT(BEFORE): \"" << currentComment << "\"" << std::endl;
+//                    std::cout << "COMMENT(BEFORE): \"" << currentComment << "\"" << std::endl;
                     keyValueComment.before = FromComment(currentComment, m_comment_column_size, m_comment_sym);
-//                    std::cout << "Json:comment:before: " << "\"" << currentComment << "\"" << std::endl;
+//                    std::cout << "Ini:comment:before: " << "\"" << currentComment << "\"" << std::endl;
                     currentComment = "";
                 } //===================================================================
                 key_value_string += current;
@@ -1667,7 +1666,7 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                         if(keys.size() == 0) {
                             if(key_value_string.empty()) {
                                 if(isBeforeStringIsEmpty) {
-                                    std::cout << "disable group name \"" << group_string << "\"" << std::endl;
+//                                    std::cout << "disable group name \"" << group_string << "\"" << std::endl;
                                     group_string.clear();
                                 }
                                 isBeforeStringIsEmpty = true;
@@ -1714,7 +1713,7 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                             //работа с комментариями (после значения #1) ==========================
                             if(enable_comment) {
                                 if(!currentComment.empty()) {
-                                    std::cout << "COMMENT(AFTER#1): \"" << currentComment << "\"" << std::endl;
+//                                    std::cout << "COMMENT(AFTER#1): \"" << currentComment << "\"" << std::endl;
                                     keyValueComment.after = FromComment(currentComment, m_comment_column_size, m_comment_sym);
 //                                    std::cout << "Json:comment:after: " << "\"" << currentComment << "\"" << std::endl;
                                     currentComment = "";
@@ -1747,7 +1746,7 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
             } //====================================================================
         }
     }
-    std::cout << "LAST COMMENT: " << "\"" << currentComment << "\"" << std::endl;
+//    std::cout << "LAST COMMENT: " << "\"" << currentComment << "\"" << std::endl;
 }
 
 bool Json::readFile(const std::string& path, const bool enable_comment,
@@ -2561,8 +2560,10 @@ std::string FromComment(const std::string &comment_string, uint8_t &column_size,
     }
 
     RemoveIllegalSpaces(current_string);
-    if(!isBorderLine && !current_string.empty())
+    if(!isBorderLine && !current_string.empty()) {
+        if(!ret.empty()) ret += '\n';
         ret += current_string;
+    }
 
     if(isBorderExists && column_size == 0 && border_size != 0)
         column_size = border_size;
