@@ -105,7 +105,6 @@ TEST(INI, main_parser) {
 
     //TODO: удалить после отладки
     std::cout << json.to_string(0, true, 0, ConfigFormat::eJSON) << std::endl;
-//    std::cout << "comment.before: " << json.getComment("key").before << std::endl;
 
     EXPECT_EQ(json.size(), 8);
 
@@ -165,6 +164,11 @@ TEST(INI, main_parser) {
                     ASSERT_EQ(ja2[1].first, eString);
                     EXPECT_EQ(ja2[1].getString(), "b");
                 }
+
+                EXPECT_EQ(j.getComment("inner_key2").before,
+                          std::string("многострочный коммент\nДО переменной inner_key2"));
+                EXPECT_EQ(j.getComment("inner_key2").after,
+                          std::string("многострочный коммент\nпосле переменной inner_key2"));
             }
         }
     }
