@@ -65,7 +65,8 @@ key[2] = value
 
 */
 //========================================================================================
-const std::string ini_example_string = "; комментарий\n"
+const std::string ini_example_string = ""
+                                       "; комментарий\n"
                                        "; вторая строка комментария\n"
                                        "key =  15\n"
                                        "array = [a, 15, true]\n"
@@ -106,7 +107,7 @@ TEST(INI, main_parser) {
     std::cout << json.to_string(0, true, 0, ConfigFormat::eJSON) << std::endl;
 //    std::cout << "comment.before: " << json.getComment("key").before << std::endl;
 
-    ASSERT_EQ(json.size(), 9);
+    EXPECT_EQ(json.size(), 8);
 
     ASSERT_EQ(json.contains("key"), true); {
         ASSERT_EQ(json["key"].first, eNumber);
@@ -207,7 +208,7 @@ TEST(INI, main_parser) {
         ASSERT_EQ(json["group 2"].first, eJson);
         Json j = json["group 2"].getJson();
         {
-            ASSERT_EQ(j.size(), 2);
+            ASSERT_EQ(j.size(), 3);
             ASSERT_EQ(j.contains("g2_string"), true);
             ASSERT_EQ(j["g2_string"].first, eString);
             EXPECT_EQ(j["g2_string"].getString(), "one line string");
@@ -223,6 +224,8 @@ TEST(INI, main_parser) {
                 {
                     EXPECT_EQ(j3.getComment("inner_inner_key").before,
                               std::string("коммент ДО переменной inner_inner_key"));
+                    EXPECT_EQ(j3.getComment("inner_inner_key").after,
+                              std::string("вложенные значения и группы значений"));
                 }
             }
         }

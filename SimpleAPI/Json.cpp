@@ -1038,7 +1038,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
             if(isWordFinished) {
                 isWordStarted = false; //страховка
                 isWordFinished = false;
-                std::cout << "key: " << key_string << std::endl;
+//                std::cout << "key: " << key_string << std::endl;
 
                 //работа с комментариями (перед ключом) ===============================
                 if(!currentComment.empty() && enable_comment) {
@@ -1172,7 +1172,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                 isWordStarted = false; //страховка
                 isWordFinished = false;
 
-                std::cout << "value: " << value_string << std::endl;
+//                std::cout << "value: " << value_string << std::endl;
 
                 switch(value_format) {
                 case VALUE_OTHER: {
@@ -1635,115 +1635,121 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
             if(isWordFinished) {
                 isWordFinished = false;
 
-//                std::cout << "key_value: [[" << key_value_string << "]]" << std::endl;
+//                std::cout << "key_value_string: [" << key_value_string << "]"
+//                          << ", comment: [" << currentComment << "]"
+//                          << ", kv_comment_before: [" << keyValueComment.before << "]"
+//                          << ", kv_comment_after: [" << keyValueComment.after << "]";
                 RemoveIllegalSpaces(key_value_string);
 
-                    if(key_value_string.front() == '[' && key_value_string.back() == ']') {
-                        groupComment = keyValueComment;
-                        keyValueComment = Comment();
+                if(key_value_string.front() == '[' && key_value_string.back() == ']') {
+                    groupComment = keyValueComment;
+                    keyValueComment = Comment();
 
-                        group_string = key_value_string;
-                        group_string.erase(0, 1);//erase [
-                        group_string.pop_back(); //erase ]
-//                        std::cout << "is group: \"" << group_string << "\"" << std::endl;
-                        put(group_string, Json());
-                        addComment(group_string, groupComment);
-                    } else {
-//                        std::cout << "is key_value: " << key_value_string << std::endl;
-                        if(key_value_string.back() == '\\') {
-                            //счётчик строк и столбцов =============================================
-                            if(current == '\n') {
-                                line_counter++;
-                                symbol_counter = 0; //должен перескочить строго на следующей строке
-                            } //====================================================================
-                            isWordFinished = false;
-                            continue;
-                        }
+                    group_string = key_value_string;
+                    group_string.erase(0, 1);//erase [
+                    group_string.pop_back(); //erase ]
+                    put(group_string, Json());
+                    addComment(group_string, groupComment);
 
-                        std::vector<std::string> keys = parseIniKeys(key_value_string);
-                        utils::UpdEscSymbols(key_value_string);
-
-                        if(keys.size() == 0) {
-                            if(key_value_string.empty()) {
-                                if(isBeforeStringIsEmpty) {
-//                                    std::cout << "disable group name \"" << group_string << "\"" << std::endl;
-                                    group_string.clear();
-                                }
-                                isBeforeStringIsEmpty = true;
-                            } else {
-                                isCriticalError = true;
-                                break;
-                            }
-                        } else if(key_value_string.empty())
-                            isBeforeStringIsEmpty = false;
-                        for(std::string key : keys) {
-                            std::vector<std::string> inner_keys = parseIniCustomKeys(key);
-                            if(!group_string.empty()) inner_keys.insert(inner_keys.cbegin(), group_string);
-
-                            Json* current_object    = GetObjectForIniCustomKey(this, inner_keys);
-                            Json& result_object     = (*current_object);
-                            Element new_value       = ParseValueFromString(key_value_string, enable_comment, ConfigFormat::eINI);
-
-                            //TEST: применить настройки комментариев от корневого объекта
-                            switch(new_value.first) {
-                            case eJson: {
-                                new_value.getJson().setCommentColumnSize(m_comment_column_size);
-                                new_value.getJson().setCommentSymbol(m_comment_sym);
-                                break;
-                            }
-                            case eArray: {
-                                new_value.getArray().setCommentColumnSize(m_comment_column_size);
-                                new_value.getArray().setCommentSymbol(m_comment_sym);
-                                break;
-                            }
-                            default: break;
-                            }
-
-                            //упаковка значений
-                            if(current_object->contains(inner_keys.back())) {
-                                switch(result_object[inner_keys.back()].first) {
-                                case eNull: { //перезапись значения
-                                    result_object.updateValue(inner_keys.back(), new_value);
-                                    break;
-                                }
-                                case eArray:{ //дополнить список
-                                    if(result_object[inner_keys.back()].getArray().size() == 1
-                                        && result_object[inner_keys.back()].getArray()[0].first == eNull) {
-                                        result_object[inner_keys.back()] = JArray(new_value);
-                                    } else
-                                        result_object[inner_keys.back()].getArray().push_back(new_value);
-                                    break;
-                                }
-                                default:    { //создать список значений
-                                    Element temp_e = result_object[inner_keys.back()];
-                                    JArray temp_ja(temp_e);
-                                    temp_ja.push_back(new_value);
-                                    result_object.updateValue(inner_keys.back(), temp_ja);
-                                    break;
-                                }
-                                }
-                            } else {
-                                result_object.put(inner_keys.back(), new_value);
-                            }
-
-                            //работа с комментариями (после значения #1) ==========================
-                            if(enable_comment) {
-                                if(!currentComment.empty()) {
-//                                    std::cout << "COMMENT(AFTER#1): \"" << currentComment << "\"" << std::endl;
-                                    keyValueComment.after = FromComment(currentComment, m_comment_column_size, m_comment_sym);
-//                                    std::cout << "Json:comment:after: " << "\"" << currentComment << "\"" << std::endl;
-                                    currentComment = "";
-                                }
-                                //применение комментариев
-                                if(!keyValueComment.before.empty() || !keyValueComment.after.empty()) {
-//                                    if(!group_string.empty()) //FIXME: корректно не для всех ситуаций
-                                        result_object.addComment(inner_keys.back(), keyValueComment);
-                                }
-                            } //===================================================================
-                        }
-
+                    isBeforeStringIsEmpty = false;
+//                    std::cout << ", is group: \"" << group_string << "\""
+//                              << ", isBeforeStringIsEmpty: "
+//                              << (isBeforeStringIsEmpty ? "true" : "false")
+//                              << std::endl;
+                } else {
+//                    std::cout << "is key_value: " << key_value_string << std::endl;
+                    if(key_value_string.back() == '\\') {
+                        //счётчик строк и столбцов =============================================
+                        if(current == '\n') {
+                            line_counter++;
+                            symbol_counter = 0; //должен перескочить строго на следующей строке
+                        } //====================================================================
+                        isWordFinished = false;
+                        continue;
                     }
-//                }
+
+                    std::vector<std::string> keys = parseIniKeys(key_value_string);
+                    utils::UpdEscSymbols(key_value_string);
+
+                    if(isBeforeStringIsEmpty) {
+//                        std::cout << ", disable group name \"" << group_string << "\"";
+                        group_string.clear();
+                    }
+                    isBeforeStringIsEmpty = key_value_string.empty()
+                                            && keys.size() == 0
+                                            && currentComment.empty();
+
+//                    std::cout << ", isBeforeStringIsEmpty: "
+//                              << (isBeforeStringIsEmpty ? "true" : "false")
+//                              << std::endl;
+
+                    for(std::string key : keys) {
+                        std::vector<std::string> inner_keys = parseIniCustomKeys(key);
+                        if(!group_string.empty()) inner_keys.insert(inner_keys.cbegin(), group_string);
+
+                        Json* current_object    = GetObjectForIniCustomKey(this, inner_keys);
+                        Json& result_object     = (*current_object);
+                        Element new_value       = ParseValueFromString(key_value_string, enable_comment, ConfigFormat::eINI);
+
+                        //TEST: применить настройки комментариев от корневого объекта
+                        switch(new_value.first) {
+                        case eJson: {
+                            new_value.getJson().setCommentColumnSize(m_comment_column_size);
+                            new_value.getJson().setCommentSymbol(m_comment_sym);
+                            break;
+                        }
+                        case eArray: {
+                            new_value.getArray().setCommentColumnSize(m_comment_column_size);
+                            new_value.getArray().setCommentSymbol(m_comment_sym);
+                                break;
+                            }
+                        default: break;
+                        }
+
+                        //упаковка значений
+                        if(current_object->contains(inner_keys.back())) {
+                            switch(result_object[inner_keys.back()].first) {
+                            case eNull: { //перезапись значения
+                                result_object.updateValue(inner_keys.back(), new_value);
+                                break;
+                            }
+                            case eArray:{ //дополнить список
+                                if(result_object[inner_keys.back()].getArray().size() == 1
+                                    && result_object[inner_keys.back()].getArray()[0].first == eNull) {
+                                    result_object[inner_keys.back()] = JArray(new_value);
+                                } else
+                                    result_object[inner_keys.back()].getArray().push_back(new_value);
+                                break;
+                            }
+                            default:    { //создать список значений
+                                Element temp_e = result_object[inner_keys.back()];
+                                JArray temp_ja(temp_e);
+                                temp_ja.push_back(new_value);
+                                result_object.updateValue(inner_keys.back(), temp_ja);
+                                break;
+                            }
+                            }
+                        } else {
+                            result_object.put(inner_keys.back(), new_value);
+                        }
+
+                        //работа с комментариями (после значения #1) ==========================
+                        if(enable_comment) {
+                            if(!currentComment.empty()) {
+//                                std::cout << "COMMENT(AFTER#1): \"" << currentComment << "\"" << std::endl;
+                                keyValueComment.after = FromComment(currentComment, m_comment_column_size, m_comment_sym);
+//                                std::cout << "Json:comment:after: " << "\"" << currentComment << "\"" << std::endl;
+                                currentComment = "";
+                            }
+                            //применение комментариев
+                            if(!keyValueComment.before.empty() || !keyValueComment.after.empty()) {
+//                                if(!group_string.empty()) //FIXME: корректно не для всех ситуаций
+                                    result_object.addComment(inner_keys.back(), keyValueComment);
+                                keyValueComment = Comment();
+                            }
+                        } //===================================================================
+                    }
+                }
                 key_value_string.clear();
             }
 
