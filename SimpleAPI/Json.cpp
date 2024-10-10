@@ -1680,10 +1680,26 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                             std::vector<std::string> inner_keys = parseIniCustomKeys(key);
                             if(!group_string.empty()) inner_keys.insert(inner_keys.cbegin(), group_string);
 
-                            Json* current_object = GetObjectForIniCustomKey(this, inner_keys);
-                            Json& result_object = (*current_object);
+                            Json* current_object    = GetObjectForIniCustomKey(this, inner_keys);
+                            Json& result_object     = (*current_object);
+                            Element new_value       = ParseValueFromString(key_value_string, enable_comment, ConfigFormat::eINI);
 
-                            Element new_value = ParseValueFromString(key_value_string, enable_comment, ConfigFormat::eINI);
+                            //TEST: применить настройки комментариев от корневого объекта
+                            switch(new_value.first) {
+                            case eJson: {
+                                new_value.getJson().setCommentColumnSize(m_comment_column_size);
+                                new_value.getJson().setCommentSymbol(m_comment_sym);
+                                break;
+                            }
+                            case eArray: {
+                                new_value.getArray().setCommentColumnSize(m_comment_column_size);
+                                new_value.getArray().setCommentSymbol(m_comment_sym);
+                                break;
+                            }
+                            default: break;
+                            }
+
+                            //упаковка значений
                             if(current_object->contains(inner_keys.back())) {
                                 switch(result_object[inner_keys.back()].first) {
                                 case eNull: { //перезапись значения
@@ -1905,8 +1921,14 @@ std::string Json::to_JSON_string(int16_t tabulation_level, const bool enable_com
                 ) {
                 if(comment_it->second.after.find('\n') == -1)
                     ret += " " + ToComment(comment_it->second.after);
-                else
-                    ret += " " + ToComment(comment_it->second.after, tabulation_level, m_comment_column_size, m_comment_sym);
+                else { //FIXME: некорректный вывод -> [a,b]\t\t\t/*\n\t\t\t*/
+                    std::string toComment = ToComment(comment_it->second.after, tabulation_level, m_comment_column_size, m_comment_sym);
+                    //NOTE: многострочные комментарии ПОСЛЕ значения должны начинаться на той же строке, что и значение
+                    while(toComment.size() > 1 && toComment[0] == '\t')
+                        toComment.erase(toComment.cbegin(), toComment.cbegin() + 1);
+//                    std::cout << "toComment: \"" << toComment << "\"" << std::endl;
+                    ret += " " + toComment;
+                }
             }
             //===========================================================================
 
@@ -2566,7 +2588,8 @@ std::string FromComment(const std::string &comment_string, uint8_t &column_size,
     }
 
     if(isBorderExists && column_size == 0 && border_size != 0)
-        column_size = border_size;
+        if(column_size < border_size)
+            column_size = border_size;
 
     return ret;
 }

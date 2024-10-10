@@ -292,6 +292,8 @@ public:
     void        setCommentColumnSize(const uint8_t new_comment_column_size) noexcept
                                                                 { m_comment_column_size = new_comment_column_size; }
     uint8_t     getCommentColumnSize() noexcept                 { return m_comment_column_size; }
+    void        setCommentSymbol(const char new_comment_sym) noexcept
+                                                                { m_comment_sym = new_comment_sym; }
     //-----
     void        addPreviewComment(const std::string &comment_before = "", const std::string &comment_after = "") noexcept
                                                                 { m_preview_comment = Comment(comment_before, comment_after); }
