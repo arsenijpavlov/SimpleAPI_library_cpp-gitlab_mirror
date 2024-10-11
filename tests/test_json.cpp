@@ -12,6 +12,7 @@ int main(int argc, char **argv)
     return RUN_ALL_TESTS();
 }
 
+//TODO: JSON может состоять из одного JPair
 //========================================================================================
 Json json_example({{"key_0", "first"},
                    {"key_1", 2},

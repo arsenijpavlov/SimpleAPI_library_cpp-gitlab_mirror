@@ -19,14 +19,22 @@
         >::type* = nullptr>
 #define __JSON_EMPTY_EXCEPTION__    throw std::invalid_argument("Json is empty");
 #define __ARRAY_EMPTY_EXCEPTION__   throw std::invalid_argument("JArray is empty");
-#define __CHECK_INDEX_BOUND__(object, index) \
+#define __CHECK_INDEX_BOUND_EXCEPTION__(object, index) \
                                     if(index + 1 > object->size()) \
                                         throw std::out_of_range("going beyond the object");
-#define __CHECK_INDEX_BOUND2__(object, index) \
+#define __CHECK_INDEX_BOUND_RETURN__(object, ret) \
+                                    if(index + 1 > object->size()) \
+                                        return ret;
+#define __CHECK_INDEX_BOUND2_EXCEPTION__(object, index) \
                                     if(index + 1 > object.size()) \
                                         throw std::out_of_range("going beyond the object");
+#define __CHECK_INDEX_BOUND2_RETURN__(object, ret) \
+                                    if(index + 1 > object.size()) \
+                                        return ret;
 #define __KEY_NOT_FOUND_EXCEPTION__(key) \
                                     throw std::invalid_argument("key not found: " + key);
+#define __KEY_NOT_FOUND_RETURN__(key, ret) \
+                                    return ret;
 #define __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__ \
                                     throw std::invalid_argument( \
                                         "index operator may be used only for Json or JArray elements");
@@ -236,7 +244,7 @@ public:
     std::string to_YAML_string(int16_t tabulation_level = 0, const bool enable_comment = false,
                                const uint8_t column_size = 0) const noexcept;
     std::string to_INI_string(int16_t tabulation_level = 0, const bool enable_comment = false,
-                               const uint8_t column_size = 0) const noexcept;
+                               const uint8_t column_size = 0, const std::string& preview_title = "") const noexcept;
 
     size_t      size() const noexcept               { return m_values.size(); }
     bool        isEmpty() const noexcept            { return m_values.size() == 0; }
@@ -322,15 +330,23 @@ public:
     //-----
     Comment&    getComment(const size_t index)
                 {
-                    __CHECK_INDEX_BOUND2__(m_values, index);
+                    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index);
                     auto it = m_comments.find(index);
                     if(it == m_comments.end())
                         throw std::invalid_argument("comment for index '" + std::to_string(index) + "' not found");
                     return it->second;
                 }
+    Comment     getComment(const size_t index) const noexcept
+                {
+                    __CHECK_INDEX_BOUND2_RETURN__(m_values, Comment());
+                    auto it = m_comments.find(index);
+                    if(it == m_comments.end())
+                        return Comment();
+                    return it->second;
+                }
     Comment&    getOrCreateComment(const size_t index)
                 {
-                    __CHECK_INDEX_BOUND2__(m_values, index);
+                    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index);
                     auto it = m_comments.find(index);
                     if(it == m_comments.end())
                         it = m_comments.insert(std::make_pair(index, Comment())).first;
@@ -413,11 +429,13 @@ public:
                                const uint8_t column_size = 0) const noexcept;
     std::string to_YAML_string(int16_t tabulation_level = 0, const bool enable_comment = false,
                                const uint8_t column_size = 0) const noexcept;
+    std::string PrintRecursiveIniElements(const Element& el, const std::string& preview_key = "") noexcept;
+    std::string PrintRecursiveIniElements(const JPair& jp, const std::string& preview_key = "") noexcept;
     std::string to_INI_string(int16_t tabulation_level = 0, const bool enable_comment = false,
-                              const uint8_t column_size = 0) const noexcept;
+                              const uint8_t column_size = 0, const std::string& preview_title = "") const noexcept;
     size_t      size() const noexcept                           { return m_values.size(); }
     bool        isEmpty() noexcept                              { return m_values.size() == 0; }
-    bool        contains(const std::string& key) noexcept;
+    bool        contains(const std::string& key) const noexcept;
                 __ONLY_ALLOWED_TYPES__(T)
     Json&       updateValue(const std::string& key, const T& new_value) noexcept
                 {
@@ -601,12 +619,28 @@ public:
                         throw std::invalid_argument("key '" + key + "' not found");
                     return it->second;
                 }
+    Comment     getComment(const std::string& key) const noexcept
+                {
+                    if(!contains(key)) __KEY_NOT_FOUND_RETURN__(key, Comment())
+                    auto it = m_comments.find(key);
+                    if(it == m_comments.end())
+                        return Comment();
+                    return it->second;
+                }
     Comment&    getComment(const size_t index)
                 {
-                    __CHECK_INDEX_BOUND2__(m_values, index);
+                    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index);
                     auto it = m_comments.find(m_values[index].first);
                     if(it == m_comments.end())
                         throw std::invalid_argument("key for index '" + std::to_string(index) + "' not found");
+                    return it->second;
+                }
+    Comment     getComment(const size_t index) const noexcept
+                {
+                    __CHECK_INDEX_BOUND2_RETURN__(m_values, Comment());
+                    auto it = m_comments.find(m_values[index].first);
+                    if(it == m_comments.end())
+                        return Comment();
                     return it->second;
                 }
     Comment&    getOrCreateComment(const std::string& key)
@@ -619,7 +653,7 @@ public:
                 }
     Comment&    getOrCreateComment(const size_t index)
                 {
-                    __CHECK_INDEX_BOUND2__(m_values, index);
+                    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index);
                     auto it = m_comments.find(m_values[index].first);
                     if(it == m_comments.end())
                         it = m_comments.insert(std::make_pair(m_values[index].first, Comment())).first;

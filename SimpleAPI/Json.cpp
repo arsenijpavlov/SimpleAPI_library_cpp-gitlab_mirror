@@ -563,7 +563,7 @@ JArray &JArray::append(const JArray &array) noexcept {
 }
 
 ValueType JArray::getType(const size_t index) {
-    __CHECK_INDEX_BOUND__(this, index)
+    __CHECK_INDEX_BOUND_EXCEPTION__(this, index)
     return m_values[index].first;
 }
 
@@ -594,7 +594,7 @@ JArray &JArray::popFront() {
 }
 
 JArray &JArray::popAt(const size_t index) {
-    __CHECK_INDEX_BOUND__(this, index)
+    __CHECK_INDEX_BOUND_EXCEPTION__(this, index)
     m_values.erase(m_values.begin() + index);
     return *this;
 }
@@ -744,10 +744,16 @@ std::string JArray::to_YAML_string(int16_t tabulation_level, const bool enable_c
     return "";
 }
 
+//TODO: JArray::to_INI_string
 std::string JArray::to_INI_string(int16_t tabulation_level, const bool enable_comment,
-                                   const uint8_t column_size) const noexcept {
-    //TODO: JArray::to_INI_string
-    return "";
+                                  const uint8_t column_size, const std::string& preview_title) const noexcept {
+    if(m_values.empty()) return "";
+
+    std::string ret;
+
+
+
+    return ret;
 }
 
 bool JArray::operator==(const JArray &other) const noexcept {
@@ -763,7 +769,7 @@ bool JArray::operator==(const JArray &other) const noexcept {
 }
 
 Element &JArray::getValue(const size_t index) {
-    __CHECK_INDEX_BOUND__(this, index)
+    __CHECK_INDEX_BOUND_EXCEPTION__(this, index)
     return (*this)[index];
 }
 
@@ -776,7 +782,7 @@ Element &JArray::getValue(std::vector<std::string> &complex_key) {
 Element &JArray::operator[](const size_t index) {
     if(m_values.empty())
         __ARRAY_EMPTY_EXCEPTION__
-            __CHECK_INDEX_BOUND__(this, index)
+            __CHECK_INDEX_BOUND_EXCEPTION__(this, index)
 
             return m_values[index];
 }
@@ -814,7 +820,7 @@ Element &JArray::operator[](const std::vector<std::string> &complex_key) {
 }
 
 JArray &JArray::erase(const size_t index) {
-    __CHECK_INDEX_BOUND__(this, index)
+    __CHECK_INDEX_BOUND_EXCEPTION__(this, index)
     if(index <= m_values.size() - 1)
         m_values.erase(m_values.cbegin() + index);
 
@@ -1967,13 +1973,55 @@ std::string Json::to_YAML_string(int16_t tabulation_level, const bool enable_com
     return "";
 }
 
-std::string Json::to_INI_string(int16_t tabulation_level, const bool enable_comment,
-                                  const uint8_t column_size) const noexcept {
-    //TODO: Json::to_INI_string
-    return "";
+std::string PrintRecursiveIniElements(const Element& el, const std::string& preview_key) noexcept {
+    std::string ret;
+
+    ret += preview_key + " = ";
+    switch(el.first) {
+    case eNull:
+    case eNumber:
+    case eBool:
+    case eString: ret += el.to_string() + "\n"; break;
+    case eJson: {
+        for(const JPair& jp : el.getJson()) {
+            ret += PrintRecursiveIniElements((JPair*)&jp, preview_key);
+        }
+        ret += "isJSON\n";
+        break;
+    }
+    case eArray: {
+        ret += "isJARRAY\n";
+        break;
+    }
+    }
+
+    return ret;
+}
+std::string PrintRecursiveIniElements(const JPair& jp, const std::string& preview_key) noexcept {
+    std::string ret;
+
+    if(!preview_key.empty())
+        ret += preview_key + "/";
+    ret += PrintRecursiveIniElements(jp.second, jp.first);
+
+    return ret;
 }
 
-bool Json::contains(const std::string &key) noexcept {
+//TODO: Json::to_INI_string
+std::string Json::to_INI_string(int16_t tabulation_level, const bool enable_comment,
+                                const uint8_t column_size, const std::string& preview_title) const noexcept {
+    std::string ret = "";
+
+    for(const JPair& jp : m_values) {
+        Comment cmt = getComment(jp.first);
+        ret += PrintRecursiveIniElements((JPair*)&jp);
+//        ret += "\n";
+    }
+
+    return ret;
+}
+
+bool Json::contains(const std::string &key) const noexcept {
     for(auto& el : m_values)
         if(el.first == key) return true;
 
@@ -2003,7 +2051,7 @@ bool Json::operator==(const Json &other) const noexcept {
 Element &Json::operator[](const size_t index) {
     if(m_values.empty())
         __JSON_EMPTY_EXCEPTION__
-    __CHECK_INDEX_BOUND__(this, index)
+    __CHECK_INDEX_BOUND_EXCEPTION__(this, index)
 
     return m_values[index].second;
 }
@@ -2070,7 +2118,7 @@ Element &Json::operator[](const std::vector<std::string> &complex_key) {
 }
 
 Json &Json::erase(const size_t index) {
-    __CHECK_INDEX_BOUND__(this, index)
+    __CHECK_INDEX_BOUND_EXCEPTION__(this, index)
     if(index <= m_values.size() - 1)
         m_values.erase(m_values.cbegin() + index);
 
