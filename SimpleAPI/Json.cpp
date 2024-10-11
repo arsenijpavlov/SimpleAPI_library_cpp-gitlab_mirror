@@ -711,7 +711,16 @@ std::string JArray::to_JSON_string(int16_t tabulation_level, const bool enable_c
                 && enable_comment
                 && !comment_it->second.after.empty()
                 ) {
-                ret += " " + ToComment(comment_it->second.after);
+                if(comment_it->second.after.find('\n') == -1)
+                    ret += " " + ToComment(comment_it->second.after);
+                else {
+                    std::string toComment = ToComment(comment_it->second.after, tabulation_level, m_comment_column_size, m_comment_sym);
+                    //NOTE: многострочные комментарии ПОСЛЕ значения должны начинаться на той же строке, что и значение
+                    while(toComment.size() > 1 && toComment[0] == '\t')
+                        toComment.erase(toComment.cbegin(), toComment.cbegin() + 1);
+//                    std::cout << "toComment: \"" << toComment << "\"" << std::endl;
+                    ret += " " + toComment;
+                }
             }
             //===========================================================================
 
@@ -1531,7 +1540,6 @@ Element ParseValueFromString(std::string& value, const bool enable_comments, con
     return Element(value);
 }
 
-//TODO: Json::parseINI()
 void Json::parseINI(const std::string &string_of_ini, const bool enable_comment) {
     clear();
 
@@ -1927,7 +1935,7 @@ std::string Json::to_JSON_string(int16_t tabulation_level, const bool enable_com
                 ) {
                 if(comment_it->second.after.find('\n') == -1)
                     ret += " " + ToComment(comment_it->second.after);
-                else { //FIXME: некорректный вывод -> [a,b]\t\t\t/*\n\t\t\t*/
+                else {
                     std::string toComment = ToComment(comment_it->second.after, tabulation_level, m_comment_column_size, m_comment_sym);
                     //NOTE: многострочные комментарии ПОСЛЕ значения должны начинаться на той же строке, что и значение
                     while(toComment.size() > 1 && toComment[0] == '\t')
