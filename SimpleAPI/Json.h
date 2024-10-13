@@ -174,14 +174,6 @@ struct Element {
 // ===================================================================================== Element
 // *
 // *
-// STATIC ======================================================================================
-std::vector<std::string> parseIniKeys(std::string& ini_key_value) noexcept;
-std::vector<std::string> parseIniCustomKeys(std::string& preview_key) noexcept;
-Json*       GetObjectForIniCustomKey(Json* json, std::vector<std::string>& keys) noexcept;
-Element     ParseValueFromString(std::string& value, const bool enable_comments, const ConfigFormat format);
-// ====================================================================================== STATIC
-// *
-// *
 // JArray ======================================================================================
 using AVector = std::vector<Element>;
 // Упорядоченный список значений
@@ -429,8 +421,6 @@ public:
                                const uint8_t column_size = 0) const noexcept;
     std::string to_YAML_string(int16_t tabulation_level = 0, const bool enable_comment = false,
                                const uint8_t column_size = 0) const noexcept;
-    std::string PrintRecursiveIniElements(const Element& el, const std::string& preview_key = "") noexcept;
-    std::string PrintRecursiveIniElements(const JPair& jp, const std::string& preview_key = "") noexcept;
     std::string to_INI_string(int16_t tabulation_level = 0, const bool enable_comment = false,
                               const uint8_t column_size = 0, const std::string& preview_title = "") const noexcept;
     size_t      size() const noexcept                           { return m_values.size(); }
@@ -666,6 +656,16 @@ public:
     //----------------------------------------------------------------------------------
 };
 // ======================================================================================== Json
+// *
+// *
+// FUNCTIONS ===================================================================================
+std::vector<std::string> parseIniKeys(std::string& ini_key_value) noexcept;
+std::vector<std::string> parseIniCustomKeys(std::string& preview_key) noexcept;
+Json*       GetObjectForIniCustomKey(Json* json, std::vector<std::string>& keys) noexcept;
+Element     ParseValueFromString(std::string& value, const bool enable_comments, const ConfigFormat format);
+std::string PrintRecursiveIniElements(const Element& el, const std::string& preview_key = "") noexcept;
+std::string PrintRecursiveIniElements(const JPair& jp, const std::string& preview_key = "") noexcept;
+// =================================================================================== FUNCTIONS
 // *
 // *
 // STATIC FUNCTIONS ============================================================================

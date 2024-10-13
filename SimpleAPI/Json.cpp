@@ -1974,23 +1974,33 @@ std::string Json::to_YAML_string(int16_t tabulation_level, const bool enable_com
 }
 
 std::string PrintRecursiveIniElements(const Element& el, const std::string& preview_key) noexcept {
+    std::cout << "el: prew:<" << preview_key + ">:" << el.to_string() << std::endl;
     std::string ret;
 
-    ret += preview_key + " = ";
+    std::string key = preview_key;
+    RemoveIllegalSpaces(key);
+    if(!key.empty() && key.back() != '/')
+        key += "/";
     switch(el.first) {
-    case eNull:
-    case eNumber:
-    case eBool:
-    case eString: ret += el.to_string() + "\n"; break;
     case eJson: {
         for(const JPair& jp : el.getJson()) {
-            ret += PrintRecursiveIniElements((JPair*)&jp, preview_key);
+            ret += PrintRecursiveIniElements(jp, key);
         }
-        ret += "isJSON\n";
         break;
     }
     case eArray: {
-        ret += "isJARRAY\n";
+        for(const Element& e : el.getArray()) {
+            ret += PrintRecursiveIniElements(e, key);
+        }
+        break;
+    }
+    default: {
+        if(key.back() == '/') key.pop_back();
+        ret += key + " = ";
+        if(el == eString) {
+
+        } else
+            ret += el.to_string() + "\n";
         break;
     }
     }
@@ -1998,11 +2008,33 @@ std::string PrintRecursiveIniElements(const Element& el, const std::string& prev
     return ret;
 }
 std::string PrintRecursiveIniElements(const JPair& jp, const std::string& preview_key) noexcept {
+    std::cout << "jp:  prew:<" << preview_key + ">" << jp.first + ":" << jp.second.to_string() << std::endl;
     std::string ret;
 
-    if(!preview_key.empty())
-        ret += preview_key + "/";
-    ret += PrintRecursiveIniElements(jp.second, jp.first);
+    std::string key = preview_key;
+    RemoveIllegalSpaces(key);
+    if(!key.empty() && key.back() != '/')
+        key += "/";
+    switch(jp.second.first) {
+    case eJson: {
+        if(ret.back() != '\n') ret += "\n";
+        ret += PrintRecursiveIniElements(jp.second, key + jp.first);
+
+        break;
+    }
+    case eArray: {
+//        ret += jp.first + " = ";
+        ret += PrintRecursiveIniElements(jp.second, "\t" + jp.first);
+
+        break;
+    }
+    default: {
+        ret += key + jp.first + " = ";
+        ret += jp.second.to_string() + "\n";
+        break;
+    }
+    }
+
 
     return ret;
 }
@@ -2013,9 +2045,20 @@ std::string Json::to_INI_string(int16_t tabulation_level, const bool enable_comm
     std::string ret = "";
 
     for(const JPair& jp : m_values) {
-        Comment cmt = getComment(jp.first);
-        ret += PrintRecursiveIniElements((JPair*)&jp);
-//        ret += "\n";
+        const Comment& cmt = getComment(jp.first);
+        if(jp.second.first != eJson) {
+            ret += PrintRecursiveIniElements(jp);
+        }
+    }
+
+    for(const JPair& jp : m_values) {
+        const Comment& cmt = getComment(jp.first);
+        if(jp.second.first == eJson) {
+            ret += "[" + jp.first + "]";
+            ret += "\n";
+            ret += PrintRecursiveIniElements(jp.second);
+            ret += "\n";
+        }
     }
 
     return ret;
