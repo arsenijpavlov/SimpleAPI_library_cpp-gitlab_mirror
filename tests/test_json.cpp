@@ -450,3 +450,11 @@ TEST(JSON, check_numbers) {
         EXPECT_EQ((json[0].first == eNumber), it->second);
     }
 }
+
+TEST(JSON, parse_simple_element) {
+    std::string test_file_string = "asd = 15";
+    Json json;
+    json.parseJSON(test_file_string);
+
+    EXPECT_EQ(json.size(), 1);
+}

@@ -663,8 +663,10 @@ std::vector<std::string> parseIniKeys(std::string& ini_key_value) noexcept;
 std::vector<std::string> parseIniCustomKeys(std::string& preview_key) noexcept;
 Json*       GetObjectForIniCustomKey(Json* json, std::vector<std::string>& keys) noexcept;
 Element     ParseValueFromString(std::string& value, const bool enable_comments, const ConfigFormat format);
-std::string PrintRecursiveIniElements(const Element& el, const std::string& preview_key = "") noexcept;
-std::string PrintRecursiveIniElements(const JPair& jp, const std::string& preview_key = "") noexcept;
+std::string PrintRecursiveIniElements(const ConfigFormat cfg, const Element& el,
+                                      const std::string& preview_key = "") noexcept;
+std::string PrintRecursiveIniElements(const ConfigFormat cfg, const JPair& jp,
+                                      const std::string& preview_key = "") noexcept;
 // =================================================================================== FUNCTIONS
 // *
 // *
