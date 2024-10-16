@@ -62,7 +62,6 @@ class JArray;
 // Element =====================================================================================
 enum ValueType {
     eNull,
-
     eNumber,
     eBool,
     eString,
