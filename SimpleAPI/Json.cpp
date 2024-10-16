@@ -977,7 +977,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                 currentComment = "";
             } //===================================================================
 
-            if(current != '{') {
+            if(current != '{') { //JSON может содержать 1 элемент без скобок
 //                isCriticalError = true;
                 isSimpleElement = true;
                 state = JSON_KEY;
@@ -1100,7 +1100,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
         case JSON_VALUE: {
             //пропуск пробелов ====================================================
             if(utils::CharsInString(current, __SPACES__) && !isQuotes && value_format == ValueFormat::VALUE_NOPE)
-                break;
+                if(next != 0) break;
             //=====================================================================
             if(!isWordStarted) {
                 isWordStarted = true;
@@ -1183,7 +1183,8 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                     value_string.pop_back();
                 }
                 //если следующий символ должен обрабатываться другим кодом
-                if(utils::CharsInString(next, __SEPARATORS__ + std::string((value_format != VALUE_JSON) ? "}" : ""))) {
+                if(utils::CharsInString(next, __SEPARATORS__ + std::string((value_format != VALUE_JSON) ? "}" : ""))
+                    || next == 0 /*конец строки*/) {
                     isWordFinished = true;
                 }
             }

@@ -452,9 +452,36 @@ TEST(JSON, check_numbers) {
 }
 
 TEST(JSON, parse_simple_element) {
-    std::string test_file_string = "asd = 15";
+    std::string test_file_string = "k = 1";
     Json json;
     json.parseJSON(test_file_string);
+    EXPECT_EQ(json.size(), 1);
 
+    test_file_string = "k = \"string line\"";
+    json.parseJSON(test_file_string);
+    EXPECT_EQ(json.size(), 1);
+
+    test_file_string = "k = true";
+    json.parseJSON(test_file_string);
+    EXPECT_EQ(json.size(), 1);
+
+    test_file_string = "k = ";
+    json.parseJSON(test_file_string);
+    EXPECT_EQ(json.size(), 1);
+
+    test_file_string = "k = null";
+    json.parseJSON(test_file_string);
+    EXPECT_EQ(json.size(), 1);
+
+    test_file_string = "k = word";
+    json.parseJSON(test_file_string);
+    EXPECT_EQ(json.size(), 1);
+
+    test_file_string = "k = {a=b}";
+    json.parseJSON(test_file_string);
+    EXPECT_EQ(json.size(), 1);
+
+    test_file_string = "k = [a,b]";
+    json.parseJSON(test_file_string);
     EXPECT_EQ(json.size(), 1);
 }
