@@ -6,11 +6,9 @@
 
 int main() {
     system("tabs 4");
-    std::string str = "json= {json:[a, b, c]}";
-    std::vector<std::string> keys = parseIniKeys(str);
-
-    for(std::string key : keys)
-        std::cout << "[" + key + "]" << std::endl;
+    std::string str = "{\njson:\"12345\ns67890\"}";
+    Json json;
+    json.parseJSON(str);
 
     return 0;
 }

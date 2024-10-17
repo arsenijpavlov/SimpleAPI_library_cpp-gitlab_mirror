@@ -169,7 +169,18 @@ struct Element {
     JArray&     getArray() const;
 
     std::string to_string() const noexcept                      { return second->to_string(0, false); }
+    Element&    readFile(const std::string& path, const ConfigFormat format = ConfigFormat::eJSON) const noexcept; //TODO: readFile()
+    Element&    writeFile(const std::string& path, const ConfigFormat format = ConfigFormat::eJSON) const noexcept; //TODO: writeFile()
 };
+Element&    Parse(const std::string& element_string, const ConfigFormat format) noexcept; //TODO: Parse()
+Element&    ReadFile(const std::string& path, const ConfigFormat format = ConfigFormat::eJSON) noexcept; //TODO: ReadFile()
+Element&    ReadFileJSON(const std::string& path) noexcept; //TODO: ReadFileJSON()
+Element&    ReadFileYAML(const std::string& path) noexcept; //TODO: ReadFileYAML()
+Element&    ReadFileINI(const std::string& path) noexcept; //TODO: ReadFileINI()
+void        WriteFile(const Element& element, const ConfigFormat format = ConfigFormat::eJSON) noexcept; //TODO: WriteFile()
+void        WriteFileJSON(const Element& element) noexcept; //TODO: WriteFileJSON()
+void        WriteFileYAML(const Element& element) noexcept; //TODO: WriteFileYAML()
+void        WriteFileINI(const Element& element) noexcept; //TODO: WriteFileINI()
 // ===================================================================================== Element
 // *
 // *
@@ -374,6 +385,7 @@ public:
                 Json(const std::string& key, const T& value) noexcept : m_comment_sym(0)
                                                                 { put(key, value); }
                 Json(const JVector& vec) noexcept;
+                Json(const Element& element) noexcept; //TODO: Json(const Element& element)
                 ~Json() noexcept                                {}
 
     Json&       operator=(const Json& other) noexcept;

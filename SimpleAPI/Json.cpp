@@ -241,8 +241,6 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
         char current = string_of_array[i];
         char next = (i + 1 < string_of_array.length()) ? string_of_array[i + 1] : 0;
 
-        symbol_counter++; //TODO: проверить точность
-
         //поиск комментариев
         const bool ext_f = !isQuotes && value_format != VALUE_ARRAY && value_format != VALUE_JSON;
         utils::CommentChecker c_checker = c_checker = utils::CheckComments(current, next,
@@ -256,7 +254,8 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
             if(current == '\n') {
                 line_counter++;
                 symbol_counter = 0; //должен перескочить строго на следующей строке
-            } //====================================================================
+            } else symbol_counter++;
+            //======================================================================
             continue;
         }
 
@@ -527,7 +526,8 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
         if(current == '\n') {
             line_counter++;
             symbol_counter = 0; //должен перескочить строго на следующей строке
-        } //====================================================================
+        } else symbol_counter++;
+        //======================================================================
     }
 
 
@@ -943,7 +943,6 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
         char previous = (i - 1 >= 0) ? string_of_json[i - 1] : 0;
         char current = string_of_json[i];
         char next = (i + 1 < string_of_json.length()) ? string_of_json[i + 1] : 0;
-        symbol_counter++; //TODO: проверить точность
 
         //поиск комментариев
         const bool ext_f = !isQuotes && value_format != VALUE_ARRAY && value_format != VALUE_JSON;
@@ -958,7 +957,8 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
             if(current == '\n') {
                 line_counter++;
                 symbol_counter = 0; //должен перескочить строго на следующей строке
-            } //====================================================================
+            } else symbol_counter++;
+            //======================================================================
             continue;
         }
 
@@ -1333,7 +1333,8 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
         if(current == '\n') {
             line_counter++;
             symbol_counter = 0; //должен перескочить строго на следующей строке
-        } //====================================================================
+        } else symbol_counter++;
+        //======================================================================
     }
 
 //    std::cout << "finish, last state: ";
@@ -1589,7 +1590,6 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
         char previous = (i - 1 >= 0) ? string_of_ini[i - 1] : 0;
         char current = string_of_ini[i];
         char next = (i + 1 < string_of_ini.length()) ? string_of_ini[i + 1] : 0;
-        symbol_counter++; //TODO: проверить точность
 
         //поиск комментариев
         const bool ext_f = !isQuotes;
@@ -1603,7 +1603,8 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
             if(current == '\n') {
                 line_counter++;
                 symbol_counter = 0; //должен перескочить строго на следующей строке
-            } //====================================================================
+            } else symbol_counter++;
+            //======================================================================
             continue;
         }
 
@@ -1683,7 +1684,8 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                         if(current == '\n') {
                             line_counter++;
                             symbol_counter = 0; //должен перескочить строго на следующей строке
-                        } //====================================================================
+                        } else symbol_counter++;
+                        //======================================================================
                         isWordFinished = false;
                         continue;
                     }
@@ -1763,7 +1765,6 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                             }
                             //применение комментариев
                             if(!keyValueComment.before.empty() || !keyValueComment.after.empty()) {
-//                                if(!group_string.empty()) //FIXME: корректно не для всех ситуаций
                                     result_object.addComment(inner_keys.back(), keyValueComment);
                                 keyValueComment = Comment();
                             }
@@ -1785,7 +1786,8 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
             if(current == '\n') {
                 line_counter++;
                 symbol_counter = 0; //должен перескочить строго на следующей строке
-            } //====================================================================
+            } else symbol_counter++;
+            //======================================================================
         }
     }
 //    std::cout << "LAST COMMENT: " << "\"" << currentComment << "\"" << std::endl;
