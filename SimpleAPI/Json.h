@@ -380,13 +380,15 @@ public:
                 Json(const JPair& pair) noexcept : m_comment_sym(0)
                                                                 { put(pair.first, pair.second); }
                 Json(const std::string& input_string, const bool enable_comment = false,
-                        ConfigFormat config_format = ConfigFormat::eJSON);
+                     ConfigFormat config_format = ConfigFormat::eJSON);
+                Json(const char* input_string, const bool enable_comment = false,
+                     ConfigFormat config_format = ConfigFormat::eJSON);
                 __ONLY_ALLOWED_TYPES__(T)
                 Json(const std::string& key, const T& value) noexcept : m_comment_sym(0)
                                                                 { put(key, value); }
                 Json(const JVector& vec) noexcept;
-                Json(const std::string& key, std::nullptr_t) { put(key, Element()); }
-                Json(const Element& element) noexcept; //TODO: Json(const Element& element)
+                Json(const std::string& key, std::nullptr_t)    { put(key, Element()); }
+                Json(const Element& element) noexcept {}; //TODO: Json(const Element& element)
                 ~Json() noexcept                                {}
 
     Json&       operator=(const Json& other) noexcept;

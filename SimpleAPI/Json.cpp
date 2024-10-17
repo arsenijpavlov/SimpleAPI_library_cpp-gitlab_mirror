@@ -856,6 +856,20 @@ Json::Json(const std::string &input_string, const bool enable_comment, ConfigFor
     }
 }
 
+Json::Json(const char *input_string, const bool enable_comment, ConfigFormat config_format) {
+    switch (config_format) {
+    case ConfigFormat::eJSON:
+        parseJSON(input_string, enable_comment); //функция может вернуть exception!
+        break;
+    case ConfigFormat::eYAML:
+        parseYAML(input_string, enable_comment); //функция может вернуть exception!
+        break;
+    case ConfigFormat::eINI:
+        parseINI(input_string, enable_comment); //функция может вернуть exception!
+        break;
+    }
+}
+
 Json::Json(const JVector &vec) noexcept : m_comment_sym(0) {
     for(JVector::const_iterator j_it = vec.begin(); j_it != vec.end(); j_it++)
         put(j_it->first, j_it->second);

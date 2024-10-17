@@ -6,7 +6,7 @@
 
 int main() {
     system("tabs 4");
-    Json json("asd", nullptr);
+    Json json("{asd:\n\n\n \n15}");
 
     std::cout << "count: "
               << json.size()
