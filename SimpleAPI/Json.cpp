@@ -14,6 +14,7 @@
 #define __POSIBLE_COLON__               ":="
 #define __BORDER_SYMBOLS__              "@#*-=@"
 #define __COMMENT_SEPARATOR_SYMBOLS__   " \t.,;:->+?!/\\*$#@&()[]\n"
+#define __POSSIBLE_KEY_SYMBOLS__        "^[a-zA-Z0-9._ #@!*&\"'/\\\\]+$"
 
 
 // Element =====================================================================================
@@ -1369,7 +1370,7 @@ std::vector<std::string> parseIniKeys(std::string& ini_key_value) noexcept {
         if(utils::CharsInString(c, __KEY_VALUE_SEPARATOR__) && !local_string.empty() && flag) {
             RemoveIllegalSpaces(local_string);
 
-            std::regex reg("^[a-zA-Z0-9._ #@!*&\"'/\\\\]+$"); //TODO: выделить в отдельную маску
+            std::regex reg(__POSSIBLE_KEY_SYMBOLS__);
             if(std::regex_match(local_string, reg)) {
                 ret.push_back(local_string);
                 local_string = "";

@@ -6,9 +6,11 @@
 
 int main() {
     system("tabs 4");
-    std::string str = "{\njson:\"12345\ns67890\"}";
-    Json json;
-    json.parseJSON(str);
+    Json json("asd", nullptr);
+
+    std::cout << "count: "
+              << json.size()
+              << std::endl;
 
     return 0;
 }

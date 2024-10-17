@@ -385,6 +385,7 @@ public:
                 Json(const std::string& key, const T& value) noexcept : m_comment_sym(0)
                                                                 { put(key, value); }
                 Json(const JVector& vec) noexcept;
+                Json(const std::string& key, std::nullptr_t) { put(key, Element()); }
                 Json(const Element& element) noexcept; //TODO: Json(const Element& element)
                 ~Json() noexcept                                {}
 
