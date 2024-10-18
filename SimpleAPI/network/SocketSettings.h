@@ -2,7 +2,7 @@
 #define SOCKET_SETTINGS_H
 
 
-#include "LoggerSettings.h"
+#include "../logger/LoggerSettings.h"
 #include "Message.h"
 
 #include <functional>

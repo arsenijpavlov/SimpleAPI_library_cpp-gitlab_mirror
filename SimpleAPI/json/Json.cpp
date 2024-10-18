@@ -833,7 +833,8 @@ Json::Json(const Json& other) noexcept : m_comment_sym(0) {
     m_comments              = other.m_comments;
 }
 
-Json::Json(const std::string &input_string, const bool enable_comment, ConfigFormat config_format) : m_comment_sym(0) {
+Json::Json(const std::string &input_string, const ConfigFormat config_format,
+           const bool enable_comment) : m_comment_sym(0) {
     switch (config_format) {
     case ConfigFormat::eJSON:
         parseJSON(input_string, enable_comment); //функция может вернуть exception!
@@ -847,7 +848,8 @@ Json::Json(const std::string &input_string, const bool enable_comment, ConfigFor
     }
 }
 
-Json::Json(const char *input_string, const bool enable_comment, ConfigFormat config_format) {
+Json::Json(const char *input_string, const ConfigFormat config_format,
+           const bool enable_comment) {
     switch (config_format) {
     case ConfigFormat::eJSON:
         parseJSON(input_string, enable_comment); //функция может вернуть exception!

@@ -1,7 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include "Comment.h"
+#include "../json/Comment.h"
 #include <string>
 #include <sstream>
 #include <vector>

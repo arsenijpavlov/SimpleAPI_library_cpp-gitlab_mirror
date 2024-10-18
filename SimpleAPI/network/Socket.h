@@ -1,9 +1,9 @@
 #ifndef SOCKET_H
 #define SOCKET_H
 
-#include "EECounter.h"
+#include "../utils/EECounter.h"
+#include "../json/Json.h"
 #include "IpPort.h"
-#include "Json.h"
 #include "SocketSettings.h"
 
 #include <deque>

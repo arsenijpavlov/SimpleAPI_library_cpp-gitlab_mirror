@@ -1,9 +1,9 @@
 #ifndef MESSAGE_H
 #define MESSAGE_H
 
-#include "EECounter.h"
+#include "../utils/EECounter.h"
+#include "../json/Json.h"
 #include "IpPort.h"
-#include "Json.h"
 
 #include <cstdint>
 #include <string>
