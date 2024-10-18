@@ -340,9 +340,8 @@ public:
                 Json(const Json& json) noexcept;
                 Json(const JPair& pair) noexcept : m_comment_sym(0)
                                                                 { put(pair.first, pair.second); }
+                //WARNING: нельзя использовать конструктор с одним параметром, Json(str) - конфликт!
                 Json(const std::string& input_string, const ConfigFormat config_format = ConfigFormat::eJSON,
-                     const bool enable_comment = false);
-                Json(const char* input_string, const ConfigFormat config_format = ConfigFormat::eJSON,
                      const bool enable_comment = false);
                 __ONLY_ALLOWED_TYPES__(T)
                 Json(const std::string& key, const T& value) noexcept : m_comment_sym(0)

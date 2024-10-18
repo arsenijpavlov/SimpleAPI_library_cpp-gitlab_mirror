@@ -278,6 +278,7 @@ TEST(JSON, put_and_get_elements) {
     json.put("string", test_str);
     json.put("number", test_num);
     json.put("bool", test_bool);
+    EXPECT_EQ(json.size(), 3);
 
     EXPECT_EQ(test_str, json["string"].getString());
     EXPECT_EQ(test_num, json["number"].getNum());
