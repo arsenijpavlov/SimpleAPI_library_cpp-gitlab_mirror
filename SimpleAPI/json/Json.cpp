@@ -5,16 +5,7 @@
 #include <regex>
 #include <set>
 
-//TODO: #define DEBUG_OUTPUT когда-нибудь потом...
-
-#define __SPACES__                      " \n\t"
-#define __KEY_VALUE_SEPARATOR__         ":="
-#define __SEPARATORS__                  ",\n" //NOTE: __SEPARATORS__, '\0' тоже надо учитывать
-#define __SPACES_WITHOUT_SEPARATORS__   " \t"
-#define __POSIBLE_COLON__               ":="
-#define __BORDER_SYMBOLS__              "@#*-=@"
-#define __COMMENT_SEPARATOR_SYMBOLS__   " \t.,;:->+?!/\\*$#@&()[]\n"
-#define __POSSIBLE_KEY_SYMBOLS__        "^[a-zA-Z0-9._ #@!*&\"'/\\\\]+$"
+//TODO <skip>: #define DEBUG_OUTPUT когда-нибудь потом...
 
 
 // Element =====================================================================================
@@ -165,8 +156,8 @@ JArray &Element::getArray() const {
     return reinterpret_cast<JArrayElement*>(second)->m_value;
 }
 // ===================================================================================== Element
-// *
-// *
+
+
 // JArray ======================================================================================
 JArray::JArray(const JArray& other) noexcept {
     for(AVector::const_iterator it = other.m_values.cbegin();
@@ -828,8 +819,8 @@ JArray &JArray::erase(const size_t index) {
     return *this;
 }
 // ====================================================================================== JArray
-// *
-// *
+
+
 // Json ========================================================================================
 Json::Json(const Json& other) noexcept : m_comment_sym(0) {
     for(const JPair &el : other.m_values)
@@ -2228,8 +2219,8 @@ Json &Json::erase(const std::vector<std::string> &keys) noexcept {
     return *this;
 }
 // ======================================================================================== Json
-// *
-// *
+
+
 // STATIC FUNCTIONS ============================================================================
 //только для ЧИСЕЛ, BOOL, NULL и СТРОК
 //TODO: checkValue(string)

@@ -3,50 +3,11 @@
 
 #include "Comment.h"
 #include "utils.h"
+#include "Json_defines.h"
 #include <map>
 #include <memory>
 #include <vector>
 
-
-#define __ONLY_ALLOWED_TYPES__(ARG) \
-    template<typename ARG, \
-        typename std::enable_if< \
-            std::is_same<ARG, Json>::value \
-            || std::is_same<ARG, JArray>::value \
-            || std::is_convertible<ARG, std::string>::value \
-            || std::is_arithmetic<ARG>::value \
-            || std::is_same<ARG, bool>::value \
-        >::type* = nullptr>
-#define __JSON_EMPTY_EXCEPTION__    throw std::invalid_argument("Json is empty");
-#define __ARRAY_EMPTY_EXCEPTION__   throw std::invalid_argument("JArray is empty");
-#define __CHECK_INDEX_BOUND_EXCEPTION__(object, index) \
-                                    if(index + 1 > object->size()) \
-                                        throw std::out_of_range("going beyond the object");
-#define __CHECK_INDEX_BOUND_RETURN__(object, ret) \
-                                    if(index + 1 > object->size()) \
-                                        return ret;
-#define __CHECK_INDEX_BOUND2_EXCEPTION__(object, index) \
-                                    if(index + 1 > object.size()) \
-                                        throw std::out_of_range("going beyond the object");
-#define __CHECK_INDEX_BOUND2_RETURN__(object, ret) \
-                                    if(index + 1 > object.size()) \
-                                        return ret;
-#define __KEY_NOT_FOUND_EXCEPTION__(key) \
-                                    throw std::invalid_argument("key not found: " + key);
-#define __KEY_NOT_FOUND_RETURN__(key, ret) \
-                                    return ret;
-#define __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__ \
-                                    throw std::invalid_argument( \
-                                        "index operator may be used only for Json or JArray elements");
-#define __ARRAY_INCORRECT_INDEX_EXCEPTION__ \
-                                    throw std::invalid_argument("index for JArray must be a number only");
-#define __JSON_KEY_NOT_FOUND_EXCEPTION__ \
-                                    throw std::invalid_argument("Json key not found");
-#define __NOT_ARRAY_OR_JSON_ELEMENT_EXCEPTION__ \
-                                    throw std::invalid_argument("This element cannot contain internal elements");
-#define __NOT_JSON_ELEMENT_EXCEPTION__ \
-                                    throw std::invalid_argument("This element cannot contain internal named elements");
-#define __NO_ELEMENTS_EXCEPTION__   if(size() < 1) throw std::invalid_argument("There are no elements");
 
 // Format ======================================================================================
 enum class ConfigFormat {
@@ -55,8 +16,8 @@ enum class ConfigFormat {
     eINI
 };
 // ====================================================================================== Format
-// *
-// *
+
+
 class Json;
 class JArray;
 // Element =====================================================================================
@@ -182,8 +143,8 @@ void        WriteFileJSON(const Element& element) noexcept; //TODO: WriteFileJSO
 void        WriteFileYAML(const Element& element) noexcept; //TODO: WriteFileYAML()
 void        WriteFileINI(const Element& element) noexcept; //TODO: WriteFileINI()
 // ===================================================================================== Element
-// *
-// *
+
+
 // JArray ======================================================================================
 using AVector = std::vector<Element>;
 // Упорядоченный список значений
@@ -359,8 +320,8 @@ public:
     void        clearComment(const size_t index)                { m_comments.erase(m_values[index].first); }
 };
 // ====================================================================================== JArray
-// *
-// *
+
+
 // Json ========================================================================================
 using JPair     = std::pair<std::string, Element>;
 using JVector   = std::vector<JPair>;
@@ -379,10 +340,10 @@ public:
                 Json(const Json& json) noexcept;
                 Json(const JPair& pair) noexcept : m_comment_sym(0)
                                                                 { put(pair.first, pair.second); }
-                Json(const std::string& input_string, const bool enable_comment = false,
-                     ConfigFormat config_format = ConfigFormat::eJSON);
-                Json(const char* input_string, const bool enable_comment = false,
-                     ConfigFormat config_format = ConfigFormat::eJSON);
+                Json(const std::string& input_string, const ConfigFormat config_format = ConfigFormat::eJSON,
+                     const bool enable_comment = false);
+                Json(const char* input_string, const ConfigFormat config_format = ConfigFormat::eJSON,
+                     const bool enable_comment = false);
                 __ONLY_ALLOWED_TYPES__(T)
                 Json(const std::string& key, const T& value) noexcept : m_comment_sym(0)
                                                                 { put(key, value); }
@@ -670,20 +631,25 @@ public:
     //----------------------------------------------------------------------------------
 };
 // ======================================================================================== Json
-// *
-// *
+
+
 // FUNCTIONS ===================================================================================
 std::vector<std::string> parseIniKeys(std::string& ini_key_value) noexcept;
 std::vector<std::string> parseIniCustomKeys(std::string& preview_key) noexcept;
 Json*       GetObjectForIniCustomKey(Json* json, std::vector<std::string>& keys) noexcept;
-Element     ParseValueFromString(std::string& value, const bool enable_comments, const ConfigFormat format);
+Element     ParseValueFromString(std::string& value, const bool enable_comments,
+                                 const ConfigFormat format);
 std::string PrintRecursiveIniElements(const ConfigFormat cfg, const Element& el,
                                       const std::string& preview_key = "") noexcept;
 std::string PrintRecursiveIniElements(const ConfigFormat cfg, const JPair& jp,
                                       const std::string& preview_key = "") noexcept;
+std::string ToComment(const std::string& comment_string, const uint8_t tabulation_level = 0,
+                      const uint8_t column_size = 0, const char border_symbol = 0) noexcept;
+std::string FromComment(const std::string& comment_string, uint8_t& column_size,
+                        char& border_symbol) noexcept;
 // =================================================================================== FUNCTIONS
-// *
-// *
+
+
 // STATIC FUNCTIONS ============================================================================
 static ValueType    CheckValue(std::string& value, const ConfigFormat& format = ConfigFormat::eJSON) noexcept;
 static bool         CheckNumber(const std::string& value) noexcept;
@@ -693,13 +659,9 @@ static bool         CheckString(std::string& value, const ConfigFormat& format =
 static bool         CheckJson(std::string& value) noexcept;
 static bool         CheckArray(std::string& value) noexcept;
 static void         RemoveIllegalSpaces(std::string& string) noexcept;
-/*static*/ std::string  ToComment(const std::string& comment_string, const uint8_t tabulation_level = 0,
-                             const uint8_t column_size = 0, const char border_symbol = 0) noexcept;
-/*static*/ std::string  FromComment(const std::string& comment_string, uint8_t& column_size,
-                                   char& border_symbol) noexcept;
 // ============================================================================ STATIC FUNCTIONS
-// *
-// *
+
+
 // Element (продолжение) =======================================================================
 class JsonElement : BaseElement {
 public:
