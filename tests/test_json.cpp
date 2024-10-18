@@ -12,7 +12,6 @@ int main(int argc, char **argv)
     return RUN_ALL_TESTS();
 }
 
-//TODO: JSON может состоять из одного JPair
 //========================================================================================
 Json json_example({{"key_0", "first"},
                    {"key_1", 2},
@@ -163,8 +162,7 @@ TEST(JSON, write_file) {
     json.writeFile("../tests/test_writer.json", -1);
 }
 
-//TODO: тест не завершён, добавить чтение записанного
-TEST(JSON, write_file_comment) {
+TEST(JSON, write_and_read_file_comment) {
     Json json(json_string_example);
 
     json.setCommentColumnSize(20);
@@ -181,18 +179,40 @@ TEST(JSON, write_file_comment) {
     json["array"].getArray().addComment_before(0, "array element\n comment_");
 
     std::string path = "../tests/test_writer_with_comments.json";
+    json.writeFile(path, 0, true, ConfigFormat::eJSON);
 
-    std::ofstream file(path);
-    if (!file.is_open())
-        FAIL();
+    Json json2;
+    json2.readFileJSON(path, true);
+    EXPECT_EQ(json2.size(), json.size());
 
-    json.erase("number");
-    file << json.to_string(0, true, json.getCommentColumnSize()) << std::endl;
+    //TODO: проверка комментариев должна учитывать переносы строк (преобразование комментариев при чтении/записи)
+//    EXPECT_EQ(json2.getPreviewComment(), json.getPreviewComment());
+//    EXPECT_EQ(json2.getPreviewComment().before, json.getPreviewComment().before);
+//    EXPECT_EQ(json2.getPreviewComment().after, json.getPreviewComment().after);
 
-    file.flush();
-    file.close();
+//    EXPECT_EQ(json2.getComment("bool"), json.getComment("bool"));
+//    EXPECT_EQ(json2.getComment("bool").before, json.getComment("bool").before);
+//    EXPECT_EQ(json2.getComment("bool").after, json.getComment("bool").after);
 
-    return SUCCEED();
+//    EXPECT_EQ(json2.getComment("string"), json.getComment("string"));
+//    EXPECT_EQ(json2.getComment("string").before, json.getComment("string").before);
+//    EXPECT_EQ(json2.getComment("string").after, json.getComment("string").after);
+
+//    EXPECT_EQ(json2.getComment("array"), json.getComment("array"));
+//    EXPECT_EQ(json2.getComment("array").before, json.getComment("array").before);
+//    EXPECT_EQ(json2.getComment("array").after, json.getComment("array").after);
+
+//    EXPECT_EQ(json2["json"].getJson().getComment(0), json["json"].getJson().getComment(0));
+//    EXPECT_EQ(json2["json"].getJson().getComment(0).before,
+//              json["json"].getJson().getComment(0).before);
+//    EXPECT_EQ(json2["json"].getJson().getComment(0).after,
+//              json["json"].getJson().getComment(0).after);
+
+//    EXPECT_EQ(json2["array"].getArray().getComment(0), json["array"].getArray().getComment(0));
+//    EXPECT_EQ(json2["array"].getArray().getComment(0).before,
+//              json["array"].getArray().getComment(0).before);
+//    EXPECT_EQ(json2["array"].getArray().getComment(0).after,
+//              json["array"].getArray().getComment(0).after);
 }
 
 TEST(JSON, read_file) {

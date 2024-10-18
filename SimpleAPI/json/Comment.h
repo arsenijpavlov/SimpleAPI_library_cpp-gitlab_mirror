@@ -19,6 +19,9 @@ struct Comment {
         before(comment_before), after(comment_after) {}
 
     bool isEmpty()      { return before.empty() && after.empty(); }
+    bool operator==(Comment other) const noexcept {
+        return before == other.before && after == other.after;
+    }
 };
 
 #endif // COMMENT_H

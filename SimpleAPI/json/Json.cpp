@@ -531,12 +531,12 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
 
 void JArray::parseYAML_array(const std::string &string_of_array, const bool enable_comment) {
     //TODO: JArray::parseYAML_array()
-    //TODO: return std::exception
+    //TODO: JArray::parseYAML_array(), return std::exception
 }
 
 void JArray::parseINI_array(const std::string &string_of_array, const bool enable_comment) {
     //TODO: JArray::parseINI_array()
-    //TODO: return std::exception
+    //TODO: JArray::parseINI_array(), return std::exception
 }
 
 JArray &JArray::append(const JArray &array) noexcept {
@@ -732,15 +732,17 @@ std::string JArray::to_JSON_string(int16_t tabulation_level, const bool enable_c
 
 std::string JArray::to_YAML_string(int16_t tabulation_level, const bool enable_comment,
                                    const uint8_t column_size) const noexcept {
-    //TODO: JArray::to_YAML_string
+    if(m_values.empty()) return "";
+
+    //TODO: JArray::to_YAML_string()
     return "";
 }
 
-//TODO: JArray::to_INI_string
 std::string JArray::to_INI_string(int16_t tabulation_level, const bool enable_comment,
                                   const uint8_t column_size, const std::string& preview_title) const noexcept {
     if(m_values.empty()) return "";
 
+    //TODO: JArray::to_INI_string()
     std::string ret;
 
 
@@ -1349,6 +1351,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 
 void Json::parseYAML(const std::string &string_of_yaml, const bool enable_comment) {
     //TODO: Json::parseYAML()
+    //TODO: Json::parseYAML(), std::exception
 }
 
 std::vector<std::string> parseIniKeys(std::string& ini_key_value) noexcept {
@@ -1403,55 +1406,42 @@ std::vector<std::string> parseIniCustomKeys(std::string& preview_key) noexcept {
 
 Json *GetObjectForIniCustomKey(Json* json, std::vector<std::string> &keys) noexcept {
     if(json == nullptr || keys.size() == 0) return json;
-//    std::cout << "GetObjectForIniCustomKey: " << utils::PrintVector(keys) << std::endl;
 
     if(keys.size() == 1) {
-//        std::cout << "\tGetObjectForIniCustomKey, [" << keys[0] << "] is ";
         if(json->contains(keys[0])) {
             switch((*json)[keys[0]].first) {
-            case eJson:
-//                std::cout << "JSON" << std::endl;
-                return &(*json)[keys[0]].getJson();
+            case eJson: return &(*json)[keys[0]].getJson();
             case eNull:
-//                std::cout << "NULL" << std::endl;
             default: {
-//                std::cout << "OTHER" << std::endl;
                 Element temp_e = (*json)[keys[0]];
                 JArray temp_ja(temp_e);
                 json->updateValue(keys[0], temp_ja);
                 break;
             }
-            case eArray:
-//                std::cout << "ARRAY" << std::endl;
-                break;
+            case eArray: break;
             }
         } else {
-//            std::cout << "NOT FOUND" << std::endl;
             json->put(keys[0], Element());
         }
 
         return json;
     } else {
         std::string current_key = keys[0];
-//        std::cout << "\tGetObjectForIniCustomKey[" << keys.size() << "], " << current_key << " is ";
 
         keys.erase(keys.cbegin(), keys.cbegin() + 1);
         Json* next_json = json;
         if(json->contains(current_key)) {
             switch((*json)[current_key].first) {
             case eJson: {
-//                std::cout << "JSON(2)" << std::endl;
                 next_json = &(*json)[current_key].getJson();
                 break;
             }
             case eNull: {
-//                std::cout << "NULL(2)" << std::endl;
                 json->updateValue(current_key, Json());
                 next_json = &(*json)[current_key].getJson();
                 break;
             }
             default: {
-//                std::cout << "OTHER(2)" << std::endl;
                 Element temp_e = (*json)[current_key];
                 JArray temp_ja(temp_e);
                 //создаём поле для следующего ключа в списке
@@ -1462,8 +1452,7 @@ Json *GetObjectForIniCustomKey(Json* json, std::vector<std::string> &keys) noexc
                 next_json = &(*json)[current_key].getArray().getBack().getJson();
                 break;
             }
-            case eArray: {
-//                std::cout << "ARRAY(2)" << std::endl;
+            case eArray: { //TODO: GetObjectForIniCustomKey(), нужен тест
                 JArray& temp_ja = (*json)[current_key].getArray();
                 //создаём поле для следующего ключа в списке
 //                temp_ja.push_back(Json(std::make_pair(keys[0], Element()))); //TODO: переделать на конструктор Json(key, nullptr);
@@ -1472,7 +1461,6 @@ Json *GetObjectForIniCustomKey(Json* json, std::vector<std::string> &keys) noexc
             }
             }
         } else {
-//            std::cout << "NOT FOUND(2)" << std::endl;
             json->put(current_key, Json());
             next_json = &(*json)[current_key].getJson();
         }
@@ -1970,7 +1958,7 @@ std::string Json::to_JSON_string(int16_t tabulation_level, const bool enable_com
 
 std::string Json::to_YAML_string(int16_t tabulation_level, const bool enable_comment,
                                    const uint8_t column_size) const noexcept {
-    //TODO: Json::to_YAML_string
+    //TODO: Json::to_YAML_string()
     return "";
 }
 
@@ -2054,7 +2042,7 @@ std::string PrintRecursiveIniElements(const ConfigFormat cfg, const JPair& jp,
     return ret;
 }
 
-//TODO: Json::to_INI_string
+//TODO: Json::to_INI_string(), не закончил
 std::string Json::to_INI_string(int16_t tabulation_level, const bool enable_comment,
                                 const uint8_t column_size, const std::string& preview_title) const noexcept {
     std::string ret = "";
@@ -2210,7 +2198,7 @@ Json &Json::erase(const std::vector<std::string> &keys) noexcept {
 
 // STATIC FUNCTIONS ============================================================================
 //только для ЧИСЕЛ, BOOL, NULL и СТРОК
-//TODO: checkValue(string)
+//TODO: checkValue(string), возможно лишняя теперь
 ValueType CheckValue(std::string& value, const ConfigFormat& format) noexcept {
 //    std::cout << "CheckValue(): \"" << value << "\"" << std::endl;
     if(value.empty()) return eNull;
@@ -2226,8 +2214,6 @@ ValueType CheckValue(std::string& value, const ConfigFormat& format) noexcept {
             if(utils::isNumber(value[i])
                 || utils::CharsInString(value[i], "-+"))
                 vType = ValueType::eNumber;
-//            else if(value[i] == '{')        vType = ValueType::eJson;
-//            else if(value[i] == '[')        vType = ValueType::eArray;
             else if(!utils::CharsInString(value[i], __SPACES__)
                      && (value[0] == 't'
                          || value[0] == 'f'
@@ -2268,8 +2254,6 @@ ValueType CheckValue(std::string& value, const ConfigFormat& format) noexcept {
         break;
     }
     case ValueType::eString:    { isValue = CheckString(_value, format); break; }
-//    case ValueType::eJson:      { isValue = CheckJson(_value);      break; }
-//    case ValueType::eArray:     { isValue = CheckArray(_value);     break; }
     default:                    return ValueType::eNull;
     }
 
