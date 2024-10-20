@@ -155,6 +155,94 @@ JArray &Element::getArray() const {
         throw std::invalid_argument("This element is not a 'JArray' type: " + ::to_string(first));
     return reinterpret_cast<JArrayElement*>(second)->m_value;
 }
+
+//TODO: Element::readFile()
+bool Element::readFile(const std::string& path, const bool enable_comment,
+                           const ConfigFormat config_format) const noexcept {
+    std::string config_str;
+
+    try{
+        std::ifstream file(path);
+        if (!file.is_open()) {
+            std::cout << "File not found" << std::endl;
+            return false;
+        }
+
+        std::string temp_string;
+        while(getline(file, temp_string))
+            config_str += temp_string + '\n';
+        file.close();
+    } catch (...) {
+        std::cout << "exception for read file !!!" << std::endl;
+        return false;
+    }
+
+    //обработка
+    try{
+        switch(config_format) {
+        case ConfigFormat::eJSON:   parseJSON(config_str, enable_comment);  break;
+        case ConfigFormat::eYAML:   parseYAML(config_str, enable_comment);  break;
+        case ConfigFormat::eINI:    parseINI(config_str, enable_comment);   break;
+        }
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
+//TODO: Element::writeFile()
+Element& Element::writeFile(const std::string& path, const bool enable_comment,
+                            const ConfigFormat config_format) const noexcept {
+
+}
+
+//TODO: Element& Parse()
+Element& Parse(const std::string& element_string, const ConfigFormat format,
+               const bool enable_comment) noexcept {
+
+}
+
+//TODO: Element& ReadFile()
+Element& ReadFile(const std::string& path, const bool enable_comment,
+                  const ConfigFormat format) noexcept {
+
+}
+
+//TODO: Element& ReadFileJSON()
+Element& ReadFileJSON(const std::string& path, const bool enable_comment) noexcept {
+
+}
+
+//TODO: Element& ReadFileYAML()
+Element& ReadFileYAML(const std::string& path, const bool enable_comment) noexcept {
+
+}
+
+//TODO: Element& ReadFileINI()
+Element& ReadFileINI(const std::string& path, const bool enable_comment) noexcept {
+
+}
+
+//TODO: void WriteFile()
+void WriteFile(const Element& element, const ConfigFormat format,
+               const bool enable_comment) noexcept {
+
+}
+
+//TODO: void WriteFileJSON()
+void WriteFileJSON(const Element& element) noexcept {
+
+}
+
+//TODO: void WriteFileYAML()
+void WriteFileYAML(const Element& element) noexcept {
+
+}
+
+//TODO: void WriteFileINI()
+void WriteFileINI(const Element& element) noexcept {
+
+}
 // ===================================================================================== Element
 
 
@@ -821,7 +909,7 @@ JArray &JArray::erase(const size_t index) {
     return *this;
 }
 // ====================================================================================== JArray
-
+//TODO: Json json; json["not_found_key"] = new_value;
 
 // Json ========================================================================================
 Json::Json(const Json& other) noexcept : m_comment_sym(0) {
@@ -1421,7 +1509,7 @@ Json *GetObjectForIniCustomKey(Json* json, std::vector<std::string> &keys) noexc
             case eArray: break;
             }
         } else {
-            json->put(keys[0], Element());
+            json->put(keys[0], nullptr);
         }
 
         return json;
@@ -1445,7 +1533,7 @@ Json *GetObjectForIniCustomKey(Json* json, std::vector<std::string> &keys) noexc
                 Element temp_e = (*json)[current_key];
                 JArray temp_ja(temp_e);
                 //создаём поле для следующего ключа в списке
-                Json temp_j = Json(std::make_pair(keys[0], Element()));
+                Json temp_j = Json(std::make_pair(keys[0], nullptr));
                 temp_ja.push_back(temp_j);
                 json->updateValue(current_key, temp_ja);
 
@@ -1455,7 +1543,7 @@ Json *GetObjectForIniCustomKey(Json* json, std::vector<std::string> &keys) noexc
             case eArray: { //TODO: GetObjectForIniCustomKey(), нужен тест
                 JArray& temp_ja = (*json)[current_key].getArray();
                 //создаём поле для следующего ключа в списке
-//                temp_ja.push_back(Json(std::make_pair(keys[0], Element()))); //TODO: переделать на конструктор Json(key, nullptr);
+                temp_ja.push_back(Json(std::make_pair(keys[0], nullptr)));
                 next_json = &(*json)[current_key].getArray().getBack().getJson();
                 break;
             }

@@ -102,7 +102,6 @@ TEST(ELEMENT, not_compare_all_types) {
     EXPECT_NE(el_array, Element(JArray().push_front("asd")));
 }
 
-//TODO:
-//TEST(ELEMENT, read_file) {
+//TODO: TEST(ELEMENT, read_file) {
 //    Element el;
 //}
