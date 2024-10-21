@@ -96,6 +96,7 @@ struct Element {
     BaseElement*    second;
 
                 Element() noexcept;
+                Element(std::nullptr_t) noexcept;
                 Element(ValueType type, BaseElement* ptr) noexcept : first(type), second(ptr)
                                                                 {}
                 template<typename T, typename std::enable_if<std::is_arithmetic<T>::value
@@ -351,15 +352,16 @@ public:
                 Json(const Json& json) noexcept;
                 Json(const JPair& pair) noexcept : m_comment_sym(0)
                                                                 { put(pair.first, pair.second); }
-                //WARNING: нельзя использовать конструктор с одним параметром, Json(str) - конфликт!
-                Json(const std::string& input_string, const ConfigFormat config_format = ConfigFormat::eJSON,
+                //разнесено для решения конфликта, не изменять следующие два конструктора!
+                Json(const std::string& input_string)           { parse(input_string); }
+                Json(const std::string& input_string, const ConfigFormat config_format,
                      const bool enable_comment = false);
-                __ONLY_ALLOWED_TYPES__(T)
+                __ONLY_ALLOWED_TYPES__(T) //NOTE: конструктор Element(std::nullptr) пока не получается реализовать
                 Json(const std::string& key, const T& value) noexcept : m_comment_sym(0)
                                                                 { put(key, value); }
                 Json(const JVector& vec) noexcept;
-                Json(const std::string& key, std::nullptr_t)    { put(key, Element()); }
-                Json(const Element& element) noexcept {}; //TODO: Json(const Element& element)
+                Json(const Element& element) noexcept
+                    {}; //TODO: Json(const Element& element)
                 ~Json() noexcept                                {}
 
     Json&       operator=(const Json& other) noexcept;
@@ -378,6 +380,8 @@ public:
     Json&       append(const Json& json, const bool rewrite = true) noexcept
                                                                 { return put(json, rewrite); }
 
+    void        parse(const std::string& input_string, const ConfigFormat config_format = ConfigFormat::eJSON,
+                    const bool enable_comment = false);
     void        parseJSON(const std::string& string_of_json, const bool enable_comment = false);
     void        parseYAML(const std::string& string_of_yaml, const bool enable_comment = false);
     void        parseINI(const std::string& string_of_ini, const bool enable_comment = false);

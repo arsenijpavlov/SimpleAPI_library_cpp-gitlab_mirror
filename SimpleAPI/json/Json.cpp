@@ -24,6 +24,10 @@ Element::Element() noexcept : first(ValueType::eNull) {
     second = reinterpret_cast<BaseElement*>(new NullElement());
 }
 
+Element::Element(std::nullptr_t) noexcept : first(ValueType::eNull) {
+    second = reinterpret_cast<BaseElement*>(new NullElement());
+}
+
 Element::Element(const Json& value) noexcept : first(ValueType::eJson) {
     second = reinterpret_cast<BaseElement*>(new JsonElement(value));
 }
@@ -156,93 +160,93 @@ JArray &Element::getArray() const {
     return reinterpret_cast<JArrayElement*>(second)->m_value;
 }
 
-//TODO: Element::readFile()
-bool Element::readFile(const std::string& path, const bool enable_comment,
-                           const ConfigFormat config_format) const noexcept {
-    std::string config_str;
+////TODO: Element::readFile()
+//bool Element::readFile(const std::string& path, const bool enable_comment,
+//                           const ConfigFormat config_format) const noexcept {
+//    std::string config_str;
 
-    try{
-        std::ifstream file(path);
-        if (!file.is_open()) {
-            std::cout << "File not found" << std::endl;
-            return false;
-        }
+//    try{
+//        std::ifstream file(path);
+//        if (!file.is_open()) {
+//            std::cout << "File not found" << std::endl;
+//            return false;
+//        }
 
-        std::string temp_string;
-        while(getline(file, temp_string))
-            config_str += temp_string + '\n';
-        file.close();
-    } catch (...) {
-        std::cout << "exception for read file !!!" << std::endl;
-        return false;
-    }
+//        std::string temp_string;
+//        while(getline(file, temp_string))
+//            config_str += temp_string + '\n';
+//        file.close();
+//    } catch (...) {
+//        std::cout << "exception for read file !!!" << std::endl;
+//        return false;
+//    }
 
-    //обработка
-    try{
-        switch(config_format) {
-        case ConfigFormat::eJSON:   parseJSON(config_str, enable_comment);  break;
-        case ConfigFormat::eYAML:   parseYAML(config_str, enable_comment);  break;
-        case ConfigFormat::eINI:    parseINI(config_str, enable_comment);   break;
-        }
-        return true;
-    } catch (...) {
-        return false;
-    }
-}
+//    //обработка
+//    try{
+//        switch(config_format) {
+//        case ConfigFormat::eJSON:   parseJSON(config_str, enable_comment);  break;
+//        case ConfigFormat::eYAML:   parseYAML(config_str, enable_comment);  break;
+//        case ConfigFormat::eINI:    parseINI(config_str, enable_comment);   break;
+//        }
+//        return true;
+//    } catch (...) {
+//        return false;
+//    }
+//}
 
-//TODO: Element::writeFile()
-Element& Element::writeFile(const std::string& path, const bool enable_comment,
-                            const ConfigFormat config_format) const noexcept {
+////TODO: Element::writeFile()
+//Element& Element::writeFile(const std::string& path, const bool enable_comment,
+//                            const ConfigFormat config_format) const noexcept {
 
-}
+//}
 
-//TODO: Element& Parse()
-Element& Parse(const std::string& element_string, const ConfigFormat format,
-               const bool enable_comment) noexcept {
+////TODO: Element& Parse()
+//Element& Parse(const std::string& element_string, const ConfigFormat format,
+//               const bool enable_comment) noexcept {
 
-}
+//}
 
-//TODO: Element& ReadFile()
-Element& ReadFile(const std::string& path, const bool enable_comment,
-                  const ConfigFormat format) noexcept {
+////TODO: Element& ReadFile()
+//Element& ReadFile(const std::string& path, const bool enable_comment,
+//                  const ConfigFormat format) noexcept {
 
-}
+//}
 
-//TODO: Element& ReadFileJSON()
-Element& ReadFileJSON(const std::string& path, const bool enable_comment) noexcept {
+////TODO: Element& ReadFileJSON()
+//Element& ReadFileJSON(const std::string& path, const bool enable_comment) noexcept {
 
-}
+//}
 
-//TODO: Element& ReadFileYAML()
-Element& ReadFileYAML(const std::string& path, const bool enable_comment) noexcept {
+////TODO: Element& ReadFileYAML()
+//Element& ReadFileYAML(const std::string& path, const bool enable_comment) noexcept {
 
-}
+//}
 
-//TODO: Element& ReadFileINI()
-Element& ReadFileINI(const std::string& path, const bool enable_comment) noexcept {
+////TODO: Element& ReadFileINI()
+//Element& ReadFileINI(const std::string& path, const bool enable_comment) noexcept {
 
-}
+//}
 
-//TODO: void WriteFile()
-void WriteFile(const Element& element, const ConfigFormat format,
-               const bool enable_comment) noexcept {
+////TODO: void WriteFile()
+//void WriteFile(const Element& element, const ConfigFormat format,
+//               const bool enable_comment) noexcept {
 
-}
+//}
 
-//TODO: void WriteFileJSON()
-void WriteFileJSON(const Element& element) noexcept {
+////TODO: void WriteFileJSON()
+//void WriteFileJSON(const Element& element) noexcept {
 
-}
+//}
 
-//TODO: void WriteFileYAML()
-void WriteFileYAML(const Element& element) noexcept {
+////TODO: void WriteFileYAML()
+//void WriteFileYAML(const Element& element) noexcept {
 
-}
+//}
 
-//TODO: void WriteFileINI()
-void WriteFileINI(const Element& element) noexcept {
+////TODO: void WriteFileINI()
+//void WriteFileINI(const Element& element) noexcept {
 
-}
+//}
 // ===================================================================================== Element
 
 
@@ -925,17 +929,7 @@ Json::Json(const Json& other) noexcept : m_comment_sym(0) {
 
 Json::Json(const std::string &input_string, const ConfigFormat config_format,
            const bool enable_comment) : m_comment_sym(0) {
-    switch (config_format) {
-    case ConfigFormat::eJSON:
-        parseJSON(input_string, enable_comment); //функция может вернуть exception!
-        break;
-    case ConfigFormat::eYAML:
-        parseYAML(input_string, enable_comment); //функция может вернуть exception!
-        break;
-    case ConfigFormat::eINI:
-        parseINI(input_string, enable_comment); //функция может вернуть exception!
-        break;
-    }
+    parse(input_string, config_format, enable_comment);
 }
 
 Json::Json(const JVector &vec) noexcept : m_comment_sym(0) {
@@ -971,6 +965,21 @@ Json &Json::put(const Json &json, const bool rewrite) noexcept {
     }
 
     return *this;
+}
+
+void Json::parse(const std::string &input_string, const ConfigFormat config_format,
+                 const bool enable_comment) {
+    switch (config_format) {
+    case ConfigFormat::eJSON:
+        parseJSON(input_string, enable_comment); //функция может вернуть exception!
+        break;
+    case ConfigFormat::eYAML:
+        parseYAML(input_string, enable_comment); //функция может вернуть exception!
+        break;
+    case ConfigFormat::eINI:
+        parseINI(input_string, enable_comment); //функция может вернуть exception!
+        break;
+    }
 }
 
 void Json::parseJSON(const std::string &string_of_json, const bool enable_comment) {
@@ -2192,15 +2201,11 @@ Element &Json::operator[](const size_t index) {
 }
 
 Element &Json::operator[](const std::string &key) {
-    if(m_values.empty())
-        __JSON_EMPTY_EXCEPTION__
-
-    bool element_found = false;
     for(size_t i = 0; i < m_values.size(); i++)
         if(m_values[i].first == key)
             return m_values[i].second;
-
-    __KEY_NOT_FOUND_EXCEPTION__(key)
+    put(key, nullptr);
+    return (*this)[key];
 }
 
 Element &Json::operator[](const std::vector<std::string> &complex_key) {
