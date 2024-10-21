@@ -378,17 +378,18 @@ TEST(JSON, get_key) {
     EXPECT_EQ(json.getValue("key_3").getBool(), true);
 }
 
-TEST(JSON, get_key_error) {
-    Json json = json_example;
+//больше не актуален, т.к. переменные добавляются автоматически
+//TEST(JSON, get_key_error) {
+//    Json json = json_example;
 
-    try {
-        Element el = json.getValue("azaza");
-    } catch (std::invalid_argument& e) {
-        return SUCCEED();
-    }
+//    try {
+//        Element el = json.getValue("azaza");
+//    } catch (std::invalid_argument& e) {
+//        return SUCCEED();
+//    }
 
-    FAIL();
-}
+//    FAIL();
+//}
 
 TEST(JSON, insert) {
     Json json = json_example;

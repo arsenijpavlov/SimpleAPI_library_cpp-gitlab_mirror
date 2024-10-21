@@ -102,8 +102,8 @@ const std::string ini_example_string = ""
 TEST(INI, main_parser) {
     Json json;
     json.parseINI(ini_example_string, true);
-//    std::cout << json.to_string(0, true, 0, ConfigFormat::eJSON) << std::endl;
-    std::cout << json.to_string(0, true, 0, ConfigFormat::eINI) << std::endl;
+    std::cout << json.to_string(0, true, 0, ConfigFormat::eJSON) << std::endl;
+//    std::cout << json.to_string(0, true, 0, ConfigFormat::eINI) << std::endl;
 
     EXPECT_EQ(json.size(), 8);
 

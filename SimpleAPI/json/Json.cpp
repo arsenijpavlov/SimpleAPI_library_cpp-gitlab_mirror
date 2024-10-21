@@ -912,6 +912,51 @@ JArray &JArray::erase(const size_t index) {
 
     return *this;
 }
+
+void JArray::addComment(const size_t index, const std::string &comment_before,
+                        const std::string &comment_after) {
+    Comment& ct = getOrCreateComment(index);
+    ct = Comment(comment_before, comment_after);
+}
+
+void JArray::addComment(const size_t index, const Comment &comment) {
+    Comment& ct = getOrCreateComment(index);
+    ct = comment;
+}
+
+void JArray::addComment_before(const size_t index, const std::string &comment) {
+    Comment& ct = getOrCreateComment(index);
+    ct.before = comment;
+}
+
+void JArray::addComment_after(const size_t index, const std::string &comment) {
+    Comment& ct = getOrCreateComment(index);
+    ct.after = comment;
+}
+
+Comment &JArray::getComment(const size_t index) {
+    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index);
+    auto it = m_comments.find(index);
+    if(it == m_comments.end())
+        throw std::invalid_argument("comment for index '" + std::to_string(index) + "' not found");
+    return it->second;
+}
+
+Comment JArray::getComment(const size_t index) const noexcept {
+    __CHECK_INDEX_BOUND2_RETURN__(m_values, Comment());
+    auto it = m_comments.find(index);
+    if(it == m_comments.end())
+        return Comment();
+    return it->second;
+}
+
+Comment &JArray::getOrCreateComment(const size_t index) {
+    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index);
+    auto it = m_comments.find(index);
+    if(it == m_comments.end())
+        it = m_comments.insert(std::make_pair(index, Comment())).first;
+    return it->second;
+}
 // ====================================================================================== JArray
 //TODO: Json json; json["not_found_key"] = new_value;
 
@@ -936,6 +981,9 @@ Json::Json(const JVector &vec) noexcept : m_comment_sym(0) {
     for(JVector::const_iterator j_it = vec.begin(); j_it != vec.end(); j_it++)
         put(j_it->first, j_it->second);
 }
+
+Json::Json(const Element &element) noexcept
+{/*TODO: Json(const Element& element)*/}
 
 Json &Json::operator=(const Json &other) noexcept {
     clear();
@@ -1623,7 +1671,7 @@ Element ParseValueFromString(std::string& value, const bool enable_comments, con
     }
 
     //STRING - всё остальное
-    //кавычки по краям строкового значения актуальны только для Json, NOTE: YAML ещё не изучал
+    //NOTE: кавычки по краям строкового значения актуальны только для Json, YAML ещё не изучал
     if(value.length() > 2 && value[0] == '\"' && value.back() == '\"') {
         value.erase(value.cbegin(), value.cbegin() + 1);
         value.pop_back();
@@ -2286,6 +2334,54 @@ Json &Json::erase(const std::vector<std::string> &keys) noexcept {
 
     return *this;
 }
+
+Comment &Json::getComment(const std::string &key) {
+    if(!contains(key)) __KEY_NOT_FOUND_EXCEPTION__(key)
+    auto it = m_comments.find(key);
+    if(it == m_comments.end())
+        throw std::invalid_argument("key '" + key + "' not found");
+    return it->second;
+}
+
+Comment Json::getComment(const std::string &key) const noexcept {
+    if(!contains(key)) __KEY_NOT_FOUND_RETURN__(key, Comment())
+    auto it = m_comments.find(key);
+    if(it == m_comments.end())
+        return Comment();
+    return it->second;
+}
+
+Comment &Json::getComment(const size_t index) {
+    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index);
+    auto it = m_comments.find(m_values[index].first);
+    if(it == m_comments.end())
+        throw std::invalid_argument("key for index '" + std::to_string(index) + "' not found");
+    return it->second;
+}
+
+Comment Json::getComment(const size_t index) const noexcept {
+    __CHECK_INDEX_BOUND2_RETURN__(m_values, Comment());
+    auto it = m_comments.find(m_values[index].first);
+    if(it == m_comments.end())
+        return Comment();
+    return it->second;
+}
+
+Comment &Json::getOrCreateComment(const std::string &key) {
+    if(!contains(key)) __KEY_NOT_FOUND_EXCEPTION__(key)
+    auto it = m_comments.find(key);
+    if(it == m_comments.end())
+        it = m_comments.insert(std::make_pair(key, Comment())).first;
+    return it->second;
+}
+
+Comment &Json::getOrCreateComment(const size_t index) {
+    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index);
+    auto it = m_comments.find(m_values[index].first);
+    if(it == m_comments.end())
+        it = m_comments.insert(std::make_pair(m_values[index].first, Comment())).first;
+    return it->second;
+}
 // ======================================================================================== Json
 
 
@@ -2293,7 +2389,7 @@ Json &Json::erase(const std::vector<std::string> &keys) noexcept {
 //только для ЧИСЕЛ, BOOL, NULL и СТРОК
 //TODO: checkValue(string), возможно лишняя теперь
 ValueType CheckValue(std::string& value, const ConfigFormat& format) noexcept {
-//    std::cout << "CheckValue(): \"" << value << "\"" << std::endl;
+    //    std::cout << "CheckValue(): \"" << value << "\"" << std::endl;
     if(value.empty()) return eNull;
 
     bool isValue = false;

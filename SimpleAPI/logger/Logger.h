@@ -8,7 +8,7 @@
 
 namespace logs {
 
-//NOTE: \033 то же самое, что и \e
+// \033 то же самое, что и \e
 #define RESET_TEXT          "\e[0m"
 #define BOLD_TEXT           "\e[1m"
 #define LOW_LIGHT_TEXT      "\e[2m"

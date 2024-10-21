@@ -99,17 +99,14 @@ struct Element {
                 Element(std::nullptr_t) noexcept;
                 Element(ValueType type, BaseElement* ptr) noexcept : first(type), second(ptr)
                                                                 {}
-                template<typename T, typename std::enable_if<std::is_arithmetic<T>::value
-                                                             && !std::is_same<T, bool>::value>
-                         ::type* = nullptr>
+                __ONLY_NUMBER_TYPES__(T)
                 Element(const T& value) noexcept : first(eNumber)
                                                                 { second = reinterpret_cast<BaseElement*>(
                                                                         new DoubleElement(static_cast<double>(value))); }
                 Element(const bool value) noexcept : first(eBool)
                                                                 { second = reinterpret_cast<BaseElement*>(
                                                                         new BoolElement(value)); }
-                template<typename T, typename std::enable_if<std::is_convertible<T, std::string>::value>
-                         ::type* = nullptr>
+                __ONLY_STRING_TYPES__(T)
                 Element(const T& value) noexcept : first(eString)
                                                                 { second = reinterpret_cast<BaseElement*>(
                                                                         new StringElement(std::string(value))); }
@@ -150,7 +147,7 @@ Element&    ReadFileJSON(const std::string& path, const bool enable_comment = fa
 Element&    ReadFileYAML(const std::string& path, const bool enable_comment = false) noexcept;
 Element&    ReadFileINI(const std::string& path, const bool enable_comment = false) noexcept;
 bool        WriteFile(const Element& element, const ConfigFormat format = ConfigFormat::eJSON,
-               const bool enable_comment = false) noexcept;
+                      const bool enable_comment = false) noexcept;
 bool        WriteFileJSON(const Element& element, const bool enable_comment = false) noexcept;
 bool        WriteFileYAML(const Element& element, const bool enable_comment = false) noexcept;
 bool        WriteFileINI(const Element& element, const bool enable_comment = false) noexcept;
@@ -290,43 +287,14 @@ public:
     Comment&    getPreviewComment()                             { return m_preview_comment; }
     //-----
     void        addComment(const size_t index, const std::string &comment_before = "",
-                            const std::string &comment_after = "")
-                                                                { Comment& ct = getOrCreateComment(index);
-                                                                    ct = Comment(comment_before, comment_after); }
-    void        addComment(const size_t index, const Comment& comment)
-                                                                { Comment& ct = getOrCreateComment(index);
-                                                                    ct = comment; }
-    void        addComment_before(const size_t index, const std::string &comment = "")
-                                                                { Comment& ct = getOrCreateComment(index);
-                                                                    ct.before = comment; }
-    void        addComment_after(const size_t index, const std::string &comment = "")
-                                                                { Comment& ct = getOrCreateComment(index);
-                                                                    ct.after = comment; }
+                            const std::string &comment_after = "");
+    void        addComment(const size_t index, const Comment& comment);
+    void        addComment_before(const size_t index, const std::string &comment = "");
+    void        addComment_after(const size_t index, const std::string &comment = "");
     //-----
-    Comment&    getComment(const size_t index)
-                {
-                    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index);
-                    auto it = m_comments.find(index);
-                    if(it == m_comments.end())
-                        throw std::invalid_argument("comment for index '" + std::to_string(index) + "' not found");
-                    return it->second;
-                }
-    Comment     getComment(const size_t index) const noexcept
-                {
-                    __CHECK_INDEX_BOUND2_RETURN__(m_values, Comment());
-                    auto it = m_comments.find(index);
-                    if(it == m_comments.end())
-                        return Comment();
-                    return it->second;
-                }
-    Comment&    getOrCreateComment(const size_t index)
-                {
-                    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index);
-                    auto it = m_comments.find(index);
-                    if(it == m_comments.end())
-                        it = m_comments.insert(std::make_pair(index, Comment())).first;
-                    return it->second;
-                }
+    Comment&    getComment(const size_t index);
+    Comment     getComment(const size_t index) const noexcept;
+    Comment&    getOrCreateComment(const size_t index);
     //-----
     void        clearPreviewComment() noexcept                  { m_preview_comment = {}; }
     void        clearComment(const size_t index)                { m_comments.erase(m_values[index].first); }
@@ -360,8 +328,7 @@ public:
                 Json(const std::string& key, const T& value) noexcept : m_comment_sym(0)
                                                                 { put(key, value); }
                 Json(const JVector& vec) noexcept;
-                Json(const Element& element) noexcept
-                    {}; //TODO: Json(const Element& element)
+                Json(const Element& element) noexcept;;
                 ~Json() noexcept                                {}
 
     Json&       operator=(const Json& other) noexcept;
@@ -418,10 +385,8 @@ public:
                 __ONLY_ALLOWED_TYPES__(T)
     Json&       updateValue(const std::string& key, const T& new_value) noexcept
                 {
-                    if(contains(key))
-                        (*this)[key] = Element(new_value);
-                    else
-                        put(key, new_value);
+                    if(contains(key))   (*this)[key] = Element(new_value);
+                    else                put(key, new_value);
                     return *this;
                 }
     Json&       updateValue(const std::string& key, const Element& new_value) noexcept;
@@ -590,54 +555,12 @@ public:
                                                                 { Comment& ct = getOrCreateComment(index);
                                                                     ct.after = comment; }
     //-----
-    Comment&    getComment(const std::string& key)
-                {
-                    if(!contains(key)) __KEY_NOT_FOUND_EXCEPTION__(key)
-                    auto it = m_comments.find(key);
-                    if(it == m_comments.end())
-                        throw std::invalid_argument("key '" + key + "' not found");
-                    return it->second;
-                }
-    Comment     getComment(const std::string& key) const noexcept
-                {
-                    if(!contains(key)) __KEY_NOT_FOUND_RETURN__(key, Comment())
-                    auto it = m_comments.find(key);
-                    if(it == m_comments.end())
-                        return Comment();
-                    return it->second;
-                }
-    Comment&    getComment(const size_t index)
-                {
-                    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index);
-                    auto it = m_comments.find(m_values[index].first);
-                    if(it == m_comments.end())
-                        throw std::invalid_argument("key for index '" + std::to_string(index) + "' not found");
-                    return it->second;
-                }
-    Comment     getComment(const size_t index) const noexcept
-                {
-                    __CHECK_INDEX_BOUND2_RETURN__(m_values, Comment());
-                    auto it = m_comments.find(m_values[index].first);
-                    if(it == m_comments.end())
-                        return Comment();
-                    return it->second;
-                }
-    Comment&    getOrCreateComment(const std::string& key)
-                {
-                    if(!contains(key)) __KEY_NOT_FOUND_EXCEPTION__(key)
-                    auto it = m_comments.find(key);
-                    if(it == m_comments.end())
-                        it = m_comments.insert(std::make_pair(key, Comment())).first;
-                    return it->second;
-                }
-    Comment&    getOrCreateComment(const size_t index)
-                {
-                    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index);
-                    auto it = m_comments.find(m_values[index].first);
-                    if(it == m_comments.end())
-                        it = m_comments.insert(std::make_pair(m_values[index].first, Comment())).first;
-                    return it->second;
-                }
+    Comment&    getComment(const std::string& key);
+    Comment     getComment(const std::string& key) const noexcept;
+    Comment&    getComment(const size_t index);
+    Comment     getComment(const size_t index) const noexcept;
+    Comment&    getOrCreateComment(const std::string& key);
+    Comment&    getOrCreateComment(const size_t index);
     //-----
     void        clearPreviewComment() noexcept                  { m_preview_comment = {}; }
     void        clearComment(const std::string& key) noexcept   { m_comments.erase(key); }
