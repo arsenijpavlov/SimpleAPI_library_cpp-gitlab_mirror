@@ -34,6 +34,7 @@ static std::string to_string(const ValueType type) noexcept;
 class BaseElement {
 public:
     virtual ~BaseElement() noexcept {}
+    //TODO: исправить вывод для всех типов элементов под разные категории
     virtual std::string to_string(int16_t tabulation_level, const bool enable_comment,
                                   const ConfigFormat config_format = ConfigFormat::eJSON) noexcept = 0;
 };
@@ -127,32 +128,45 @@ struct Element {
     Json&       getJson() const;
     JArray&     getArray() const;
 
-    std::string to_string() const noexcept                      { return second->to_string(0, false); }
+    std::string to_string(const bool enable_comment = false,
+                          const ConfigFormat config_format = ConfigFormat::eJSON) const noexcept
+                                                                { return second->to_string(0, enable_comment, config_format); }
+
     bool        readFile(const std::string& path, const bool enable_comment = false,
-                    const ConfigFormat config_format = ConfigFormat::eJSON) const noexcept;
-    //TODO: readFileJson()
-    //TODO: readFileYaml()
-    //TODO: readFileIni()
+                    const ConfigFormat config_format = ConfigFormat::eJSON) noexcept;
+    bool        readFileJSON(const std::string& path, const bool enable_comment = false) noexcept;
+    bool        readFileYAML(const std::string& path, const bool enable_comment = false) noexcept;
+    bool        readFileINI(const std::string& path, const bool enable_comment = false) noexcept;
+
     bool        writeFile(const std::string& path, const bool enable_comment = false,
                     const ConfigFormat config_format = ConfigFormat::eJSON) const noexcept;
-    //TODO: writeFileJson()
-    //TODO: writeFileYaml()
-    //TODO: writeFileIni()
+    bool        writeFileJSON(const std::string& path, const bool enable_comment = false) const noexcept;
+    bool        writeFileYAML(const std::string& path, const bool enable_comment = false) const noexcept;
+    bool        writeFileINI(const std::string& path, const bool enable_comment = false) const noexcept;
 };
-Element&    Parse(const std::string& element_string, const ConfigFormat format = ConfigFormat::eJSON,
+Element     Parse(const std::string& element_string, const ConfigFormat config_format = ConfigFormat::eJSON,
                   const bool enable_comment = false) noexcept;
-Element&    ReadFile(const std::string& path, const bool enable_comment = false,
-                  const ConfigFormat format = ConfigFormat::eJSON) noexcept;
-Element&    ReadFileJSON(const std::string& path, const bool enable_comment = false) noexcept;
-Element&    ReadFileYAML(const std::string& path, const bool enable_comment = false) noexcept;
-Element&    ReadFileINI(const std::string& path, const bool enable_comment = false) noexcept;
-bool        WriteFile(const Element& element, const ConfigFormat format = ConfigFormat::eJSON,
-                      const bool enable_comment = false) noexcept;
-bool        WriteFileJSON(const Element& element, const bool enable_comment = false) noexcept;
-bool        WriteFileYAML(const Element& element, const bool enable_comment = false) noexcept;
-bool        WriteFileINI(const Element& element, const bool enable_comment = false) noexcept;
-// ===================================================================================== Element
+Element     ParseJSON(const std::string& element_string, const bool enable_comment = false) noexcept;
+Element     ParseYAML(const std::string& element_string, const bool enable_comment = false) noexcept;
+Element     ParseINI(const std::string& element_string, const bool enable_comment = false) noexcept;
 
+Element     ReadFile(const std::string& path, const bool enable_comment = false,
+                  const ConfigFormat config_format = ConfigFormat::eJSON) noexcept;
+Element     ReadFileJSON(const std::string& path, const bool enable_comment = false) noexcept;
+Element     ReadFileYAML(const std::string& path, const bool enable_comment = false) noexcept;
+Element     ReadFileINI(const std::string& path, const bool enable_comment = false) noexcept;
+
+bool        WriteFile(const std::string& path, const Element& element,
+               const bool enable_comment = false, const ConfigFormat config_format = ConfigFormat::eJSON) noexcept;
+bool        WriteFileJSON(const std::string& path, const Element& element,
+                   const bool enable_comment = false) noexcept;
+bool        WriteFileYAML(const std::string& path, const Element& element,
+                   const bool enable_comment = false) noexcept;
+bool        WriteFileINI(const std::string& path, const Element& element,
+                  const bool enable_comment = false) noexcept;
+// ===================================================================================== Element
+bool        GetAllStringsFromFile(const std::string& path, std::string& dest_string) noexcept;
+bool        WriteStringToFile(const std::string& path, const std::string& source_string) noexcept;
 
 // JArray ======================================================================================
 using AVector = std::vector<Element>;

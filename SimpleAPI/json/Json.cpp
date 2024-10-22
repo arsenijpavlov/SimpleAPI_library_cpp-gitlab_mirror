@@ -160,95 +160,221 @@ JArray &Element::getArray() const {
     return reinterpret_cast<JArrayElement*>(second)->m_value;
 }
 
-////TODO: Element::readFile()
-//bool Element::readFile(const std::string& path, const bool enable_comment,
-//                           const ConfigFormat config_format) const noexcept {
-//    std::string config_str;
+bool Element::readFile(const std::string& path, const bool enable_comment,
+                           const ConfigFormat config_format) noexcept {
+    try{
+        switch(config_format) {
+        case ConfigFormat::eJSON:   return readFileJSON(path, enable_comment);
+        case ConfigFormat::eYAML:   return readFileYAML(path, enable_comment);
+        case ConfigFormat::eINI:    return readFileINI(path, enable_comment);
+        default: return false;
+        }
+    } catch (...) {
+        return false;
+    }
+}
 
-//    try{
-//        std::ifstream file(path);
-//        if (!file.is_open()) {
-//            std::cout << "File not found" << std::endl;
-//            return false;
-//        }
+bool Element::readFileJSON(const std::string &path, const bool enable_comment) noexcept {
+    try{
+        *this = ReadFileJSON(path, enable_comment);
+    } catch (...) {
+        return false;
+    }
+    return true;
+}
 
-//        std::string temp_string;
-//        while(getline(file, temp_string))
-//            config_str += temp_string + '\n';
-//        file.close();
-//    } catch (...) {
-//        std::cout << "exception for read file !!!" << std::endl;
-//        return false;
-//    }
+bool Element::readFileYAML(const std::string &path, const bool enable_comment) noexcept {
+    try{
+        *this = ReadFileYAML(path, enable_comment);
+    } catch (...) {
+        return false;
+    }
+    return true;
+}
 
-//    //обработка
-//    try{
-//        switch(config_format) {
-//        case ConfigFormat::eJSON:   parseJSON(config_str, enable_comment);  break;
-//        case ConfigFormat::eYAML:   parseYAML(config_str, enable_comment);  break;
-//        case ConfigFormat::eINI:    parseINI(config_str, enable_comment);   break;
-//        }
-//        return true;
-//    } catch (...) {
-//        return false;
-//    }
-//}
+bool Element::readFileINI(const std::string &path, const bool enable_comment) noexcept {
+    try{
+        *this = ReadFileINI(path, enable_comment);
+    } catch (...) {
+        return false;
+    }
+    return true;
+}
 
-////TODO: Element::writeFile()
-//Element& Element::writeFile(const std::string& path, const bool enable_comment,
-//                            const ConfigFormat config_format) const noexcept {
+bool Element::writeFile(const std::string& path, const bool enable_comment,
+                            const ConfigFormat config_format) const noexcept {
+    try{
+        switch(config_format) {
+        case ConfigFormat::eJSON:   return writeFileJSON(path, enable_comment);
+        case ConfigFormat::eYAML:   return writeFileYAML(path, enable_comment);
+        case ConfigFormat::eINI:    return writeFileINI(path, enable_comment);
+        default: return false;
+        }
+    } catch (...) {
+        return false;
+    }
+}
 
-//}
+bool Element::writeFileJSON(const std::string &path, const bool enable_comment) const noexcept {
+    return WriteFileJSON(path, *this, enable_comment);
+}
 
-////TODO: Element& Parse()
-//Element& Parse(const std::string& element_string, const ConfigFormat format,
-//               const bool enable_comment) noexcept {
+bool Element::writeFileYAML(const std::string &path, const bool enable_comment) const noexcept {
+    return WriteFileYAML(path, *this, enable_comment);
+}
 
-//}
+bool Element::writeFileINI(const std::string &path, const bool enable_comment) const noexcept {
+    return WriteFileINI(path, *this, enable_comment);
+}
 
-////TODO: Element& ReadFile()
-//Element& ReadFile(const std::string& path, const bool enable_comment,
-//                  const ConfigFormat format) noexcept {
+Element Parse(const std::string& element_string, const ConfigFormat config_format,
+               const bool enable_comment) noexcept {
+    try{
+        switch(config_format) {
+        case ConfigFormat::eJSON:   return ParseJSON(element_string, enable_comment);
+        case ConfigFormat::eYAML:   return ParseYAML(element_string, enable_comment);
+        case ConfigFormat::eINI:    return ParseINI(element_string, enable_comment);
+        default: return nullptr;
+        }
+    } catch (...) {
+        return nullptr;
+    }
+}
 
-//}
+Element ParseJSON(const std::string& element_string, const bool enable_comment) noexcept {
+    JArray jarray;
+    jarray.parseJSON_array(element_string, enable_comment);
+    if(jarray.size() > 0)   return jarray;
 
-////TODO: Element& ReadFileJSON()
-//Element& ReadFileJSON(const std::string& path, const bool enable_comment) noexcept {
+    Json json;
+    json.parseJSON(element_string, enable_comment);
+    if(json.size() == 1)    return json[0];
+    else                    return json;
+}
 
-//}
+Element ParseYAML(const std::string& element_string, const bool enable_comment) noexcept {
+    JArray jarray;
+    jarray.parseYAML_array(element_string, enable_comment);
+    if(jarray.size() > 0)   return jarray;
 
-////TODO: Element& ReadFileYAML()
-//Element& ReadFileYAML(const std::string& path, const bool enable_comment) noexcept {
+    Json json;
+    json.parseYAML(element_string, enable_comment);
+    if(json.size() == 1)    return json[0];
+    else                    return json;
+}
 
-//}
+Element ParseINI(const std::string& element_string, const bool enable_comment) noexcept {
+    JArray jarray;
+    jarray.parseINI_array(element_string, enable_comment);
+    if(jarray.size() > 0)   return jarray;
 
-////TODO: Element& ReadFileINI()
-//Element& ReadFileINI(const std::string& path, const bool enable_comment) noexcept {
+    Json json;
+    json.parseINI(element_string, enable_comment);
+    if(json.size() == 1)    return json[0];
+    else                    return json;
+}
 
-//}
+Element ReadFile(const std::string& path, const bool enable_comment,
+                  const ConfigFormat config_format) noexcept {
+    try{
+        switch(config_format) {
+        case ConfigFormat::eJSON:   return ReadFileJSON(path, enable_comment);
+        case ConfigFormat::eYAML:   return ReadFileYAML(path, enable_comment);
+        case ConfigFormat::eINI:    return ReadFileINI(path, enable_comment);
+        default: return false;
+        }
+    } catch (...) {
+        return false;
+    }
+}
 
-////TODO: void WriteFile()
-//void WriteFile(const Element& element, const ConfigFormat format,
-//               const bool enable_comment) noexcept {
+Element ReadFileJSON(const std::string& path, const bool enable_comment) noexcept {
+    std::string temp_string;
+    if(!GetAllStringsFromFile(path, temp_string))
+        return nullptr;
+    return Parse(temp_string, ConfigFormat::eJSON, enable_comment);
+}
 
-//}
+Element ReadFileYAML(const std::string& path, const bool enable_comment) noexcept {
+    std::string temp_string;
+    if(!GetAllStringsFromFile(path, temp_string))
+        return nullptr;
+    return Parse(temp_string, ConfigFormat::eYAML, enable_comment);
+}
 
-////TODO: void WriteFileJSON()
-//void WriteFileJSON(const Element& element) noexcept {
+Element ReadFileINI(const std::string& path, const bool enable_comment) noexcept {
+    std::string temp_string;
+    if(!GetAllStringsFromFile(path, temp_string))
+        return nullptr;
+    return Parse(temp_string, ConfigFormat::eINI, enable_comment);
+}
 
-//}
+bool WriteFile(const std::string& path, const Element& element,
+               const bool enable_comment, const ConfigFormat config_format) noexcept {
+    try{
+        switch(config_format) {
+        case ConfigFormat::eJSON:   return WriteFileJSON(path, element, enable_comment);
+        case ConfigFormat::eYAML:   return WriteFileYAML(path, element, enable_comment);
+        case ConfigFormat::eINI:    return WriteFileINI(path, element, enable_comment);
+        default: return false;
+        }
+    } catch (...) {
+        return false;
+    }
+}
 
-////TODO: void WriteFileYAML()
-//void WriteFileYAML(const Element& element) noexcept {
+bool WriteFileJSON(const std::string& path, const Element& element,
+                   const bool enable_comment) noexcept {
+    return WriteStringToFile(path, element.to_string(enable_comment, ConfigFormat::eJSON));
+}
 
-//}
+bool WriteFileYAML(const std::string& path, const Element& element,
+                   const bool enable_comment) noexcept {
+    return WriteStringToFile(path, element.to_string(enable_comment, ConfigFormat::eYAML));
+}
 
-////TODO: void WriteFileINI()
-//void WriteFileINI(const Element& element) noexcept {
-
-//}
+bool WriteFileINI(const std::string& path, const Element& element,
+                  const bool enable_comment) noexcept {
+    return WriteStringToFile(path, element.to_string(enable_comment, ConfigFormat::eINI));
+}
 // ===================================================================================== Element
+bool GetAllStringsFromFile(const std::string& path, std::string& dest_string) noexcept {
+    try{
+        std::ifstream file(path);
+        if (!file.is_open()) {
+            std::cout << "File not found" << std::endl;
+            return false;
+        }
 
+        std::string temp_string;
+        while(getline(file, temp_string))
+            dest_string += temp_string + '\n';
+        file.close();
+    } catch (...) {
+        std::cout << "exception for read file !!!" << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+bool WriteStringToFile(const std::string& path, const std::string& source_string) noexcept {
+    try{
+        std::ofstream file(path);
+        if (!file.is_open()) {
+            std::cout << "File not found" << std::endl;
+            return false;
+        }
+
+        file.write(source_string.c_str(), source_string.length());
+        file.close();
+    } catch (...) {
+        std::cout << "exception while file writing!!!" << std::endl;
+        return false;
+    }
+
+    return true;
+}
 
 // JArray ======================================================================================
 JArray::JArray(const JArray& other) noexcept {
@@ -1600,7 +1726,7 @@ Json *GetObjectForIniCustomKey(Json* json, std::vector<std::string> &keys) noexc
             case eArray: { //TODO: GetObjectForIniCustomKey(), нужен тест
                 JArray& temp_ja = (*json)[current_key].getArray();
                 //создаём поле для следующего ключа в списке
-                temp_ja.push_back(Json(std::make_pair(keys[0], nullptr)));
+//                temp_ja.push_back(Json(std::make_pair(keys[0], nullptr))); //такая логика ломает парсинг
                 next_json = &(*json)[current_key].getArray().getBack().getJson();
                 break;
             }
