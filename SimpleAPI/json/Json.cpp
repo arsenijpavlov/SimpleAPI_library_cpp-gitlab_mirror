@@ -2236,7 +2236,7 @@ std::string Json::to_YAML_string(int16_t tabulation_level, const bool enable_com
 
 std::string PrintRecursiveIniElements(const ConfigFormat cfg, const Element& el,
                                       const std::string& preview_key) noexcept {
-    std::cout << "el: prew:<" << preview_key + ">:" << el.to_string() << std::endl;
+//    std::cout << "el: prew:<" << preview_key + ">:" << el.to_string() << std::endl;
     std::string ret;
 
     std::string key = preview_key;
@@ -2276,7 +2276,7 @@ std::string PrintRecursiveIniElements(const ConfigFormat cfg, const Element& el,
 }
 std::string PrintRecursiveIniElements(const ConfigFormat cfg, const JPair& jp,
                                       const std::string& preview_key) noexcept {
-    std::cout << "jp:  prew:<" << preview_key + ">" << jp.first + ":" << jp.second.to_string() << std::endl;
+//    std::cout << "jp:  prew:<" << preview_key + ">" << jp.first + ":" << jp.second.to_string() << std::endl;
     std::string ret;
 
     std::string key = preview_key;
@@ -2298,12 +2298,13 @@ std::string PrintRecursiveIniElements(const ConfigFormat cfg, const JPair& jp,
     default: {
         ret += key + jp.first + " = ";
         if(jp.second.first == eString) {
-            std::string temp = jp.second.to_string();
+            std::string temp = jp.second.to_string(false, ConfigFormat::eINI);
             if(temp[0] == '"' && temp.back() == '"') {
                 temp.erase(temp.cbegin(), temp.cbegin() + 1);
                 temp.pop_back();
             }
-            ret += temp + "\n";
+            std::string temp2;
+            ret += temp2 + "\n";
         } else
             ret += jp.second.to_string() + "\n";
         break;

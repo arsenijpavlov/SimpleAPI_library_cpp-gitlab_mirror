@@ -86,7 +86,7 @@ public:
 
     std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
                           const ConfigFormat config_format = ConfigFormat::eJSON) noexcept override
-                                                        { return "\"" + utils::to_string_with_esc(m_value) + "\""; }
+                                                        { return "\"" + utils::to_string_with_esc(m_value) + "\""; } //TODO: 000000 <<-----
 };
 
 class JsonElement;      //описан в конце документа
