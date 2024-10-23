@@ -1675,6 +1675,7 @@ std::vector<std::string> parseIniCustomKeys(std::string& preview_key) noexcept {
     return ret;
 }
 
+//TODO: GetObjectForIniCustomKey(), нужен тест на всю функцию
 Json *GetObjectForIniCustomKey(Json* json, std::vector<std::string> &keys) noexcept {
     if(json == nullptr || keys.size() == 0) return json;
 
@@ -1723,7 +1724,7 @@ Json *GetObjectForIniCustomKey(Json* json, std::vector<std::string> &keys) noexc
                 next_json = &(*json)[current_key].getArray().getBack().getJson();
                 break;
             }
-            case eArray: { //TODO: GetObjectForIniCustomKey(), нужен тест
+            case eArray: {
                 JArray& temp_ja = (*json)[current_key].getArray();
                 //создаём поле для следующего ключа в списке
 //                temp_ja.push_back(Json(std::make_pair(keys[0], nullptr))); //такая логика ломает парсинг

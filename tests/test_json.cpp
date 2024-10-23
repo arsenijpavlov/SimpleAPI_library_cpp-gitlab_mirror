@@ -172,9 +172,6 @@ TEST(JSON, write_and_read_file_comment) {
     json.addComment_before("string", "some many words1...");
     json.addComment_after("array", "some many words2...");
 
-//    json.clearPreviewComment();
-//    json.clearComment("bool");
-
     json["json"].getJson().addComment_before(0, "json element\n comment");
     json["array"].getArray().addComment_before(0, "array element\n comment_");
 
