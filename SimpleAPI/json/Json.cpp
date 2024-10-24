@@ -2243,6 +2243,10 @@ std::string PrintRecursiveIniElements(const ConfigFormat cfg, const Element& el,
     RemoveIllegalSpaces(key);
     if(!key.empty() && key.back() != '/')
         key += "/";
+    if(key.empty()) {
+        //TODO: поиск одинаковых значений, совмещение в цепочку ключей
+    }
+
     switch(el.first) {
     case eJson: {
         for(const JPair& jp : el.getJson()) {
@@ -2279,12 +2283,10 @@ std::string PrintRecursiveIniElements(const ConfigFormat cfg, const JPair& jp,
     case eJson: {
         if(ret.back() != '\n') ret += "\n";
         ret += PrintRecursiveIniElements(cfg, jp.second, enable_comment, key + jp.first);
-
         break;
     }
     case eArray: {
         ret += PrintRecursiveIniElements(cfg, jp.second, enable_comment, "\t" + jp.first);
-
         break;
     }
     default: {
@@ -2293,7 +2295,6 @@ std::string PrintRecursiveIniElements(const ConfigFormat cfg, const JPair& jp,
         break;
     }
     }
-
 
     return ret;
 }
@@ -2313,8 +2314,19 @@ std::string Json::to_INI_string(int16_t tabulation_level, const bool enable_comm
     for(const JPair& jp : m_values) {
         const Comment& cmt = getComment(jp.first);
         if(jp.second.first == eJson) {
-            ret += "[" + jp.first + "]";
-            ret += "\n";
+            ret += "[" + jp.first + "]\n";
+            //TODO: поиск одинаковых значений, совмещение в цепочку ключей
+            Json temp_json = jp.second.getJson();
+            for(size_t i = 0; i < jp.second.getJson().size(); i++) {
+                //не работает, надо иначе!
+                temp_json.erase(jp.second.getJson()[i])
+                for(const JPair& jp_inner : jp.second.getJson()) {
+                    if(jp_inner.second.first != eArray && jp.second.first != eJson) {
+
+                    }
+                }
+            }
+
             ret += PrintRecursiveIniElements(ConfigFormat::eINI, jp.second, enable_comment);
             ret += "\n";
         }
