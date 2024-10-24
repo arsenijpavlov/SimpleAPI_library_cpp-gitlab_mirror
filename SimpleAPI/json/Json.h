@@ -86,7 +86,14 @@ public:
 
     std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
                           const ConfigFormat config_format = ConfigFormat::eJSON) noexcept override
-                                                        { return "\"" + utils::to_string_with_esc(m_value) + "\""; } //TODO: 000000 <<-----
+    {
+        switch(config_format) {
+        case ConfigFormat::eINI:
+            return utils::to_string_with_esc(m_value, true);
+        default:
+            return "\"" + utils::to_string_with_esc(m_value) + "\"";
+        }
+    }
 };
 
 class JsonElement;      //описан в конце документа
@@ -593,9 +600,9 @@ Json*       GetObjectForIniCustomKey(Json* json, std::vector<std::string>& keys)
 Element     ParseValueFromString(std::string& value, const bool enable_comments,
                                  const ConfigFormat format);
 std::string PrintRecursiveIniElements(const ConfigFormat cfg, const Element& el,
-                                      const std::string& preview_key = "") noexcept;
+                                      const bool enable_comment, const std::string& preview_key = "") noexcept;
 std::string PrintRecursiveIniElements(const ConfigFormat cfg, const JPair& jp,
-                                      const std::string& preview_key = "") noexcept;
+                                      const bool enable_comment, const std::string& preview_key = "") noexcept;
 std::string ToComment(const std::string& comment_string, const uint8_t tabulation_level = 0,
                       const uint8_t column_size = 0, const char border_symbol = 0) noexcept;
 std::string FromComment(const std::string& comment_string, uint8_t& column_size,

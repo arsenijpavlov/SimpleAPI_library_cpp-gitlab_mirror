@@ -2235,7 +2235,7 @@ std::string Json::to_YAML_string(int16_t tabulation_level, const bool enable_com
 }
 
 std::string PrintRecursiveIniElements(const ConfigFormat cfg, const Element& el,
-                                      const std::string& preview_key) noexcept {
+                                      const bool enable_comment, const std::string& preview_key) noexcept {
 //    std::cout << "el: prew:<" << preview_key + ">:" << el.to_string() << std::endl;
     std::string ret;
 
@@ -2246,28 +2246,20 @@ std::string PrintRecursiveIniElements(const ConfigFormat cfg, const Element& el,
     switch(el.first) {
     case eJson: {
         for(const JPair& jp : el.getJson()) {
-            ret += PrintRecursiveIniElements(cfg, jp, key);
+            ret += PrintRecursiveIniElements(cfg, jp, enable_comment, key);
         }
         break;
     }
     case eArray: {
         for(const Element& e : el.getArray()) {
-            ret += PrintRecursiveIniElements(cfg, e, key);
+            ret += PrintRecursiveIniElements(cfg, e, enable_comment, key);
         }
         break;
     }
     default: {
         if(key.back() == '/') key.pop_back();
         ret += key + " = ";
-        if(el.first == eString) {
-            std::string temp = el.to_string();
-            if(temp[0] == '"' && temp.back() == '"') {
-                temp.erase(temp.cbegin(), temp.cbegin() + 1);
-                temp.pop_back();
-            }
-            ret += temp + "\n";
-        } else
-            ret += el.to_string() + "\n";
+        ret += el.to_string(enable_comment, ConfigFormat::eINI) + "\n";
         break;
     }
     }
@@ -2275,7 +2267,7 @@ std::string PrintRecursiveIniElements(const ConfigFormat cfg, const Element& el,
     return ret;
 }
 std::string PrintRecursiveIniElements(const ConfigFormat cfg, const JPair& jp,
-                                      const std::string& preview_key) noexcept {
+                                      const bool enable_comment, const std::string& preview_key) noexcept {
 //    std::cout << "jp:  prew:<" << preview_key + ">" << jp.first + ":" << jp.second.to_string() << std::endl;
     std::string ret;
 
@@ -2286,27 +2278,18 @@ std::string PrintRecursiveIniElements(const ConfigFormat cfg, const JPair& jp,
     switch(jp.second.first) {
     case eJson: {
         if(ret.back() != '\n') ret += "\n";
-        ret += PrintRecursiveIniElements(cfg, jp.second, key + jp.first);
+        ret += PrintRecursiveIniElements(cfg, jp.second, enable_comment, key + jp.first);
 
         break;
     }
     case eArray: {
-        ret += PrintRecursiveIniElements(cfg, jp.second, "\t" + jp.first);
+        ret += PrintRecursiveIniElements(cfg, jp.second, enable_comment, "\t" + jp.first);
 
         break;
     }
     default: {
         ret += key + jp.first + " = ";
-        if(jp.second.first == eString) {
-            std::string temp = jp.second.to_string(false, ConfigFormat::eINI);
-            if(temp[0] == '"' && temp.back() == '"') {
-                temp.erase(temp.cbegin(), temp.cbegin() + 1);
-                temp.pop_back();
-            }
-            std::string temp2;
-            ret += temp2 + "\n";
-        } else
-            ret += jp.second.to_string() + "\n";
+        ret += jp.second.to_string(enable_comment, ConfigFormat::eINI) + "\n";
         break;
     }
     }
@@ -2322,9 +2305,8 @@ std::string Json::to_INI_string(int16_t tabulation_level, const bool enable_comm
 
     for(const JPair& jp : m_values) {
         const Comment& cmt = getComment(jp.first);
-        if(jp.second.first != eJson) {
-            ret += PrintRecursiveIniElements(ConfigFormat::eINI, jp);
-        }
+        if(jp.second.first != eJson)
+            ret += PrintRecursiveIniElements(ConfigFormat::eINI, jp, enable_comment);
     }
     ret += "\n";
 
@@ -2333,7 +2315,7 @@ std::string Json::to_INI_string(int16_t tabulation_level, const bool enable_comm
         if(jp.second.first == eJson) {
             ret += "[" + jp.first + "]";
             ret += "\n";
-            ret += PrintRecursiveIniElements(ConfigFormat::eINI, jp.second);
+            ret += PrintRecursiveIniElements(ConfigFormat::eINI, jp.second, enable_comment);
             ret += "\n";
         }
     }

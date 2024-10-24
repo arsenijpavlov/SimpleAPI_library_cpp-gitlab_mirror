@@ -388,16 +388,19 @@ bool isMultiLine(const std::string &str, const size_t column_size) noexcept {
     return false;
 }
 
-std::string to_string_with_esc(const std::string &str) noexcept {
+std::string to_string_with_esc(const std::string &str, const bool use_backslash) noexcept {
     std::string ret;
 
     for(size_t i = 0; i < str.length(); i++) {
         char current    = str[i];
 
         char c = getFromEscChar(current);
-        if(c != 0)
-            ret += {'\\', c};
-        else
+        if(c != 0) {
+            if(use_backslash && current == '\n')
+                ret += " \\\n\t";
+            else
+                ret += {'\\', c};
+        } else
             ret += current;
     }
 
