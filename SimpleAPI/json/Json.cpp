@@ -2243,14 +2243,56 @@ std::string PrintRecursiveIniElements(const ConfigFormat cfg, const Element& el,
     RemoveIllegalSpaces(key);
     if(!key.empty() && key.back() != '/')
         key += "/";
-    if(key.empty()) {
-        //TODO: поиск одинаковых значений, совмещение в цепочку ключей
-    }
 
     switch(el.first) {
     case eJson: {
-        for(const JPair& jp : el.getJson()) {
-            ret += PrintRecursiveIniElements(cfg, jp, enable_comment, key);
+        if(key.empty()) {
+            JArray temp_array; // array of Json: { "value" : value, "keys" : [key, key...] }
+            std::set<std::string> known_keys;
+
+            for(JPair& jp : el.getJson()) {
+                //списки элементов будут обработаны обычным методом
+                //комментарии имеют локальный характер
+                if(jp.second.first != eJson && jp.second.first != eArray
+                    || (jp.second.first == eString && el.getJson().getComment(jp.first).isEmpty())
+                    ) {
+                    //TODO: JArray.find(const Element) JArray.findOrCreate(const Element)
+                    bool found = false;
+                    Json* inner_json_temp;
+                    for(Element& el : temp_array) {
+                        if(el.getJson()["value"] == jp.second) {
+                            found = true;
+                            inner_json_temp = &el.getJson();
+                            break;
+                        }
+                    }
+                    if(!found) {
+                        temp_array.push_back(Json());
+                        inner_json_temp = &temp_array.getBack().getJson();
+                        (*inner_json_temp)["value"] = jp.second;
+                        (*inner_json_temp)["keys"] = JArray(jp.first);
+                    } else
+                        (*inner_json_temp)["keys"].getArray().push_back(jp.first);
+
+                    known_keys.insert(jp.first); //запомнили, что этот ключ уже обработан
+                }
+            }
+
+            for(Element& a_el : temp_array) {
+                for(Element& key_a_el : a_el.getJson()["keys"].getArray())
+                    ret += key_a_el.getString() + " = ";
+                ret += a_el.getJson()["value"].to_string(enable_comment, ConfigFormat::eINI);
+                ret += "\n";
+            }
+
+            //всё, что не было обработано раньше - будет здесь
+            for(JPair& jp : el.getJson()) {
+                if(known_keys.find(jp.first) == known_keys.end())
+                    ret += PrintRecursiveIniElements(cfg, jp, enable_comment, key);
+            }
+        } else {
+            for(const JPair& jp : el.getJson())
+                ret += PrintRecursiveIniElements(cfg, jp, enable_comment, key);
         }
         break;
     }
@@ -2279,6 +2321,7 @@ std::string PrintRecursiveIniElements(const ConfigFormat cfg, const JPair& jp,
     RemoveIllegalSpaces(key);
     if(!key.empty() && key.back() != '/')
         key += "/";
+
     switch(jp.second.first) {
     case eJson: {
         if(ret.back() != '\n') ret += "\n";
@@ -2315,18 +2358,6 @@ std::string Json::to_INI_string(int16_t tabulation_level, const bool enable_comm
         const Comment& cmt = getComment(jp.first);
         if(jp.second.first == eJson) {
             ret += "[" + jp.first + "]\n";
-            //TODO: поиск одинаковых значений, совмещение в цепочку ключей
-            Json temp_json = jp.second.getJson();
-            for(size_t i = 0; i < jp.second.getJson().size(); i++) {
-                //не работает, надо иначе!
-                temp_json.erase(jp.second.getJson()[i])
-                for(const JPair& jp_inner : jp.second.getJson()) {
-                    if(jp_inner.second.first != eArray && jp.second.first != eJson) {
-
-                    }
-                }
-            }
-
             ret += PrintRecursiveIniElements(ConfigFormat::eINI, jp.second, enable_comment);
             ret += "\n";
         }
