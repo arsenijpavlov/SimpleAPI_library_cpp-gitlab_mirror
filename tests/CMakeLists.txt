@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(project_Client LANGUAGES CXX)
+project(project_all_tests LANGUAGES CXX)
 message("project: project_unit_tests")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/../bin")
 

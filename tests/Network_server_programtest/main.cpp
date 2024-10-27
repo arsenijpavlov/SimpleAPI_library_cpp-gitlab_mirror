@@ -1,12 +1,25 @@
 #include <SimpleAPI.h>
 
 #include <csignal>
+#include <regex>
 #include <unistd.h>
 #include <iostream>
 
 #define MAIN_COLOR logs::eCYAN_FG
 #define NAME_COLUMN_SIZE 16
 #define NAME_COLUMN_RIGHT_ALIGN true
+
+logs::LEVEL common_log_level = logs::eDEBUG3;
+void ParseParameters(int argc, char** argv) {
+    for(int i = 1; i < argc; i++) {
+        std::string str = argv[i];
+        std::smatch match_log_level;
+        if(std::regex_search(str, match_log_level, std::regex("log_level=([0-9]+)"))) {
+            common_log_level = static_cast<logs::LEVEL>(std::stoi(match_log_level.str(1)));
+            std::cout << "set LOG LEVEL to " << to_string(common_log_level) << std::endl;
+        }
+    }
+}
 
 bool isRunning = true;
 void signalHandler(int signal) {
@@ -55,6 +68,7 @@ void LogError(std::string msg) {
 
 int main(int argc, char** argv) {
     signal(SIGINT, signalHandler);
+    ParseParameters(argc, argv);
 
     IpPort server{"127.0.0.15", 31115};
     SocketSettings settings;
@@ -64,12 +78,12 @@ int main(int argc, char** argv) {
     settings.setColorLogErrorCallback(LogError);
     settings.setNameColumnSize(NAME_COLUMN_SIZE);
     settings.enableNameColumnRightAlign(NAME_COLUMN_RIGHT_ALIGN);
-    settings.setLogLevel(logs::eDEBUG);
+    settings.setLogLevel(common_log_level);
     settings.enableLogTime(true);
     settings.enablePrintLogLevel(false);
 
     SocketThread st(eUDP, server, settings);
-    st.m_settings.setLogLevel(logs::eINFO);
+    st.m_settings.setLogLevel(common_log_level);
     st.m_settings.enableLogTime(true);
     st.m_settings.enablePrintLogLevel(false);
     st.m_settings.setNameColumnSize(NAME_COLUMN_SIZE);

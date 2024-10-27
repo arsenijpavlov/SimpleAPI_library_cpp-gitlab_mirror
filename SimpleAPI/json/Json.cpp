@@ -1108,8 +1108,13 @@ Json::Json(const JVector &vec) noexcept : m_comment_sym(0) {
         put(j_it->first, j_it->second);
 }
 
-Json::Json(const Element &element) noexcept
-{/*TODO: Json(const Element& element)*/}
+//NOTE: Json(Element) актуально только для Element == Json, для всех остальных вернёт пустой объект
+Json::Json(const Element &element) noexcept {
+    switch(element.first) {
+    case eJson: *this = element.getJson();
+    default: break;
+    }
+}
 
 Json &Json::operator=(const Json &other) noexcept {
     clear();

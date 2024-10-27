@@ -11,6 +11,8 @@ const std::string to_string(const LEVEL level) noexcept {
     case eWARNING:  return "[WARNING]";
     case eINFO:     return "[INFO]";
     case eDEBUG:    return "[DEBUG]";
+    case eDEBUG2:   return "[DEBUG2]";
+    case eDEBUG3:   return "[DEBUG3]";
     default:        return "[UNKNOWN]";
     }
 }

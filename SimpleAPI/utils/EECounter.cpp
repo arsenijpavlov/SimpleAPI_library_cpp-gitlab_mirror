@@ -19,11 +19,11 @@ EECounter::EECounter(const EECounter &other) noexcept {
     m_global_pos = other.m_global_pos;
 }
 
-void EECounter::set_pos(uint64_t m_pos) noexcept {
-    m_pos = m_pos;
+void EECounter::set_pos(const uint64_t &pos) noexcept {
+    m_pos = pos;
 }
 
-void EECounter::set_glob_pos(uint64_t glob_m_pos) noexcept {
+void EECounter::set_glob_pos(const uint64_t &glob_m_pos) noexcept {
     m_global_pos = glob_m_pos;
 }
 
