@@ -40,6 +40,7 @@ std::string preview_key = "b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABA
                           "ZHzy1s1A0v0ufP2jKB7g5MZCVJHol/mkIYlfxh4JhT2ZM/FU5EamOjnT3AgIm0DOCTjnNt"
                           "ufzKOdHj6AkSM95xN+ztMCoHocWWQJB4KP8rqQJMx60lTCo9XiyJlvee2YwnuPe4cLOv0O"
                           "oM+OcllgthnKLvWQAAABpyb290QHJpZGRpY2stTlBPQ29saWJyaS1QQwECAwQFBgc=";
+
 std::string public_key = "AAAAB3NzaC1yc2EAAAADAQABAAABgQDalT8AdfKkGkBOvIdcR7R9xIiYkdfQt4/MbZrEMy"
                          "sNtk3F70N4oVNIGo9Dv3VKCFgrvq/EBo2FXmhgvfVFxJ0EZXsp2jVG4ZbbdjY9bVC5J+YH"
                          "UOnXNn3wIoU9/GC5iWNROl2Ivsv3NN0G/vESVNzwCer6OSKRS2z1LSFPjduPgL/Azgr4Xm"
@@ -49,20 +50,27 @@ std::string public_key = "AAAAB3NzaC1yc2EAAAADAQABAAABgQDalT8AdfKkGkBOvIdcR7R9xI
                          "m2yhGk9rpUHsQn3c9PHnSePYC0PF2I+Iqk1eRHjImJC5mG76hpxLjW8HBNN59f3l3Prwe+"
                          "/W1xNitoUEMAFgWbtBIGytIQSVzlzQ6hv1ZDhOjEWdhGLLMfIk6kU=";
 
-std::vector<std::string> chipher(std::string str) {
-    std::vector<std::string> vec;
+using Packet = std::vector<uint8_t>;
+std::vector<Packet> chipher(Packet packet) {
+    std::vector<Packet> vec;
     size_t block_len = public_key.length();
 
     //разбить на куски, соответствующие размеру блока public_key
-    while(str.length() > block_len) {
-        vec.push_back(str.substr(0, block_len));
-        str.erase(0, block_len);
+    while(packet.size() > block_len) {
+        vec.push_back({packet.cbegin(), packet.cbegin() + block_len});
+        packet.erase(packet.cbegin(), packet.cbegin() + block_len);
     }
     //дополнить нулями
-    if(vec.size() == 0 && str.length() > 0)
-        vec.push_back(str);
-    while(vec.back().length() < public_key.length())
+    if(vec.size() == 0 && packet.size() > 0)
+        vec.push_back({packet.cbegin(), packet.cend()});
+    while(vec.back().size() < public_key.length())
         vec.back().push_back(0);
+
+    for(Packet &p : vec) {
+        for(size_t i = 0; i < p.size(); i++) {
+            p[i] ^= public_key[i];
+        }
+    }
 
     return vec;
 }
@@ -71,10 +79,14 @@ std::vector<std::string> dechipher(const std::string& str) {
 }
 
 int main() {
-    std::string message1 = "abcdefghijklmnopqrstuvwxyz0123456789!";
-    std::vector<std::string> ch_messages = chipher(message1);
-    for(std::string fragment : ch_messages)
-        std::cout << "chiphered fragment size [" << fragment.length() << "]" << std::endl;
+    Packet message1 = convert_to_packet("abcdefghijklmnopqrstuvwxyz0123456789!");
+    auto ch_messages = chipher(message1);
+    for(auto fragment : ch_messages) {
+        std::cout << "chiphered fragment size [" << fragment.size() << "]" << std::endl;
+        for(uint8_t c : fragment)
+            std::cout << (char)c;
+        std::cout << std::endl;
+    }
 //    std::vector<std::string> message2 = dechipher(compare(ch_messages));
 //    for(std::string fragment : ch_messages)
 //        std::cout << fragment.length() << std::endl;
