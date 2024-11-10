@@ -298,13 +298,13 @@ bool checkCrc32(std::vector<uint8_t>& data) noexcept {
 //TODO: \u0000
 char getEscChar(const char ch) noexcept {
     switch(ch) {
-    case '"':   return '\"';
-    case '\\':  return '\\';
-    case 'b':   return '\b';
-    case 'f':   return '\f';
-    case 'n':   return '\n';
-    case 'r':   return '\r';
-    case 't':   return '\t';
+    case '"':   return '\"';    //символ "
+    case '\\':  return '\\';    //символ '\'
+    case 'b':   return '\b';    //возврат на один символ
+    case 'f':   return '\f';    //прогон страницы
+    case 'n':   return '\n';    //перенос строки
+    case 'r':   return '\r';    //возврат каретки
+    case 't':   return '\t';    //табуляция
 
     default:    return 0;
     }
@@ -343,17 +343,26 @@ void UpdEscSymbols(std::string& string) noexcept {
     string = temp_string;
 }
 
-size_t getStringSize(const std::string &str) noexcept {
+size_t GetStringSize(const std::string &str) {
     size_t size = 0;
 
-    bool flag = false;
-    for(char ch : str) {
-        if(ch < 0) {
-            if(flag)
-                size++;
-            flag = !flag;
-        } else
+    for(size_t i = 0; i < str.size(); ) {
+        if((uint8_t)str[i] < 0b10000000) {
             size++;
+            i++;
+        } else if((uint8_t)str[i] < 0b11000000) {
+            throw std::invalid_argument("incorrect symbol header");
+        } else if((uint8_t)str[i] < 0b11100000) {
+            size++;
+            i += 2;
+        } else if((uint8_t)str[i] < 0b11110000) {
+            size++;
+            i += 3;
+        } else if((uint8_t)str[i] < 0b11111000) {
+            size++;
+            i += 4;
+        } else
+            throw std::invalid_argument("incorrect symbol header");
     }
 
     return size;
