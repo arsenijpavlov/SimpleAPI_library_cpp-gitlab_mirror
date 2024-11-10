@@ -57,7 +57,7 @@ bool        checkCrc32(std::vector<uint8_t>& data) noexcept;
 char        getEscChar(const char ch) noexcept;
 char        getFromEscChar(const char ch) noexcept;
 void        UpdEscSymbols(std::string& string) noexcept;
-size_t      getStringSize(const std::string& str) noexcept;
+size_t      GetStringSize(const std::string& str);
 std::string SeparateString(std::string& str, const size_t length) noexcept;
 bool        isMultiLine(const std::string& str, const size_t column_size = 0) noexcept;
 std::string to_string_with_esc(const std::string& str, const bool use_backslash = false) noexcept;
