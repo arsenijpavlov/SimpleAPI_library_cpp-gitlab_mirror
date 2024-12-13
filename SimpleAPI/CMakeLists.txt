@@ -20,8 +20,29 @@ target_link_libraries(${PROJECT_NAME} PUBLIC -pthread)
 
 
 execute_process(
-    COMMAND bash -c "mkdir -p ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include && cd $_; \
-        cp -vf ${PROJECT_SOURCE_DIR}/*.h ."
-    OUTPUT_VARIABLE var
+    COMMAND bash -c "mkdir -p ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include"
+#    COMMAND bash -c "mkdir -p ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include && cd $_; \
+#        cp -vf ${PROJECT_SOURCE_DIR}/*.h ."
+#    OUTPUT_VARIABLE var
 )
-message("cp: \n${var}")
+#message("cp: \n${var}")
+
+foreach(header ${${PROJECT_NAME}_headers})
+    string(APPEND all_headers " \"${header}\"")
+
+    message("preview: ${header}")
+    string(REPLACE ${CMAKE_CURRENT_SOURCE_DIR}/ "" header ${header})
+    string(REPLACE "[a-zA-Z0-9_]*.h" "" header ${header})
+    message("current: ${header}")
+
+    execute_process(
+        COMMAND bash -c "mkdir -p \"${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include/${header}\""
+    )
+endforeach()
+
+add_custom_command(TARGET ${PROJECT_NAME}
+    POST_BUILD
+    COMMAND "${CMAKE_COMMAND}" -P ${all_headers} "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include"
+#    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+#    COMMENT "Copy ..."
+)

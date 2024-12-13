@@ -54,7 +54,7 @@ bool        checkCrc8(std::vector<uint8_t>& data) noexcept;
 bool        checkCrc16(std::vector<uint8_t>& data) noexcept;
 bool        checkCrc32(std::vector<uint8_t>& data) noexcept;
 
-char        getEscChar(const char ch) noexcept;
+std::string getEscChar(const std::string& str) noexcept;
 char        getFromEscChar(const char ch) noexcept;
 void        UpdEscSymbols(std::string& string) noexcept;
 size_t      GetStringSize(const std::string& str);
