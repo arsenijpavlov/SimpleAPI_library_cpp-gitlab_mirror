@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+//NOTE: https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences
+//      гайд по цветовому выводу
 
 namespace logs {
 
