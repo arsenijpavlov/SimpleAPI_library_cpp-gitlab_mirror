@@ -33,16 +33,17 @@ foreach(header ${${PROJECT_NAME}_headers})
         make_directory("${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include/${header_dir}")
     endif()
 
-    execute_process(
+#    execute_process(
 #        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${header}" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include/${header_dir}"
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${header}" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}include/${header}"
-    )
+#        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${header}" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}include/${header}"
+#        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/${header}" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include/${header_dir}/${header}"
+#    )
 endforeach()
 message("all_headers: ${Yellow}${all_headers}${Reset}")
 
 
-add_custom_command(TARGET ${PROJECT_NAME}
-    PRE_BUILD
-##    COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${all_headers} "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include"
-    COMMAND ${CMAKE_COMMAND} -E copy ${all_headers} "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include"
-)
+#add_custom_command(TARGET ${PROJECT_NAME}
+#    PRE_BUILD
+#    COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${all_headers} "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include"
+#    COMMAND ${CMAKE_COMMAND} -E copy ${all_headers} "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include/${header_dir}/${header}"
+#)
