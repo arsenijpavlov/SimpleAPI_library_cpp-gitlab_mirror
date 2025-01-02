@@ -18,10 +18,32 @@ target_sources(${PROJECT_NAME} PRIVATE
 )
 target_link_libraries(${PROJECT_NAME} PUBLIC -pthread)
 
+make_directory(${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include)
 
-execute_process(
-    COMMAND bash -c "mkdir -p ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include && cd $_; \
-        cp -vf ${PROJECT_SOURCE_DIR}/*.h ."
-    OUTPUT_VARIABLE var
-)
-message("cp: \n${var}")
+foreach(header ${${PROJECT_NAME}_headers})
+    string(APPEND all_headers " '${header}'")
+
+#    message("preview: ${header}")
+    string(REPLACE ${CMAKE_CURRENT_SOURCE_DIR}/ "" header ${header})
+#    message("current: ${header}")
+
+    string(REGEX REPLACE "/.*\.h" "" header_dir ${header})
+    if(NOT ${header_dir} MATCHES "\.h")
+        message("dir: ${header_dir}")
+        make_directory("${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include/${header_dir}")
+    endif()
+
+#    execute_process(
+#        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${header}" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include/${header_dir}"
+#        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${header}" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}include/${header}"
+#        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/${header}" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include/${header_dir}/${header}"
+#    )
+endforeach()
+message("all_headers: ${Yellow}${all_headers}${Reset}")
+
+
+#add_custom_command(TARGET ${PROJECT_NAME}
+#    PRE_BUILD
+#    COMMAND "${CMAKE_COMMAND}" -E copy_if_different ${all_headers} "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include"
+#    COMMAND ${CMAKE_COMMAND} -E copy ${all_headers} "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include/${header_dir}/${header}"
+#)

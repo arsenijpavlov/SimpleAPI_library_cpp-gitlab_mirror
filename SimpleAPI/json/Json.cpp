@@ -1289,8 +1289,8 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 
             //экранированные кавычки ВСЕГДА заносятся в значение
             if(current == '\\' && string_of_json.length() > i + 1) {
-                char e_ch = utils::getEscChar(string_of_json[i + 1]);
-                if(e_ch != 0) {
+                std::string e_ch = utils::getEscChar(std::string{string_of_json[i + 1]});
+                if(!e_ch.empty()) {
                     value_string += '\\' + e_ch;
                     i++;
                     break;
@@ -2683,8 +2683,8 @@ bool CheckString(std::string& value, const ConfigFormat& format) noexcept {
                     if(!done) {
                         //экранированные кавычки ВСЕГДА заносятся в значение
                         if(value[i] == '\\' && value.length() > i + 1) {
-                            char e_ch = utils::getEscChar(value[i + 1]);
-                            if(e_ch != 0) {
+                            std::string e_ch = utils::getEscChar(std::string{value[i + 1]});
+                            if(!e_ch.empty()) {
                                 temp += e_ch;
                                 i++;
                                 continue;
@@ -2800,8 +2800,8 @@ bool CheckArray(std::string& value) noexcept {
         if(ch != 0) { //начинаем запись слова
             //экранированные кавычки ВСЕГДА заносится в значение
             if(value[i] == '\\' && value.length() > i + 1) {
-                char e_ch = utils::getEscChar(value[i + 1]);
-                if(e_ch != 0) {
+                std::string e_ch = utils::getEscChar(std::string{value[i + 1]});
+                if(!e_ch.empty()) {
                     temp += '\\' + e_ch;
                     i++;
                     break;

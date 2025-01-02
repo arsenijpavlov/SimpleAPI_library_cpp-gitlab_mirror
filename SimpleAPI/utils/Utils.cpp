@@ -296,15 +296,15 @@ bool checkCrc32(std::vector<uint8_t>& data) noexcept {
 }
 
 //TODO: \u0000
-char getEscChar(const char ch) noexcept {
-    switch(ch) {
-    case '"':   return '\"';    //символ "
-    case '\\':  return '\\';    //символ '\'
-    case 'b':   return '\b';    //возврат на один символ
-    case 'f':   return '\f';    //прогон страницы
-    case 'n':   return '\n';    //перенос строки
-    case 'r':   return '\r';    //возврат каретки
-    case 't':   return '\t';    //табуляция
+std::string getEscChar(const std::string &str) noexcept {
+    switch(str[0]) {
+    case '"':   return "\"";    //символ "
+    case '\\':  return "\\";    //символ '\'
+    case 'b':   return "\b";    //возврат на один символ
+    case 'f':   return "\f";    //прогон страницы
+    case 'n':   return "\n";    //перенос строки
+    case 'r':   return "\r";    //возврат каретки
+    case 't':   return "\t";    //табуляция
 
     default:    return 0;
     }
@@ -330,8 +330,8 @@ void UpdEscSymbols(std::string& string) noexcept {
     for(size_t i = 0; i < string.size(); i++) {
         char current = string[i];
         if(current == '\\' && string.length() > i + 1) {
-            char e_ch = utils::getEscChar(string[i + 1]);
-            if(e_ch != 0) {
+            std::string e_ch = utils::getEscChar(std::string{string[i + 1]});
+            if(!e_ch.empty()) {
                 std::cout << "found escape symbols <"
                           << current << string[i+1] << ">" << std::endl;
                 temp_string += '\\' + e_ch;
