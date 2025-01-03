@@ -123,23 +123,16 @@ const std::string to_string(const COLOR color) noexcept;
 
 //-----------------------------------------------------------------------------------------
 std::string to_color_string(const LEVEL level, const std::string& log_message) noexcept;
-//std::string to_color_string(const LEVEL level, const char* log_message) noexcept
-//                                { return to_color_string(level, std::string(log_message)); }
-//template<typename T, >
 __TYPE_NOT_STRING__(T)
 std::string to_color_string(const LEVEL level, const T& log_message) noexcept
                                 { return to_color_string(level, std::to_string(log_message)); }
 //-----------------------------------------------------------------------------------------
 std::string to_color_string(const std::vector<COLOR>& colors, const std::string& log_message) noexcept;
-//std::string to_color_string(const std::vector<COLOR>& colors, const char* log_message) noexcept
-//                                { return to_color_string(colors, std::string(log_message)); }
 __TYPE_NOT_STRING__(T)
 std::string to_color_string(const std::vector<COLOR>& colors, const T& log_message) noexcept
                                 { return to_color_string(colors, std::to_string(log_message)); }
 //-----------------------------------------------------------------------------------------
 std::string to_color_string(const COLOR color, const std::string& log_message) noexcept;
-//std::string to_color_string(const COLOR color, const char* log_message) noexcept
-//                                { return to_color_string(color, std::string(log_message)); }
 __TYPE_NOT_STRING__(T)
 std::string to_color_string(const COLOR color, const T& log_message) noexcept
                                 { return to_color_string(color, std::to_string(log_message)); }
@@ -152,10 +145,6 @@ std::string get_time_string(const std::chrono::system_clock::time_point& tp_mill
 //-----------------------------------------------------------------------------------------
 std::string columned(const std::string& log_message, const int column_size,
                      const bool right_align = false) noexcept;
-//std::string columned(const char* log_message, const int column_size,
-//                     const bool right_align = false) noexcept
-//                                { return columned(std::string(log_message), column_size, right_align); }
-//template<typename T>
 __TYPE_NOT_STRING__(T)
 std::string columned(const T& log_message, const int column_size,
                      const bool right_align = false) noexcept
@@ -163,10 +152,6 @@ std::string columned(const T& log_message, const int column_size,
 //-----------------------------------------------------------------------------------------
 std::string columned(const std::vector<COLOR> colors, const std::string& log_message,
                      const int column_size, const bool right_align = false) noexcept;
-//std::string columned(const std::vector<COLOR> colors, const char* log_message,
-//                     const int column_size, const bool right_align = false) noexcept
-//                                { return columned(colors, std::string(log_message), column_size, right_align); }
-//template<typename T>
 __TYPE_NOT_STRING__(T)
 std::string columned(const std::vector<COLOR> colors, const T& log_message,
                      const int column_size, const bool right_align = false) noexcept
@@ -174,10 +159,6 @@ std::string columned(const std::vector<COLOR> colors, const T& log_message,
 //-----------------------------------------------------------------------------------------
 std::string columned(const COLOR color, const std::string& log_message,
                      const int column_size, const bool right_align = false) noexcept;
-//std::string columned(const COLOR color, const char* log_message,
-//                     const int column_size, const bool right_align = false) noexcept
-//                                { return columned(color, std::string(log_message), column_size, right_align); }
-//template<typename T>
 __TYPE_NOT_STRING__(T)
 std::string columned(const COLOR color, const T& log_message,
                      const int column_size, const bool right_align = false) noexcept
@@ -185,10 +166,6 @@ std::string columned(const COLOR color, const T& log_message,
 //-----------------------------------------------------------------------------------------
 std::string columned(const LEVEL level, const std::string& log_message,
                      const int column_size, const bool right_align = false) noexcept;
-//std::string columned(const LEVEL level, const char* log_message,
-//                     const int column_size, const bool right_align = false) noexcept
-//                                { return columned(level, std::string(log_message), column_size, right_align); }
-//template<typename T>
 __TYPE_NOT_STRING__(T)
 std::string columned(const LEVEL level, const T& log_message,
                      const int column_size, const bool right_align = false) noexcept
