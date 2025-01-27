@@ -13,5 +13,6 @@ file(GLOB ${PROJECT_NAME}_sources
 add_executable(${PROJECT_NAME})
 target_sources(${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_sources})
 
-target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_SOURCE_DIR}/../../SimpleAPI")
-target_link_libraries(${PROJECT_NAME} PUBLIC SimpleAPI)
+target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/../libSimpleAPI")
+target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/../libSimpleAPI/include")
+target_link_libraries(${PROJECT_NAME} PUBLIC -lSimpleAPI)

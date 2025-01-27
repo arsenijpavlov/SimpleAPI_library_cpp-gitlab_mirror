@@ -18,8 +18,9 @@ function (create_test test_group_name)
 
     add_executable(${test_name})
     target_sources(${test_name} PUBLIC ${test_group_sources})
-    target_include_directories(${test_name} PUBLIC "${PROJECT_SOURCE_DIR}/../SimpleAPI")
-    target_link_libraries(${test_name} PUBLIC SimpleAPI gtest gmock)
+    target_include_directories(${test_name} PUBLIC "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/../libSimpleAPI")
+    target_include_directories(${test_name} PUBLIC "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/../libSimpleAPI/include")
+    target_link_libraries(${test_name} PUBLIC -lSimpleAPI gtest gmock)
 endfunction()
 
 file(GLOB TEST_LIST "${CMAKE_CURRENT_LIST_DIR}/test_*.cpp")
