@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
 
-#message("----------------------------------------")
 message("----Start package SimplaAPI includes----")
 
 if(${CMAKE_ARGC} LESS 5)
