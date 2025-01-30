@@ -6,7 +6,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/../bin")
 
 #Google test libs
 add_subdirectory(googletest-1.15.0)
-add_subdirectory(simple_test)
 
 function (create_test test_group_name)
     file(GLOB test_group_sources
@@ -18,9 +17,10 @@ function (create_test test_group_name)
 
     add_executable(${test_name})
     target_sources(${test_name} PUBLIC ${test_group_sources})
-    target_include_directories(${test_name} PUBLIC "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/../libSimpleAPI")
-    target_include_directories(${test_name} PUBLIC "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/../libSimpleAPI/include")
-    target_link_libraries(${test_name} PUBLIC -lSimpleAPI gtest gmock)
+    target_include_directories(${test_name} PUBLIC "${PROJECT_SOURCE_DIR}/../SimpleAPI")
+#    target_include_directories(${test_name} PUBLIC "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/../libSimpleAPI")
+#    target_include_directories(${test_name} PUBLIC "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/../libSimpleAPI/include")
+    target_link_libraries(${test_name} PUBLIC SimpleAPI gtest gmock)
 endfunction()
 
 file(GLOB TEST_LIST "${CMAKE_CURRENT_LIST_DIR}/test_*.cpp")

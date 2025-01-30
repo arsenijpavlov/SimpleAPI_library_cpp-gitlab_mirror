@@ -25,6 +25,6 @@ add_subdirectory(SimpleAPI)
 #TESTS
 if(UNIT_TESTS)
     #unit tests
-    add_subdirectory(tests)
+    add_subdirectory(unit_tests)
 endif()
 unset(UNIT_TESTS CACHE)
