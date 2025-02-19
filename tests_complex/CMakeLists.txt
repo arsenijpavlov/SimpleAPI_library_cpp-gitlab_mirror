@@ -1,0 +1,37 @@
+cmake_minimum_required(VERSION 3.5)
+include(${SIMPLE_API_MAIN_DIR}/utils.cmake)
+
+
+#test append library
+if(ENABLE_TEST_LIBRARY_APP)
+    add_subdirectory(Append_lib_programtest)
+endif()
+unset(ENABLE_TEST_LIBRARY_APP CACHE)
+
+
+#test Json
+if(ENABLE_TEST_JSON_APP)
+    add_subdirectory(Json_programtest)
+endif()
+unset(ENABLE_TEST_JSON_APP CACHE)
+
+#test sockets
+if(ENABLE_TEST_SOCKETS_APP)
+    file(GLOB NETWORK_DIRS ${CMAKE_CURRENT_LIST_DIR}/Network*_programtest)
+    foreach(NETWORK_DIR ${NETWORK_DIRS})
+        add_subdirectory(${NETWORK_DIR})
+    endforeach()
+endif()
+unset(ENABLE_TEST_SOCKETS_APP CACHE)
+
+#test colors
+if(ENABLE_TEST_COLORS_APP)
+    add_subdirectory(Colors_programtest)
+endif()
+unset(ENABLE_TEST_COLORS_APP CACHE)
+
+#test security
+if(ENABLE_TEST_SECURITY_APP)
+    add_subdirectory(Security_programtest)
+endif()
+unset(ENABLE_TEST_SECURITY_APP CACHE)
