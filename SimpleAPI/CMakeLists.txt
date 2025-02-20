@@ -11,7 +11,11 @@ file(GLOB_RECURSE ${PROJECT_NAME}_headers "${PROJECT_SOURCE_DIR}/*.h" )
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/../lib${PROJECT_NAME}/")
 message("CMAKE_LIBRARY_OUTPUT_DIRECTORY: ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
 
-add_library(${PROJECT_NAME} SHARED)
+if(SIMPLE_API_STATIC_BUILD)
+    add_library(${PROJECT_NAME} STATIC)
+else()
+    add_library(${PROJECT_NAME} SHARED)
+endif()
 target_sources(${PROJECT_NAME} PRIVATE
     ${${PROJECT_NAME}_sources}
     ${${PROJECT_NAME}_headers}
@@ -20,10 +24,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC -pthread)
 
 # упаковка готовой библиотеки в конечную директорию
 add_custom_command(TARGET ${PROJECT_NAME}
-#    POST_BUILD
-#    PRE_BUILD
-    PRE_LINK
-
+    POST_BUILD
     COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_LIST_DIR}/../copy_includes.cmake"
                 "${CMAKE_CURRENT_LIST_DIR}" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include"
 )

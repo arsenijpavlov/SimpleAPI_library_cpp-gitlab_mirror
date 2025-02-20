@@ -17,14 +17,9 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(ENABLE_TESTS_UNIT        "Google tests enabled"          on)
-option(ENABLE_TEST_LIBRARY_APP  "Base lib testing app enabled"  off)
-option(ENABLE_TEST_JSON_APP     "Json testing app enabled"      off)
-option(ENABLE_TEST_SOCKETS_APP  "Sockets testing app enabled"   off)
-option(ENABLE_TEST_COLORS_APP   "Color choiser app enabled"     off)
-option(ENABLE_TEST_SECURITY_APP "(De)Chiphering app enabled"    off)
 
 #library
-add_subdirectory(SimpleAPI ${SIMPLE_API_CMAKE_GENERATED_DIR})
+add_subdirectory(SimpleAPI)
 
 
 #TESTS =================================================================
@@ -33,7 +28,4 @@ if(ENABLE_TESTS_UNIT)
     add_subdirectory(tests_unit)
 endif()
 unset(ENABLE_TESTS_UNIT CACHE)
-
-#эти тесты предполагают подключение уже сгенерированной библиотеки
-add_subdirectory(tests_complex)
 #================================================================= TESTS
