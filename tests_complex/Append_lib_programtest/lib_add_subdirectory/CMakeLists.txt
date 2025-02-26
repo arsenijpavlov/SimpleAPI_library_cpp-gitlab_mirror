@@ -11,10 +11,11 @@ file(GLOB ${PROJECT_NAME}_sources
     "*.h"
 )
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../SimpleAPI ${CMAKE_CURRENT_SOURCE_DIR}/build/SimpleAPI)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../SimpleAPI ${CMAKE_CURRENT_BINARY_DIR}/SimpleAPI)
 
 add_executable(${PROJECT_NAME})
 target_sources(${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_sources})
 
-add_dependencies(${PROJECT_NAME} SimpleAPI)
 target_link_libraries(${PROJECT_NAME} PUBLIC SimpleAPI)
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../../SimpleAPI)
+add_dependencies(${PROJECT_NAME} SimpleAPI)

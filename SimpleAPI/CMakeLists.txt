@@ -24,7 +24,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC -pthread)
 
 # упаковка готовой библиотеки в конечную директорию
 add_custom_command(TARGET ${PROJECT_NAME}
-    POST_BUILD
+    PRE_LINK
     COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_LIST_DIR}/../copy_includes.cmake"
                 "${CMAKE_CURRENT_LIST_DIR}" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include"
 )
