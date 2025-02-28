@@ -11,6 +11,7 @@ file(GLOB ${PROJECT_NAME}_sources
     "*.h"
 )
 
+include(${CMAKE_CURRENT_SOURCE_DIR}/../../../SimpleAPI/FindSimpleAPI.cmake)
 #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../SimpleAPI ${CMAKE_CURRENT_BINARY_DIR}/SimpleAPI)
 
 add_executable(${PROJECT_NAME})
