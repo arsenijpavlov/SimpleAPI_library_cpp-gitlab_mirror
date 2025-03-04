@@ -19,6 +19,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(ENABLE_TESTS_UNIT        "Google tests enabled"          on)
 
 #library
+set(SIMPLE_API_STATIC_BUILD on)
 add_subdirectory(SimpleAPI)
 
 

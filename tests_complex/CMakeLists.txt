@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 set(SIMPLE_API_MAIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/..")
 include(${SIMPLE_API_MAIN_DIR}/utils.cmake)
 
-project(SimpleAPI_append_lib_tests)
+project(SimpleAPI_complex_tests)
 
 option(ENABLE_TEST_LIBRARY_APP  "Base lib testing app enabled"  on)
 option(ENABLE_TEST_JSON_APP     "Json testing app enabled"      off)

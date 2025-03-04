@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 #include(${SIMPLE_API_MAIN_DIR}/utils.cmake)
 
 set(SimpleAPI_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-set(SimpleAPI_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR})
+set(SimpleAPI_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/SimpleAPI)
 

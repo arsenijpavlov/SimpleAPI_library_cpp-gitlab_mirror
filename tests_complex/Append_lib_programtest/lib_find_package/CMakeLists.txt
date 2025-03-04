@@ -11,7 +11,7 @@ file(GLOB ${PROJECT_NAME}_sources
     "*.h"
 )
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/../../../SimpleAPI/FindSimpleAPI.cmake)
+#include(${CMAKE_CURRENT_SOURCE_DIR}/../../../SimpleAPI/FindSimpleAPI.cmake)
 #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../SimpleAPI ${CMAKE_CURRENT_BINARY_DIR}/SimpleAPI)
 
 add_executable(${PROJECT_NAME})
@@ -26,8 +26,8 @@ target_sources(${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_sources})
 
 #set(SimpleAPI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../SimpleAPI)
 find_package(SimpleAPI
-    PATHS ${SimpleAPI_DIR}
-#    PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../SimpleAPI/FindSimpleAPI.cmake
+#    PATHS ${SimpleAPI_DIR}
+    PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../dynamic_SimpleAPI/FindSimpleAPI.cmake
 )
 
 if(PACKAGE_SimpleAPI)

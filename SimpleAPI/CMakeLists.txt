@@ -16,6 +16,8 @@ if(SIMPLE_API_STATIC_BUILD)
 else()
     add_library(${PROJECT_NAME} SHARED)
 endif()
+unset(SIMPLE_API_STATIC_BUILD)
+
 target_sources(${PROJECT_NAME} PRIVATE
     ${${PROJECT_NAME}_sources}
     ${${PROJECT_NAME}_headers}

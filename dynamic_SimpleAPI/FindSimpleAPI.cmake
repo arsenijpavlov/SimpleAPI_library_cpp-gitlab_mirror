@@ -1,12 +1,20 @@
 cmake_minimum_required(VERSION 3.5)
 #include(${SIMPLE_API_MAIN_DIR}/utils.cmake)
 
-set(SimpleAPI_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-set(SimpleAPI_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR})
+#find_package(PkgConfig QUIET)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/SimpleAPI)
 
-#set_property(SimpleAPI_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+find_path(SimpleAPI_INCLUDE_DIRS PUBLIC
+    ${CMAKE_CURRENT_BINARY_DIR}/SimpleAPI/include/*.h
+    ${CMAKE_CURRENT_BINARY_DIR}/SimpleAPI/include/json/*.h
+    ${CMAKE_CURRENT_BINARY_DIR}/SimpleAPI/include/logger/*.h
+    ${CMAKE_CURRENT_BINARY_DIR}/SimpleAPI/include/network/*.h
+    ${CMAKE_CURRENT_BINARY_DIR}/SimpleAPI/include/utils/*.h
+)
+find_path(SimpleAPI_LIBRARIES
+    ${CMAKE_CURRENT_BINARY_DIR}/SimpleAPI
+)
 
 #project(SimpleAPI LANGUAGES CXX)
 #set(CMAKE_CXX_STANDARD 11)
