@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 include(${SIMPLE_API_MAIN_DIR}/utils.cmake)
 
 project(Append_library_find_package_Test LANGUAGES CXX)
+
 print_project_name(${PROJECT_NAME})
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/../bin")
@@ -24,13 +25,10 @@ target_sources(${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_sources})
 #include(${SIMPLE_API_MAIN_DIR}/SimpleAPI/FindSimpleAPI.cmake)
 #include(${CMAKE_CURRENT_SOURCE_DIR}/../../../SimpleAPI/FindSimpleAPI.cmake)
 
-#set(SimpleAPI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../SimpleAPI)
-find_package(SimpleAPI
-#    PATHS ${SimpleAPI_DIR}
-    PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../../dynamic_SimpleAPI/FindSimpleAPI.cmake
-)
+list(APPEND CMAKE_MODULE_PATH "${SIMPLE_API_MAIN_DIR}/cmake_modules")
+find_package(SimpleAPI REQUIRED)
 
-if(PACKAGE_SimpleAPI)
+if(SimpleAPI_FOUND)
     message("SimpleAPI found")
 else()
     message("SimpleAPI not found")

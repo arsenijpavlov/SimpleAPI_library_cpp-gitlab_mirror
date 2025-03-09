@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.5)
 
 #find_package(PkgConfig QUIET)
 
+#find_package(PkgConfig)
+
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/SimpleAPI)
 
 find_path(SimpleAPI_INCLUDE_DIRS PUBLIC
