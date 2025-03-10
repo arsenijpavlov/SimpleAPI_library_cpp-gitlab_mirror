@@ -21,4 +21,6 @@ find_package(SimpleAPI REQUIRED)
 if(SimpleAPI_FOUND)
     target_link_libraries(${PROJECT_NAME} PUBLIC ${SimpleAPI_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PUBLIC ${SimpleAPI_INCLUDE_DIRS})
+else()
+    #TODO: собрать библиотеку и провести поиск заново
 endif(SimpleAPI_FOUND)
