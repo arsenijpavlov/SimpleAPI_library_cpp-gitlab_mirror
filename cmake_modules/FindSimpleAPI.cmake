@@ -31,5 +31,6 @@ if(NOT SimpleAPI_FOUND)
     include(FindPackageHandleStandardArgs)
     find_package_handle_standard_args(SimpleAPI DEFAULT_MSG SimpleAPI_LIBRARIES SimpleAPI_INCLUDE_DIRS)
     mark_as_advanced(SimpleAPI_LIBRARIES SimpleAPI_INCLUDE_DIRS)
-
+else()
+    #TODO: собрать библиотеку и провести поиск заново
 endif(NOT SimpleAPI_FOUND)
