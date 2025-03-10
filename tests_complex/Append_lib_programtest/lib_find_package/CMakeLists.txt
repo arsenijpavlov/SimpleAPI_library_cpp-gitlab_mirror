@@ -12,24 +12,13 @@ file(GLOB ${PROJECT_NAME}_sources
     "*.h"
 )
 
-#include(${CMAKE_CURRENT_SOURCE_DIR}/../../../SimpleAPI/FindSimpleAPI.cmake)
-#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../SimpleAPI ${CMAKE_CURRENT_BINARY_DIR}/SimpleAPI)
-
 add_executable(${PROJECT_NAME})
 target_sources(${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_sources})
-
-#target_link_libraries(${PROJECT_NAME} PUBLIC SimpleAPI)
-#target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../../SimpleAPI)
-#add_dependencies(${PROJECT_NAME} SimpleAPI)
-
-#include(${SIMPLE_API_MAIN_DIR}/SimpleAPI/FindSimpleAPI.cmake)
-#include(${CMAKE_CURRENT_SOURCE_DIR}/../../../SimpleAPI/FindSimpleAPI.cmake)
 
 list(APPEND CMAKE_MODULE_PATH "${SIMPLE_API_MAIN_DIR}/cmake_modules")
 find_package(SimpleAPI REQUIRED)
 
 if(SimpleAPI_FOUND)
-    message("SimpleAPI found")
-else()
-    message("SimpleAPI not found")
-endif()
+    target_link_libraries(${PROJECT_NAME} PUBLIC ${SimpleAPI_LIBRARIES})
+    target_include_directories(${PROJECT_NAME} PUBLIC ${SimpleAPI_INCLUDE_DIRS})
+endif(SimpleAPI_FOUND)
