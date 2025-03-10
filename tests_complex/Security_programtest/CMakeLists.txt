@@ -14,6 +14,10 @@ file(GLOB ${PROJECT_NAME}_sources
 add_executable(${PROJECT_NAME})
 target_sources(${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_sources})
 
-target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/../libSimpleAPI")
-target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/../libSimpleAPI/include")
-target_link_libraries(${PROJECT_NAME} PUBLIC -lSimpleAPI)
+list(APPEND CMAKE_MODULE_PATH "${SIMPLE_API_MAIN_DIR}/cmake_modules")
+find_package(SimpleAPI REQUIRED)
+
+if(SimpleAPI_FOUND)
+    target_link_libraries(${PROJECT_NAME} PUBLIC ${SimpleAPI_LIBRARIES})
+    target_include_directories(${PROJECT_NAME} PUBLIC ${SimpleAPI_INCLUDE_DIRS})
+endif(SimpleAPI_FOUND)

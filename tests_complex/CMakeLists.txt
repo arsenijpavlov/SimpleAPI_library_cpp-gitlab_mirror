@@ -4,11 +4,11 @@ include(${SIMPLE_API_MAIN_DIR}/utils.cmake)
 
 project(SimpleAPI_complex_tests)
 
-option(ENABLE_TEST_LIBRARY_APP  "Base lib testing app enabled"  on)
+option(ENABLE_TEST_LIBRARY_APP  "Base lib testing app enabled"  off)
 option(ENABLE_TEST_JSON_APP     "Json testing app enabled"      off)
 option(ENABLE_TEST_SOCKETS_APP  "Sockets testing app enabled"   off)
 option(ENABLE_TEST_COLORS_APP   "Color choiser app enabled"     off)
-option(ENABLE_TEST_SECURITY_APP "(De)Chiphering app enabled"    off)
+option(ENABLE_TEST_SECURITY_APP "(De)Chiphering app enabled"    on)
 
 
 #test append library
