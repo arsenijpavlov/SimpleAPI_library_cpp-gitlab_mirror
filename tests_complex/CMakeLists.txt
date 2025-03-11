@@ -13,18 +13,18 @@ option(ENABLE_TEST_SECURITY_APP "(De)Chiphering app enabled"    off)
 
 #test append library
 if(ENABLE_TEST_LIBRARY_APP)
-    option(ENABLE_TEST_LIBRARY_AS_ADD_SUBDIRECTORY  ""  off)
-    option(ENABLE_TEST_LIBRARY_AS_FIND_PACKAGE      ""  on)
+    option(ENABLE_TEST_LIBRARY_AS_ADD_SUBDIRECTORY  "TEST add_subdirectory()"   on)
+    option(ENABLE_TEST_LIBRARY_AS_FIND_PACKAGE      "TEST find_package()"       on)
 
     add_subdirectory(Append_lib_programtest)
 endif()
-unset(ENABLE_TEST_LIBRARY_APP CACHE)
+unset(ENABLE_TEST_LIBRARY_APP)
 
 #test Json
 if(ENABLE_TEST_JSON_APP)
     add_subdirectory(Json_programtest)
 endif()
-unset(ENABLE_TEST_JSON_APP CACHE)
+unset(ENABLE_TEST_JSON_APP)
 
 #test sockets
 if(ENABLE_TEST_SOCKETS_APP)
@@ -33,16 +33,16 @@ if(ENABLE_TEST_SOCKETS_APP)
         add_subdirectory(${NETWORK_DIR})
     endforeach()
 endif()
-unset(ENABLE_TEST_SOCKETS_APP CACHE)
+unset(ENABLE_TEST_SOCKETS_APP)
 
 #test colors
 if(ENABLE_TEST_COLORS_APP)
     add_subdirectory(Colors_programtest)
 endif()
-unset(ENABLE_TEST_COLORS_APP CACHE)
+unset(ENABLE_TEST_COLORS_APP)
 
 #test security
 if(ENABLE_TEST_SECURITY_APP)
     add_subdirectory(Security_programtest)
 endif()
-unset(ENABLE_TEST_SECURITY_APP CACHE)
+unset(ENABLE_TEST_SECURITY_APP)

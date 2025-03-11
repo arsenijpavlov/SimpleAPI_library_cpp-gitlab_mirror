@@ -1,16 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
-#include(${SIMPLE_API_MAIN_DIR}/utils.cmake)
 
-#TODO: поиск библиотеки в стандартном пути
-#message("FindSimpleAPI.cmake dir is \"${CMAKE_CURRENT_SOURCE_DIR}\"")
-
-unset(SimpleAPI_FOUND)
-find_package(PkgConfig REQUIRED)
-
-if(NOT SimpleAPI_FOUND)
+function(find_SimpleAPI)
     find_path(SimpleAPI_INCLUDE_DIRS
         NAMES SimpleAPI.h
-        PATHS ${SIMPLE_API_MAIN_DIR}/static_SimpleAPI/include
+        PATHS ${CMAKE_CURRENT_LIST_DIR}/include
 
         NO_DEFAULT_PATH
         NO_CMAKE_PATH
@@ -19,7 +12,8 @@ if(NOT SimpleAPI_FOUND)
 
     find_library(SimpleAPI_LIBRARIES
         NAMES SimpleAPI
-        PATHS ${SIMPLE_API_MAIN_DIR}/static_SimpleAPI
+        PATHS ${CMAKE_CURRENT_LIST_DIR}/lib                     #.so/.dll
+        PATHS ${CMAKE_CURRENT_LIST_DIR}/build-cache/SimpleAPI   #.a
 
         NO_DEFAULT_PATH
         NO_CMAKE_ENVIRONMENT_PATH
@@ -28,38 +22,34 @@ if(NOT SimpleAPI_FOUND)
 
     message(STATUS ${SimpleAPI_LIBRARIES})
     message(STATUS ${SimpleAPI_INCLUDE_DIRS})
+endfunction()
 
-    include(FindPackageHandleStandardArgs)
-    find_package_handle_standard_args(SimpleAPI DEFAULT_MSG SimpleAPI_LIBRARIES SimpleAPI_INCLUDE_DIRS)
-    mark_as_advanced(SimpleAPI_LIBRARIES SimpleAPI_INCLUDE_DIRS)
+unset(SimpleAPI_FOUND)
+find_package(PkgConfig REQUIRED)
+
+if(NOT SimpleAPI_FOUND)
+    find_SimpleAPI()
 
     if(NOT SimpleAPI_FOUND)
-        #TODO: собрать библиотеку и провести поиск заново
-        include(${CMAKE_CURRENT_LIST_DIR}/creator.cmake)
+        make_directory("${CMAKE_CURRENT_LIST_DIR}/build-cache")
+        execute_process(
+            WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/build-cache"
+            COMMAND "${CMAKE_COMMAND}" ${CMAKE_CURRENT_LIST_DIR}
+            OUTPUT_VARIABLE res_var
+        )
+#        message("[res_var_1]: ${res_var} [/res_var_1]")
 
-            find_path(SimpleAPI_INCLUDE_DIRS
-                NAMES SimpleAPI.h
-                PATHS ${CMAKE_CURRENT_LIST_DIR}/include
+        execute_process(
+            WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/build-cache"
+            COMMAND "${CMAKE_COMMAND}" --build "${CMAKE_CURRENT_LIST_DIR}/build-cache"
+            OUTPUT_VARIABLE res_var
+        )
+#        message("[res_var_2]: ${res_var} [/res_var_2]")
 
-                NO_DEFAULT_PATH
-                NO_CMAKE_PATH
-                NO_CMAKE_ENVIRONMENT_PATH
-            )
+        find_SimpleAPI()
 
-            find_library(SimpleAPI_LIBRARIES
-                NAMES SimpleAPI
-                PATHS ${CMAKE_CURRENT_LIST_DIR}/lib
-
-                NO_DEFAULT_PATH
-                NO_CMAKE_ENVIRONMENT_PATH
-                NO_CMAKE_PATH
-            )
-
-            message(STATUS ${SimpleAPI_LIBRARIES})
-            message(STATUS ${SimpleAPI_INCLUDE_DIRS})
-
-            include(FindPackageHandleStandardArgs)
-            find_package_handle_standard_args(SimpleAPI DEFAULT_MSG SimpleAPI_LIBRARIES SimpleAPI_INCLUDE_DIRS)
-            mark_as_advanced(SimpleAPI_LIBRARIES SimpleAPI_INCLUDE_DIRS)
+        include(FindPackageHandleStandardArgs)
+        find_package_handle_standard_args(SimpleAPI DEFAULT_MSG SimpleAPI_LIBRARIES SimpleAPI_INCLUDE_DIRS)
+        mark_as_advanced(SimpleAPI_LIBRARIES SimpleAPI_INCLUDE_DIRS)
     endif(NOT SimpleAPI_FOUND)
 endif(NOT SimpleAPI_FOUND)

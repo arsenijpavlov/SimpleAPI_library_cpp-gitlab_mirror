@@ -1,9 +1,13 @@
 cmake_minimum_required(VERSION 3.5)
+set(SIMPLE_API_MAIN_DIR ${CMAKE_CURRENT_LIST_DIR}/..)
 include(${SIMPLE_API_MAIN_DIR}/utils.cmake)
 
 project(SimpleAPI LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 11)
 print_project_name(${PROJECT_NAME})
+
+message("SIMPLE_API_OUTPUT_LIB_DIR:     ${SIMPLE_API_OUTPUT_LIB_DIR}")
+message("SIMPLE_API_OUTPUT_INCLUDE_DIR: ${SIMPLE_API_OUTPUT_INCLUDE_DIR}")
 
 file(GLOB_RECURSE ${PROJECT_NAME}_sources "${PROJECT_SOURCE_DIR}/*.cpp" )
 file(GLOB_RECURSE ${PROJECT_NAME}_headers "${PROJECT_SOURCE_DIR}/*.h" )
@@ -29,15 +33,7 @@ target_sources(${PROJECT_NAME} PRIVATE
 )
 target_link_libraries(${PROJECT_NAME} PUBLIC -pthread)
 
-if(NOT SIMPLE_API_OUTPUT_INCLUDES_DIR)
-    # упаковка готовой библиотеки в конечную директорию
-    add_custom_command(TARGET ${PROJECT_NAME}
-        PRE_LINK
-        COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_LIST_DIR}/../copy_includes.cmake"
-                    "${CMAKE_CURRENT_LIST_DIR}" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include"
-    )
-    message("SimpleAPI output include directory: ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
-else()
+if(SIMPLE_API_OUTPUT_INCLUDE_DIR)
     # упаковка готовой библиотеки в конечную директорию
     add_custom_command(TARGET ${PROJECT_NAME}
         PRE_LINK
@@ -45,4 +41,14 @@ else()
                     "${CMAKE_CURRENT_LIST_DIR}" "${SIMPLE_API_OUTPUT_INCLUDE_DIR}"
     )
     message("SimpleAPI output include directory: ${SIMPLE_API_OUTPUT_INCLUDE_DIR}")
+else()
+    # упаковка готовой библиотеки в конечную директорию
+    add_custom_command(TARGET ${PROJECT_NAME}
+        PRE_LINK
+        COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_LIST_DIR}/../copy_includes.cmake"
+                    "${CMAKE_CURRENT_LIST_DIR}" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include"
+    )
+    message("SimpleAPI output include directory: ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
 endif()
+
+message("${Bold}${Green}SimpleAPI successfully built${Reset}")
