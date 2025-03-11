@@ -15,6 +15,8 @@
 
 cmake_minimum_required(VERSION 3.5)
 
+#TODO: установка библиотеки в систему
+
 function(find_SimpleAPI)
     find_path(SimpleAPI_INCLUDE_DIRS
         NAMES SimpleAPI.h
