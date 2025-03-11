@@ -50,5 +50,3 @@ else()
     )
     message("SimpleAPI output include directory: ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
 endif()
-
-message("${Bold}${Green}SimpleAPI successfully built${Reset}")

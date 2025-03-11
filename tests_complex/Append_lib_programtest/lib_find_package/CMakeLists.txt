@@ -15,7 +15,7 @@ file(GLOB ${PROJECT_NAME}_sources
 add_executable(${PROJECT_NAME})
 target_sources(${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_sources})
 
-list(APPEND CMAKE_MODULE_PATH "${SIMPLE_API_MAIN_DIR}/cmake_modules")
+list(APPEND CMAKE_MODULE_PATH "${SIMPLE_API_MAIN_DIR}/cmake/find_package")
 find_package(SimpleAPI REQUIRED)
 
 if(SimpleAPI_FOUND)
