@@ -55,3 +55,8 @@ else()
     )
     message("SimpleAPI output include directory: ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
 endif()
+
+install(TARGETS ${PROJECT_NAME}
+    DESTINATION /opt/SimpleAPI
+    INCLUDES DESTINATION /opt/SimpleAPI/include
+)
