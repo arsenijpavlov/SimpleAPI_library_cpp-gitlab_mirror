@@ -2,7 +2,12 @@ cmake_minimum_required(VERSION 3.5)
 set(SIMPLE_API_MAIN_DIR ${CMAKE_CURRENT_LIST_DIR}/..)
 include(${SIMPLE_API_MAIN_DIR}/utils.cmake)
 
-project(SimpleAPI LANGUAGES CXX)
+if(CMAKE_BUILD_TYPE STREQUAL "RELEASE")
+    project(SimpleAPI LANGUAGES CXX)
+else()
+    project(SimpleAPId LANGUAGES CXX)
+endif()
+
 set(CMAKE_CXX_STANDARD 11)
 print_project_name(${PROJECT_NAME})
 

@@ -17,8 +17,8 @@ cmake_minimum_required(VERSION 3.5)
 
 #TODO: установка библиотеки в систему
 
-function(find_SimpleAPI)
-    find_path(SimpleAPI_INCLUDE_DIRS
+function(find_SimpleAPId)
+    find_path(SimpleAPId_INCLUDE_DIRS
         NAMES SimpleAPI.h
         PATHS ${CMAKE_CURRENT_LIST_DIR}/include
 
@@ -27,8 +27,8 @@ function(find_SimpleAPI)
         NO_CMAKE_ENVIRONMENT_PATH
     )
 
-    find_library(SimpleAPI_LIBRARIES
-        NAMES SimpleAPI
+    find_library(SimpleAPId_LIBRARIES
+        NAMES SimpleAPId
         PATHS ${CMAKE_CURRENT_LIST_DIR}/lib
 
         NO_DEFAULT_PATH
@@ -36,17 +36,17 @@ function(find_SimpleAPI)
         NO_CMAKE_PATH
     )
 
-    message(STATUS ${SimpleAPI_LIBRARIES})
-    message(STATUS ${SimpleAPI_INCLUDE_DIRS})
+    message(STATUS ${SimpleAPId_LIBRARIES})
+    message(STATUS ${SimpleAPId_INCLUDE_DIRS})
 endfunction()
 
-unset(SimpleAPI_FOUND)
+unset(SimpleAPId_FOUND)
 find_package(PkgConfig REQUIRED)
 
-if(NOT SimpleAPI_FOUND)
-    find_SimpleAPI()
+if(NOT SimpleAPId_FOUND)
+    find_SimpleAPId()
 
-    if(NOT SimpleAPI_FOUND)
+    if(NOT SimpleAPId_FOUND)
         set(BUILD_DIR "${CMAKE_CURRENT_LIST_DIR}/build")
         make_directory(${BUILD_DIR})
         make_directory(${CMAKE_CURRENT_LIST_DIR}/lib)
@@ -55,22 +55,22 @@ if(NOT SimpleAPI_FOUND)
         # обязательно в два раздельных вызова, иначе не работает
         execute_process(
             WORKING_DIRECTORY ${BUILD_DIR}
-            COMMAND "${CMAKE_COMMAND}" -DCMAKE_BUILD_TYPE=RELEASE -DSIMPLE_API_STATIC_BUILD="on" ${CMAKE_CURRENT_LIST_DIR}
+            COMMAND "${CMAKE_COMMAND}" -DCMAKE_BUILD_TYPE=DEBUG -DSIMPLE_API_STATIC_BUILD="on" ${CMAKE_CURRENT_LIST_DIR}
         )
         execute_process(
             WORKING_DIRECTORY ${BUILD_DIR}
             COMMAND "${CMAKE_COMMAND}" --build ${BUILD_DIR}
         )
-        if(EXISTS ${BUILD_DIR}/SimpleAPI/libSimpleAPI.a)
-            file(COPY ${BUILD_DIR}/SimpleAPI/libSimpleAPI.a
+        if(EXISTS ${BUILD_DIR}/SimpleAPId/libSimpleAPId.a)
+            file(COPY ${BUILD_DIR}/SimpleAPId/libSimpleAPId.a
                 DESTINATION ${CMAKE_CURRENT_LIST_DIR}/lib
             )
         endif()
 
-        find_SimpleAPI()
+        find_SimpleAPId()
 
         include(FindPackageHandleStandardArgs)
-        find_package_handle_standard_args(SimpleAPI DEFAULT_MSG SimpleAPI_LIBRARIES SimpleAPI_INCLUDE_DIRS)
-        mark_as_advanced(SimpleAPI_LIBRARIES SimpleAPI_INCLUDE_DIRS)
-    endif(NOT SimpleAPI_FOUND)
-endif(NOT SimpleAPI_FOUND)
+        find_package_handle_standard_args(SimpleAPId DEFAULT_MSG SimpleAPId_LIBRARIES SimpleAPId_INCLUDE_DIRS)
+        mark_as_advanced(SimpleAPId_LIBRARIES SimpleAPId_INCLUDE_DIRS)
+    endif(NOT SimpleAPId_FOUND)
+endif(NOT SimpleAPId_FOUND)

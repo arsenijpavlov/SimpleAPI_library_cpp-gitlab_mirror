@@ -16,6 +16,12 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../SimpleAPI ${CMAKE_CURRENT_
 add_executable(${PROJECT_NAME})
 target_sources(${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_sources})
 
-target_link_libraries(${PROJECT_NAME} PUBLIC SimpleAPI)
+if(CMAKE_BUILD_TYPE STREQUAL "RELEASE")
+    set(SimpleAPI_lib_name SimpleAPI)
+else()
+    set(SimpleAPI_lib_name SimpleAPId)
+endif()
+
+target_link_libraries(${PROJECT_NAME} PUBLIC ${SimpleAPI_lib_name})
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../../SimpleAPI)
-add_dependencies(${PROJECT_NAME} SimpleAPI)
+add_dependencies(${PROJECT_NAME} ${SimpleAPI_lib_name})
