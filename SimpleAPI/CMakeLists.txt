@@ -58,5 +58,7 @@ endif()
 
 install(TARGETS ${PROJECT_NAME}
     DESTINATION /opt/SimpleAPI
-    INCLUDES DESTINATION /opt/SimpleAPI/include
+)
+install(DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include"
+    DESTINATION /opt/SimpleAPI
 )

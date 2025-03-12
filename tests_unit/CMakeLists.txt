@@ -17,9 +17,9 @@ function (create_test test_group_name)
 
     add_executable(${test_name})
     target_sources(${test_name} PUBLIC ${test_group_sources})
-    target_include_directories(${test_name} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../SimpleAPI")
-
     target_link_libraries(${test_name} PUBLIC gtest gmock)
+
+    target_include_directories(${test_name} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../SimpleAPI")
     if(CMAKE_BUILD_TYPE STREQUAL "RELEASE")
         target_link_libraries(${test_name} PUBLIC SimpleAPI)
     else()
