@@ -16,7 +16,7 @@ print_project_name(${PROJECT_NAME})
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(ENABLE_TESTS_UNIT        "Google tests enabled"          off)
+option(ENABLE_TESTS_UNIT        "Google tests enabled"          on)
 
 #library
 set(SIMPLE_API_STATIC_BUILD on)
@@ -25,6 +25,7 @@ add_subdirectory(SimpleAPI)
 
 #TESTS =================================================================
 if(ENABLE_TESTS_UNIT)
+    enable_testing()
     #unit tests
     add_subdirectory(tests_unit)
 endif()
