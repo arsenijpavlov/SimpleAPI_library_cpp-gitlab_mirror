@@ -295,7 +295,7 @@ bool checkCrc32(std::vector<uint8_t>& data) noexcept {
     }
 }
 
-//TODO: \u0000
+//TODO: на замену
 std::string getEscChar(const std::string &str) noexcept {
     switch(str[0]) {
     case '"':   return "\"";    //символ "
@@ -310,6 +310,62 @@ std::string getEscChar(const std::string &str) noexcept {
     }
 }
 
+//TODO: переместить??
+//uint8_t hex_string_to_uint8(const std::string str) {
+//    auto func = [](char ch) {
+//        switch(ch) {
+//        case '0':   return 0x00;
+//        case '1':   return 0x01;
+//        case '2':   return 0x02;
+//        case '3':   return 0x03;
+//        case '4':   return 0x04;
+//        case '5':   return 0x05;
+//        case '6':   return 0x06;
+//        case '7':   return 0x07;
+//        case '8':   return 0x08;
+//        case '9':   return 0x09;
+//        case 'a':
+//        case 'A':   return 0x0A;
+//        case 'b':
+//        case 'B':   return 0x0B;
+//        case 'c':
+//        case 'C':   return 0x0C;
+//        case 'd':
+//        case 'D':   return 0x0D;
+//        case 'e':
+//        case 'E':   return 0x0E;
+//        case 'f':
+//        case 'F':   return 0x0F;
+//        default:    return 0x00;
+//        }
+//    };
+//    if(str.size() == 2) {
+//        uint8_t a = func(str[0]);
+//        uint8_t b = func(str[1]);
+//        uint8_t ret = (a << 4) + b;
+//        return ret;
+//    }
+
+//    return 0;
+//}
+
+std::string getEscChar2(const std::string &str) noexcept {
+    if(str[0] == '\\') {
+        if(str.size() == 1) return "\\";
+        switch(str[1]) {
+        case '"':   return "\""; //символ "
+        case 'b':   return "\b"; //возврат на один символ
+        case 'f':   return "\f"; //прогон страницы
+        case 'n':   return "\n"; //перенос строки
+        case 'r':   return "\r"; //возврат каретки
+        case 't':   return "\t"; //табуляция
+        }
+        //NOTE: UNICODE-символы не допускается экранировать, так как кодировка UTF-8 и так позволяет их вставлять в текст
+    }
+    return str;
+}
+
+//TODO: на замену
 char getFromEscChar(const char ch) noexcept {
     switch(ch) {
     case '"':   return '\"';
@@ -324,6 +380,20 @@ char getFromEscChar(const char ch) noexcept {
     }
 }
 
+std::string getFromEscChar2(const std::string& str) noexcept {
+    switch(str[0]) {
+    case '\"':   return "\\\""; //символ "
+    case '\b':   return "\\\b"; //возврат на один символ
+    case '\f':   return "\\\f"; //прогон страницы
+    case '\n':   return "\\\n"; //перенос строки
+    case '\r':   return "\\\r"; //возврат каретки
+    case '\t':   return "\\\t"; //табуляция
+    }
+    //NOTE: UNICODE-символы не допускается экранировать, так как кодировка UTF-8 и так позволяет их вставлять в текст
+    return str;
+}
+
+//TODO: ???
 void UpdEscSymbols(std::string& string) noexcept {
     std::string temp_string;
     temp_string.reserve(string.capacity());
@@ -346,6 +416,10 @@ void UpdEscSymbols(std::string& string) noexcept {
 size_t GetStringSize(const std::string &str) {
     size_t size = 0;
 
+    //1 => 0xxx xxxx
+    //2 => 110x xxxx 10xx xxxx
+    //3 => 1110 xxxx 10xx xxxx 10xx xxxx
+    //4 => 1111 0xxx 10xx xxxx 10xx xxxx 10xx xxxx
     for(size_t i = 0; i < str.size(); ) {
         if((uint8_t)str[i] < 0b10000000) {
             size++;
@@ -358,11 +432,10 @@ size_t GetStringSize(const std::string &str) {
         } else if((uint8_t)str[i] < 0b11110000) {
             size++;
             i += 3;
-        } else if((uint8_t)str[i] < 0b11111000) {
+        } else {
             size++;
             i += 4;
-        } else
-            throw std::invalid_argument("incorrect symbol header");
+        }
     }
 
     return size;
