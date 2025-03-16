@@ -441,6 +441,7 @@ size_t GetStringSize(const std::string &str) {
     return size;
 }
 
+//TODO: написать тест для проверки
 std::string SeparateString(std::string &str, const size_t length) noexcept {
     std::string res;
 
