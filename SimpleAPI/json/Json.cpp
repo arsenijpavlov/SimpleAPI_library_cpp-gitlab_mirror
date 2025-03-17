@@ -2671,6 +2671,8 @@ bool CheckString(std::string& value, const ConfigFormat& format) noexcept {
 
     //удалить пробелы в начале и конце строки
     RemoveIllegalSpaces(value);
+    //заменить экранированные символы
+    utils::UpdEscSymbols(value);
 
     bool done = false;
     switch(format) {
@@ -2681,15 +2683,15 @@ bool CheckString(std::string& value, const ConfigFormat& format) noexcept {
             for(size_t i = 0; i < value.length(); i++) {
                                             if(ch != 0) { //начинаем запись слова
                     if(!done) {
-                        //экранированные кавычки ВСЕГДА заносятся в значение
-                        if(value[i] == '\\' && value.length() > i + 1) {
-                            std::string e_ch = utils::getEscChar(std::string{value[i + 1]});
-                            if(!e_ch.empty()) {
-                                temp += e_ch;
-                                i++;
-                                continue;
-                            }
-                        }
+//                        //экранированные кавычки ВСЕГДА заносятся в значение
+//                        if(value[i] == '\\' && value.length() > i + 1) {
+//                            std::string e_ch = utils::getEscChar(std::string{value[i + 1]});
+//                            if(!e_ch.empty()) {
+//                                temp += e_ch;
+//                                i++;
+//                                continue;
+//                            }
+//                        }
 
                         if(value[i] == '"')
                             done = true;

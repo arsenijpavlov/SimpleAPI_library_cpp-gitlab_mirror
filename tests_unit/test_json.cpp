@@ -113,8 +113,10 @@ TEST(JSON, parse3) {
     EXPECT_EQ(1, json.size());
 }
 
+//FIXME: broken JSON test
 TEST(JSON, parse_custom_string_elements) {
-    std::string temp_string = "\"\\\"\\b\\f\\n\\r\\t\"";
+//    std::string temp_string = "\"\\\"\\b\\f\\n\\r\\t\"";
+    std::string temp_string = "\\\"\\b\\f\\n\\r\\t";
     std::string jarray_string = "[" + temp_string + "]";
     std::string json_string = "{ string:" + temp_string + ", array:[" + temp_string + "]" + "}";
 

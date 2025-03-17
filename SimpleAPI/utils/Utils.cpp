@@ -400,13 +400,13 @@ void UpdEscSymbols(std::string& string) noexcept {
     for(size_t i = 0; i < string.size(); i++) {
         char current = string[i];
         if(current == '\\' && string.length() > i + 1) {
-            std::string e_ch = utils::getEscChar(std::string{string[i + 1]});
-            if(!e_ch.empty()) {
-                std::cout << "found escape symbols <"
-                          << current << string[i+1] << ">" << std::endl;
-                temp_string += '\\' + e_ch;
+            std::string e_ch = utils::getEscChar2(string.substr(i, 2));
+//            if(!e_ch.empty()) {
+//                std::cout << "found escape symbols <"
+//                          << current << string[i+1] << ">" << std::endl;
+                temp_string += e_ch;
                 i++;
-            }
+//            }
         } else temp_string += current;
     }
 
