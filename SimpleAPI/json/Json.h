@@ -84,14 +84,15 @@ public:
                                                         {}
     ~StringElement() noexcept                           {}
 
+    //FIXME: разобраться что за херня
     std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
                           const ConfigFormat config_format = ConfigFormat::eJSON) noexcept override
     {
         switch(config_format) {
         case ConfigFormat::eINI:
-            return utils::to_string_with_esc(m_value, true);
+            return m_value;
         default:
-            return "\"" + utils::to_string_with_esc(m_value) + "\"";
+            return "\"" + m_value + "\"";
         }
     }
 };

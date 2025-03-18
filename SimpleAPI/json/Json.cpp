@@ -1287,13 +1287,14 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                 isQuotes = false;
             }
 
-            //экранированные кавычки ВСЕГДА заносятся в значение
-            if(current == '\\' && string_of_json.length() > i + 1) {
-                std::string e_ch = utils::getEscChar(std::string{string_of_json[i + 1]});
-                if(!e_ch.empty()) {
-                    value_string += '\\' + e_ch;
+            //экранированные символы ВСЕГДА заносятся в значение (все)
+            if(current == '\\') {
+                if(string_of_json.length() > i + 1) {
+                    value_string += current + next;
                     i++;
                     break;
+                } else {
+                    //TODO: выйти по ошибке
                 }
             }
 
@@ -1949,7 +1950,6 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                     }
 
                     std::vector<std::string> keys = parseIniKeys(key_value_string);
-                    utils::UpdEscSymbols(key_value_string);
 
                     if(isBeforeStringIsEmpty) {
 //                        std::cout << ", disable group name \"" << group_string << "\"";
@@ -2671,8 +2671,6 @@ bool CheckString(std::string& value, const ConfigFormat& format) noexcept {
 
     //удалить пробелы в начале и конце строки
     RemoveIllegalSpaces(value);
-    //заменить экранированные символы
-    utils::UpdEscSymbols(value);
 
     bool done = false;
     switch(format) {
@@ -2681,31 +2679,32 @@ bool CheckString(std::string& value, const ConfigFormat& format) noexcept {
             char ch = 0;
             std::string temp;
             for(size_t i = 0; i < value.length(); i++) {
-                                            if(ch != 0) { //начинаем запись слова
+                if(ch != 0) { //начинаем запись слова
                     if(!done) {
-//                        //экранированные кавычки ВСЕГДА заносятся в значение
-//                        if(value[i] == '\\' && value.length() > i + 1) {
-//                            std::string e_ch = utils::getEscChar(std::string{value[i + 1]});
-//                            if(!e_ch.empty()) {
-//                                temp += e_ch;
-//                                i++;
-//                                continue;
-//                            }
-//                        }
+                        //экранированные символы ВСЕГДА заносятся в значение (все)
+                        if(value[i] == '\\') {
+                            if(value.length() > i + 1) {
+                                temp += value[i];
+                                temp += value[i+1];
+                                i++;
+                                continue;
+                            } else {
+                                std::cout << "Error with parse String in: " << value[i] << std::endl;
+                                return false;
+                            }
+                        }
 
-                        if(value[i] == '"')
-                            done = true;
-                        else
-                            temp += value[i];
+                        if(value[i] == '"') done = true;
+                        else                temp += value[i];
                     } else { //замкнули слово, надо проверить оставшиеся символы
                         if(!utils::CharsInString(value[i], __SPACES__)) {
-                            std::cout << "Error with parse String in: " << value << std::endl;
+                            std::cout << "Error with parse String in: " << value[i] << std::endl;
                             return false;
                         }
                     }
-                                            } else if(value[i] == '"') {
+                } else if(value[i] == '"') {
                     ch = value[i];
-                                            }
+                }
             }
             value = temp;
             return done;
@@ -2720,15 +2719,17 @@ bool CheckString(std::string& value, const ConfigFormat& format) noexcept {
         char ch = 0;
         std::string temp;
         for(size_t i = 0; i < value.length(); i++) {
-//            //экранированные кавычки ВСЕГДА заносятся в значение
-//            if(value[i] == '\\' && value.length() > i + 1) {
-//                char e_ch = utils::getEscChar(value[i + 1]);
-//                if(e_ch != 0) {
-//                    temp += e_ch;
-//                    i++;
-//                    continue;
-//                }
-//            } else
+            //экранированные символы ВСЕГДА заносятся в значение (все)
+            if(value[i] == '\\') {
+                if(value.length() > i + 1) {
+                    temp += value[i] + value[i];
+                    i++;
+                    continue;
+                } else {
+                    std::cout << "Error with parse String in: " << value[i] << std::endl;
+                    return false;
+                }
+            } else
                 temp += value[i];
         }
         value = temp;
@@ -2801,12 +2802,14 @@ bool CheckArray(std::string& value) noexcept {
     for(size_t i = 0; i < value.length(); i++) {
         if(ch != 0) { //начинаем запись слова
             //экранированные кавычки ВСЕГДА заносится в значение
-            if(value[i] == '\\' && value.length() > i + 1) {
-                std::string e_ch = utils::getEscChar(std::string{value[i + 1]});
-                if(!e_ch.empty()) {
-                    temp += '\\' + e_ch;
+            if(value[i] == '\\') {
+                if(value.length() > i + 1) {
+                    temp += value[i] + value[i+1];
                     i++;
-                    break;
+                    continue;
+                } else {
+                    std::cout << "Error with parse JArray in: [" << value[i] << "]" << std::endl;
+                    return false;
                 }
             }
 

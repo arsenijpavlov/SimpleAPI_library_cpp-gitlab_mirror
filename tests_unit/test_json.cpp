@@ -113,12 +113,14 @@ TEST(JSON, parse3) {
     EXPECT_EQ(1, json.size());
 }
 
-//FIXME: broken JSON test
 TEST(JSON, parse_custom_string_elements) {
-//    std::string temp_string = "\"\\\"\\b\\f\\n\\r\\t\"";
-    std::string temp_string = "\\\"\\b\\f\\n\\r\\t";
+    //ВСЕ экранированные символы должны попасть в значение без изменений
+    std::string temp_string = "\"asd\\\"\\b\\f\\n\\r\\tdsa\"";
     std::string jarray_string = "[" + temp_string + "]";
     std::string json_string = "{ string:" + temp_string + ", array:[" + temp_string + "]" + "}";
+
+    //исходная строка без кавычек по бокам
+//    temp_string = temp_string.substr(1, temp_string.length() - 2);
 
     Json json(json_string);
     ASSERT_EQ(2, json.size());
