@@ -81,8 +81,8 @@ std::string ini_example_string = std::string(
     "key2 = value2\n"
     "[group 2]\n"
     "g2_string = one line string\n"
-    "g2 string2 = big\\\n"
-    "            line string\n"
+    "g2 string2 = big\n"
+    "            line string\n" //пробелы после переноса строки должны стать равны одному пробелу
     //комментарий применится только для конечного элемента
     "; коммент ДО переменной inner_inner_key\n"
     "g2_key\\inner_key\\inner_inner_key = inner_inner_value ; вложенные значения и группы значений\n"
