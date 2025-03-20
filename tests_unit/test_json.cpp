@@ -120,7 +120,7 @@ TEST(JSON, parse_custom_string_elements) {
     std::string json_string = "{ string:" + temp_string + ", array:[" + temp_string + "]" + "}";
 
     //исходная строка без кавычек по бокам
-//    temp_string = temp_string.substr(1, temp_string.length() - 2);
+    temp_string = temp_string.substr(1, temp_string.length() - 2);
 
     Json json(json_string);
     ASSERT_EQ(2, json.size());
