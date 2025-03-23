@@ -13,9 +13,27 @@
 enum class ConfigFormat {
     eJSON,
     eYAML,
-    eINI
+    eINI,
+    eXML
 };
 // ====================================================================================== Format
+
+
+//базовый класс под вопросом
+class Element {
+private:
+
+
+public:
+            Element();
+    virtual ~Element() noexcept;
+
+//TODO:    readFile(const std::string& file_path, const ConfigFormat format) = 0;
+
+    //to_one_line - следует ли попытаться вывести всё в одну строку (комментарии будут проигнорированы, \
+                    а многострочные значения так же станут занимать несколько строк)
+    virtual std::string to_string(const ConfigFormat format = ConfigFormat::eJSON, const bool to_one_line = false) noexcept = 0;
+};
 
 
 class Json;
