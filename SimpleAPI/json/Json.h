@@ -18,27 +18,6 @@ enum class ConfigFormat {
 };
 // ====================================================================================== Format
 
-
-//базовый класс под вопросом
-class Element {
-private:
-
-
-public:
-            Element();
-    virtual ~Element() noexcept;
-
-//TODO:    readFile(const std::string& file_path, const ConfigFormat format) = 0;
-
-    //to_one_line - следует ли попытаться вывести всё в одну строку (комментарии будут проигнорированы, \
-                    а многострочные значения так же станут занимать несколько строк)
-    virtual std::string to_string(const ConfigFormat format = ConfigFormat::eJSON, const bool to_one_line = false) noexcept = 0;
-};
-
-
-class Json;
-class JArray;
-// Element =====================================================================================
 enum ValueType {
     eNull,
     eNumber,
@@ -48,6 +27,132 @@ enum ValueType {
     eArray
 };
 static std::string to_string(const ValueType type) noexcept;
+
+
+//абстрактный класс
+class Element {
+protected:
+    ValueType m_type;
+//            m_value;
+
+public:
+            Element();
+    virtual ~Element() noexcept;
+
+    //PARSING -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    //return - получившийся распаршенный корневой элемент, NullElement если не удалось чтение
+    Element& readFile(const std::string& file_path, const ConfigFormat format) noexcept {
+        switch(format) {
+        case ConfigFormat::eJSON:   return readFileJson(file_path);
+        case ConfigFormat::eYAML:   return readFileYaml(file_path);
+        case ConfigFormat::eINI:    return readFileIni(file_path);
+        case ConfigFormat::eXML:    return readFileXml(file_path);
+        }
+    }
+    virtual Element&    readFileJson(const std::string& file_path) noexcept     = 0;
+    virtual Element&    readFileYaml(const std::string& file_path) noexcept     = 0;
+    virtual Element&    readFileIni(const std::string& file_path) noexcept      = 0;
+    virtual Element&    readFileXml(const std::string& file_path) noexcept      = 0;
+    //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PARSING
+
+    //WRITING -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    //return - удалось записать файл или нет
+    bool writeFile(const std::string& file_path, const ConfigFormat format) noexcept {
+        switch(format) {
+        case ConfigFormat::eJSON:   return writeFileJson(file_path);
+        case ConfigFormat::eYAML:   return writeFileYaml(file_path);
+        case ConfigFormat::eINI:    return writeFileIni(file_path);
+        case ConfigFormat::eXML:    return writeFileXml(file_path);
+        }
+    }
+    virtual bool        writeFileJson(const std::string& file_path) noexcept    = 0;
+    virtual bool        writeFileYaml(const std::string& file_path) noexcept    = 0;
+    virtual bool        writeFileIni(const std::string& file_path) noexcept     = 0;
+    virtual bool        writeFileXml(const std::string& file_path) noexcept     = 0;
+    //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= WRITING
+
+    //PRINTING =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    //to_one_line - следует ли попытаться вывести всё в одну строку (комментарии будут проигнорированы, \
+                    а многострочные значения так же станут занимать несколько строк)
+    virtual std::string to_string(const ConfigFormat format = ConfigFormat::eJSON, const bool to_one_line = false) noexcept = 0;
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
+
+    //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+protected:
+    struct CommentPair {
+        std::string key_name;
+        Comment     comment;
+    };
+    std::string                 m_preview_comment;
+    std::string                 m_suffix_comment;
+    std::map<size_t, Comment>   m_map_comments; //TODO: при insert() сместить и комментарии
+public:
+    void addPreviewComment(const std::string& content) noexcept { m_preview_comment = content; }
+    void addSuffixComment(const std::string& content) noexcept  { m_suffix_comment = content; }
+    //TODO: addComment(index, content): Json, JArray
+    //TODO: addComment(key, content):   Json
+
+    std::string& getPreviewComment() noexcept                   { return m_preview_comment; }
+    std::string& getSuffixComment() noexcept                    { return m_suffix_comment; }
+    //TODO: getComment(index): Json, JArray
+    //TODO: getComment(key):   Json
+
+    void clearPreviewComment() noexcept                         { m_preview_comment.clear(); }
+    void clearSuffixComment() noexcept                          { m_suffix_comment.clear(); }
+    //TODO: clearComment(index):    Json, JArray
+    //TODO: clearComment(key):      Json
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= COMMENTS
+
+    //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    //TODO: operators
+    //Element&    operator=(const Element& other) noexcept;
+    //bool        operator==(const Element& other) const noexcept;
+    //bool        operator!=(const Element& other) const noexcept { return !(*this == other); }
+    //Element&    operator[](const size_t index):       Json, JArray
+    //Element&    operator[](const std::string& key):   Json
+    //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= OPERATORS
+};
+
+//TODO: class ElementNull
+class ElementNull : Element {
+private:
+public:
+};
+
+//TODO: class ElementNumber
+class ElementNumber : Element {
+private:
+public:
+};
+
+//TODO: class ElementBool
+class ElementBool : Element {
+private:
+public:
+};
+
+//TODO: class ElementString
+class ElementString : Element {
+private:
+public:
+};
+
+//TODO: class ElementJson
+class ElementJson : Element {
+private:
+public:
+};
+
+//TODO: class ElementArray
+class ElementArray : Element {
+private:
+public:
+};
+
+
+class Json;
+class JArray;
+// Element =====================================================================================
 
 class BaseElement {
 public:
