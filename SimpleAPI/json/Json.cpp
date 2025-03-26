@@ -9,16 +9,7 @@
 
 
 // Element =====================================================================================
-std::string to_string(const ValueType type) noexcept {
-    switch(type) {
-    case eNumber:   return "Number";    break;
-    case eBool:     return "Bool";      break;
-    case eString:   return "String";    break;
-    case eJson:     return "Json";      break;
-    case eArray:    return "Array";     break;
-    default:        return "null";      break;
-    }
-}
+
 
 Element::Element() noexcept : first(ValueType::eNull) {
     second = reinterpret_cast<BaseElement*>(new NullElement());
@@ -132,31 +123,31 @@ Element &Element::operator[](const size_t index) {
 
 double &Element::getNum() const {
     if(first != ValueType::eNumber)
-        throw std::invalid_argument("This element is not a 'Number' type: " + ::to_string(first));
+        throw std::invalid_argument("This element is not a 'Number' type: " + to_string(first));
     return reinterpret_cast<DoubleElement*>(second)->m_value;
 }
 
 bool &Element::getBool() const {
     if(first != ValueType::eBool)
-        throw std::invalid_argument("This element is not a 'Bool' type: " + ::to_string(first));
+        throw std::invalid_argument("This element is not a 'Bool' type: " + to_string(first));
     return reinterpret_cast<BoolElement*>(second)->m_value;
 }
 
 std::string &Element::getString() const {
     if(first != ValueType::eString)
-        throw std::invalid_argument("This element is not a 'String' type: " + ::to_string(first));
+        throw std::invalid_argument("This element is not a 'String' type: " + to_string(first));
     return reinterpret_cast<StringElement*>(second)->m_value;
 }
 
 Json &Element::getJson() const {
     if(first != ValueType::eJson)
-        throw std::invalid_argument("This element is not a 'Json' type: " + ::to_string(first));
+        throw std::invalid_argument("This element is not a 'Json' type: " + to_string(first));
     return reinterpret_cast<JsonElement*>(second)->m_value;
 }
 
 JArray &Element::getArray() const {
     if(first != ValueType::eArray)
-        throw std::invalid_argument("This element is not a 'JArray' type: " + ::to_string(first));
+        throw std::invalid_argument("This element is not a 'JArray' type: " + to_string(first));
     return reinterpret_cast<JArrayElement*>(second)->m_value;
 }
 

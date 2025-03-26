@@ -1,5 +1,5 @@
-#ifndef JSON_DEFINES_H
-#define JSON_DEFINES_H
+#ifndef JSONDEFINES_H
+#define JSONDEFINES_H
 
 //TYPES===========================================================================
 #define __ONLY_ALLOWED_TYPES__(ARG) \
@@ -69,4 +69,4 @@
 
 
 
-#endif // JSON_DEFINES_H
+#endif // JSONDEFINES_H
