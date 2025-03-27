@@ -84,17 +84,20 @@ public:
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     //TODO: operators
 private:
-    //<в зависимости от типа> getValue() { return m_value; }
-    //<в зависимости от типа> getValue(index) { return m_value[index]; }
-    //<в зависимости от типа> getValue(key) { return m_value[key]; }
+    //<в зависимости от типа> getValue()        { return m_value; }
+    //<в зависимости от типа> getValue(index)   { return m_value[index]; }
+    //<в зависимости от типа> getValue(key)     { return m_value[key]; }
 public:
     //Element&    operator=(const Element& other) noexcept;
-    //bool        operator==(const Element& other) const noexcept;
-    //bool        operator!=(const Element& other) const noexcept { return !(*this == other); }
+    virtual bool operator==(const Element& other) const noexcept = 0;
+    bool operator!=(const Element& other) const noexcept        { return !(*this == other); }
     //Element&    operator[](const size_t index):       Json, JArray
     //Element&    operator[](const std::string& key):   Json
     //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= OPERATORS
 };
+
+//TODO for all sons:
+//  Is<TYPE>(std::string)
 
 
 #endif // JSON_BASE_ELEMENT_H
