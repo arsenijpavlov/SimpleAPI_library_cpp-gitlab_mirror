@@ -11,48 +11,26 @@
 class Element {
 protected:
     ValueType m_type;
-    //            m_value;
+    //m_value;
 
 public:
     Element(){}
     virtual ~Element() noexcept = 0;
 
-    //PARSING -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    //return - получившийся распаршенный корневой элемент, NullElement если не удалось чтение
-    Element& readFile(const std::string& file_path, const ConfigFormat format) noexcept {
-        switch(format) {
-        case ConfigFormat::eJSON:   return readFileJson(file_path);
-        case ConfigFormat::eYAML:   return readFileYaml(file_path);
-        case ConfigFormat::eINI:    return readFileIni(file_path);
-        case ConfigFormat::eXML:    return readFileXml(file_path);
-        }
-    }
-    virtual Element&    readFileJson(const std::string& file_path) noexcept     = 0;
-    virtual Element&    readFileYaml(const std::string& file_path) noexcept     = 0;
-    virtual Element&    readFileIni(const std::string& file_path) noexcept      = 0;
-    virtual Element&    readFileXml(const std::string& file_path) noexcept      = 0;
-    //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PARSING
-
     //WRITING -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     //return - удалось записать файл или нет
-    bool writeFile(const std::string& file_path, const ConfigFormat format) noexcept {
-        switch(format) {
-        case ConfigFormat::eJSON:   return writeFileJson(file_path);
-        case ConfigFormat::eYAML:   return writeFileYaml(file_path);
-        case ConfigFormat::eINI:    return writeFileIni(file_path);
-        case ConfigFormat::eXML:    return writeFileXml(file_path);
-        }
-    }
-    virtual bool        writeFileJson(const std::string& file_path) noexcept    = 0;
-    virtual bool        writeFileYaml(const std::string& file_path) noexcept    = 0;
-    virtual bool        writeFileIni(const std::string& file_path) noexcept     = 0;
-    virtual bool        writeFileXml(const std::string& file_path) noexcept     = 0;
+    bool                writeFile(const std::string& file_path, const ConfigFormat format,
+                                  const bool with_comments = 0) noexcept;
+    virtual bool        writeFileJson(const std::string& file_path, const bool with_comments = 0) noexcept    = 0;
+    virtual bool        writeFileYaml(const std::string& file_path, const bool with_comments = 0) noexcept    = 0;
+    virtual bool        writeFileIni(const std::string& file_path, const bool with_comments = 0) noexcept     = 0;
     //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= WRITING
 
     //PRINTING =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     //to_one_line - следует ли попытаться вывести всё в одну строку (комментарии будут проигнорированы, \
                     а многострочные значения так же станут занимать несколько строк)
-    virtual std::string to_string(const ConfigFormat format = ConfigFormat::eJSON, const bool to_one_line = false) noexcept = 0;
+    virtual std::string to_string(const ConfigFormat format = ConfigFormat::eJSON,
+                                  const bool to_one_line = false) noexcept      = 0;
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
 
     //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -96,8 +74,32 @@ public:
     //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= OPERATORS
 };
 
-//TODO for all sons:
-//  Is<TYPE>(std::string)
+
+//----------------------------------------------------------------------------------------------------------------------
+
+
+//PARSING -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    //NOTE: не 'noexcept', потому что надо вернуть std::exception при ошибке парсинга
+//return - получившийся распаршенный корневой элемент, NullElement если не удалось чтение
+Element& ReadFile(const std::string& file_path, const ConfigFormat format,
+                  const bool with_comments = 0);
+Element& ReadFileJson(const std::string& file_path, const bool with_comments = 0);
+Element& ReadFileYaml(const std::string& file_path, const bool with_comments = 0);
+Element& ReadFileIni(const std::string& file_path, const bool with_comments = 0);
+Element& Parse(const std::string& content, const ConfigFormat format,
+               const bool with_comments = 0);
+Element& ParseJson(const std::string& file_path, const bool with_comments = 0);
+Element& ParseYaml(const std::string& file_path, const bool with_comments = 0);
+Element& ParseIni(const std::string& file_path, const bool with_comments = 0);
+
+
+//TODO: перенести в отдельный класс virtual bool        writeFileXml(const std::string& file_path, const bool with_comments = 0) noexcept     = 0;
+//TODO: перенести в отдельный класс case ConfigFormat::eXML:    return writeFileXml(file_path);
+//TODO: перенести в отдельный класс case ConfigFormat::eXML:    return ReadFileXml(file_path, with_comments);
+
+//TODO: перенести в отдельный класс Element& ReadFileXml(const std::string& file_path, const bool with_comments = 0);
+//TODO: перенести в отдельный класс Element& ParseXml(const std::string& file_path, const bool with_comments = 0);
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PARSING
 
 
 #endif // JSON_BASE_ELEMENT_H
