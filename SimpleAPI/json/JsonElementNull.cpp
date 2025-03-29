@@ -16,7 +16,7 @@ bool ElementNull::isEqual(const Element &other) const noexcept {
 //----------------------------------------------------------------------------------------------------------------------
 
 
-bool IsElementNull(const std::string &str) {
+bool IsElementNull(const std::string &str) noexcept {
     std::string temp = str;
     RemoveIllegalSpaces(temp);
     std::transform(temp.begin(), temp.end(), temp.begin(),
@@ -29,7 +29,7 @@ bool IsElementNull(const std::string &str) {
     return false;
 }
 
-bool IsElementNull(const Element &e) {
+bool IsElementNull(const Element &e) noexcept {
     return e.getType() == ValueType::eNull;
 }
 

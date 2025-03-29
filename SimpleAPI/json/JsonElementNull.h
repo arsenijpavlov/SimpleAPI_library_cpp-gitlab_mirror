@@ -21,9 +21,8 @@ public:
     ~ElementNull()      {}
 
     //PRINTING =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    //to_one_line - следует ли попытаться вывести всё в одну строку (комментарии будут проигнорированы, \
-                    а многострочные значения так же станут занимать несколько строк)
-    std::string to_string(const ConfigFormat format = ConfigFormat::eJSON, const bool to_one_line = false) const noexcept override;
+    std::string to_string(const ConfigFormat format = ConfigFormat::eJSON,
+                          const bool to_one_line = false) const noexcept override;
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
 
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -31,7 +30,7 @@ public:
     //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= OPERATORS
 };
 
-bool IsElementNull(const std::string& str);
-bool IsElementNull(const Element& e);
+bool IsElementNull(const std::string& str) noexcept;
+bool IsElementNull(const Element& e) noexcept;
 
 #endif // JSON_ELEMENT_NULL_H
