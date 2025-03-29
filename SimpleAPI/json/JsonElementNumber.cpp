@@ -8,8 +8,11 @@ std::string ElementNumber::to_string(const ConfigFormat format,
     return std::to_string(m_value);
 }
 
-bool ElementNumber::isEqual(const Element &other) const noexcept {
-    return m_value == dynamic_cast<const ElementNumber&>(other).m_value;
+bool ElementNumber::isEqual(const Element &other, const bool compare_comments) const noexcept {
+    if(m_value != dynamic_cast<const ElementNumber&>(other).m_value)        return false;
+    if(compare_comments && m_preview_comment == other.getPreviewComment())  return false;
+
+    return true;
 }
 
 bool IsElementNumber(const std::string &str) noexcept {

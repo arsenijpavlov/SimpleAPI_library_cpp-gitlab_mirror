@@ -68,10 +68,11 @@ private:
 public:
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     //TODO: operators
-    //TODO: Element&    operator=(const Element& other) noexcept;
+    //TODO: Element&    operator=(const Element& other) noexcept; //включая комментарии
 
+    virtual bool isEqual(const Element& other, const bool compare_comments = false) const noexcept
+                                                                { return false; }
     //NOTE: комментарии при сравнении не учитываются
-    virtual bool isEqual(const Element& other) const noexcept   { return false; }
     bool operator==(const Element& other) const noexcept
     {
         if(m_type != other.m_type)  return false;

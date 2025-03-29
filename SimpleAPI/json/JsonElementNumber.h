@@ -23,7 +23,7 @@ public:
     long double getValue() const noexcept       { return m_value; }
 //TODO: фича под вопросом    int64_t     toInt() const noexcept          { return m_value; }
 //TODO: фича под вопросом    uint64_t    toUInt() const noexcept         { return m_value; }
-    bool        isEqual(const Element& other) const noexcept override;
+    bool        isEqual(const Element& other, const bool compare_comments = false) const noexcept override;
 
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     void operator=(const long double& other)    { m_value = other; }

@@ -8,8 +8,11 @@ std::string ElementString::to_string(const ConfigFormat format, const bool to_on
     return m_value;
 }
 
-bool ElementString::isEqual(const Element &other) const noexcept {
-    return m_value == dynamic_cast<const ElementString&>(other).m_value;
+bool ElementString::isEqual(const Element &other, const bool compare_comments) const noexcept {
+    if(m_value != dynamic_cast<const ElementString&>(other).m_value)        return false;
+    if(compare_comments && m_preview_comment == other.getPreviewComment())  return false;
+
+    return true;
 }
 
 void ElementString::operator<<(const std::string &other) noexcept {
