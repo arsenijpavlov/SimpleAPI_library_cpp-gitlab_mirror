@@ -26,4 +26,17 @@ enum ValueType {
 static std::string to_string(const ValueType type) noexcept;
 //=================================================================================== Value type
 
+//удалить пробелы в начале и конце строки
+void RemoveIllegalSpaces(std::string& string) noexcept;
+
+//READING -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+bool GetAllStringsFromFile(const std::string& path, std::string& dest_string,
+                           std::string* error_log = nullptr) noexcept;
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= READING
+
+//WRITING -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+bool CreateEmptyFile(const std::string& file_path, const std::string& start_comment,
+                     const std::string& finish_comment, std::string* error_log = nullptr) noexcept;
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= WRITING
+
 #endif // JSON_COMMON_H

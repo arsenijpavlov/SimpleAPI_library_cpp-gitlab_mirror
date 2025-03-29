@@ -31,7 +31,8 @@ public:
     //to_one_line - следует ли попытаться вывести всё в одну строку (комментарии будут проигнорированы, \
                     а многострочные значения так же станут занимать несколько строк)
     virtual std::string to_string(const ConfigFormat format = ConfigFormat::eJSON,
-                                  const bool to_one_line = false) const noexcept                            { return ""; }
+                                  const bool to_one_line = false) const noexcept
+                                                                { return ""; }
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
 
     //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -86,14 +87,6 @@ public:
 //----------------------------------------------------------------------------------------------------------------------
 
 
-//удалить пробелы в начале и конце строки
-void RemoveIllegalSpaces(std::string& string) noexcept;
-
-//READING -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-bool GetAllStringsFromFile(const std::string& path, std::string& dest_string,
-                           std::string* error_log = nullptr) noexcept;
-//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= READING
-
 //PARSING -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     //NOTE: не 'noexcept', потому что надо вернуть std::exception при ошибке парсинга
 //return - получившийся распаршенный корневой элемент, NullElement если не удалось чтение
@@ -129,12 +122,6 @@ Element ParseIni(const std::string& file_path, const bool with_comments = 0,
 //TODO: перенести в отдельный класс Element& ReadFileXml(const std::string& file_path, const bool with_comments = 0);
 //TODO: перенести в отдельный класс Element& ParseXml(const std::string& file_path, const bool with_comments = 0);
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PARSING
-
-
-//WRITING -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-bool CreateEmptyFile(const std::string& file_path, const std::string& start_comment,
-                     const std::string& finish_comment, std::string* error_log = nullptr) noexcept;
-//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= WRITING
 
 
 #endif // JSON_BASE_ELEMENT_H
