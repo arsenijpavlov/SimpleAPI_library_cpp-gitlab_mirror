@@ -61,13 +61,13 @@ public:
     //TODO: clearComment(key):      Json
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= COMMENTS
 
-    //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    //TODO: operators
 private:
     //<в зависимости от типа> getValue()        { return m_value; }
     //<в зависимости от типа> getValue(index)   { return m_value[index]; }
     //<в зависимости от типа> getValue(key)     { return m_value[key]; }
 public:
+    //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    //TODO: operators
     //TODO: Element&    operator=(const Element& other) noexcept;
 
     //NOTE: комментарии при сравнении не учитываются
