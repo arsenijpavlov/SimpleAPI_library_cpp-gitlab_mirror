@@ -7,7 +7,7 @@
 #include <map>
 
 
-//абстрактный класс
+//базовый класс
 class Element {
 protected:
     ValueType m_type;
@@ -15,22 +15,23 @@ protected:
 
 public:
     Element(){}
-    virtual ~Element() noexcept = 0;
+    virtual ~Element() noexcept;
+
+    ValueType getType() const noexcept                          { return m_type; }
 
     //WRITING -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     //return - удалось записать файл или нет
     bool                writeFile(const std::string& file_path, const ConfigFormat format,
-                                  const bool with_comments = 0) noexcept;
-    virtual bool        writeFileJson(const std::string& file_path, const bool with_comments = 0) noexcept    = 0;
-    virtual bool        writeFileYaml(const std::string& file_path, const bool with_comments = 0) noexcept    = 0;
-    virtual bool        writeFileIni(const std::string& file_path, const bool with_comments = 0) noexcept     = 0;
+                                const bool with_comments = 0) noexcept;
+    virtual bool        writeFileJson(const std::string& file_path, const bool with_comments = 0) noexcept;
+    virtual bool        writeFileIni(const std::string& file_path, const bool with_comments = 0) noexcept;
     //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= WRITING
 
     //PRINTING =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     //to_one_line - следует ли попытаться вывести всё в одну строку (комментарии будут проигнорированы, \
                     а многострочные значения так же станут занимать несколько строк)
     virtual std::string to_string(const ConfigFormat format = ConfigFormat::eJSON,
-                                  const bool to_one_line = false) noexcept      = 0;
+                                  const bool to_one_line = false) const noexcept                            { return ""; }
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
 
     //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -66,8 +67,15 @@ private:
     //<в зависимости от типа> getValue(index)   { return m_value[index]; }
     //<в зависимости от типа> getValue(key)     { return m_value[key]; }
 public:
-    //Element&    operator=(const Element& other) noexcept;
-    virtual bool operator==(const Element& other) const noexcept = 0;
+    //TODO: Element&    operator=(const Element& other) noexcept;
+
+    //NOTE: комментарии при сравнении не учитываются
+    virtual bool isEqual(const Element& other) const noexcept   { return false; }
+    bool operator==(const Element& other) const noexcept
+    {
+        if(m_type != other.m_type)  return false;
+        return isEqual(other);
+    }
     bool operator!=(const Element& other) const noexcept        { return !(*this == other); }
     //Element&    operator[](const size_t index):       Json, JArray
     //Element&    operator[](const std::string& key):   Json
@@ -78,21 +86,42 @@ public:
 //----------------------------------------------------------------------------------------------------------------------
 
 
+//удалить пробелы в начале и конце строки
+void RemoveIllegalSpaces(std::string& string) noexcept;
+
+//READING -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+bool GetAllStringsFromFile(const std::string& path, std::string& dest_string,
+                           std::string* error_log = nullptr) noexcept;
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= READING
+
 //PARSING -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     //NOTE: не 'noexcept', потому что надо вернуть std::exception при ошибке парсинга
 //return - получившийся распаршенный корневой элемент, NullElement если не удалось чтение
-Element& ReadFile(const std::string& file_path, const ConfigFormat format,
-                  const bool with_comments = 0);
-Element& ReadFileJson(const std::string& file_path, const bool with_comments = 0);
-Element& ReadFileYaml(const std::string& file_path, const bool with_comments = 0);
-Element& ReadFileIni(const std::string& file_path, const bool with_comments = 0);
-Element& Parse(const std::string& content, const ConfigFormat format,
-               const bool with_comments = 0);
-Element& ParseJson(const std::string& file_path, const bool with_comments = 0);
-Element& ParseYaml(const std::string& file_path, const bool with_comments = 0);
-Element& ParseIni(const std::string& file_path, const bool with_comments = 0);
+Element ReadFile(const std::string& file_path, const ConfigFormat format,
+                  const bool with_comments = false, std::string* error_log = nullptr) noexcept;
+Element ReadFileJson(const std::string& file_path, const bool with_comments = 0,
+                     std::string* error_log = nullptr) noexcept;
+Element ReadFileIni(const std::string& file_path, const bool with_comments = 0,
+                    std::string* error_log = nullptr) noexcept;
 
+//Element ReadFileYaml(const std::string& file_path, const bool with_comments = 0,
+//                     std::string* error_log = nullptr) noexcept;
+//Element ReadFileXml(const std::string& file_path, const bool with_comments = 0,
+//                     std::string* error_log = nullptr) noexcept;
 
+Element Parse(const std::string& content, const ConfigFormat format,
+               const bool with_comments = false, std::string* error_log = nullptr) noexcept;
+Element ParseJson(const std::string& file_path, const bool with_comments = 0,
+                  std::string* error_log = nullptr) noexcept;
+Element ParseIni(const std::string& file_path, const bool with_comments = 0,
+                 std::string* error_log = nullptr) noexcept;
+
+//Element ParseYaml(const std::string& file_path, const bool with_comments = 0,
+//                  std::string* error_log = nullptr) noexcept;
+//Element ParseXml(const std::string& file_path, const bool with_comments = 0,
+//                 std::string* error_log = nullptr) noexcept;
+
+//TODO: перенести в отдельный класс virtual bool        writeFileYaml(const std::string& file_path, const bool with_comments = 0) noexcept  { return false; }
 //TODO: перенести в отдельный класс virtual bool        writeFileXml(const std::string& file_path, const bool with_comments = 0) noexcept     = 0;
 //TODO: перенести в отдельный класс case ConfigFormat::eXML:    return writeFileXml(file_path);
 //TODO: перенести в отдельный класс case ConfigFormat::eXML:    return ReadFileXml(file_path, with_comments);
@@ -100,6 +129,12 @@ Element& ParseIni(const std::string& file_path, const bool with_comments = 0);
 //TODO: перенести в отдельный класс Element& ReadFileXml(const std::string& file_path, const bool with_comments = 0);
 //TODO: перенести в отдельный класс Element& ParseXml(const std::string& file_path, const bool with_comments = 0);
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PARSING
+
+
+//WRITING -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+bool CreateEmptyFile(const std::string& file_path, const std::string& start_comment,
+                     const std::string& finish_comment, std::string* error_log = nullptr) noexcept;
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= WRITING
 
 
 #endif // JSON_BASE_ELEMENT_H
