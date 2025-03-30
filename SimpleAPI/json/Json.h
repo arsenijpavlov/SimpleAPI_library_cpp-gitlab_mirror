@@ -10,6 +10,17 @@
 #include "JsonCommon.h"
 
 
+#define __ONLY_ALLOWED_TYPES_OLD__(ARG) \
+template<typename ARG, \
+                       typename std::enable_if< \
+                                                std::is_same<ARG, Json>::value \
+                                                || std::is_same<ARG, JArray>::value \
+                                                || std::is_convertible<ARG, std::string>::value \
+                                                || std::is_arithmetic<ARG>::value \
+                                                || std::is_same<ARG, bool>::value \
+                           >::type* = nullptr>
+
+
 class Json;
 class JArray;
 // Element =====================================================================================
@@ -155,7 +166,7 @@ public:
     void        parseYAML_array(const std::string& string_of_array, const bool enable_comment = false);
     void        parseINI_array(const std::string& string_of_array, const bool enable_comment = false);
 
-                __ONLY_ALLOWED_TYPES__(T)
+                __ONLY_ALLOWED_TYPES_OLD__(T)
     JArray&     push_front(const T& value) noexcept {
                     m_values.insert(m_values.cbegin(), Element(value));
                     return *this;
@@ -165,7 +176,7 @@ public:
                     push_front(Element(args)...);
                     return *this;
                 }
-                __ONLY_ALLOWED_TYPES__(T)
+                __ONLY_ALLOWED_TYPES_OLD__(T)
     JArray&     push_back(const T& value) noexcept {
                     push_back(Element(value));
                     return *this;
@@ -224,13 +235,13 @@ public:
     AVector::const_iterator cend() const noexcept               { return m_values.cend(); }
 
     //если индекс больше количества вложенных элементов, то добавятся в конец
-                __ONLY_ALLOWED_TYPES__(T)
+                __ONLY_ALLOWED_TYPES_OLD__(T)
     JArray&     insert(const size_t index, const T& value) noexcept {
                     if(index > m_values.size() - 1) this->push_back(value);
                     else                            m_values.insert(m_values.cbegin() + index, Element(value));
                     return *this;
                 }
-                __ONLY_ALLOWED_TYPES__(T)
+                __ONLY_ALLOWED_TYPES_OLD__(T)
     JArray&     insert(const AVector::iterator& iterator, const T& value) {
                     m_values.insert(iterator, value);
                     return *this;
@@ -302,7 +313,7 @@ public:
                 Json(const std::string& input_string)           { parse(input_string); }
                 Json(const std::string& input_string, const ConfigFormat config_format,
                      const bool enable_comment = false);
-                __ONLY_ALLOWED_TYPES__(T)
+                __ONLY_ALLOWED_TYPES_OLD__(T)
                 Json(const std::string& key, const T& value) noexcept : m_comment_sym(0)
                                                                 { put(key, value); }
                 Json(const JVector& vec) noexcept;
@@ -311,13 +322,13 @@ public:
 
     Json&       operator=(const Json& other) noexcept;
 
-                __ONLY_ALLOWED_TYPES__(T)
+                __ONLY_ALLOWED_TYPES_OLD__(T)
     Json&       put(const std::string& key, const T& value, const bool rewrite = true) noexcept
                                                                 { return put(key, Element(value), rewrite); }
     Json&       put(const std::string& key, const Element& element, const bool rewrite = true) noexcept;
     Json&       put(const Json& json, const bool rewrite = true) noexcept;
 
-                __ONLY_ALLOWED_TYPES__(T)
+                __ONLY_ALLOWED_TYPES_OLD__(T)
     Json&       add(const std::string& key, const T& value, const bool rewrite = true) noexcept
                                                                 { return put(key, value, rewrite); }
     Json&       add(const Json& json, const bool rewrite = true) noexcept
@@ -360,7 +371,7 @@ public:
     size_t      size() const noexcept                           { return m_values.size(); }
     bool        isEmpty() noexcept                              { return m_values.size() == 0; }
     bool        contains(const std::string& key) const noexcept;
-                __ONLY_ALLOWED_TYPES__(T)
+                __ONLY_ALLOWED_TYPES_OLD__(T)
     Json&       updateValue(const std::string& key, const T& new_value) noexcept {
                     if(contains(key))   (*this)[key] = Element(new_value);
                     else                put(key, new_value);
@@ -398,7 +409,7 @@ public:
     //если значение существует и флаг поднят - удалить существующее значение
     //если индекс больше количества вложенных элементов, то добавятся в конец
     //если ключ не найден, добавится в конец
-                __ONLY_ALLOWED_TYPES__(T)
+                __ONLY_ALLOWED_TYPES_OLD__(T)
     Json&       insert(const size_t index, const std::string& key,
                        const T& value, const bool rewrite = true) noexcept
                 {
@@ -414,7 +425,7 @@ public:
                     }
                     return *this;
                 }
-                __ONLY_ALLOWED_TYPES__(T)
+                __ONLY_ALLOWED_TYPES_OLD__(T)
     Json&       insert(const JVector::iterator& iterator, const std::string& key,
                        const T& value, const bool rewrite = true) noexcept
                 {
@@ -425,7 +436,7 @@ public:
                     }
                     return *this;
                 }
-                __ONLY_ALLOWED_TYPES__(T)
+                __ONLY_ALLOWED_TYPES_OLD__(T)
     Json&       insertBefore(const std::string& keyIndex, const std::string& key,
                              const T& value, const bool rewrite = true) noexcept
                 {
@@ -449,7 +460,7 @@ public:
                     }
                     return *this;
                 }
-                __ONLY_ALLOWED_TYPES__(T)
+                __ONLY_ALLOWED_TYPES_OLD__(T)
     Json&       insertAfter(const std::string& keyIndex, const std::string& key,
                             const T& value, const bool rewrite = true) noexcept
                 {

@@ -5,8 +5,8 @@
 #define __ONLY_ALLOWED_TYPES__(ARG) \
     template<typename ARG, \
         typename std::enable_if< \
-            std::is_same<ARG, Json>::value \
-            || std::is_same<ARG, JArray>::value \
+            std::is_same<ARG, ElementJson>::value \
+            || std::is_same<ARG, ElementArray>::value \
             || std::is_convertible<ARG, std::string>::value \
             || std::is_arithmetic<ARG>::value \
             || std::is_same<ARG, bool>::value \
