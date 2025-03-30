@@ -37,21 +37,18 @@ public:
 
     //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 protected:
-    struct CommentPair {
-        std::string key_name;
-        Comment     comment;
-    };
-    std::string                 m_preview_comment;
-    std::string                 m_suffix_comment;
-    std::map<size_t, Comment>   m_map_comments; //TODO: при insert() сместить и комментарии
+    std::string m_preview_comment;
+    std::string m_suffix_comment;
 public:
     void addPreviewComment(const std::string& content) noexcept { m_preview_comment = content; }
     void addSuffixComment(const std::string& content) noexcept  { m_suffix_comment = content; }
     //TODO: addComment(index, content): Json, JArray
     //TODO: addComment(key, content):   Json
 
-    std::string& getPreviewComment() noexcept                   { return m_preview_comment; }
-    std::string& getSuffixComment() noexcept                    { return m_suffix_comment; }
+    std::string&    getPreviewComment() noexcept                { return m_preview_comment; }
+    std::string     getPreviewComment() const noexcept          { return m_preview_comment; }
+    std::string&    getSuffixComment() noexcept                 { return m_suffix_comment; }
+    std::string     getSuffixComment() const noexcept           { return m_suffix_comment; }
     //TODO: getComment(index): Json, JArray
     //TODO: getComment(key):   Json
 

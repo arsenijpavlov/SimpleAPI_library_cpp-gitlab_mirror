@@ -9,8 +9,10 @@ std::string ElementBool::to_string(const ConfigFormat format, const bool to_one_
 
 bool ElementBool::isEqual(const Element &other, const bool compare_comments) const noexcept {
     if(m_value != dynamic_cast<const ElementBool&>(other).m_value)          return false;
-    if(compare_comments && m_preview_comment == other.getPreviewComment())  return false;
-    if(compare_comments && m_suffix_comment == other.getSuffixComment())    return false;
+    if(compare_comments) {
+        if(m_preview_comment == other.getPreviewComment())  return false;
+        if(m_suffix_comment == other.getSuffixComment())    return false;
+    }
 
     return true;
 }
