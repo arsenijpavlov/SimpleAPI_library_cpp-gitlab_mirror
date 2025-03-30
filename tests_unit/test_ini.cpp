@@ -113,7 +113,7 @@ TEST(INI, main_parser) {
     ASSERT_EQ(json.contains("key"), true); {
         ASSERT_EQ(json["key"].first, eNumber);
         EXPECT_EQ(json["key"].getNum(), 15);
-        EXPECT_EQ(json.getComment("key").before,
+        EXPECT_EQ(json.getComment("key").prefix,
                   std::string("комментарий\nвторая строка комментария"));
     }
 
@@ -167,9 +167,9 @@ TEST(INI, main_parser) {
                     EXPECT_EQ(ja2[1].getString(), "b");
                 }
 
-                EXPECT_EQ(j.getComment("inner_key2").before,
+                EXPECT_EQ(j.getComment("inner_key2").prefix,
                           std::string("многострочный коммент\nДО переменной inner_key2"));
-                EXPECT_EQ(j.getComment("inner_key2").after,
+                EXPECT_EQ(j.getComment("inner_key2").suffix,
                           std::string("многострочный коммент\nпосле переменной inner_key2"));
             }
         }
@@ -205,7 +205,7 @@ TEST(INI, main_parser) {
             ASSERT_EQ(j["g1_key3"].first, eNumber);
             EXPECT_EQ(j["g1_key3"].getNum(), 152);
 
-            EXPECT_EQ(j.getComment("g1_key").before,
+            EXPECT_EQ(j.getComment("g1_key").prefix,
                       std::string("ещё комментарий"));
         }
     }
@@ -228,9 +228,9 @@ TEST(INI, main_parser) {
                 ASSERT_EQ(j2["inner_key"].first, eJson);
                 Json j3 = j2["inner_key"].getJson();
                 {
-                    EXPECT_EQ(j3.getComment("inner_inner_key").before,
+                    EXPECT_EQ(j3.getComment("inner_inner_key").prefix,
                               std::string("коммент ДО переменной inner_inner_key"));
-                    EXPECT_EQ(j3.getComment("inner_inner_key").after,
+                    EXPECT_EQ(j3.getComment("inner_inner_key").suffix,
                               std::string("вложенные значения и группы значений"));
                 }
             }

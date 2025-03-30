@@ -5,6 +5,8 @@
 #include <regex>
 #include <set>
 
+#include "JsonCommon.h"
+
 //TODO <skip>: #define DEBUG_OUTPUT когда-нибудь потом...
 
 
@@ -329,25 +331,25 @@ bool WriteFileINI(const std::string& path, const Element& element,
     return WriteStringToFile(path, element.to_string(enable_comment, ConfigFormat::eINI));
 }
 // ===================================================================================== Element
-bool GetAllStringsFromFile(const std::string& path, std::string& dest_string) noexcept {
-    try{
-        std::ifstream file(path);
-        if (!file.is_open()) {
-            std::cout << "File not found" << std::endl;
-            return false;
-        }
+//bool GetAllStringsFromFile(const std::string& path, std::string& dest_string) noexcept {
+//    try{
+//        std::ifstream file(path);
+//        if (!file.is_open()) {
+//            std::cout << "File not found" << std::endl;
+//            return false;
+//        }
 
-        std::string temp_string;
-        while(getline(file, temp_string))
-            dest_string += temp_string + '\n';
-        file.close();
-    } catch (...) {
-        std::cout << "exception for read file !!!" << std::endl;
-        return false;
-    }
+//        std::string temp_string;
+//        while(getline(file, temp_string))
+//            dest_string += temp_string + '\n';
+//        file.close();
+//    } catch (...) {
+//        std::cout << "exception for read file !!!" << std::endl;
+//        return false;
+//    }
 
-    return true;
-}
+//    return true;
+//}
 
 bool WriteStringToFile(const std::string& path, const std::string& source_string) noexcept {
     try{
@@ -393,6 +395,7 @@ void JArray::parseArray(const std::string &string_of_array, const bool enable_co
     case ConfigFormat::eINI:
         parseINI_array(string_of_array, enable_comment); //функция может вернуть exception!
         break;
+    default: break;
     }
 }
 
@@ -658,7 +661,7 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
 
                 //работа с комментариями (перед значением) ============================
                 if(!currentComment.empty() && enable_comment) {
-                    valueComment.before = FromComment(currentComment, m_comment_column_size, m_comment_sym);
+                    valueComment.prefix = FromComment(currentComment, m_comment_column_size, m_comment_sym);
 //                    std::cout << "JArray:comment:before: " << "\"" << currentComment << "\"" << std::endl;
                     currentComment = "";
                 } //===================================================================
@@ -683,7 +686,7 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
                 //работа с комментариями (после значения #1) ==========================
                 if(enable_comment) {
                     if(!currentComment.empty()) {
-                        valueComment.after = FromComment(currentComment, m_comment_column_size, m_comment_sym);
+                        valueComment.suffix = FromComment(currentComment, m_comment_column_size, m_comment_sym);
 //                        std::cout << "JArray:comment:after: " << "\"" << currentComment << "\"" << std::endl;
                         currentComment = "";
                     }
@@ -696,10 +699,10 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
             } else
                 state = ARRAY_VALUE;
 
-            if(enable_comment && (!valueComment.before.empty() || !valueComment.after.empty())) {
-//                std::cout << "\tvalue_before: " << valueComment.before << std::endl
-//                          << "\tvalue_after: " << valueComment.after << std::endl;
-                addComment(m_values.size() - 1, valueComment.before, valueComment.after);
+            if(enable_comment && (!valueComment.prefix.empty() || !valueComment.suffix.empty())) {
+//                std::cout << "\tvalue_before: " << valueComment.prefix << std::endl
+//                          << "\tvalue_after: " << valueComment.suffix << std::endl;
+                addComment(m_values.size() - 1, valueComment.prefix, valueComment.suffix);
             }
 
             break;
@@ -821,6 +824,7 @@ std::string JArray::to_string(int16_t tabulation_level, const bool enable_commen
         return to_YAML_string(tabulation_level, enable_comment, column_size);
     case ConfigFormat::eINI:
         return to_INI_string(tabulation_level, enable_comment, column_size);
+    default: return "";
     }
 
     return "";
@@ -833,12 +837,12 @@ std::string JArray::to_JSON_string(int16_t tabulation_level, const bool enable_c
     std::string ret;
     bool withoutSpaces = tabulation_level < 0 && !enable_comment;
 
-    if(enable_comment && !m_preview_comment.before.empty()) {
+    if(enable_comment && !m_preview_comment.prefix.empty()) {
         ret += "\n";
-        if(m_preview_comment.before.find('\n') != -1) {
-            ret += ToComment(m_preview_comment.before, tabulation_level, m_comment_column_size) + "\n";
+        if(m_preview_comment.prefix.find('\n') != -1) {
+            ret += ToComment(m_preview_comment.prefix, tabulation_level, m_comment_column_size) + "\n";
         } else
-            ret += ToComment(m_preview_comment.before, tabulation_level) + "\n";
+            ret += ToComment(m_preview_comment.prefix, tabulation_level) + "\n";
     }
 
     ret += "["; //start of array
@@ -852,14 +856,14 @@ std::string JArray::to_JSON_string(int16_t tabulation_level, const bool enable_c
         auto comment_it = m_comments.find(0);
         if(comment_it != m_comments.end()
             && enable_comment
-            && !comment_it->second.before.empty()
+            && !comment_it->second.prefix.empty()
             ) {
             ret += "\n";
-            if(comment_it->second.before.find('\n') != -1) {
-                ret += ToComment(comment_it->second.before, tabulation_level + 1, m_comment_column_size) + "\n";
+            if(comment_it->second.prefix.find('\n') != -1) {
+                ret += ToComment(comment_it->second.prefix, tabulation_level + 1, m_comment_column_size) + "\n";
             } else
                 ret += utils::RepeatSymToStr('\t', tabulation_level + 1)
-                       + ToComment(comment_it->second.before, tabulation_level + 1) + "\n";
+                       + ToComment(comment_it->second.prefix, tabulation_level + 1) + "\n";
             ret += utils::RepeatSymToStr('\t', tabulation_level + 1);
         }
         //===========================================================================
@@ -872,9 +876,9 @@ std::string JArray::to_JSON_string(int16_t tabulation_level, const bool enable_c
         //===========================================================================
         if(comment_it != m_comments.end()
             && enable_comment
-            && !comment_it->second.after.empty()
+            && !comment_it->second.prefix.empty()
             ) {
-            ret += ToComment(comment_it->second.after)
+            ret += ToComment(comment_it->second.prefix)
                    + "\n" + utils::RepeatSymToStr('\t', tabulation_level);
         }
         //===========================================================================
@@ -887,13 +891,13 @@ std::string JArray::to_JSON_string(int16_t tabulation_level, const bool enable_c
             auto comment_it = m_comments.find(i);
             if(comment_it != m_comments.end()
                 && enable_comment
-                && !comment_it->second.before.empty()
+                && !comment_it->second.prefix.empty()
                 ) {
                 ret += "\n";
-                if(comment_it->second.before.find('\n') != -1) {
-                    ret += ToComment(comment_it->second.before, tabulation_level, m_comment_column_size) + "\n";
+                if(comment_it->second.prefix.find('\n') != -1) {
+                    ret += ToComment(comment_it->second.prefix, tabulation_level, m_comment_column_size) + "\n";
                 } else
-                    ret += ToComment(comment_it->second.before, tabulation_level, 0) + "\n";
+                    ret += ToComment(comment_it->second.prefix, tabulation_level, 0) + "\n";
             }
             //===========================================================================
 
@@ -910,12 +914,12 @@ std::string JArray::to_JSON_string(int16_t tabulation_level, const bool enable_c
             //===========================================================================
             if(comment_it != m_comments.end()
                 && enable_comment
-                && !comment_it->second.after.empty()
+                && !comment_it->second.suffix.empty()
                 ) {
-                if(comment_it->second.after.find('\n') == -1)
-                    ret += " " + ToComment(comment_it->second.after);
+                if(comment_it->second.suffix.find('\n') == -1)
+                    ret += " " + ToComment(comment_it->second.suffix);
                 else {
-                    std::string toComment = ToComment(comment_it->second.after, tabulation_level, m_comment_column_size, m_comment_sym);
+                    std::string toComment = ToComment(comment_it->second.suffix, tabulation_level, m_comment_column_size, m_comment_sym);
                     //NOTE: многострочные комментарии ПОСЛЕ значения должны начинаться на той же строке, что и значение
                     while(toComment.size() > 1 && toComment[0] == '\t')
                         toComment.erase(toComment.cbegin(), toComment.cbegin() + 1);
@@ -933,8 +937,8 @@ std::string JArray::to_JSON_string(int16_t tabulation_level, const bool enable_c
 
     ret += "]"; //end of array
 
-    if(enable_comment && !m_preview_comment.before.empty())
-        ret += " " + ToComment(m_preview_comment.after);
+    if(enable_comment && !m_preview_comment.prefix.empty())
+        ret += " " + ToComment(m_preview_comment.suffix);
 
     return ret;
 }
@@ -1043,12 +1047,12 @@ void JArray::addComment(const size_t index, const Comment &comment) {
 
 void JArray::addComment_before(const size_t index, const std::string &comment) {
     Comment& ct = getOrCreateComment(index);
-    ct.before = comment;
+    ct.prefix = comment;
 }
 
 void JArray::addComment_after(const size_t index, const std::string &comment) {
     Comment& ct = getOrCreateComment(index);
-    ct.after = comment;
+    ct.suffix = comment;
 }
 
 Comment &JArray::getComment(const size_t index) {
@@ -1149,6 +1153,7 @@ void Json::parse(const std::string &input_string, const ConfigFormat config_form
     case ConfigFormat::eINI:
         parseINI(input_string, enable_comment); //функция может вернуть exception!
         break;
+    default: return;
     }
 }
 
@@ -1325,7 +1330,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 
                 //работа с комментариями (перед ключом) ===============================
                 if(!currentComment.empty() && enable_comment) {
-                    keyComment.before = FromComment(currentComment, m_comment_column_size, m_comment_sym);
+                    keyComment.prefix = FromComment(currentComment, m_comment_column_size, m_comment_sym);
 //                    std::cout << "Json:comment:before: " << "\"" << currentComment << "\"" << std::endl;
                     currentComment = "";
                 } //===================================================================
@@ -1352,7 +1357,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 
             //работа с комментариями (после ключа (НЕ используется)) ==============
             if(!currentComment.empty() && enable_comment) {
-//                keyComment.after = FromComment(currentComment, m_comment_column_size, m_comment_sym);
+//                keyComment.suffix = FromComment(currentComment, m_comment_column_size, m_comment_sym);
                 currentComment = "";
             } //===================================================================
 
@@ -1524,7 +1529,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 
                 //работа с комментариями (перед значением (НЕ используется)) ==========
                 if(!currentComment.empty() && enable_comment) {
-//                    valueComment.before = FromComment(currentComment, m_comment_column_size, m_comment_sym);
+//                    valueComment.prefix = FromComment(currentComment, m_comment_column_size, m_comment_sym);
                     currentComment = "";
                 } //===================================================================
 
@@ -1548,7 +1553,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                 //работа с комментариями (после значения #1) ==========================
                 if(enable_comment) {
                     if(!currentComment.empty()) {
-                        valueComment.after = FromComment(currentComment, m_comment_column_size, m_comment_sym);
+                        valueComment.suffix = FromComment(currentComment, m_comment_column_size, m_comment_sym);
 //                        std::cout << "Json:comment:after: " << "\"" << currentComment << "\"" << std::endl;
                         currentComment = "";
                     }
@@ -1561,12 +1566,12 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
             } else
                 state = JSON_KEY;
 
-            if(enable_comment && (!keyComment.before.empty() || !valueComment.after.empty())) {
-//                std::cout << "\tkey_before: " << keyComment.before << std::endl
-//                          << "\tkey_after: " << keyComment.after << std::endl;
-//                std::cout << "\tvalue_before: " << valueComment.before << std::endl
-//                          << "\tvalue_after: " << valueComment.after << std::endl;
-                addComment(key_string, keyComment.before, valueComment.after);
+            if(enable_comment && (!keyComment.prefix.empty() || !valueComment.suffix.empty())) {
+//                std::cout << "\tkey_before: " << keyComment.prefix << std::endl
+//                          << "\tkey_after: " << keyComment.suffix << std::endl;
+//                std::cout << "\tvalue_before: " << valueComment.prefix << std::endl
+//                          << "\tvalue_after: " << valueComment.suffix << std::endl;
+                addComment(key_string, keyComment.prefix, valueComment.suffix);
             }
 
             break;
@@ -1896,7 +1901,7 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                 //работа с комментариями (перед ключом) ===============================
                 if(!currentComment.empty() && enable_comment) {
 //                    std::cout << "COMMENT(BEFORE): \"" << currentComment << "\"" << std::endl;
-                    keyValueComment.before = FromComment(currentComment, m_comment_column_size, m_comment_sym);
+                    keyValueComment.prefix = FromComment(currentComment, m_comment_column_size, m_comment_sym);
 //                    std::cout << "Ini:comment:before: " << "\"" << currentComment << "\"" << std::endl;
                     currentComment = "";
                 } //===================================================================
@@ -1908,8 +1913,8 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
 
 //                std::cout << "key_value_string: [" << key_value_string << "]"
 //                          << ", comment: [" << currentComment << "]"
-//                          << ", kv_comment_before: [" << keyValueComment.before << "]"
-//                          << ", kv_comment_after: [" << keyValueComment.after << "]";
+//                          << ", kv_comment_before: [" << keyValueComment.prefix << "]"
+//                          << ", kv_comment_after: [" << keyValueComment.suffix << "]";
                 RemoveIllegalSpaces(key_value_string);
 
                 if(key_value_string.front() == '[' && key_value_string.back() == ']') {
@@ -2008,12 +2013,12 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                         if(enable_comment) {
                             if(!currentComment.empty()) {
 //                                std::cout << "COMMENT(AFTER#1): \"" << currentComment << "\"" << std::endl;
-                                keyValueComment.after = FromComment(currentComment, m_comment_column_size, m_comment_sym);
+                                keyValueComment.suffix = FromComment(currentComment, m_comment_column_size, m_comment_sym);
 //                                std::cout << "Json:comment:after: " << "\"" << currentComment << "\"" << std::endl;
                                 currentComment = "";
                             }
                             //применение комментариев
-                            if(!keyValueComment.before.empty() || !keyValueComment.after.empty()) {
+                            if(!keyValueComment.prefix.empty() || !keyValueComment.suffix.empty()) {
                                     result_object.addComment(inner_keys.back(), keyValueComment);
                                 keyValueComment = Comment();
                             }
@@ -2068,6 +2073,7 @@ bool Json::readFile(const std::string& path, const bool enable_comment,
         case ConfigFormat::eJSON:   parseJSON(config_str, enable_comment);  break;
         case ConfigFormat::eYAML:   parseYAML(config_str, enable_comment);  break;
         case ConfigFormat::eINI:    parseINI(config_str, enable_comment);   break;
+        default: return false;
         }
         return true;
     } catch (...) {
@@ -2091,6 +2097,7 @@ bool Json::writeFile(const std::string& path, int16_t tabulation_level,
     case ConfigFormat::eINI:
         file << to_INI_string(tabulation_level, enable_comment, m_comment_column_size) << std::endl;
         break;
+    default: break;
     }
 
     file.flush();
@@ -2107,6 +2114,7 @@ std::string Json::to_string(int16_t tabulation_level, const bool enable_comment,
         return to_YAML_string(tabulation_level, enable_comment, column_size);
     case ConfigFormat::eINI:
         return to_INI_string(tabulation_level, enable_comment, column_size);
+    default: break;
     }
 
     return "";
@@ -2117,9 +2125,9 @@ std::string Json::to_JSON_string(int16_t tabulation_level, const bool enable_com
     std::string ret;
     bool withoutSpaces = tabulation_level < 0 && !enable_comment;
 
-    if(enable_comment && !m_preview_comment.before.empty()) {
+    if(enable_comment && !m_preview_comment.prefix.empty()) {
         ret += "\n";
-        ret += ToComment(m_preview_comment.before, tabulation_level, m_comment_column_size, m_comment_sym) + "\n";
+        ret += ToComment(m_preview_comment.prefix, tabulation_level, m_comment_column_size, m_comment_sym) + "\n";
     }
 
     ret += "{"; //start of json
@@ -2132,10 +2140,10 @@ std::string Json::to_JSON_string(int16_t tabulation_level, const bool enable_com
         auto comment_it = m_comments.find(m_values[0].first);
         if(comment_it != m_comments.end()
             && enable_comment
-            && !comment_it->second.before.empty()
+            && !comment_it->second.prefix.empty()
             ) {
             ret += "\n";
-            ret += ToComment(comment_it->second.before, tabulation_level + 1, m_comment_column_size, m_comment_sym) + "\n";
+            ret += ToComment(comment_it->second.prefix, tabulation_level + 1, m_comment_column_size, m_comment_sym) + "\n";
         }
         //===========================================================================
         else if(!withoutSpaces)
@@ -2157,9 +2165,9 @@ std::string Json::to_JSON_string(int16_t tabulation_level, const bool enable_com
         //===========================================================================
         if(comment_it != m_comments.end()
             && enable_comment
-            && !comment_it->second.after.empty()
+            && !comment_it->second.suffix.empty()
             ) {
-            ret += ToComment(comment_it->second.after)
+            ret += ToComment(comment_it->second.suffix)
                    + "\n" + utils::RepeatSymToStr('\t', tabulation_level);
         }
         //===========================================================================
@@ -2173,8 +2181,8 @@ std::string Json::to_JSON_string(int16_t tabulation_level, const bool enable_com
             auto comment_it = m_comments.find(el.first);
             if(comment_it != m_comments.end()
                 && enable_comment
-                && !comment_it->second.before.empty()) {
-                ret += ToComment(comment_it->second.before, tabulation_level, m_comment_column_size, m_comment_sym) + "\n";
+                && !comment_it->second.prefix.empty()) {
+                ret += ToComment(comment_it->second.prefix, tabulation_level, m_comment_column_size, m_comment_sym) + "\n";
             }
             //===========================================================================
 
@@ -2194,12 +2202,12 @@ std::string Json::to_JSON_string(int16_t tabulation_level, const bool enable_com
             //===========================================================================
             if(comment_it != m_comments.end()
                 && enable_comment
-                && !comment_it->second.after.empty()
+                && !comment_it->second.suffix.empty()
                 ) {
-                if(comment_it->second.after.find('\n') == -1)
-                    ret += " " + ToComment(comment_it->second.after);
+                if(comment_it->second.suffix.find('\n') == -1)
+                    ret += " " + ToComment(comment_it->second.suffix);
                 else {
-                    std::string toComment = ToComment(comment_it->second.after, tabulation_level, m_comment_column_size, m_comment_sym);
+                    std::string toComment = ToComment(comment_it->second.suffix, tabulation_level, m_comment_column_size, m_comment_sym);
                     //NOTE: многострочные комментарии ПОСЛЕ значения должны начинаться на той же строке, что и значение
                     while(toComment.size() > 1 && toComment[0] == '\t')
                         toComment.erase(toComment.cbegin(), toComment.cbegin() + 1);
@@ -2218,8 +2226,8 @@ std::string Json::to_JSON_string(int16_t tabulation_level, const bool enable_com
 
     ret += "}"; //end of json
 
-    if(enable_comment && !m_preview_comment.after.empty())
-        ret += " " + ToComment(m_preview_comment.after);
+    if(enable_comment && !m_preview_comment.suffix.empty())
+        ret += " " + ToComment(m_preview_comment.suffix);
 
     return ret;
 }
@@ -2845,15 +2853,15 @@ bool CheckArray(std::string& value) noexcept {
 }
 
 //удалить пробелы в начале и конце строки
-void RemoveIllegalSpaces(std::string& string) noexcept {
-    if(!string.empty()) {
-        while(utils::CharsInString(string.back(), __SPACES_WITHOUT_SEPARATORS__))
-            string.pop_back();
+//void RemoveIllegalSpaces(std::string& string) noexcept {
+//    if(!string.empty()) {
+//        while(utils::CharsInString(string.back(), __SPACES_WITHOUT_SEPARATORS__))
+//            string.pop_back();
 
-        while(utils::CharsInString(*string.begin(), __SPACES_WITHOUT_SEPARATORS__))
-            string = string.erase(0, 1);
-    }
-}
+//        while(utils::CharsInString(*string.begin(), __SPACES_WITHOUT_SEPARATORS__))
+//            string = string.erase(0, 1);
+//    }
+//}
 
 std::string ToComment(const std::string &comment_string, const uint8_t tabulation_level,
                       const uint8_t column_size, const char border_symbol) noexcept {

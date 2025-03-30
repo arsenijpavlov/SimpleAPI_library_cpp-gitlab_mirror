@@ -9,11 +9,8 @@ std::string ElementNumber::to_string(const ConfigFormat format,
 }
 
 bool ElementNumber::isEqual(const Element &other, const bool compare_comments) const noexcept {
-    if(m_value != dynamic_cast<const ElementNumber&>(other).m_value)        return false;
-    if(compare_comments) {
-        if(m_preview_comment == other.getPreviewComment())  return false;
-        if(m_suffix_comment == other.getSuffixComment())    return false;
-    }
+    if(m_value != dynamic_cast<const ElementNumber&>(other).m_value)    return false;
+    if(compare_comments && m_comment == other.getComment())             return false;
 
     return true;
 }

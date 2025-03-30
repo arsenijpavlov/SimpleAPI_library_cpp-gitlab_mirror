@@ -37,23 +37,26 @@ public:
 
     //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 protected:
-    std::string m_preview_comment;
-    std::string m_suffix_comment;
+    Comment m_comment;
 public:
-    void addPreviewComment(const std::string& content) noexcept { m_preview_comment = content; }
-    void addSuffixComment(const std::string& content) noexcept  { m_suffix_comment = content; }
+    void addComment(const Comment& content) noexcept;
+    void addPreviewComment(const std::string& content) noexcept { m_comment.prefix = content; }
+    void addSuffixComment(const std::string& content) noexcept  { m_comment.suffix = content; }
     //TODO: addComment(index, content): Json, JArray
     //TODO: addComment(key, content):   Json
 
-    std::string&    getPreviewComment() noexcept                { return m_preview_comment; }
-    std::string     getPreviewComment() const noexcept          { return m_preview_comment; }
-    std::string&    getSuffixComment() noexcept                 { return m_suffix_comment; }
-    std::string     getSuffixComment() const noexcept           { return m_suffix_comment; }
+    Comment&        getComment() noexcept                       { return m_comment; }
+    Comment         getComment() const noexcept                 { return m_comment; }
+    std::string&    getPreviewComment() noexcept                { return m_comment.prefix; }
+    std::string     getPreviewComment() const noexcept          { return m_comment.prefix; }
+    std::string&    getSuffixComment() noexcept                 { return m_comment.suffix; }
+    std::string     getSuffixComment() const noexcept           { return m_comment.suffix; }
     //TODO: getComment(index): Json, JArray
     //TODO: getComment(key):   Json
 
-    void clearPreviewComment() noexcept                         { m_preview_comment.clear(); }
-    void clearSuffixComment() noexcept                          { m_suffix_comment.clear(); }
+    void clearComment() noexcept;
+    void clearPreviewComment() noexcept                         { m_comment.prefix.clear(); }
+    void clearSuffixComment() noexcept                          { m_comment.suffix.clear(); }
     //TODO: clearComment(index):    Json, JArray
     //TODO: clearComment(key):      Json
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= COMMENTS

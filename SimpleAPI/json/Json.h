@@ -256,9 +256,9 @@ public:
     void        addPreviewComment(const std::string &comment_before = "", const std::string &comment_after = "") noexcept
                                                                 { m_preview_comment = Comment(comment_before, comment_after); }
     void        addPreviewComment_before(const std::string &comment = "") noexcept
-                                                                { m_preview_comment.before = comment; }
+                                                                { m_preview_comment.prefix = comment; }
     void        addPreviewComment_aftrer(const std::string &comment = "") noexcept
-                                                                { m_preview_comment.after = comment; }
+                                                                { m_preview_comment.suffix = comment; }
     void        addPreviewComment(const Comment& comment) noexcept
                                                                 { m_preview_comment = comment; }
     //-----
@@ -498,9 +498,9 @@ public:
     void        addPreviewComment(const std::string &comment_before = "", const std::string &comment_after = "") noexcept
                                                                 { m_preview_comment = Comment(comment_before, comment_after); }
     void        addPreviewComment_before(const std::string &comment = "") noexcept
-                                                                { m_preview_comment.before = comment; }
+                                                                { m_preview_comment.prefix = comment; }
     void        addPreviewComment_aftrer(const std::string &comment = "") noexcept
-                                                                { m_preview_comment.after = comment; }
+                                                                { m_preview_comment.suffix = comment; }
     void        addPreviewComment(const Comment& comment) noexcept
                                                                 { m_preview_comment = comment; }
     //-----
@@ -518,11 +518,11 @@ public:
                 }
     void        addComment_before(const std::string& key, const std::string &comment = "") {
                     Comment& ct = getOrCreateComment(key);
-                    ct.before = comment;
+                    ct.prefix = comment;
                 }
     void        addComment_after(const std::string& key, const std::string &comment = "") {
                     Comment& ct = getOrCreateComment(key);
-                    ct.after = comment;
+                    ct.suffix = comment;
                 }
     void        addComment(const size_t index, const std::string &comment_before = "",
                     const std::string &comment_after = "")
@@ -536,11 +536,11 @@ public:
                 }
     void        addComment_before(const size_t index, const std::string &comment = "") {
                     Comment& ct = getOrCreateComment(index);
-                    ct.before = comment;
+                    ct.prefix = comment;
                 }
     void        addComment_after(const size_t index, const std::string &comment = "") {
                     Comment& ct = getOrCreateComment(index);
-                    ct.after = comment;
+                    ct.suffix = comment;
                 }
     //-----
     Comment&    getComment(const std::string& key);
@@ -580,7 +580,7 @@ bool        WriteFileYAML(const std::string& path, const Element& element,
 bool        WriteFileINI(const std::string& path, const Element& element,
                   const bool enable_comment = false) noexcept;
 //------------------------------------------------------------
-bool        GetAllStringsFromFile(const std::string& path, std::string& dest_string) noexcept;
+//bool        GetAllStringsFromFile(const std::string& path, std::string& dest_string) noexcept;
 bool        WriteStringToFile(const std::string& path, const std::string& source_string) noexcept;
 std::vector<std::string> parseIniKeys(std::string& ini_key_value) noexcept;
 std::vector<std::string> parseIniCustomKeys(std::string& preview_key) noexcept;
@@ -606,7 +606,7 @@ static bool         CheckNull(std::string& value) noexcept;
 static bool         CheckString(std::string& value, const ConfigFormat& format = ConfigFormat::eJSON) noexcept;
 static bool         CheckJson(std::string& value) noexcept;
 static bool         CheckArray(std::string& value) noexcept;
-static void         RemoveIllegalSpaces(std::string& string) noexcept;
+//static void         RemoveIllegalSpaces(std::string& string) noexcept;
 // ============================================================================ STATIC FUNCTIONS
 
 

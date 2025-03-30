@@ -9,10 +9,7 @@ std::string ElementNull::to_string(const ConfigFormat format, const bool to_one_
 }
 
 bool ElementNull::isEqual(const Element &other, const bool compare_comments) const noexcept {
-    if(compare_comments) {
-        if(m_preview_comment == other.getPreviewComment())  return false;
-        if(m_suffix_comment == other.getSuffixComment())    return false;
-    }
+    if(compare_comments && m_comment == other.getComment()) return false;
 
     return true; //предполагаем, что проверка типа проведена уже в базовом классе
 }

@@ -13,20 +13,28 @@
 bool Element::writeFile(const std::string &file_path, const ConfigFormat format,
                         const bool with_comments) noexcept {
     return CreateEmptyFile(file_path,
-                           with_comments ? m_preview_comment : "",
-                           with_comments ? m_suffix_comment : "");
+                           with_comments ? m_comment.prefix : "",
+                           with_comments ? m_comment.suffix : "");
 }
 
 bool Element::writeFileJson(const std::string &file_path, const bool with_comments) noexcept {
     return CreateEmptyFile(file_path,
-                           with_comments ? m_preview_comment : "",
-                           with_comments ? m_suffix_comment : "");
+                           with_comments ? m_comment.prefix : "",
+                           with_comments ? m_comment.suffix : "");
 }
 
 bool Element::writeFileIni(const std::string &file_path, const bool with_comments) noexcept {
     return CreateEmptyFile(file_path,
-                           with_comments ? m_preview_comment : "",
-                           with_comments ? m_suffix_comment : "");
+                           with_comments ? m_comment.prefix : "",
+                           with_comments ? m_comment.suffix : "");
+}
+
+void Element::addComment(const Comment &content) noexcept {
+    m_comment = content;
+}
+
+void Element::clearComment() noexcept {
+    m_comment.clear();
 }
 
 
