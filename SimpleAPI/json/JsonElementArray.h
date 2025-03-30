@@ -44,17 +44,21 @@ public:
     void        clearComment(const size_t index) const noexcept;
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= COMMENTS
 
-    size_t      size() noexcept                             { return m_values.size(); }
-    bool        isEmpty() noexcept                          { return m_values.empty(); }
-    bool        isEqual(const Element& other, const bool compare_comments = false) const noexcept override;
+    size_t          size() noexcept                             { return m_values.size(); }
+    bool            isEmpty() noexcept                          { return m_values.empty(); }
+    bool            isEqual(const Element& other, const bool compare_comments = false) const noexcept override;
+    ElementArray&   clear() noexcept;
 
+    //SETTERS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     void        pushBack(const Element& element) noexcept;
     void        append(const Element& element) noexcept     { pushBack(element); }
     void        pushFront(const Element& element) noexcept;
     Element     popBack();
     Element     popFront();
     Element     popAt(const size_t index);
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- SETTERS
 
+    //GETTERS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     std::vector<Element>&   getValue(const size_t index) noexcept;
     std::vector<Element>&   getValue(const std::vector<std::string>& complex_key) noexcept;
     Element&    getBack();
@@ -64,8 +68,7 @@ public:
     ValueType   getType(const size_t index);
     ValueType   getTypeFront();
     ValueType   getTypeBack();
-
-    ElementArray& clear() noexcept;
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- GETTERS
 
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     void        operator=(const std::vector<Element>& other) noexcept;
