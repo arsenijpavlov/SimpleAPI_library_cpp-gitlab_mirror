@@ -59,8 +59,8 @@ public:
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- SETTERS
 
     //GETTERS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    std::vector<Element>&   getValue(const size_t index) noexcept;
-    std::vector<Element>&   getValue(const std::vector<std::string>& complex_key) noexcept;
+    Element&    getValue(const size_t index) noexcept;
+    Element&    getValue(const std::vector<std::string>& complex_key) noexcept;
     Element&    getBack();
     Element&    getFront();
     Element&    getAt(const size_t index);
