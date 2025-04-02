@@ -10,6 +10,10 @@
 #include "JsonElementArray.h"
 
 
+Element::Element() noexcept {
+    *this = ElementNull();
+}
+
 bool Element::writeFile(const std::string &file_path, const ConfigFormat format,
                         const bool with_comments) noexcept {
     return CreateEmptyFile(file_path,

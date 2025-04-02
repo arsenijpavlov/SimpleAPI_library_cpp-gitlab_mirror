@@ -14,7 +14,7 @@ protected:
     //m_value;
 
 public:
-    Element(){}
+    Element() noexcept { *this = ElementNull(); }
     virtual ~Element() noexcept;
 
     ValueType getType() const noexcept                          { return m_type; }
