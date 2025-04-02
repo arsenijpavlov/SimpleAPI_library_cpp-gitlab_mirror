@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include <bits/shared_ptr.h>
+
 
 enum class CommentType {
     eNotComment,
@@ -11,12 +13,11 @@ enum class CommentType {
 };
 
 struct Comment {
-    std::string prefix;
-    std::string suffix;
+    std::shared_ptr<std::string> prefix;
+    std::shared_ptr<std::string> suffix;
 
     Comment() noexcept  {}
-    Comment(const std::string& comment_before, const std::string& comment_after = "") noexcept :
-        prefix(comment_before), suffix(comment_after) {}
+    Comment(const std::string& comment_before, const std::string& comment_after = "") noexcept;
 
     bool isEmpty() const noexcept                   { return prefix.empty() && suffix.empty(); }
     void clear() noexcept;

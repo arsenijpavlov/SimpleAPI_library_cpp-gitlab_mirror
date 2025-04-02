@@ -11,10 +11,9 @@
 class Element {
 protected:
     ValueType m_type;
-    //m_value;
 
 public:
-    Element() noexcept { *this = ElementNull(); }
+    Element() noexcept;
     virtual ~Element() noexcept;
 
     ValueType getType() const noexcept                          { return m_type; }
