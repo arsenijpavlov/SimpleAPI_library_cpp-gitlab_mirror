@@ -6,14 +6,9 @@
 
 #include <vector>
 
-using VString = std::vector<std::string>;
 
 //предобъявление
 class ElementArray;
-
-//TODO: перенести в JsonDefines.h
-using JPair     = std::pair<std::string, Element>;
-using JVector   = std::vector<JPair>;
 
 class ElementJson : public Element {
 protected:
@@ -25,7 +20,10 @@ public:
         init();
         m_values = json.m_values;
     }
-    ElementJson(const JPair& pair) noexcept                 { /*TODO*/put(pair.first, pair.second); }
+    ElementJson(const JPair& pair) noexcept {
+        init();
+        put(pair.first, pair.second);
+    }
     //разнесено для решения конфликта, не изменять следующие два конструктора!
     ElementJson(const std::string& input_string) noexcept {
         init();
@@ -206,7 +204,7 @@ public:
     //GETTERS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     Element&    getValue(const size_t index);
     Element&    getValue(const std::string key);
-    Element&    getValue(const std::vector<std::string>& complex_key);
+    Element&    getValue(const VString& complex_key);
     Element&    getFront();
     Element&    getAt(const size_t index);
     Element&    getBack();
@@ -228,7 +226,7 @@ public:
                         return *this;
                     }
     ElementJson&    erase(const std::vector<size_t> indexes);
-    ElementJson&    erase(const std::vector<std::string>& keys) noexcept;
+    ElementJson&    erase(const VString& keys) noexcept;
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= DELETERS
 
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -238,10 +236,9 @@ public:
     Element&    operator[](const std::string& key)          { return getValue(key); }
     Element&    operator[](const VString& complex_key)      { return getValue(complex_key); }
 
-    //TODO: using AString<SIZE>
                 template<std::size_t SIZE>
     Element&    operator[](const std::array<std::string, SIZE>& complex_key) {
-                    std::vector<std::string> complex_key_vec;
+                    VString complex_key_vec;
                     complex_key_vec.reserve(SIZE);
                     std::copy(complex_key.begin(), complex_key.end(), complex_key_vec.begin());
                     return (*this)[complex_key_vec];

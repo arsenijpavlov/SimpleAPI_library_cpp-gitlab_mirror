@@ -10,13 +10,12 @@
 //предобъявление
 class ElementJson;
 
-using AVector = std::vector<Element>;
 class ElementArray : public Element {
 protected:
-    std::vector<Element> m_values;
+    VElement m_values;
 
 public:
-    ElementArray() noexcept : m_values({})                  { init(); }
+    ElementArray() noexcept                                 { init(); }
     template<typename ... Types>
     ElementArray(const Types... args) noexcept {
         init();
@@ -85,7 +84,7 @@ public:
                         return *this;
                     }
                     __ONLY_ALLOWED_TYPES__(T)
-    ElementArray&   insert(const AVector::iterator& iterator, const T& value) {
+    ElementArray&   insert(const VElement::iterator& iterator, const T& value) {
                         m_values.insert(iterator, value);
                         return *this;
                     }
@@ -93,7 +92,7 @@ public:
 
     //GETTERS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     ElementArray&   getValue(const size_t index);
-    ElementArray&   getValue(const std::vector<std::string>& complex_key);
+    ElementArray&   getValue(const VString& complex_key);
     ElementArray&   getValue(const std::vector<size_t>& complex_key);
     ElementArray&   getFront();
     ElementArray&   getAt(const size_t index);
@@ -105,11 +104,11 @@ public:
     Element     popAt(const size_t index);
     Element     popBack();
     ElementArray&   erase(const size_t index);
-    ElementArray&   erase(const AVector::iterator& iterator) {
+    ElementArray&   erase(const VElement::iterator& iterator) {
                         m_values.erase(iterator);
                         return *this;
                     }
-    ElementArray&   erase(const AVector::iterator& begin, const AVector::iterator& end) {
+    ElementArray&   erase(const VElement::iterator& begin, const VElement::iterator& end) {
                         m_values.erase(begin, end);
                         return *this;
                     }
@@ -117,23 +116,23 @@ public:
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= DELETERS
 
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    void        operator=(const std::vector<Element>& other) noexcept;
+    void        operator=(const VElement& other) noexcept;
     void        operator<<(const Element& element) noexcept; //альтернатива push_back()
     Element&    operator[](const size_t index);
-    Element&    operator[](const std::vector<std::string>& complex_key);
+    Element&    operator[](const VString& complex_key);
                 template<std::size_t SIZE>
     Element&    operator[](const std::array<std::string, SIZE>& complex_key) {
-                    std::vector<std::string> complex_key_vec;
+                    VString complex_key_vec;
                     complex_key_vec.reserve(SIZE);
                     std::copy(complex_key.begin(), complex_key.end(), complex_key_vec.begin());
                     return (*this)[complex_key_vec];
                 }
     //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= OPERATORS
 
-    AVector::iterator       begin() noexcept                { return m_values.begin(); }
-    AVector::iterator       end() noexcept                  { return m_values.end(); }
-    AVector::const_iterator cbegin() const noexcept         { return m_values.cbegin(); }
-    AVector::const_iterator cend() const noexcept           { return m_values.cend(); }
+    VElement::iterator       begin() noexcept                   { return m_values.begin(); }
+    VElement::iterator       end() noexcept                     { return m_values.end(); }
+    VElement::const_iterator cbegin() const noexcept            { return m_values.cbegin(); }
+    VElement::const_iterator cend() const noexcept              { return m_values.cend(); }
 };
 
 bool IsElementArray(const std::string& str) noexcept;
