@@ -39,28 +39,28 @@ bool Element::writeFileIni(const std::string &file_path, const bool with_comment
 
 
 Element ReadFile(const std::string &file_path, const ConfigFormat format,
-                  const bool with_comments, std::string* error_log) noexcept {
+                  const bool with_comments, std::string* error_log) {
     std::string dest;
     GetAllStringsFromFile(file_path, dest, error_log);
     return Parse(dest, format, with_comments, error_log);
 }
 
 Element ReadFileJson(const std::string &file_path, const bool with_comments,
-                     std::string* error_log) noexcept {
+                     std::string* error_log) {
     std::string dest;
     GetAllStringsFromFile(file_path, dest, error_log);
     return ParseJson(dest, with_comments, error_log);
 }
 
 Element ReadFileIni(const std::string &file_path, const bool with_comments,
-                    std::string* error_log) noexcept {
+                    std::string* error_log) {
     std::string dest;
     GetAllStringsFromFile(file_path, dest, error_log);
     return ParseIni(dest, with_comments, error_log);
 }
 
 Element Parse(const std::string &content, const ConfigFormat format,
-              const bool with_comments, std::string* error_log) noexcept {
+              const bool with_comments, std::string* error_log) {
     switch(format) {
     case ConfigFormat::eJSON:   return ParseJson(content, with_comments, error_log);
     case ConfigFormat::eINI:    return ParseIni(content, with_comments, error_log);
@@ -69,13 +69,13 @@ Element Parse(const std::string &content, const ConfigFormat format,
 }
 
 Element ParseJson(const std::string &file_path, const bool with_comments,
-                  std::string* error_log) noexcept {
+                  std::string* error_log) {
     //TODO: Element &ParseJson()
     return ElementNull();
 }
 
 Element ParseIni(const std::string &file_path, const bool with_comments,
-                 std::string* error_log) noexcept {
+                 std::string* error_log) {
     //TODO: Element &ParseIni()
     return ElementNull();
 }
