@@ -12,7 +12,7 @@ class ElementArray;
 
 class ElementJson : public Element {
 protected:
-    JVector m_values;
+    VPairElement m_values;
 
 public:
     ElementJson() noexcept                                  { init(); }
@@ -39,7 +39,7 @@ public:
         init();
         put(key, value);
     }
-    ElementJson(const JVector& vec) noexcept {
+    ElementJson(const VPairElement& vec) noexcept {
         init();
         m_values = vec;
     }
@@ -140,7 +140,7 @@ public:
                         return *this;
                     }
                     __ONLY_ALLOWED_TYPES__(T)
-    ElementJson&    insert(const JVector::iterator& iterator, const std::string& key,
+    ElementJson&    insert(const VPairElement::iterator& iterator, const std::string& key,
                                         const T& value, const bool rewrite = true) noexcept
                     {
                         if(contains(key) && rewrite) erase(key);
@@ -217,11 +217,11 @@ public:
     Element     popBack();
     ElementJson&    erase(const size_t index);
     ElementJson&    erase(const std::string key);
-    ElementJson&    erase(const JVector::iterator& iterator) {
+    ElementJson&    erase(const VPairElement::iterator& iterator) {
                         m_values.erase(iterator);
                         return *this;
                     }
-    ElementJson&    erase(const JVector::iterator& begin, const JVector::iterator& end) {
+    ElementJson&    erase(const VPairElement::iterator& begin, const VPairElement::iterator& end) {
                         m_values.erase(begin, end);
                         return *this;
                     }
@@ -230,7 +230,7 @@ public:
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= DELETERS
 
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    void        operator=(const JVector& other) noexcept;
+    void        operator=(const VPairElement& other) noexcept;
     void        operator<<(const JPair& element) noexcept; //альтернатива push_back()
     Element&    operator[](const size_t index)              { return getValue(index); }
     Element&    operator[](const std::string& key)          { return getValue(key); }
@@ -245,10 +245,10 @@ public:
                 }
     //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= OPERATORS
 
-    JVector::iterator       begin() noexcept                    { return m_values.begin(); }
-    JVector::iterator       end() noexcept                      { return m_values.end(); }
-    JVector::const_iterator cbegin() const noexcept             { return m_values.begin(); }
-    JVector::const_iterator cend() const noexcept               { return m_values.end(); }
+    VPairElement::iterator       begin() noexcept           { return m_values.begin(); }
+    VPairElement::iterator       end() noexcept             { return m_values.end(); }
+    VPairElement::const_iterator cbegin() const noexcept    { return m_values.begin(); }
+    VPairElement::const_iterator cend() const noexcept      { return m_values.end(); }
 };
 
 bool IsElementJson(const std::string& str) noexcept;

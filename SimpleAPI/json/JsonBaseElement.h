@@ -76,10 +76,10 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------
 
-using JPair     = std::pair<std::string, Element>;
-using JVector   = std::vector<JPair>;
-using VString   = std::vector<std::string>;
-using VElement  = std::vector<Element>;
+using JPair         = std::pair<std::string, Element>;
+using VPairElement  = std::vector<JPair>;
+using VString       = std::vector<std::string>;
+using VElement      = std::vector<Element>;
 
 //----------------------------------------------------------------------------------------------------------------------
 
