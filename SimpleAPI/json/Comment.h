@@ -26,8 +26,14 @@ public:
 
     bool isEmpty() const noexcept;
 
-    std::string& prefix()                           { return *m_prefix; }
-    std::string& suffix()                           { return *m_suffix; }
+    //NOTE: выделит память, если nullptr
+    std::string& prefix() noexcept;
+    std::string& suffix() noexcept;
+
+    void set(const std::string& prefix_comment, const std::string& suffix_comment) noexcept;
+    void set(const Comment& other) noexcept;
+    void setPrefix(const std::string& comment) noexcept;
+    void setSuffix(const std::string& comment) noexcept;
 
     void clear() noexcept;
     void clearPrefix() noexcept;
@@ -37,8 +43,9 @@ public:
     void delPrefix() noexcept;
     void delSuffix() noexcept;
 
-    bool operator==(Comment other) const noexcept;
-    void operator=(Comment other) noexcept;
+    bool operator==(const Comment& other) const noexcept;
+    void operator=(const Comment& other) noexcept;
+    void operator=(const std::string& prefix_comment) noexcept;
 };
 
 #endif // COMMENT_H
