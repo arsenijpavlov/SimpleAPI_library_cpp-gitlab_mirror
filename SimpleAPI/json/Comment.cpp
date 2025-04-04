@@ -25,3 +25,16 @@ void Comment::clearPrefix() noexcept {
 void Comment::clearSuffix() noexcept {
     suffix->clear();
 }
+
+void Comment::del() noexcept {
+    if(prefix) delete prefix;
+    if(suffix) delete suffix;
+}
+
+void Comment::delPrefix() noexcept {
+    if(prefix) delete prefix;
+}
+
+void Comment::delSuffix() noexcept {
+    if(suffix) delete suffix;
+}

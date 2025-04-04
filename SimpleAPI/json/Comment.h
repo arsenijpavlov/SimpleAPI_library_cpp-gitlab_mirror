@@ -26,6 +26,9 @@ struct Comment {
     void clear() noexcept;
     void clearPrefix() noexcept;
     void clearSuffix() noexcept;
+    void del() noexcept;
+    void delPrefix() noexcept;
+    void delSuffix() noexcept;
 
     bool operator==(Comment other) const noexcept   { return prefix == other.prefix && suffix == other.suffix; }
 };

@@ -39,7 +39,7 @@ public:
 protected:
     Comment m_comment;
 public:
-    void addComment(const Comment& content) noexcept;
+    void addComment(const Comment& content) noexcept            { m_comment = content; }
     void addPreviewComment(const std::string& content) noexcept { *m_comment.prefix = content; }
     void addSuffixComment(const std::string& content) noexcept  { *m_comment.suffix = content; }
 
@@ -50,9 +50,12 @@ public:
     std::string&    getSuffixComment() noexcept                 { return *m_comment.suffix; }
     std::string     getSuffixComment() const noexcept           { return *m_comment.suffix; }
 
-    void clearComment() noexcept;
-    void clearPreviewComment() noexcept                         { m_comment.prefix->clear(); }
-    void clearSuffixComment() noexcept                          { m_comment.suffix->clear(); }
+    void clearComment() noexcept                                { m_comment.clear(); }
+    void clearPreviewComment() noexcept                         { m_comment.clearPrefix(); }
+    void clearSuffixComment() noexcept                          { m_comment.clearSuffix(); }
+    void deleteComment() noexcept                               { m_comment.del(); }
+    void deletePreviewComment() noexcept                        { m_comment.delPrefix(); }
+    void deleteSuffixComment() noexcept                         { m_comment.delSuffix(); }
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= COMMENTS
 
     virtual bool isEqual(const Element& other, const bool compare_comments = false) const noexcept

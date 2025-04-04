@@ -34,14 +34,6 @@ bool Element::writeFileIni(const std::string &file_path, const bool with_comment
                            with_comments ? *m_comment.suffix : "");
 }
 
-void Element::addComment(const Comment &content) noexcept {
-    m_comment = content;
-}
-
-void Element::clearComment() noexcept {
-    m_comment.clear();
-}
-
 
 //----------------------------------------------------------------------------------------------------------------------
 
