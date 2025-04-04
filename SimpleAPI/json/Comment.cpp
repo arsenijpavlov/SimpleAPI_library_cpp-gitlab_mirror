@@ -2,39 +2,65 @@
 
 
 Comment::~Comment() noexcept {
-    if(prefix) delete prefix;
-    if(suffix) delete suffix;
+    if(m_prefix) delete m_prefix;
+    if(m_suffix) delete m_suffix;
 }
 
 bool Comment::isEmpty() const noexcept {
-    if(prefix && !prefix->empty()) return false;
-    if(suffix && !suffix->empty()) return false;
+    if(m_prefix && !m_prefix->empty()) return false;
+    if(m_suffix && !m_suffix->empty()) return false;
     return true;
 }
 
 //NOTE: можно обнулять я указатель, но зачем? Чаще всего нужна именно перезапись?
 void Comment::clear() noexcept {
-    prefix->clear();
-    suffix->clear();
+    m_prefix->clear();
+    m_suffix->clear();
 }
 
 void Comment::clearPrefix() noexcept {
-    prefix->clear();
+    m_prefix->clear();
 }
 
 void Comment::clearSuffix() noexcept {
-    suffix->clear();
+    m_suffix->clear();
 }
 
 void Comment::del() noexcept {
-    if(prefix) delete prefix;
-    if(suffix) delete suffix;
+    if(m_prefix) delete m_prefix;
+    if(m_suffix) delete m_suffix;
 }
 
 void Comment::delPrefix() noexcept {
-    if(prefix) delete prefix;
+    if(m_prefix) delete m_prefix;
 }
 
 void Comment::delSuffix() noexcept {
-    if(suffix) delete suffix;
+    if(m_suffix) delete m_suffix;
+}
+
+bool Comment::operator==(Comment other) const noexcept {
+    bool b1 = m_prefix == nullptr && other.m_prefix == nullptr;
+    bool b2 = m_prefix != nullptr && other.m_prefix != nullptr;
+    bool b3 = true;
+    bool b4 = true;
+    bool b5 = true;
+    if(b2) {
+        b3 = m_prefix->empty() && other.m_prefix->empty();
+        b4 = m_prefix->empty() && other.m_prefix->empty();
+        b5 = *m_prefix == *other.m_prefix;
+    }
+
+    return b1 && b2 && b3 && b4 && b5;
+}
+
+void Comment::operator=(Comment other) noexcept {
+    if(other.m_prefix) {
+        if(m_prefix == nullptr) m_prefix = new std::string();
+        *m_prefix = *other.m_prefix;
+    }
+    if(other.m_suffix) {
+        if(m_suffix == nullptr) m_suffix = new std::string();
+        *m_suffix = *other.m_suffix;
+    }
 }
