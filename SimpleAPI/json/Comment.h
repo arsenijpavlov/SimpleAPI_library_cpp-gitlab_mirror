@@ -13,14 +13,16 @@ enum class CommentType {
 };
 
 struct Comment {
-    //TODO: не закончено
-    std::shared_ptr<std::string> prefix;
-    std::shared_ptr<std::string> suffix;
+    std::string *prefix;
+    std::string *suffix;
 
-    Comment() noexcept  {}
-    Comment(const std::string& comment_before, const std::string& comment_after = "") noexcept;
+    Comment() noexcept                              {}
+    Comment(const std::string& comment_before, const std::string& comment_after = "") noexcept :
+        prefix(new std::string(comment_before)),
+        suffix(new std::string(comment_after))      {}
+    ~Comment() noexcept;
 
-    bool isEmpty() const noexcept                   { return prefix->empty() && suffix->empty(); }
+    bool isEmpty() const noexcept;
     void clear() noexcept;
     void clearPrefix() noexcept;
     void clearSuffix() noexcept;
