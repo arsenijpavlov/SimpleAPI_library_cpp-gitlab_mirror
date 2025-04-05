@@ -40,15 +40,15 @@ protected:
     Comment m_comment;
 public:
     void addComment(const Comment& content) noexcept            { m_comment = content; }
-    void addPreviewComment(const std::string& content) noexcept { *m_comment.prefix = content; }
-    void addSuffixComment(const std::string& content) noexcept  { *m_comment.suffix = content; }
+    void addPreviewComment(const std::string& content) noexcept { m_comment.setPrefix(content); }
+    void addSuffixComment(const std::string& content) noexcept  { m_comment.setSuffix(content); }
 
     Comment&        getComment() noexcept                       { return m_comment; }
     Comment         getComment() const noexcept                 { return m_comment; }
-    std::string&    getPreviewComment() noexcept                { return *m_comment.prefix; }
-    std::string     getPreviewComment() const noexcept          { return *m_comment.prefix; }
-    std::string&    getSuffixComment() noexcept                 { return *m_comment.suffix; }
-    std::string     getSuffixComment() const noexcept           { return *m_comment.suffix; }
+    std::string&    getPreviewComment() noexcept                { return m_comment.prefix(); }
+    std::string     getPreviewComment() const noexcept          { return m_comment.prefix(); }
+    std::string&    getSuffixComment() noexcept                 { return m_comment.suffix(); }
+    std::string     getSuffixComment() const noexcept           { return m_comment.suffix(); }
 
     void clearComment() noexcept                                { m_comment.clear(); }
     void clearPreviewComment() noexcept                         { m_comment.clearPrefix(); }

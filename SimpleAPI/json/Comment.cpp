@@ -16,8 +16,19 @@ std::string& Comment::prefix() noexcept {
     if(!m_prefix) m_prefix = new std::string();
     return *m_prefix;
 }
+
+std::string Comment::prefix() const noexcept {
+    if(!m_prefix) return "";
+    return *m_prefix;
+}
+
 std::string& Comment::suffix() noexcept {
     if(!m_suffix) m_suffix = new std::string();
+    return *m_suffix;
+}
+
+std::string Comment::suffix() const noexcept {
+    if(!m_suffix) return "";
     return *m_suffix;
 }
 
