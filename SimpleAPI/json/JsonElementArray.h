@@ -13,7 +13,7 @@ protected:
     VElement m_values;
 
 public:
-    ElementArray() noexcept                                 { init(); }
+    ElementArray() noexcept                                     { init(); }
     template<typename ... Types>
     ElementArray(const Types... args) noexcept {
         init();
@@ -22,10 +22,10 @@ public:
     }
     ElementArray(const std::string& string, const ConfigFormat format,
                  const bool enable_comments = false) noexcept;
-    ~ElementArray() noexcept                                {}
+    ~ElementArray() noexcept                                    {}
 
 private:
-    void init() noexcept                                    { m_type = ValueType::eArray; }
+    void init() noexcept                                        { m_type = ValueType::eArray; }
 public:
 
     //PARSING -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -48,14 +48,17 @@ public:
 
     //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     void        addComment(const size_t index, const Comment& content);
-    void        addComment(const size_t index, const std::string& contentBefore,
-                           const std::string& contentAfter);
+    void        addComment(const size_t index, const std::string& content_before,
+                           const std::string& content_after);
     void        addPrefixComment(const size_t index, const std::string& content);
     void        addSuffixComment(const size_t index, const std::string& content);
 
-    Comment         getComment(const size_t index);
+    Comment&        getComment(const size_t index);
+    Comment         getComment(const size_t index) const;
     std::string&    getPrefixComment(const size_t index);
+    std::string     getPrefixComment(const size_t index) const;
     std::string&    getSuffixComment(const size_t index);
+    std::string     getSuffixComment(const size_t index) const;
 
     //NOTE: noexcept, потому что неправильный индекс просто пропустит действие
     void        clearComment(const size_t index) noexcept;
@@ -68,10 +71,10 @@ public:
 
     ElementArray&   clear() noexcept;
     bool            contains(const size_t& index) const noexcept
-                                                            { return m_values.size() > index; }
-    bool            isEmpty() const noexcept                { return m_values.empty(); }
+                                                                { return m_values.size() > index; }
+    bool            isEmpty() const noexcept                    { return m_values.empty(); }
     bool            isEqual(const Element& other, const bool compare_comments = false) const noexcept override;
-    size_t          size() const noexcept                   { return m_values.size(); }
+    size_t          size() const noexcept                       { return m_values.size(); }
 
     //TYPES -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     ValueType   getTypeFront();
@@ -83,7 +86,7 @@ public:
     //NOTE: если индекс больше количества вложенных элементов, то добавятся в конец
     ElementArray&   append(const Element& element) noexcept     { return pushBack(element); }
     ElementArray&   pushFront(const Element& element) noexcept;
-    ElementArray&   pushAt(const Element& element, const size_t index) noexcept;
+    ElementArray&   pushAt(const Element& element, const size_t index);
     ElementArray&   pushBack(const Element& element) noexcept;
                     __ONLY_ALLOWED_TYPES__(T)
     ElementArray&   insert(const size_t index, const T& value) noexcept {
@@ -127,7 +130,7 @@ public:
                         VString complex_key_vec;
                         complex_key_vec.reserve(SIZE);
                         std::copy(complex_key.begin(), complex_key.end(), complex_key_vec.begin());
-                        return (*this)[complex_key_vec];
+                        return (*this)[complex_key_vec]; //FIXME: ???
                     }
     //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= OPERATORS
 
@@ -137,7 +140,9 @@ public:
     VElement::const_iterator cend() const noexcept              { return m_values.cend(); }
 };
 
-bool IsElementArray(const std::string& str) noexcept;
+bool IsElementArray(const std::string& str, const ConfigFormat format = ConfigFormat::eJSON) noexcept;
+bool IsElementJsonArray(const std::string& str) noexcept;
+bool IsElementIniArray(const std::string& str) noexcept;
 inline bool IsElementArray(const Element& e) noexcept           { return e.getType() == ValueType::eArray; }
 
 #endif // JSON_ELEMENT_ARRAY_H
