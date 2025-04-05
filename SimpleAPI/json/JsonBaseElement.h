@@ -40,21 +40,21 @@ protected:
     Comment m_comment;
 public:
     void addComment(const Comment& content) noexcept            { m_comment = content; }
-    void addPreviewComment(const std::string& content) noexcept { m_comment.setPrefix(content); }
+    void addPrefixComment(const std::string& content) noexcept  { m_comment.setPrefix(content); }
     void addSuffixComment(const std::string& content) noexcept  { m_comment.setSuffix(content); }
 
     Comment&        getComment() noexcept                       { return m_comment; }
     Comment         getComment() const noexcept                 { return m_comment; }
-    std::string&    getPreviewComment() noexcept                { return m_comment.prefix(); }
-    std::string     getPreviewComment() const noexcept          { return m_comment.prefix(); }
+    std::string&    getPrefixComment() noexcept                 { return m_comment.prefix(); }
+    std::string     getPrefixComment() const noexcept           { return m_comment.prefix(); }
     std::string&    getSuffixComment() noexcept                 { return m_comment.suffix(); }
     std::string     getSuffixComment() const noexcept           { return m_comment.suffix(); }
 
     void clearComment() noexcept                                { m_comment.clear(); }
-    void clearPreviewComment() noexcept                         { m_comment.clearPrefix(); }
+    void clearPrefixComment() noexcept                          { m_comment.clearPrefix(); }
     void clearSuffixComment() noexcept                          { m_comment.clearSuffix(); }
     void deleteComment() noexcept                               { m_comment.del(); }
-    void deletePreviewComment() noexcept                        { m_comment.delPrefix(); }
+    void deletePrefixComment() noexcept                         { m_comment.delPrefix(); }
     void deleteSuffixComment() noexcept                         { m_comment.delSuffix(); }
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= COMMENTS
 

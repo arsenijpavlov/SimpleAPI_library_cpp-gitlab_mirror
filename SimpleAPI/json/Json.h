@@ -267,9 +267,9 @@ public:
     void        addPreviewComment(const std::string &comment_before = "", const std::string &comment_after = "") noexcept
                                                                 { m_preview_comment = Comment(comment_before, comment_after); }
     void        addPreviewComment_before(const std::string &comment = "") noexcept
-                                                                { m_preview_comment.prefix = comment; }
+                                                                { m_preview_comment.setPrefix(comment); }
     void        addPreviewComment_aftrer(const std::string &comment = "") noexcept
-                                                                { m_preview_comment.suffix = comment; }
+                                                                { m_preview_comment.setSuffix(comment); }
     void        addPreviewComment(const Comment& comment) noexcept
                                                                 { m_preview_comment = comment; }
     //-----
@@ -285,7 +285,7 @@ public:
     Comment     getComment(const size_t index) const noexcept;
     Comment&    getOrCreateComment(const size_t index);
     //-----
-    void        clearPreviewComment() noexcept                  { m_preview_comment = {}; }
+    void        clearPreviewComment() noexcept                  { m_preview_comment.clear(); }
     void        clearComment(const size_t index)                { m_comments.erase(m_values[index].first); }
 };
 // ====================================================================================== JArray
@@ -509,9 +509,9 @@ public:
     void        addPreviewComment(const std::string &comment_before = "", const std::string &comment_after = "") noexcept
                                                                 { m_preview_comment = Comment(comment_before, comment_after); }
     void        addPreviewComment_before(const std::string &comment = "") noexcept
-                                                                { m_preview_comment.prefix = comment; }
+                                                                { m_preview_comment.setPrefix(comment); }
     void        addPreviewComment_aftrer(const std::string &comment = "") noexcept
-                                                                { m_preview_comment.suffix = comment; }
+                                                                { m_preview_comment.setSuffix(comment); }
     void        addPreviewComment(const Comment& comment) noexcept
                                                                 { m_preview_comment = comment; }
     //-----
@@ -529,11 +529,11 @@ public:
                 }
     void        addComment_before(const std::string& key, const std::string &comment = "") {
                     Comment& ct = getOrCreateComment(key);
-                    ct.prefix = comment;
+                    ct.setPrefix(comment);
                 }
     void        addComment_after(const std::string& key, const std::string &comment = "") {
                     Comment& ct = getOrCreateComment(key);
-                    ct.suffix = comment;
+                    ct.setSuffix(comment);
                 }
     void        addComment(const size_t index, const std::string &comment_before = "",
                     const std::string &comment_after = "")
@@ -547,11 +547,11 @@ public:
                 }
     void        addComment_before(const size_t index, const std::string &comment = "") {
                     Comment& ct = getOrCreateComment(index);
-                    ct.prefix = comment;
+                    ct.setPrefix(comment);
                 }
     void        addComment_after(const size_t index, const std::string &comment = "") {
                     Comment& ct = getOrCreateComment(index);
-                    ct.suffix = comment;
+                    ct.setSuffix(comment);
                 }
     //-----
     Comment&    getComment(const std::string& key);
@@ -561,7 +561,7 @@ public:
     Comment&    getOrCreateComment(const std::string& key);
     Comment&    getOrCreateComment(const size_t index);
     //-----
-    void        clearPreviewComment() noexcept                  { m_preview_comment = {}; }
+    void        clearPreviewComment() noexcept                  { m_preview_comment.clear(); }
     void        clearComment(const std::string& key) noexcept   { m_comments.erase(key); }
     void        clearComment(const size_t index)                { m_comments.erase(m_values[index].first); }
     //----------------------------------------------------------------------------------

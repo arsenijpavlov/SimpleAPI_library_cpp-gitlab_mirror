@@ -190,31 +190,31 @@ TEST(JSON, write_and_read_file_comment) {
 
     //TODO: проверка комментариев должна учитывать переносы строк (преобразование комментариев при чтении/записи)
 //    EXPECT_EQ(json2.getPreviewComment(), json.getPreviewComment());
-//    EXPECT_EQ(json2.getPreviewComment().prefix, json.getPreviewComment().prefix);
-//    EXPECT_EQ(json2.getPreviewComment().suffix, json.getPreviewComment().suffix);
+//    EXPECT_EQ(json2.getPreviewComment().prefix(), json.getPreviewComment().prefix);
+//    EXPECT_EQ(json2.getPreviewComment().suffix(), json.getPreviewComment().suffix);
 
 //    EXPECT_EQ(json2.getComment("bool"), json.getComment("bool"));
-//    EXPECT_EQ(json2.getComment("bool").prefix, json.getComment("bool").prefix);
-//    EXPECT_EQ(json2.getComment("bool").suffix, json.getComment("bool").suffix);
+//    EXPECT_EQ(json2.getComment("bool").prefix(), json.getComment("bool").prefix);
+//    EXPECT_EQ(json2.getComment("bool").suffix(), json.getComment("bool").suffix);
 
 //    EXPECT_EQ(json2.getComment("string"), json.getComment("string"));
-//    EXPECT_EQ(json2.getComment("string").prefix, json.getComment("string").prefix);
-//    EXPECT_EQ(json2.getComment("string").suffix, json.getComment("string").suffix);
+//    EXPECT_EQ(json2.getComment("string").prefix(), json.getComment("string").prefix);
+//    EXPECT_EQ(json2.getComment("string").suffix(), json.getComment("string").suffix);
 
 //    EXPECT_EQ(json2.getComment("array"), json.getComment("array"));
-//    EXPECT_EQ(json2.getComment("array").prefix, json.getComment("array").prefix);
-//    EXPECT_EQ(json2.getComment("array").suffix, json.getComment("array").suffix);
+//    EXPECT_EQ(json2.getComment("array").prefix(), json.getComment("array").prefix);
+//    EXPECT_EQ(json2.getComment("array").suffix(), json.getComment("array").suffix);
 
 //    EXPECT_EQ(json2["json"].getJson().getComment(0), json["json"].getJson().getComment(0));
-//    EXPECT_EQ(json2["json"].getJson().getComment(0).prefix,
+//    EXPECT_EQ(json2["json"].getJson().getComment(0).prefix(),
 //              json["json"].getJson().getComment(0).prefix);
-//    EXPECT_EQ(json2["json"].getJson().getComment(0).suffix,
+//    EXPECT_EQ(json2["json"].getJson().getComment(0).suffix(),
 //              json["json"].getJson().getComment(0).suffix);
 
 //    EXPECT_EQ(json2["array"].getArray().getComment(0), json["array"].getArray().getComment(0));
-//    EXPECT_EQ(json2["array"].getArray().getComment(0).prefix,
+//    EXPECT_EQ(json2["array"].getArray().getComment(0).prefix(),
 //              json["array"].getArray().getComment(0).prefix);
-//    EXPECT_EQ(json2["array"].getArray().getComment(0).suffix,
+//    EXPECT_EQ(json2["array"].getArray().getComment(0).suffix(),
 //              json["array"].getArray().getComment(0).suffix);
 }
 
@@ -269,19 +269,19 @@ TEST(JSON, read_file_comment) {
     bool b = json2.readFile(path, true, ConfigFormat::eJSON); //по умолчанию считывается JSON формат
     ASSERT_EQ(true, b);
 
-    EXPECT_EQ(json2.getPreviewComment().prefix, preview_comment_result);
+    EXPECT_EQ(json2.getPreviewComment().prefix(), preview_comment_result);
     ASSERT_EQ(json2.contains("bool"), true);
-    EXPECT_EQ(json2.getComment("bool").prefix, comment1);
+    EXPECT_EQ(json2.getComment("bool").prefix(), comment1);
     ASSERT_EQ(json2.contains("string"), true);
-    EXPECT_EQ(json2.getComment("string").prefix, comment2);
+    EXPECT_EQ(json2.getComment("string").prefix(), comment2);
     ASSERT_EQ(json2.contains("array"), true);
-    EXPECT_EQ(json2.getComment("array").suffix, comment3);
+    EXPECT_EQ(json2.getComment("array").suffix(), comment3);
     ASSERT_EQ(json2.contains("json"), true);
     ASSERT_EQ(json2["json"].getJson().size() > 0, true);
-    EXPECT_EQ(json2["json"].getJson().getComment(0).prefix, comment4);
-    EXPECT_EQ(json2["json"].getJson().getComment(1).prefix, comment4);
+    EXPECT_EQ(json2["json"].getJson().getComment(0).prefix(), comment4);
+    EXPECT_EQ(json2["json"].getJson().getComment(1).prefix(), comment4);
     ASSERT_EQ(json2.contains("array"), true);
-    EXPECT_EQ(json2["array"].getArray().getComment(0).prefix, comment5);
+    EXPECT_EQ(json2["array"].getArray().getComment(0).prefix(), comment5);
 }
 
 TEST(JSON, read_file_error) {
