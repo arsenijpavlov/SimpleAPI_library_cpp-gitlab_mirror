@@ -35,8 +35,10 @@
 //==========================================================================VALUES
 
 //EXEPTIONS=======================================================================
+#define __IF_INDEX_BOUND__(object, index)   if(index + 1 > object->size())
+#define __IF_INDEX_BOUND2__(object, index)  if(index + 1 > object.size())
 #define __JSON_EMPTY_EXCEPTION__    throw std::invalid_argument("Json is empty");
-#define __ARRAY_EMPTY_EXCEPTION__   throw std::invalid_argument("JArray is empty");
+#define __ARRAY_EMPTY_EXCEPTION__   throw std::invalid_argument("Array is empty");
 #define __CHECK_INDEX_BOUND_EXCEPTION__(object, index) \
                                     if(index + 1 > object->size()) \
                                         throw std::out_of_range("going beyond the object");
@@ -55,16 +57,16 @@
                                     return ret;
 #define __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__ \
                                     throw std::invalid_argument( \
-                                        "index operator may be used only for Json or JArray elements");
+                                        "index operator may be used only for Json or Array Element(s)");
 #define __ARRAY_INCORRECT_INDEX_EXCEPTION__ \
-                                    throw std::invalid_argument("index for JArray must be a number only");
+                                    throw std::invalid_argument("index for Array must be a number only");
 #define __JSON_KEY_NOT_FOUND_EXCEPTION__ \
                                     throw std::invalid_argument("Json key not found");
 #define __NOT_ARRAY_OR_JSON_ELEMENT_EXCEPTION__ \
-                                    throw std::invalid_argument("This element cannot contain internal elements");
+                                    throw std::invalid_argument("This Element cannot contain internal Element(s)");
 #define __NOT_JSON_ELEMENT_EXCEPTION__ \
-                                    throw std::invalid_argument("This element cannot contain internal named elements");
-#define __NO_ELEMENTS_EXCEPTION__   if(size() < 1) throw std::invalid_argument("There are no elements");
+                                    throw std::invalid_argument("This Element cannot contain internal named Element(s)");
+#define __NO_ELEMENTS_EXCEPTION__   if(size() < 1) throw std::invalid_argument("There are no Element(s)");
 //=======================================================================EXEPTIONS
 
 
