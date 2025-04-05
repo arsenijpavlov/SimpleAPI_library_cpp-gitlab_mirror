@@ -35,10 +35,14 @@
 //==========================================================================VALUES
 
 //EXEPTIONS=======================================================================
-#define __IF_INDEX_BOUND__(object, index)   if(index + 1 > object->size())
-#define __IF_INDEX_BOUND2__(object, index)  if(index + 1 > object.size())
+#define __IF_INDEX_NOT_BOUND__(object, index)   if(index + 1 > object->size())
+#define __IF_INDEX_NOT_BOUND2__(object, index)  if(index + 1 > object.size())
+
 #define __JSON_EMPTY_EXCEPTION__    throw std::invalid_argument("Json is empty");
 #define __ARRAY_EMPTY_EXCEPTION__   throw std::invalid_argument("Array is empty");
+
+#define __CHECK_ARRAY_EMPTY_EXCEPTION__(object) \
+                                    if(object.empty()) __ARRAY_EMPTY_EXCEPTION__
 #define __CHECK_INDEX_BOUND_EXCEPTION__(object, index) \
                                     if(index + 1 > object->size()) \
                                         throw std::out_of_range("going beyond the object");
@@ -51,6 +55,7 @@
 #define __CHECK_INDEX_BOUND2_RETURN__(object, ret) \
                                     if(index + 1 > object.size()) \
                                         return ret;
+
 #define __KEY_NOT_FOUND_EXCEPTION__(key) \
                                     throw std::invalid_argument("key not found: " + key);
 #define __KEY_NOT_FOUND_RETURN__(key, ret) \
