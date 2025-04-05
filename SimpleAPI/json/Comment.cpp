@@ -1,6 +1,26 @@
 #include "Comment.h"
 
 
+Comment::Comment() noexcept {
+    m_prefix = nullptr;
+    m_suffix = nullptr;
+}
+
+Comment::Comment(const Comment &other) noexcept {
+    if(this != &other)
+        set(other.prefix(), other.suffix());
+}
+
+Comment::Comment(const Comment &&other) noexcept {
+    if(this != &other)
+        set(other.prefix(), other.suffix());
+}
+
+Comment::Comment(const std::string &comment_before, const std::string &comment_after) noexcept {
+    m_prefix = (comment_before.empty()) ? nullptr : new std::string(comment_before);
+    m_suffix = (comment_after.empty()) ? nullptr : new std::string(comment_after);
+}
+
 Comment::~Comment() noexcept {
     if(m_prefix) delete m_prefix;
     if(m_suffix) delete m_suffix;
@@ -38,20 +58,24 @@ void Comment::set(const std::string &prefix_comment, const std::string &suffix_c
 }
 
 void Comment::set(const Comment &other) noexcept {
-    set(*other.m_prefix, *other.m_suffix);
+    setPrefix(other.prefix());
+    setSuffix(other.suffix());
 }
 
 void Comment::setPrefix(const std::string &comment) noexcept {
-    if(m_prefix == nullptr) m_prefix = new std::string();
-    *m_prefix = comment;
+    if(m_prefix == nullptr)
+        m_prefix = new std::string();
+    if(!comment.empty())
+        *m_prefix = comment;
 }
 
 void Comment::setSuffix(const std::string &comment) noexcept {
-    if(m_suffix == nullptr) m_suffix = new std::string();
-    *m_suffix = comment;
+    if(m_suffix == nullptr)
+        m_suffix = new std::string();
+    if(!comment.empty())
+        *m_suffix = comment;
 }
 
-//NOTE: можно обнулять я указатель, но зачем? Чаще всего нужна именно перезапись?
 void Comment::clear() noexcept {
     m_prefix->clear();
     m_suffix->clear();
@@ -79,20 +103,63 @@ void Comment::delSuffix() noexcept {
 }
 
 bool Comment::operator==(const Comment& other) const noexcept {
-    bool b1 = m_prefix == nullptr && other.m_prefix == nullptr;
-    bool b2 = m_prefix != nullptr && other.m_prefix != nullptr;
-    bool b3 = true;
-    bool b4 = true;
-    bool b5 = true;
-    if(b2) {
-        b3 = m_prefix->empty() && other.m_prefix->empty();
-        b4 = m_prefix->empty() && other.m_prefix->empty();
-        b5 = *m_prefix == *other.m_prefix;
+    if(this == &other)
+        return true;
+    if(m_prefix == nullptr && other.m_prefix == nullptr)
+        return true;
+    if(m_prefix != nullptr && other.m_prefix != nullptr) {
+        if(m_prefix->empty() && other.m_prefix->empty())
+            return true;
+        return *m_prefix == *other.m_prefix;
     }
 
-    return b1 && b2 && b3 && b4 && b5;
+    return false;
 }
 
-void Comment::operator=(const Comment& other) noexcept {
-    set(other);
+Comment& Comment::operator=(const Comment& other) noexcept {
+    if(this != &other)
+        set(other);
+    return *this;
+}
+
+Comment& Comment::operator=(const Comment&& other) noexcept {
+    if(this != &other)
+        set(other);
+    return *this;
+}
+
+Comment Comment::operator=(const Comment& other) const noexcept {
+    Comment temp;
+    temp.set(other);
+    return temp;
+}
+
+Comment Comment::operator=(const Comment&& other) const noexcept {
+    Comment temp;
+    temp.set(other);
+    return temp;
+}
+
+Comment& Comment::operator=(const std::string& prefix_comment) noexcept {
+    if(this->m_prefix != &prefix_comment)
+        set(prefix_comment);
+    return *this;
+}
+
+Comment& Comment::operator=(const std::string&& prefix_comment) noexcept {
+    if(this->m_prefix != &prefix_comment)
+        set(prefix_comment);
+    return *this;
+}
+
+Comment Comment::operator=(const std::string& prefix_comment) const noexcept {
+    Comment temp;
+    temp.set(prefix_comment);
+    return temp;
+}
+
+Comment Comment::operator=(const std::string&& prefix_comment) const noexcept {
+    Comment temp;
+    temp.set(prefix_comment);
+    return temp;
 }

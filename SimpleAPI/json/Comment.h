@@ -18,10 +18,10 @@ private:
     std::string *m_suffix;
 
 public:
-    Comment() noexcept                              {}
-    Comment(const std::string& comment_before, const std::string& comment_after = "") noexcept :
-        m_prefix(new std::string(comment_before)),
-        m_suffix(new std::string(comment_after))    {}
+    Comment() noexcept;
+    Comment(const Comment& other) noexcept;
+    Comment(const Comment&& other) noexcept;
+    Comment(const std::string& comment_before, const std::string& comment_after = "") noexcept;
     ~Comment() noexcept;
 
     bool isEmpty() const noexcept;
@@ -45,9 +45,15 @@ public:
     void delPrefix() noexcept;
     void delSuffix() noexcept;
 
-    bool operator==(const Comment& other) const noexcept;
-    void operator=(const Comment& other) noexcept;
-    void operator=(const std::string& prefix_comment) noexcept;
+    bool        operator==(const Comment& other) const noexcept;
+    Comment&    operator=(const Comment& other) noexcept;
+    Comment&    operator=(const Comment&& other) noexcept;
+    Comment     operator=(const Comment& other) const noexcept;
+    Comment     operator=(const Comment&& other) const noexcept;
+    Comment&    operator=(const std::string& prefix_comment) noexcept;
+    Comment&    operator=(const std::string&& prefix_comment) noexcept;
+    Comment     operator=(const std::string& prefix_comment) const noexcept;
+    Comment     operator=(const std::string&& prefix_comment) const noexcept;
 };
 
 #endif // COMMENT_H
