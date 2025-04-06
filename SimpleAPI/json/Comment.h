@@ -17,12 +17,22 @@ private:
     std::string *m_prefix;
     std::string *m_suffix;
 
+    //NOTE: при выводе в файл (+комментарии) будут учитываться только параметры корневого элемента
+    //TODO: как задавать многострочные комментарии?
+    uint8_t comment_column_size;
+    char oneline_comment_symbol;
+    char multiline_comment_symbol;
+
 public:
     Comment() noexcept;
     Comment(const Comment& other) noexcept;
     Comment(const Comment&& other) noexcept;
     Comment(const std::string& comment_before, const std::string& comment_after = "") noexcept;
     ~Comment() noexcept;
+
+private:
+    void init();
+public:
 
     bool isEmpty() const noexcept;
 
@@ -48,12 +58,8 @@ public:
     bool        operator==(const Comment& other) const noexcept;
     Comment&    operator=(const Comment& other) noexcept;
     Comment&    operator=(const Comment&& other) noexcept;
-    Comment     operator=(const Comment& other) const noexcept;
-    Comment     operator=(const Comment&& other) const noexcept;
     Comment&    operator=(const std::string& prefix_comment) noexcept;
     Comment&    operator=(const std::string&& prefix_comment) noexcept;
-    Comment     operator=(const std::string& prefix_comment) const noexcept;
-    Comment     operator=(const std::string&& prefix_comment) const noexcept;
 };
 
 #endif // COMMENT_H

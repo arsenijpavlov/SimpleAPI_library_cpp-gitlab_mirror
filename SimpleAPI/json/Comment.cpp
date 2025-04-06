@@ -26,6 +26,11 @@ Comment::~Comment() noexcept {
     if(m_suffix) delete m_suffix;
 }
 
+void Comment::init() {
+    comment_column_size = 40;
+    comment_symbol      = '#';
+}
+
 bool Comment::isEmpty() const noexcept {
     if(m_prefix && !m_prefix->empty()) return false;
     if(m_suffix && !m_suffix->empty()) return false;
@@ -128,18 +133,6 @@ Comment& Comment::operator=(const Comment&& other) noexcept {
     return *this;
 }
 
-Comment Comment::operator=(const Comment& other) const noexcept {
-    Comment temp;
-    temp.set(other);
-    return temp;
-}
-
-Comment Comment::operator=(const Comment&& other) const noexcept {
-    Comment temp;
-    temp.set(other);
-    return temp;
-}
-
 Comment& Comment::operator=(const std::string& prefix_comment) noexcept {
     if(this->m_prefix != &prefix_comment)
         set(prefix_comment);
@@ -150,16 +143,4 @@ Comment& Comment::operator=(const std::string&& prefix_comment) noexcept {
     if(this->m_prefix != &prefix_comment)
         set(prefix_comment);
     return *this;
-}
-
-Comment Comment::operator=(const std::string& prefix_comment) const noexcept {
-    Comment temp;
-    temp.set(prefix_comment);
-    return temp;
-}
-
-Comment Comment::operator=(const std::string&& prefix_comment) const noexcept {
-    Comment temp;
-    temp.set(prefix_comment);
-    return temp;
 }
