@@ -264,8 +264,8 @@ bool IsElementArray(const std::string &str, const ConfigFormat format) noexcept 
     switch(format) {
     case ConfigFormat::eJSON:   return IsElementJsonArray(str);
     case ConfigFormat::eINI:    return IsElementIniArray(str);
-//    case ConfigFormat::eYAML:
-//    case ConfigFormat::eXML:
+//case:    case ConfigFormat::eYAML:
+//case:    case ConfigFormat::eXML:
     default: return false;
     }
 

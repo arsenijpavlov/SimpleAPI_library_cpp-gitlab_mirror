@@ -40,8 +40,6 @@ public:
                     а многострочные значения так же станут занимать несколько строк)
     std::string to_string(const ConfigFormat format = ConfigFormat::eJSON,
                           const bool to_one_line = false) const noexcept override;
-    //TODO: comment_column_size
-    //TODO: comment_symbol
     //TODO: to_JSON_string()
     //TODO: to_INI_string()
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
@@ -129,8 +127,8 @@ public:
     Element&        operator[](const std::array<std::string, SIZE>& complex_key) {
                         VString complex_key_vec;
                         complex_key_vec.reserve(SIZE);
-                        std::copy(complex_key.begin(), complex_key.end(), complex_key_vec.begin());
-                        return (*this)[complex_key_vec]; //FIXME: ???
+                        std::copy(complex_key.begin() + 1, complex_key.end(), complex_key_vec.begin());
+                        return (*this)[complex_key_vec];
                     }
     //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= OPERATORS
 
