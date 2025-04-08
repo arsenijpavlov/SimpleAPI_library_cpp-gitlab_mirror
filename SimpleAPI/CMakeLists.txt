@@ -56,6 +56,11 @@ else()
     message("SimpleAPI output include directory: ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
 endif()
 
+#----------------------------
+#TODO: ВРЕМЕННОЕ ХРАНЕНИЕ
+target_sources(${PROJECT_NAME} PRIVATE pre_WIKI.txt)
+#----------------------------
+
 install(TARGETS ${PROJECT_NAME}
     DESTINATION /opt/SimpleAPI
 )
