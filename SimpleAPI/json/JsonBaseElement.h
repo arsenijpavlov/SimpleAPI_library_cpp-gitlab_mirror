@@ -28,10 +28,10 @@ public:
     //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= WRITING
 
     //PRINTING =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    //to_one_line - следует ли попытаться вывести всё в одну строку (комментарии будут проигнорированы, \
-                    а многострочные значения так же станут занимать несколько строк)
-    virtual std::string to_string(const ConfigFormat format = ConfigFormat::eJSON,
-                                  const bool to_one_line = false) const noexcept
+    virtual std::string to_string(const ConfigFormat format = ConfigFormat::eJSON) const noexcept
+                                                                { return ""; }
+    //для рекурсивного вызова
+    virtual std::string to_string(const ConfigFormat format, const CommentDesign &design) const noexcept
                                                                 { return ""; }
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
 
@@ -58,6 +58,20 @@ public:
     void deleteComment() noexcept                               { m_comment.del(); }
     void deletePrefixComment() noexcept                         { m_comment.delPrefix(); }
     void deleteSuffixComment() noexcept                         { m_comment.delSuffix(); }
+
+    CommentDesign&  getCommentDesign() noexcept                 { return m_comment.commentDesign(); }
+    CommentDesign   getCommentDesign() const noexcept           { return m_comment.commentDesign(); }
+    void    setCommentDesign(const CommentDesign& design) noexcept
+                                                                { m_comment.setDesign(design); }
+    void    setCommentDesign(const std::array<char,2> oneline_sym, const std::array<char,3> multiline_sym,
+                          const uint8_t column_size) noexcept   { m_comment.setDesign(oneline_sym, multiline_sym, column_size); }
+    void    setCommentOnelineDesign(const std::array<char,2> oneline_sym) noexcept
+                                                                { m_comment.setOnelineDesign(oneline_sym); }
+    void    setCommentMultiLineDesign(const std::array<char,3> multiline_sym, const uint8_t column_size) noexcept
+                                                                { m_comment.setMultilineDesign(multiline_sym, column_size); }
+    void    clearCommentDesign() noexcept                       { m_comment.clearDesign(); }
+    void    clearCommentOnelineDesign() noexcept                { m_comment.clearOnelineDesign(); }
+    void    clearCommentMultilineDesign() noexcept              { m_comment.clearMultilineDesign(); }
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= COMMENTS
 
     virtual bool isEqual(const Element& other, const bool compare_comments = false) const noexcept

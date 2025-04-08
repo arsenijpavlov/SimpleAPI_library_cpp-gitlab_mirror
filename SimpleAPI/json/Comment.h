@@ -6,11 +6,32 @@
 #include <bits/shared_ptr.h>
 
 
+//TODO: кандидат на удаление
 enum class CommentType {
     eNotComment,
     eOneLineComment,
     eMultiLineComment
 };
+
+#define DEFAULT_COMMENT_COLUMN_SIZE 50
+struct CommentDesign {
+    //TODO: tabulation level
+
+    uint8_t comment_column_size;
+    //NOTE: однострочные комментарии могут иметь два символа в начале
+    std::array<char,2>  oneline_comment_symbols;
+    std::array<char,3>  multiline_comment_symbols;
+    /*NOTE: многострочные комментарии должны быть заданы в стиле <*> (<*comment_string*>)
+     * третий символ может быть пустым, тогда для завершения будет использован первый символ
+    */
+    CommentDesign() :
+        comment_column_size(DEFAULT_COMMENT_COLUMN_SIZE),
+        oneline_comment_symbols{'/', '/'},
+        multiline_comment_symbols{'/', '*', 0} // 0 - завершающий символ повторяет первый
+    {}
+};
+//TODO: toCommentString
+//TODO: fromCommentString
 
 class Comment {
 private:
@@ -18,10 +39,8 @@ private:
     std::string *m_suffix;
 
     //NOTE: при выводе в файл (+комментарии) будут учитываться только параметры корневого элемента
-    //TODO: как задавать многострочные комментарии?
-    uint8_t comment_column_size;
-    char oneline_comment_symbol;
-    char multiline_comment_symbol;
+    //NOTE: если не назначено, то будет применён стиль C++: //однострочный,  /*многострочный*/, с шириной DEFAULT_COMMENT_COLUMN_SIZE знаков
+    CommentDesign *m_comment_design;
 
 public:
     Comment() noexcept;
@@ -31,7 +50,7 @@ public:
     ~Comment() noexcept;
 
 private:
-    void init();
+    void init() {}
 public:
 
     bool isEmpty() const noexcept;
@@ -54,6 +73,22 @@ public:
     void del() noexcept;
     void delPrefix() noexcept;
     void delSuffix() noexcept;
+
+    //Оформление комментариев при выводе в файл -----------------------------------
+    //NOTE: выделит память, если nullptr
+    CommentDesign&  commentDesign() noexcept;
+    CommentDesign   commentDesign() const noexcept;
+
+    void    setDesign(const CommentDesign &design) noexcept;
+    void    setDesign(const std::array<char,2> oneline_sym, const std::array<char,3> multiline_sym,
+                   const uint8_t column_size) noexcept;
+    void    setOnelineDesign(const std::array<char,2> oneline_sym) noexcept;
+    void    setMultilineDesign(const std::array<char,3> multiline_sym, const uint8_t column_size) noexcept;
+
+    void    clearDesign() noexcept;
+    void    clearOnelineDesign() noexcept;
+    void    clearMultilineDesign() noexcept;
+    //-----------------------------------------------------------------------------
 
     bool        operator==(const Comment& other) const noexcept;
     Comment&    operator=(const Comment& other) noexcept;

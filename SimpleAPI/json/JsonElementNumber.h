@@ -16,8 +16,8 @@ public:
     ~ElementNumber() noexcept;
 
     //PRINTING =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    std::string to_string(const ConfigFormat format = ConfigFormat::eJSON,
-                          const bool to_one_line = false) const noexcept override;
+//TODO:    std::string to_string(const ConfigFormat format = ConfigFormat::eJSON) const noexcept override;
+//TODO:    std::string to_string(const ConfigFormat format, const CommentDesign &design) const noexcept override;
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
 
     long double getValue() const noexcept       { return m_value; }

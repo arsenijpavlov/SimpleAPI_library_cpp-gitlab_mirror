@@ -4,31 +4,36 @@
 Comment::Comment() noexcept {
     m_prefix = nullptr;
     m_suffix = nullptr;
+
+    m_comment_design = nullptr;
 }
 
 Comment::Comment(const Comment &other) noexcept {
-    if(this != &other)
+    if(this != &other) {
         set(other.prefix(), other.suffix());
+        setDesign(other.commentDesign());
+    }
 }
 
 Comment::Comment(const Comment &&other) noexcept {
-    if(this != &other)
+    if(this != &other) {
         set(other.prefix(), other.suffix());
+        setDesign(other.commentDesign());
+    }
 }
 
 Comment::Comment(const std::string &comment_before, const std::string &comment_after) noexcept {
     m_prefix = (comment_before.empty()) ? nullptr : new std::string(comment_before);
     m_suffix = (comment_after.empty()) ? nullptr : new std::string(comment_after);
+
+    m_comment_design = nullptr;
 }
 
 Comment::~Comment() noexcept {
     if(m_prefix) delete m_prefix;
     if(m_suffix) delete m_suffix;
-}
 
-void Comment::init() {
-    comment_column_size = 40;
-    comment_symbol      = '#';
+    if(m_comment_design) delete m_comment_design;
 }
 
 bool Comment::isEmpty() const noexcept {
@@ -97,6 +102,7 @@ void Comment::clearSuffix() noexcept {
 void Comment::del() noexcept {
     if(m_prefix) delete m_prefix;
     if(m_suffix) delete m_suffix;
+    if(m_comment_design) delete m_comment_design;
 }
 
 void Comment::delPrefix() noexcept {
@@ -107,29 +113,98 @@ void Comment::delSuffix() noexcept {
     if(m_suffix) delete m_suffix;
 }
 
+CommentDesign &Comment::commentDesign() noexcept {
+    if(!m_comment_design) m_comment_design = new CommentDesign();
+    return *m_comment_design;
+}
+
+CommentDesign Comment::commentDesign() const noexcept {
+    if(!m_comment_design) return {};
+    return *m_comment_design;
+}
+
+void Comment::setDesign(const CommentDesign &design) noexcept {
+    if(!m_comment_design) {
+        m_comment_design = new CommentDesign(design);
+        return;
+    }
+    *m_comment_design = design;
+}
+
+void Comment::setDesign(const std::array<char,2> oneline_sym, const std::array<char,3> multiline_sym,
+                        const uint8_t column_size) noexcept {
+    if(!m_comment_design)
+        m_comment_design = new CommentDesign();
+
+    m_comment_design->oneline_comment_symbols   = oneline_sym;
+    m_comment_design->multiline_comment_symbols = multiline_sym;
+    m_comment_design->comment_column_size       = column_size;
+}
+
+void Comment::setOnelineDesign(const std::array<char,2> oneline_sym) noexcept {
+    if(!m_comment_design)
+        m_comment_design = new CommentDesign();
+
+    m_comment_design->oneline_comment_symbols   = oneline_sym;
+}
+
+void Comment::setMultilineDesign(const std::array<char,3> multiline_sym, const uint8_t column_size) noexcept {
+    if(!m_comment_design)
+        m_comment_design = new CommentDesign();
+
+    m_comment_design->multiline_comment_symbols = multiline_sym;
+    m_comment_design->comment_column_size       = column_size;
+}
+
+void Comment::clearDesign() noexcept {
+    if(m_comment_design) delete m_comment_design;
+}
+
+void Comment::clearOnelineDesign() noexcept {
+    if(!m_comment_design) {
+        m_comment_design = new CommentDesign;
+        return;
+    }
+    m_comment_design->oneline_comment_symbols = {'/', '/'};
+}
+
+void Comment::clearMultilineDesign() noexcept {
+    if(!m_comment_design) {
+        m_comment_design = new CommentDesign;
+        return;
+    }
+    m_comment_design->multiline_comment_symbols = {'/', '*'};
+    m_comment_design->comment_column_size = DEFAULT_COMMENT_COLUMN_SIZE;
+}
+
+//TODO: исправить. Не работает.
 bool Comment::operator==(const Comment& other) const noexcept {
     if(this == &other)
         return true;
-    if(m_prefix == nullptr && other.m_prefix == nullptr)
-        return true;
-    if(m_prefix != nullptr && other.m_prefix != nullptr) {
-        if(m_prefix->empty() && other.m_prefix->empty())
-            return true;
-        return *m_prefix == *other.m_prefix;
-    }
+//    if(m_prefix == nullptr && other.m_prefix == nullptr)
+//        return true;
+//    if(m_prefix != nullptr && other.m_prefix != nullptr) {
+//        if(m_prefix->empty() && other.m_prefix->empty())
+//            return true;
+//        return *m_prefix == *other.m_prefix;
+//    }
 
     return false;
 }
 
 Comment& Comment::operator=(const Comment& other) noexcept {
-    if(this != &other)
+    if(this != &other) {
         set(other);
+        setDesign(other.commentDesign());
+    }
     return *this;
 }
 
 Comment& Comment::operator=(const Comment&& other) noexcept {
-    if(this != &other)
+    if(this != &other) {
         set(other);
+        setDesign(other.commentDesign());
+    }
     return *this;
 }
 

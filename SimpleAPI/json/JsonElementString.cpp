@@ -4,10 +4,6 @@
 #include "../utils/Utils.h"
 
 
-std::string ElementString::to_string(const ConfigFormat format, const bool to_one_line) const noexcept {
-    return m_value;
-}
-
 bool ElementString::isEqual(const Element &other, const bool compare_comments) const noexcept {
     if(m_value != dynamic_cast<const ElementString&>(other).m_value)    return false;
     if(compare_comments && m_comment == other.getComment())             return false;

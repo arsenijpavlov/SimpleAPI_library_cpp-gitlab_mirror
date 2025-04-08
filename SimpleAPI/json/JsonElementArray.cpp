@@ -28,13 +28,6 @@ void ElementArray::parseINI_array(const std::string &string, const bool enable_c
     //TODO: std::exception
 }
 
-std::string ElementArray::to_string(const ConfigFormat format,
-                                    const bool to_one_line) const noexcept {
-    //TODO: to_one_line
-
-    return "";
-}
-
 void ElementArray::addComment(const size_t index, const Comment &content) {
     __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
     m_values[index].addComment(content);

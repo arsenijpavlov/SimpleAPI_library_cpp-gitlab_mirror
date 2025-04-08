@@ -2,11 +2,6 @@
 #include <algorithm>
 
 
-
-std::string ElementBool::to_string(const ConfigFormat format, const bool to_one_line) const noexcept {
-    return m_value ? "true" : "false";
-}
-
 bool ElementBool::isEqual(const Element &other, const bool compare_comments) const noexcept {
     if(m_value != dynamic_cast<const ElementBool&>(other).m_value)  return false;
     if(compare_comments && m_comment == other.getComment())         return false;

@@ -36,12 +36,8 @@ public:
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- PARSING
 
     //PRINTING =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    //to_one_line - следует ли попытаться вывести всё в одну строку (комментарии будут проигнорированы, \
-                    а многострочные значения так же станут занимать несколько строк)
-    std::string to_string(const ConfigFormat format = ConfigFormat::eJSON,
-                          const bool to_one_line = false) const noexcept override;
-    //TODO: to_JSON_string()
-    //TODO: to_INI_string()
+//TODO:    std::string to_string(const ConfigFormat format = ConfigFormat::eJSON) const noexcept override;
+//TODO:    std::string to_string(const ConfigFormat format, const CommentDesign &design) const noexcept override;
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
 
     //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=

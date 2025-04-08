@@ -58,12 +58,8 @@ public:
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- PARSING
 
     //PRINTING =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    //to_one_line - следует ли попытаться вывести всё в одну строку (комментарии будут проигнорированы, \
-                    а многострочные значения так же станут занимать несколько строк)
-    std::string to_string(const ConfigFormat format = ConfigFormat::eJSON,
-                          const bool to_one_line = false) const noexcept override;
-    //TODO: comment_column_size
-    //TODO: comment_symbol
+//TODO:    std::string to_string(const ConfigFormat format = ConfigFormat::eJSON) const noexcept override;
+//TODO:    std::string to_string(const ConfigFormat format, const CommentDesign &design) const noexcept override;
 //    std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
 //                          const uint8_t column_size = 0, const ConfigFormat config_format = ConfigFormat::eJSON) const noexcept;
 //    std::string to_JSON_string(int16_t tabulation_level = 0, const bool enable_comment = false,

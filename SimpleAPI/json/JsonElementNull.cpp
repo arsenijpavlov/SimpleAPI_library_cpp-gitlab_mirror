@@ -4,10 +4,6 @@
 #include <algorithm>
 
 
-std::string ElementNull::to_string(const ConfigFormat format, const bool to_one_line) const noexcept {
-    return "null";
-}
-
 bool ElementNull::isEqual(const Element &other, const bool compare_comments) const noexcept {
     if(compare_comments && m_comment == other.getComment()) return false;
 
