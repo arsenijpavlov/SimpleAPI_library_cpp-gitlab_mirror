@@ -1,9 +1,9 @@
-#include "JsonElementArray.h"
+#include "ElementArray.h"
 #include <stdexcept>
 
 
 //предобъявление
-#include "JsonElementJson.h"
+#include "ElementJson.h"
 class ElementJson;
 
 ElementArray::ElementArray(const std::string &string, const ConfigFormat format,
@@ -114,7 +114,7 @@ ElementArray &ElementArray::clear() noexcept {
     return *this;
 }
 
-bool ElementArray::isEqual(const Element &other, const bool compare_comments) const noexcept {
+bool ElementArray::isEqual(const IElement &other, const bool compare_comments) const noexcept {
     if(m_values != dynamic_cast<const ElementArray&>(other).m_values)   return false;
     if(compare_comments && m_comment == other.getComment())             return false;
 
@@ -136,28 +136,28 @@ ValueType ElementArray::getTypeBack() {
     return m_values.back().getType();
 }
 
-ElementArray& ElementArray::pushFront(const Element &element) noexcept {
+ElementArray& ElementArray::pushFront(const IElement &element) noexcept {
     m_values.insert(m_values.cbegin(), element);
     return *this;
 }
 
-ElementArray& ElementArray::pushAt(const Element &element, const size_t index) {
+ElementArray& ElementArray::pushAt(const IElement &element, const size_t index) {
     __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index - 1) //проверяем, что size() < index - 1 (+1[нумерация с 0])
     m_values.insert(m_values.cbegin() + index, element);
     return *this;
 }
 
-ElementArray& ElementArray::pushBack(const Element &element) noexcept {
+ElementArray& ElementArray::pushBack(const IElement &element) noexcept {
     m_values.push_back(element);
     return *this;
 }
 
-Element& ElementArray::getValue(const size_t index) {
+IElement& ElementArray::getValue(const size_t index) {
     __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
     return m_values[index];
 }
 
-Element& ElementArray::getValue(const VString& complex_key) {
+IElement& ElementArray::getValue(const VString& complex_key) {
     if(complex_key.size() == 0)
         throw std::invalid_argument("complex_key vector is empty");
 
@@ -175,7 +175,7 @@ Element& ElementArray::getValue(const VString& complex_key) {
     if(complex_key.size() == 1)
         return (*this)[current_index];
     else {
-        Element& el = (*this)[current_index];
+        IElement& el = (*this)[current_index];
 
         auto new_complex_key = complex_key;
         new_complex_key.erase(new_complex_key.begin());
@@ -187,7 +187,7 @@ Element& ElementArray::getValue(const VString& complex_key) {
     }
 }
 
-Element& ElementArray::getValue(const std::vector<size_t>& complex_key) {
+IElement& ElementArray::getValue(const std::vector<size_t>& complex_key) {
     if(complex_key.size() == 0)
         throw std::invalid_argument("complex_key vector is empty");
 
@@ -198,7 +198,7 @@ Element& ElementArray::getValue(const std::vector<size_t>& complex_key) {
     if(complex_key.size() == 1)
         return (*this)[complex_key.front()];
     else {
-        Element& el = (*this)[complex_key.front()];
+        IElement& el = (*this)[complex_key.front()];
 
         auto new_complex_key = complex_key;
         new_complex_key.erase(new_complex_key.begin());
@@ -248,7 +248,7 @@ ElementArray &ElementArray::erase(const std::vector<size_t> indexes) {
     return *this;
 }
 
-void ElementArray::operator=(const std::vector<Element> &other) noexcept {
+void ElementArray::operator=(const VElement &other) noexcept {
     m_values = other;
 }
 

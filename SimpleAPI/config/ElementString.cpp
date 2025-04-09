@@ -1,10 +1,10 @@
-#include "JsonElementString.h"
-#include "JsonDefines.h"
+#include "ElementString.h"
+#include "ConfigDefines.h"
 
 #include "../utils/Utils.h"
 
 
-bool ElementString::isEqual(const Element &other, const bool compare_comments) const noexcept {
+bool ElementString::isEqual(const IElement &other, const bool compare_comments) const noexcept {
     if(m_value != dynamic_cast<const ElementString&>(other).m_value)    return false;
     if(compare_comments && m_comment == other.getComment())             return false;
 
@@ -95,6 +95,6 @@ bool IsElementString(std::string &str, const ConfigFormat format,
     }
 }
 
-bool IsElementString(const Element &e) noexcept {
+bool IsElementString(const IElement &e) noexcept {
     return e.getType() == ValueType::eString;
 }

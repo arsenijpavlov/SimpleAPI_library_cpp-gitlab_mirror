@@ -1,10 +1,10 @@
-#ifndef JSON_ELEMENT_NUMBER_H
-#define JSON_ELEMENT_NUMBER_H
+#ifndef ELEMENT_NUMBER_H
+#define ELEMENT_NUMBER_H
 
-#include "JsonBaseElement.h"
+#include "IElement.h"
 
 
-class ElementNumber : public Element {
+class ElementNumber : public IElement {
 protected:
     long double m_value;
 
@@ -23,7 +23,7 @@ public:
     long double getValue() const noexcept       { return m_value; }
 //TODO: фича под вопросом    int64_t     toInt() const noexcept          { return m_value; }
 //TODO: фича под вопросом    uint64_t    toUInt() const noexcept         { return m_value; }
-    bool        isEqual(const Element& other, const bool compare_comments = false) const noexcept override;
+    bool        isEqual(const IElement& other, const bool compare_comments = false) const noexcept override;
 
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     void operator=(const long double& other)    { m_value = other; }
@@ -36,6 +36,6 @@ public:
 };
 
 bool IsElementNumber(const std::string& str) noexcept;
-bool IsElementNumber(const Element& e) noexcept;
+bool IsElementNumber(const IElement& e) noexcept;
 
-#endif // JSON_ELEMENT_NUMBER_H
+#endif // ELEMENT_NUMBER_H

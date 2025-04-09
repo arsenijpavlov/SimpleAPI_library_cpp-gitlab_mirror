@@ -131,50 +131,8 @@ void Comment::setDesign(const CommentDesign &design) noexcept {
     *m_comment_design = design;
 }
 
-void Comment::setDesign(const std::array<char,2> oneline_sym, const std::array<char,3> multiline_sym,
-                        const uint8_t column_size) noexcept {
-    if(!m_comment_design)
-        m_comment_design = new CommentDesign();
-
-    m_comment_design->oneline_comment_symbols   = oneline_sym;
-    m_comment_design->multiline_comment_symbols = multiline_sym;
-    m_comment_design->comment_column_size       = column_size;
-}
-
-void Comment::setOnelineDesign(const std::array<char,2> oneline_sym) noexcept {
-    if(!m_comment_design)
-        m_comment_design = new CommentDesign();
-
-    m_comment_design->oneline_comment_symbols   = oneline_sym;
-}
-
-void Comment::setMultilineDesign(const std::array<char,3> multiline_sym, const uint8_t column_size) noexcept {
-    if(!m_comment_design)
-        m_comment_design = new CommentDesign();
-
-    m_comment_design->multiline_comment_symbols = multiline_sym;
-    m_comment_design->comment_column_size       = column_size;
-}
-
 void Comment::clearDesign() noexcept {
     if(m_comment_design) delete m_comment_design;
-}
-
-void Comment::clearOnelineDesign() noexcept {
-    if(!m_comment_design) {
-        m_comment_design = new CommentDesign;
-        return;
-    }
-    m_comment_design->oneline_comment_symbols = {'/', '/'};
-}
-
-void Comment::clearMultilineDesign() noexcept {
-    if(!m_comment_design) {
-        m_comment_design = new CommentDesign;
-        return;
-    }
-    m_comment_design->multiline_comment_symbols = {'/', '*'};
-    m_comment_design->comment_column_size = DEFAULT_COMMENT_COLUMN_SIZE;
 }
 
 //TODO: исправить. Не работает.

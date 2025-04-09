@@ -1,10 +1,10 @@
-#ifndef JSON_ELEMENT_BOOL_H
-#define JSON_ELEMENT_BOOL_H
+#ifndef ELEMENT_BOOL_H
+#define ELEMENT_BOOL_H
 
-#include "JsonBaseElement.h"
+#include "IElement.h"
 
 
-class ElementBool : public Element {
+class ElementBool : public IElement {
 protected:
     bool m_value;
 
@@ -19,7 +19,7 @@ public:
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
 
     bool        getValue() const noexcept           { return m_value; }
-    bool        isEqual(const Element& other, const bool compare_comments = false) const noexcept override;
+    bool        isEqual(const IElement& other, const bool compare_comments = false) const noexcept override;
 
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     void operator=(const bool other) noexcept;
@@ -27,6 +27,6 @@ public:
 };
 
 bool IsElementBool(const std::string& str) noexcept;
-bool IsElementBool(const Element& e) noexcept;
+bool IsElementBool(const IElement& e) noexcept;
 
-#endif // JSON_ELEMENT_BOOL_H
+#endif // ELEMENT_BOOL_H

@@ -1,8 +1,8 @@
-#ifndef JSON_ELEMENT_JSON_H
-#define JSON_ELEMENT_JSON_H
+#ifndef ELEMENT_JSON_H
+#define ELEMENT_JSON_H
 
-#include "JsonBaseElement.h"
-#include "JsonDefines.h"
+#include "IElement.h"
+#include "ConfigDefines.h"
 
 #include <vector>
 
@@ -10,7 +10,7 @@
 //предобъявление
 class ElementArray;
 
-class ElementJson : public Element {
+class ElementJson : public IElement {
 protected:
     VPairElement m_values;
 
@@ -43,7 +43,7 @@ public:
         init();
         m_values = vec;
     }
-    ElementJson(const Element& element) noexcept            { init(); }
+    ElementJson(const IElement& element) noexcept           { init(); }
     ~ElementJson() noexcept                                 {}
 
     private:
@@ -78,9 +78,9 @@ public:
 
     ElementJson&    clear() noexcept;
     bool            contains(const std::string& key) const noexcept;
-    bool            isEmpty() noexcept                          { return m_values.empty(); }
-    bool            isEqual(const Element& other, const bool compare_comments = false) const noexcept override;
-    size_t          size() noexcept                             { return m_values.size(); }
+    bool            isEmpty() noexcept                      { return m_values.empty(); }
+    bool            isEqual(const IElement& other, const bool compare_comments = false) const noexcept override;
+    size_t          size() noexcept                         { return m_values.size(); }
 
     //TYPES -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     ValueType   getTypeFront();
@@ -92,31 +92,31 @@ public:
     //SETTERS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     //NOTE: если индекс больше количества вложенных элементов, то добавятся в конец
     //NOTE: если ключа не существовало, его надо создать
-    ElementJson&    append(const std::string& key, const Element& value,
+    ElementJson&    append(const std::string& key, const IElement& value,
                            const bool rewrite = true) noexcept  { return pushBack(key, value); }
-    ElementJson&    pushFront(const std::string& key, const Element& value,
+    ElementJson&    pushFront(const std::string& key, const IElement& value,
                               const bool rewrite = true) noexcept;
-    ElementJson&    pushBack(const std::string& key, const Element& value,
+    ElementJson&    pushBack(const std::string& key, const IElement& value,
                              const bool rewrite = true) noexcept;
 
     //NOTE: ElementJson::put() всегда положит элемент в конец списка
-    ElementJson&    put(const std::string& key, const Element& value,
+    ElementJson&    put(const std::string& key, const IElement& value,
                         const bool rewrite = true) noexcept;
                     __ONLY_ALLOWED_TYPES__(T)
     ElementJson&    put(const std::string& key, const T& value,
-                        const bool rewrite = true) noexcept     { return put(key, Element(value), rewrite); }
+                        const bool rewrite = true) noexcept { return put(key, Element(value), rewrite); }
 
     //NOTE: ElementJson::add() всегда положит элемент в конец списка
                     __ONLY_ALLOWED_TYPES__(T)
     ElementJson&    add(const std::string& key, const T& value,
-                        const bool rewrite = true) noexcept     { return put(key, value, rewrite); }
+                        const bool rewrite = true) noexcept { return put(key, value, rewrite); }
                     __ONLY_ALLOWED_TYPES__(T)
     ElementJson&    updateValue(const std::string& key, const T& new_value) noexcept {
                         if(contains(key))   (*this)[key] = Element(new_value);
                         else                put(key, new_value);
                         return *this;
                     }
-    ElementJson&    updateValue(const std::string& key, const Element& new_value) noexcept;
+    ElementJson&    updateValue(const std::string& key, const IElement& new_value) noexcept;
                     //положить значение в указанную позицию
                     //если значение существует и флаг поднят - удалить существующее значение
                     //если индекс больше количества вложенных элементов, то добавятся в конец
@@ -198,19 +198,19 @@ public:
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- SETTERS
 
     //GETTERS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    Element&    getValue(const size_t index);
-    Element&    getValue(const std::string key);
-    Element&    getValue(const VString& complex_key);
-    Element&    getFront();
-    Element&    getAt(const size_t index);
-    Element&    getBack();
+    IElement&    getValue(const size_t index);
+    IElement&    getValue(const std::string key);
+    IElement&    getValue(const VString& complex_key);
+    IElement&    getFront();
+    IElement&    getAt(const size_t index);
+    IElement&    getBack();
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- GETTERS
 
     //DELETERS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    Element     popFront();
-    Element     popAt(const size_t index);
-    Element     popAt(const std::string key);
-    Element     popBack();
+    IElement     popFront();
+    IElement     popAt(const size_t index);
+    IElement     popAt(const std::string key);
+    IElement     popBack();
     ElementJson&    erase(const size_t index);
     ElementJson&    erase(const std::string key);
     ElementJson&    erase(const VPairElement::iterator& iterator) {
@@ -228,12 +228,12 @@ public:
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     void        operator=(const VPairElement& other) noexcept;
     void        operator<<(const JPair& element) noexcept; //альтернатива push_back()
-    Element&    operator[](const size_t index)              { return getValue(index); }
-    Element&    operator[](const std::string& key)          { return getValue(key); }
-    Element&    operator[](const VString& complex_key)      { return getValue(complex_key); }
+    IElement&    operator[](const size_t index)             { return getValue(index); }
+    IElement&    operator[](const std::string& key)         { return getValue(key); }
+    IElement&    operator[](const VString& complex_key)     { return getValue(complex_key); }
 
                 template<std::size_t SIZE>
-    Element&    operator[](const std::array<std::string, SIZE>& complex_key) {
+    IElement&    operator[](const std::array<std::string, SIZE>& complex_key) {
                     VString complex_key_vec;
                     complex_key_vec.reserve(SIZE);
                     std::copy(complex_key.begin(), complex_key.end(), complex_key_vec.begin());
@@ -248,6 +248,6 @@ public:
 };
 
 bool IsElementJson(const std::string& str) noexcept;
-bool IsElementJson(const Element& e) noexcept;
+bool IsElementJson(const IElement& e) noexcept;
 
-#endif // JSON_ELEMENT_JSON_H
+#endif // ELEMENT_JSON_H

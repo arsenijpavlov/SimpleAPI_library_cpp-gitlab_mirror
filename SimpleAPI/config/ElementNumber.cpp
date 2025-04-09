@@ -1,9 +1,9 @@
-#include "JsonElementNumber.h"
+#include "ElementNumber.h"
 
 #include <regex>
 
 
-bool ElementNumber::isEqual(const Element &other, const bool compare_comments) const noexcept {
+bool ElementNumber::isEqual(const IElement &other, const bool compare_comments) const noexcept {
     if(m_value != dynamic_cast<const ElementNumber&>(other).m_value)    return false;
     if(compare_comments && m_comment == other.getComment())             return false;
 
@@ -28,6 +28,6 @@ bool IsElementNumber(const std::string &str) noexcept {
     return matched && !e_is_last;
 }
 
-bool IsElementNumber(const Element &e) noexcept {
+bool IsElementNumber(const IElement &e) noexcept {
     return e.getType() == ValueType::eNumber;
 }

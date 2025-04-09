@@ -1,11 +1,17 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include "../json/Comment.h"
 #include <string>
 #include <sstream>
 #include <vector>
 
+
+
+enum class CommentType {
+    eNotComment,
+    eOneLineComment,
+    eMultiLineComment
+};
 
 namespace utils {
 

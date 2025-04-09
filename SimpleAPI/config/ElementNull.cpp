@@ -1,10 +1,10 @@
-#include "JsonElementNull.h"
+#include "ElementNull.h"
 
 #include "../utils/Utils.h"
 #include <algorithm>
 
 
-bool ElementNull::isEqual(const Element &other, const bool compare_comments) const noexcept {
+bool ElementNull::isEqual(const IElement &other, const bool compare_comments) const noexcept {
     if(compare_comments && m_comment == other.getComment()) return false;
 
     return true; //предполагаем, что проверка типа проведена уже в базовом классе
@@ -27,7 +27,7 @@ bool IsElementNull(const std::string &str) noexcept {
     return false;
 }
 
-bool IsElementNull(const Element &e) noexcept {
+bool IsElementNull(const IElement &e) noexcept {
     return e.getType() == ValueType::eNull;
 }
 

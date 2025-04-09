@@ -1,14 +1,14 @@
-#ifndef JSON_ELEMENT_ARRAY_H
-#define JSON_ELEMENT_ARRAY_H
+#ifndef ELEMENT_ARRAY_H
+#define ELEMENT_ARRAY_H
 
-#include "JsonBaseElement.h"
-#include "JsonDefines.h"
+#include "IElement.h"
+#include "ConfigDefines.h"
 
 
 //предобъявление
 class ElementJson;
 
-class ElementArray : public Element {
+class ElementArray : public IElement {
 protected:
     VElement m_values;
 
@@ -17,7 +17,7 @@ public:
     template<typename ... Types>
     ElementArray(const Types... args) noexcept {
         init();
-        for(const Element el : {Element(args)...})
+        for(const IElement el : {Element(args)...})
             pushBack(el);
     }
     ElementArray(const std::string& string, const ConfigFormat format,
@@ -67,7 +67,7 @@ public:
     bool            contains(const size_t& index) const noexcept
                                                                 { return m_values.size() > index; }
     bool            isEmpty() const noexcept                    { return m_values.empty(); }
-    bool            isEqual(const Element& other, const bool compare_comments = false) const noexcept override;
+    bool            isEqual(const IElement& other, const bool compare_comments = false) const noexcept override;
     size_t          size() const noexcept                       { return m_values.size(); }
 
     //TYPES -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -78,10 +78,10 @@ public:
 
     //SETTERS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     //NOTE: если индекс больше количества вложенных элементов, то добавятся в конец
-    ElementArray&   append(const Element& element) noexcept     { return pushBack(element); }
-    ElementArray&   pushFront(const Element& element) noexcept;
-    ElementArray&   pushAt(const Element& element, const size_t index);
-    ElementArray&   pushBack(const Element& element) noexcept;
+    ElementArray&   append(const IElement& element) noexcept     { return pushBack(element); }
+    ElementArray&   pushFront(const IElement& element) noexcept;
+    ElementArray&   pushAt(const IElement& element, const size_t index);
+    ElementArray&   pushBack(const IElement& element) noexcept;
                     __ONLY_ALLOWED_TYPES__(T)
     ElementArray&   insert(const size_t index, const T& value) noexcept {
                         if(index > m_values.size() - 1) m_values.push_back(value);
@@ -96,12 +96,12 @@ public:
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- SETTERS
 
     //GETTERS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    Element&    getValue(const size_t index);
-    Element&    getValue(const VString& complex_key);
-    Element&    getValue(const std::vector<size_t>& complex_key);
-    Element&    getFront()                                      { return m_values.front(); }
-    Element&    getAt(const size_t index)                       { return getValue(index); }
-    Element&    getBack()                                       { return m_values.back(); }
+    IElement&    getValue(const size_t index);
+    IElement&    getValue(const VString& complex_key);
+    IElement&    getValue(const std::vector<size_t>& complex_key);
+    IElement&    getFront()                                     { return m_values.front(); }
+    IElement&    getAt(const size_t index)                      { return getValue(index); }
+    IElement&    getBack()                                      { return m_values.back(); }
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- GETTERS
 
     //DELETERS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -116,11 +116,11 @@ public:
 
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     void            operator=(const VElement& other) noexcept;
-    ElementArray&   operator<<(const Element& element) noexcept { return pushBack(element); }
-    Element&        operator[](const size_t index)              { return getValue(index); }
-    Element&        operator[](const VString& complex_key)      { return getValue(complex_key); }
+    ElementArray&   operator<<(const IElement& element) noexcept{ return pushBack(element); }
+    IElement&        operator[](const size_t index)             { return getValue(index); }
+    IElement&        operator[](const VString& complex_key)     { return getValue(complex_key); }
                     template<std::size_t SIZE>
-    Element&        operator[](const std::array<std::string, SIZE>& complex_key) {
+    IElement&        operator[](const std::array<std::string, SIZE>& complex_key) {
                         VString complex_key_vec;
                         complex_key_vec.reserve(SIZE);
                         std::copy(complex_key.begin() + 1, complex_key.end(), complex_key_vec.begin());
@@ -137,6 +137,6 @@ public:
 bool IsElementArray(const std::string& str, const ConfigFormat format = ConfigFormat::eJSON) noexcept;
 bool IsElementJsonArray(const std::string& str) noexcept;
 bool IsElementIniArray(const std::string& str) noexcept;
-inline bool IsElementArray(const Element& e) noexcept           { return e.getType() == ValueType::eArray; }
+inline bool IsElementArray(const IElement& e) noexcept          { return e.getType() == ValueType::eArray; }
 
-#endif // JSON_ELEMENT_ARRAY_H
+#endif // ELEMENT_ARRAY_H

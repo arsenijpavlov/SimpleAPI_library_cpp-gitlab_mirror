@@ -1,10 +1,10 @@
-#ifndef JSON_ELEMENT_NULL_H
-#define JSON_ELEMENT_NULL_H
+#ifndef ELEMENT_NULL_H
+#define ELEMENT_NULL_H
 
-#include "JsonBaseElement.h"
+#include "IElement.h"
 
 
-class ElementNull : public Element {
+class ElementNull : public IElement {
     /* "Пустое значение"
      * JSON, наполнение:
      *      - null (во всех регистрах)
@@ -26,11 +26,11 @@ public:
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
 
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    bool        isEqual(const Element& other, const bool compare_comments = false) const noexcept override;
+    bool        isEqual(const IElement& other, const bool compare_comments = false) const noexcept override;
     //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= OPERATORS
 };
 
 bool IsElementNull(const std::string& str) noexcept;
-bool IsElementNull(const Element& e) noexcept;
+bool IsElementNull(const IElement& e) noexcept;
 
-#endif // JSON_ELEMENT_NULL_H
+#endif // ELEMENT_NULL_H

@@ -6,17 +6,11 @@
 #include <bits/shared_ptr.h>
 
 
-//TODO: кандидат на удаление
-enum class CommentType {
-    eNotComment,
-    eOneLineComment,
-    eMultiLineComment
-};
-
 #define DEFAULT_COMMENT_COLUMN_SIZE 50
 struct CommentDesign {
     //TODO: tabulation level
 
+    uint8_t tabulation_level;
     uint8_t comment_column_size;
     //NOTE: однострочные комментарии могут иметь два символа в начале
     std::array<char,2>  oneline_comment_symbols;
@@ -25,9 +19,10 @@ struct CommentDesign {
      * третий символ может быть пустым, тогда для завершения будет использован первый символ
     */
     CommentDesign() :
-        comment_column_size(DEFAULT_COMMENT_COLUMN_SIZE),
+        tabulation_level(0),
         oneline_comment_symbols{'/', '/'},
-        multiline_comment_symbols{'/', '*', 0} // 0 - завершающий символ повторяет первый
+        multiline_comment_symbols{'/', '*', 0}, // 0 - завершающий символ повторяет первый
+        comment_column_size(DEFAULT_COMMENT_COLUMN_SIZE)
     {}
 };
 //TODO: toCommentString
@@ -80,14 +75,7 @@ public:
     CommentDesign   commentDesign() const noexcept;
 
     void    setDesign(const CommentDesign &design) noexcept;
-    void    setDesign(const std::array<char,2> oneline_sym, const std::array<char,3> multiline_sym,
-                   const uint8_t column_size) noexcept;
-    void    setOnelineDesign(const std::array<char,2> oneline_sym) noexcept;
-    void    setMultilineDesign(const std::array<char,3> multiline_sym, const uint8_t column_size) noexcept;
-
-    void    clearDesign() noexcept;
-    void    clearOnelineDesign() noexcept;
-    void    clearMultilineDesign() noexcept;
+    void    clearDesign() noexcept; //он же освободит память
     //-----------------------------------------------------------------------------
 
     bool        operator==(const Comment& other) const noexcept;

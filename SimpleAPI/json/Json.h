@@ -1,13 +1,13 @@
 #ifndef JSON_H
 #define JSON_H
 
-#include "Comment.h"
+#include "../config/Comment.h"
 #include "../utils/Utils.h"
-#include "JsonDefines.h"
+#include "../config/ConfigDefines.h"
 #include <map>
 #include <memory>
 #include <vector>
-#include "JsonCommon.h"
+#include "../config/ConfigCommon.h"
 
 
 #define __ONLY_ALLOWED_TYPES_OLD__(ARG) \

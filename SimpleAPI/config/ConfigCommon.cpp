@@ -1,5 +1,5 @@
-#include "JsonCommon.h"
-#include "JsonDefines.h"
+#include "ConfigCommon.h"
+#include "ConfigDefines.h"
 
 #include "../utils/Utils.h"
 

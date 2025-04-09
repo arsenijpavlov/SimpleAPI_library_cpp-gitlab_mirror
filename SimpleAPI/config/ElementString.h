@@ -1,10 +1,10 @@
-#ifndef JSON_ELEMENT_STRING_H
-#define JSON_ELEMENT_STRING_H
+#ifndef ELEMENT_STRING_H
+#define ELEMENT_STRING_H
 
-#include "JsonBaseElement.h"
+#include "IElement.h"
 
 
-class ElementString : public Element {
+class ElementString : public IElement {
 protected:
     std::string m_value;
 
@@ -19,7 +19,7 @@ public:
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
 
     std::string getValue() const noexcept                       { return m_value; }
-    bool        isEqual(const Element& other, const bool compare_comments = false) const noexcept override;
+    bool        isEqual(const IElement& other, const bool compare_comments = false) const noexcept override;
 
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     void operator<<(const std::string& other) noexcept;
@@ -30,7 +30,7 @@ public:
 //не const, потому что предполагается использовать эту же переменную для возврата прочитанного значения
 bool IsElementString(std::string& str, const ConfigFormat format = ConfigFormat::eJSON,
                      std::string* error_log = nullptr) noexcept;
-bool IsElementString(const Element& e) noexcept;
+bool IsElementString(const IElement& e) noexcept;
 
 
-#endif // JSON_ELEMENT_STRING_H
+#endif // ELEMENT_STRING_H
