@@ -1,6 +1,7 @@
 #include "ElementArray.h"
-#include <stdexcept>
 
+#include <stdexcept>
+#include "../utils/Utils.h"
 
 //предобъявление
 #include "ElementJson.h"
@@ -26,6 +27,67 @@ void ElementArray::parseJSON_array(const std::string &string, const bool enable_
 void ElementArray::parseINI_array(const std::string &string, const bool enable_comment) {
     //TODO: ElementArray::parseINI_array()
     //TODO: std::exception
+}
+
+std::string ElementArray::to_string(const ConfigFormat format, const int8_t tabulation_level) const noexcept {
+    switch(format) {
+    case ConfigFormat::eJSON:   return to_JSON_string(tabulation_level);
+    case ConfigFormat::eINI:    return to_INI_string(tabulation_level);
+    default: return "";
+    }
+}
+
+std::string ElementArray::to_JSON_string(const int8_t tabulation_level) const noexcept {
+    if(m_values.empty()) return "[]";
+
+    bool without_space = tabulation_level == -1;
+
+    std::string ret = "[";
+    for(auto it : m_values) {
+        if(!without_space) ret += "\n" + utils::RepeatSymToStr('\t', tabulation_level);
+        ret += it.to_string(ConfigFormat::eJSON, tabulation_level+1) + ",";
+    }
+    if(!without_space) ret += "\n" + utils::RepeatSymToStr('\t', tabulation_level);
+    ret += "]";
+
+    return ret;
+}
+
+std::string ElementArray::to_INI_string(const int8_t tabulation_level) const noexcept {
+    //TODO: ElementArray::to_INI_string()
+    return "";
+}
+
+std::string ElementArray::to_string(const ConfigFormat format, const CommentDesign &design,
+                                    const int8_t tabulation_level) const noexcept {
+    switch(format) {
+    case ConfigFormat::eJSON:   return to_JSON_string(design, tabulation_level);
+    case ConfigFormat::eINI:    return to_INI_string(design, tabulation_level);
+    default: return "";
+    }
+}
+
+std::string ElementArray::to_JSON_string(const CommentDesign &design, const int8_t tabulation_level) const noexcept {
+    if(m_values.empty()) return "[]";
+
+    std::string ret = "[";
+    for(auto it : m_values) {
+        ret += "\n" + utils::RepeatSymToStr('\t', tabulation_level);
+        ret += ToComment(it.getPrefixComment(), design, tabulation_level);
+        ret += "\n" + utils::RepeatSymToStr('\t', tabulation_level);
+        ret += it.to_string(ConfigFormat::eJSON, design, tabulation_level + 1) + ", ";
+        //NOTE: суффиксный многострочный комментарий должен начинаться на той же строке, что и значение переменной
+        ret += ToComment(it.getSuffixComment(), design, tabulation_level);
+    }
+    ret += "\n" + utils::RepeatSymToStr('\t', tabulation_level);
+    ret += "]";
+
+    return ret;
+}
+
+std::string ElementArray::to_INI_string(const CommentDesign &design, const int8_t tabulation_level) const noexcept {
+    //TODO: ElementArray::to_INI_string()
+    return "";
 }
 
 void ElementArray::addComment(const size_t index, const Comment &content) {
@@ -257,8 +319,6 @@ bool IsElementArray(const std::string &str, const ConfigFormat format) noexcept 
     switch(format) {
     case ConfigFormat::eJSON:   return IsElementJsonArray(str);
     case ConfigFormat::eINI:    return IsElementIniArray(str);
-//case:    case ConfigFormat::eYAML:
-//case:    case ConfigFormat::eXML:
     default: return false;
     }
 

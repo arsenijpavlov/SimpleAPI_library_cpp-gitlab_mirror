@@ -14,8 +14,14 @@ public:
     ~ElementBool() noexcept;
 
     //PRINTING =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//TODO:    std::string to_string(const ConfigFormat format = ConfigFormat::eJSON) const noexcept override;
-//TODO:    std::string to_string(const ConfigFormat format, const CommentDesign &design) const noexcept override;
+    //для рекурсивного вызова, без комментариев, в одну строку
+    std::string to_string(const ConfigFormat format = ConfigFormat::eJSON,
+                          const int8_t tabulation_level = 0) const noexcept override
+                                                    { return m_value ? "true" : "false"; }
+    //для рекурсивного вызова, с использованием комментариев
+    std::string to_string(const ConfigFormat format, const CommentDesign &design,
+                          const int8_t tabulation_level = 0) const noexcept override
+                                                    { return m_value ? "true" : "false"; }
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
 
     bool        getValue() const noexcept           { return m_value; }

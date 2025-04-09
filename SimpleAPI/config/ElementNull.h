@@ -17,12 +17,18 @@ class ElementNull : public IElement {
 private:
 
 public:
-    ElementNull()       { m_type = ValueType::eNull; }
-    ~ElementNull()      {}
+    ElementNull()                                               { m_type = ValueType::eNull; }
+    ~ElementNull()                                              {}
 
     //PRINTING =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//TODO:    std::string to_string(const ConfigFormat format = ConfigFormat::eJSON) const noexcept override;
-//TODO:    std::string to_string(const ConfigFormat format, const CommentDesign &design) const noexcept override;
+    //для рекурсивного вызова, без комментариев, в одну строку
+    std::string to_string(const ConfigFormat format = ConfigFormat::eJSON,
+                          const int8_t tabulation_level = 0) const noexcept override
+                                                                { return "null"; }
+    //для рекурсивного вызова, с использованием комментариев
+    std::string to_string(const ConfigFormat format, const CommentDesign &design,
+                          const int8_t tabulation_level = 0) const noexcept override
+                                                                { return "null"; }
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
 
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=

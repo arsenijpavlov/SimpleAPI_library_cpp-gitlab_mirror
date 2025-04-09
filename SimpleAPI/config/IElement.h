@@ -28,10 +28,13 @@ public:
     //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= WRITING
 
     //PRINTING =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    virtual std::string to_string(const ConfigFormat format = ConfigFormat::eJSON) const noexcept
+    //для рекурсивного вызова, без комментариев, в одну строку
+    virtual std::string to_string(const ConfigFormat format = ConfigFormat::eJSON,
+                                  const int8_t tabulation_level = 0) const noexcept
                                                                 { return ""; }
-    //для рекурсивного вызова
-    virtual std::string to_string(const ConfigFormat format, const CommentDesign &design) const noexcept
+    //для рекурсивного вызова, с использованием комментариев
+    virtual std::string to_string(const ConfigFormat format, const CommentDesign &design,
+                                  const int8_t tabulation_level = 0) const noexcept
                                                                 { return ""; }
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
 

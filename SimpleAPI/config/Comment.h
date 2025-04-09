@@ -8,25 +8,23 @@
 
 #define DEFAULT_COMMENT_COLUMN_SIZE 50
 struct CommentDesign {
-    //TODO: tabulation level
-
-    uint8_t tabulation_level;
     uint8_t comment_column_size;
     //NOTE: однострочные комментарии могут иметь два символа в начале
     std::array<char,2>  oneline_comment_symbols;
+    /* NOTE: многострочные комментарии должны быть заданы в стиле <*> (<*comment_string*>)   *
+     * третий символ может быть пустым, тогда для завершения будет использован первый символ */
     std::array<char,3>  multiline_comment_symbols;
-    /*NOTE: многострочные комментарии должны быть заданы в стиле <*> (<*comment_string*>)
-     * третий символ может быть пустым, тогда для завершения будет использован первый символ
-    */
+
     CommentDesign() :
-        tabulation_level(0),
         oneline_comment_symbols{'/', '/'},
         multiline_comment_symbols{'/', '*', 0}, // 0 - завершающий символ повторяет первый
         comment_column_size(DEFAULT_COMMENT_COLUMN_SIZE)
     {}
 };
-//TODO: toCommentString
-//TODO: fromCommentString
+
+std::string ToComment(const std::string &comment, const CommentDesign& design,
+                      const uint8_t tabulation_level) noexcept;
+std::string FromComment(const std::string &comment_string, CommentDesign& design) noexcept;
 
 class Comment {
 private:

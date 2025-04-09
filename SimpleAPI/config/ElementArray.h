@@ -17,8 +17,7 @@ public:
     template<typename ... Types>
     ElementArray(const Types... args) noexcept {
         init();
-        for(const IElement el : {Element(args)...})
-            pushBack(el);
+        for(const IElement el : {Element(args)...}) pushBack(el);
     }
     ElementArray(const std::string& string, const ConfigFormat format,
                  const bool enable_comments = false) noexcept;
@@ -36,8 +35,19 @@ public:
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- PARSING
 
     //PRINTING =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//TODO:    std::string to_string(const ConfigFormat format = ConfigFormat::eJSON) const noexcept override;
-//TODO:    std::string to_string(const ConfigFormat format, const CommentDesign &design) const noexcept override;
+    //для рекурсивного вызова, без комментариев, в одну строку
+    std::string to_string(const ConfigFormat format = ConfigFormat::eJSON,
+                          const int8_t tabulation_level = 0) const noexcept override;
+    std::string to_JSON_string(const int8_t tabulation_level = 0) const noexcept;
+    std::string to_INI_string(const int8_t tabulation_level = 0) const noexcept;
+
+    //для рекурсивного вызова, с использованием комментариев
+    std::string to_string(const ConfigFormat format, const CommentDesign &design,
+                          const int8_t tabulation_level = 0) const noexcept override;
+    std::string to_JSON_string(const CommentDesign &design,
+                               const int8_t tabulation_level = 0) const noexcept;
+    std::string to_INI_string(const CommentDesign &design,
+                              const int8_t tabulation_level = 0) const noexcept;
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
 
     //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -137,6 +147,6 @@ public:
 bool IsElementArray(const std::string& str, const ConfigFormat format = ConfigFormat::eJSON) noexcept;
 bool IsElementJsonArray(const std::string& str) noexcept;
 bool IsElementIniArray(const std::string& str) noexcept;
-inline bool IsElementArray(const IElement& e) noexcept          { return e.getType() == ValueType::eArray; }
+bool IsElementArray(const IElement& e) noexcept                 { return e.getType() == ValueType::eArray; }
 
 #endif // ELEMENT_ARRAY_H
