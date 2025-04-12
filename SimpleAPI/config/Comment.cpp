@@ -7,120 +7,18 @@
 
 std::string ToComment(const std::string &comment, const CommentDesign& design,
                       const uint8_t tabulation_level) noexcept {
+    if(comment.empty()) return "";
+
     using namespace utils;
-
-    std::string result;
-    std::string current_string = "";
-    std::string prefix = RepeatSymToStr('\t', tabulation_level);
-    if(border_symbol != 0) {
-        char border = border_symbol;
-        if(border == '=' || border == '-')
-            border = '|';
-        prefix += border + std::string(" ");
-    }
-    char last_symbol = ' ';
-    std::vector<size_t> separators;
-    separators.reserve(10);
-
-    for(size_t i = 0; i < comment_string.length(); i++) {
-        char ch = comment_string[i];
-
-        //игнор "двойного" пробела
-        if(last_symbol == ' ' && ch == ' ')
-            continue;
-
-        //если встретили разделитель
-        if(utils::CharsInString(ch, __COMMENT_SEPARATOR_SYMBOLS__))
-            separators.push_back(current_string.length());
-
-        current_string += ch;
-        last_symbol = ch;
-
-        if(ch == '\n') {
-            //удалить пробелы в начале и конце строки
-            RemoveIllegalSpaces(current_string);
-
-            //вывести если не пустое
-            if(!current_string.empty()) {
-                result += prefix + current_string;
-            }
-
-            current_string = "";
-            separators.clear();
-        }
-
-        if((column_size != 0
-             && utils::GetStringSize(current_string) >= column_size)
-            && (utils::CharsInString(ch, __COMMENT_SEPARATOR_SYMBOLS__) || (i == comment_string.length() - 1))
-            ) {
-            //удалить пробелы в начале и конце строки
-            RemoveIllegalSpaces(current_string);
-
-            //вывести если не пустое
-            if(!current_string.empty()) {
-                result += prefix;
-
-                //если превышен максимальный размер строки
-                if(utils::GetStringSize(current_string) > column_size && separators.size() > 0) {
-                    uint8_t separate_size;
-                    switch(separators.size()) {
-                    case 0:     separate_size = 0;              break;
-                    case 1:     separate_size = 0;              break;
-                    default:    separate_size = separators.size() - 2;
-                    }
-                    if(current_string.size() > separators[separate_size])
-                        separate_size = separators[separate_size] + 1;
-                    else
-                        separate_size = separators[separate_size];
-
-
-                    std::string left = utils::SeparateString(current_string, separate_size);
-                    RemoveIllegalSpaces(left);
-
-                    if(!utils::CharsInString(current_string.back(), __COMMENT_SEPARATOR_SYMBOLS__))
-                        current_string += ' ';
-                    result += left + "\n";
-
-                    //снова найти индексы разделителей
-                    separators.clear();
-                    for(size_t j = 0; j < current_string.length(); j++) {
-                        if(utils::CharsInString(current_string[j], __COMMENT_SEPARATOR_SYMBOLS__))
-                            separators.push_back(j);
-                    }
-                } else {
-                    result += current_string + "\n";
-                    current_string = "";
-                    separators.clear();
-                }
-            }
-        }
-    }
-
-    if(!current_string.empty()) {
-        RemoveIllegalSpaces(current_string);
-        result += prefix + current_string;
-    }
-
     std::string ret;
-    bool isMulti = result.find('\n') != -1;
-    if(isMulti) {
-        ret = utils::RepeatSymToStr('\t', tabulation_level) + "/*"
-              + (border_symbol != 0 ? utils::RepeatSymToStr(border_symbol, column_size) : "")
-              + "\n";
-    } else {
-        ret += utils::RepeatSymToStr('\t', tabulation_level)
-               + "// ";
-        RemoveIllegalSpaces(result);
-        if(result[0] == border_symbol)
-            result.erase(0, 1);
-        RemoveIllegalSpaces(result);
-    }
-    ret += result;
-    if(isMulti) {
-        ret += (ret.back() == '\n' ? "" : "\n")
-               + (border_symbol != 0 ? utils::RepeatSymToStr(border_symbol, column_size) : "")
-               + utils::RepeatSymToStr('\t', tabulation_level) + "*/";
-    }
+    VString multiline;
+
+    // наметить значение комментария
+    // (м, если BORDER не 0) выставить знаки горизонтальных границ
+    // (м, если COLUMN не 0) разделить комментарий на строки (КОЛОНКА)
+    // (м, если BORDER не 0) выставить знак вертикальной границы
+    // выставить табуляцию
+
 
     return ret;
 }
@@ -131,7 +29,9 @@ std::string FromComment(const std::string &comment_string, CommentDesign& design
     std::string ret;
 
     bool isBorderExists = utils::CharsInString(comment_string[0], __BORDER_SYMBOLS__); //от 5 до 0xFF символов
-    if(border_symbol == 0 && isBorderExists) border_symbol = comment_string[0];
+    if(design.opt_multiline_border == 0 && isBorderExists)
+        design.opt_multiline_border = comment_string[0];
+
     bool isFirstBorderLine = isBorderExists;
     uint8_t border_size = 0;
 
@@ -187,9 +87,12 @@ std::string FromComment(const std::string &comment_string, CommentDesign& design
         ret += current_string;
     }
 
-    if(isBorderExists && column_size == 0 && border_size != 0)
-        if(column_size < border_size)
-            column_size = border_size;
+    if(isBorderExists
+        && design.opt_multiline_column_size == 0
+        && border_size != 0
+        && design.opt_multiline_column_size < border_size
+        )
+        design.opt_multiline_column_size = border_size;
 
     return ret;
 }

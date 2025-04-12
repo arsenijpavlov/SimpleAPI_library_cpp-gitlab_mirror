@@ -13,13 +13,13 @@ struct CommentDesign {
     /* NOTE: многострочные комментарии должны быть заданы в стиле <*> (<*comment_string*>)   *
      * третий символ может быть пустым, тогда для завершения будет использован первый символ */
     std::array<char,3>  multiline_comment_symbols;
-    char                opt_multiline_vertical_border;
+    char                opt_multiline_border;
     uint8_t             opt_multiline_column_size;
 
     CommentDesign() :
         oneline_comment_symbols{'/', '/'},
         multiline_comment_symbols{'/', '*', 0}, // 0 - завершающий символ повторяет первый
-        opt_multiline_vertical_border(0),       // применяется ТОЛЬКО для многострочных комментариев,
+        opt_multiline_border(0),                // применяется ТОЛЬКО для многострочных комментариев,
                                                 //  по умолчанию не используется
         opt_multiline_column_size(0)            // многострочность комментария пользователь задаёт сам
                                                 //  либо самостоятельно ставя '\n'
