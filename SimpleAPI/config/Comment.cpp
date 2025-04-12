@@ -8,6 +8,23 @@
 #include "../logger/Logger.h"
 
 
+std::string GetOnelineCommentStr(const CommentDesign& design) noexcept {
+    return std::to_string(design.oneline_comment_symbols[0])
+           + (design.oneline_comment_symbols[1] != 0 ? std::to_string(design.oneline_comment_symbols[1]) : "");
+}
+
+std::string GetMultilineCommentStartStr(const CommentDesign& design) noexcept {
+    return std::to_string(design.multiline_comment_symbols[0])
+           + std::to_string(design.multiline_comment_symbols[1]);
+}
+
+std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept {
+    return std::to_string(design.multiline_comment_symbols[1])
+           + (design.multiline_comment_symbols[2] != 0 ? std::to_string(design.multiline_comment_symbols[2])
+                                                       : std::to_string(design.multiline_comment_symbols[0]));
+}
+
+//TODO: не ставится знак /* */
 std::string ToComment(const std::string &comment, const CommentDesign& design,
                       const uint8_t tabulation_level) noexcept {
     if(comment.empty()) return "";
@@ -41,26 +58,35 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
     }
     // ==================================================
 
-    // (м, если BORDER не 0) ============================
-    if(design.opt_multiline_border) {
-        // учесть: B_COMMENTSTRING_B
-        size_t max = 0;
-        for(std::string& s : lines)
-            if(max < s.size()) max = s.size();
+    switch(lines.size()) {
+    case 0: return "";
+    case 1: return RepeatSymToStr('\t', tabulation_level) + GetOnelineCommentStr(design) + lines[0];
+    default: {
+        // (м, если BORDER не 0) ============================
+        if(design.opt_multiline_border) {
+            // учесть: B_COMMENTSTRING_B
+            size_t max = 0;
+            for(std::string& s : lines)
+                if(max < s.size()) max = s.size();
 
-        // выставить знак вертикальной границы
-        for(std::string& s : lines) {
-            s = std::to_string(design.opt_multiline_border) + " "
-                + logs::columned(s, max)
-                + " " + std::to_string(design.opt_multiline_border);
+            // выставить знак вертикальной границы
+            for(std::string& s : lines) {
+                s = std::to_string(design.opt_multiline_border) + " "
+                    + logs::columned(s, max)
+                    + " " + std::to_string(design.opt_multiline_border);
+            }
+
+            // выставить знаки горизонтальных границ
+            temp = RepeatSymToStr(design.opt_multiline_border, max + 4);
+            lines.insert(lines.cbegin(), temp);
+            lines.push_back(temp);
         }
+        // ==================================================
 
-        // выставить знаки горизонтальных границ
-        temp = RepeatSymToStr(design.opt_multiline_border, max + 4);
-        lines.insert(lines.cbegin(), temp);
-        lines.push_back(temp);
+        //TODO: /* ... */
+        break;
     }
-    // ==================================================
+    }
 
     // выставить табуляцию и завершить формирование =====
     std::string ret;

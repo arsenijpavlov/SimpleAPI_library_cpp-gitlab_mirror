@@ -27,6 +27,10 @@ struct CommentDesign {
     {}
 };
 
+std::string GetOnelineCommentStr(const CommentDesign& design) noexcept;
+std::string GetMultilineCommentStartStr(const CommentDesign& design) noexcept;
+std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept;
+
 std::string ToComment(const std::string &comment, const CommentDesign& design,
                       const uint8_t tabulation_level) noexcept;
 std::string FromComment(const std::string &comment_string, CommentDesign& design) noexcept;
