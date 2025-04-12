@@ -413,7 +413,7 @@ void UpdEscSymbols(std::string& string) noexcept {
     string = temp_string;
 }
 
-size_t GetStringSize(const std::string &str) {
+size_t GetStringCharCount(const std::string &str) {
     size_t size = 0;
 
     //1 => 0xxx xxxx
