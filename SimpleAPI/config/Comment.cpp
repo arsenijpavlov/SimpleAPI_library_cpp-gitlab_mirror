@@ -4,21 +4,72 @@
 #include "ConfigDefines.h"
 #include "ConfigCommon.h"
 
+//TODO: нужно вынести функцию в утилиты
+#include "../logger/Logger.h"
+
 
 std::string ToComment(const std::string &comment, const CommentDesign& design,
                       const uint8_t tabulation_level) noexcept {
     if(comment.empty()) return "";
 
     using namespace utils;
+    VString lines;
+    std::string temp = "";
+
+    // наметить значение комментария ====================
+    for(char c : comment) {
+        if(c == '\n') {
+            if(!temp.empty()) {
+                lines.push_back(temp);
+                temp.clear();
+            }
+            continue;
+        }
+        // (м, если COLUMN_SIZE не 0) разделить комментарий на строки
+        if(design.opt_multiline_column_size && !temp.empty()) {
+            if(GetStringCharCount(temp) >= design.opt_multiline_column_size) {
+                lines.push_back(temp);
+                temp.clear();
+            }
+        }
+        temp += c;
+    }
+    // завершающий штрих
+    if(!temp.empty()) {
+        lines.push_back(temp);
+        temp.clear();
+    }
+    // ==================================================
+
+    // (м, если BORDER не 0) ============================
+    if(design.opt_multiline_border) {
+        // учесть: B_COMMENTSTRING_B
+        size_t max = 0;
+        for(std::string& s : lines)
+            if(max < s.size()) max = s.size();
+
+        // выставить знак вертикальной границы
+        for(std::string& s : lines) {
+            s = std::to_string(design.opt_multiline_border) + " "
+                + logs::columned(s, max)
+                + " " + std::to_string(design.opt_multiline_border);
+        }
+
+        // выставить знаки горизонтальных границ
+        temp = RepeatSymToStr(design.opt_multiline_border, max + 4);
+        lines.insert(lines.cbegin(), temp);
+        lines.push_back(temp);
+    }
+    // ==================================================
+
+    // выставить табуляцию и завершить формирование =====
     std::string ret;
-    VString multiline;
-
-    // наметить значение комментария
-    // (м, если BORDER не 0) выставить знаки горизонтальных границ
-    // (м, если COLUMN не 0) разделить комментарий на строки (КОЛОНКА)
-    // (м, если BORDER не 0) выставить знак вертикальной границы
-    // выставить табуляцию
-
+    temp = RepeatSymToStr('\t', tabulation_level);
+    for(std::string& s : lines) {
+        ret += temp + s + '\n';
+    }
+    if(ret.back() == '\n') ret.pop_back();
+    // ==================================================
 
     return ret;
 }
