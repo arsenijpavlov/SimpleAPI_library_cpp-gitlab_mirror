@@ -6,19 +6,24 @@
 #include <bits/shared_ptr.h>
 
 
-#define DEFAULT_COMMENT_COLUMN_SIZE 50
+//#define DEFAULT_COMMENT_COLUMN_SIZE 50
 struct CommentDesign {
-    uint8_t comment_column_size;
     //NOTE: однострочные комментарии могут иметь два символа в начале
     std::array<char,2>  oneline_comment_symbols;
     /* NOTE: многострочные комментарии должны быть заданы в стиле <*> (<*comment_string*>)   *
      * третий символ может быть пустым, тогда для завершения будет использован первый символ */
     std::array<char,3>  multiline_comment_symbols;
+    char                opt_multiline_vertical_border;
+    uint8_t             opt_multiline_column_size;
 
     CommentDesign() :
         oneline_comment_symbols{'/', '/'},
         multiline_comment_symbols{'/', '*', 0}, // 0 - завершающий символ повторяет первый
-        comment_column_size(DEFAULT_COMMENT_COLUMN_SIZE)
+        opt_multiline_vertical_border(0),       // применяется ТОЛЬКО для многострочных комментариев,
+                                                //  по умолчанию не используется
+        opt_multiline_column_size(0)            // многострочность комментария пользователь задаёт сам
+                                                //  либо самостоятельно ставя '\n'
+                                                //  либо задав максимальный размер
     {}
 };
 
