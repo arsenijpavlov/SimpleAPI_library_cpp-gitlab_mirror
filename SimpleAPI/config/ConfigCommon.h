@@ -2,6 +2,7 @@
 #define JSON_COMMON_H
 
 #include <string>
+#include <vector>
 
 
 //Format =======================================================================================
@@ -38,5 +39,7 @@ bool GetAllStringsFromFile(const std::string& path, std::string& dest_string,
 bool CreateEmptyFile(const std::string& file_path, const std::string& start_comment,
                      const std::string& finish_comment, std::string* error_log = nullptr) noexcept;
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= WRITING
+
+using VString = std::vector<std::string>;
 
 #endif // JSON_COMMON_H

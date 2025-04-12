@@ -90,7 +90,6 @@ public:
 
 using JPair         = std::pair<std::string, IElement>;
 using VPairElement  = std::vector<JPair>;
-using VString       = std::vector<std::string>;
 using VElement      = std::vector<IElement>;
 
 //PARSING -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
