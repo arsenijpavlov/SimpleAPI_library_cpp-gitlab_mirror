@@ -18,6 +18,7 @@ int main(int argc, char **argv)
 TEST(TEST_TEST, ToComment) {
     std::string input = "abcdef";
     CommentDesign cd;
+//    cd.oneline_comment_symbols[1] = 0;
 
     input = ToComment(input, cd, 0);
 

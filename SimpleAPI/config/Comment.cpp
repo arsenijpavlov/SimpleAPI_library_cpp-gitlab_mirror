@@ -9,17 +9,16 @@
 
 
 std::string GetOnelineCommentStr(const CommentDesign& design) noexcept {
-    return std::to_string(design.oneline_comment_symbols[0])
-           + (design.oneline_comment_symbols[1] != 0 ? std::to_string(design.oneline_comment_symbols[1])
-                                                     : "");
+    return std::string(design.oneline_comment_symbols.data(),
+                       (design.oneline_comment_symbols[1] == 0 ? 1 : 2));
 }
 
 std::string GetMultilineCommentStartStr(const CommentDesign& design) noexcept {
-    return std::to_string((char)design.multiline_comment_symbols[0])
-           + std::to_string((char)design.multiline_comment_symbols[1]);
+    return std::string(design.multiline_comment_symbols.data(), design.multiline_comment_symbols.size());
 }
 
 std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept {
+    //TODO:
     return std::to_string((char)design.multiline_comment_symbols[1])
            + (design.multiline_comment_symbols[2] != 0 ? std::to_string((char)design.multiline_comment_symbols[2])
                                                        : std::to_string((char)design.multiline_comment_symbols[0]));
@@ -35,8 +34,12 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
     VString lines;
     std::string temp = "";
 
+    //удалить пробелы в начале и конце строки
+    std::string current_string = comment;
+    RemoveIllegalSpaces(current_string);
+
     // наметить значение комментария ====================
-    for(char c : comment) {
+    for(char c : current_string) {
         if(c == '\n') {
             if(!temp.empty()) {
                 lines.push_back(temp);
@@ -45,7 +48,10 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
             continue;
         }
         // (м, если COLUMN_SIZE не 0) разделить комментарий на строки
-        if(design.opt_multiline_column_size && !temp.empty()) {
+        if(design.opt_multiline_column_size && !temp.empty()
+//TODO:            && utils::GetStringCharCount(current_string) >= column_size)
+//TODO:            && (utils::CharsInString(ch, __COMMENT_SEPARATOR_SYMBOLS__) || (i == comment_string.length() - 1))
+            ) {
             if(GetStringCharCount(temp) >= design.opt_multiline_column_size) {
                 lines.push_back(temp);
                 temp.clear();
