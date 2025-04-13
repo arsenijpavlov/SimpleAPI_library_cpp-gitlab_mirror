@@ -15,25 +15,25 @@ int main(int argc, char **argv)
 
 TEST(UTILS, string_len) {
     std::string example = "12345";
-    EXPECT_EQ(5, utils::GetStringSize(example));
+    EXPECT_EQ(5, utils::GetStringCharCount(example));
 
     example = "string";
-    EXPECT_EQ(6, utils::GetStringSize(example));
+    EXPECT_EQ(6, utils::GetStringCharCount(example));
 
     example = "строка";
-    EXPECT_EQ(6, utils::GetStringSize(example));
+    EXPECT_EQ(6, utils::GetStringCharCount(example));
 
     example = "string12345строка";
-    EXPECT_EQ(17, utils::GetStringSize(example));
+    EXPECT_EQ(17, utils::GetStringCharCount(example));
 
     example = "Ř"; //2-byte UNICODE symbol
-    EXPECT_EQ(1, utils::GetStringSize(example));
+    EXPECT_EQ(1, utils::GetStringCharCount(example));
 
     example = "炗"; //3-byte UNICODE symbol
-    EXPECT_EQ(1, utils::GetStringSize(example));
+    EXPECT_EQ(1, utils::GetStringCharCount(example));
 
     example = "🚵"; //4-byte UNICODE symbol
-    EXPECT_EQ(1, utils::GetStringSize(example));
+    EXPECT_EQ(1, utils::GetStringCharCount(example));
 }
 
 TEST(UTILS, from_text_to_escape_symbols) {

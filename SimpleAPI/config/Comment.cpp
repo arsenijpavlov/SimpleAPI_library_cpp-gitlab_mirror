@@ -10,23 +10,25 @@
 
 std::string GetOnelineCommentStr(const CommentDesign& design) noexcept {
     return std::to_string(design.oneline_comment_symbols[0])
-           + (design.oneline_comment_symbols[1] != 0 ? std::to_string(design.oneline_comment_symbols[1]) : "");
+           + (design.oneline_comment_symbols[1] != 0 ? std::to_string(design.oneline_comment_symbols[1])
+                                                     : "");
 }
 
 std::string GetMultilineCommentStartStr(const CommentDesign& design) noexcept {
-    return std::to_string(design.multiline_comment_symbols[0])
-           + std::to_string(design.multiline_comment_symbols[1]);
+    return std::to_string((char)design.multiline_comment_symbols[0])
+           + std::to_string((char)design.multiline_comment_symbols[1]);
 }
 
 std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept {
-    return std::to_string(design.multiline_comment_symbols[1])
-           + (design.multiline_comment_symbols[2] != 0 ? std::to_string(design.multiline_comment_symbols[2])
-                                                       : std::to_string(design.multiline_comment_symbols[0]));
+    return std::to_string((char)design.multiline_comment_symbols[1])
+           + (design.multiline_comment_symbols[2] != 0 ? std::to_string((char)design.multiline_comment_symbols[2])
+                                                       : std::to_string((char)design.multiline_comment_symbols[0]));
 }
 
 //TODO: не ставится знак /* */
 std::string ToComment(const std::string &comment, const CommentDesign& design,
-                      const uint8_t tabulation_level) noexcept {
+                      const uint8_t tabulation_level) noexcept
+{
     if(comment.empty()) return "";
 
     using namespace utils;
@@ -80,6 +82,8 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
             temp = RepeatSymToStr(design.opt_multiline_border, max + 4);
             lines.insert(lines.cbegin(), temp);
             lines.push_back(temp);
+        } else {
+
         }
         // ==================================================
 

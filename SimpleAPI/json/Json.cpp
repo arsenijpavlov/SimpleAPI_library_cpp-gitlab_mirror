@@ -2904,7 +2904,7 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
         }
 
         if((column_size != 0
-            && utils::GetStringSize(current_string) >= column_size)
+            && utils::GetStringCharCount(current_string) >= column_size)
             && (utils::CharsInString(ch, __COMMENT_SEPARATOR_SYMBOLS__) || (i == comment_string.length() - 1))
             ) {
             //удалить пробелы в начале и конце строки
@@ -2915,7 +2915,7 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
                 result += prefix;
 
                 //если превышен максимальный размер строки
-                if(utils::GetStringSize(current_string) > column_size && separators.size() > 0) {
+                if(utils::GetStringCharCount(current_string) > column_size && separators.size() > 0) {
                     uint8_t separate_size;
                     switch(separators.size()) {
                     case 0:     separate_size = 0;              break;

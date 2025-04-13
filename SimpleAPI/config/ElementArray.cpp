@@ -265,7 +265,7 @@ IElement& ElementArray::getValue(const std::vector<size_t>& complex_key) {
         auto new_complex_key = complex_key;
         new_complex_key.erase(new_complex_key.begin());
         switch(el.getType()) {
-        case eJson:     return dynamic_cast<ElementJson&>((*this)[complex_key.front()]).getValue(new_complex_key);
+//TODO:        case eJson:     return dynamic_cast<ElementJson&>((*this)[complex_key.front()]).getValue(new_complex_key);
         case eArray:    return dynamic_cast<ElementArray&>((*this)[complex_key.front()]).getValue(new_complex_key);
         default: __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__
         }
