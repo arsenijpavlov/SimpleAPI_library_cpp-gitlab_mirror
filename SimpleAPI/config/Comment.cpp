@@ -14,14 +14,17 @@ std::string GetOnelineCommentStr(const CommentDesign& design) noexcept {
 }
 
 std::string GetMultilineCommentStartStr(const CommentDesign& design) noexcept {
-    return std::string(design.multiline_comment_symbols.data(), design.multiline_comment_symbols.size());
+    return std::string(design.multiline_comment_symbols.data(), 2);
 }
 
 std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept {
-    //TODO:
-    return std::to_string((char)design.multiline_comment_symbols[1])
-           + (design.multiline_comment_symbols[2] != 0 ? std::to_string((char)design.multiline_comment_symbols[2])
-                                                       : std::to_string((char)design.multiline_comment_symbols[0]));
+    std::stringstream ss;
+    ss << design.multiline_comment_symbols[1];
+    if(design.multiline_comment_symbols[2])
+        ss << design.multiline_comment_symbols[2];
+    else
+        ss << design.multiline_comment_symbols[0];
+    return ss.str();
 }
 
 //TODO: не ставится знак /* */

@@ -18,9 +18,11 @@ int main(int argc, char **argv)
 TEST(TEST_TEST, ToComment) {
     std::string input = "abcdef";
     CommentDesign cd;
-//    cd.oneline_comment_symbols[1] = 0;
 
     input = ToComment(input, cd, 0);
 
     EXPECT_TRUE(false) << input;
+
+    EXPECT_TRUE(false) << "start: " << GetMultilineCommentStartStr(cd);
+    EXPECT_TRUE(false) << "stop: " << GetMultilineCommentStopStr(cd);
 }
