@@ -15,14 +15,18 @@ int main(int argc, char **argv)
 
 //========================================================================================
 
-TEST(TEST_TEST, ToComment) {
-    std::string input = "abcdef";
-    CommentDesign cd;
-
-    input = ToComment(input, cd, 0);
-
-    EXPECT_TRUE(false) << input;
-
-    EXPECT_TRUE(false) << "start: " << GetMultilineCommentStartStr(cd);
-    EXPECT_TRUE(false) << "stop: " << GetMultilineCommentStopStr(cd);
+TEST(COMMENT, default_wrappers) {
+    EXPECT_EQ("//", GetOnelineCommentStr(CommentDesign()));
+    EXPECT_EQ("/*", GetMultilineCommentStartStr(CommentDesign()));
+    EXPECT_EQ("*/", GetMultilineCommentStopStr(CommentDesign()));
 }
+
+TEST(COMMENT, tabulation_level) {
+    EXPECT_EQ("\t// asd", ToComment("asd", CommentDesign(), 1));
+    EXPECT_EQ("\t\t\t\t// asd", ToComment("asd", CommentDesign(), 4));
+}
+
+TEST(COMMENT, multiline_chopper) {
+
+}
+

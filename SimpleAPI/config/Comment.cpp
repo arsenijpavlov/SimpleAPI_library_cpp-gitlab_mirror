@@ -71,7 +71,7 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
 
     switch(lines.size()) {
     case 0: return "";
-    case 1: return RepeatSymToStr('\t', tabulation_level) + GetOnelineCommentStr(design) + lines[0];
+    case 1: return RepeatSymToStr('\t', tabulation_level) + GetOnelineCommentStr(design) + " " + lines[0];
     default: {
         // (м, если BORDER не 0) ============================
         if(design.opt_multiline_border) {
