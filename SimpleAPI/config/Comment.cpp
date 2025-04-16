@@ -8,15 +8,18 @@
 #include "../logger/Logger.h"
 
 
+// @TEST(COMMENT, default_wrappers)
 std::string GetOnelineCommentStr(const CommentDesign& design) noexcept {
     return std::string(design.oneline_comment_symbols.data(),
                        (design.oneline_comment_symbols[1] == 0 ? 1 : 2));
 }
 
+// @TEST(COMMENT, default_wrappers)
 std::string GetMultilineCommentStartStr(const CommentDesign& design) noexcept {
     return std::string(design.multiline_comment_symbols.data(), 2);
 }
 
+// @TEST(COMMENT, default_wrappers)
 std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept {
     std::stringstream ss;
     ss << design.multiline_comment_symbols[1];
@@ -24,6 +27,7 @@ std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept {
         ss << design.multiline_comment_symbols[2];
     else
         ss << design.multiline_comment_symbols[0];
+
     return ss.str();
 }
 
@@ -34,63 +38,114 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
     if(comment.empty()) return "";
 
     using namespace utils;
-    VString lines;
-    std::string temp = "";
+    VString             result_lines;
+    std::string         temp = "";
+    std::vector<size_t> separators;
 
     //удалить пробелы в начале и конце строки
     std::string current_string = comment;
     RemoveIllegalSpaces(current_string);
 
     // наметить значение комментария ====================
-    for(char c : current_string) {
-        if(c == '\n') {
+    for(size_t i = 0; i < current_string.length(); i++) {
+        char ch = current_string[i];
+        //если встретили разделитель
+        if(utils::CharsInString(ch, __COMMENT_SEPARATOR_SYMBOLS__))
+            separators.push_back(temp.length());
+
+        if(ch == '\n') {
+            //вывести если не пустое
             if(!temp.empty()) {
-                lines.push_back(temp);
+                //удалить пробелы в начале и конце строки
+                RemoveIllegalSpaces(temp);
+
+                result_lines.push_back(temp);
                 temp.clear();
+                separators.clear();
             }
             continue;
         }
+
         // (м, если COLUMN_SIZE не 0) разделить комментарий на строки
-        if(design.opt_multiline_column_size && !temp.empty()
-//TODO:            && utils::GetStringCharCount(current_string) >= column_size)
-//TODO:            && (utils::CharsInString(ch, __COMMENT_SEPARATOR_SYMBOLS__) || (i == comment_string.length() - 1))
-            ) {
-            if(GetStringCharCount(temp) >= design.opt_multiline_column_size) {
-                lines.push_back(temp);
-                temp.clear();
+        if(design.opt_multiline_column_size && !temp.empty()) {
+            if(GetStringCharCount(temp) >= design.opt_multiline_column_size
+                && (CharsInString(ch, __COMMENT_SEPARATOR_SYMBOLS__) || (i == current_string.length() - 1)) )
+            {
+                //если превышен максимальный размер строки
+                if(GetStringCharCount(temp) > design.opt_multiline_column_size && !separators.empty()) {
+                    uint8_t separate_size;
+                    switch(separators.size()) {
+                    case 0:
+                    case 1:
+                        separate_size = 0;
+                        break;
+                    default:
+                        separate_size = separators.size() - 2;
+                    }
+                    if(temp.size() > separators[separate_size])
+                        separate_size = separators[separate_size] + 1;
+                    else
+                        separate_size = separators[separate_size];
+
+                    //найти границу, левая часть которой даст строку внутри колонки
+                    std::string left = SeparateString(temp, separate_size);
+                    RemoveIllegalSpaces(left);
+
+                    if(!CharsInString(temp.back(), __COMMENT_SEPARATOR_SYMBOLS__))
+                        temp += ' ';
+                    result_lines.push_back(left);
+
+                    //снова найти индексы разделителей
+                    separators.clear();
+                    for(size_t j = 0; j < temp.length(); j++) {
+                        if(CharsInString(temp[j], __COMMENT_SEPARATOR_SYMBOLS__))
+                            separators.push_back(j);
+                    }
+                } else {
+                    //удалить пробелы в начале и конце строки
+                    RemoveIllegalSpaces(temp);
+
+                    result_lines.push_back(temp);
+                    temp.clear();
+                    separators.clear();
+                }
             }
         }
-        temp += c;
+        temp += ch;
     }
     // завершающий штрих
     if(!temp.empty()) {
-        lines.push_back(temp);
+        result_lines.push_back(temp);
         temp.clear();
     }
     // ==================================================
 
-    switch(lines.size()) {
+    switch(result_lines.size()) {
     case 0: return "";
-    case 1: return RepeatSymToStr('\t', tabulation_level) + GetOnelineCommentStr(design) + " " + lines[0];
+    case 1: return RepeatSymToStr('\t', tabulation_level) + GetOnelineCommentStr(design) + " " + result_lines[0];
     default: {
         // (м, если BORDER не 0) ============================
         if(design.opt_multiline_border) {
             // учесть: B_COMMENTSTRING_B
             size_t max = 0;
-            for(std::string& s : lines)
-                if(max < s.size()) max = s.size();
+            for(std::string& s : result_lines) {
+                size_t size = GetStringCharCount(s);
+                if(max < size) max = size;
+            }
 
-            // выставить знак вертикальной границы
-            for(std::string& s : lines) {
-                s = std::to_string(design.opt_multiline_border) + " "
-                    + logs::columned(s, max)
-                    + " " + std::to_string(design.opt_multiline_border);
+            // выставить знаки вертикальной границы
+            for(std::string& s : result_lines) {
+                std::stringstream ss;
+                ss << design.opt_multiline_border << " "
+                   << logs::columned(s, max)
+                   << " " << design.opt_multiline_border;
+                s = ss.str();
             }
 
             // выставить знаки горизонтальных границ
             temp = RepeatSymToStr(design.opt_multiline_border, max + 4);
-            lines.insert(lines.cbegin(), temp);
-            lines.push_back(temp);
+            result_lines.insert(result_lines.cbegin(), temp);
+            result_lines.push_back(temp);
         } else {
 
         }
@@ -104,7 +159,7 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
     // выставить табуляцию и завершить формирование =====
     std::string ret;
     temp = RepeatSymToStr('\t', tabulation_level);
-    for(std::string& s : lines) {
+    for(std::string& s : result_lines) {
         ret += temp + s + '\n';
     }
     if(ret.back() == '\n') ret.pop_back();

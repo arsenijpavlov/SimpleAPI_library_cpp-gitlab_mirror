@@ -1,6 +1,7 @@
 #include <SimpleAPI.h>
 #include "../SimpleAPI/config/Comment.h"
 #include <iostream>
+#include <fstream>
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
@@ -27,6 +28,18 @@ TEST(COMMENT, tabulation_level) {
 }
 
 TEST(COMMENT, multiline_chopper) {
+    //TODO: test multiline_chopper
+    CommentDesign cd;
+    cd.opt_multiline_border = '#';
+    cd.opt_multiline_column_size = 20;
 
+    std::string res = ToComment("very large strings... String very long drive", cd, 0);
+
+    std::ofstream file("./test_chopper.txt");
+    if (!file.is_open())
+        FAIL();
+    file << res << std::endl;
+    file.close();
+
+    EXPECT_TRUE(false) << res;
 }
-
