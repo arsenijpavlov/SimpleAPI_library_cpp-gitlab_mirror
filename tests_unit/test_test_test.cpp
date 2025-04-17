@@ -50,3 +50,30 @@ TEST(COMMENT, multiline_chopper) {
 
     EXPECT_TRUE(false) << res;
 }
+
+TEST(COMMENT, multiline_chopper_reader) {
+    //TODO: test multiline_chopper
+    CommentDesign cd;
+
+    std::string res = FromComment("/*######################"
+                                    "# very large strings.. #"
+                                    "# . String very        #"
+                                    "# long driv e          #"
+                                    "######################*/", cd);
+
+    std::ofstream file("./test_chopper_reader.txt");
+    if (!file.is_open())
+        FAIL();
+    file << res
+         << std::endl;
+
+    res = FromComment("/* very large strings.."
+                        " . String very       "
+                        " long driv e          */", cd);
+    file << std::endl
+         << res
+         << std::endl;
+    file.close();
+
+    EXPECT_TRUE(false) << res;
+}
