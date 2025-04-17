@@ -124,18 +124,18 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
     case 0: return "";
     case 1: return RepeatSymToStr('\t', tabulation_level) + GetOnelineCommentStr(design) + " " + result_lines[0];
     default: {
+        size_t max = 0;
+        for(std::string& s : result_lines) {
+            size_t size = GetStringCharCount(s);
+            if(max < size) max = size;
+        }
+
         // (м, если BORDER не 0) ============================
         if(design.opt_multiline_border) {
-            // учесть: B_COMMENTSTRING_B
-            size_t max = 0;
-            for(std::string& s : result_lines) {
-                size_t size = GetStringCharCount(s);
-                if(max < size) max = size;
-            }
-
             // выставить знаки вертикальной границы
             for(std::string& s : result_lines) {
                 std::stringstream ss;
+                // учесть: B_COMMENTSTRING_B
                 ss << design.opt_multiline_border << " "
                    << logs::columned(s, max)
                    << " " << design.opt_multiline_border;
@@ -145,13 +145,22 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
             // выставить знаки горизонтальных границ
             temp = RepeatSymToStr(design.opt_multiline_border, max + 4);
             result_lines.insert(result_lines.cbegin(), temp);
-            result_lines.push_back(temp);
-        } else {
+            result_lines.front()[0] = GetMultilineCommentStartStr(design)[0];
+            result_lines.front()[1] = GetMultilineCommentStartStr(design)[1];
 
+            result_lines.push_back(temp);
+            result_lines.back()[result_lines.back().size() - 2] = GetMultilineCommentStopStr(design)[0];
+            result_lines.back()[result_lines.back().size() - 1] = GetMultilineCommentStopStr(design)[1];
+        } else {
+            for(std::string& s : result_lines)
+                s = logs::columned(s, max);
+            result_lines.front()    = GetMultilineCommentStartStr(design) + " " + result_lines.front();
+            for(size_t i = 1; i < result_lines.size(); i++)
+                result_lines[i] = " " + result_lines[i];
+            result_lines.back()     = result_lines.back() + " " + GetMultilineCommentStopStr(design);
         }
         // ==================================================
 
-        //TODO: /* ... */
         break;
     }
     }

@@ -38,7 +38,14 @@ TEST(COMMENT, multiline_chopper) {
     std::ofstream file("./test_chopper.txt");
     if (!file.is_open())
         FAIL();
-    file << res << std::endl;
+    file << res
+         << std::endl;
+
+    cd.opt_multiline_border = 0;
+    res = ToComment("very large strings... String very long drive", cd, 0);
+    file << std::endl
+         << res
+         << std::endl;
     file.close();
 
     EXPECT_TRUE(false) << res;
