@@ -2,10 +2,10 @@
 #define SIMPLE_API_H
 
 #include "utils/Utils.h"
+#include "utils/Logger.h"
 
 #include "json/Json.h"
 #include "network/Socket.h"
 #include "network/SocketThread.h"
-#include "logger/Logger.h"
 
 #endif // SIMPLE_API_H

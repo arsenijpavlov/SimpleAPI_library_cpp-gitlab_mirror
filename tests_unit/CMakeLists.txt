@@ -20,7 +20,7 @@ function (create_test test_group_name)
     target_link_libraries(${test_name} PUBLIC gtest gmock)
 
     target_include_directories(${test_name} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../SimpleAPI")
-    if(CMAKE_BUILD_TYPE STREQUAL "RELEASE")
+    if(CMAKE_BUILD_TYPE STREQUAL "Release")
         target_link_libraries(${test_name} PUBLIC SimpleAPI)
     else()
         target_link_libraries(${test_name} PUBLIC SimpleAPId)

@@ -5,7 +5,7 @@
 #include "ConfigCommon.h"
 
 //TODO: нужно вынести функцию в утилиты
-#include "../logger/Logger.h"
+#include "../utils/Logger.h"
 
 
 // @TEST(COMMENT, default_wrappers)
@@ -31,7 +31,6 @@ std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept {
     return ss.str();
 }
 
-//TODO: не ставится знак /* */
 std::string ToComment(const std::string &comment, const CommentDesign& design,
                       const uint8_t tabulation_level) noexcept
 {

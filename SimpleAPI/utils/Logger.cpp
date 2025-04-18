@@ -101,7 +101,7 @@ std::string get_time_string(const std::chrono::system_clock::time_point& tp_mill
 
     char time_buf[20];
     std::strftime(time_buf, 20, "%0H:%0M:%0S", tmInfo);
-    char millis[4];
+    char millis[5];
     sprintf(millis, "%03ld", (tp_millis.time_since_epoch() / std::chrono::milliseconds(1)) % 1000);
 
     return std::string("[") + time_buf + "." + millis + "]";
