@@ -55,11 +55,11 @@ TEST(COMMENT, multiline_chopper_reader) {
     //TODO: test multiline_chopper
     CommentDesign cd;
 
-    std::string res = FromComment("/*######################"
-                                    "# very large strings.. #"
-                                    "# . String very        #"
-                                    "# long driv e          #"
-                                    "######################*/", cd);
+    std::string res = FromComment("/*######################\n"
+                                  "# very large strings.. #\n"
+                                  "# . String very        #\n"
+                                  "# long driv e          #\n"
+                                  "######################*/", cd);
 
     std::ofstream file("./test_chopper_reader.txt");
     if (!file.is_open())
@@ -67,9 +67,19 @@ TEST(COMMENT, multiline_chopper_reader) {
     file << res
          << std::endl;
 
-    res = FromComment("/* very large strings.."
-                        " . String very       "
-                        " long driv e          */", cd);
+    res = FromComment("/* very large strings..\n"
+                      " . String very         \n"
+                      " long driv e         */", cd);
+    file << std::endl
+         << res
+         << std::endl;
+
+    res = FromComment("// small comment string", cd);
+    file << std::endl
+         << res
+         << std::endl;
+
+    res = FromComment("//small comment string", cd);
     file << std::endl
          << res
          << std::endl;

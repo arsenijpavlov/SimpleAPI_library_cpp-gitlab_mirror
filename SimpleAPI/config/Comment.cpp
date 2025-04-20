@@ -179,73 +179,85 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
 //NOTE: если символ в списке и в первой строке комментария повторяется минимум 5 раз - это граница, иначе - часть комментария
 //NOTE: для всего файла конфига подменяется символ границы только если не задан (первый комментарий с границей)
 std::string FromComment(const std::string &comment_string, CommentDesign& design) noexcept {
-    std::string ret;
+    VString     lines;
+    std::string temp_string = "";
+    for(size_t i = 0; i < comment_string.size(); i++) {
+        if(comment_string[i] == '\n') {
+            lines.push_back(temp_string); //пустые строки - тоже часть комментария
+            temp_string.clear();
+            continue;
+        }
+        temp_string += comment_string[i];
+    }
+    if(!temp_string.empty())
+        lines.push_back(temp_string); //пустая строка в конце игнорируется
 
-    bool isBorderExists = utils::CharsInString(comment_string[0], __BORDER_SYMBOLS__); //от 5 до 0xFF символов
-    if(design.opt_multiline_border == 0 && isBorderExists)
-        design.opt_multiline_border = comment_string[0];
+    if(lines.empty()) return "";
 
-    bool isFirstBorderLine = isBorderExists;
-    uint8_t border_size = 0;
-
-    std::string current_string;
-    bool isBorderLine = isBorderExists;
-    for(char ch : comment_string) {
-        if(ch == '\n') {
-            if(isFirstBorderLine) isFirstBorderLine = false;
-            if(isBorderLine && border_size < 5) {
-                isBorderExists = false;
-                isBorderLine = false;
-            }
-            if(isBorderLine) {
-                current_string = "";
-                continue;
-            }
-
-            RemoveIllegalSpaces(current_string);
-            if(isBorderExists) {
-                if(((comment_string[0] == '-' || comment_string[0] == '=') && current_string[0] == '|')
-                    || (current_string[0] == comment_string[0]))
-                    current_string.erase(current_string.begin());
-            }
-            RemoveIllegalSpaces(current_string);
-
-            if(!current_string.empty()) {
-                if(!ret.empty())
-                    ret += "\n";
-                ret += current_string;
-            }
-            current_string = "";
-            isBorderLine = isBorderExists;
-        } else {
-            //сработает только для первой строки
-            if(isFirstBorderLine) {
-                if(ch == comment_string[0])
-                    border_size++;
-                else { //встречен лишний символ, строка - часть комментария
-                    isBorderExists = false;
-                    border_size = 0;
+    bool is_multiline   = lines.size() > 1;
+    bool temp_bool      = true;
+    if(is_multiline) {
+        //первые два символа считаются открывающими комментарий (/*)
+        if(lines.front().size() > 3) {
+            for(size_t i = 3; i < lines.front().size(); i++) {
+                if(lines.front()[i] != lines.front()[2]) {
+                    temp_bool = false;
+                    break;
                 }
             }
-            //является ли строка границей
-            if(isBorderLine && ch != comment_string[0])
-                isBorderLine = false;
-            current_string += ch;
+        } else
+            temp_bool = false;
+    }
+    bool is_border_exists       = is_multiline && temp_bool;
+    design.opt_multiline_border = is_border_exists ? lines.front()[2] : 0;
+
+    if(is_multiline) {
+        if(lines.front().size() > 2) {
+            design.multiline_comment_symbols[0] = lines.front()[0];
+            design.multiline_comment_symbols[1] = lines.front()[1];
+            lines.front().erase(0, 2);
         }
+        if(lines.back().size() > 2) {
+            if(design.multiline_comment_symbols[0] == lines.back().back())
+                design.multiline_comment_symbols[2] = 0;
+            else
+                design.multiline_comment_symbols[2] = lines.back().back();
+
+            lines.back().pop_back(); //удалить символы комментария
+            lines.back().pop_back(); //удалить символы комментария
+        }
+    } else {
+        design.oneline_comment_symbols[0] = lines.front()[0];
+        design.oneline_comment_symbols[1] = lines.front()[1] == ' ' ? 0 : lines.front()[1];
+        lines.front().erase(0, 2); //удалить символы комментария
     }
 
-    RemoveIllegalSpaces(current_string);
-    if(!isBorderLine && !current_string.empty()) {
-        if(!ret.empty()) ret += '\n';
-        ret += current_string;
+    if(is_border_exists) {
+        lines.erase(lines.cbegin());
+        lines.pop_back();
+        for(std::string& s : lines) {
+            RemoveIllegalSpaces(s); //удалить табуляции в начале строк
+            if(s.front() == design.opt_multiline_border)
+                s.erase(s.begin());         //удалить границу
+            if(s.back() == design.opt_multiline_border)
+                s.pop_back();       //удалить границу
+            RemoveIllegalSpaces(s); //удалить лишние пробелы в начале и конце строки
+        }
+    } else {
+        for(std::string& s : lines)
+            RemoveIllegalSpaces(s); //удалить лишние пробелы в начале и конце строки
     }
 
-    if(isBorderExists
-        && design.opt_multiline_column_size == 0
-        && border_size != 0
-        && design.opt_multiline_column_size < border_size
-        )
-        design.opt_multiline_column_size = border_size;
+    std::string ret;
+
+//    TEST
+//    ret = "is_multiline:" + utils::to_string(is_multiline)
+//           + " is_border_exists:" + utils::to_string(is_border_exists)
+//           + (is_border_exists ? std::string(" border_sym:") + design.opt_multiline_border : "")
+//           + "\n";
+
+    for(auto& s : lines)
+        ret += s + "\n";
 
     return ret;
 }
