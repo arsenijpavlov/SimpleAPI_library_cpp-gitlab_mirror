@@ -51,6 +51,7 @@ TEST(COMMENT, multiline_chopper) {
     EXPECT_TRUE(false) << res;
 }
 
+//TODO: нужно исправить на проверку ожидаемого
 TEST(COMMENT, multiline_chopper_reader) {
     //TODO: test multiline_chopper
     CommentDesign cd;

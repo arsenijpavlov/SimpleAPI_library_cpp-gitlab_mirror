@@ -179,6 +179,7 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
 //NOTE: если символ в списке и в первой строке комментария повторяется минимум 5 раз - это граница, иначе - часть комментария
 //NOTE: для всего файла конфига подменяется символ границы только если не задан (первый комментарий с границей)
 std::string FromComment(const std::string &comment_string, CommentDesign& design) noexcept {
+    using namespace utils;
     VString     lines;
     std::string temp_string = "";
     for(size_t i = 0; i < comment_string.size(); i++) {
@@ -209,7 +210,8 @@ std::string FromComment(const std::string &comment_string, CommentDesign& design
             temp_bool = false;
     }
     bool is_border_exists       = is_multiline && temp_bool;
-    design.opt_multiline_border = is_border_exists ? lines.front()[2] : 0;
+    design.opt_multiline_border = is_border_exists ? lines.front()[2]
+                                                   : 0;
 
     if(is_multiline) {
         if(lines.front().size() > 2) {
@@ -226,10 +228,17 @@ std::string FromComment(const std::string &comment_string, CommentDesign& design
             lines.back().pop_back(); //удалить символы комментария
             lines.back().pop_back(); //удалить символы комментария
         }
+        design.opt_multiline_column_size = 0;
+        for(std::string& s : lines) {
+            if(design.opt_multiline_column_size < GetStringCharCount(s))
+                design.opt_multiline_column_size = GetStringCharCount(s);
+        }
     } else {
         design.oneline_comment_symbols[0] = lines.front()[0];
-        design.oneline_comment_symbols[1] = lines.front()[1] == ' ' ? 0 : lines.front()[1];
-        lines.front().erase(0, 2); //удалить символы комментария
+        design.oneline_comment_symbols[1] = lines.front()[1] == ' ' ? 0
+                                                                    : lines.front()[1];
+        lines.front().erase(0, 2);  //удалить символы комментария
+        design.opt_multiline_column_size = 0;
     }
 
     if(is_border_exists) {
@@ -238,7 +247,7 @@ std::string FromComment(const std::string &comment_string, CommentDesign& design
         for(std::string& s : lines) {
             RemoveIllegalSpaces(s); //удалить табуляции в начале строк
             if(s.front() == design.opt_multiline_border)
-                s.erase(s.begin());         //удалить границу
+                s.erase(s.begin()); //удалить границу
             if(s.back() == design.opt_multiline_border)
                 s.pop_back();       //удалить границу
             RemoveIllegalSpaces(s); //удалить лишние пробелы в начале и конце строки
@@ -250,11 +259,15 @@ std::string FromComment(const std::string &comment_string, CommentDesign& design
 
     std::string ret;
 
-//    TEST
+    //TEST
 //    ret = "is_multiline:" + utils::to_string(is_multiline)
-//           + " is_border_exists:" + utils::to_string(is_border_exists)
-//           + (is_border_exists ? std::string(" border_sym:") + design.opt_multiline_border : "")
-//           + "\n";
+//          + " is_border_exists:" + utils::to_string(is_border_exists)
+//          + (is_border_exists ? std::string(" border_sym:") + design.opt_multiline_border
+//                              : "")
+//          + (design.opt_multiline_column_size ? " column_size:" + std::to_string(design.opt_multiline_column_size)
+//                                              : "")
+//          + "\n---------------------------------------"
+//          + "\n";
 
     for(auto& s : lines)
         ret += s + "\n";
