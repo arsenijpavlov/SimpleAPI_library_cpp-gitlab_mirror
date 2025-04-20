@@ -15,8 +15,11 @@ ElementArray::ElementArray(const std::string &string, const ConfigFormat format,
 
 void ElementArray::parseArray(const std::string &string, const bool enable_comment,
                               const ConfigFormat config_format) {
-    //TODO: ElementArray::parseArray()
-    //TODO: std::exception
+    switch(config_format) {
+    case ConfigFormat::eJSON:   return parseJSON_array(string, enable_comment);
+    case ConfigFormat::eINI:    return parseINI_array(string, enable_comment);
+    default:                    return;
+    }
 }
 
 void ElementArray::parseJSON_array(const std::string &string, const bool enable_comment) {
