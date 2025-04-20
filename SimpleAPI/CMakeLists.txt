@@ -59,7 +59,7 @@ endif()
 
 #----------------------------
 #TODO: ВРЕМЕННОЕ ХРАНЕНИЕ
-target_sources(${PROJECT_NAME} PRIVATE pre_WIKI.txt)
+target_sources(${PROJECT_NAME} PRIVATE pre_WIKI.md)
 #----------------------------
 
 install(TARGETS ${PROJECT_NAME}

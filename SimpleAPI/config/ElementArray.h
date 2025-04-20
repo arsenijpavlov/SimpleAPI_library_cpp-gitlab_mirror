@@ -127,10 +127,10 @@ public:
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     void            operator=(const VElement& other) noexcept;
     ElementArray&   operator<<(const IElement& element) noexcept{ return pushBack(element); }
-    IElement&        operator[](const size_t index)             { return getValue(index); }
-    IElement&        operator[](const VString& complex_key)     { return getValue(complex_key); }
+    IElement&       operator[](const size_t index)             { return getValue(index); }
+    IElement&       operator[](const VString& complex_key)     { return getValue(complex_key); }
                     template<std::size_t SIZE>
-    IElement&        operator[](const std::array<std::string, SIZE>& complex_key) {
+    IElement&       operator[](const std::array<std::string, SIZE>& complex_key) {
                         VString complex_key_vec;
                         complex_key_vec.reserve(SIZE);
                         std::copy(complex_key.begin() + 1, complex_key.end(), complex_key_vec.begin());
