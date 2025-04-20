@@ -43,7 +43,7 @@ std::string ElementArray::to_JSON_string(const int8_t tabulation_level) const no
     bool without_space = tabulation_level == -1;
 
     std::string ret = "[";
-    for(auto it : m_values) {
+    for(auto& it : m_values) {
         if(!without_space) ret += "\n" + utils::RepeatSymToStr('\t', tabulation_level);
         ret += it.to_string(ConfigFormat::eJSON, tabulation_level+1) + ",";
     }
