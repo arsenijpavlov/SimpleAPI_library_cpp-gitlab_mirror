@@ -26,10 +26,10 @@ public:
                                                 { return std::to_string(m_value); }
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
 
-    long double getValue() const noexcept       { return m_value; }
+    long double get_value() const noexcept       { return m_value; }
 //TODO: фича под вопросом    int64_t     toInt() const noexcept          { return m_value; }
 //TODO: фича под вопросом    uint64_t    toUInt() const noexcept         { return m_value; }
-    bool        isEqual(const IElement& other, const bool compare_comments = false) const noexcept override;
+    bool        is_equal(const IElement& other, const bool compare_comments = false) const noexcept override;
 
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     void operator=(const long double& other)    { m_value = other; }

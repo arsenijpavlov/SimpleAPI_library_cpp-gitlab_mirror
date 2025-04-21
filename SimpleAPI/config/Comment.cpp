@@ -310,7 +310,7 @@ Comment::~Comment() noexcept {
     if(m_comment_design) delete m_comment_design;
 }
 
-bool Comment::isEmpty() const noexcept {
+bool Comment::is_empty() const noexcept {
     if(m_prefix && !m_prefix->empty()) return false;
     if(m_suffix && !m_suffix->empty()) return false;
     return true;

@@ -28,10 +28,12 @@ private:
 public:
 
     //PARSING -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    void        parseArray(const std::string& string, const bool enable_comment = false,
-                           const ConfigFormat config_format = ConfigFormat::eJSON);
-    void        parseJSON_array(const std::string& string, const bool enable_comment = false);
-    void        parseINI_array(const std::string& string, const bool enable_comment = false);
+    void        parse_array(const std::string& string, const bool enable_comment = false,
+                            const ConfigFormat config_format = ConfigFormat::eJSON, const CommentDesign& design = {});
+    void        parse_JSON_array(const std::string& string, const bool enable_comment = false,
+                            const CommentDesign& design = {});
+    void        parse_INI_array(const std::string& string, const bool enable_comment = false,
+                            const CommentDesign& design = {});
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- PARSING
 
     //PRINTING =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -51,46 +53,46 @@ public:
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
 
     //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    void        addComment(const size_t index, const Comment& content);
-    void        addComment(const size_t index, const std::string& content_before,
+    void        add_comment(const size_t index, const Comment& content);
+    void        add_comment(const size_t index, const std::string& content_before,
                            const std::string& content_after);
-    void        addPrefixComment(const size_t index, const std::string& content);
-    void        addSuffixComment(const size_t index, const std::string& content);
+    void        add_prefix_comment(const size_t index, const std::string& content);
+    void        add_suffix_comment(const size_t index, const std::string& content);
 
-    Comment&        getComment(const size_t index);
-    Comment         getComment(const size_t index) const;
-    std::string&    getPrefixComment(const size_t index);
-    std::string     getPrefixComment(const size_t index) const;
-    std::string&    getSuffixComment(const size_t index);
-    std::string     getSuffixComment(const size_t index) const;
+    Comment&        get_comment(const size_t index);
+    Comment         get_comment(const size_t index) const;
+    std::string&    get_prefix_comment(const size_t index);
+    std::string     get_prefix_comment(const size_t index) const;
+    std::string&    get_suffix_comment(const size_t index);
+    std::string     get_suffix_comment(const size_t index) const;
 
     //NOTE: noexcept, потому что неправильный индекс просто пропустит действие
-    void        clearComment(const size_t index) noexcept;
-    void        clearPrefixComment(const size_t index) noexcept;
-    void        clearSuffixComment(const size_t index) noexcept;
-    void        deleteComment(const size_t index) noexcept;
-    void        deletePrefixComment(const size_t index) noexcept;
-    void        deleteSuffixComment(const size_t index) noexcept;
+    void        clear_comment(const size_t index) noexcept;
+    void        clear_prefix_comment(const size_t index) noexcept;
+    void        clear_suffix_comment(const size_t index) noexcept;
+    void        delete_comment(const size_t index) noexcept;
+    void        delete_prefix_comment(const size_t index) noexcept;
+    void        delete_suffix_comment(const size_t index) noexcept;
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= COMMENTS
 
     ElementArray&   clear() noexcept;
     bool            contains(const size_t& index) const noexcept
                                                                 { return m_values.size() > index; }
-    bool            isEmpty() const noexcept                    { return m_values.empty(); }
-    bool            isEqual(const IElement& other, const bool compare_comments = false) const noexcept override;
+    bool            is_empty() const noexcept                   { return m_values.empty(); }
+    bool            is_equal(const IElement& other, const bool compare_comments = false) const noexcept override;
     size_t          size() const noexcept                       { return m_values.size(); }
 
     //TYPES -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    ValueType   getTypeFront();
-    ValueType   getTypeAt(const size_t index);
-    ValueType   getTypeBack();
+    ValueType   get_type_front();
+    ValueType   get_type_at(const size_t index);
+    ValueType   get_type_back();
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- TYPES
 
     //SETTERS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     //NOTE: если индекс больше количества вложенных элементов, то добавятся в конец
-    ElementArray&   append(const IElement& element) noexcept     { return push_back(element); }
-    ElementArray&   pushFront(const IElement& element) noexcept;
-    ElementArray&   pushAt(const IElement& element, const size_t index);
+    ElementArray&   append(const IElement& element) noexcept    { return push_back(element); }
+    ElementArray&   push_front(const IElement& element) noexcept;
+    ElementArray&   push_at(const IElement& element, const size_t index);
     ElementArray&   push_back(const IElement& element) noexcept;
                     __ONLY_ALLOWED_TYPES__(T)
     ElementArray&   insert(const size_t index, const T& value) noexcept {
@@ -106,18 +108,18 @@ public:
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- SETTERS
 
     //GETTERS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    IElement&    getValue(const size_t index);
-    IElement&    getValue(const VString& complex_key);
-    IElement&    getValue(const std::vector<size_t>& complex_key);
-    IElement&    getFront()                                     { return m_values.front(); }
-    IElement&    getAt(const size_t index)                      { return getValue(index); }
-    IElement&    getBack()                                      { return m_values.back(); }
+    IElement&    get_value(const size_t index);
+    IElement&    get_value(const VString& complex_key);
+    IElement&    get_value(const std::vector<size_t>& complex_key);
+    IElement&    get_front()                                    { return m_values.front(); }
+    IElement&    get_at(const size_t index)                     { return get_value(index); }
+    IElement&    get_back()                                     { return m_values.back(); }
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- GETTERS
 
     //DELETERS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    ElementArray&   popFront();
-    ElementArray&   popAt(const size_t index);
-    ElementArray&   popBack();
+    ElementArray&   pop_front();
+    ElementArray&   pop_at(const size_t index);
+    ElementArray&   pop_back();
     ElementArray&   erase(const size_t index);
     ElementArray&   erase(const VElement::iterator& iterator);
     ElementArray&   erase(const VElement::iterator& begin, const VElement::iterator& end);
@@ -127,8 +129,8 @@ public:
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     void            operator=(const VElement& other) noexcept;
     ElementArray&   operator<<(const IElement& element) noexcept{ return push_back(element); }
-    IElement&       operator[](const size_t index)             { return getValue(index); }
-    IElement&       operator[](const VString& complex_key)     { return getValue(complex_key); }
+    IElement&       operator[](const size_t index)              { return get_value(index); }
+    IElement&       operator[](const VString& complex_key)      { return get_value(complex_key); }
                     template<std::size_t SIZE>
     IElement&       operator[](const std::array<std::string, SIZE>& complex_key) {
                         VString complex_key_vec;

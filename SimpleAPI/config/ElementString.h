@@ -29,8 +29,8 @@ public:
                               const int8_t tabulation_level = 0) const noexcept;
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
 
-    std::string getValue() const noexcept                       { return m_value; }
-    bool        isEqual(const IElement& other, const bool compare_comments = false) const noexcept override;
+    std::string get_value() const noexcept                       { return m_value; }
+    bool        is_equal(const IElement& other, const bool compare_comments = false) const noexcept override;
 
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     void operator<<(const std::string& other) noexcept;

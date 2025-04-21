@@ -70,12 +70,15 @@ std::string SeparateString(std::string& str, const size_t length) noexcept;
 bool        isMultiLine(const std::string& str, const size_t column_size = 0) noexcept;
 std::string to_string_with_esc(const std::string& str, const bool use_backslash = false) noexcept;
 
+//TODO: переместить в Comment.h/.cpp
 CommentType CheckComment(char& first, const char second, size_t& iter_counter) noexcept;
 
+//TODO: переместить в Comment.h/.cpp
 enum class CommentChecker : uint8_t {
     isComment, isNotComment, isCommentEnd //последний требует continue!
 };
 
+//TODO: переместить в Comment.h/.cpp
 CommentChecker CheckComments(const char current_sym, const char next_sym,
                              bool& is_one_line, bool& is_multi_line,
                              char& first_ml_sym, char& second_ml_sym,

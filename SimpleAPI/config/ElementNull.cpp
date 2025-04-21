@@ -4,8 +4,8 @@
 #include <algorithm>
 
 
-bool ElementNull::isEqual(const IElement &other, const bool compare_comments) const noexcept {
-    if(compare_comments && m_comment == other.getComment()) return false;
+bool ElementNull::is_equal(const IElement &other, const bool compare_comments) const noexcept {
+    if(compare_comments && m_comment == other.get_comment()) return false;
 
     return true; //предполагаем, что проверка типа проведена уже в базовом классе
 }

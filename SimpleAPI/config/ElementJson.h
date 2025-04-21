@@ -69,24 +69,24 @@ public:
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
 
     //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    void        addComment(const size_t index, const Comment& content) const noexcept;
-    void        addComment(const size_t index, const std::string& contentBefore,
+    void        add_comment(const size_t index, const Comment& content) const noexcept;
+    void        add_comment(const size_t index, const std::string& contentBefore,
                            const std::string& contentAfter) const noexcept;
-    Comment     getComment(const size_t index) const noexcept;
-    void        clearComment(const size_t index) const noexcept;
+    Comment     get_comment(const size_t index) const noexcept;
+    void        clear_comment(const size_t index) const noexcept;
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= COMMENTS
 
     ElementJson&    clear() noexcept;
     bool            contains(const std::string& key) const noexcept;
-    bool            isEmpty() noexcept                      { return m_values.empty(); }
-    bool            isEqual(const IElement& other, const bool compare_comments = false) const noexcept override;
+    bool            is_empty() noexcept                      { return m_values.empty(); }
+    bool            is_equal(const IElement& other, const bool compare_comments = false) const noexcept override;
     size_t          size() noexcept                         { return m_values.size(); }
 
     //TYPES -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    ValueType   getTypeFront();
-    ValueType   getTypeAt(const size_t index);
-    ValueType   getTypeAt(const std::string& key);
-    ValueType   getTypeBack();
+    ValueType   get_type_front();
+    ValueType   get_type_at(const size_t index);
+    ValueType   get_type_at(const std::string& key);
+    ValueType   get_type_back();
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- TYPES
 
     //SETTERS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -94,7 +94,7 @@ public:
     //NOTE: если ключа не существовало, его надо создать
     ElementJson&    append(const std::string& key, const IElement& value,
                            const bool rewrite = true) noexcept  { return pushBack(key, value); }
-    ElementJson&    pushFront(const std::string& key, const IElement& value,
+    ElementJson&    push_front(const std::string& key, const IElement& value,
                               const bool rewrite = true) noexcept;
     ElementJson&    pushBack(const std::string& key, const IElement& value,
                              const bool rewrite = true) noexcept;
@@ -198,19 +198,19 @@ public:
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- SETTERS
 
     //GETTERS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    IElement&    getValue(const size_t index);
-    IElement&    getValue(const std::string key);
-    IElement&    getValue(const VString& complex_key);
-    IElement&    getFront();
-    IElement&    getAt(const size_t index);
-    IElement&    getBack();
+    IElement&    get_value(const size_t index);
+    IElement&    get_value(const std::string key);
+    IElement&    get_value(const VString& complex_key);
+    IElement&    get_front();
+    IElement&    get_at(const size_t index);
+    IElement&    get_back();
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- GETTERS
 
     //DELETERS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    IElement     popFront();
-    IElement     popAt(const size_t index);
-    IElement     popAt(const std::string key);
-    IElement     popBack();
+    IElement     pop_front();
+    IElement     pop_at(const size_t index);
+    IElement     pop_at(const std::string key);
+    IElement     pop_back();
     ElementJson&    erase(const size_t index);
     ElementJson&    erase(const std::string key);
     ElementJson&    erase(const VPairElement::iterator& iterator) {
@@ -228,9 +228,9 @@ public:
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     void        operator=(const VPairElement& other) noexcept;
     void        operator<<(const JPair& element) noexcept; //альтернатива push_back()
-    IElement&    operator[](const size_t index)             { return getValue(index); }
-    IElement&    operator[](const std::string& key)         { return getValue(key); }
-    IElement&    operator[](const VString& complex_key)     { return getValue(complex_key); }
+    IElement&    operator[](const size_t index)             { return get_value(index); }
+    IElement&    operator[](const std::string& key)         { return get_value(key); }
+    IElement&    operator[](const VString& complex_key)     { return get_value(complex_key); }
 
                 template<std::size_t SIZE>
     IElement&    operator[](const std::array<std::string, SIZE>& complex_key) {

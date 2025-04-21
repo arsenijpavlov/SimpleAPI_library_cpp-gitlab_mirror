@@ -24,8 +24,8 @@ public:
                                                     { return m_value ? "true" : "false"; }
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
 
-    bool        getValue() const noexcept           { return m_value; }
-    bool        isEqual(const IElement& other, const bool compare_comments = false) const noexcept override;
+    bool        get_value() const noexcept           { return m_value; }
+    bool        is_equal(const IElement& other, const bool compare_comments = false) const noexcept override;
 
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     void operator=(const bool other) noexcept;

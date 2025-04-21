@@ -12,28 +12,31 @@ class ElementJson;
 ElementArray::ElementArray(const std::string &string, const ConfigFormat format,
                            const bool enable_comments) noexcept {
     init();
-    parseArray(string, enable_comments, format);
+    parse_array(string, enable_comments, format);
 }
 
-void ElementArray::parseArray(const std::string &string, const bool enable_comment,
-                              const ConfigFormat config_format) {
+void ElementArray::parse_array(const std::string &string, const bool enable_comment,
+                              const ConfigFormat config_format, const CommentDesign& design) {
     switch(config_format) {
-    case ConfigFormat::eJSON:   parseJSON_array(string, enable_comment);
-    case ConfigFormat::eINI:    parseINI_array(string, enable_comment);
+    case ConfigFormat::eJSON:   parse_JSON_array(string, enable_comment, design);
+    case ConfigFormat::eINI:    parse_INI_array(string, enable_comment, design);
     default:                    return;
     }
 }
 
-void ElementArray::parseJSON_array(const std::string &string, const bool enable_comment) {
+void ElementArray::parse_JSON_array(const std::string &string, const bool enable_comment,
+                                   const CommentDesign& design) {
     clear(); //очистка списка перед новым заполнением
     if(string.empty()) return;
 
-    bool        isOneLineComment    = false;
-    bool        isMultiLineComment  = false;
-    char        firstMLCSym, secondMLCSym;
-    uint8_t     commentCounter      = 0;
-    std::string currentComment;
-    currentComment.reserve(100);
+    using namespace utils;
+    bool        is_oneline_comment      = false;
+    bool        is_multiline_comment    = false;
+    char        first_MLC_sym       = 0;
+    char        second_MLC_sym      = 0;
+    uint8_t     comment_counter     = 0;
+    std::string current_comment;
+    current_comment.reserve(100);
 
     bool        is_critical_error   = false;
     bool        is_quotes           = false;
@@ -41,11 +44,11 @@ void ElementArray::parseJSON_array(const std::string &string, const bool enable_
     bool        is_word_finished    = false;
     bool        is_value_comment_after_saved = true; //изначально TRUE, чтобы не сработало для первого прохода
 
-    uint16_t    innerJsonCounter    = 0;
-    uint16_t    innerArrayCounter   = 0;
+    uint16_t    inner_json_counter  = 0;
+    uint16_t    inner_array_counter = 0;
     std::string value_string;
     value_string.reserve(100);
-    Comment     valueComment;
+    Comment     value_comment;
     IElement    value_element;
 
     uint16_t    line_counter        = 0; //NOTE: (JArray) ограничение на FFFF строк
@@ -71,12 +74,13 @@ void ElementArray::parseJSON_array(const std::string &string, const bool enable_
 
         //поиск комментариев
         const bool ext_f = !is_quotes && value_format != VALUE_ARRAY && value_format != VALUE_JSON;
-        utils::CommentChecker c_checker = c_checker = utils::CheckComments(current_ch, next_ch,
-                                                                           isOneLineComment, isMultiLineComment,
-                                                                           firstMLCSym, secondMLCSym,
-                                                                           enable_comment, currentComment,
-                                                                           i, ext_f);
-        if(c_checker != utils::CommentChecker::isNotComment) {
+        CommentChecker c_checker = CheckComments(current_ch, next_ch,
+                                                 is_oneline_comment,
+                                                 is_multiline_comment,
+                                                 first_MLC_sym, second_MLC_sym,
+                                                 enable_comment, current_comment,
+                                                 i, ext_f);
+        if(c_checker != CommentChecker::isNotComment) {
             //сюда зайдёт, если внутри комментария
             //счётчик строк и столбцов =============================================
             if(current_ch == '\n') {
@@ -91,15 +95,15 @@ void ElementArray::parseJSON_array(const std::string &string, const bool enable_
         switch(state) {
         case ARRAY_START: {
             //пропуск пробелов ====================================================
-            if(utils::CharsInString(current_ch, __SPACES__))
+            if(CharsInString(current_ch, __SPACES__))
                 break;
             //=====================================================================
 
             //работа с комментариями (первичный) ==================================
-            if(!currentComment.empty() && enable_comment) {
-                addPreviewComment(FromComment(currentComment, m_comment_column_size, m_comment_sym));
-                //                std::cout << "JArray:PreviewComment: " << "\"" << currentComment << "\"" << std::endl;
-                currentComment = "";
+            if(!current_comment.empty() && enable_comment) {
+                addPreviewComment(FromComment(current_comment, m_comment_column_size, m_comment_sym));
+                //                std::cout << "JArray:PreviewComment: " << "\"" << current_comment << "\"" << std::endl;
+                current_comment = "";
             } //===================================================================
 
             if(current_ch != '[') {
@@ -114,10 +118,10 @@ void ElementArray::parseJSON_array(const std::string &string, const bool enable_
             //пропуск пробелов ====================================================
             if(current_ch == '\n' && !is_value_comment_after_saved) {
                 //работа с комментариями (после значения #2) ==========================
-                if(!currentComment.empty() && enable_comment) {
-                    addComment_after(m_values.size() - 1, FromComment(currentComment, m_comment_column_size, m_comment_sym));
-                    //                    std::cout << "JArray:comment:after: " << "\"" << currentComment << "\"" << std::endl;
-                    currentComment = "";
+                if(!current_comment.empty() && enable_comment) {
+                    add_comment_after(m_values.size() - 1, FromComment(current_comment, m_comment_column_size, m_comment_sym));
+                    //                    std::cout << "JArray:comment:after: " << "\"" << current_comment << "\"" << std::endl;
+                    current_comment = "";
                 } //===================================================================
                 is_value_comment_after_saved = true;
                 break;
@@ -270,7 +274,7 @@ void ElementArray::parseJSON_array(const std::string &string, const bool enable_
                 case VALUE_ARRAY:    {
                     JArray _innerArray;
                     try {
-                        _innerArray.parseArray(value_string, enable_comment);
+                        _innerArray.parse_array(value_string, enable_comment);
                         push_back(_innerArray);
                     } catch (std::invalid_argument& e) {
                         isCriticalError = true;
@@ -284,10 +288,10 @@ void ElementArray::parseJSON_array(const std::string &string, const bool enable_
                 }
 
                 //работа с комментариями (перед значением) ============================
-                if(!currentComment.empty() && enable_comment) {
-                    valueComment.setPrefix(FromComment(currentComment, m_comment_column_size, m_comment_sym));
-                    //                    std::cout << "JArray:comment:before: " << "\"" << currentComment << "\"" << std::endl;
-                    currentComment = "";
+                if(!current_comment.empty() && enable_comment) {
+                    valueComment.setPrefix(FromComment(current_comment, m_comment_column_size, m_comment_sym));
+                    //                    std::cout << "JArray:comment:before: " << "\"" << current_comment << "\"" << std::endl;
+                    current_comment = "";
                 } //===================================================================
 
                 state = ARRAY_ELEMENT_SEPARATOR;
@@ -309,12 +313,12 @@ void ElementArray::parseJSON_array(const std::string &string, const bool enable_
             if(current_ch == '\n') {
                 //работа с комментариями (после значения #1) ==========================
                 if(enable_comment) {
-                    if(!currentComment.empty()) {
-                        valueComment.setSuffix(FromComment(currentComment, m_comment_column_size, m_comment_sym));
-//                        std::cout << "JArray:comment:after: " << "\"" << currentComment << "\"" << std::endl;
-                        currentComment = "";
+                    if(!current_comment.empty()) {
+                        valueComment.setSuffix(FromComment(current_comment, m_comment_column_size, m_comment_sym));
+//                        std::cout << "JArray:comment:after: " << "\"" << current_comment << "\"" << std::endl;
+                        current_comment = "";
                     }
-//                    addComment(m_values.size() - 1, valueComment);
+//                    add_comment(m_values.size() - 1, valueComment);
                 } //===================================================================
                 is_value_comment_after_saved = true;
             }
@@ -326,7 +330,7 @@ void ElementArray::parseJSON_array(const std::string &string, const bool enable_
             if(enable_comment && (!valueComment.prefix().empty() || !valueComment.suffix().empty())) {
                 //                std::cout << "\tvalue_before: " << valueComment.prefix << std::endl
                 //                          << "\tvalue_after: " << valueComment.suffix << std::endl;
-                addComment(m_values.size() - 1, valueComment.prefix(), valueComment.suffix());
+                add_comment(m_values.size() - 1, valueComment.prefix(), valueComment.suffix());
             }
 
             break;
@@ -365,8 +369,10 @@ void ElementArray::parseJSON_array(const std::string &string, const bool enable_
     }
 }
 
-void ElementArray::parseINI_array(const std::string &string, const bool enable_comment) {
-    //TODO: ElementArray::parseINI_array()
+void ElementArray::parse_INI_array(const std::string &string, const bool enable_comment,
+                                  const CommentDesign& design)
+{
+    //TODO: ElementArray::parse_INI_array()
     //TODO: std::exception
 }
 
@@ -414,11 +420,11 @@ std::string ElementArray::to_JSON_string(const CommentDesign &design, const int8
     std::string ret = "[";
     for(auto it : m_values) {
         ret += "\n" + utils::RepeatSymToStr('\t', tabulation_level);
-        ret += ToComment(it.getPrefixComment(), design, tabulation_level);
+        ret += ToComment(it.get_prefix_comment(), design, tabulation_level);
         ret += "\n" + utils::RepeatSymToStr('\t', tabulation_level);
         ret += it.to_string(ConfigFormat::eJSON, design, tabulation_level + 1) + ", ";
         //NOTE: суффиксный многострочный комментарий должен начинаться на той же строке, что и значение переменной
-        ret += ToComment(it.getSuffixComment(), design, tabulation_level);
+        ret += ToComment(it.get_suffix_comment(), design, tabulation_level);
     }
     ret += "\n" + utils::RepeatSymToStr('\t', tabulation_level);
     ret += "]";
@@ -431,85 +437,85 @@ std::string ElementArray::to_INI_string(const CommentDesign &design, const int8_
     return "";
 }
 
-void ElementArray::addComment(const size_t index, const Comment &content) {
+void ElementArray::add_comment(const size_t index, const Comment &content) {
     __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    m_values[index].addComment(content);
+    m_values[index].add_comment(content);
 }
 
-void ElementArray::addComment(const size_t index, const std::string &content_before,
+void ElementArray::add_comment(const size_t index, const std::string &content_before,
                               const std::string &content_after) {
     __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    m_values[index].addComment(content_before, content_after);
+    m_values[index].add_comment(content_before, content_after);
 }
 
-void ElementArray::addPrefixComment(const size_t index, const std::string &content) {
+void ElementArray::add_prefix_comment(const size_t index, const std::string &content) {
     __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    m_values[index].addPrefixComment(content);
+    m_values[index].add_prefix_comment(content);
 }
 
-void ElementArray::addSuffixComment(const size_t index, const std::string &content) {
+void ElementArray::add_suffix_comment(const size_t index, const std::string &content) {
     __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    m_values[index].addSuffixComment(content);
+    m_values[index].add_suffix_comment(content);
 }
 
-Comment& ElementArray::getComment(const size_t index) {
+Comment& ElementArray::get_comment(const size_t index) {
     __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    return m_values[index].getComment();
+    return m_values[index].get_comment();
 }
 
-Comment ElementArray::getComment(const size_t index) const {
+Comment ElementArray::get_comment(const size_t index) const {
     __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    return m_values[index].getComment();
+    return m_values[index].get_comment();
 }
 
-std::string& ElementArray::getPrefixComment(const size_t index) {
+std::string& ElementArray::get_prefix_comment(const size_t index) {
     __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    return m_values[index].getPrefixComment();
+    return m_values[index].get_prefix_comment();
 }
 
-std::string ElementArray::getPrefixComment(const size_t index) const {
+std::string ElementArray::get_prefix_comment(const size_t index) const {
     __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    return m_values[index].getPrefixComment();
+    return m_values[index].get_prefix_comment();
 }
 
-std::string& ElementArray::getSuffixComment(const size_t index) {
+std::string& ElementArray::get_suffix_comment(const size_t index) {
     __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    return m_values[index].getSuffixComment();
+    return m_values[index].get_suffix_comment();
 }
 
-std::string ElementArray::getSuffixComment(const size_t index) const {
+std::string ElementArray::get_suffix_comment(const size_t index) const {
     __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    return m_values[index].getSuffixComment();
+    return m_values[index].get_suffix_comment();
 }
 
-void ElementArray::clearComment(const size_t index) noexcept {
+void ElementArray::clear_comment(const size_t index) noexcept {
     __IF_INDEX_NOT_BOUND2__(m_values, index)
-    m_values[index].deleteComment();
+    m_values[index].delete_comment();
 }
 
-void ElementArray::clearPrefixComment(const size_t index) noexcept {
+void ElementArray::clear_prefix_comment(const size_t index) noexcept {
     __IF_INDEX_NOT_BOUND2__(m_values, index)
-    m_values[index].deletePrefixComment();
+    m_values[index].delete_prefix_comment();
 }
 
-void ElementArray::clearSuffixComment(const size_t index) noexcept {
+void ElementArray::clear_suffix_comment(const size_t index) noexcept {
     __IF_INDEX_NOT_BOUND2__(m_values, index)
-    m_values[index].deleteSuffixComment();
+    m_values[index].delete_suffix_comment();
 }
 
-void ElementArray::deleteComment(const size_t index) noexcept {
+void ElementArray::delete_comment(const size_t index) noexcept {
     __IF_INDEX_NOT_BOUND2__(m_values, index)
-    m_values[index].deleteComment();
+    m_values[index].delete_comment();
 }
 
-void ElementArray::deletePrefixComment(const size_t index) noexcept {
+void ElementArray::delete_prefix_comment(const size_t index) noexcept {
     __IF_INDEX_NOT_BOUND2__(m_values, index)
-    m_values[index].deletePrefixComment();
+    m_values[index].delete_prefix_comment();
 }
 
-void ElementArray::deleteSuffixComment(const size_t index) noexcept {
+void ElementArray::delete_suffix_comment(const size_t index) noexcept {
     __IF_INDEX_NOT_BOUND2__(m_values, index)
-    m_values[index].deleteSuffixComment();
+    m_values[index].delete_suffix_comment();
 }
 
 ElementArray &ElementArray::clear() noexcept {
@@ -517,34 +523,34 @@ ElementArray &ElementArray::clear() noexcept {
     return *this;
 }
 
-bool ElementArray::isEqual(const IElement &other, const bool compare_comments) const noexcept {
+bool ElementArray::is_equal(const IElement &other, const bool compare_comments) const noexcept {
     if(m_values != dynamic_cast<const ElementArray&>(other).m_values)   return false;
-    if(compare_comments && m_comment == other.getComment())             return false;
+    if(compare_comments && m_comment == other.get_comment())             return false;
 
     return true;
 }
 
-ValueType ElementArray::getTypeFront() {
+ValueType ElementArray::get_type_front() {
     __CHECK_ARRAY_EMPTY_EXCEPTION__(m_values)
     return m_values.front().getType();
 }
 
-ValueType ElementArray::getTypeAt(const size_t index) {
+ValueType ElementArray::get_type_at(const size_t index) {
     __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
     return m_values[index].getType();
 }
 
-ValueType ElementArray::getTypeBack() {
+ValueType ElementArray::get_type_back() {
     __CHECK_ARRAY_EMPTY_EXCEPTION__(m_values)
     return m_values.back().getType();
 }
 
-ElementArray& ElementArray::pushFront(const IElement &element) noexcept {
+ElementArray& ElementArray::push_front(const IElement &element) noexcept {
     m_values.insert(m_values.cbegin(), element);
     return *this;
 }
 
-ElementArray& ElementArray::pushAt(const IElement &element, const size_t index) {
+ElementArray& ElementArray::push_at(const IElement &element, const size_t index) {
     __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index - 1) //проверяем, что size() < index - 1 (+1[нумерация с 0])
     m_values.insert(m_values.cbegin() + index, element);
     return *this;
@@ -555,12 +561,12 @@ ElementArray& ElementArray::push_back(const IElement &element) noexcept {
     return *this;
 }
 
-IElement& ElementArray::getValue(const size_t index) {
+IElement& ElementArray::get_value(const size_t index) {
     __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
     return m_values[index];
 }
 
-IElement& ElementArray::getValue(const VString& complex_key) {
+IElement& ElementArray::get_value(const VString& complex_key) {
     if(complex_key.size() == 0)
         throw std::invalid_argument("complex_key vector is empty");
 
@@ -590,7 +596,7 @@ IElement& ElementArray::getValue(const VString& complex_key) {
     }
 }
 
-IElement& ElementArray::getValue(const std::vector<size_t>& complex_key) {
+IElement& ElementArray::get_value(const std::vector<size_t>& complex_key) {
     if(complex_key.size() == 0)
         throw std::invalid_argument("complex_key vector is empty");
 
@@ -606,33 +612,33 @@ IElement& ElementArray::getValue(const std::vector<size_t>& complex_key) {
         auto new_complex_key = complex_key;
         new_complex_key.erase(new_complex_key.begin());
         switch(el.getType()) {
-//TODO:        case eJson:     return dynamic_cast<ElementJson&>((*this)[complex_key.front()]).getValue(new_complex_key);
-        case eArray:    return dynamic_cast<ElementArray&>((*this)[complex_key.front()]).getValue(new_complex_key);
+//TODO:        case eJson:     return dynamic_cast<ElementJson&>((*this)[complex_key.front()]).get_value(new_complex_key);
+        case eArray:    return dynamic_cast<ElementArray&>((*this)[complex_key.front()]).get_value(new_complex_key);
         default: __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__
         }
     }
 }
 
-ElementArray &ElementArray::popFront() {
+ElementArray &ElementArray::pop_front() {
     __CHECK_ARRAY_EMPTY_EXCEPTION__(m_values)
     m_values.erase(m_values.cbegin());
     return *this;
 }
 
-ElementArray &ElementArray::popAt(const size_t index) {
+ElementArray &ElementArray::pop_at(const size_t index) {
     __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
     m_values.erase(m_values.cbegin() + index);
     return *this;
 }
 
-ElementArray &ElementArray::popBack() {
+ElementArray &ElementArray::pop_back() {
     __CHECK_ARRAY_EMPTY_EXCEPTION__(m_values)
     m_values.pop_back();
     return *this;
 }
 
 ElementArray &ElementArray::erase(const size_t index) {
-    popAt(index);
+    pop_at(index);
     return *this;
 }
 
@@ -647,7 +653,7 @@ ElementArray &ElementArray::erase(const VElement::iterator &begin, const VElemen
 }
 
 ElementArray &ElementArray::erase(const std::vector<size_t> indexes) {
-    for(auto i : indexes) popAt(i);
+    for(auto i : indexes) pop_at(i);
     return *this;
 }
 

@@ -55,7 +55,7 @@ private:
     void init() {}
 public:
 
-    bool isEmpty() const noexcept;
+    bool is_empty() const noexcept;
 
     //NOTE: выделит память, если nullptr
     std::string&    prefix() noexcept;

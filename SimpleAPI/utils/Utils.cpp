@@ -516,6 +516,7 @@ CommentType CheckComment(char& first, const char second, size_t& iter_counter) n
     return CommentType::eNotComment;
 }
 
+//TODO: удалить
 CommentChecker CheckComments(const char current_sym, const char next_sym,
                    bool& is_one_line, bool& is_multi_line,
                    char& first_ml_sym, char& second_ml_sym,
