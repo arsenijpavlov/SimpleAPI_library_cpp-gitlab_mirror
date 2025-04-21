@@ -17,7 +17,7 @@ public:
     template<typename ... Types>
     ElementArray(const Types... args) noexcept {
         init();
-        for(const IElement el : {Element(args)...}) pushBack(el);
+        for(const IElement el : {Element(args)...}) push_back(el);
     }
     ElementArray(const std::string& string, const ConfigFormat format,
                  const bool enable_comments = false) noexcept;
@@ -88,10 +88,10 @@ public:
 
     //SETTERS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     //NOTE: если индекс больше количества вложенных элементов, то добавятся в конец
-    ElementArray&   append(const IElement& element) noexcept     { return pushBack(element); }
+    ElementArray&   append(const IElement& element) noexcept     { return push_back(element); }
     ElementArray&   pushFront(const IElement& element) noexcept;
     ElementArray&   pushAt(const IElement& element, const size_t index);
-    ElementArray&   pushBack(const IElement& element) noexcept;
+    ElementArray&   push_back(const IElement& element) noexcept;
                     __ONLY_ALLOWED_TYPES__(T)
     ElementArray&   insert(const size_t index, const T& value) noexcept {
                         if(index > m_values.size() - 1) m_values.push_back(value);
@@ -126,7 +126,7 @@ public:
 
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     void            operator=(const VElement& other) noexcept;
-    ElementArray&   operator<<(const IElement& element) noexcept{ return pushBack(element); }
+    ElementArray&   operator<<(const IElement& element) noexcept{ return push_back(element); }
     IElement&       operator[](const size_t index)             { return getValue(index); }
     IElement&       operator[](const VString& complex_key)     { return getValue(complex_key); }
                     template<std::size_t SIZE>

@@ -5,7 +5,9 @@
 
 //предобъявление
 #include "ElementJson.h"
+#include "ElementNull.h"
 class ElementJson;
+
 
 ElementArray::ElementArray(const std::string &string, const ConfigFormat format,
                            const bool enable_comments) noexcept {
@@ -16,15 +18,351 @@ ElementArray::ElementArray(const std::string &string, const ConfigFormat format,
 void ElementArray::parseArray(const std::string &string, const bool enable_comment,
                               const ConfigFormat config_format) {
     switch(config_format) {
-    case ConfigFormat::eJSON:   return parseJSON_array(string, enable_comment);
-    case ConfigFormat::eINI:    return parseINI_array(string, enable_comment);
+    case ConfigFormat::eJSON:   parseJSON_array(string, enable_comment);
+    case ConfigFormat::eINI:    parseINI_array(string, enable_comment);
     default:                    return;
     }
 }
 
 void ElementArray::parseJSON_array(const std::string &string, const bool enable_comment) {
-    //TODO: ElementArray::parseJSON_array()
-    //TODO: std::exception
+    clear(); //очистка списка перед новым заполнением
+    if(string.empty()) return;
+
+    bool        isOneLineComment    = false;
+    bool        isMultiLineComment  = false;
+    char        firstMLCSym, secondMLCSym;
+    uint8_t     commentCounter      = 0;
+    std::string currentComment;
+    currentComment.reserve(100);
+
+    bool        is_critical_error   = false;
+    bool        is_quotes           = false;
+    bool        is_word_started     = false;
+    bool        is_word_finished    = false;
+    bool        is_value_comment_after_saved = true; //изначально TRUE, чтобы не сработало для первого прохода
+
+    uint16_t    innerJsonCounter    = 0;
+    uint16_t    innerArrayCounter   = 0;
+    std::string value_string;
+    value_string.reserve(100);
+    Comment     valueComment;
+    IElement    value_element;
+
+    uint16_t    line_counter        = 0; //NOTE: (JArray) ограничение на FFFF строк
+    uint16_t    symbol_counter      = 0; //NOTE: (JArray) ограничение на FFFF символов в строке
+
+    enum States {
+        ARRAY_START,
+        ARRAY_VALUE,
+        ARRAY_ELEMENT_SEPARATOR,
+        ARRAY_FINISH
+    } state = ARRAY_START;
+    enum ValueFormat {
+        VALUE_NOPE,
+        VALUE_JSON,
+        VALUE_ARRAY,
+        VALUE_OTHER
+    } value_format = VALUE_NOPE;
+
+    for(size_t i = 0; i < string.size(); i++) {
+        char previous_ch    = i == 0 ? 0 : string[i - 1];
+        char current_ch     = string[i];
+        char next_ch        = i < string.size() ? string[i] : 0;
+
+        //поиск комментариев
+        const bool ext_f = !is_quotes && value_format != VALUE_ARRAY && value_format != VALUE_JSON;
+        utils::CommentChecker c_checker = c_checker = utils::CheckComments(current_ch, next_ch,
+                                                                           isOneLineComment, isMultiLineComment,
+                                                                           firstMLCSym, secondMLCSym,
+                                                                           enable_comment, currentComment,
+                                                                           i, ext_f);
+        if(c_checker != utils::CommentChecker::isNotComment) {
+            //сюда зайдёт, если внутри комментария
+            //счётчик строк и столбцов =============================================
+            if(current_ch == '\n') {
+                line_counter++;
+                symbol_counter = 0; //должен перескочить строго на следующей строке
+            } else symbol_counter++;
+            //======================================================================
+            continue;
+        }
+
+        //работа с синтаксисом JSON_ARRAY
+        switch(state) {
+        case ARRAY_START: {
+            //пропуск пробелов ====================================================
+            if(utils::CharsInString(current_ch, __SPACES__))
+                break;
+            //=====================================================================
+
+            //работа с комментариями (первичный) ==================================
+            if(!currentComment.empty() && enable_comment) {
+                addPreviewComment(FromComment(currentComment, m_comment_column_size, m_comment_sym));
+                //                std::cout << "JArray:PreviewComment: " << "\"" << currentComment << "\"" << std::endl;
+                currentComment = "";
+            } //===================================================================
+
+            if(current_ch != '[') {
+                is_critical_error = true;
+                break;
+            }
+            state = ARRAY_VALUE;
+
+            break;
+        }
+        case ARRAY_VALUE: {
+            //пропуск пробелов ====================================================
+            if(current_ch == '\n' && !is_value_comment_after_saved) {
+                //работа с комментариями (после значения #2) ==========================
+                if(!currentComment.empty() && enable_comment) {
+                    addComment_after(m_values.size() - 1, FromComment(currentComment, m_comment_column_size, m_comment_sym));
+                    //                    std::cout << "JArray:comment:after: " << "\"" << currentComment << "\"" << std::endl;
+                    currentComment = "";
+                } //===================================================================
+                is_value_comment_after_saved = true;
+                break;
+            }
+            if(utils::CharsInString(current_ch, __SPACES__) && !is_quotes && value_format == ValueFormat::VALUE_NOPE)
+                break;
+            //=====================================================================
+            if(current_ch == ']') {
+                state = ARRAY_FINISH;
+                break;
+            }
+            //=====================================================================
+
+            if(!is_word_started) {
+                is_word_started = true;
+                is_value_comment_after_saved = false;
+                value_string.clear();
+            }
+
+            switch(current_ch) {
+            case '{': {
+                if(!is_quotes) {
+                    if(value_format == ValueFormat::VALUE_NOPE) value_format = ValueFormat::VALUE_JSON;
+                    innerJsonCounter++;
+                }
+                break;
+            }
+            case '}': {
+                if(!is_quotes) innerJsonCounter--;
+                break;
+            }
+            case '[': {
+                if(!is_quotes) {
+                    if(value_format == ValueFormat::VALUE_NOPE) value_format = ValueFormat::VALUE_ARRAY;
+                    innerArrayCounter++;
+                }
+                break;
+            }
+            case ']': {
+                if(!is_quotes) innerArrayCounter--;
+                break;
+            }
+            case '"': {
+                if(previous_ch != '\\') {
+                    is_quotes = !is_quotes;
+//                    std::cout << "value."
+//                              << "isQuotes: (" << utils::to_string(isQuotes) << ") "
+//                              << "'" << previous << current << next << "'"
+//                              << std::endl;
+                }
+            }
+            default: {
+                if(value_format == ValueFormat::VALUE_NOPE) value_format = ValueFormat::VALUE_OTHER;
+                break;
+            }
+            }
+
+            //поиск конца значения
+            switch(value_format) {
+            case VALUE_JSON: {
+                value_string += current_ch;
+                if(innerJsonCounter == 0)
+                    is_word_finished = true;
+
+                break;
+            }
+            case VALUE_ARRAY: {
+                value_string += current_ch;
+                if(innerArrayCounter == 0)
+                    is_word_finished = true;
+
+                break;
+            }
+            case VALUE_OTHER: {
+                if(!is_quotes && utils::CharsInString(current_ch, __SPACES__))
+                    is_word_finished = true;
+
+                value_string += current_ch;
+                break;
+            }
+            default: break;
+            }
+
+            if(!is_word_finished && !is_quotes
+                && (innerJsonCounter == 0) && (innerArrayCounter == 0)) {
+                //если текущий символ должен обрабатываться другим кодом
+                if(utils::CharsInString(current_ch, __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : ""))) {
+                    is_word_finished = true;
+                    i--;
+                    value_string.pop_back();
+                }
+                //если следующий символ должен обрабатываться другим кодом
+                if(utils::CharsInString(next_ch, __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : ""))) {
+                    is_word_finished = true;
+                }
+            }
+
+            if(is_word_finished) {
+                is_word_started = false; //страховка
+                is_word_finished = false;
+
+                switch(value_format) {
+                case VALUE_OTHER: {
+                    switch(CheckValue(value_string)) {
+                    case eNumber:   {
+                        double num;
+                        try {
+                            push_back(std::stod(value_string));
+                        } catch (...) {
+                            is_critical_error = true;
+                        }
+
+                        break;
+                    }
+                    case eBool:     {
+                        if(utils::isBool(value_string))
+                            push_back(utils::toBool(value_string));
+                        else
+                            is_critical_error = true;
+
+                        break;
+                    }
+                    case eNull:     {
+                        push_back(ElementNull());
+
+                        break;
+                    }
+                    case eString:   {
+                        push_back(value_string);
+                        break;
+                    }
+                    default: //значение не определено
+                        is_critical_error = true;
+                        break;
+                    }
+
+                    break;
+                }
+                case VALUE_JSON: {
+                    ElementJson _innerJson;
+                    try {
+                        _innerJson.parseJSON(value_string, enable_comment);
+                        push_back(_innerJson);
+                    } catch (std::invalid_argument& e) {
+                        isCriticalError = true;
+                    }
+
+                    break;
+                }
+                case VALUE_ARRAY:    {
+                    JArray _innerArray;
+                    try {
+                        _innerArray.parseArray(value_string, enable_comment);
+                        push_back(_innerArray);
+                    } catch (std::invalid_argument& e) {
+                        isCriticalError = true;
+                    }
+
+                    break;
+                }
+                default:
+                    isCriticalError = true;
+                    break;
+                }
+
+                //работа с комментариями (перед значением) ============================
+                if(!currentComment.empty() && enable_comment) {
+                    valueComment.setPrefix(FromComment(currentComment, m_comment_column_size, m_comment_sym));
+                    //                    std::cout << "JArray:comment:before: " << "\"" << currentComment << "\"" << std::endl;
+                    currentComment = "";
+                } //===================================================================
+
+                state = ARRAY_ELEMENT_SEPARATOR;
+                value_format = ValueFormat::VALUE_NOPE;
+            }
+
+            break;
+        }
+        case ARRAY_ELEMENT_SEPARATOR: {
+            //пропуск пробелов ====================================================
+            if(utils::CharsInString(current_ch, __SPACES_WITHOUT_SEPARATORS__))
+                break;
+            //=====================================================================
+            if(!utils::CharsInString(current_ch, __SEPARATORS__ "]")) {
+                is_critical_error = true;
+                break;
+            }
+
+            if(current_ch == '\n') {
+                //работа с комментариями (после значения #1) ==========================
+                if(enable_comment) {
+                    if(!currentComment.empty()) {
+                        valueComment.setSuffix(FromComment(currentComment, m_comment_column_size, m_comment_sym));
+//                        std::cout << "JArray:comment:after: " << "\"" << currentComment << "\"" << std::endl;
+                        currentComment = "";
+                    }
+//                    addComment(m_values.size() - 1, valueComment);
+                } //===================================================================
+                is_value_comment_after_saved = true;
+            }
+            if(current_ch == ']') {
+                state = ARRAY_FINISH;
+            } else
+                state = ARRAY_VALUE;
+
+            if(enable_comment && (!valueComment.prefix().empty() || !valueComment.suffix().empty())) {
+                //                std::cout << "\tvalue_before: " << valueComment.prefix << std::endl
+                //                          << "\tvalue_after: " << valueComment.suffix << std::endl;
+                addComment(m_values.size() - 1, valueComment.prefix(), valueComment.suffix());
+            }
+
+            break;
+        }
+        default: break;
+        }
+
+        if(is_criticalError) {
+            std::string state_str = "";
+            switch(state) {
+            case ARRAY_START:               state_str = "JSON_START ";             break;
+            case ARRAY_VALUE:               state_str = "JSON_VALUE ";             break;
+            case ARRAY_ELEMENT_SEPARATOR:   state_str = "JSON_ELEMENT_SEPARATOR "; break;
+            case ARRAY_FINISH:              state_str = "JSON_FINISH ";            break;
+            }
+            //            std::cout << "symbols: '" << previous << current << next << "'" << std::endl;
+            //--------------------------
+            clear();
+            throw std::invalid_argument("JSON_ARRAY parse error at line "
+                                        + std::to_string(line_counter) + ":" + std::to_string(symbol_counter)
+                                        + " '" + current_ch + "', current state:" + state_str);
+        }
+
+        //счётчик строк и столбцов =============================================
+        if(current_ch == '\n') {
+            line_counter++;
+            symbol_counter = 0; //должен перескочить строго на следующей строке
+        } else symbol_counter++;
+        //======================================================================
+    }
+
+
+    if(state != ARRAY_FINISH) {
+        clear();
+        throw std::invalid_argument("JSON_ARRAY parse error, end of JSON array structure not found");
+    }
 }
 
 void ElementArray::parseINI_array(const std::string &string, const bool enable_comment) {
@@ -212,7 +550,7 @@ ElementArray& ElementArray::pushAt(const IElement &element, const size_t index) 
     return *this;
 }
 
-ElementArray& ElementArray::pushBack(const IElement &element) noexcept {
+ElementArray& ElementArray::push_back(const IElement &element) noexcept {
     m_values.push_back(element);
     return *this;
 }
