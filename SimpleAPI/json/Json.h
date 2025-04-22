@@ -43,7 +43,7 @@ public:
 
     std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
                           const ConfigFormat config_format = ConfigFormat::eJSON) noexcept override
-                                                                { return utils::toString(m_value); }
+                                                                { return utils::ToString(m_value); }
 };
 
 class BoolElement : BaseElement {
@@ -207,7 +207,7 @@ public:
                                const uint8_t column_size = 0) const noexcept;
     std::string to_YAML_string(int16_t tabulation_level = 0, const bool enable_comment = false,
                                const uint8_t column_size = 0) const noexcept;
-    std::string to_INI_string(int16_t tabulation_level = 0, const bool enable_comment = false,
+    std::string toIniString(int16_t tabulation_level = 0, const bool enable_comment = false,
                                const uint8_t column_size = 0, const std::string& preview_title = "") const noexcept;
 
     size_t      size() const noexcept                           { return m_values.size(); }
@@ -366,7 +366,7 @@ public:
                                const uint8_t column_size = 0) const noexcept;
     std::string to_YAML_string(int16_t tabulation_level = 0, const bool enable_comment = false,
                                const uint8_t column_size = 0) const noexcept;
-    std::string to_INI_string(int16_t tabulation_level = 0, const bool enable_comment = false,
+    std::string toIniString(int16_t tabulation_level = 0, const bool enable_comment = false,
                               const uint8_t column_size = 0, const std::string& preview_title = "") const noexcept;
     size_t      size() const noexcept                           { return m_values.size(); }
     bool        isEmpty() noexcept                              { return m_values.size() == 0; }

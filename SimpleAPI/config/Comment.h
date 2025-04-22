@@ -6,6 +6,28 @@
 #include <bits/shared_ptr.h>
 
 
+//первый символ в случае многострочного комментария может быть другим
+constexpr uint8_t SIZE_comment_multi_line = 6;
+constexpr char comment_multi_line[SIZE_comment_multi_line][3] {
+    {'/', '*', 0},
+    {'/', '#', 0},
+    {'<', '#', '>'},
+    {'<', '-', '>'},
+    {'!', '.', 0},
+    {'?', '.', 0}
+    //нельзя использовать двойной символ из второй таблицы как границу многострочного комментария
+};
+constexpr uint8_t SIZE_comment_one_line = 6;
+constexpr char comment_one_line[SIZE_comment_one_line][2] {
+    {'%', 0},
+    {'#', 0},
+    {'!', 0},
+    {';', 0},
+    {'?', 0},
+    {'/', '/'}
+};
+
+
 //#define DEFAULT_COMMENT_COLUMN_SIZE 50
 struct CommentDesign {
     //NOTE: однострочные комментарии могут иметь два символа в начале
@@ -27,14 +49,6 @@ struct CommentDesign {
     {}
 };
 
-std::string GetOnelineCommentStr(const CommentDesign& design) noexcept;
-std::string GetMultilineCommentStartStr(const CommentDesign& design) noexcept;
-std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept;
-
-std::string ToComment(const std::string &comment, const CommentDesign& design,
-                      const uint8_t tabulation_level = 0) noexcept;
-std::string FromComment(const std::string &comment_string, CommentDesign& design) noexcept;
-
 class Comment {
 private:
     std::string *m_prefix;
@@ -42,7 +56,7 @@ private:
 
     //NOTE: при выводе в файл (+комментарии) будут учитываться только параметры корневого элемента
     //NOTE: если не назначено, то будет применён стиль C++: //однострочный,  /*многострочный*/, с шириной DEFAULT_COMMENT_COLUMN_SIZE знаков
-    CommentDesign *m_comment_design;
+    CommentDesign *m_commentDesign;
 
 public:
     Comment() noexcept;
@@ -53,9 +67,9 @@ public:
 
 private:
     void init() {}
-public:
 
-    bool is_empty() const noexcept;
+public:
+    bool isEmpty() const noexcept;
 
     //NOTE: выделит память, если nullptr
     std::string&    prefix() noexcept;
@@ -81,8 +95,8 @@ public:
     CommentDesign&  commentDesign() noexcept;
     CommentDesign   commentDesign() const noexcept;
 
-    void    setDesign(const CommentDesign &design) noexcept;
-    void    clearDesign() noexcept; //он же освободит память
+    void setDesign(const CommentDesign &design) noexcept;
+    void clearDesign() noexcept; //он же освободит память
     //-----------------------------------------------------------------------------
 
     bool        operator==(const Comment& other) const noexcept;
@@ -91,5 +105,36 @@ public:
     Comment&    operator=(const std::string& prefix_comment) noexcept;
     Comment&    operator=(const std::string&& prefix_comment) noexcept;
 };
+
+
+std::string GetOnelineCommentStr(const CommentDesign& design) noexcept;
+std::string GetMultilineCommentStartStr(const CommentDesign& design) noexcept;
+std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept;
+
+std::string ToComment(const std::string &comment, const CommentDesign& design,
+                      const uint8_t tabulation_level = 0) noexcept;
+std::string FromComment(const std::string &comment_string, CommentDesign& design) noexcept;
+
+
+enum class CommentType {
+    eNotComment,
+    eOneLineComment,
+    eMultiLineComment
+};
+enum class CommentChecker : uint8_t {
+    isComment, isNotComment, isCommentEnd //последний требует continue!
+};
+
+void RemoveComments(std::string& str, bool& startComment, char& quote,
+                    char& start_comment_sym, char& stop_comment_sym);
+
+CommentType CheckComment(char& first, const char second,
+                         size_t& iter_counter) noexcept;
+
+CommentChecker CheckComments(const char current_sym, const char next_sym,
+                             bool& is_one_line, bool& is_multi_line,
+                             char& first_ml_sym, char& second_ml_sym,
+                             const bool enable_comment, std::string& current_sym_comment_line,
+                             size_t& iter_counter, const bool external_flag = true);
 
 #endif // COMMENT_H

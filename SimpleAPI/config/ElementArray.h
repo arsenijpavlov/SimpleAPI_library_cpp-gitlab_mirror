@@ -28,27 +28,27 @@ private:
 public:
 
     //PARSING -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    void        parse_array(const std::string& string, const bool enable_comment = false,
+    void        parseArray(const std::string& string, const bool enable_comment = false,
                             const ConfigFormat config_format = ConfigFormat::eJSON, const CommentDesign& design = {});
-    void        parse_JSON_array(const std::string& string, const bool enable_comment = false,
+    void        parseJsonArray(const std::string& string, const bool enable_comment = false,
                             const CommentDesign& design = {});
-    void        parse_INI_array(const std::string& string, const bool enable_comment = false,
+    void        parseIniArray(const std::string& string, const bool enable_comment = false,
                             const CommentDesign& design = {});
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- PARSING
 
     //PRINTING =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     //для рекурсивного вызова, без комментариев, в одну строку
-    std::string to_string(const ConfigFormat format = ConfigFormat::eJSON,
+    std::string toString(const ConfigFormat format = ConfigFormat::eJSON,
                           const int8_t tabulation_level = 0) const noexcept override;
-    std::string to_JSON_string(const int8_t tabulation_level = 0) const noexcept;
-    std::string to_INI_string(const int8_t tabulation_level = 0) const noexcept;
+    std::string toJsonString(const int8_t tabulation_level = 0) const noexcept;
+    std::string toIniString(const int8_t tabulation_level = 0) const noexcept;
 
     //для рекурсивного вызова, с использованием комментариев
-    std::string to_string(const ConfigFormat format, const CommentDesign &design,
+    std::string toString(const ConfigFormat format, const CommentDesign &design,
                           const int8_t tabulation_level = 0) const noexcept override;
-    std::string to_JSON_string(const CommentDesign &design,
+    std::string toJsonString(const CommentDesign &design,
                                const int8_t tabulation_level = 0) const noexcept;
-    std::string to_INI_string(const CommentDesign &design,
+    std::string toIniString(const CommentDesign &design,
                               const int8_t tabulation_level = 0) const noexcept;
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
 
@@ -78,8 +78,8 @@ public:
     ElementArray&   clear() noexcept;
     bool            contains(const size_t& index) const noexcept
                                                                 { return m_values.size() > index; }
-    bool            is_empty() const noexcept                   { return m_values.empty(); }
-    bool            is_equal(const IElement& other, const bool compare_comments = false) const noexcept override;
+    bool            isEmpty() const noexcept                    { return m_values.empty(); }
+    bool            isEqual(const IElement& other, const bool compare_comments = false) const noexcept override;
     size_t          size() const noexcept                       { return m_values.size(); }
 
     //TYPES -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=

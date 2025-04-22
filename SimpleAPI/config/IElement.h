@@ -29,11 +29,11 @@ public:
 
     //PRINTING =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     //для рекурсивного вызова, без комментариев, в одну строку
-    virtual std::string to_string(const ConfigFormat format = ConfigFormat::eJSON,
+    virtual std::string toString(const ConfigFormat format = ConfigFormat::eJSON,
                                   const int8_t tabulation_level = 0) const noexcept
                                                                 { return ""; }
     //для рекурсивного вызова, с использованием комментариев
-    virtual std::string to_string(const ConfigFormat format, const CommentDesign &design,
+    virtual std::string toString(const ConfigFormat format, const CommentDesign &design,
                                   const int8_t tabulation_level = 0) const noexcept
                                                                 { return ""; }
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
@@ -42,34 +42,34 @@ public:
 protected:
     Comment m_comment;
 public:
-    void add_comment(const Comment& content) noexcept            { m_comment = content; }
-    void add_comment(const std::string &content_before, const std::string &content_after) noexcept
+    void addComment(const Comment& content) noexcept            { m_comment = content; }
+    void addComment(const std::string &content_before, const std::string &content_after) noexcept
                                                                 { m_comment = Comment(content_before, content_after); }
-    void add_prefix_comment(const std::string& content) noexcept  { m_comment.setPrefix(content); }
-    void add_suffix_comment(const std::string& content) noexcept  { m_comment.setSuffix(content); }
+    void addPrefixComment(const std::string& content) noexcept  { m_comment.setPrefix(content); }
+    void addSuffixComment(const std::string& content) noexcept  { m_comment.setSuffix(content); }
 
-    Comment&        get_comment() noexcept                       { return m_comment; }
-    Comment         get_comment() const noexcept                 { return m_comment; }
-    std::string&    get_prefix_comment() noexcept                 { return m_comment.prefix(); }
-    std::string     get_prefix_comment() const noexcept           { return m_comment.prefix(); }
-    std::string&    get_suffix_comment() noexcept                 { return m_comment.suffix(); }
-    std::string     get_suffix_comment() const noexcept           { return m_comment.suffix(); }
+    Comment&        getComment() noexcept                       { return m_comment; }
+    Comment         getComment() const noexcept                 { return m_comment; }
+    std::string&    getPrefixComment() noexcept                 { return m_comment.prefix(); }
+    std::string     getPrefixComment() const noexcept           { return m_comment.prefix(); }
+    std::string&    getSuffixComment() noexcept                 { return m_comment.suffix(); }
+    std::string     getSuffixComment() const noexcept           { return m_comment.suffix(); }
 
-    void clear_comment() noexcept                                { m_comment.clear(); }
-    void clear_prefix_comment() noexcept                          { m_comment.clearPrefix(); }
-    void clear_suffix_comment() noexcept                          { m_comment.clearSuffix(); }
-    void delete_comment() noexcept                               { m_comment.del(); }
-    void delete_prefix_comment() noexcept                         { m_comment.delPrefix(); }
-    void delete_suffix_comment() noexcept                         { m_comment.delSuffix(); }
+    void clearComment() noexcept                                { m_comment.clear(); }
+    void clearPrefixComment() noexcept                          { m_comment.clearPrefix(); }
+    void clearSuffixComment() noexcept                          { m_comment.clearSuffix(); }
+    void deleteComment() noexcept                               { m_comment.del(); }
+    void deletePrefixComment() noexcept                         { m_comment.delPrefix(); }
+    void deleteSuffixComment() noexcept                         { m_comment.delSuffix(); }
 
-    CommentDesign&  get_commentDesign() noexcept                 { return m_comment.commentDesign(); }
-    CommentDesign   get_commentDesign() const noexcept           { return m_comment.commentDesign(); }
+    CommentDesign&  getCommentDesign() noexcept                 { return m_comment.commentDesign(); }
+    CommentDesign   getCommentDesign() const noexcept           { return m_comment.commentDesign(); }
     void    setCommentDesign(const CommentDesign& design) noexcept
                                                                 { m_comment.setDesign(design); }
-    void    clear_commentDesign() noexcept                       { m_comment.clearDesign(); }
+    void    clearCommentDesign() noexcept                       { m_comment.clearDesign(); }
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= COMMENTS
 
-    virtual bool is_equal(const IElement& other, const bool compare_comments = false) const noexcept
+    virtual bool isEqual(const IElement& other, const bool compare_comments = false) const noexcept
                                                                 { return false; }
 
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -78,7 +78,7 @@ public:
     //NOTE: комментарии при сравнении не учитываются
     bool operator==(const IElement& other) const noexcept {
         if(m_type != other.m_type)  return false;
-        return is_equal(other);
+        return isEqual(other);
     }
     bool operator!=(const IElement& other) const noexcept       { return !(*this == other); }
     //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= OPERATORS

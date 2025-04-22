@@ -190,8 +190,8 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) noexcept {
         if(isStarted && isFinished) {
             for(const auto& _it : it->second.m_map_recv_builded_messages) {
                 log(logs::eDEBUG2,
-                    "MAP: current fragment: [0x" + utils::to_hex_string(_it.second.m_packet) + "]",
-                    logs::to_color_string(logs::eYELLOW_FG, "MAP: current fragment: [0x" + utils::to_hex_string(_it.second.m_packet) + "]"));
+                    "MAP: current fragment: [0x" + utils::ToHexString(_it.second.m_packet) + "]",
+                    logs::to_color_string(logs::eYELLOW_FG, "MAP: current fragment: [0x" + utils::ToHexString(_it.second.m_packet) + "]"));
             }
 
             pm.m_sn = firstCounter; //номер первого фрагмента для индикации доставки глобального сообщения
@@ -210,7 +210,7 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) noexcept {
                 }
 
                 log(logs::eDEBUG2, "current fragment(sn:" + std::to_string(it_build->first.get())
-                                      + "): [0x" + utils::to_hex_string(it_build->second.m_packet) + "]");
+                                      + "): [0x" + utils::ToHexString(it_build->second.m_packet) + "]");
                 std::copy(std::begin(it_build->second.m_packet),
                           std::end(it_build->second.m_packet),
                           std::back_insert_iterator<Packet>(pm.m_packet));
@@ -219,28 +219,28 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) noexcept {
 
                 if(this_last_fragment) break;
             }
-            log(logs::eDEBUG, "result packet: [0x" + utils::to_hex_string(pm.m_packet) + "]");
+            log(logs::eDEBUG, "result packet: [0x" + utils::ToHexString(pm.m_packet) + "]");
 
             //дешифрация
             dechiphering(pm.m_packet);
             //проверка контрольной суммы
-            log(logs::eDEBUG2, "before CRC: " + utils::to_hex_string(pm.m_packet));
+            log(logs::eDEBUG2, "before CRC: " + utils::ToHexString(pm.m_packet));
             switch(pm.m_header.crcLevel) {
             case eCRC_8:
-                pm.m_is_error = !utils::checkCrc8(pm.m_packet);
+                pm.m_is_error = !utils::CheckCrc8(pm.m_packet);
                 pm.m_packet.erase(pm.m_packet.begin(), pm.m_packet.begin() + 1);
                 break;
             case eCRC_16:
-                pm.m_is_error = !utils::checkCrc16(pm.m_packet);
+                pm.m_is_error = !utils::CheckCrc16(pm.m_packet);
                 pm.m_packet.erase(pm.m_packet.begin(), pm.m_packet.begin() + 2);
                 break;
             case eCRC_32:
-                pm.m_is_error = !utils::checkCrc32(pm.m_packet);
+                pm.m_is_error = !utils::CheckCrc32(pm.m_packet);
                 pm.m_packet.erase(pm.m_packet.begin(), pm.m_packet.begin() + 4);
                 break;
             default:        break;
             }
-            log(logs::eDEBUG2, "after CRC: " + utils::to_hex_string(pm.m_packet));
+            log(logs::eDEBUG2, "after CRC: " + utils::ToHexString(pm.m_packet));
 
             uint16_t size = (pm.m_packet[0] << 8) + pm.m_packet[1];
             pm.m_packet.erase(pm.m_packet.begin(), pm.m_packet.begin() + 2); //размер поля данных
@@ -375,7 +375,7 @@ void Socket::log(const logs::LEVEL level, const std::string& log_message,
 bool Socket::sendRawMsg(const PacketMessage &packet_message) noexcept {
     log(logs::eDEBUG2, std::string("sendRaw ")
                           + "(" + std::to_string(packet_message.m_packet.size()) + ")"
-                          + "[0x" + utils::to_hex_string(packet_message.m_packet) + "] "
+                          + "[0x" + utils::ToHexString(packet_message.m_packet) + "] "
                           + packet_message.m_ip_port.to_string("to"));
     return sendRawMsg(packet_message.m_ip_port.ip, packet_message.m_ip_port.port, packet_message.m_packet);
 }
@@ -395,15 +395,15 @@ void UDPSocket::sendFragments(const IpPort &remote_ip_port, const PacketType typ
 
     log(type != eControlType ? logs::eINFO : logs::eDEBUG,
         "Send: " + to_string(type) + " "
-            + (json.isEmpty() ? "[Data:0x" + utils::to_hex_string(packet) + "]"
+            + (json.isEmpty() ? "[Data:0x" + utils::ToHexString(packet) + "]"
                               : "[Json:" + json.to_string(-1) + "]"
-                                    + " / [Data:" + "0x" + utils::to_hex_string(packet) + "]"
+                                    + " / [Data:" + "0x" + utils::ToHexString(packet) + "]"
                ) + " "
             + remote_ip_port.to_string("to"),
         "Send: " + to_string(type) + " "
-            + (json.isEmpty() ? "[Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::to_hex_string(packet)) + "]"
+            + (json.isEmpty() ? "[Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::ToHexString(packet)) + "]"
                               : "[Json:" + logs::to_color_string(FULL_MSG_COLOR, json.to_string(-1)) + "]"
-                                    + " / [Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::to_hex_string(packet)) + "]"
+                                    + " / [Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::ToHexString(packet)) + "]"
                ) + " "
             + remote_ip_port.to_string("to"));
 
@@ -445,9 +445,9 @@ void UDPSocket::sendFragments(const IpPort &remote_ip_port, const PacketType typ
     if(type != eControlType) {
         //обновляем поле CRC
         switch(m_settings.getCrcLevel()) {
-        case eCRC_8:    utils::checkCrc8(innerData);    break;
-        case eCRC_16:   utils::checkCrc16(innerData);   break;
-        case eCRC_32:   utils::checkCrc32(innerData);   break;
+        case eCRC_8:    utils::CheckCrc8(innerData);    break;
+        case eCRC_16:   utils::CheckCrc16(innerData);   break;
+        case eCRC_32:   utils::CheckCrc32(innerData);   break;
         default:        break;
         }
         //применяем шифрование на данный пакет
@@ -560,11 +560,11 @@ void UDPSocket::sendFragments(const IpPort &remote_ip_port, const PacketType typ
         appendString = "to map_global_packets, size: " + std::to_string(m_sent_global_packets.size());
         log(logs::eDEBUG,
             "append ["
-                + (jm.m_json.isEmpty() ? "Data:0x" + utils::to_hex_string(pm.m_packet)
+                + (jm.m_json.isEmpty() ? "Data:0x" + utils::ToHexString(pm.m_packet)
                                      : "Json:" + jm.m_json.to_string(-1))
                 + "] " + appendString);//,
 //            logs::to_color_string(GLOBAL_APPEND_MSG_COLOR, "append ["
-//                + (jm.m_json.isEmpty() ? "Data:0x" + utils::to_hex_string(pm.m_packet)
+//                + (jm.m_json.isEmpty() ? "Data:0x" + utils::ToHexString(pm.m_packet)
 //                                     : "Json:" + jm.m_json.to_string(-1))
 //                + "] " + appendString));
     }
@@ -695,7 +695,7 @@ void UDPSocket::checkConnections() noexcept {
     for(const prepPacket& current : packetsForSend) {
         if(!current.packet.empty() && current.type != eControlType) {
             log(logs::eDEBUG, "New try to send global packet " + to_string(current.type)
-                                  + " [0x" + utils::to_hex_string(current.packet) + "]");
+                                  + " [0x" + utils::ToHexString(current.packet) + "]");
             sendFragments(current.ipPort, current.type, current.packet); //переотправка
         }
     }
@@ -763,10 +763,10 @@ void UDPSocket::sendAutoMsg() noexcept {
         m_send_packets_buffer.pop_front();
         log(logs::eDEBUG,
             "Sending [" + std::to_string(pm.m_sn.get()) + "] sn fragment, data:[0x"
-                + utils::to_hex_string(pm.m_packet) + "] " + pm.m_ip_port.to_string("to"),
+                + utils::ToHexString(pm.m_packet) + "] " + pm.m_ip_port.to_string("to"),
             logs::to_color_string(OUTPUT_MSG_COLOR,"Sending")
                 + " [" + std::to_string(pm.m_sn.get()) + "] sn fragment, data:[0x"
-                + utils::to_hex_string(pm.m_packet) + "] " + pm.m_ip_port.to_string("to"));
+                + utils::ToHexString(pm.m_packet) + "] " + pm.m_ip_port.to_string("to"));
 
         Socket::sendRawMsg(pm); //отправили
         updateLastOutputActivityTime(pm.m_ip_port);
@@ -804,12 +804,12 @@ Json UDPSocket::recvAutoMsg(int timeout) noexcept {
         "Received [" + std::to_string(sn) + "] sn fragment of type "
             + to_string(pm.m_header.type)
             + ", data:[0x"
-            + utils::to_hex_string(pm.m_packet) + "] " + pm.m_ip_port.to_string("from"),
+            + utils::ToHexString(pm.m_packet) + "] " + pm.m_ip_port.to_string("from"),
         logs::to_color_string(INPUT_MSG_COLOR, "Received")
             + " [" + std::to_string(sn) + "] sn fragment of type "
             + to_string(pm.m_header.type)
             + ", data:[0x"
-            + utils::to_hex_string(pm.m_packet) + "] " + pm.m_ip_port.to_string("from"));
+            + utils::ToHexString(pm.m_packet) + "] " + pm.m_ip_port.to_string("from"));
 
     if(pm.m_packet.empty()) return {};
     Json outputJson;
@@ -838,11 +838,11 @@ Json UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
     if(!pm.m_packet.empty()) {
         log(pm.m_header.type != eControlType ? logs::eINFO : logs::eDEBUG,
             "Built packet: "+ to_string(pm.m_header.type) + " ["
-                + (jm.m_json.isEmpty() ? "Data:0x" + utils::to_hex_string(pm.m_packet)
+                + (jm.m_json.isEmpty() ? "Data:0x" + utils::ToHexString(pm.m_packet)
                                      : "Json:" + jm.m_json.to_string(-1))
                 + "] " + pm.m_ip_port.to_string("from"),
             "Built packet: "+ to_string(pm.m_header.type) + " ["
-                + (jm.m_json.isEmpty() ? "Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::to_hex_string(pm.m_packet))
+                + (jm.m_json.isEmpty() ? "Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::ToHexString(pm.m_packet))
                                      : "Json:" + logs::to_color_string(FULL_MSG_COLOR, jm.m_json.to_string(-1)))
                 + "] " + pm.m_ip_port.to_string("from"));
 
@@ -871,11 +871,11 @@ Json UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                         appendString = ", map_global_packets size: " + std::to_string(m_sent_global_packets.size());
                         log(it->m_header.type != eControlType ? logs::eINFO : logs::eDEBUG,
                             "Message delivered ["
-                                + (jm.m_json.isEmpty() ? "Data:0x" + utils::to_hex_string(tempPM.m_packet)
+                                + (jm.m_json.isEmpty() ? "Data:0x" + utils::ToHexString(tempPM.m_packet)
                                                      : "Json:" + jm.m_json.to_string(-1))
                                 + "]" + appendString,
                             "Message delivered ["
-                                + (jm.m_json.isEmpty() ? "Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::to_hex_string(tempPM.m_packet))
+                                + (jm.m_json.isEmpty() ? "Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::ToHexString(tempPM.m_packet))
                                                        : "Json:" + logs::to_color_string(FULL_MSG_COLOR, jm.m_json.to_string(-1)))
                                 + "]" + appendString);
                         it = m_sent_global_packets.erase(it);
@@ -913,7 +913,7 @@ Json UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
 
                 if(!packet.empty() && type != eControlType) {
                     log(logs::eDEBUG, "New try to send packet fragment " + to_string(type)
-                                          + " [0x" + utils::to_hex_string(packet) + "]");
+                                          + " [0x" + utils::ToHexString(packet) + "]");
                     sendFragments(ipPort, type, packet); //переотправка
                 }
             }
@@ -1046,7 +1046,7 @@ PacketMessage UDPSocket::recvRawMsg(int timeout) noexcept {
 
         log(logs::eDEBUG2, std::string("recvRaw ")
                               + "(" + std::to_string(rpacket.m_packet.size()) + ")"
-                              + "[0x" + utils::to_hex_string(rpacket.m_packet) + "] "
+                              + "[0x" + utils::ToHexString(rpacket.m_packet) + "] "
                               + rpacket.m_ip_port.to_string("from"));
 
         return rpacket;

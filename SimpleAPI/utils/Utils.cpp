@@ -5,92 +5,15 @@
 
 namespace utils {
 
-bool isNumber(const std::string &str, bool use_point) noexcept {
+bool IsNumber(const std::string &str, bool use_point) noexcept {
     for(int i = 0; i < str.size(); i++)
-        if(!isNumber(str[i], use_point))
+        if(!IsNumber(str[i], use_point))
             return false;
     return true;
 }
 
-bool isNumber(const char ch, bool use_point) noexcept {
+bool IsNumber(const char ch, bool use_point) noexcept {
     return (std::isdigit(ch) || (use_point && (ch == '.')));
-}
-
-void RemoveComments(std::string& str, bool& startComment, char& quote,
-                    char& start_comment_sym, char& stop_comment_sym) {
-    std::string tempString;
-    bool isOneLineComment = false;
-    bool isMultiLineComment = startComment;
-    for(size_t i = 0; i < str.length(); i++) {
-        char previous = (i - 1 >= 0) ? str[i - 1] : 0;
-        char current = str[i];
-        char next = (str.length() > i + 1 ? str[i + 1] : 0);
-
-        if(quote == 0) { //если не часть строкового значения
-            //поиск комментариев ===========================================================
-            if(!isOneLineComment && !isMultiLineComment) {
-                //сперва искать многострочные комментарии!
-                for(uint8_t j = 0; j < utils::cmt::SIZE_comment_multi_line; j++) {
-                    if(current == utils::cmt::comment_multi_line[j][0] && next == utils::cmt::comment_multi_line[j][1]) {
-                        start_comment_sym = current;
-                        stop_comment_sym = next;
-                        //изменение завершающего символа
-                        if(current == '<') start_comment_sym = '>';
-                        i++; //проскакиваем следующий символ при парсинге
-                        isMultiLineComment = true;
-                        break;
-                    }
-                }
-                if(isMultiLineComment) continue;
-                //поиск однострочных комментариев
-                for(uint8_t j = 0; j < utils::cmt::SIZE_comment_one_line; j++) {
-                    if(current == utils::cmt::comment_one_line[j][0]) {
-                        if((utils::cmt::comment_one_line[j][1] != 0) && (next == utils::cmt::comment_one_line[j][1]))
-                            i++;
-                        isOneLineComment = true;
-                        break;
-                    }
-                }
-                if(isOneLineComment) continue;
-            }
-            //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-            //обработка комментариев
-            if(isOneLineComment) {
-                //если следующий символ должен обрабатываться другим кодом
-                if((current == '\n') || ((str.length() > i + 1) && (str[i + 1] == '\n'))) {
-                    isOneLineComment = false;
-                    i++;
-                }
-                continue;
-            }
-            if(isMultiLineComment) {
-                //нужен следующий символ, если нет - исключение
-                if(str.length() <= i + 1)
-                    throw std::invalid_argument("invalid length of input JSON string");
-
-                if((current == stop_comment_sym) && (next == start_comment_sym)) {
-                    isMultiLineComment = false;
-                    i++; //многострочные комментарии всегда обособляются двумя символами
-                }
-                continue;
-            }
-            //==============================================================================
-        }
-
-        if(!isMultiLineComment && !isOneLineComment) {
-            //пропускать \"
-            if(current == '"' && previous != '\\'){
-                if(current == quote)
-                    quote = 0;
-                else
-                    quote = current;
-            }
-            tempString += current;
-        }
-    }
-
-    str = tempString;
-    startComment = isMultiLineComment;
 }
 
 size_t CountSymInStr(const std::string &str, const char ch) noexcept {
@@ -107,23 +30,23 @@ bool CharsInString(const char ch, std::string symbols) noexcept {
     return false;
 }
 
-std::string toString(double d) noexcept {
+std::string ToString(double d) noexcept {
     std::ostringstream str;
     str << d;
     return str.str();
 }
 
-bool isBool(std::string& str) noexcept {
+bool IsBool(std::string& str) noexcept {
     if(str == "true" || str == "false") return true;
     else                                return false;
 }
 
-bool toBool(std::string& str) noexcept {
+bool ToBool(std::string& str) noexcept {
     if(str == "true")   return true;
     else                return false;
 }
 
-std::string to_string(bool b) noexcept {
+std::string ToString(bool b) noexcept {
     if(b) return "true";
     else  return "false";
 }
@@ -138,11 +61,11 @@ bool OnlySpaces(const std::string& str) noexcept {
 std::string PrintVector(const std::vector<std::string> &strings) noexcept {
     std::string ret;
     size_t all_size = 0;
-    for(std::string s : strings)
+    for(auto& s : strings)
         all_size += s.length() + 4; //4 на спецсимволы
     ret.reserve(all_size);
 
-    for(std::string s : strings)
+    for(const std::string& s : strings)
         ret += "[" + s + "], ";
     if(strings.size() > 0) {
         ret.pop_back();
@@ -152,7 +75,7 @@ std::string PrintVector(const std::vector<std::string> &strings) noexcept {
     return ret;
 }
 
-std::string to_hex_string(const std::vector<uint8_t>& data) noexcept {
+std::string ToHexString(const std::vector<uint8_t>& data) noexcept {
     auto getHex = [&](uint8_t halfByte) -> char {
         halfByte = halfByte & 0xF;
         switch(halfByte) {
@@ -185,7 +108,7 @@ std::string to_hex_string(const std::vector<uint8_t>& data) noexcept {
     return str;
 }
 
-std::vector<uint8_t> from_hex_string(std::string str) noexcept {
+std::vector<uint8_t> FromHexString(std::string str) noexcept {
     if(str.size() % 2 != 0) str.push_back('0');
 
     std::vector<uint8_t> vec;
@@ -208,7 +131,7 @@ std::string RepeatSymToStr(const char ch, const uint16_t size) noexcept {
 
 
 //на вход подаётся массив данных, в начале которого 1 байт отвечает за CRC
-bool checkCrc8(std::vector<uint8_t>& data) noexcept {
+bool CheckCrc8(std::vector<uint8_t>& data) noexcept {
     bool needCheck = data[0] != 0;
 
     uint16_t sum = 0;
@@ -231,7 +154,7 @@ bool checkCrc8(std::vector<uint8_t>& data) noexcept {
 }
 
 //на вход подаётся массив данных, в начале которого 2 байта отвечают за CRC
-bool checkCrc16(std::vector<uint8_t>& data) noexcept {
+bool CheckCrc16(std::vector<uint8_t>& data) noexcept {
     bool needCheck = data[0] != 0 || data[1] != 0;
 
     uint32_t sum = 0;
@@ -259,7 +182,7 @@ bool checkCrc16(std::vector<uint8_t>& data) noexcept {
 }
 
 //на вход подаётся массив данных, в начале которого 4 байта отвечают за CRC
-bool checkCrc32(std::vector<uint8_t>& data) noexcept {
+bool CheckCrc32(std::vector<uint8_t>& data) noexcept {
     bool needCheck = data[0] != 0 || data[1] != 0 || data[2] != 0 || data[3] != 0;
 
     uint64_t sum = 0;
@@ -296,7 +219,7 @@ bool checkCrc32(std::vector<uint8_t>& data) noexcept {
 }
 
 //TODO: на замену
-std::string getEscChar(const std::string &str) noexcept {
+std::string GetEscChar(const std::string &str) noexcept {
     switch(str[0]) {
     case '"':   return "\"";    //символ "
     case '\\':  return "\\";    //символ '\'
@@ -306,7 +229,7 @@ std::string getEscChar(const std::string &str) noexcept {
     case 'r':   return "\r";    //возврат каретки
     case 't':   return "\t";    //табуляция
 
-    default:    return 0;
+    default:    return {};
     }
 }
 
@@ -349,7 +272,7 @@ std::string getEscChar(const std::string &str) noexcept {
 //    return 0;
 //}
 
-std::string getEscChar2(const std::string &str) noexcept {
+std::string GetEscChar2(const std::string &str) noexcept {
     if(str[0] == '\\') {
         if(str.size() == 1) return "\\";
         switch(str[1]) {
@@ -366,7 +289,7 @@ std::string getEscChar2(const std::string &str) noexcept {
 }
 
 //TODO: на замену
-char getFromEscChar(const char ch) noexcept {
+char GetFromEscChar(const char ch) noexcept {
     switch(ch) {
     case '"':   return '\"';
     case '\\':  return '\\';
@@ -380,7 +303,7 @@ char getFromEscChar(const char ch) noexcept {
     }
 }
 
-std::string getFromEscChar2(const std::string& str) noexcept {
+std::string GetFromEscChar2(const std::string& str) noexcept {
     switch(str[0]) {
     case '\"':   return "\\\""; //символ "
     case '\b':   return "\\\b"; //возврат на один символ
@@ -400,7 +323,7 @@ void UpdEscSymbols(std::string& string) noexcept {
     for(size_t i = 0; i < string.size(); i++) {
         char current = string[i];
         if(current == '\\' && string.length() > i + 1) {
-            std::string e_ch = utils::getEscChar2(string.substr(i, 2));
+            std::string e_ch = utils::GetEscChar2(string.substr(i, 2));
 //            if(!e_ch.empty()) {
 //                std::cout << "found escape symbols <"
 //                          << current << string[i+1] << ">" << std::endl;
@@ -464,20 +387,20 @@ std::string SeparateString(std::string &str, const size_t length) noexcept {
     return res;
 }
 
-bool isMultiLine(const std::string &str, const size_t column_size) noexcept {
+bool IsMultiLine(const std::string &str, const size_t column_size) noexcept {
     if(column_size == 0)
         return str.find('\n') != -1;
 
     return false;
 }
 
-std::string to_string_with_esc(const std::string &str, const bool use_backslash) noexcept {
+std::string ToStringWithEsc(const std::string &str, const bool use_backslash) noexcept {
     std::string ret;
 
     for(size_t i = 0; i < str.length(); i++) {
         char current    = str[i];
 
-        char c = getFromEscChar(current);
+        char c = GetFromEscChar(current);
         if(c != 0) {
             if(use_backslash && current == '\n')
                 ret += " \\\n\t";
@@ -489,94 +412,6 @@ std::string to_string_with_esc(const std::string &str, const bool use_backslash)
 
     return ret;
 }
-
-CommentType CheckComment(char& first, const char second, size_t& iter_counter) noexcept {
-    //сперва искать многострочные комментарии!
-    for(uint8_t i = 0; i < utils::cmt::SIZE_comment_multi_line; i++) {
-        if(first == utils::cmt::comment_multi_line[i][0] && second == utils::cmt::comment_multi_line[i][1]) {
-            //изменение завершающего символа
-            if(first == '<') first = '>';
-            iter_counter++; //проскакиваем следующий символ при парсинге
-            return CommentType::eMultiLineComment;
-        }
-    }
-    //поиск однострочных комментариев
-    for(uint8_t i = 0; i < utils::cmt::SIZE_comment_one_line; i++) {
-        if(first == utils::cmt::comment_one_line[i][0]) {
-            if((utils::cmt::comment_one_line[i][1] != 0)) {
-                if(second == utils::cmt::comment_one_line[i][1]) {
-                    iter_counter++;
-                    return CommentType::eOneLineComment;
-                }
-            } else
-                return CommentType::eOneLineComment;
-        }
-    }
-
-    return CommentType::eNotComment;
-}
-
-//TODO: удалить
-CommentChecker CheckComments(const char current_sym, const char next_sym,
-                   bool& is_one_line, bool& is_multi_line,
-                   char& first_ml_sym, char& second_ml_sym,
-                   const bool enable_comment, std::string& current_sym_comment_line,
-                   size_t& iter_counter, const bool external_flag) {
-    if(!external_flag) return CommentChecker::isNotComment;
-
-    if(!is_one_line && !is_multi_line) {
-        first_ml_sym    = current_sym;
-        second_ml_sym   = next_sym;
-//        std::cout << "\"" << first_ml_sym << second_ml_sym << "\"" << std::endl;
-        switch(CheckComment(first_ml_sym, second_ml_sym, iter_counter)) {
-        case CommentType::eOneLineComment: {
-            is_one_line = true;
-            if(!current_sym_comment_line.empty() && enable_comment)
-                current_sym_comment_line += "\n";
-            return CommentChecker::isComment;
-        }
-        case CommentType::eMultiLineComment: {
-            is_multi_line = true;
-            if(!current_sym_comment_line.empty() && enable_comment)
-                current_sym_comment_line += "\n";
-            return CommentChecker::isComment;
-        }
-        default: return CommentChecker::isNotComment;
-        }
-    }
-
-    //обработка комментариев
-    if(is_one_line) {
-        current_sym_comment_line += current_sym;
-
-        //если следующий символ должен обрабатываться другим кодом
-        if((current_sym == '\n') || ((next_sym != 0) && (next_sym == '\n'))) {
-            is_one_line = false;
-            if(current_sym != '\n') current_sym_comment_line += '\n';
-            return CommentChecker::isCommentEnd;
-        }
-
-        return CommentChecker::isComment;
-    }
-    if(is_multi_line) {
-        //нужен следующий символ, если нет - исключение
-        if(next_sym == 0)
-            throw std::invalid_argument("invalid length of input string, multiline comment not closed");
-
-        if((current_sym == second_ml_sym) && (next_sym == first_ml_sym)) {
-            is_multi_line = false;
-            iter_counter++; //многострочные комментарии всегда обособляются двумя символами
-            return CommentChecker::isCommentEnd;
-        }
-
-        current_sym_comment_line += current_sym;
-        return CommentChecker::isComment;
-    }
-    return CommentChecker::isNotComment;
-}
-
-
-
 
 
 }

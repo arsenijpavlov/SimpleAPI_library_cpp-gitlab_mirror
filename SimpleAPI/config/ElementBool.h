@@ -15,17 +15,17 @@ public:
 
     //PRINTING =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     //для рекурсивного вызова, без комментариев, в одну строку
-    std::string to_string(const ConfigFormat format = ConfigFormat::eJSON,
-                          const int8_t tabulation_level = 0) const noexcept override
+    std::string toString(const ConfigFormat format = ConfigFormat::eJSON,
+                         const int8_t tabulation_level = 0) const noexcept override
                                                     { return m_value ? "true" : "false"; }
     //для рекурсивного вызова, с использованием комментариев
-    std::string to_string(const ConfigFormat format, const CommentDesign &design,
-                          const int8_t tabulation_level = 0) const noexcept override
+    std::string toString(const ConfigFormat format, const CommentDesign &design,
+                         const int8_t tabulation_level = 0) const noexcept override
                                                     { return m_value ? "true" : "false"; }
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
 
-    bool        get_value() const noexcept           { return m_value; }
-    bool        is_equal(const IElement& other, const bool compare_comments = false) const noexcept override;
+    bool        getValue() const noexcept           { return m_value; }
+    bool        isEqual(const IElement& other, const bool compare_comments = false) const noexcept override;
 
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     void operator=(const bool other) noexcept;

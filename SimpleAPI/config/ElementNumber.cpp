@@ -3,9 +3,9 @@
 #include <regex>
 
 
-bool ElementNumber::is_equal(const IElement &other, const bool compare_comments) const noexcept {
+bool ElementNumber::isEqual(const IElement &other, const bool compare_comments) const noexcept {
     if(m_value != dynamic_cast<const ElementNumber&>(other).m_value)    return false;
-    if(compare_comments && m_comment == other.get_comment())             return false;
+    if(compare_comments && m_comment == other.getComment())             return false;
 
     return true;
 }

@@ -22,17 +22,17 @@ public:
 
     //PRINTING =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     //для рекурсивного вызова, без комментариев, в одну строку
-    std::string to_string(const ConfigFormat format = ConfigFormat::eJSON,
+    std::string toString(const ConfigFormat format = ConfigFormat::eJSON,
                           const int8_t tabulation_level = 0) const noexcept override
                                                                 { return "null"; }
     //для рекурсивного вызова, с использованием комментариев
-    std::string to_string(const ConfigFormat format, const CommentDesign &design,
+    std::string toString(const ConfigFormat format, const CommentDesign &design,
                           const int8_t tabulation_level = 0) const noexcept override
                                                                 { return "null"; }
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
 
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    bool        is_equal(const IElement& other, const bool compare_comments = false) const noexcept override;
+    bool        isEqual(const IElement& other, const bool compare_comments = false) const noexcept override;
     //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= OPERATORS
 };
 

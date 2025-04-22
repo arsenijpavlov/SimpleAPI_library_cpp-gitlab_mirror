@@ -1,11 +1,187 @@
 #include "Comment.h"
 
 #include "../utils/Utils.h"
+#include "../utils/Logger.h"
 #include "ConfigDefines.h"
 #include "ConfigCommon.h"
 
-//TODO: нужно вынести функцию в утилиты
-#include "../utils/Logger.h"
+
+Comment::Comment() noexcept {
+    m_prefix = nullptr;
+    m_suffix = nullptr;
+
+    m_commentDesign = nullptr;
+}
+
+Comment::Comment(const Comment &other) noexcept {
+    if(this != &other) {
+        set(other.prefix(), other.suffix());
+        setDesign(other.commentDesign());
+    }
+}
+
+Comment::Comment(const Comment &&other) noexcept {
+    if(this != &other) {
+        set(other.prefix(), other.suffix());
+        setDesign(other.commentDesign());
+    }
+}
+
+Comment::Comment(const std::string &comment_before, const std::string &comment_after) noexcept {
+    m_prefix = (comment_before.empty()) ? nullptr : new std::string(comment_before);
+    m_suffix = (comment_after.empty()) ? nullptr : new std::string(comment_after);
+
+    m_commentDesign = nullptr;
+}
+
+Comment::~Comment() noexcept {
+    if(m_prefix) delete m_prefix;
+    if(m_suffix) delete m_suffix;
+
+    if(m_commentDesign) delete m_commentDesign;
+}
+
+bool Comment::isEmpty() const noexcept {
+    if(m_prefix && !m_prefix->empty()) return false;
+    if(m_suffix && !m_suffix->empty()) return false;
+    return true;
+}
+
+std::string& Comment::prefix() noexcept {
+    if(!m_prefix) m_prefix = new std::string();
+    return *m_prefix;
+}
+
+std::string Comment::prefix() const noexcept {
+    if(!m_prefix) return "";
+    return *m_prefix;
+}
+
+std::string& Comment::suffix() noexcept {
+    if(!m_suffix) m_suffix = new std::string();
+    return *m_suffix;
+}
+
+std::string Comment::suffix() const noexcept {
+    if(!m_suffix) return "";
+    return *m_suffix;
+}
+
+void Comment::set(const std::string &prefix_comment, const std::string &suffix_comment) noexcept {
+    setPrefix(prefix_comment);
+    setSuffix(suffix_comment);
+}
+
+void Comment::set(const Comment &other) noexcept {
+    setPrefix(other.prefix());
+    setSuffix(other.suffix());
+}
+
+void Comment::setPrefix(const std::string &comment) noexcept {
+    if(m_prefix == nullptr)
+        m_prefix = new std::string();
+    if(!comment.empty())
+        *m_prefix = comment;
+}
+
+void Comment::setSuffix(const std::string &comment) noexcept {
+    if(m_suffix == nullptr)
+        m_suffix = new std::string();
+    if(!comment.empty())
+        *m_suffix = comment;
+}
+
+void Comment::clear() noexcept {
+    m_prefix->clear();
+    m_suffix->clear();
+}
+
+void Comment::clearPrefix() noexcept {
+    m_prefix->clear();
+}
+
+void Comment::clearSuffix() noexcept {
+    m_suffix->clear();
+}
+
+void Comment::del() noexcept {
+    if(m_prefix) delete m_prefix;
+    if(m_suffix) delete m_suffix;
+    if(m_commentDesign) delete m_commentDesign;
+}
+
+void Comment::delPrefix() noexcept {
+    if(m_prefix) delete m_prefix;
+}
+
+void Comment::delSuffix() noexcept {
+    if(m_suffix) delete m_suffix;
+}
+
+CommentDesign &Comment::commentDesign() noexcept {
+    if(!m_commentDesign) m_commentDesign = new CommentDesign();
+    return *m_commentDesign;
+}
+
+CommentDesign Comment::commentDesign() const noexcept {
+    if(!m_commentDesign) return {};
+    return *m_commentDesign;
+}
+
+void Comment::setDesign(const CommentDesign &design) noexcept {
+    if(!m_commentDesign) {
+        m_commentDesign = new CommentDesign(design);
+        return;
+    }
+    *m_commentDesign = design;
+}
+
+void Comment::clearDesign() noexcept {
+    if(m_commentDesign) delete m_commentDesign;
+}
+
+//TODO: исправить. Не работает.
+bool Comment::operator==(const Comment& other) const noexcept {
+    if(this == &other)
+        return true;
+//    if(m_prefix == nullptr && other.m_prefix == nullptr)
+//        return true;
+//    if(m_prefix != nullptr && other.m_prefix != nullptr) {
+//        if(m_prefix->empty() && other.m_prefix->empty())
+//            return true;
+//        return *m_prefix == *other.m_prefix;
+//    }
+
+    return false;
+}
+
+Comment& Comment::operator=(const Comment& other) noexcept {
+    if(this != &other) {
+        set(other);
+        setDesign(other.commentDesign());
+    }
+    return *this;
+}
+
+Comment& Comment::operator=(const Comment&& other) noexcept {
+    if(this != &other) {
+        set(other);
+        setDesign(other.commentDesign());
+    }
+    return *this;
+}
+
+Comment& Comment::operator=(const std::string& prefix_comment) noexcept {
+    if(this->m_prefix != &prefix_comment)
+        set(prefix_comment);
+    return *this;
+}
+
+Comment& Comment::operator=(const std::string&& prefix_comment) noexcept {
+    if(this->m_prefix != &prefix_comment)
+        set(prefix_comment);
+    return *this;
+}
 
 
 // @TEST(COMMENT, default_wrappers)
@@ -260,14 +436,14 @@ std::string FromComment(const std::string &comment_string, CommentDesign& design
     std::string ret;
 
     //TEST
-//    ret = "is_multiline:" + utils::to_string(is_multiline)
-//          + " is_border_exists:" + utils::to_string(is_border_exists)
-//          + (is_border_exists ? std::string(" border_sym:") + design.opt_multiline_border
-//                              : "")
-//          + (design.opt_multiline_column_size ? " column_size:" + std::to_string(design.opt_multiline_column_size)
-//                                              : "")
-//          + "\n---------------------------------------"
-//          + "\n";
+    //    ret = "is_multiline:" + utils::to_string(is_multiline)
+    //          + " is_border_exists:" + utils::to_string(is_border_exists)
+    //          + (is_border_exists ? std::string(" border_sym:") + design.opt_multiline_border
+    //                              : "")
+    //          + (design.opt_multiline_column_size ? " column_size:" + std::to_string(design.opt_multiline_column_size)
+    //                                              : "")
+    //          + "\n---------------------------------------"
+    //          + "\n";
 
     for(auto& s : lines)
         ret += s + "\n";
@@ -275,179 +451,168 @@ std::string FromComment(const std::string &comment_string, CommentDesign& design
     return ret;
 }
 
-Comment::Comment() noexcept {
-    m_prefix = nullptr;
-    m_suffix = nullptr;
+void RemoveComments(std::string &str, bool &startComment,
+                    char &quote, char &start_comment_sym,
+                    char &stop_comment_sym)
+{
+    std::string tempString;
+    bool isOneLineComment = false;
+    bool IsMultiLineComment = startComment;
+    for(size_t i = 0; i < str.length(); i++) {
+        char previous = (i - 1 >= 0) ? str[i - 1] : 0;
+        char current = str[i];
+        char next = (str.length() > i + 1 ? str[i + 1] : 0);
 
-    m_comment_design = nullptr;
-}
+        if(quote == 0) { //если не часть строкового значения
+            //поиск комментариев ===========================================================
+            if(!isOneLineComment && !IsMultiLineComment) {
+                //сперва искать многострочные комментарии!
+                for(uint8_t j = 0; j < SIZE_comment_multi_line; j++) {
+                    if(current == comment_multi_line[j][0] && next == comment_multi_line[j][1]) {
+                        start_comment_sym = current;
+                        stop_comment_sym = next;
+                        //изменение завершающего символа
+                        if(current == '<') start_comment_sym = '>';
+                        i++; //проскакиваем следующий символ при парсинге
+                        IsMultiLineComment = true;
+                        break;
+                    }
+                }
+                if(IsMultiLineComment) continue;
+                //поиск однострочных комментариев
+                for(uint8_t j = 0; j < SIZE_comment_one_line; j++) {
+                    if(current == comment_one_line[j][0]) {
+                        if((comment_one_line[j][1] != 0) && (next == comment_one_line[j][1]))
+                            i++;
+                        isOneLineComment = true;
+                        break;
+                    }
+                }
+                if(isOneLineComment) continue;
+            }
+            //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+            //обработка комментариев
+            if(isOneLineComment) {
+                //если следующий символ должен обрабатываться другим кодом
+                if((current == '\n') || ((str.length() > i + 1) && (str[i + 1] == '\n'))) {
+                    isOneLineComment = false;
+                    i++;
+                }
+                continue;
+            }
+            if(IsMultiLineComment) {
+                //нужен следующий символ, если нет - исключение
+                if(str.length() <= i + 1)
+                    throw std::invalid_argument("invalid length of input JSON string");
 
-Comment::Comment(const Comment &other) noexcept {
-    if(this != &other) {
-        set(other.prefix(), other.suffix());
-        setDesign(other.commentDesign());
+                if((current == stop_comment_sym) && (next == start_comment_sym)) {
+                    IsMultiLineComment = false;
+                    i++; //многострочные комментарии всегда обособляются двумя символами
+                }
+                continue;
+            }
+            //==============================================================================
+        }
+
+        if(!IsMultiLineComment && !isOneLineComment) {
+            //пропускать \"
+            if(current == '"' && previous != '\\'){
+                if(current == quote)
+                    quote = 0;
+                else
+                    quote = current;
+            }
+            tempString += current;
+        }
     }
+
+    str = tempString;
+    startComment = IsMultiLineComment;
 }
 
-Comment::Comment(const Comment &&other) noexcept {
-    if(this != &other) {
-        set(other.prefix(), other.suffix());
-        setDesign(other.commentDesign());
+CommentType CheckComment(char &first, const char second,
+                         size_t &iter_counter) noexcept
+{
+    //сперва искать многострочные комментарии!
+    for(uint8_t i = 0; i < SIZE_comment_multi_line; i++) {
+        if(first == comment_multi_line[i][0] && second == comment_multi_line[i][1]) {
+            //изменение завершающего символа
+            if(first == '<') first = '>';
+            iter_counter++; //проскакиваем следующий символ при парсинге
+            return CommentType::eMultiLineComment;
+        }
     }
-}
-
-Comment::Comment(const std::string &comment_before, const std::string &comment_after) noexcept {
-    m_prefix = (comment_before.empty()) ? nullptr : new std::string(comment_before);
-    m_suffix = (comment_after.empty()) ? nullptr : new std::string(comment_after);
-
-    m_comment_design = nullptr;
-}
-
-Comment::~Comment() noexcept {
-    if(m_prefix) delete m_prefix;
-    if(m_suffix) delete m_suffix;
-
-    if(m_comment_design) delete m_comment_design;
-}
-
-bool Comment::is_empty() const noexcept {
-    if(m_prefix && !m_prefix->empty()) return false;
-    if(m_suffix && !m_suffix->empty()) return false;
-    return true;
-}
-
-std::string& Comment::prefix() noexcept {
-    if(!m_prefix) m_prefix = new std::string();
-    return *m_prefix;
-}
-
-std::string Comment::prefix() const noexcept {
-    if(!m_prefix) return "";
-    return *m_prefix;
-}
-
-std::string& Comment::suffix() noexcept {
-    if(!m_suffix) m_suffix = new std::string();
-    return *m_suffix;
-}
-
-std::string Comment::suffix() const noexcept {
-    if(!m_suffix) return "";
-    return *m_suffix;
-}
-
-void Comment::set(const std::string &prefix_comment, const std::string &suffix_comment) noexcept {
-    setPrefix(prefix_comment);
-    setSuffix(suffix_comment);
-}
-
-void Comment::set(const Comment &other) noexcept {
-    setPrefix(other.prefix());
-    setSuffix(other.suffix());
-}
-
-void Comment::setPrefix(const std::string &comment) noexcept {
-    if(m_prefix == nullptr)
-        m_prefix = new std::string();
-    if(!comment.empty())
-        *m_prefix = comment;
-}
-
-void Comment::setSuffix(const std::string &comment) noexcept {
-    if(m_suffix == nullptr)
-        m_suffix = new std::string();
-    if(!comment.empty())
-        *m_suffix = comment;
-}
-
-void Comment::clear() noexcept {
-    m_prefix->clear();
-    m_suffix->clear();
-}
-
-void Comment::clearPrefix() noexcept {
-    m_prefix->clear();
-}
-
-void Comment::clearSuffix() noexcept {
-    m_suffix->clear();
-}
-
-void Comment::del() noexcept {
-    if(m_prefix) delete m_prefix;
-    if(m_suffix) delete m_suffix;
-    if(m_comment_design) delete m_comment_design;
-}
-
-void Comment::delPrefix() noexcept {
-    if(m_prefix) delete m_prefix;
-}
-
-void Comment::delSuffix() noexcept {
-    if(m_suffix) delete m_suffix;
-}
-
-CommentDesign &Comment::commentDesign() noexcept {
-    if(!m_comment_design) m_comment_design = new CommentDesign();
-    return *m_comment_design;
-}
-
-CommentDesign Comment::commentDesign() const noexcept {
-    if(!m_comment_design) return {};
-    return *m_comment_design;
-}
-
-void Comment::setDesign(const CommentDesign &design) noexcept {
-    if(!m_comment_design) {
-        m_comment_design = new CommentDesign(design);
-        return;
+    //поиск однострочных комментариев
+    for(uint8_t i = 0; i < SIZE_comment_one_line; i++) {
+        if(first == comment_one_line[i][0]) {
+            if((comment_one_line[i][1] != 0)) {
+                if(second == comment_one_line[i][1]) {
+                    iter_counter++;
+                    return CommentType::eOneLineComment;
+                }
+            } else
+                return CommentType::eOneLineComment;
+        }
     }
-    *m_comment_design = design;
+
+    return CommentType::eNotComment;
 }
 
-void Comment::clearDesign() noexcept {
-    if(m_comment_design) delete m_comment_design;
-}
+CommentChecker CheckComments(const char current_sym, const char next_sym,
+                             bool &is_one_line, bool &is_multi_line,
+                             char &first_ml_sym, char &second_ml_sym,
+                             const bool enable_comment, std::string &current_sym_comment_line,
+                             size_t &iter_counter, const bool external_flag)
+{
+    if(!external_flag) return CommentChecker::isNotComment;
 
-//TODO: исправить. Не работает.
-bool Comment::operator==(const Comment& other) const noexcept {
-    if(this == &other)
-        return true;
-//    if(m_prefix == nullptr && other.m_prefix == nullptr)
-//        return true;
-//    if(m_prefix != nullptr && other.m_prefix != nullptr) {
-//        if(m_prefix->empty() && other.m_prefix->empty())
-//            return true;
-//        return *m_prefix == *other.m_prefix;
-//    }
-
-    return false;
-}
-
-Comment& Comment::operator=(const Comment& other) noexcept {
-    if(this != &other) {
-        set(other);
-        setDesign(other.commentDesign());
+    if(!is_one_line && !is_multi_line) {
+        first_ml_sym    = current_sym;
+        second_ml_sym   = next_sym;
+        //        std::cout << "\"" << first_ml_sym << second_ml_sym << "\"" << std::endl;
+        switch(CheckComment(first_ml_sym, second_ml_sym, iter_counter)) {
+        case CommentType::eOneLineComment: {
+            is_one_line = true;
+            if(!current_sym_comment_line.empty() && enable_comment)
+                current_sym_comment_line += "\n";
+            return CommentChecker::isComment;
+        }
+        case CommentType::eMultiLineComment: {
+            is_multi_line = true;
+            if(!current_sym_comment_line.empty() && enable_comment)
+                current_sym_comment_line += "\n";
+            return CommentChecker::isComment;
+        }
+        default: return CommentChecker::isNotComment;
+        }
     }
-    return *this;
-}
 
-Comment& Comment::operator=(const Comment&& other) noexcept {
-    if(this != &other) {
-        set(other);
-        setDesign(other.commentDesign());
+    //обработка комментариев
+    if(is_one_line) {
+        current_sym_comment_line += current_sym;
+
+        //если следующий символ должен обрабатываться другим кодом
+        if((current_sym == '\n') || ((next_sym != 0) && (next_sym == '\n'))) {
+            is_one_line = false;
+            if(current_sym != '\n') current_sym_comment_line += '\n';
+            return CommentChecker::isCommentEnd;
+        }
+
+        return CommentChecker::isComment;
     }
-    return *this;
-}
+    if(is_multi_line) {
+        //нужен следующий символ, если нет - исключение
+        if(next_sym == 0)
+            throw std::invalid_argument("invalid length of input string, multiline comment not closed");
 
-Comment& Comment::operator=(const std::string& prefix_comment) noexcept {
-    if(this->m_prefix != &prefix_comment)
-        set(prefix_comment);
-    return *this;
-}
+        if((current_sym == second_ml_sym) && (next_sym == first_ml_sym)) {
+            is_multi_line = false;
+            iter_counter++; //многострочные комментарии всегда обособляются двумя символами
+            return CommentChecker::isCommentEnd;
+        }
 
-Comment& Comment::operator=(const std::string&& prefix_comment) noexcept {
-    if(this->m_prefix != &prefix_comment)
-        set(prefix_comment);
-    return *this;
+        current_sym_comment_line += current_sym;
+        return CommentChecker::isComment;
+    }
+    return CommentChecker::isNotComment;
 }

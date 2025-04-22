@@ -27,7 +27,7 @@ public:
     //разнесено для решения конфликта, не изменять следующие два конструктора!
     ElementJson(const std::string& input_string) noexcept {
         init();
-        parseJSON(input_string);
+        parseJson(input_string);
     }
     ElementJson(const std::string& input_string, const ConfigFormat config_format,
                 const bool enable_comment = false) noexcept {
@@ -53,7 +53,7 @@ public:
     //PARSING -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     void        parse(const std::string& string, const ConfigFormat config_format = ConfigFormat::eJSON,
                       const bool enable_comment = false);
-    void        parseJSON(const std::string& string, const bool enable_comment = false);
+    void        parseJson(const std::string& string, const bool enable_comment = false);
     void        parseINI(const std::string& string, const bool enable_comment = false);
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- PARSING
 
@@ -62,9 +62,9 @@ public:
 //TODO:    std::string to_string(const ConfigFormat format, const CommentDesign &design) const noexcept override;
 //    std::string to_string(int16_t tabulation_level = 0, const bool enable_comment = false,
 //                          const uint8_t column_size = 0, const ConfigFormat config_format = ConfigFormat::eJSON) const noexcept;
-//    std::string to_JSON_string(int16_t tabulation_level = 0, const bool enable_comment = false,
+//    std::string toJsonString(int16_t tabulation_level = 0, const bool enable_comment = false,
 //                               const uint8_t column_size = 0) const noexcept;
-//    std::string to_INI_string(int16_t tabulation_level = 0, const bool enable_comment = false,
+//    std::string toIniString(int16_t tabulation_level = 0, const bool enable_comment = false,
 //                              const uint8_t column_size = 0, const std::string& preview_title = "") const noexcept;
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
 
@@ -78,8 +78,8 @@ public:
 
     ElementJson&    clear() noexcept;
     bool            contains(const std::string& key) const noexcept;
-    bool            is_empty() noexcept                      { return m_values.empty(); }
-    bool            is_equal(const IElement& other, const bool compare_comments = false) const noexcept override;
+    bool            isEmpty() noexcept                      { return m_values.empty(); }
+    bool            isEqual(const IElement& other, const bool compare_comments = false) const noexcept override;
     size_t          size() noexcept                         { return m_values.size(); }
 
     //TYPES -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -93,10 +93,10 @@ public:
     //NOTE: если индекс больше количества вложенных элементов, то добавятся в конец
     //NOTE: если ключа не существовало, его надо создать
     ElementJson&    append(const std::string& key, const IElement& value,
-                           const bool rewrite = true) noexcept  { return pushBack(key, value); }
+                           const bool rewrite = true) noexcept  { return push_back(key, value); }
     ElementJson&    push_front(const std::string& key, const IElement& value,
                               const bool rewrite = true) noexcept;
-    ElementJson&    pushBack(const std::string& key, const IElement& value,
+    ElementJson&    push_back(const std::string& key, const IElement& value,
                              const bool rewrite = true) noexcept;
 
     //NOTE: ElementJson::put() всегда положит элемент в конец списка
@@ -111,12 +111,12 @@ public:
     ElementJson&    add(const std::string& key, const T& value,
                         const bool rewrite = true) noexcept { return put(key, value, rewrite); }
                     __ONLY_ALLOWED_TYPES__(T)
-    ElementJson&    updateValue(const std::string& key, const T& new_value) noexcept {
+    ElementJson&    update_value(const std::string& key, const T& new_value) noexcept {
                         if(contains(key))   (*this)[key] = Element(new_value);
                         else                put(key, new_value);
                         return *this;
                     }
-    ElementJson&    updateValue(const std::string& key, const IElement& new_value) noexcept;
+    ElementJson&    update_value(const std::string& key, const IElement& new_value) noexcept;
                     //положить значение в указанную позицию
                     //если значение существует и флаг поднят - удалить существующее значение
                     //если индекс больше количества вложенных элементов, то добавятся в конец
@@ -147,7 +147,7 @@ public:
                         return *this;
                     }
                     __ONLY_ALLOWED_TYPES__(T)
-    ElementJson&    insertBefore(const std::string& keyIndex, const std::string& key,
+    ElementJson&    insert_before(const std::string& keyIndex, const std::string& key,
                                               const T& value, const bool rewrite = true) noexcept
                     {
                         bool key_exists = false; //чтобы второй раз не искать
@@ -171,7 +171,7 @@ public:
                         return *this;
                     }
                     __ONLY_ALLOWED_TYPES__(T)
-    ElementJson&    insertAfter(const std::string& keyIndex, const std::string& key,
+    ElementJson&    insert_after(const std::string& keyIndex, const std::string& key,
                                              const T& value, const bool rewrite = true) noexcept
                     {
                         bool key_exists = false; //чтобы второй раз не искать
@@ -198,19 +198,19 @@ public:
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- SETTERS
 
     //GETTERS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    IElement&    get_value(const size_t index);
-    IElement&    get_value(const std::string key);
-    IElement&    get_value(const VString& complex_key);
-    IElement&    get_front();
-    IElement&    get_at(const size_t index);
-    IElement&    get_back();
+    IElement&       get_value(const size_t index);
+    IElement&       get_value(const std::string key);
+    IElement&       get_value(const VString& complex_key);
+    IElement&       get_front();
+    IElement&       get_at(const size_t index);
+    IElement&       get_back();
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- GETTERS
 
     //DELETERS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    IElement     pop_front();
-    IElement     pop_at(const size_t index);
-    IElement     pop_at(const std::string key);
-    IElement     pop_back();
+    IElement        pop_front();
+    IElement        pop_at(const size_t index);
+    IElement        pop_at(const std::string key);
+    IElement        pop_back();
     ElementJson&    erase(const size_t index);
     ElementJson&    erase(const std::string key);
     ElementJson&    erase(const VPairElement::iterator& iterator) {
@@ -228,12 +228,12 @@ public:
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     void        operator=(const VPairElement& other) noexcept;
     void        operator<<(const JPair& element) noexcept; //альтернатива push_back()
-    IElement&    operator[](const size_t index)             { return get_value(index); }
-    IElement&    operator[](const std::string& key)         { return get_value(key); }
-    IElement&    operator[](const VString& complex_key)     { return get_value(complex_key); }
+    IElement&   operator[](const size_t index)             { return get_value(index); }
+    IElement&   operator[](const std::string& key)         { return get_value(key); }
+    IElement&   operator[](const VString& complex_key)     { return get_value(complex_key); }
 
                 template<std::size_t SIZE>
-    IElement&    operator[](const std::array<std::string, SIZE>& complex_key) {
+    IElement&   operator[](const std::array<std::string, SIZE>& complex_key) {
                     VString complex_key_vec;
                     complex_key_vec.reserve(SIZE);
                     std::copy(complex_key.begin(), complex_key.end(), complex_key_vec.begin());

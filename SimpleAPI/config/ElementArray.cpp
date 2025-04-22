@@ -12,19 +12,19 @@ class ElementJson;
 ElementArray::ElementArray(const std::string &string, const ConfigFormat format,
                            const bool enable_comments) noexcept {
     init();
-    parse_array(string, enable_comments, format);
+    parseArray(string, enable_comments, format);
 }
 
-void ElementArray::parse_array(const std::string &string, const bool enable_comment,
+void ElementArray::parseArray(const std::string &string, const bool enable_comment,
                               const ConfigFormat config_format, const CommentDesign& design) {
     switch(config_format) {
-    case ConfigFormat::eJSON:   parse_JSON_array(string, enable_comment, design);
-    case ConfigFormat::eINI:    parse_INI_array(string, enable_comment, design);
+    case ConfigFormat::eJSON:   parseJsonArray(string, enable_comment, design);
+    case ConfigFormat::eINI:    parseIniArray(string, enable_comment, design);
     default:                    return;
     }
 }
 
-void ElementArray::parse_JSON_array(const std::string &string, const bool enable_comment,
+void ElementArray::parseJsonArray(const std::string &string, const bool enable_comment,
                                    const CommentDesign& design) {
     clear(); //очистка списка перед новым заполнением
     if(string.empty()) return;
@@ -237,8 +237,8 @@ void ElementArray::parse_JSON_array(const std::string &string, const bool enable
                         break;
                     }
                     case eBool:     {
-                        if(utils::isBool(value_string))
-                            push_back(utils::toBool(value_string));
+                        if(utils::IsBool(value_string))
+                            push_back(utils::ToBool(value_string));
                         else
                             is_critical_error = true;
 
@@ -263,7 +263,7 @@ void ElementArray::parse_JSON_array(const std::string &string, const bool enable
                 case VALUE_JSON: {
                     ElementJson _innerJson;
                     try {
-                        _innerJson.parseJSON(value_string, enable_comment);
+                        _innerJson.parseJson(value_string, enable_comment);
                         push_back(_innerJson);
                     } catch (std::invalid_argument& e) {
                         isCriticalError = true;
@@ -274,7 +274,7 @@ void ElementArray::parse_JSON_array(const std::string &string, const bool enable
                 case VALUE_ARRAY:    {
                     JArray _innerArray;
                     try {
-                        _innerArray.parse_array(value_string, enable_comment);
+                        _innerArray.parseArray(value_string, enable_comment);
                         push_back(_innerArray);
                     } catch (std::invalid_argument& e) {
                         isCriticalError = true;
@@ -369,22 +369,22 @@ void ElementArray::parse_JSON_array(const std::string &string, const bool enable
     }
 }
 
-void ElementArray::parse_INI_array(const std::string &string, const bool enable_comment,
+void ElementArray::parseIniArray(const std::string &string, const bool enable_comment,
                                   const CommentDesign& design)
 {
-    //TODO: ElementArray::parse_INI_array()
+    //TODO: ElementArray::parseIniArray()
     //TODO: std::exception
 }
 
-std::string ElementArray::to_string(const ConfigFormat format, const int8_t tabulation_level) const noexcept {
+std::string ElementArray::toString(const ConfigFormat format, const int8_t tabulation_level) const noexcept {
     switch(format) {
-    case ConfigFormat::eJSON:   return to_JSON_string(tabulation_level);
-    case ConfigFormat::eINI:    return to_INI_string(tabulation_level);
+    case ConfigFormat::eJSON:   return toJsonString(tabulation_level);
+    case ConfigFormat::eINI:    return toIniString(tabulation_level);
     default: return "";
     }
 }
 
-std::string ElementArray::to_JSON_string(const int8_t tabulation_level) const noexcept {
+std::string ElementArray::toJsonString(const int8_t tabulation_level) const noexcept {
     if(m_values.empty()) return "[]";
 
     bool without_space = tabulation_level == -1;
@@ -400,21 +400,21 @@ std::string ElementArray::to_JSON_string(const int8_t tabulation_level) const no
     return ret;
 }
 
-std::string ElementArray::to_INI_string(const int8_t tabulation_level) const noexcept {
-    //TODO: ElementArray::to_INI_string()
+std::string ElementArray::toIniString(const int8_t tabulation_level) const noexcept {
+    //TODO: ElementArray::toIniString()
     return "";
 }
 
-std::string ElementArray::to_string(const ConfigFormat format, const CommentDesign &design,
+std::string ElementArray::toString(const ConfigFormat format, const CommentDesign &design,
                                     const int8_t tabulation_level) const noexcept {
     switch(format) {
-    case ConfigFormat::eJSON:   return to_JSON_string(design, tabulation_level);
-    case ConfigFormat::eINI:    return to_INI_string(design, tabulation_level);
+    case ConfigFormat::eJSON:   return toJsonString(design, tabulation_level);
+    case ConfigFormat::eINI:    return toIniString(design, tabulation_level);
     default: return "";
     }
 }
 
-std::string ElementArray::to_JSON_string(const CommentDesign &design, const int8_t tabulation_level) const noexcept {
+std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t tabulation_level) const noexcept {
     if(m_values.empty()) return "[]";
 
     std::string ret = "[";
@@ -432,8 +432,8 @@ std::string ElementArray::to_JSON_string(const CommentDesign &design, const int8
     return ret;
 }
 
-std::string ElementArray::to_INI_string(const CommentDesign &design, const int8_t tabulation_level) const noexcept {
-    //TODO: ElementArray::to_INI_string()
+std::string ElementArray::toIniString(const CommentDesign &design, const int8_t tabulation_level) const noexcept {
+    //TODO: ElementArray::toIniString()
     return "";
 }
 

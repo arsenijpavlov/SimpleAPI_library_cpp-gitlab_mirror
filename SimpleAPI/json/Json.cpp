@@ -403,7 +403,7 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
     if(string_of_array.empty()) return;
 
     bool isOneLineComment   = false;
-    bool isMultiLineComment = false;
+    bool IsMultiLineComment = false;
     char firstMLCSym, secondMLCSym;
     uint8_t commentCounter  = 0;
     std::string currentComment;
@@ -445,12 +445,12 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
 
         //поиск комментариев
         const bool ext_f = !isQuotes && value_format != VALUE_ARRAY && value_format != VALUE_JSON;
-        utils::CommentChecker c_checker = c_checker = utils::CheckComments(current, next,
-                                                                           isOneLineComment, isMultiLineComment,
+        CommentChecker c_checker = c_checker = CheckComments(current, next,
+                                                                           isOneLineComment, IsMultiLineComment,
                                                                            firstMLCSym, secondMLCSym,
                                                                            enable_comment, currentComment,
                                                                            i, ext_f);
-        if(c_checker != utils::CommentChecker::isNotComment) {
+        if(c_checker != CommentChecker::isNotComment) {
             //сюда зайдёт, если внутри комментария
             //счётчик строк и столбцов =============================================
             if(current == '\n') {
@@ -607,8 +607,8 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
                         break;
                     }
                     case eBool:     {
-                        if(utils::isBool(value_string))
-                            push_back(utils::toBool(value_string));
+                        if(utils::IsBool(value_string))
+                            push_back(utils::ToBool(value_string));
                         else
                             isCriticalError = true;
 
@@ -821,7 +821,7 @@ std::string JArray::to_string(int16_t tabulation_level, const bool enable_commen
     case ConfigFormat::eYAML:
         return to_YAML_string(tabulation_level, enable_comment, column_size);
     case ConfigFormat::eINI:
-        return to_INI_string(tabulation_level, enable_comment, column_size);
+        return toIniString(tabulation_level, enable_comment, column_size);
     default: return "";
     }
 
@@ -949,11 +949,11 @@ std::string JArray::to_YAML_string(int16_t tabulation_level, const bool enable_c
     return "";
 }
 
-std::string JArray::to_INI_string(int16_t tabulation_level, const bool enable_comment,
+std::string JArray::toIniString(int16_t tabulation_level, const bool enable_comment,
                                   const uint8_t column_size, const std::string& preview_title) const noexcept {
     if(m_values.empty()) return "";
 
-    //TODO: JArray::to_INI_string()
+    //TODO: JArray::toIniString()
     std::string ret;
 
 
@@ -1161,7 +1161,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
     if(string_of_json.empty()) return;
 
     bool isOneLineComment   = false;
-    bool isMultiLineComment = false;
+    bool IsMultiLineComment = false;
     char firstMLCSym, secondMLCSym;
     uint8_t commentCounter  = 0;
     std::string currentComment;
@@ -1211,12 +1211,12 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 
         //поиск комментариев
         const bool ext_f = !isQuotes && value_format != VALUE_ARRAY && value_format != VALUE_JSON;
-        utils::CommentChecker c_checker = c_checker = utils::CheckComments(current, next,
-                                                                           isOneLineComment, isMultiLineComment,
+        CommentChecker c_checker = c_checker = CheckComments(current, next,
+                                                                           isOneLineComment, IsMultiLineComment,
                                                                            firstMLCSym, secondMLCSym,
                                                                            enable_comment, currentComment,
                                                                            i, ext_f);
-        if(c_checker != utils::CommentChecker::isNotComment) {
+        if(c_checker != CommentChecker::isNotComment) {
             //сюда зайдёт, если внутри комментария
             //счётчик строк и столбцов =============================================
             if(current == '\n') {
@@ -1475,8 +1475,8 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                         break;
                     }
                     case eBool:     {
-                        if(utils::isBool(value_string))
-                            put(key_string, utils::toBool(value_string));
+                        if(utils::IsBool(value_string))
+                            put(key_string, utils::ToBool(value_string));
                         else
                             isCriticalError = true;
 
@@ -1812,7 +1812,7 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
     if(string_of_ini.empty()) return;
 
     bool isOneLineComment   = false;
-    bool isMultiLineComment = false;
+    bool IsMultiLineComment = false;
     char firstMLCSym, secondMLCSym;
     uint8_t commentCounter  = 0;
     std::string currentComment;
@@ -1846,12 +1846,12 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
 
         //поиск комментариев
         const bool ext_f = !isQuotes;
-        utils::CommentChecker c_checker = utils::CheckComments(current, next,
-                                                               isOneLineComment, isMultiLineComment,
+        CommentChecker c_checker = CheckComments(current, next,
+                                                               isOneLineComment, IsMultiLineComment,
                                                                firstMLCSym, secondMLCSym,
                                                                enable_comment, currentComment,
                                                                i, ext_f);
-        if(c_checker != utils::CommentChecker::isNotComment) { //сюда зайдёт, если внутри комментария
+        if(c_checker != CommentChecker::isNotComment) { //сюда зайдёт, если внутри комментария
             //счётчик строк и столбцов =============================================
             if(current == '\n') {
                 line_counter++;
@@ -1862,7 +1862,7 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
         }
 
         //работа с синтаксисом INI
-        if(!isOneLineComment && !isMultiLineComment) {
+        if(!isOneLineComment && !IsMultiLineComment) {
             //пропуск пробелов ====================================================
             if(current == '\n' && !isValueCommentAfterSaved) {
                 //работа с комментариями (после значения #2) ==========================
@@ -2093,7 +2093,7 @@ bool Json::writeFile(const std::string& path, int16_t tabulation_level,
         file << to_YAML_string(tabulation_level, enable_comment, m_comment_column_size) << std::endl;
         break;
     case ConfigFormat::eINI:
-        file << to_INI_string(tabulation_level, enable_comment, m_comment_column_size) << std::endl;
+        file << toIniString(tabulation_level, enable_comment, m_comment_column_size) << std::endl;
         break;
     default: break;
     }
@@ -2111,7 +2111,7 @@ std::string Json::to_string(int16_t tabulation_level, const bool enable_comment,
     case ConfigFormat::eYAML:
         return to_YAML_string(tabulation_level, enable_comment, column_size);
     case ConfigFormat::eINI:
-        return to_INI_string(tabulation_level, enable_comment, column_size);
+        return toIniString(tabulation_level, enable_comment, column_size);
     default: break;
     }
 
@@ -2344,8 +2344,8 @@ std::string PrintRecursiveIniElements(const ConfigFormat cfg, const JPair& jp,
     return ret;
 }
 
-//TODO: Json::to_INI_string(), не закончил
-std::string Json::to_INI_string(int16_t tabulation_level, const bool enable_comment,
+//TODO: Json::toIniString(), не закончил
+std::string Json::toIniString(int16_t tabulation_level, const bool enable_comment,
                                 const uint8_t column_size, const std::string& preview_title) const noexcept {
     std::string ret = "";
 
@@ -2555,7 +2555,7 @@ ValueType CheckValue(std::string& value, const ConfigFormat& format) noexcept {
             //удалить пустоту в начале и конце строки
             RemoveIllegalSpaces(value);
 
-            if(utils::isNumber(value[i])
+            if(utils::IsNumber(value[i])
                 || utils::CharsInString(value[i], "-+"))
                 vType = ValueType::eNumber;
             else if(!utils::CharsInString(value[i], __SPACES__)

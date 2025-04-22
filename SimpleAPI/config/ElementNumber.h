@@ -17,19 +17,19 @@ public:
 
     //PRINTING =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     //для рекурсивного вызова, без комментариев, в одну строку
-    std::string to_string(const ConfigFormat format = ConfigFormat::eJSON,
+    std::string toString(const ConfigFormat format = ConfigFormat::eJSON,
                           const int8_t tabulation_level = 0) const noexcept override
                                                 { return std::to_string(m_value); }
     //для рекурсивного вызова, с использованием комментариев
-    std::string to_string(const ConfigFormat format, const CommentDesign &design,
+    std::string toString(const ConfigFormat format, const CommentDesign &design,
                           const int8_t tabulation_level = 0) const noexcept override
                                                 { return std::to_string(m_value); }
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
 
-    long double get_value() const noexcept       { return m_value; }
+    long double getValue() const noexcept       { return m_value; }
 //TODO: фича под вопросом    int64_t     toInt() const noexcept          { return m_value; }
 //TODO: фича под вопросом    uint64_t    toUInt() const noexcept         { return m_value; }
-    bool        is_equal(const IElement& other, const bool compare_comments = false) const noexcept override;
+    bool        isEqual(const IElement& other, const bool compare_comments = false) const noexcept override;
 
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     void operator=(const long double& other)    { m_value = other; }
