@@ -420,11 +420,11 @@ std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t
     std::string ret = "[";
     for(auto it : m_values) {
         ret += "\n" + utils::RepeatSymToStr('\t', tabulation_level);
-        ret += ToComment(it.get_prefix_comment(), design, tabulation_level);
+        ret += ToComment(it.getPrefixComment(), design, tabulation_level);
         ret += "\n" + utils::RepeatSymToStr('\t', tabulation_level);
-        ret += it.to_string(ConfigFormat::eJSON, design, tabulation_level + 1) + ", ";
+        ret += it.toString(ConfigFormat::eJSON, design, tabulation_level + 1) + ", ";
         //NOTE: суффиксный многострочный комментарий должен начинаться на той же строке, что и значение переменной
-        ret += ToComment(it.get_suffix_comment(), design, tabulation_level);
+        ret += ToComment(it.getSuffixComment(), design, tabulation_level);
     }
     ret += "\n" + utils::RepeatSymToStr('\t', tabulation_level);
     ret += "]";
@@ -439,83 +439,83 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
 
 void ElementArray::add_comment(const size_t index, const Comment &content) {
     __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    m_values[index].add_comment(content);
+    m_values[index].addComment(content);
 }
 
 void ElementArray::add_comment(const size_t index, const std::string &content_before,
                               const std::string &content_after) {
     __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    m_values[index].add_comment(content_before, content_after);
+    m_values[index].addComment(content_before, content_after);
 }
 
 void ElementArray::add_prefix_comment(const size_t index, const std::string &content) {
     __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    m_values[index].add_prefix_comment(content);
+    m_values[index].addPrefixComment(content);
 }
 
 void ElementArray::add_suffix_comment(const size_t index, const std::string &content) {
     __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    m_values[index].add_suffix_comment(content);
+    m_values[index].addSuffixComment(content);
 }
 
 Comment& ElementArray::get_comment(const size_t index) {
     __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    return m_values[index].get_comment();
+    return m_values[index].getComment();
 }
 
 Comment ElementArray::get_comment(const size_t index) const {
     __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    return m_values[index].get_comment();
+    return m_values[index].getComment();
 }
 
 std::string& ElementArray::get_prefix_comment(const size_t index) {
     __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    return m_values[index].get_prefix_comment();
+    return m_values[index].getPrefixComment();
 }
 
 std::string ElementArray::get_prefix_comment(const size_t index) const {
     __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    return m_values[index].get_prefix_comment();
+    return m_values[index].getPrefixComment();
 }
 
 std::string& ElementArray::get_suffix_comment(const size_t index) {
     __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    return m_values[index].get_suffix_comment();
+    return m_values[index].getSuffixComment();
 }
 
 std::string ElementArray::get_suffix_comment(const size_t index) const {
     __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    return m_values[index].get_suffix_comment();
+    return m_values[index].getSuffixComment();
 }
 
 void ElementArray::clear_comment(const size_t index) noexcept {
     __IF_INDEX_NOT_BOUND2__(m_values, index)
-    m_values[index].delete_comment();
+    m_values[index].deleteComment();
 }
 
 void ElementArray::clear_prefix_comment(const size_t index) noexcept {
     __IF_INDEX_NOT_BOUND2__(m_values, index)
-    m_values[index].delete_prefix_comment();
+    m_values[index].deletePrefixComment();
 }
 
 void ElementArray::clear_suffix_comment(const size_t index) noexcept {
     __IF_INDEX_NOT_BOUND2__(m_values, index)
-    m_values[index].delete_suffix_comment();
+    m_values[index].deleteSuffixComment();
 }
 
 void ElementArray::delete_comment(const size_t index) noexcept {
     __IF_INDEX_NOT_BOUND2__(m_values, index)
-    m_values[index].delete_comment();
+    m_values[index].deleteComment();
 }
 
 void ElementArray::delete_prefix_comment(const size_t index) noexcept {
     __IF_INDEX_NOT_BOUND2__(m_values, index)
-    m_values[index].delete_prefix_comment();
+    m_values[index].deletePrefixComment();
 }
 
 void ElementArray::delete_suffix_comment(const size_t index) noexcept {
     __IF_INDEX_NOT_BOUND2__(m_values, index)
-    m_values[index].delete_suffix_comment();
+    m_values[index].deleteSuffixComment();
 }
 
 ElementArray &ElementArray::clear() noexcept {
@@ -525,7 +525,7 @@ ElementArray &ElementArray::clear() noexcept {
 
 bool ElementArray::is_equal(const IElement &other, const bool compare_comments) const noexcept {
     if(m_values != dynamic_cast<const ElementArray&>(other).m_values)   return false;
-    if(compare_comments && m_comment == other.get_comment())             return false;
+    if(compare_comments && m_comment == other.getComment())             return false;
 
     return true;
 }
