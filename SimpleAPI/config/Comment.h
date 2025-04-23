@@ -122,7 +122,10 @@ enum class CommentType {
     eMultiLineComment
 };
 enum class CommentChecker : uint8_t {
-    isComment, isNotComment, isCommentEnd //последний требует continue!
+    isOnelineComment,
+    isMultilineComment,
+    isNotComment,
+    isCommentEnd    //последний требует continue!
 };
 
 void RemoveComments(std::string& str, bool& startComment, char& quote,

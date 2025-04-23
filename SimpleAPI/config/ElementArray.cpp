@@ -78,11 +78,12 @@ void ElementArray::parseJsonArray(const std::string &string, const bool enable_c
         CommentChecker c_checker = CheckComments(current_ch, next_ch,
                                                  is_oneline_comment,
                                                  is_multiline_comment,
-                                                 first_MLC_sym, second_MLC_sym,
+                                                 design,
                                                  enable_comment, current_comment,
                                                  i, ext_f);
         if(c_checker != CommentChecker::isNotComment) {
             //сюда зайдёт, если внутри комментария
+            //TODO: счётчик вынести в лямбду на видимость переменных
             //счётчик строк и столбцов =============================================
             if(current_ch == '\n') {
                 line_counter++;
@@ -96,8 +97,7 @@ void ElementArray::parseJsonArray(const std::string &string, const bool enable_c
         switch(state) {
         case ARRAY_START: {
             //пропуск пробелов ====================================================
-            if(CharsInString(current_ch, __SPACES__))
-                break;
+            if(CharsInString(current_ch, __SPACES__)) break;
             //=====================================================================
 
             //работа с комментариями (первичный) ==================================
