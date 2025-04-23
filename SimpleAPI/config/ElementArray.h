@@ -29,11 +29,11 @@ public:
 
     //PARSING -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     void        parseArray(const std::string& string, const bool enable_comment = false,
-                            const ConfigFormat config_format = ConfigFormat::eJSON, const CommentDesign& design = {});
+                            const ConfigFormat config_format = ConfigFormat::eJSON, CommentDesign* design = nullptr);
     void        parseJsonArray(const std::string& string, const bool enable_comment = false,
-                            const CommentDesign& design = {});
+                            CommentDesign* design = nullptr);
     void        parseIniArray(const std::string& string, const bool enable_comment = false,
-                            const CommentDesign& design = {});
+                            CommentDesign* design = nullptr);
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- PARSING
 
     //PRINTING =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=

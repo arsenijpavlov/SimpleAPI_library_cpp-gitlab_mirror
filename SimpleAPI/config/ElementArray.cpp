@@ -16,7 +16,7 @@ ElementArray::ElementArray(const std::string &string, const ConfigFormat format,
 }
 
 void ElementArray::parseArray(const std::string &string, const bool enable_comment,
-                              const ConfigFormat config_format, const CommentDesign& design) {
+                              const ConfigFormat config_format, CommentDesign* design) {
     switch(config_format) {
     case ConfigFormat::eJSON:   parseJsonArray(string, enable_comment, design);
     case ConfigFormat::eINI:    parseIniArray(string, enable_comment, design);
@@ -25,34 +25,35 @@ void ElementArray::parseArray(const std::string &string, const bool enable_comme
 }
 
 void ElementArray::parseJsonArray(const std::string &string, const bool enable_comment,
-                                   const CommentDesign& design) {
+                                   CommentDesign* design) {
     clear(); //очистка списка перед новым заполнением
     if(string.empty()) return;
 
     using namespace utils;
-    bool        is_oneline_comment      = false;
-    bool        is_multiline_comment    = false;
-    char        first_MLC_sym       = 0;
-    char        second_MLC_sym      = 0;
-    uint8_t     comment_counter     = 0;
-    std::string current_comment;
-    current_comment.reserve(100);
 
-    bool        is_critical_error   = false;
-    bool        is_quotes           = false;
-    bool        is_word_started     = false;
-    bool        is_word_finished    = false;
-    bool        is_value_comment_after_saved = true; //изначально TRUE, чтобы не сработало для первого прохода
+    //Если пользователь не задал переменную, то использовать стандартную
+    CommentDesign temp_design;
+    CommentDesign& comment_design = design ? *design : temp_design;
+
+    bool    is_oneline_comment      = false;
+    bool    is_multiline_comment    = false;
+    uint8_t comment_counter         = 0;
+    std::string current_comment;
+
+    bool is_critical_error              = false;
+    bool is_quotes                      = false;
+    bool is_word_started                = false;
+    bool is_word_finished               = false;
+    bool is_value_comment_after_saved   = true; //изначально TRUE, чтобы не сработало для первого прохода
 
     uint16_t    inner_json_counter  = 0;
     uint16_t    inner_array_counter = 0;
     std::string value_string;
-    value_string.reserve(100);
     Comment     value_comment;
     IElement    value_element;
 
-    uint16_t    line_counter        = 0; //NOTE: (JArray) ограничение на FFFF строк
-    uint16_t    symbol_counter      = 0; //NOTE: (JArray) ограничение на FFFF символов в строке
+    uint16_t line_counter   = 0; //NOTE: (JArray) ограничение на FFFF строк
+    uint16_t symbol_counter = 0; //NOTE: (JArray) ограничение на FFFF символов в строке
 
     enum States {
         ARRAY_START,
@@ -102,7 +103,7 @@ void ElementArray::parseJsonArray(const std::string &string, const bool enable_c
             //работа с комментариями (первичный) ==================================
             if(!current_comment.empty() && enable_comment) {
                 addPreviewComment(FromComment(current_comment, m_comment_column_size, m_comment_sym));
-                //                std::cout << "JArray:PreviewComment: " << "\"" << current_comment << "\"" << std::endl;
+//                std::cout << "JArray:PreviewComment: " << "\"" << current_comment << "\"" << std::endl;
                 current_comment = "";
             } //===================================================================
 
@@ -119,7 +120,7 @@ void ElementArray::parseJsonArray(const std::string &string, const bool enable_c
             if(current_ch == '\n' && !is_value_comment_after_saved) {
                 //работа с комментариями (после значения #2) ==========================
                 if(!current_comment.empty() && enable_comment) {
-                    add_comment_after(m_values.size() - 1, FromComment(current_comment, m_comment_column_size, m_comment_sym));
+                    add_comment_after(m_values.size() - 1, FromComment(current_comment, design));
                     //                    std::cout << "JArray:comment:after: " << "\"" << current_comment << "\"" << std::endl;
                     current_comment = "";
                 } //===================================================================
@@ -145,23 +146,23 @@ void ElementArray::parseJsonArray(const std::string &string, const bool enable_c
             case '{': {
                 if(!is_quotes) {
                     if(value_format == ValueFormat::VALUE_NOPE) value_format = ValueFormat::VALUE_JSON;
-                    innerJsonCounter++;
+                    inner_json_counter++;
                 }
                 break;
             }
             case '}': {
-                if(!is_quotes) innerJsonCounter--;
+                if(!is_quotes) inner_json_counter--;
                 break;
             }
             case '[': {
                 if(!is_quotes) {
                     if(value_format == ValueFormat::VALUE_NOPE) value_format = ValueFormat::VALUE_ARRAY;
-                    innerArrayCounter++;
+                    inner_array_counter++;
                 }
                 break;
             }
             case ']': {
-                if(!is_quotes) innerArrayCounter--;
+                if(!is_quotes) inner_array_counter--;
                 break;
             }
             case '"': {
@@ -183,14 +184,14 @@ void ElementArray::parseJsonArray(const std::string &string, const bool enable_c
             switch(value_format) {
             case VALUE_JSON: {
                 value_string += current_ch;
-                if(innerJsonCounter == 0)
+                if(inner_json_counter == 0)
                     is_word_finished = true;
 
                 break;
             }
             case VALUE_ARRAY: {
                 value_string += current_ch;
-                if(innerArrayCounter == 0)
+                if(inner_array_counter == 0)
                     is_word_finished = true;
 
                 break;
@@ -206,7 +207,7 @@ void ElementArray::parseJsonArray(const std::string &string, const bool enable_c
             }
 
             if(!is_word_finished && !is_quotes
-                && (innerJsonCounter == 0) && (innerArrayCounter == 0)) {
+                && (inner_json_counter == 0) && (inner_array_counter == 0)) {
                 //если текущий символ должен обрабатываться другим кодом
                 if(utils::CharsInString(current_ch, __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : ""))) {
                     is_word_finished = true;
@@ -370,7 +371,7 @@ void ElementArray::parseJsonArray(const std::string &string, const bool enable_c
 }
 
 void ElementArray::parseIniArray(const std::string &string, const bool enable_comment,
-                                  const CommentDesign& design)
+                                  CommentDesign& design)
 {
     //TODO: ElementArray::parseIniArray()
     //TODO: std::exception
