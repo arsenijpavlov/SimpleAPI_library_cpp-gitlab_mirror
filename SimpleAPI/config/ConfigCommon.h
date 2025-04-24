@@ -5,6 +5,8 @@
 #include <vector>
 
 
+using VString = std::vector<std::string>;
+
 //Format =======================================================================================
 enum class ConfigFormat {
     eJSON,
@@ -13,7 +15,6 @@ enum class ConfigFormat {
     eXML
 };
 //======================================================================================= Format
-
 
 //Value type ===================================================================================
 enum ValueType {
@@ -24,8 +25,9 @@ enum ValueType {
     eJson,
     eArray
 };
-static std::string to_string(const ValueType type) noexcept;
+static std::string ToString(const ValueType type) noexcept;
 //=================================================================================== Value type
+
 
 //удалить пробелы в начале и конце строки
 void RemoveIllegalSpaces(std::string& string) noexcept;
@@ -40,6 +42,20 @@ bool CreateEmptyFile(const std::string& file_path, const std::string& start_comm
                      const std::string& finish_comment, std::string* error_log = nullptr) noexcept;
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= WRITING
 
-using VString = std::vector<std::string>;
+ValueType CheckValue(std::string& value, const ConfigFormat& format) noexcept;
+
+bool CheckNumber(const std::string &value) noexcept;
+
+bool CheckBool(std::string& value) noexcept;
+
+bool CheckNull(std::string& value) noexcept;
+
+//TODO: CheckString(string)
+bool CheckString(std::string& value, const ConfigFormat& format) noexcept;
+
+bool CheckJson(std::string& value) noexcept;
+
+bool CheckArray(std::string& value) noexcept;
+
 
 #endif // JSON_COMMON_H
