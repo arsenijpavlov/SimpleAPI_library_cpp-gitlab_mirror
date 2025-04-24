@@ -68,28 +68,30 @@ void ElementArray::parseJsonArray(const std::string &string, const bool enable_c
         VALUE_OTHER
     } value_format = VALUE_NOPE;
 
+    CommentChecker comment_checker;
     for(size_t i = 0; i < string.size(); i++) {
         char previous_ch    = i == 0 ? 0 : string[i - 1];
         char current_ch     = string[i];
         char next_ch        = i < string.size() ? string[i] : 0;
 
-        //поиск комментариев
-        const bool ext_f = !is_quotes && value_format != VALUE_ARRAY && value_format != VALUE_JSON;
-        CommentChecker c_checker = CheckComments(current_ch, next_ch,
-                                                 is_oneline_comment,
-                                                 is_multiline_comment,
-                                                 design,
-                                                 enable_comment, current_comment,
-                                                 i, ext_f);
-        if(c_checker != CommentChecker::isNotComment) {
-            //сюда зайдёт, если внутри комментария
-            //TODO: счётчик вынести в лямбду на видимость переменных
-            //счётчик строк и столбцов =============================================
+        //счётчик строк и столбцов =============================================
+        auto Counter = [&]() {
             if(current_ch == '\n') {
                 line_counter++;
                 symbol_counter = 0; //должен перескочить строго на следующей строке
             } else symbol_counter++;
-            //======================================================================
+        };
+        //======================================================================
+
+        //поиск комментариев
+        const bool ext_f = !is_quotes && value_format != VALUE_ARRAY && value_format != VALUE_JSON;
+        CheckComments(current_ch, next_ch,
+                      comment_checker, enable_comment,
+                      comment_design, current_comment,
+                      i, ext_f);
+        if(comment_checker != CommentChecker::eIsNotComment) {
+            //сюда зайдёт, если внутри комментария
+            Counter();
             continue;
         }
 
@@ -355,12 +357,7 @@ void ElementArray::parseJsonArray(const std::string &string, const bool enable_c
                                         + " '" + current_ch + "', current state:" + state_str);
         }
 
-        //счётчик строк и столбцов =============================================
-        if(current_ch == '\n') {
-            line_counter++;
-            symbol_counter = 0; //должен перескочить строго на следующей строке
-        } else symbol_counter++;
-        //======================================================================
+        Counter();
     }
 
 
