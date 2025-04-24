@@ -13,3 +13,6 @@ ___
 ___
 # NOTE:
 1. названия функций с подчёркиванием использовать только для контейнеров(?)
+2. пользовательские границы комментариев:
+ - std::vector<std::array<uint8_t, 2>> user_oneline_comment_braces;
+ - std::vector<std::array<uint8_t, 3>> user_multiline_comment_braces;

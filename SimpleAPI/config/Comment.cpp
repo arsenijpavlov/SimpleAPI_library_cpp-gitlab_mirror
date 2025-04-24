@@ -451,6 +451,7 @@ std::string FromComment(const std::string &comment_string, CommentDesign& design
     return ret;
 }
 
+//TODO: исправить на использование CheckComments()
 void RemoveComments(std::string &str, bool &startComment,
                     char &quote, char &start_comment_sym,
                     char &stop_comment_sym)
@@ -530,89 +531,127 @@ void RemoveComments(std::string &str, bool &startComment,
     startComment = IsMultiLineComment;
 }
 
-CommentType CheckComment(char &first, const char second,
-                         size_t &iter_counter) noexcept
+CommentType IsCommentStart(const char first, const char second,
+                           CommentDesign& design, size_t &iter_counter) noexcept
 {
+    auto UpdOnelineDesign = [&](const char first_sym, const char second_sym){
+        design.oneline_comment_symbols[0] = first_sym;
+        design.oneline_comment_symbols[1] = second_sym;
+        iter_counter++;
+        return CommentType::eOneLineComment;
+    };
+    auto UpdMultilineDesign = [&](){
+        design.multiline_comment_symbols[0] = first;
+        design.multiline_comment_symbols[1] = second;
+//        design.multiline_comment_symbols[2]; //завершающий символ установится в функции CheckComments()
+        iter_counter++; //проскакиваем следующий символ при парсинге
+        return CommentType::eMultiLineComment;
+    };
+
+    //ПОЛЬЗОВАТЕЛЬСКИЕ========================================
+    //сперва искать многострочные комментарии!
+    for(auto m_arr : design.user_multiline_comment_braces) {
+        if(first == m_arr[0] && second == m_arr[1])
+            return UpdMultilineDesign();
+    }
+    //поиск однострочных комментариев
+    for(auto o_arr : design.user_oneline_comment_braces) {
+        if(first == o_arr[0]) {
+            if(o_arr[1] == 0) {
+                if(second == o_arr[1])
+                    return UpdOnelineDesign(first, second);
+            } else
+                return UpdOnelineDesign(first, 0);
+        }
+    }
+    //========================================ПОЛЬЗОВАТЕЛЬСКИЕ
+
+    //СТАНДАРТНЫЕ=============================================
     //сперва искать многострочные комментарии!
     for(uint8_t i = 0; i < SIZE_comment_multi_line; i++) {
-        if(first == comment_multi_line[i][0] && second == comment_multi_line[i][1]) {
-            //изменение завершающего символа
-            if(first == '<') first = '>';
-            iter_counter++; //проскакиваем следующий символ при парсинге
-            return CommentType::eMultiLineComment;
-        }
+        if(first == comment_multi_line[i][0] && second == comment_multi_line[i][1])
+            return UpdMultilineDesign();
     }
     //поиск однострочных комментариев
     for(uint8_t i = 0; i < SIZE_comment_one_line; i++) {
         if(first == comment_one_line[i][0]) {
             if((comment_one_line[i][1] != 0)) {
-                if(second == comment_one_line[i][1]) {
-                    iter_counter++;
-                    return CommentType::eOneLineComment;
-                }
+                if(second == comment_one_line[i][1])
+                    return UpdOnelineDesign(first, second);
             } else
-                return CommentType::eOneLineComment;
+                return UpdOnelineDesign(first, 0);
         }
     }
+    //=============================================СТАНДАРТНЫЕ
 
     return CommentType::eNotComment;
 }
 
-CommentChecker CheckComments(const char current_sym, const char next_sym,
-                             bool &is_one_line, bool &is_multi_line,
-                             char &first_ml_sym, char &second_ml_sym,
-                             const bool enable_comment, std::string &current_sym_comment_line,
-                             size_t &iter_counter, const bool external_flag)
+void CheckComments(const char current_sym, const char next_sym,
+                   CommentChecker& checker, const bool enable_comment,
+                   CommentDesign& design, std::string &current_sym_comment_line,
+                   size_t &iter_counter, const bool external_flag)
 {
-    if(!external_flag) return CommentChecker::isNotComment;
-
-    if(!is_one_line && !is_multi_line) {
-        first_ml_sym    = current_sym;
-        second_ml_sym   = next_sym;
-        //        std::cout << "\"" << first_ml_sym << second_ml_sym << "\"" << std::endl;
-        switch(CheckComment(first_ml_sym, second_ml_sym, iter_counter)) {
-        case CommentType::eOneLineComment: {
-            is_one_line = true;
-            if(!current_sym_comment_line.empty() && enable_comment)
-                current_sym_comment_line += "\n";
-            return CommentChecker::isComment;
-        }
-        case CommentType::eMultiLineComment: {
-            is_multi_line = true;
-            if(!current_sym_comment_line.empty() && enable_comment)
-                current_sym_comment_line += "\n";
-            return CommentChecker::isComment;
-        }
-        default: return CommentChecker::isNotComment;
-        }
+    if(!external_flag) {
+        //значения в кавычках не могут влиять на комментирование
+        checker = CommentChecker::eIsNotComment;
+        return;
     }
 
-    //обработка комментариев
-    if(is_one_line) {
+    switch(checker) {
+    case CommentChecker::eIsOnelineComment: {
         current_sym_comment_line += current_sym;
 
         //если следующий символ должен обрабатываться другим кодом
         if((current_sym == '\n') || ((next_sym != 0) && (next_sym == '\n'))) {
-            is_one_line = false;
             if(current_sym != '\n') current_sym_comment_line += '\n';
-            return CommentChecker::isCommentEnd;
+            checker = CommentChecker::eIsCommentEnd;
+            return;
         }
 
-        return CommentChecker::isComment;
+        checker = CommentChecker::eIsOnelineComment;
+        return;
     }
-    if(is_multi_line) {
+    case CommentChecker::eIsMultilineComment: {
         //нужен следующий символ, если нет - исключение
         if(next_sym == 0)
             throw std::invalid_argument("invalid length of input string, multiline comment not closed");
 
-        if((current_sym == second_ml_sym) && (next_sym == first_ml_sym)) {
-            is_multi_line = false;
-            iter_counter++; //многострочные комментарии всегда обособляются двумя символами
-            return CommentChecker::isCommentEnd;
+        if((current_sym == design.multiline_comment_symbols[1])
+            && (next_sym == (design.multiline_comment_symbols[2] ? design.multiline_comment_symbols[0]
+                                                                 : design.multiline_comment_symbols[2])))
+        {
+            //многострочные комментарии всегда обособляются двумя символами в начале и двумя символами в конце комментария
+            iter_counter++;
+            checker = CommentChecker::eIsCommentEnd;
+            return;
         }
 
         current_sym_comment_line += current_sym;
-        return CommentChecker::isComment;
+        checker = CommentChecker::eIsMultilineComment;
+        return;
     }
-    return CommentChecker::isNotComment;
+    case CommentChecker::eIsNotComment:
+    case CommentChecker::eIsCommentEnd: {
+        switch(IsCommentStart(current_sym, next_sym, design, iter_counter)) {
+        case CommentType::eOneLineComment: {
+            if(enable_comment && !current_sym_comment_line.empty())
+                current_sym_comment_line += "\n";
+            checker = CommentChecker::eIsOnelineComment;
+            return;
+        }
+        case CommentType::eMultiLineComment: {
+            if(enable_comment && !current_sym_comment_line.empty())
+                current_sym_comment_line += "\n";
+            checker = CommentChecker::eIsMultilineComment;
+            return;
+        }
+        default: break;
+        }
+    }
+    default: break;
+    }
+
+    checker = CommentChecker::eIsNotComment;
+    return;
 }

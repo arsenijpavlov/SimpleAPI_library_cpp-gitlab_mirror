@@ -2,7 +2,7 @@
 #define COMMENT_H
 
 #include <string>
-
+#include <vector>
 #include <bits/shared_ptr.h>
 
 
@@ -37,6 +37,9 @@ struct CommentDesign {
     std::array<char,3>  multiline_comment_symbols;
     char                opt_multiline_border;
     uint8_t             opt_multiline_column_size;
+
+    std::vector<std::array<uint8_t, 2>> user_oneline_comment_braces;
+    std::vector<std::array<uint8_t, 3>> user_multiline_comment_braces;
 
     CommentDesign() :
         oneline_comment_symbols{'/', '/'},
@@ -116,28 +119,27 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
 std::string FromComment(const std::string &comment_string, CommentDesign& design) noexcept;
 
 
-enum class CommentType {
+enum class CommentType : uint8_t {
     eNotComment,
     eOneLineComment,
     eMultiLineComment
 };
 enum class CommentChecker : uint8_t {
-    isOnelineComment,
-    isMultilineComment,
-    isNotComment,
-    isCommentEnd    //последний требует continue!
+    eIsOnelineComment,
+    eIsMultilineComment,
+    eIsNotComment,
+    eIsCommentEnd       //последний требует continue!
 };
 
 void RemoveComments(std::string& str, bool& startComment, char& quote,
                     char& start_comment_sym, char& stop_comment_sym);
 
-CommentType CheckComment(char& first, const char second,
-                         size_t& iter_counter) noexcept;
+CommentType IsCommentStart(const char first, const char second,
+                           CommentDesign& design, size_t &iter_counter) noexcept;
 
-CommentChecker CheckComments(const char current_sym, const char next_sym,
-                             bool& is_one_line, bool& is_multi_line,
-                             char& first_ml_sym, char& second_ml_sym,
-                             const bool enable_comment, std::string& current_sym_comment_line,
-                             size_t& iter_counter, const bool external_flag = true);
+void CheckComments(const char current_sym, const char next_sym,
+                   CommentChecker& checker, const bool enable_comment,
+                   CommentDesign& design, std::string &current_sym_comment_line,
+                   size_t &iter_counter, const bool external_flag = true);
 
 #endif // COMMENT_H
