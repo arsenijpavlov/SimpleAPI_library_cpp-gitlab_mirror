@@ -17,7 +17,7 @@ enum class ConfigFormat {
 //======================================================================================= Format
 
 //Value type ===================================================================================
-enum ValueType {
+enum class ValueType {
     eNull,
     eNumber,
     eBool,
@@ -42,20 +42,13 @@ bool CreateEmptyFile(const std::string& file_path, const std::string& start_comm
                      const std::string& finish_comment, std::string* error_log = nullptr) noexcept;
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= WRITING
 
-ValueType CheckValue(std::string& value, const ConfigFormat& format) noexcept;
-
-bool CheckNumber(const std::string &value) noexcept;
-
-bool CheckBool(std::string& value) noexcept;
-
-bool CheckNull(std::string& value) noexcept;
-
-//TODO: CheckString(string)
-bool CheckString(std::string& value, const ConfigFormat& format) noexcept;
-
-bool CheckJson(std::string& value) noexcept;
-
-bool CheckArray(std::string& value) noexcept;
+static ValueType    CheckValue(std::string& value, const ConfigFormat& format = ConfigFormat::eJSON) noexcept;
+static bool         CheckNumber(const std::string& value) noexcept;
+static bool         CheckBool(std::string& value) noexcept;
+static bool         CheckNull(std::string& value) noexcept;
+static bool         CheckString(std::string& value, const ConfigFormat& format = ConfigFormat::eJSON) noexcept;
+static bool         CheckJson(std::string& value) noexcept;
+static bool         CheckArray(std::string& value, const ConfigFormat& format = ConfigFormat::eJSON) noexcept;
 
 
 #endif // JSON_COMMON_H

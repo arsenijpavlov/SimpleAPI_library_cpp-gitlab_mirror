@@ -610,13 +610,13 @@ std::string FromComment(const std::string& comment_string, uint8_t& column_size,
 
 
 // STATIC FUNCTIONS ============================================================================
-static ValueType    CheckValue(std::string& value, const ConfigFormat& format = ConfigFormat::eJSON) noexcept;
-static bool         CheckNumber(const std::string& value) noexcept;
-static bool         CheckBool(std::string& value) noexcept;
-static bool         CheckNull(std::string& value) noexcept;
-static bool         CheckString(std::string& value, const ConfigFormat& format = ConfigFormat::eJSON) noexcept;
-static bool         CheckJson(std::string& value) noexcept;
-static bool         CheckArray(std::string& value) noexcept;
+//static ValueType    CheckValue(std::string& value, const ConfigFormat& format = ConfigFormat::eJSON) noexcept;
+//static bool         CheckNumber(const std::string& value) noexcept;
+//static bool         CheckBool(std::string& value) noexcept;
+//static bool         CheckNull(std::string& value) noexcept;
+//static bool         CheckString(std::string& value, const ConfigFormat& format = ConfigFormat::eJSON) noexcept;
+//static bool         CheckJson(std::string& value) noexcept;
+//static bool         CheckArray(std::string& value) noexcept;
 //static void         RemoveIllegalSpaces(std::string& string) noexcept;
 // ============================================================================ STATIC FUNCTIONS
 
