@@ -15,6 +15,7 @@ protected:
 
 public:
     IElement() noexcept;
+    //TODO: конструкторы для всех подтипов
     virtual ~IElement() noexcept                                {}
 
     ValueType getType() const noexcept                          { return m_type; }

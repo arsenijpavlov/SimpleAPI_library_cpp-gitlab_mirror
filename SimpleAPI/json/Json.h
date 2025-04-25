@@ -94,14 +94,14 @@ struct Element {
                 Element(ValueType type, BaseElement* ptr) noexcept : first(type), second(ptr)
                                                                 {}
                 __ONLY_NUMBER_TYPES__(T)
-                Element(const T& value) noexcept : first(eNumber)
+                Element(const T& value) noexcept : first(ValueType::eNumber)
                                                                 { second = reinterpret_cast<BaseElement*>(
                                                                         new DoubleElement(static_cast<double>(value))); }
-                Element(const bool value) noexcept : first(eBool)
+                Element(const bool value) noexcept : first(ValueType::eBool)
                                                                 { second = reinterpret_cast<BaseElement*>(
                                                                         new BoolElement(value)); }
                 __ONLY_STRING_TYPES__(T)
-                Element(const T& value) noexcept : first(eString)
+                Element(const T& value) noexcept : first(ValueType::eString)
                                                                 { second = reinterpret_cast<BaseElement*>(
                                                                         new StringElement(std::string(value))); }
                 Element(const Json& value) noexcept;
@@ -286,7 +286,7 @@ public:
     Comment&    getOrCreateComment(const size_t index);
     //-----
     void        clearPreviewComment() noexcept                  { m_preview_comment.clear(); }
-    void        clearComment(const size_t index)                { m_comments.erase(m_values[index].first); }
+    void        clearComment(const size_t index)                { m_comments.erase(index); }
 };
 // ====================================================================================== JArray
 

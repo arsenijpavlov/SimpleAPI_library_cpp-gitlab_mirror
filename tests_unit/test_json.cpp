@@ -81,8 +81,8 @@ TEST(JSON, parse) {
     EXPECT_EQ(7, json.size());
     EXPECT_EQ(182, json["number"].getNum());
     EXPECT_EQ(true, json["bool"].getBool());
-    EXPECT_EQ(eNull, json["null"].first);
-    EXPECT_EQ(eNull, json["null2"].first);
+    EXPECT_EQ(ValueType::eNull, json["null"].first);
+    EXPECT_EQ(ValueType::eNull, json["null2"].first);
     EXPECT_EQ("string_value", json["string"].getString());
 
     EXPECT_EQ(2, json["json"].getJson().size());
@@ -137,7 +137,7 @@ TEST(JSON, parse_error) {
     string_json = "{key:15.4.3}";
     json.parseJSON(string_json);
     EXPECT_EQ(1, json.size());
-    EXPECT_EQ(eString, json[0].first);
+    EXPECT_EQ(ValueType::eString, json[0].first);
 
     //некорректное значение числа, пробелов нет ==> это строка!
     string_json = "{key:15e43}";
@@ -145,7 +145,7 @@ TEST(JSON, parse_error) {
         json.parseJSON(string_json);
     } catch(...) {}
     EXPECT_EQ(1, json.size());
-    EXPECT_EQ(eNumber, json[0].first);
+    EXPECT_EQ(ValueType::eNumber, json[0].first);
 
     //пробелы в значении bool
     string_json = "{key:tru e}";
@@ -158,7 +158,7 @@ TEST(JSON, parse_error) {
     string_json = "{key:truee}";
     json.parseJSON(string_json);
     EXPECT_EQ(1, json.size());
-    EXPECT_EQ(eString, json[0].first);
+    EXPECT_EQ(ValueType::eString, json[0].first);
 }
 
 TEST(JSON, write_file) {
@@ -472,7 +472,7 @@ TEST(JSON, check_numbers) {
 
     for(auto it = map_numbers.cbegin(); it != map_numbers.cend(); it++) {
         Json json("{number:" + it->first + "}");
-        EXPECT_EQ((json[0].first == eNumber), it->second);
+        EXPECT_EQ((json[0].first == ValueType::eNumber), it->second);
     }
 }
 

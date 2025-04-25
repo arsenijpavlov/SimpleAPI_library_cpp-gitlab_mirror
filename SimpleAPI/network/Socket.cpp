@@ -922,7 +922,7 @@ Json UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                 JArray requests = jm.m_json["get"].getArray();
                 for(auto it_req : requests) {
                     switch(it_req.first) {
-                    case eString: {
+                    case ValueType::eString: {
                         if(it_req.getString() == "chip_key") {
                             log(logs::eDEBUG, "append chiphering key");
                             Json jChipKey;
@@ -931,11 +931,11 @@ Json UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                         }
                         break;
                     }
-                    case eNumber:
-                    case eBool:
-                    case eJson:
-                    case eArray:
-                    case eNull:
+                    case ValueType::eNumber:
+                    case ValueType::eBool:
+                    case ValueType::eJson:
+                    case ValueType::eArray:
+                    case ValueType::eNull:
                         break;
                     }
                 }

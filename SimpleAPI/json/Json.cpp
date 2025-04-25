@@ -30,22 +30,22 @@ Element::Element(const JArray& value) noexcept : first(ValueType::eArray) {
 Element::Element(const Element &other) noexcept {
     first = other.first;
     switch(first) {
-    case eNumber:
+    case ValueType::eNumber:
         second = reinterpret_cast<BaseElement*>(new DoubleElement(other.getNum()));
         break;
-    case eBool:
+    case ValueType::eBool:
         second = reinterpret_cast<BaseElement*>(new BoolElement(other.getBool()));
         break;
-    case eString:
+    case ValueType::eString:
         second = reinterpret_cast<BaseElement*>(new StringElement(other.getString()));
         break;
-    case eJson:
+    case ValueType::eJson:
         second = reinterpret_cast<BaseElement*>(new JsonElement(other.getJson()));
         break;
-    case eArray:
+    case ValueType::eArray:
         second = reinterpret_cast<BaseElement*>(new JArrayElement(other.getArray()));
         break;
-    case eNull:
+    case ValueType::eNull:
         second = reinterpret_cast<BaseElement*>(new NullElement());
         break;
     }
@@ -55,20 +55,20 @@ bool Element::operator==(const Element &other) const noexcept {
     if(first != other.first) return false;
 
     switch(first) {
-    case eNull:                                 return true;
-    case eNumber:
+    case ValueType::eNull:                                 return true;
+    case ValueType::eNumber:
         if(getNum() == other.getNum())          return true;
         break;
-    case eBool:
+    case ValueType::eBool:
         if(getBool() == other.getBool())        return true;
         break;
-    case eString:
+    case ValueType::eString:
         if(getString() == other.getString())    return true;
         break;
-    case eJson:
+    case ValueType::eJson:
         if(getJson() == other.getJson())        return true;
         break;
-    case eArray:
+    case ValueType::eArray:
         if(getArray() == other.getArray())      return true;
         break;
     }
@@ -82,22 +82,22 @@ Element &Element::operator=(const Element &other) noexcept {
     delete second;
     first = other.first;
     switch(first) {
-    case eNumber:
+    case ValueType::eNumber:
         second = reinterpret_cast<BaseElement*>(new DoubleElement(other.getNum()));
         break;
-    case eBool:
+    case ValueType::eBool:
         second = reinterpret_cast<BaseElement*>(new BoolElement(other.getBool()));
         break;
-    case eString:
+    case ValueType::eString:
         second = reinterpret_cast<BaseElement*>(new StringElement(other.getString()));
         break;
-    case eJson:
+    case ValueType::eJson:
         second = reinterpret_cast<BaseElement*>(new JsonElement(other.getJson()));
         break;
-    case eArray:
+    case ValueType::eArray:
         second = reinterpret_cast<BaseElement*>(new JArrayElement(other.getArray()));
         break;
-    case eNull:
+    case ValueType::eNull:
         second = reinterpret_cast<BaseElement*>(new NullElement());
         break;
     }
@@ -123,37 +123,37 @@ Element &Element::operator[](const size_t index) {
 
 double &Element::getNum() const {
     if(first != ValueType::eNumber)
-        throw std::invalid_argument("This element is not a 'Number' type: " + to_string(first));
+        throw std::invalid_argument("This element is not a 'Number' type: " + ToString(first));
     return reinterpret_cast<DoubleElement*>(second)->m_value;
 }
 
 bool &Element::getBool() const {
     if(first != ValueType::eBool)
-        throw std::invalid_argument("This element is not a 'Bool' type: " + to_string(first));
+        throw std::invalid_argument("This element is not a 'Bool' type: " + ToString(first));
     return reinterpret_cast<BoolElement*>(second)->m_value;
 }
 
 std::string &Element::getString() const {
     if(first != ValueType::eString)
-        throw std::invalid_argument("This element is not a 'String' type: " + to_string(first));
+        throw std::invalid_argument("This element is not a 'String' type: " + ToString(first));
     return reinterpret_cast<StringElement*>(second)->m_value;
 }
 
 Json &Element::getJson() const {
     if(first != ValueType::eJson)
-        throw std::invalid_argument("This element is not a 'Json' type: " + to_string(first));
+        throw std::invalid_argument("This element is not a 'Json' type: " + ToString(first));
     return reinterpret_cast<JsonElement*>(second)->m_value;
 }
 
 JArray &Element::getArray() const {
     if(first != ValueType::eArray)
-        throw std::invalid_argument("This element is not a 'JArray' type: " + to_string(first));
+        throw std::invalid_argument("This element is not a 'JArray' type: " + ToString(first));
     return reinterpret_cast<JArrayElement*>(second)->m_value;
 }
 
 bool Element::readFile(const std::string& path, const bool enable_comment,
                            const ConfigFormat config_format) noexcept {
-    try{
+    try {
         switch(config_format) {
         case ConfigFormat::eJSON:   return readFileJSON(path, enable_comment);
         case ConfigFormat::eYAML:   return readFileYAML(path, enable_comment);
@@ -166,7 +166,7 @@ bool Element::readFile(const std::string& path, const bool enable_comment,
 }
 
 bool Element::readFileJSON(const std::string &path, const bool enable_comment) noexcept {
-    try{
+    try {
         *this = ReadFileJSON(path, enable_comment);
     } catch (...) {
         return false;
@@ -175,7 +175,7 @@ bool Element::readFileJSON(const std::string &path, const bool enable_comment) n
 }
 
 bool Element::readFileYAML(const std::string &path, const bool enable_comment) noexcept {
-    try{
+    try {
         *this = ReadFileYAML(path, enable_comment);
     } catch (...) {
         return false;
@@ -184,7 +184,7 @@ bool Element::readFileYAML(const std::string &path, const bool enable_comment) n
 }
 
 bool Element::readFileINI(const std::string &path, const bool enable_comment) noexcept {
-    try{
+    try {
         *this = ReadFileINI(path, enable_comment);
     } catch (...) {
         return false;
@@ -194,7 +194,7 @@ bool Element::readFileINI(const std::string &path, const bool enable_comment) no
 
 bool Element::writeFile(const std::string& path, const bool enable_comment,
                             const ConfigFormat config_format) const noexcept {
-    try{
+    try {
         switch(config_format) {
         case ConfigFormat::eJSON:   return writeFileJSON(path, enable_comment);
         case ConfigFormat::eYAML:   return writeFileYAML(path, enable_comment);
@@ -220,7 +220,7 @@ bool Element::writeFileINI(const std::string &path, const bool enable_comment) c
 
 Element Parse(const std::string& element_string, const ConfigFormat config_format,
                const bool enable_comment) noexcept {
-    try{
+    try {
         switch(config_format) {
         case ConfigFormat::eJSON:   return ParseJSON(element_string, enable_comment);
         case ConfigFormat::eYAML:   return ParseYAML(element_string, enable_comment);
@@ -267,7 +267,7 @@ Element ParseINI(const std::string& element_string, const bool enable_comment) n
 
 Element ReadFile(const std::string& path, const bool enable_comment,
                   const ConfigFormat config_format) noexcept {
-    try{
+    try {
         switch(config_format) {
         case ConfigFormat::eJSON:   return ReadFileJSON(path, enable_comment);
         case ConfigFormat::eYAML:   return ReadFileYAML(path, enable_comment);
@@ -302,7 +302,7 @@ Element ReadFileINI(const std::string& path, const bool enable_comment) noexcept
 
 bool WriteFile(const std::string& path, const Element& element,
                const bool enable_comment, const ConfigFormat config_format) noexcept {
-    try{
+    try {
         switch(config_format) {
         case ConfigFormat::eJSON:   return WriteFileJSON(path, element, enable_comment);
         case ConfigFormat::eYAML:   return WriteFileYAML(path, element, enable_comment);
@@ -330,7 +330,7 @@ bool WriteFileINI(const std::string& path, const Element& element,
 }
 // ===================================================================================== Element
 //bool GetAllStringsFromFile(const std::string& path, std::string& dest_string) noexcept {
-//    try{
+//    try {
 //        std::ifstream file(path);
 //        if (!file.is_open()) {
 //            std::cout << "File not found" << std::endl;
@@ -350,7 +350,7 @@ bool WriteFileINI(const std::string& path, const Element& element,
 //}
 
 bool WriteStringToFile(const std::string& path, const std::string& source_string) noexcept {
-    try{
+    try {
         std::ofstream file(path);
         if (!file.is_open()) {
             std::cout << "File not found" << std::endl;
@@ -446,10 +446,10 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
         //поиск комментариев
         const bool ext_f = !isQuotes && value_format != VALUE_ARRAY && value_format != VALUE_JSON;
         CommentChecker c_checker = c_checker = CheckComments(current, next,
-                                                                           isOneLineComment, IsMultiLineComment,
-                                                                           firstMLCSym, secondMLCSym,
-                                                                           enable_comment, currentComment,
-                                                                           i, ext_f);
+                                                             isOneLineComment, IsMultiLineComment,
+                                                             firstMLCSym, secondMLCSym,
+                                                             enable_comment, currentComment,
+                                                             i, ext_f);
         if(c_checker != CommentChecker::isNotComment) {
             //сюда зайдёт, если внутри комментария
             //счётчик строк и столбцов =============================================
@@ -596,7 +596,7 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
                 switch(value_format) {
                 case VALUE_OTHER: {
                     switch(CheckValue(value_string)) {
-                    case eNumber:   {
+                    case ValueType::eNumber:   {
                         double num;
                         try {
                             push_back(std::stod(value_string));
@@ -606,7 +606,7 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
 
                         break;
                     }
-                    case eBool:     {
+                    case ValueType::eBool:     {
                         if(utils::IsBool(value_string))
                             push_back(utils::ToBool(value_string));
                         else
@@ -614,12 +614,12 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
 
                         break;
                     }
-                    case eNull:     {
+                    case ValueType::eNull:     {
                         push_back(Element());
 
                         break;
                     }
-                    case eString:   {
+                    case ValueType::eString:   {
                         push_back(value_string);
                         break;
                     }
@@ -752,12 +752,12 @@ void JArray::parseINI_array(const std::string &string_of_array, const bool enabl
 JArray &JArray::append(const JArray &array) noexcept {
     for(const Element& el : array.m_values) {
         switch(el.first) {
-        case eNumber:   push_back(el.getNum());     break;
-        case eBool:     push_back(el.getBool());    break;
-        case eString:   push_back(el.getString());  break;
-        case eJson:     push_back(el.getJson());    break;
-        case eArray:    push_back(el.getArray());   break;
-        case eNull:     push_back(Element());       break;
+        case ValueType::eNumber:   push_back(el.getNum());     break;
+        case ValueType::eBool:     push_back(el.getBool());    break;
+        case ValueType::eString:   push_back(el.getString());  break;
+        case ValueType::eJson:     push_back(el.getJson());    break;
+        case ValueType::eArray:    push_back(el.getArray());   break;
+        case ValueType::eNull:     push_back(Element());       break;
         }
     }
 
@@ -1015,8 +1015,8 @@ Element &JArray::operator[](const std::vector<std::string> &complex_key) {
             auto new_complex_key = complex_key;
             new_complex_key.erase(new_complex_key.begin());
             switch(el.first) {
-            case eJson:     return (*this)[index].getJson()[new_complex_key];
-            case eArray:    return (*this)[index].getArray()[new_complex_key];
+            case ValueType::eJson:     return (*this)[index].getJson()[new_complex_key];
+            case ValueType::eArray:    return (*this)[index].getArray()[new_complex_key];
             default: __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__
             }
         }
@@ -1104,7 +1104,7 @@ Json::Json(const JVector &vec) noexcept : m_comment_sym(0) {
 //NOTE: Json(Element) актуально только для Element == Json, для всех остальных вернёт пустой объект
 Json::Json(const Element &element) noexcept {
     switch(element.first) {
-    case eJson: *this = element.getJson();
+    case ValueType::eJson: *this = element.getJson();
     default: break;
     }
 }
@@ -1464,7 +1464,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
                 switch(value_format) {
                 case VALUE_OTHER: {
                     switch(CheckValue(value_string)) {
-                    case eNumber:   {
+                    case ValueType::eNumber:   {
                         double num;
                         try {
                             put(key_string, std::stod(value_string));
@@ -1474,7 +1474,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 
                         break;
                     }
-                    case eBool:     {
+                    case ValueType::eBool:     {
                         if(utils::IsBool(value_string))
                             put(key_string, utils::ToBool(value_string));
                         else
@@ -1482,12 +1482,12 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 
                         break;
                     }
-                    case eNull:     {
+                    case ValueType::eNull:     {
                         put(key_string, Element());
 
                         break;
                     }
-                    case eString:   {
+                    case ValueType::eString:   {
                         put(key_string, value_string);
                         break;
                     }
@@ -1682,15 +1682,15 @@ Json *GetObjectForIniCustomKey(Json* json, std::vector<std::string> &keys) noexc
     if(keys.size() == 1) {
         if(json->contains(keys[0])) {
             switch((*json)[keys[0]].first) {
-            case eJson: return &(*json)[keys[0]].getJson();
-            case eNull:
+            case ValueType::eJson: return &(*json)[keys[0]].getJson();
+            case ValueType::eNull:
             default: {
                 Element temp_e = (*json)[keys[0]];
                 JArray temp_ja(temp_e);
                 json->updateValue(keys[0], temp_ja);
                 break;
             }
-            case eArray: break;
+            case ValueType::eArray: break;
             }
         } else {
             json->put(keys[0], nullptr);
@@ -1704,11 +1704,11 @@ Json *GetObjectForIniCustomKey(Json* json, std::vector<std::string> &keys) noexc
         Json* next_json = json;
         if(json->contains(current_key)) {
             switch((*json)[current_key].first) {
-            case eJson: {
+            case ValueType::eJson: {
                 next_json = &(*json)[current_key].getJson();
                 break;
             }
-            case eNull: {
+            case ValueType::eNull: {
                 json->updateValue(current_key, Json());
                 next_json = &(*json)[current_key].getJson();
                 break;
@@ -1724,7 +1724,7 @@ Json *GetObjectForIniCustomKey(Json* json, std::vector<std::string> &keys) noexc
                 next_json = &(*json)[current_key].getArray().getBack().getJson();
                 break;
             }
-            case eArray: {
+            case ValueType::eArray: {
                 JArray& temp_ja = (*json)[current_key].getArray();
                 //создаём поле для следующего ключа в списке
 //                temp_ja.push_back(Json(std::make_pair(keys[0], nullptr))); //такая логика ломает парсинг
@@ -1967,12 +1967,12 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
 
                         //TEST: применить настройки комментариев от корневого объекта
                         switch(new_value.first) {
-                        case eJson: {
+                        case ValueType::eJson: {
                             new_value.getJson().setCommentColumnSize(m_comment_column_size);
                             new_value.getJson().setCommentSymbol(m_comment_sym);
                             break;
                         }
-                        case eArray: {
+                        case ValueType::eArray: {
                             new_value.getArray().setCommentColumnSize(m_comment_column_size);
                             new_value.getArray().setCommentSymbol(m_comment_sym);
                                 break;
@@ -1983,13 +1983,13 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
                         //упаковка значений
                         if(current_object->contains(inner_keys.back())) {
                             switch(result_object[inner_keys.back()].first) {
-                            case eNull: { //перезапись значения
+                            case ValueType::eNull: { //перезапись значения
                                 result_object.updateValue(inner_keys.back(), new_value);
                                 break;
                             }
-                            case eArray:{ //дополнить список
+                            case ValueType::eArray:{ //дополнить список
                                 if(result_object[inner_keys.back()].getArray().size() == 1
-                                    && result_object[inner_keys.back()].getArray()[0].first == eNull) {
+                                    && result_object[inner_keys.back()].getArray()[0].first == ValueType::eNull) {
                                     result_object[inner_keys.back()] = JArray(new_value);
                                 } else
                                     result_object[inner_keys.back()].getArray().push_back(new_value);
@@ -2049,7 +2049,7 @@ bool Json::readFile(const std::string& path, const bool enable_comment,
                     const ConfigFormat config_format) noexcept {
     std::string config_str;
 
-    try{
+    try {
         std::ifstream file(path);
         if (!file.is_open()) {
             std::cout << "File not found" << std::endl;
@@ -2066,7 +2066,7 @@ bool Json::readFile(const std::string& path, const bool enable_comment,
     }
 
     //обработка
-    try{
+    try {
         switch(config_format) {
         case ConfigFormat::eJSON:   parseJSON(config_str, enable_comment);  break;
         case ConfigFormat::eYAML:   parseYAML(config_str, enable_comment);  break;
@@ -2247,7 +2247,7 @@ std::string PrintRecursiveIniElements(const ConfigFormat cfg, const Element& el,
         key += "/";
 
     switch(el.first) {
-    case eJson: {
+    case ValueType::eJson: {
         if(key.empty()) {
             JArray temp_array; // array of Json: { "value" : value, "keys" : [key, key...] }
             std::set<std::string> known_keys;
@@ -2255,8 +2255,8 @@ std::string PrintRecursiveIniElements(const ConfigFormat cfg, const Element& el,
             for(JPair& jp : el.getJson()) {
                 //списки элементов будут обработаны обычным методом
                 //комментарии имеют локальный характер
-                if(jp.second.first != eJson && jp.second.first != eArray
-                    || (jp.second.first == eString && el.getJson().getComment(jp.first).isEmpty())
+                if(jp.second.first != ValueType::eJson && jp.second.first != ValueType::eArray
+                    || (jp.second.first == ValueType::eString && el.getJson().getComment(jp.first).isEmpty())
                     ) {
                     //TODO: JArray.find(const Element) JArray.findOrCreate(const Element)
                     bool found = false;
@@ -2298,7 +2298,7 @@ std::string PrintRecursiveIniElements(const ConfigFormat cfg, const Element& el,
         }
         break;
     }
-    case eArray: {
+    case ValueType::eArray: {
         for(const Element& e : el.getArray()) {
             ret += PrintRecursiveIniElements(cfg, e, enable_comment, key);
         }
@@ -2325,12 +2325,12 @@ std::string PrintRecursiveIniElements(const ConfigFormat cfg, const JPair& jp,
         key += "/";
 
     switch(jp.second.first) {
-    case eJson: {
+    case ValueType::eJson: {
         if(ret.back() != '\n') ret += "\n";
         ret += PrintRecursiveIniElements(cfg, jp.second, enable_comment, key + jp.first);
         break;
     }
-    case eArray: {
+    case ValueType::eArray: {
         ret += PrintRecursiveIniElements(cfg, jp.second, enable_comment, "\t" + jp.first);
         break;
     }
@@ -2351,14 +2351,14 @@ std::string Json::toIniString(int16_t tabulation_level, const bool enable_commen
 
     for(const JPair& jp : m_values) {
         const Comment& cmt = getComment(jp.first);
-        if(jp.second.first != eJson)
+        if(jp.second.first != ValueType::eJson)
             ret += PrintRecursiveIniElements(ConfigFormat::eINI, jp, enable_comment);
     }
     ret += "\n";
 
     for(const JPair& jp : m_values) {
         const Comment& cmt = getComment(jp.first);
-        if(jp.second.first == eJson) {
+        if(jp.second.first == ValueType::eJson) {
             ret += "[" + jp.first + "]\n";
             ret += PrintRecursiveIniElements(ConfigFormat::eINI, jp.second, enable_comment);
             ret += "\n";
@@ -2428,8 +2428,8 @@ Element &Json::operator[](const std::vector<std::string> &complex_key) {
             auto new_complex_key = complex_key;
             new_complex_key.erase(new_complex_key.begin());
             switch(el.first) {
-            case eJson:     return (*this)[key].getJson()[new_complex_key];
-            case eArray:    return (*this)[key].getArray()[new_complex_key];
+            case ValueType::eJson:     return (*this)[key].getJson()[new_complex_key];
+            case ValueType::eArray:    return (*this)[key].getArray()[new_complex_key];
             default: __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__
             }
         }
@@ -2451,8 +2451,8 @@ Element &Json::operator[](const std::vector<std::string> &complex_key) {
             auto new_complex_key = complex_key;
             new_complex_key.erase(new_complex_key.begin());
             switch(el.first) {
-            case eJson:     return (*this)[index].getJson()[new_complex_key];
-            case eArray:    return (*this)[index].getArray()[new_complex_key];
+            case ValueType::eJson:     return (*this)[index].getJson()[new_complex_key];
+            case ValueType::eArray:    return (*this)[index].getArray()[new_complex_key];
             default: __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__
             }
         }
@@ -2545,11 +2545,11 @@ Comment &Json::getOrCreateComment(const size_t index) {
 //TODO: checkValue(string), возможно лишняя теперь
 ValueType CheckValue(std::string& value, const ConfigFormat& format) noexcept {
     //    std::cout << "CheckValue(): \"" << value << "\"" << std::endl;
-    if(value.empty()) return eNull;
+    if(value.empty()) return ValueType::eNull;
 
     bool isValue = false;
     std::string _value;
-    ValueType vType = eNull;
+    ValueType vType = ValueType::eNull;
     for(size_t i = 0; i < value.length(); i++) {
         if(vType == ValueType::eNull) {
             //удалить пустоту в начале и конце строки

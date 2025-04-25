@@ -19,10 +19,10 @@ TEST(ELEMENT, create_num) {
     Element el_uint(11);
     Element el_float(11.f);
 
-    EXPECT_EQ(eNumber,  el_int.first);
-    EXPECT_EQ(eNumber,  el_double.first);
-    EXPECT_EQ(eNumber,  el_uint.first);
-    EXPECT_EQ(eNumber,  el_float.first);
+    EXPECT_EQ(ValueType::eNumber,  el_int.first);
+    EXPECT_EQ(ValueType::eNumber,  el_double.first);
+    EXPECT_EQ(ValueType::eNumber,  el_uint.first);
+    EXPECT_EQ(ValueType::eNumber,  el_float.first);
 }
 
 TEST(ELEMENT, create_srting) {
@@ -31,35 +31,35 @@ TEST(ELEMENT, create_srting) {
     const char* chr = "asd";
     Element el_char_star(chr);
 
-    EXPECT_EQ(eString, el_string.first);
-    EXPECT_EQ(eString, el_char_arr.first);
-    EXPECT_EQ(eString, el_char_star.first);
+    EXPECT_EQ(ValueType::eString, el_string.first);
+    EXPECT_EQ(ValueType::eString, el_char_arr.first);
+    EXPECT_EQ(ValueType::eString, el_char_star.first);
 }
 
 TEST(ELEMENT, create_bool) {
     Element el_bool(true);
 
-    EXPECT_EQ(eBool, el_bool.first);
+    EXPECT_EQ(ValueType::eBool, el_bool.first);
 }
 
 TEST(ELEMENT, create_null) {
     Element el_null;
 
-    EXPECT_EQ(eNull,    el_null.first);
+    EXPECT_EQ(ValueType::eNull,    el_null.first);
 }
 
 TEST(ELEMENT, create_json) {
     Json js;
     Element el_json(js);
 
-    EXPECT_EQ(eJson, el_json.first);
+    EXPECT_EQ(ValueType::eJson, el_json.first);
 }
 
 TEST(ELEMENT, create_array) {
     JArray ar;
     Element el_array(ar);
 
-    EXPECT_EQ(eArray, el_array.first);
+    EXPECT_EQ(ValueType::eArray, el_array.first);
 }
 
 TEST(ELEMENT, compare_all_types) {
@@ -69,11 +69,11 @@ TEST(ELEMENT, compare_all_types) {
     Element el_json(Json{});
     Element el_array(JArray{});
 
-    EXPECT_EQ(el_num.first,     eNumber);
-    EXPECT_EQ(el_bool.first,    eBool);
-    EXPECT_EQ(el_string.first,  eString);
-    EXPECT_EQ(el_json.first,    eJson);
-    EXPECT_EQ(el_array.first,   eArray);
+    EXPECT_EQ(el_num.first,     ValueType::eNumber);
+    EXPECT_EQ(el_bool.first,    ValueType::eBool);
+    EXPECT_EQ(el_string.first,  ValueType::eString);
+    EXPECT_EQ(el_json.first,    ValueType::eJson);
+    EXPECT_EQ(el_array.first,   ValueType::eArray);
 
     EXPECT_EQ(el_num,   Element(15.0));
     EXPECT_EQ(el_bool,  Element(true));
@@ -89,11 +89,11 @@ TEST(ELEMENT, not_compare_all_types) {
     Element el_json(Json{});
     Element el_array(JArray{});
 
-    EXPECT_EQ(el_num.first,     eNumber);
-    EXPECT_EQ(el_bool.first,    eBool);
-    EXPECT_EQ(el_string.first,  eString);
-    EXPECT_EQ(el_json.first,    eJson);
-    EXPECT_EQ(el_array.first,   eArray);
+    EXPECT_EQ(el_num.first,     ValueType::eNumber);
+    EXPECT_EQ(el_bool.first,    ValueType::eBool);
+    EXPECT_EQ(el_string.first,  ValueType::eString);
+    EXPECT_EQ(el_json.first,    ValueType::eJson);
+    EXPECT_EQ(el_array.first,   ValueType::eArray);
 
     EXPECT_NE(el_num,   Element(1.0));
     EXPECT_NE(el_bool,  Element(false));
