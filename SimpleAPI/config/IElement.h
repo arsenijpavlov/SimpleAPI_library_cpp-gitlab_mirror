@@ -43,13 +43,13 @@ private:
     void setValue(const std::string& value) noexcept;
 public:
 
-    ValueType   getType() const noexcept                    { return m_type; }
-    bool        isNull() const noexcept                     { return getType() == ValueType::eNull; }
-    bool        isBool() const noexcept                     { return getType() == ValueType::eBool; }
-    bool        isNumber() const noexcept                   { return getType() == ValueType::eNumber; }
-    bool        isString() const noexcept                   { return getType() == ValueType::eString; }
-    bool        isArray() const noexcept                    { return getType() == ValueType::eArray; }
-    bool        isJson() const noexcept                     { return getType() == ValueType::eJson; }
+    ValueType   getType() const noexcept                        { return m_type; }
+    bool        isNull() const noexcept                         { return getType() == ValueType::eNull; }
+    bool        isBool() const noexcept                         { return getType() == ValueType::eBool; }
+    bool        isNumber() const noexcept                       { return getType() == ValueType::eNumber; }
+    bool        isString() const noexcept                       { return getType() == ValueType::eString; }
+    bool        isArray() const noexcept                        { return getType() == ValueType::eArray; }
+    bool        isJson() const noexcept                         { return getType() == ValueType::eJson; }
 
     bool            getBool() const;
     bool&           getBool();
