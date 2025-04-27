@@ -91,6 +91,7 @@ public:
     //SETTERS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     //NOTE: если индекс больше количества вложенных элементов, то добавятся в конец
     ElementArray&   append(const IElement& element) noexcept    { return push_back(element); }
+    ElementArray&   appendArray(const ElementArray& array) noexcept;
     ElementArray&   push_front(const IElement& element) noexcept;
     ElementArray&   push_at(const IElement& element, const size_t index);
     ElementArray&   push_back(const IElement& element) noexcept;

@@ -54,8 +54,8 @@ void ElementArray::parseJsonArray(const std::string &string, const bool enable_c
     Comment     value_comment;
     IElement    value_element;
 
-    uint16_t line_counter   = 0; //NOTE: (JArray) ограничение на FFFF строк
-    uint16_t symbol_counter = 0; //NOTE: (JArray) ограничение на FFFF символов в строке
+    uint16_t line_counter   = 0; //NOTE: (ElementArray) ограничение на FFFF строк
+    uint16_t symbol_counter = 0; //NOTE: (ElementArray) ограничение на FFFF символов в строке
 
     enum State {
         ARRAY_START,
@@ -95,11 +95,11 @@ void ElementArray::parseJsonArray(const std::string &string, const bool enable_c
      * конец массива
     */
 
-    CommentChecker comment_checker;
+    CommentChecker comment_checker = CommentChecker::eIsNotComment;
     for(size_t i = 0; i < string.size(); i++) {
         char previous_ch    = i == 0 ? 0 : string[i - 1];
         char current_ch     = string[i];
-        char next_ch        = i < string.size() ? string[i] : 0;
+        char next_ch        = i < string.size() ? string[i + 1] : 0;
 
         //счётчик строк и столбцов =============================================
         auto Counter = [&]() {
@@ -135,7 +135,7 @@ void ElementArray::parseJsonArray(const std::string &string, const bool enable_c
             if(!current_comment.empty() && enable_comment) {
                 addComment(FromComment(current_comment, comment_design));
                 current_comment.clear();
-//                std::cout << "JArray:PreviewComment: " << "\"" << current_comment << "\"" << std::endl;
+//                std::cout << "ElementArray:PreviewComment: " << "\"" << current_comment << "\"" << std::endl;
             } //================================= работа с комментариями (первичный)
 
             if(current_ch != '[') {
@@ -153,7 +153,7 @@ void ElementArray::parseJsonArray(const std::string &string, const bool enable_c
                 if(!current_comment.empty() && enable_comment) {
                     add_suffix_comment(m_values.size() - 1, FromComment(current_comment, comment_design));
                     current_comment.clear();
-//                    std::cout << "JArray:comment:after: " << "\"" << current_comment << "\"" << std::endl;
+//                    std::cout << "ElementArray:comment:after: " << "\"" << current_comment << "\"" << std::endl;
                 } //======================== работа с комментариями (после значения #2)
                 is_value_comment_after_saved = true;
                 break;
@@ -334,7 +334,7 @@ void ElementArray::parseJsonArray(const std::string &string, const bool enable_c
                 if(!current_comment.empty() && enable_comment) {
                     add_prefix_comment(m_values.size() - 1, FromComment(current_comment, comment_design));
                     current_comment.clear();
-//                    std::cout << "JArray:comment:before: " << "\"" << current_comment << "\"" << std::endl;
+//                    std::cout << "ElementArray:comment:before: " << "\"" << current_comment << "\"" << std::endl;
                 } //=========================== работа с комментариями (перед значением)
 
                 UpdateState(ARRAY_VALUE_SEPARATOR);
@@ -358,7 +358,7 @@ void ElementArray::parseJsonArray(const std::string &string, const bool enable_c
                 if(enable_comment && !current_comment.empty()) {
                     add_suffix_comment(m_values.size() - 1, FromComment(current_comment, comment_design));
                     current_comment.clear();
-//                    std::cout << "JArray:comment:after: " << "\"" << current_comment << "\"" << std::endl;
+//                    std::cout << "ElementArray:comment:after: " << "\"" << current_comment << "\"" << std::endl;
                 } //===================================================================
                 is_value_comment_after_saved = true;
             }
@@ -577,6 +577,12 @@ ValueType ElementArray::get_type_at(const size_t index) {
 ValueType ElementArray::get_type_back() {
     __CHECK_ARRAY_EMPTY_EXCEPTION__(m_values)
     return m_values.back().getType();
+}
+
+ElementArray &ElementArray::appendArray(const ElementArray &array) noexcept {
+    for(const IElement& element : array.m_values)
+        push_back(element);
+    return *this;
 }
 
 ElementArray& ElementArray::push_front(const IElement &element) noexcept {

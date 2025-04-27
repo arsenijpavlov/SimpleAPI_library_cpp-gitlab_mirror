@@ -355,7 +355,7 @@ bool CheckArray(std::string &value) noexcept {
                     i++;
                     continue;
                 } else {
-//                    std::cout << "Error with parse JArray in: [" << value[i] << "]" << std::endl;
+//                    std::cout << "Error with parse ElementArray in: [" << value[i] << "]" << std::endl;
                     return false;
                 }
             }
@@ -381,7 +381,7 @@ bool CheckArray(std::string &value) noexcept {
                 temp += value[i];
             } else { //замкнули слово, надо проверить оставшиеся символы
                 if(!CharsInString(value[i], __SPACES__)) {
-//                    std::cout << "Error with parse JArray in: [" << value[i] << "]" << std::endl;
+//                    std::cout << "Error with parse ElementArray in: [" << value[i] << "]" << std::endl;
                     return false;
                 }
             }

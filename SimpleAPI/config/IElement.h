@@ -28,7 +28,7 @@ public:
     __ONLY_STRING_TYPES__(T)
     IElement(const T& value) noexcept                           { setValue(std::string(value)); }
 //    Element(const Json& value) noexcept;
-//    Element(const JArray& value) noexcept;
+//    Element(const ElementArray& value) noexcept;
 //    Element(const Element& other) noexcept;
 
     virtual ~IElement() noexcept                                {}

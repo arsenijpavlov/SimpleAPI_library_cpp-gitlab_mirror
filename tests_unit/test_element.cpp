@@ -67,7 +67,7 @@ TEST(ELEMENT, create_array) {
 //    Element el_bool(true);
 //    Element el_string("true");
 //    Element el_json(Json{});
-//    Element el_array(JArray{});
+//    Element el_array(ElementArray{});
 
 //    EXPECT_EQ(el_num.first,     ValueType::eNumber);
 //    EXPECT_EQ(el_bool.first,    ValueType::eBool);
@@ -79,7 +79,7 @@ TEST(ELEMENT, create_array) {
 //    EXPECT_EQ(el_bool,  Element(true));
 //    EXPECT_EQ(el_string,Element("true"));
 //    EXPECT_EQ(el_json,  Element(Json{}));
-//    EXPECT_EQ(el_array, Element(JArray{}));
+//    EXPECT_EQ(el_array, Element(ElementArray{}));
 //}
 
 //TEST(ELEMENT, not_compare_all_types) {
@@ -87,7 +87,7 @@ TEST(ELEMENT, create_array) {
 //    Element el_bool(true);
 //    Element el_string("true");
 //    Element el_json(Json{});
-//    Element el_array(JArray{});
+//    Element el_array(ElementArray{});
 
 //    EXPECT_EQ(el_num.first,     ValueType::eNumber);
 //    EXPECT_EQ(el_bool.first,    ValueType::eBool);
@@ -99,7 +99,7 @@ TEST(ELEMENT, create_array) {
 //    EXPECT_NE(el_bool,  Element(false));
 //    EXPECT_NE(el_string,Element("asd"));
 //    EXPECT_NE(el_json,  Element(Json().put("asd", "asd")));
-//    EXPECT_NE(el_array, Element(JArray().push_front("asd")));
+//    EXPECT_NE(el_array, Element(ElementArray().push_front("asd")));
 //}
 
 //TODO: TEST(ELEMENT, read_file) {
