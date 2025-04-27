@@ -9,11 +9,13 @@ protected:
     long double m_value;
 
 public:
-    ElementNumber() noexcept : m_value(0)       { m_type = ValueType::eNumber; }
+    ElementNumber() noexcept : m_value(0)       { init(); }
     ElementNumber(const long double& num) noexcept : m_value(num)
-                                                { m_type = ValueType::eNumber; }
+                                                { init(); }
 //TODO: фича под вопросом    ElementNumber(const std::string& num) noexcept
     ~ElementNumber() noexcept {}
+
+    void init() noexcept 						{ m_type = ValueType::eNumber; }
 
     //PRINTING =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     //для рекурсивного вызова, без комментариев, в одну строку

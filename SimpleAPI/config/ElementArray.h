@@ -15,9 +15,12 @@ protected:
 public:
     ElementArray() noexcept                                     { init(); }
     template<typename ... Types>
-    ElementArray(const Types... args) noexcept {
+    ElementArray(Types&&... args) noexcept {
         init();
-        for(const IElement el : {IElement(args)...}) push_back(el);
+
+        //NOTE: без объявления массива не работает
+        int dummy[] = { (push_back(std::forward<Types>(args)), 0)... };
+        (void)dummy; // suppress unused variable warning
     }
     ElementArray(const std::string& string, const ConfigFormat format,
                  const bool enable_comments = false) noexcept;

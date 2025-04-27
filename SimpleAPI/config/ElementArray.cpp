@@ -57,22 +57,25 @@ void ElementArray::parseJsonArray(const std::string &string, const bool enable_c
     uint16_t line_counter   = 0; //NOTE: (ElementArray) ограничение на FFFF строк
     uint16_t symbol_counter = 0; //NOTE: (ElementArray) ограничение на FFFF символов в строке
 
-    enum State {
-        ARRAY_START,
-        ARRAY_VALUE,
-        ARRAY_VALUE_SEPARATOR,
-        ARRAY_FINISH
-    } state = ARRAY_START;
+    enum class State {
+        eARRAY_START,
+        eARRAY_VALUE,
+        eARRAY_VALUE_SEPARATOR,
+        eARRAY_FINISH
+    } state = State::eARRAY_START;
+
+    auto ToString = [](State state) {
+        switch(state) {
+        case State::eARRAY_START:           return "ARRAY_START";
+        case State::eARRAY_VALUE:           return "ARRAY_VALUE";
+        case State::eARRAY_VALUE_SEPARATOR: return "ARRAY_VALUE_SEPARATOR";
+        case State::eARRAY_FINISH:          return "ARRAY_FINISH";
+        default:                            return "UNKNOWN_STAGE";
+        }
+    };
     auto UpdateState = [&](State new_state) {
         state = new_state;
-        std::string state_str;
-        switch(new_state) {
-        case ARRAY_START:           state_str = "ARRAY_START";              break;
-        case ARRAY_VALUE:           state_str = "ARRAY_VALUE";              break;
-        case ARRAY_VALUE_SEPARATOR: state_str = "ARRAY_VALUE_SEPARATOR";    break;
-        case ARRAY_FINISH:          state_str = "ARRAY_FINISH";             break;
-        }
-//        std::cout << state_str << std::endl;
+//        std::cout << ToString(new_state) << std::endl;
     };
 
     enum ValueFormat {
@@ -126,7 +129,7 @@ void ElementArray::parseJsonArray(const std::string &string, const bool enable_c
 
         //работа с синтаксисом JSON_ARRAY
         switch(state) {
-        case ARRAY_START: {
+        case State::eARRAY_START: {
             //пропуск пробелов =====================================================
             if(CharsInString(current_ch, __SPACES__)) break;
             //===================================================== пропуск пробелов
@@ -142,11 +145,11 @@ void ElementArray::parseJsonArray(const std::string &string, const bool enable_c
                 is_critical_error = true;
                 break;
             }
-            UpdateState(ARRAY_VALUE);
+            UpdateState(State::eARRAY_VALUE);
 
             break;
         }
-        case ARRAY_VALUE: {
+        case State::eARRAY_VALUE: {
             //пропуск пробелов ====================================================
             if(current_ch == '\n' && !is_value_comment_after_saved) {
                 //работа с комментариями (после значения #2) ==========================
@@ -163,7 +166,7 @@ void ElementArray::parseJsonArray(const std::string &string, const bool enable_c
             //==================================================== пропуск пробелов
 
             if(current_ch == ']') {
-                UpdateState(ARRAY_FINISH);
+                UpdateState(State::eARRAY_FINISH);
                 break;
             }
 
@@ -337,13 +340,13 @@ void ElementArray::parseJsonArray(const std::string &string, const bool enable_c
 //                    std::cout << "ElementArray:comment:before: " << "\"" << current_comment << "\"" << std::endl;
                 } //=========================== работа с комментариями (перед значением)
 
-                UpdateState(ARRAY_VALUE_SEPARATOR);
+                UpdateState(State::eARRAY_VALUE_SEPARATOR);
                 value_format = ValueFormat::VALUE_NOPE;
             } //======================================= обработка итогового значения
 
             break;
         }
-        case ARRAY_VALUE_SEPARATOR: {
+        case State::eARRAY_VALUE_SEPARATOR: {
             //пропуск пробелов ====================================================
             if(CharsInString(current_ch, __SPACES_WITHOUT_SEPARATORS__))
                 break;
@@ -362,7 +365,7 @@ void ElementArray::parseJsonArray(const std::string &string, const bool enable_c
                 } //===================================================================
                 is_value_comment_after_saved = true;
             }
-            UpdateState(current_ch == ']' ? ARRAY_FINISH : ARRAY_VALUE);
+            UpdateState(current_ch == ']' ? State::eARRAY_FINISH : State::eARRAY_VALUE);
 
             if(enable_comment && (!value_comment.prefix().empty() || !value_comment.suffix().empty())) {
                 add_comment(m_values.size() - 1, value_comment.prefix(), value_comment.suffix());
@@ -376,26 +379,18 @@ void ElementArray::parseJsonArray(const std::string &string, const bool enable_c
         }
 
         if(is_critical_error) {
-            std::string state_str = "";
-            switch(state) {
-            case ARRAY_START:           state_str = "JSON_START ";              break;
-            case ARRAY_VALUE:           state_str = "JSON_VALUE ";              break;
-            case ARRAY_VALUE_SEPARATOR: state_str = "JSON_ELEMENT_SEPARATOR ";  break;
-            case ARRAY_FINISH:          state_str = "JSON_FINISH ";             break;
-            }
 //            std::cout << "symbols: '" << previous << current << next << "'" << std::endl;
-
             clear();
             throw std::invalid_argument("JSON_ARRAY parse error at line "
                                         + std::to_string(line_counter) + ":" + std::to_string(symbol_counter)
-                                        + " '" + current_ch + "', current state:" + state_str);
+                                        + " '" + current_ch + "', current state:" + ToString(state));
         }
 
         Counter();
     }
 
 
-    if(state != ARRAY_FINISH) {
+    if(state != State::eARRAY_FINISH) {
         clear();
         throw std::invalid_argument("JSON_ARRAY parse error, end of JSON array structure not found");
     }

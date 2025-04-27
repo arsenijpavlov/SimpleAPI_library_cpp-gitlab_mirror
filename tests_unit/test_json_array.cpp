@@ -1,5 +1,4 @@
-#include "config/ElementArray.h"
-//#include <SimpleAPI.h>
+#include <SimpleAPI.h>
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
@@ -13,6 +12,7 @@ int main(int argc, char **argv)
 }
 
 //========================================================================================
+//TODO: проверка должна затрагивать все вариации значений (number, bool, string, array, json, null)
 ElementArray array_example("first", 2, 3.1, true);
 
 
@@ -20,6 +20,8 @@ TEST(ARRAY, copy) {
     ElementArray a1("asd", 123);
     ElementArray a2 = a1;
 
+    EXPECT_EQ(a2[0].getString(), a1[0].getString());
+    EXPECT_EQ(a2[1].getNumber(), a1[1].getNumber());
     EXPECT_EQ(a1.size(), a2.size());
 }
 
@@ -43,29 +45,29 @@ TEST(ARRAY, parse) {
     array.parseArray(string_array);
 
     EXPECT_EQ(3, array.size());
-//TODO:    EXPECT_EQ(15, array[0].getNum());
-//TODO:    EXPECT_EQ(true, array[1].getBool());
-//TODO:    EXPECT_EQ("string", array[2].getString());
+    EXPECT_EQ(15, array[0].getNumber());
+    EXPECT_EQ(true, array[1].getBool());
+    EXPECT_EQ("string", array[2].getString());
 }
 
-//TEST(ARRAY, parse_error) {
-//    //нет запятой между элементами
-//    std::string string_array = "[15 true, \"string\"]";
-//    ElementArray array;
-//    try {
-//        array.parseArray(string_array);
-//    } catch (...) {}
-//    EXPECT_EQ(0, array.size());
-//}
+TEST(ARRAY, parse_error) {
+    //нет запятой между элементами
+    std::string string_array = "[15 true, \"string\"]";
+    ElementArray array;
+    try {
+        array.parseArray(string_array);
+    } catch (...) {}
+    EXPECT_EQ(0, array.size());
+}
 
-//TEST(ARRAY, get_index) {
-//    ElementArray array = array_example;
+TEST(ARRAY, get_index) {
+    ElementArray array = array_example;
 
-//    EXPECT_EQ(array.getValue(0).getString(), "first");
-//    EXPECT_EQ(array.getValue(1).getNum(), 2);
-//    EXPECT_EQ(array.getValue(2).getNum(), 3.1);
-//    EXPECT_EQ(array.getValue(3).getBool(), true);
-//}
+    EXPECT_EQ(array.get_value(0).getString(), "first");
+    EXPECT_EQ(array.get_value(1).getNumber(), 2);
+    EXPECT_EQ(array.get_value(2).getNumber(), 3.1);
+    EXPECT_EQ(array.get_value(3).getBool(), true);
+}
 
 //TEST(ARRAY, get_complex_name) {
 //    Json j("json_num", 15);
@@ -76,27 +78,27 @@ TEST(ARRAY, parse) {
 //    EXPECT_EQ(15, d);
 //}
 
-//TEST(ARRAY, get_index_error) {
-//    ElementArray array = array_example;
+TEST(ARRAY, get_index_error) {
+    ElementArray array = array_example;
 
-//    try {
-//        array[5];
-//    } catch (std::out_of_range& e) {
-//        return SUCCEED();
-//    }
+    try {
+        array[5];
+    } catch (std::out_of_range& e) {
+        return SUCCEED();
+    }
 
-//    FAIL();
-//}
+    FAIL();
+}
 
-//TEST(ARRAY, insert) {
-//    ElementArray array = array_example;
+TEST(ARRAY, insert) {
+    ElementArray array = array_example;
 
-//    array.insert(1, "insert1");
-//    EXPECT_EQ(array[1].getString(), "insert1");
+    array.insert(1, "insert1");
+    EXPECT_EQ(array[1].getString(), "insert1");
 
-//    array.insert(array.begin() + 3, "insert2");
-//    EXPECT_EQ(array[3].getString(), "insert2");
-//}
+    array.insert(array.begin() + 3, "insert2");
+    EXPECT_EQ(array[3].getString(), "insert2");
+}
 
 //TEST(ARRAY, erase_it) {
 //    ElementArray array = array_example;

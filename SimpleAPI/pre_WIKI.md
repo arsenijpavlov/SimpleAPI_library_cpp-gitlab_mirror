@@ -16,3 +16,5 @@ ___
 2. пользовательские границы комментариев:
  - std::vector<std::array<uint8_t, 2>> user_oneline_comment_braces;
  - std::vector<std::array<uint8_t, 3>> user_multiline_comment_braces;
+3. Универсальная ссылка - сама по себе константа, квалификатор не нужен
+
