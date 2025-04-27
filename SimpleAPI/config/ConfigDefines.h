@@ -35,6 +35,13 @@
 //==========================================================================VALUES
 
 //EXEPTIONS=======================================================================
+#define __CHECK_TYPE_IS_NULL_EXCEPTION__    if(!isNull())   throw std::invalid_argument("This element is not a NULL type");
+#define __CHECK_TYPE_IS_BOOL_EXCEPTION__    if(!isBool())   throw std::invalid_argument("This element is not a BOOL type");
+#define __CHECK_TYPE_IS_NUMBER_EXCEPTION__  if(!isNumber()) throw std::invalid_argument("This element is not a NUMBER type");
+#define __CHECK_TYPE_IS_STRING_EXCEPTION__  if(!isString()) throw std::invalid_argument("This element is not a STRING type");
+#define __CHECK_TYPE_IS_ARRAY_EXCEPTION__   if(!isArray())  throw std::invalid_argument("This element is not a ARRAY type");
+#define __CHECK_TYPE_IS_JSON_EXCEPTION__    if(!isJson())   throw std::invalid_argument("This element is not a JSON type");
+
 #define __IF_INDEX_NOT_BOUND__(object, index)   if(index + 1 <= object->size())
 #define __IF_INDEX_NOT_BOUND2__(object, index)  if(index + 1 <= object.size())
 

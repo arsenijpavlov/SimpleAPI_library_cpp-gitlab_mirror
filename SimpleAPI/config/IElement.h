@@ -9,6 +9,10 @@
 #include <vector>
 
 
+//предобъявление
+class ElementArray;
+class ElementJson;
+
 //базовый класс
 //NOTE: равносилен ELEMENT_NULL
 class IElement {
@@ -39,7 +43,24 @@ private:
     void setValue(const std::string& value) noexcept;
 public:
 
-    ValueType getType() const noexcept                          { return m_type; }
+    ValueType   getType() const noexcept                    { return m_type; }
+    bool        isNull() const noexcept                     { return getType() == ValueType::eNull; }
+    bool        isBool() const noexcept                     { return getType() == ValueType::eBool; }
+    bool        isNumber() const noexcept                   { return getType() == ValueType::eNumber; }
+    bool        isString() const noexcept                   { return getType() == ValueType::eString; }
+    bool        isArray() const noexcept                    { return getType() == ValueType::eArray; }
+    bool        isJson() const noexcept                     { return getType() == ValueType::eJson; }
+
+    bool            getBool() const;
+    bool&           getBool();
+    long double     getNumber() const;
+    long double&    getNumber();
+    std::string     getString() const;
+    std::string&    getString();
+    ElementArray    getArray() const;
+    ElementArray&   getArray();
+//TODO:    ElementJson     getJson() const;
+//TODO:    ElementJson&    getJson();
 
     //WRITING -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     //return - удалось записать файл или нет

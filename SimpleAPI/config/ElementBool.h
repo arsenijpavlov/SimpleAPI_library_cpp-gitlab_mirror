@@ -25,6 +25,8 @@ public:
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
 
     bool        getValue() const noexcept           { return m_value; }
+    bool&       getValue() noexcept                 { return m_value; }
+
     bool        isEqual(const IElement& other, const bool compare_comments = false) const noexcept override;
 
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=

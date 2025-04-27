@@ -3,10 +3,10 @@
 #include "../utils/Utils.h"
 
 #include "ElementBool.h"
-#include "ElementString.h"
 #include "ElementNumber.h"
-#include "ElementJson.h"
+#include "ElementString.h"
 #include "ElementArray.h"
+#include "ElementJson.h"
 
 
 IElement::IElement(const IElement &other) noexcept {
@@ -25,6 +25,58 @@ void IElement::setValue(const bool &value) noexcept {
 void IElement::setValue(const std::string &value) noexcept {
     *this = static_cast<IElement>(ElementString(value));
 }
+
+bool IElement::getBool() const {
+    __CHECK_TYPE_IS_BOOL_EXCEPTION__
+    return static_cast<const ElementBool*>(this)->getValue();
+}
+
+bool& IElement::getBool() {
+    __CHECK_TYPE_IS_BOOL_EXCEPTION__
+    return static_cast<ElementBool*>(this)->getValue();
+}
+
+long double IElement::getNumber() const {
+    __CHECK_TYPE_IS_NUMBER_EXCEPTION__
+    return static_cast<const ElementNumber*>(this)->getValue();
+}
+
+long double& IElement::getNumber() {
+    __CHECK_TYPE_IS_NUMBER_EXCEPTION__
+    return static_cast<ElementNumber*>(this)->getValue();
+}
+
+std::string IElement::getString() const {
+    __CHECK_TYPE_IS_STRING_EXCEPTION__
+    return static_cast<const ElementString*>(this)->getValue();
+}
+
+std::string& IElement::getString() {
+    __CHECK_TYPE_IS_STRING_EXCEPTION__
+    return static_cast<ElementString*>(this)->getValue();
+}
+
+ElementArray IElement::getArray() const {
+    __CHECK_TYPE_IS_ARRAY_EXCEPTION__
+    return static_cast<const ElementArray&>(*this);
+}
+
+ElementArray& IElement::getArray() {
+    __CHECK_TYPE_IS_ARRAY_EXCEPTION__
+    return static_cast<ElementArray&>(*this);
+}
+
+//TODO: ElementJson IElement::getJson() const
+//ElementJson IElement::getJson() {
+//    __CHECK_TYPE_IS_JSON_EXCEPTION__
+//    return static_cast<const ElementJson&>(*this);
+//}
+
+//TODO: ElementJson& IElement::getJson()
+//ElementJson& IElement::getJson() {
+//    __CHECK_TYPE_IS_JSON_EXCEPTION__
+//    return static_cast<ElementJson&>(*this);
+//}
 
 bool IElement::writeFile(const std::string &file_path, const ConfigFormat format,
                          const bool with_comments) noexcept {
