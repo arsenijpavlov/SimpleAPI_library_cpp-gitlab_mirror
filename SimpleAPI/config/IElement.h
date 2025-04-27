@@ -3,20 +3,41 @@
 
 #include "Comment.h"
 #include "ConfigCommon.h"
+#include "ConfigDefines.h"
 
 #include <map>
 #include <vector>
 
 
 //базовый класс
+//NOTE: равносилен ELEMENT_NULL
 class IElement {
 protected:
     ValueType m_type;
 
 public:
-    IElement() noexcept;
+    IElement() noexcept : m_type(ValueType::eNull)              {}
+    IElement(const IElement& other) noexcept;
+
     //TODO: конструкторы для всех подтипов
+//    Element(ValueType type, BaseElement* ptr) noexcept : first(type), second(ptr)
+//    {}
+    __ONLY_NUMBER_TYPES__(T)
+    IElement(const T& value) noexcept                           { setValue(static_cast<const long double>(value)); }
+    IElement(const bool value) noexcept                         { setValue(value); }
+    __ONLY_STRING_TYPES__(T)
+    IElement(const T& value) noexcept                           { setValue(std::string(value)); }
+//    Element(const Json& value) noexcept;
+//    Element(const JArray& value) noexcept;
+//    Element(const Element& other) noexcept;
+
     virtual ~IElement() noexcept                                {}
+
+private:
+    void setValue(const long double& value) noexcept;
+    void setValue(const bool& value) noexcept;
+    void setValue(const std::string& value) noexcept;
+public:
 
     ValueType getType() const noexcept                          { return m_type; }
 
@@ -75,7 +96,7 @@ public:
 
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     //NOTE: комментарии при присваивании копируются
-    IElement& operator=(const IElement& other) noexcept;
+//    IElement& operator=(const IElement& other) noexcept;
     //NOTE: комментарии при сравнении не учитываются
     bool operator==(const IElement& other) const noexcept {
         if(m_type != other.m_type)  return false;

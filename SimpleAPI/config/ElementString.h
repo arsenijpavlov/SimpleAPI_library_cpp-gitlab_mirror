@@ -11,22 +11,28 @@ protected:
 public:
     ElementString() noexcept : m_value()                        { m_type = ValueType::eString; }
     ElementString(const std::string& s) noexcept : m_value(s)   { m_type = ValueType::eString; }
-    ~ElementString() noexcept                                   {}
+    ~ElementString() noexcept {}
 
     //PRINTING =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     //для рекурсивного вызова, без комментариев, в одну строку
     std::string toString(const ConfigFormat format = ConfigFormat::eJSON,
-                          const int8_t tabulation_level = 0) const noexcept override;
-    std::string toJsonString(const int8_t tabulation_level = 0) const noexcept;
-    std::string toIniString(const int8_t tabulation_level = 0) const noexcept;
+                          const int8_t tabulation_level = 0) const noexcept override
+                                                                { return m_value; }
+    std::string toJsonString(const int8_t tabulation_level = 0) const noexcept
+                                                                { return m_value; }
+    std::string toIniString(const int8_t tabulation_level = 0) const noexcept
+                                                                { return m_value; }
 
     //для рекурсивного вызова, с использованием комментариев
     std::string toString(const ConfigFormat format, const CommentDesign &design,
-                          const int8_t tabulation_level = 0) const noexcept override;
+                         const int8_t tabulation_level = 0) const noexcept override
+                                                                { return m_value; }
     std::string toJsonString(const CommentDesign &design,
-                               const int8_t tabulation_level = 0) const noexcept;
+                             const int8_t tabulation_level = 0) const noexcept
+                                                                { return m_value; }
     std::string toIniString(const CommentDesign &design,
-                              const int8_t tabulation_level = 0) const noexcept;
+                            const int8_t tabulation_level = 0) const noexcept
+                                                                { return m_value; }
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
 
     std::string getValue() const noexcept                       { return m_value; }

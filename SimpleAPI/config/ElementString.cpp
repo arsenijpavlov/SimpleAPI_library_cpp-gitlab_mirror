@@ -1,4 +1,5 @@
 #include "ElementString.h"
+
 #include "ConfigDefines.h"
 
 #include "../utils/Utils.h"

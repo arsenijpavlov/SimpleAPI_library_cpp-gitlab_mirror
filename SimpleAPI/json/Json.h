@@ -292,11 +292,11 @@ public:
 
 
 // Json ========================================================================================
-using JPair     = std::pair<std::string, Element>;
-using JVector   = std::vector<JPair>;
+using JPairE     = std::pair<std::string, Element>;
+using JVectorE   = std::vector<JPairE>;
 // Неупорядоченный список "ключ-значение" (в данном случае упорядочен)
 class Json {
-    JVector m_values;
+    JVectorE m_values;
 
     std::map<std::string, Comment> m_comments;
 
@@ -307,7 +307,7 @@ class Json {
 public:
                 Json() noexcept : m_comment_sym(0)              {}
                 Json(const Json& json) noexcept;
-                Json(const JPair& pair) noexcept : m_comment_sym(0)
+                Json(const JPairE& pair) noexcept : m_comment_sym(0)
                                                                 { put(pair.first, pair.second); }
                 //разнесено для решения конфликта, не изменять следующие два конструктора!
                 Json(const std::string& input_string)           { parse(input_string); }
@@ -316,7 +316,7 @@ public:
                 __ONLY_ALLOWED_TYPES_OLD__(T)
                 Json(const std::string& key, const T& value) noexcept : m_comment_sym(0)
                                                                 { put(key, value); }
-                Json(const JVector& vec) noexcept;
+                Json(const JVectorE& vec) noexcept;
                 Json(const Element& element) noexcept;;
                 ~Json() noexcept                                {}
 
@@ -383,10 +383,10 @@ public:
                     return *this;
                 }
 
-    JVector::iterator       begin() noexcept                    { return m_values.begin(); }
-    JVector::iterator       end() noexcept                      { return m_values.end(); }
-    JVector::const_iterator cbegin() const noexcept             { return m_values.begin(); }
-    JVector::const_iterator cend() const noexcept               { return m_values.end(); }
+    JVectorE::iterator       begin() noexcept                    { return m_values.begin(); }
+    JVectorE::iterator       end() noexcept                      { return m_values.end(); }
+    JVectorE::const_iterator cbegin() const noexcept             { return m_values.begin(); }
+    JVectorE::const_iterator cend() const noexcept               { return m_values.end(); }
 
     bool        operator==(const Json& other) const noexcept;
     bool        operator!=(const Json& other) const noexcept    { return !(*this == other); }
@@ -426,7 +426,7 @@ public:
                     return *this;
                 }
                 __ONLY_ALLOWED_TYPES_OLD__(T)
-    Json&       insert(const JVector::iterator& iterator, const std::string& key,
+    Json&       insert(const JVectorE::iterator& iterator, const std::string& key,
                        const T& value, const bool rewrite = true) noexcept
                 {
                     if(contains(key) && rewrite) erase(key);
@@ -487,11 +487,11 @@ public:
                 }
 
     Json&       erase(const size_t index);
-    Json&       erase(const JVector::iterator& iterator) {
+    Json&       erase(const JVectorE::iterator& iterator) {
                     m_values.erase(iterator);
                     return *this;
                 }
-    Json&       erase(const JVector::iterator& begin, const JVector::iterator& end) {
+    Json&       erase(const JVectorE::iterator& begin, const JVectorE::iterator& end) {
                     m_values.erase(begin, end);
                     return *this;
                 }
@@ -600,7 +600,7 @@ Element     ParseValueFromString(std::string& value, const bool enable_comments,
                                  const ConfigFormat format);
 std::string PrintRecursiveIniElements(const ConfigFormat cfg, const Element& el,
                                       const bool enable_comment, const std::string& preview_key = "") noexcept;
-std::string PrintRecursiveIniElements(const ConfigFormat cfg, const JPair& jp,
+std::string PrintRecursiveIniElements(const ConfigFormat cfg, const JPairE& jp,
                                       const bool enable_comment, const std::string& preview_key = "") noexcept;
 std::string ToComment(const std::string& comment_string, const uint8_t tabulation_level = 0,
                       const uint8_t column_size = 0, const char border_symbol = 0) noexcept;

@@ -6,7 +6,6 @@
 //предобъявление
 #include "ElementBool.h"
 #include "ElementJson.h"
-#include "ElementNull.h"
 #include "ElementNumber.h"
 #include "ElementString.h"
 class ElementJson;
@@ -288,7 +287,7 @@ void ElementArray::parseJsonArray(const std::string &string, const bool enable_c
                         break;
                     }
                     case ValueType::eNull: {
-                        push_back(ElementNull());
+                        push_back(IElement());
 
                         break;
                     }
@@ -305,9 +304,9 @@ void ElementArray::parseJsonArray(const std::string &string, const bool enable_c
                 }
                 case VALUE_JSON: {
                     try {
-                        ElementJson _inner_json;
-                        _inner_json.parseJson(value_string, enable_comment);
-                        push_back(_inner_json);
+//                        ElementJson _inner_json;
+//TODO:                        _inner_json.parseJson(value_string, enable_comment);
+//                        push_back(_inner_json);
                     } catch (std::invalid_argument& e) {
                         is_critical_error = true;
                     }
@@ -624,7 +623,7 @@ IElement& ElementArray::get_value(const VString& complex_key) {
         auto new_complex_key = complex_key;
         new_complex_key.erase(new_complex_key.begin());
         switch(el.getType()) {
-        case ValueType::eJson:  return dynamic_cast<ElementJson&>((*this)[current_index])[new_complex_key];
+//TODO:        case ValueType::eJson:  return dynamic_cast<ElementJson&>((*this)[current_index])[new_complex_key];
         case ValueType::eArray: return dynamic_cast<ElementArray&>((*this)[current_index])[new_complex_key];
         default: __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__
         }
@@ -716,3 +715,5 @@ bool IsElementIniArray(const std::string &str) noexcept {
     //TODO: IsElementIniArray()
     return false;
 }
+
+bool IsElementArray(const IElement &e) noexcept                 { return e.getType() == ValueType::eArray; }

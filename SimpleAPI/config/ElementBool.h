@@ -11,7 +11,7 @@ protected:
 public:
     ElementBool() noexcept : m_value(false)         { m_type = ValueType::eBool; }
     ElementBool(const bool b) noexcept : m_value(b) { m_type = ValueType::eBool; }
-    ~ElementBool() noexcept;
+    ~ElementBool() noexcept {}
 
     //PRINTING =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     //для рекурсивного вызова, без комментариев, в одну строку

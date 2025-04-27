@@ -17,7 +17,7 @@ public:
     template<typename ... Types>
     ElementArray(const Types... args) noexcept {
         init();
-        for(const IElement el : {Element(args)...}) push_back(el);
+        for(const IElement el : {IElement(args)...}) push_back(el);
     }
     ElementArray(const std::string& string, const ConfigFormat format,
                  const bool enable_comments = false) noexcept;
@@ -97,7 +97,7 @@ public:
                     __ONLY_ALLOWED_TYPES__(T)
     ElementArray&   insert(const size_t index, const T& value) noexcept {
                         if(index > m_values.size() - 1) m_values.push_back(value);
-                        else                            m_values.insert(m_values.cbegin() + index, Element(value));
+                        else                            m_values.insert(m_values.cbegin() + index, IElement(value));
                         return *this;
                     }
                     __ONLY_ALLOWED_TYPES__(T)
@@ -149,6 +149,6 @@ public:
 bool IsElementArray(const std::string& str, const ConfigFormat format = ConfigFormat::eJSON) noexcept;
 bool IsElementJsonArray(const std::string& str) noexcept;
 bool IsElementIniArray(const std::string& str) noexcept;
-bool IsElementArray(const IElement& e) noexcept                 { return e.getType() == ValueType::eArray; }
+bool IsElementArray(const IElement& e) noexcept;
 
 #endif // ELEMENT_ARRAY_H
