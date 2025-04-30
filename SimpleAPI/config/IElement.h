@@ -9,57 +9,6 @@
 #include <vector>
 
 
-/*--------
-class Config {
-private:
-    ValueType   m_type;
-    IElement    *m_element;
-protected:
-    1) конструкторы Config прямо передают параметры до IElement
-public:
-    * общие элементы для всех типов:
-        1) получить значение:
-            1.1) exception при NULL
-            1.2) bool
-            1.3) number
-            1.4) string
-            1.5) ссылка на дочерний список          (ARRAY)
-            1.6) ссылка на дочернюю карту значений  (JSON)
-        2) получить значение в виде ссылки на Config
-        3) выставить новое значение:
-            3.1) NULL
-            3.2) bool
-            3.3) number
-            3.4) string
-            3.5) дочерний список            (ARRAY)
-            3.6) дочерняя карта значений    (JSON)
-        4) комментарии:
-            4.1) получить комментарий
-            4.2) получить комментарий по индексу    (JSON, ARRAY)
-            4.3) получить комментарий по ключу      (JSON)
-            4.4) выставить комментарий
-            4.5) выставить комментарий по индексу   (JSON, ARRAY)
-            4.6) выставить комментарий по ключу     (JSON)
-        5) получить тип значения:
-            5.1) возврат ValueType
-            5.2) isNull()
-            5.3) isBool()
-            5.4) isNumber()
-            5.5) isString()
-            5.6) isArray()
-            5.7) isJson()
-            5.8*) TODO: isYaml()
-            5.9*) TODO: isXml() ???
-        6) чтение из файла
-        7) чтение из файла с игнорированием комментариев
-        8) запись в файл
-        9) запись в файл с игнорированием комментариев
-        10) перевод в строку
-        11) перевод в строку без комментариев (для пересылки по IP)
-};
---------*/
-
-
 //предобъявление
 class ElementArray;
 class ElementJson;
@@ -189,24 +138,24 @@ using VElement      = std::vector<IElement>;
 //PARSING -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //NOTE: не 'noexcept', потому что надо вернуть std::exception при ошибке парсинга
     //return - получившийся распаршенный корневой элемент, ElementNull если не удалось чтение
-IElement ReadFile(const std::string& file_path, const ConfigFormat format,
-                 const bool with_comments = false, std::string* error_log = nullptr);
-IElement ReadFileJson(const std::string& file_path, const bool with_comments = 0,
-                     std::string* error_log = nullptr);
-IElement ReadFileIni(const std::string& file_path, const bool with_comments = 0,
-                    std::string* error_log = nullptr);
+//IElement ReadFile(const std::string& file_path, const ConfigFormat format,
+//                 const bool with_comments = false, std::string* error_log = nullptr);
+//IElement ReadFileJson(const std::string& file_path, const bool with_comments = 0,
+//                     std::string* error_log = nullptr);
+//IElement ReadFileIni(const std::string& file_path, const bool with_comments = 0,
+//                    std::string* error_log = nullptr);
 
 //Element ReadFileYaml(const std::string& file_path, const bool with_comments = 0,
 //                     std::string* error_log = nullptr) noexcept;
 //Element ReadFileXml(const std::string& file_path, const bool with_comments = 0,
 //                     std::string* error_log = nullptr) noexcept;
 
-IElement Parse(const std::string& content, const ConfigFormat format,
-              const bool with_comments = false, std::string* error_log = nullptr);
-IElement ParseJson(const std::string& file_path, const bool with_comments = 0,
-                  std::string* error_log = nullptr);
-IElement ParseIni(const std::string& file_path, const bool with_comments = 0,
-                 std::string* error_log = nullptr);
+//IElement Parse(const std::string& content, const ConfigFormat format,
+//              const bool with_comments = false, std::string* error_log = nullptr);
+//IElement ParseJson(const std::string& file_path, const bool with_comments = 0,
+//                  std::string* error_log = nullptr);
+//IElement ParseIni(const std::string& file_path, const bool with_comments = 0,
+//                 std::string* error_log = nullptr);
 
 //Element ParseYaml(const std::string& file_path, const bool with_comments = 0,
 //                  std::string* error_log = nullptr) noexcept;
