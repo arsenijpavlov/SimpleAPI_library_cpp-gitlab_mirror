@@ -3,7 +3,7 @@
 
 #include "Comment.h"
 #include "ConfigCommon.h"
-#include "ConfigDefines.h"
+//#include "ConfigDefines.h"
 
 #include <map>
 #include <vector>
@@ -26,21 +26,21 @@ public:
     //TODO: конструкторы для всех подтипов
 //    Element(ValueType type, BaseElement* ptr) noexcept : first(type), second(ptr)
 //    {}
-    __ONLY_NUMBER_TYPES__(T)
-    IElement(const T& value) noexcept                           { setValue(static_cast<const long double>(value)); }
-    IElement(const bool value) noexcept                         { setValue(value); }
-    __ONLY_STRING_TYPES__(T)
-    IElement(T&& value) noexcept                                { setValue(std::string(value)); }
+//    __ONLY_NUMBER_TYPES__(T)
+//    IElement(const T& value) noexcept                           { setValue(static_cast<const long double>(value)); }
+//    IElement(const bool value) noexcept                         { setValue(value); }
+//    __ONLY_STRING_TYPES__(T)
+//    IElement(T&& value) noexcept                                { setValue(std::string(value)); }
 //    Element(const Json& value) noexcept;
 //    Element(const ElementArray& value) noexcept;
 //    Element(const Element& other) noexcept;
 
-    virtual ~IElement() noexcept                                {}
+    virtual ~IElement() noexcept {};
 
 private:
-    void setValue(const long double& value) noexcept;
-    void setValue(const bool& value) noexcept;
-    void setValue(const std::string& value) noexcept;
+//    void setValue(const long double& value) noexcept;
+//    void setValue(const bool& value) noexcept;
+//    void setValue(const std::string& value) noexcept;
 public:
 
     ValueType   getType() const noexcept                        { return m_type; }
@@ -112,17 +112,14 @@ public:
     void    clearCommentDesign() noexcept                       { m_comment.clearDesign(); }
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= COMMENTS
 
-    virtual bool isEqual(const IElement& other, const bool compare_comments = false) const noexcept
-                                                                { return false; }
+    virtual bool isEqual(const IElement& other)                 const noexcept { return false; }
+    virtual bool isEqualWithComments(const IElement& other)     const noexcept { return false; }
 
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     //NOTE: комментарии при присваивании копируются
 //    IElement& operator=(const IElement& other) noexcept;
     //NOTE: комментарии при сравнении не учитываются
-    bool operator==(const IElement& other) const noexcept {
-        if(m_type != other.m_type)  return false;
-        return isEqual(other);
-    }
+    bool operator==(const IElement& other) const noexcept       { return (m_type == other.m_type ? isEqual(other) : false); }
     bool operator!=(const IElement& other) const noexcept       { return !(*this == other); }
     //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= OPERATORS
 };
@@ -134,42 +131,5 @@ public:
 using JPair         = std::pair<std::string, IElement>;
 using VPairElement  = std::vector<JPair>;
 using VElement      = std::vector<IElement>;
-
-//PARSING -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//NOTE: не 'noexcept', потому что надо вернуть std::exception при ошибке парсинга
-    //return - получившийся распаршенный корневой элемент, ElementNull если не удалось чтение
-//IElement ReadFile(const std::string& file_path, const ConfigFormat format,
-//                 const bool with_comments = false, std::string* error_log = nullptr);
-//IElement ReadFileJson(const std::string& file_path, const bool with_comments = 0,
-//                     std::string* error_log = nullptr);
-//IElement ReadFileIni(const std::string& file_path, const bool with_comments = 0,
-//                    std::string* error_log = nullptr);
-
-//Element ReadFileYaml(const std::string& file_path, const bool with_comments = 0,
-//                     std::string* error_log = nullptr) noexcept;
-//Element ReadFileXml(const std::string& file_path, const bool with_comments = 0,
-//                     std::string* error_log = nullptr) noexcept;
-
-//IElement Parse(const std::string& content, const ConfigFormat format,
-//              const bool with_comments = false, std::string* error_log = nullptr);
-//IElement ParseJson(const std::string& file_path, const bool with_comments = 0,
-//                  std::string* error_log = nullptr);
-//IElement ParseIni(const std::string& file_path, const bool with_comments = 0,
-//                 std::string* error_log = nullptr);
-
-//Element ParseYaml(const std::string& file_path, const bool with_comments = 0,
-//                  std::string* error_log = nullptr) noexcept;
-//Element ParseXml(const std::string& file_path, const bool with_comments = 0,
-//                 std::string* error_log = nullptr) noexcept;
-
-//TODO: перенести в отдельный класс virtual bool        writeFileYaml(const std::string& file_path, const bool with_comments = 0) noexcept  { return false; }
-//TODO: перенести в отдельный класс virtual bool        writeFileXml(const std::string& file_path, const bool with_comments = 0) noexcept     = 0;
-//TODO: перенести в отдельный класс case ConfigFormat::eXML:    return writeFileXml(file_path);
-//TODO: перенести в отдельный класс case ConfigFormat::eXML:    return ReadFileXml(file_path, with_comments);
-
-//TODO: перенести в отдельный класс Element& ReadFileXml(const std::string& file_path, const bool with_comments = 0);
-//TODO: перенести в отдельный класс Element& ParseXml(const std::string& file_path, const bool with_comments = 0);
-//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PARSING
-
 
 #endif // I_ELEMENT_H
