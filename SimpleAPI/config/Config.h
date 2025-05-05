@@ -9,8 +9,7 @@
 //класс-обёртка для нормализованного(?) управления всеми элементами системы конфигурации
 class Config {
 private:
-    ValueType                   m_type;
-    std::shared_ptr<IElement>   m_element;
+    std::unique_ptr<IElement> m_element;
 
 protected:
     Config()                        noexcept    { init(); }
@@ -31,7 +30,7 @@ protected:
 
 private:
     //создание ПУСТОГО(NULL) элемента
-    void init()                     noexcept;
+    void init()                     noexcept    { setValue(); }
 
 public:
     // Operators =======================================================================================================
@@ -65,18 +64,18 @@ public:
     // ======================================================================================================= Operators
 
     // Info ============================================================================================================
-    ValueType       getValueType() const noexcept;
-    bool            isNull()    const noexcept  { return getValueType() == ValueType::eNull; }
-    bool            isBool()    const noexcept  { return getValueType() == ValueType::eBool; }
-    bool            isNumber()  const noexcept  { return getValueType() == ValueType::eNumber; }
-    bool            isString()  const noexcept  { return getValueType() == ValueType::eString; }
-    bool            isArray()   const noexcept  { return getValueType() == ValueType::eArray; }
-    bool            isJson()    const noexcept  { return getValueType() == ValueType::eJson; }
+    ValueType       getType()   const noexcept  { return m_element->getType(); }
+    bool            isNull()    const noexcept  { return getType() == ValueType::eNull; }
+    bool            isBool()    const noexcept  { return getType() == ValueType::eBool; }
+    bool            isNumber()  const noexcept  { return getType() == ValueType::eNumber; }
+    bool            isString()  const noexcept  { return getType() == ValueType::eString; }
+    bool            isArray()   const noexcept  { return getType() == ValueType::eArray; }
+    bool            isJson()    const noexcept  { return getType() == ValueType::eJson; }
 //TODO: bool isYaml() const noexcept
 //TODO: bool isXml() const noexcept
 
     size_t          size()      const noexcept;
-    bool            isEqual(const Config& other, const bool compare_comments = false)   const noexcept;
+    bool            isEqual(const Config& other, const bool compare_comments = false) const noexcept;
     // ============================================================================================================ Info
 
     // Getters =========================================================================================================
@@ -101,8 +100,9 @@ public:
     // ========================================================================================================= Getters
 
     // Setters =========================================================================================================
+    void setValue()                                 noexcept;
     void setValue(const Config& value)              noexcept;
-    void setValue(const IElement* value)            noexcept;
+    void setValue(const IElement& value)            noexcept;
     void setValue(const bool value)                 noexcept;
     void setValue(const long double& value)         noexcept;
     void setValue(const std::string& value)         noexcept;
@@ -171,10 +171,10 @@ public:
 
     // Iterators =======================================================================================================
     // (!) Для foreach итераторы необходимо кастить вручную к нужному типу; за основу брать типы ниже
-    /* (!) */ void* begin()   noexcept;
-    /* (!) */ void* end()     noexcept;
-    /* (!) */ void* cbegin()  const noexcept;
-    /* (!) */ void* cend()    const noexcept;
+    /* (!) */ void*                 begin()         noexcept;
+    /* (!) */ void*                 end()           noexcept;
+    /* (!) */ void*                 cbegin()        const noexcept;
+    /* (!) */ void*                 cend()          const noexcept;
     // (!) Для foreach итераторы необходимо кастить вручную к нужному типу; за основу брать типы ниже
     //Array
     VElement::iterator&             array_begin()   noexcept;
