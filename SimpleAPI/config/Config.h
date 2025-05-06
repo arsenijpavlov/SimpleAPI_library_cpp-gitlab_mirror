@@ -163,9 +163,9 @@ public:
     // Parser ==========================================================================================================
     Config& parse(const std::string& content, const ConfigFormat format,
                   const bool with_comments = false, std::string* error_log = nullptr);
-    Config& parseJson(const std::string& file_path, const bool with_comments = 0,
+    Config& parseJson(const std::string& content, const bool with_comments = 0,
                       std::string* error_log = nullptr);
-    Config& parseIni(const std::string& file_path, const bool with_comments = 0,
+    Config& parseIni(const std::string& content, const bool with_comments = 0,
                      std::string* error_log = nullptr);
     // ========================================================================================================== Parser
 
@@ -177,13 +177,13 @@ public:
     /* (!) */ void*                 cend()          const noexcept;
     // (!) Для foreach итераторы необходимо кастить вручную к нужному типу; за основу брать типы ниже
     //Array
-    VElement::iterator&             array_begin()   noexcept;
-    VElement::iterator&             array_end()     noexcept;
+    VElement::iterator              array_begin()   noexcept;
+    VElement::iterator              array_end()     noexcept;
     VElement::const_iterator        array_cbegin()  const noexcept;
     VElement::const_iterator        array_cend()    const noexcept;
     //Json
-    VPairElement::iterator&         json_begin()    noexcept;
-    VPairElement::iterator&         json_end()      noexcept;
+    VPairElement::iterator          json_begin()    noexcept;
+    VPairElement::iterator          json_end()      noexcept;
     VPairElement::const_iterator    json_cbegin()   const noexcept;
     VPairElement::const_iterator    json_cend()     const noexcept;
     // ======================================================================================================= Iterators
@@ -208,9 +208,9 @@ bool    WriteFileIni(const Config& config, const std::string& file_path,
 
 Config  Parse(const std::string& content, const ConfigFormat format,
               const bool with_comments = false, std::string* error_log = nullptr);
-Config  ParseJson(const std::string& file_path, const bool with_comments = 0,
+Config  ParseJson(const std::string& content, const bool with_comments = 0,
                   std::string* error_log = nullptr);
-Config  ParseIni(const std::string& file_path, const bool with_comments = 0,
+Config  ParseIni(const std::string& content, const bool with_comments = 0,
                  std::string* error_log = nullptr);
 //STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC
 
