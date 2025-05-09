@@ -64,17 +64,18 @@ public:
     // ======================================================================================================= Operators
 
     // Info ============================================================================================================
-    ValueType       getType()   const noexcept  { return m_element->getType(); }
-    bool            isNull()    const noexcept  { return getType() == ValueType::eNull; }
-    bool            isBool()    const noexcept  { return getType() == ValueType::eBool; }
-    bool            isNumber()  const noexcept  { return getType() == ValueType::eNumber; }
-    bool            isString()  const noexcept  { return getType() == ValueType::eString; }
-    bool            isArray()   const noexcept  { return getType() == ValueType::eArray; }
-    bool            isJson()    const noexcept  { return getType() == ValueType::eJson; }
+    ValueType       getType()       const noexcept  { return m_element->getType(); }
+    bool            isNull()        const noexcept  { return getType() == ValueType::eNull; }
+    bool            isBool()        const noexcept  { return getType() == ValueType::eBool; }
+    bool            isNumber()      const noexcept  { return getType() == ValueType::eNumber; }
+    bool            isString()      const noexcept  { return getType() == ValueType::eString; }
+    bool            isArray()       const noexcept  { return getType() == ValueType::eArray; }
+    bool            isJson()        const noexcept  { return getType() == ValueType::eJson; }
 //TODO: bool isYaml() const noexcept
 //TODO: bool isXml() const noexcept
+    bool            isContainer()   const noexcept;
 
-    size_t          size()      const noexcept;
+    size_t          size()          const noexcept;
     bool            isEqual(const Config& other, const bool compare_comments = false) const noexcept;
     // ============================================================================================================ Info
 

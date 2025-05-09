@@ -7,82 +7,97 @@
 #include "ElementArray.h"
 #include "ElementJson.h"
 
+#include <stdexcept>
+
 
 Config &Config::operator=(const Config& other) noexcept {
-
+    ...
 }
 
 Config &Config::operator=(Config&& other) noexcept {
-
+    ...
 }
 
 bool Config::operator==(const Config& other) const {
-
+    ...
 }
 
 //числа, контейнеры(размер)
 bool Config::operator>(const Config& other) const noexcept {
-
+    ...
 }
 
 bool Config::operator>(const IElement& other) const noexcept {
-
+    ...
 }
 
 bool Config::operator>=(const Config& other) const noexcept {
-
+    ...
 }
 
 bool Config::operator>=(const IElement& other) const noexcept {
-
+    ...
 }
 
 bool Config::operator<(const Config& other) const noexcept {
-
+    ...
 }
 
 bool Config::operator<(const IElement& other) const noexcept {
-
+    ...
 }
 
 bool Config::operator<=(const Config& other) const noexcept {
-
+    ...
 }
 
 bool Config::operator<=(const IElement& other) const noexcept {
-
+    ...
 }
 
 Config &Config::operator<<(const Config& other) noexcept {
-
+    ...
 }
 
 Config &Config::operator<<(const IElement& other) noexcept {
-
+    ...
 }
 
 Config  Config::operator>>(const Config& other) noexcept {
-
+    ...
 }
 
 Config  Config::operator>>(const IElement& other) noexcept {
-
+    ...
 }
 
 Config &Config::operator[](const size_t index) noexcept {
+    ...
+}
 
+bool Config::isContainer() const noexcept {
+    switch(getType()) {
+    case ValueType::eJson:
+    case ValueType::eArray:     return true;
+    case ValueType::eNull:
+    case ValueType::eNumber:
+    case ValueType::eBool:
+    case ValueType::eString:    break;
+    }
+
+    return false;
 }
 
 Config  Config::operator[](const size_t index) const noexcept {
-
+    ...
 }
 
 Config &Config::operator[](const std::string key) noexcept {
-
+    ...
 }
 
 Config  Config::operator[](const std::string key) const noexcept {
-
+    ...
 }
 
 size_t Config::size() const noexcept {
@@ -93,7 +108,7 @@ size_t Config::size() const noexcept {
     case ValueType::eString:    return 1;
     case ValueType::eArray:     return dynamic_cast<const ElementArray*>(m_element.get())->size();
     case ValueType::eJson:      return dynamic_cast<const ElementJson*>(m_element.get())->size();
-    default:                    return 0;
+//    default:                    return 0;
     }
 }
 
@@ -103,67 +118,69 @@ bool Config::isEqual(const Config &other, const bool compare_comments) const noe
 }
 
 bool &Config::getBool() {
-
+    __CHECK_TYPE_IS_BOOL_EXCEPTION__((*this))
+    return dynamic_cast<ElementBool*>(m_element.get())->getValue();
 }
 
 bool Config::getBool() const {
-
+    __CHECK_TYPE_IS_BOOL_EXCEPTION__((*this))
+    return dynamic_cast<const ElementBool*>(m_element.get())->getValue();
 }
 
 long double &Config::getNumber() {
-
+    ...
 }
 
 long double Config::getNumber() const {
-
+    ...
 }
 
 std::string &Config::getString() {
-
+    ...
 }
 
 std::string Config::getString() const {
-
+    ...
 }
 
 ElementArray &Config::getArray() {
-
+    ...
 }
 
 ElementArray Config::getArray() const {
-
+    ...
 }
 
 ElementJson &Config::getJson() {
-
+    ...
 }
 
 ElementJson Config::getJson() const {
-
+    ...
 }
 
 Config &Config::get_front(const size_t index) {
-
+    ...
 }
 
 Config &Config::get_front(const size_t index) const {
-
+    ...
 }
 
 Config &Config::get_at(const size_t index) {
-
+    ...
 }
 
 Config &Config::get_at(const size_t index) const {
-
+    ...
 }
 
 Config &Config::get_back(const size_t index) {
-
+    ...
 }
 
 Config &Config::get_back(const size_t index) const {
-//    __CHECK_NOT_CONTAINER_TYPE__
+    __CHECK_TYPE_IS_CONTAINER__((*this))
 
     if(getType() == ValueType::eArray)
         //FIXME: нужно упаковать в Config
@@ -186,7 +203,7 @@ void Config::setValue(const Config &value) noexcept {
     case ValueType::eString:    setValue(value.getString());
     case ValueType::eArray:     setValue(value.getArray());
     case ValueType::eJson:      setValue(value.getJson());
-    default:                    init();
+    case ValueType::eNull:      init();
     }
 }
 
@@ -197,7 +214,7 @@ void Config::setValue(const IElement& value) noexcept {
     case ValueType::eString:    setValue(value.getString());
     case ValueType::eArray:     setValue(value.getArray());
     case ValueType::eJson:      setValue(value.getJson());
-    default:                    init();
+    case ValueType::eNull:      init();
     }
 }
 
@@ -288,40 +305,48 @@ Config &Config::parseIni(const std::string &content, const bool with_comments,
 }
 
 void *Config::begin() noexcept {
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+
     switch(getType()) {
     case ValueType::eArray: return (void*) &*(array_begin());
     case ValueType::eJson:  return (void*) &*(json_begin());
-    default:                __NOT_CONTAINER_TYPE_EXCEPTION__
+    default:                throw std::invalid_argument("unexpected container type");
     }
 
     return nullptr;
 }
 
 void *Config::end() noexcept {
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+
     switch(getType()) {
     case ValueType::eArray: return (void*) &*(array_end());
     case ValueType::eJson:  return (void*) &*(json_end());
-    default:                __NOT_CONTAINER_TYPE_EXCEPTION__
+    default:                throw std::invalid_argument("unexpected container type");
     }
 
     return nullptr;
 }
 
 void *Config::cbegin() const noexcept {
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+
     switch(getType()) {
     case ValueType::eArray: return (void*) &*(array_cbegin());
     case ValueType::eJson:  return (void*) &*(json_cbegin());
-    default:                __NOT_CONTAINER_TYPE_EXCEPTION__
+    default:                throw std::invalid_argument("unexpected container type");
     }
 
     return nullptr;
 }
 
 void *Config::cend() const noexcept {
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+
     switch(getType()) {
     case ValueType::eArray: return (void*) &*(array_cend());
     case ValueType::eJson:  return (void*) &*(json_cend());
-    default:                __NOT_CONTAINER_TYPE_EXCEPTION__
+    default:                throw std::invalid_argument("unexpected container type");
     }
 
     return nullptr;
@@ -364,53 +389,53 @@ VPairElement::const_iterator Config::json_cend() const noexcept {
 Config ReadFile(const std::string &file_path, const ConfigFormat format,
                 const bool with_comments, std::string *error_log)
 {
-
+    ...
 }
 
 Config ReadFileJson(const std::string &file_path, const bool with_comments,
                     std::string *error_log)
 {
-
+    ...
 }
 
 Config ReadFileIni(const std::string &file_path, const bool with_comments,
                    std::string *error_log)
 {
-
+    ...
 }
 
 bool WriteFile(const Config &config, const std::string &file_path,
                const ConfigFormat format, const bool with_comments) noexcept
 {
-
+    ...
 }
 
 bool WriteFileJson(const Config &config, const std::string &file_path,
                    const bool with_comments) noexcept
 {
-
+    ...
 }
 
 bool WriteFileIni(const Config &config, const std::string &file_path,
                   const bool with_comments) noexcept
 {
-
+    ...
 }
 
 Config Parse(const std::string &content, const ConfigFormat format,
              const bool with_comments, std::string *error_log)
 {
-
+    ...
 }
 
 Config ParseJson(const std::string &content, const bool with_comments,
                  std::string *error_log)
 {
-
+    ...
 }
 
 Config ParseIni(const std::string &content, const bool with_comments,
                 std::string *error_log)
 {
-
+    ...
 }
