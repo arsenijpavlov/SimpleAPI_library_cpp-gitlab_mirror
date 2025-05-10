@@ -6,53 +6,202 @@
 #include "ElementString.h"
 #include "ElementArray.h"
 #include "ElementJson.h"
+#include "../utils/Utils.h"
 
 #include <stdexcept>
 
 
 Config &Config::operator=(const Config& other) noexcept {
-    ...
+    if(m_element.get() != other.m_element.get())
+        m_element = other.m_element;
+    return *this;
 }
 
 Config &Config::operator=(Config&& other) noexcept {
-    ...
+    if(m_element.get() != other.m_element.get())
+        m_element = other.m_element;
+    return *this;
 }
 
 bool Config::operator==(const Config& other) const {
-    ...
+    return m_element == other.m_element;
 }
 
-//числа, контейнеры(размер)
+//числа, контейнеры(размер), строки(количество выводимых СИМВОЛОВ)
 bool Config::operator>(const Config& other) const noexcept {
-    ...
+    __CHECK_TYPE_IS_NOT_NULL_EXCEPTION__((*this))
+    __CHECK_TYPES_IS_EQUAL_EXCEPTION__((*this), other)
+
+    using namespace utils;
+    switch(getType()) {
+    case ValueType::eBool:
+        return dynamic_cast<const ElementBool*>(m_element.get())->getValue() >
+               dynamic_cast<const ElementBool*>(other.m_element.get())->getValue();
+    case ValueType::eNumber:
+        return dynamic_cast<const ElementNumber*>(m_element.get())->getValue() >
+               dynamic_cast<const ElementNumber*>(other.m_element.get())->getValue();
+    case ValueType::eString:
+        return GetStringCharCount(dynamic_cast<const ElementString*>(m_element.get())->getValue()) >
+               GetStringCharCount(dynamic_cast<const ElementString*>(other.m_element.get())->getValue());
+    case ValueType::eJson:
+    case ValueType::eArray:
+        return size() > other.size();
+    default: return false;
+    }
 }
 
 bool Config::operator>(const IElement& other) const noexcept {
-    ...
+    __CHECK_TYPE_IS_NOT_NULL_EXCEPTION__((*this))
+    __CHECK_TYPES_IS_EQUAL_EXCEPTION__((*this), other)
+
+    using namespace utils;
+    switch(getType()) {
+    case ValueType::eBool:
+        return dynamic_cast<const ElementBool*>(m_element.get())->getValue() >
+               dynamic_cast<const ElementBool*>(&other)->getValue();
+    case ValueType::eNumber:
+        return dynamic_cast<const ElementNumber*>(m_element.get())->getValue() >
+               dynamic_cast<const ElementNumber*>(&other)->getValue();
+    case ValueType::eString:
+        return GetStringCharCount(dynamic_cast<const ElementString*>(m_element.get())->getValue()) >
+               GetStringCharCount(dynamic_cast<const ElementString*>(&other)->getValue());
+    case ValueType::eJson:
+    case ValueType::eArray:
+        return size() > other.size();
+    default: return false;
+    }
 }
 
 bool Config::operator>=(const Config& other) const noexcept {
-    ...
+    __CHECK_TYPE_IS_NOT_NULL_EXCEPTION__((*this))
+    __CHECK_TYPES_IS_EQUAL_EXCEPTION__((*this), other)
+
+    using namespace utils;
+    switch(getType()) {
+    case ValueType::eBool:
+        return dynamic_cast<const ElementBool*>(m_element.get())->getValue() >=
+               dynamic_cast<const ElementBool*>(other.m_element.get())->getValue();
+    case ValueType::eNumber:
+        return dynamic_cast<const ElementNumber*>(m_element.get())->getValue() >=
+               dynamic_cast<const ElementNumber*>(other.m_element.get())->getValue();
+    case ValueType::eString:
+        return GetStringCharCount(dynamic_cast<const ElementString*>(m_element.get())->getValue()) >=
+               GetStringCharCount(dynamic_cast<const ElementString*>(other.m_element.get())->getValue());
+    case ValueType::eJson:
+    case ValueType::eArray:
+        return size() >= other.size();
+    default: return false;
+    }
 }
 
 bool Config::operator>=(const IElement& other) const noexcept {
-    ...
+    __CHECK_TYPE_IS_NOT_NULL_EXCEPTION__((*this))
+    __CHECK_TYPES_IS_EQUAL_EXCEPTION__((*this), other)
+
+    using namespace utils;
+    switch(getType()) {
+    case ValueType::eBool:
+        return dynamic_cast<const ElementBool*>(m_element.get())->getValue() >=
+               dynamic_cast<const ElementBool*>(&other)->getValue();
+    case ValueType::eNumber:
+        return dynamic_cast<const ElementNumber*>(m_element.get())->getValue() >=
+               dynamic_cast<const ElementNumber*>(&other)->getValue();
+    case ValueType::eString:
+        return GetStringCharCount(dynamic_cast<const ElementString*>(m_element.get())->getValue()) >=
+               GetStringCharCount(dynamic_cast<const ElementString*>(&other)->getValue());
+    case ValueType::eJson:
+    case ValueType::eArray:
+        return size() >= other.size();
+    default: return false;
+    }
 }
 
 bool Config::operator<(const Config& other) const noexcept {
-    ...
+    __CHECK_TYPE_IS_NOT_NULL_EXCEPTION__((*this))
+    __CHECK_TYPES_IS_EQUAL_EXCEPTION__((*this), other)
+
+    using namespace utils;
+    switch(getType()) {
+    case ValueType::eBool:
+        return dynamic_cast<const ElementBool*>(m_element.get())->getValue() <
+               dynamic_cast<const ElementBool*>(other.m_element.get())->getValue();
+    case ValueType::eNumber:
+        return dynamic_cast<const ElementNumber*>(m_element.get())->getValue() <
+               dynamic_cast<const ElementNumber*>(other.m_element.get())->getValue();
+    case ValueType::eString:
+        return GetStringCharCount(dynamic_cast<const ElementString*>(m_element.get())->getValue()) <
+               GetStringCharCount(dynamic_cast<const ElementString*>(other.m_element.get())->getValue());
+    case ValueType::eJson:
+    case ValueType::eArray:
+        return size() < other.size();
+    default: return false;
+    }
 }
 
 bool Config::operator<(const IElement& other) const noexcept {
-    ...
+    __CHECK_TYPE_IS_NOT_NULL_EXCEPTION__((*this))
+    __CHECK_TYPES_IS_EQUAL_EXCEPTION__((*this), other)
+
+    using namespace utils;
+    switch(getType()) {
+    case ValueType::eBool:
+        return dynamic_cast<const ElementBool*>(m_element.get())->getValue() <=
+               dynamic_cast<const ElementBool*>(&other)->getValue();
+    case ValueType::eNumber:
+        return dynamic_cast<const ElementNumber*>(m_element.get())->getValue() <=
+               dynamic_cast<const ElementNumber*>(&other)->getValue();
+    case ValueType::eString:
+        return GetStringCharCount(dynamic_cast<const ElementString*>(m_element.get())->getValue()) <=
+               GetStringCharCount(dynamic_cast<const ElementString*>(&other)->getValue());
+    case ValueType::eJson:
+    case ValueType::eArray:
+        return size() <= other.size();
+    default: return false;
+    }
 }
 
 bool Config::operator<=(const Config& other) const noexcept {
-    ...
+    __CHECK_TYPE_IS_NOT_NULL_EXCEPTION__((*this))
+    __CHECK_TYPES_IS_EQUAL_EXCEPTION__((*this), other)
+
+    using namespace utils;
+    switch(getType()) {
+    case ValueType::eBool:
+        return dynamic_cast<const ElementBool*>(m_element.get())->getValue() <=
+               dynamic_cast<const ElementBool*>(other.m_element.get())->getValue();
+    case ValueType::eNumber:
+        return dynamic_cast<const ElementNumber*>(m_element.get())->getValue() <=
+               dynamic_cast<const ElementNumber*>(other.m_element.get())->getValue();
+    case ValueType::eString:
+        return GetStringCharCount(dynamic_cast<const ElementString*>(m_element.get())->getValue()) <=
+               GetStringCharCount(dynamic_cast<const ElementString*>(other.m_element.get())->getValue());
+    case ValueType::eJson:
+    case ValueType::eArray:
+        return size() <= other.size();
+    default: return false;
+    }
 }
 
 bool Config::operator<=(const IElement& other) const noexcept {
-    ...
+    __CHECK_TYPE_IS_NOT_NULL_EXCEPTION__((*this))
+    __CHECK_TYPES_IS_EQUAL_EXCEPTION__((*this), other)
+
+    using namespace utils;
+    switch(getType()) {
+    case ValueType::eBool:
+        return dynamic_cast<const ElementBool*>(m_element.get())->getValue() <=
+               dynamic_cast<const ElementBool*>(&other)->getValue();
+    case ValueType::eNumber:
+        return dynamic_cast<const ElementNumber*>(m_element.get())->getValue() <=
+               dynamic_cast<const ElementNumber*>(&other)->getValue();
+    case ValueType::eString:
+        return GetStringCharCount(dynamic_cast<const ElementString*>(m_element.get())->getValue()) <=
+               GetStringCharCount(dynamic_cast<const ElementString*>(&other)->getValue());
+    case ValueType::eJson:
+    case ValueType::eArray:
+        return size() <= other.size();
+    default: return false;
+    }
 }
 
 Config &Config::operator<<(const Config& other) noexcept {
@@ -77,8 +226,10 @@ Config &Config::operator[](const size_t index) noexcept {
 
 bool Config::isContainer() const noexcept {
     switch(getType()) {
+    //контейнерные типы
     case ValueType::eJson:
     case ValueType::eArray:     return true;
+    //все остыльные
     case ValueType::eNull:
     case ValueType::eNumber:
     case ValueType::eBool:
@@ -128,35 +279,43 @@ bool Config::getBool() const {
 }
 
 long double &Config::getNumber() {
-    ...
+    __CHECK_TYPE_IS_NUMBER_EXCEPTION__((*this))
+    return dynamic_cast<ElementNumber*>(m_element.get())->getValue();
 }
 
 long double Config::getNumber() const {
-    ...
+    __CHECK_TYPE_IS_NUMBER_EXCEPTION__((*this))
+    return dynamic_cast<const ElementNumber*>(m_element.get())->getValue();
 }
 
 std::string &Config::getString() {
-    ...
+    __CHECK_TYPE_IS_STRING_EXCEPTION__((*this))
+    return dynamic_cast<ElementString*>(m_element.get())->getValue();
 }
 
 std::string Config::getString() const {
-    ...
+    __CHECK_TYPE_IS_STRING_EXCEPTION__((*this))
+    return dynamic_cast<const ElementString*>(m_element.get())->getValue();
 }
 
 ElementArray &Config::getArray() {
-    ...
+    __CHECK_TYPE_IS_ARRAY_EXCEPTION__((*this))
+    return dynamic_cast<ElementArray&>(*m_element.get());
 }
 
 ElementArray Config::getArray() const {
-    ...
+    __CHECK_TYPE_IS_ARRAY_EXCEPTION__((*this))
+    return dynamic_cast<ElementArray&>(*m_element.get());
 }
 
 ElementJson &Config::getJson() {
-    ...
+    __CHECK_TYPE_IS_JSON_EXCEPTION__((*this))
+    return dynamic_cast<ElementJson&>(*m_element.get());
 }
 
 ElementJson Config::getJson() const {
-    ...
+    __CHECK_TYPE_IS_JSON_EXCEPTION__((*this))
+    return dynamic_cast<ElementJson&>(*m_element.get());
 }
 
 Config &Config::get_front(const size_t index) {
@@ -182,6 +341,17 @@ Config &Config::get_back(const size_t index) {
 Config &Config::get_back(const size_t index) const {
     __CHECK_TYPE_IS_CONTAINER__((*this))
 
+    switch(getType()) {
+    case ValueType::eJson: {
+        return
+    }
+    case ValueType::eArray:
+//NOTE: вручную учитывать контейнерные типы
+//TODO:    case ValueType::eYaml:
+//TODO:    case ValueType::eXml:
+    default:                break;
+    }
+
     if(getType() == ValueType::eArray)
         //FIXME: нужно упаковать в Config
         return dynamic_cast<ElementArray*>(m_element.get())->get_back();
@@ -192,11 +362,12 @@ case ValueType::eArray: return (void*) &*(array_begin());
     }
 }
 
-void Config::setValue() noexcept {
+Config &Config::setValue() noexcept {
     m_element = std::unique_ptr<IElement>(new ElementNull());
+    return *this;
 }
 
-void Config::setValue(const Config &value) noexcept {
+Config &Config::setValue(const Config &value) noexcept {
     switch(value.getType()) {
     case ValueType::eNumber:    setValue(value.getNumber());
     case ValueType::eBool:      setValue(value.getBool());
@@ -205,9 +376,10 @@ void Config::setValue(const Config &value) noexcept {
     case ValueType::eJson:      setValue(value.getJson());
     case ValueType::eNull:      init();
     }
+    return *this;
 }
 
-void Config::setValue(const IElement& value) noexcept {
+Config &Config::setValue(const IElement& value) noexcept {
     switch(value.getType()) {
     case ValueType::eNumber:    setValue(value.getNumber());
     case ValueType::eBool:      setValue(value.getBool());
@@ -216,26 +388,32 @@ void Config::setValue(const IElement& value) noexcept {
     case ValueType::eJson:      setValue(value.getJson());
     case ValueType::eNull:      init();
     }
+    return *this;
 }
 
-void Config::setValue(const bool value) noexcept {
+Config &Config::setValue(const bool value) noexcept {
     m_element = std::unique_ptr<IElement>(new ElementBool(value));
+    return *this;
 }
 
-void Config::setValue(const long double& value) noexcept {
+Config &Config::setValue(const long double& value) noexcept {
     m_element = std::unique_ptr<IElement>(new ElementNumber(value));
+    return *this;
 }
 
-void Config::setValue(const std::string& value) noexcept {
+Config &Config::setValue(const std::string& value) noexcept {
     m_element = std::unique_ptr<IElement>(new ElementString(value));
+    return *this;
 }
 
-void Config::setValue(const ElementArray &value) noexcept {
+Config &Config::setValue(const ElementArray &value) noexcept {
     m_element = std::unique_ptr<IElement>(new ElementArray(value));
+    return *this;
 }
 
-void Config::setValue(const ElementJson &value) noexcept {
+Config &Config::setValue(const ElementJson &value) noexcept {
     m_element = std::unique_ptr<IElement>(new ElementJson(value));
+    return *this;
 }
 
 std::string Config::toString(const ConfigFormat format, const CommentDesign &design,
@@ -310,7 +488,10 @@ void *Config::begin() noexcept {
     switch(getType()) {
     case ValueType::eArray: return (void*) &*(array_begin());
     case ValueType::eJson:  return (void*) &*(json_begin());
-    default:                throw std::invalid_argument("unexpected container type");
+    //NOTE: вручную учитывать контейнерные типы
+ //TODO:    case ValueType::eYaml:
+ //TODO:    case ValueType::eXml:
+    default:                break;
     }
 
     return nullptr;
@@ -322,7 +503,10 @@ void *Config::end() noexcept {
     switch(getType()) {
     case ValueType::eArray: return (void*) &*(array_end());
     case ValueType::eJson:  return (void*) &*(json_end());
-    default:                throw std::invalid_argument("unexpected container type");
+    //NOTE: вручную учитывать контейнерные типы
+//TODO:    case ValueType::eYaml:
+//TODO:    case ValueType::eXml:
+    default:                break;
     }
 
     return nullptr;
@@ -334,7 +518,10 @@ void *Config::cbegin() const noexcept {
     switch(getType()) {
     case ValueType::eArray: return (void*) &*(array_cbegin());
     case ValueType::eJson:  return (void*) &*(json_cbegin());
-    default:                throw std::invalid_argument("unexpected container type");
+    //NOTE: вручную учитывать контейнерные типы
+//TODO:    case ValueType::eYaml:
+//TODO:    case ValueType::eXml:
+    default:                break;
     }
 
     return nullptr;
@@ -346,7 +533,10 @@ void *Config::cend() const noexcept {
     switch(getType()) {
     case ValueType::eArray: return (void*) &*(array_cend());
     case ValueType::eJson:  return (void*) &*(json_cend());
-    default:                throw std::invalid_argument("unexpected container type");
+    //NOTE: вручную учитывать контейнерные типы
+//TODO:    case ValueType::eYaml:
+//TODO:    case ValueType::eXml:
+    default:                break;
     }
 
     return nullptr;

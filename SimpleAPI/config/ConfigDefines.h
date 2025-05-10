@@ -54,6 +54,11 @@
                                                         throw std::invalid_argument("This element is not a JSON type");
 #define __CHECK_TYPE_IS_CONTAINER__(object)         if(!object.isContainer()) \
                                                         throw std::invalid_argument("This element is not a container type");
+#define __CHECK_TYPE_IS_NOT_NULL_EXCEPTION__(object)if(object.isNull()) \
+                                                        throw std::invalid_argument("This element is a NULL type");
+#define __CHECK_TYPES_IS_EQUAL_EXCEPTION__(object1, object2) \
+                                                    if(object1.getType() == object2.getType()) \
+                                                        throw std::invalid_argument("Types is not equal");
 
 #define __IF_INDEX_NOT_BOUND__(object, index)   if(index + 1 <= object->size())
 #define __IF_INDEX_NOT_BOUND2__(object, index)  if(index + 1 <= object.size())

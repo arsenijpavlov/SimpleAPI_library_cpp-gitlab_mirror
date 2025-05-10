@@ -6,10 +6,10 @@
 #include "IElement.h"
 
 
-//класс-обёртка для нормализованного(?) управления всеми элементами системы конфигурации
+//класс-интерфейс для нормализованного(?) управления всеми элементами системы конфигурации
 class Config {
 private:
-    std::unique_ptr<IElement> m_element;
+    std::shared_ptr<IElement> m_element;
 
 protected:
     Config()                        noexcept    { init(); }
@@ -101,41 +101,41 @@ public:
     // ========================================================================================================= Getters
 
     // Setters =========================================================================================================
-    void setValue()                                 noexcept;
-    void setValue(const Config& value)              noexcept;
-    void setValue(const IElement& value)            noexcept;
-    void setValue(const bool value)                 noexcept;
-    void setValue(const long double& value)         noexcept;
-    void setValue(const std::string& value)         noexcept;
-    void setValue(const ElementArray& value)        noexcept;
-    void setValue(const ElementJson& value)         noexcept;
+    Config&         setValue()                              noexcept;
+    Config&         setValue(const Config& value)           noexcept;
+    Config&         setValue(const IElement& value)         noexcept;
+    Config&         setValue(const bool value)              noexcept;
+    Config&         setValue(const long double& value)      noexcept;
+    Config&         setValue(const std::string& value)      noexcept;
+    Config&         setValue(const ElementArray& value)     noexcept;
+    Config&         setValue(const ElementJson& value)      noexcept;
     // ========================================================================================================= Setters
 
     // Comments ========================================================================================================
-    void addComment(const Comment& content)             noexcept    { addComment(content); }
-    void addComment(const std::string &content_before, const std::string &content_after) noexcept
+    Config& addComment(const Comment& content)             noexcept { addComment(content); }
+    Config& addComment(const std::string &content_before, const std::string &content_after) noexcept
                                                                     { addComment(content_before, content_after); }
-    void addPrefixComment(const std::string& content)   noexcept    { addPrefixComment(content); }
-    void addSuffixComment(const std::string& content)   noexcept    { addSuffixComment(content); }
+    Config& addPrefixComment(const std::string& content)   noexcept { addPrefixComment(content); }
+    Config& addSuffixComment(const std::string& content)   noexcept { addSuffixComment(content); }
 
-    Comment&        getComment()        noexcept                    { return getComment(); }
-    Comment         getComment()        const noexcept              { return getComment(); }
-    std::string&    getPrefixComment()  noexcept                    { return getPrefixComment(); }
-    std::string     getPrefixComment()  const noexcept              { return getPrefixComment(); }
-    std::string&    getSuffixComment()  noexcept                    { return getSuffixComment(); }
-    std::string     getSuffixComment()  const noexcept              { return getSuffixComment(); }
+    Comment&        getComment()            noexcept                { return getComment(); }
+    Comment         getComment()            const noexcept          { return getComment(); }
+    std::string&    getPrefixComment()      noexcept                { return getPrefixComment(); }
+    std::string     getPrefixComment()      const noexcept          { return getPrefixComment(); }
+    std::string&    getSuffixComment()      noexcept                { return getSuffixComment(); }
+    std::string     getSuffixComment()      const noexcept          { return getSuffixComment(); }
 
-    void clearComment()                 noexcept                    { clearComment(); }
-    void clearPrefixComment()           noexcept                    { clearPrefixComment(); }
-    void clearSuffixComment()           noexcept                    { clearSuffixComment(); }
-    void deleteComment()                noexcept                    { deleteComment(); }
-    void deletePrefixComment()          noexcept                    { deletePrefixComment(); }
-    void deleteSuffixComment()          noexcept                    { deleteSuffixComment(); }
+    Config&         clearComment()          noexcept                { clearComment(); }
+    Config&         clearPrefixComment()    noexcept                { clearPrefixComment(); }
+    Config&         clearSuffixComment()    noexcept                { clearSuffixComment(); }
+    Config&         deleteComment()         noexcept                { deleteComment(); }
+    Config&         deletePrefixComment()   noexcept                { deletePrefixComment(); }
+    Config&         deleteSuffixComment()   noexcept                { deleteSuffixComment(); }
 
-    CommentDesign&  getCommentDesign()  noexcept                    { return getCommentDesign(); }
-    CommentDesign   getCommentDesign()  const noexcept              { return getCommentDesign(); }
-    void setCommentDesign(const CommentDesign& design)  noexcept    { setCommentDesign(design); }
-    void clearCommentDesign()           noexcept                    { clearCommentDesign(); }
+    CommentDesign&  getCommentDesign()      noexcept                { return getCommentDesign(); }
+    CommentDesign   getCommentDesign()      const noexcept          { return getCommentDesign(); }
+    Config& setCommentDesign(const CommentDesign& design)  noexcept { setCommentDesign(design); }
+    Config& clearCommentDesign()            noexcept                { clearCommentDesign(); }
     // ======================================================================================================== Comments
 
     // String ==========================================================================================================
