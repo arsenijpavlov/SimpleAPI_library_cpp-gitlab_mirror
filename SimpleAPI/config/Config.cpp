@@ -24,13 +24,13 @@ Config &Config::operator=(Config&& other) noexcept {
 }
 
 bool Config::operator==(const Config& other) const {
-    return m_element == other.m_element;
+    return isEqual(other); //без учёта комментариев
 }
 
 //числа, контейнеры(размер), строки(количество выводимых СИМВОЛОВ)
 bool Config::operator>(const Config& other) const noexcept {
-    __CHECK_TYPE_IS_NOT_NULL_EXCEPTION__((*this))
-    __CHECK_TYPES_IS_EQUAL_EXCEPTION__((*this), other)
+    __CHECK_TYPE_IS_NOT_NULL__((*this))
+    __CHECK_TYPES_IS_EQUAL__((*this), other)
 
     using namespace utils;
     switch(getType()) {
@@ -51,8 +51,8 @@ bool Config::operator>(const Config& other) const noexcept {
 }
 
 bool Config::operator>(const IElement& other) const noexcept {
-    __CHECK_TYPE_IS_NOT_NULL_EXCEPTION__((*this))
-    __CHECK_TYPES_IS_EQUAL_EXCEPTION__((*this), other)
+    __CHECK_TYPE_IS_NOT_NULL__((*this))
+    __CHECK_TYPES_IS_EQUAL__((*this), other)
 
     using namespace utils;
     switch(getType()) {
@@ -73,8 +73,8 @@ bool Config::operator>(const IElement& other) const noexcept {
 }
 
 bool Config::operator>=(const Config& other) const noexcept {
-    __CHECK_TYPE_IS_NOT_NULL_EXCEPTION__((*this))
-    __CHECK_TYPES_IS_EQUAL_EXCEPTION__((*this), other)
+    __CHECK_TYPE_IS_NOT_NULL__((*this))
+    __CHECK_TYPES_IS_EQUAL__((*this), other)
 
     using namespace utils;
     switch(getType()) {
@@ -95,8 +95,8 @@ bool Config::operator>=(const Config& other) const noexcept {
 }
 
 bool Config::operator>=(const IElement& other) const noexcept {
-    __CHECK_TYPE_IS_NOT_NULL_EXCEPTION__((*this))
-    __CHECK_TYPES_IS_EQUAL_EXCEPTION__((*this), other)
+    __CHECK_TYPE_IS_NOT_NULL__((*this))
+    __CHECK_TYPES_IS_EQUAL__((*this), other)
 
     using namespace utils;
     switch(getType()) {
@@ -117,8 +117,8 @@ bool Config::operator>=(const IElement& other) const noexcept {
 }
 
 bool Config::operator<(const Config& other) const noexcept {
-    __CHECK_TYPE_IS_NOT_NULL_EXCEPTION__((*this))
-    __CHECK_TYPES_IS_EQUAL_EXCEPTION__((*this), other)
+    __CHECK_TYPE_IS_NOT_NULL__((*this))
+    __CHECK_TYPES_IS_EQUAL__((*this), other)
 
     using namespace utils;
     switch(getType()) {
@@ -139,8 +139,8 @@ bool Config::operator<(const Config& other) const noexcept {
 }
 
 bool Config::operator<(const IElement& other) const noexcept {
-    __CHECK_TYPE_IS_NOT_NULL_EXCEPTION__((*this))
-    __CHECK_TYPES_IS_EQUAL_EXCEPTION__((*this), other)
+    __CHECK_TYPE_IS_NOT_NULL__((*this))
+    __CHECK_TYPES_IS_EQUAL__((*this), other)
 
     using namespace utils;
     switch(getType()) {
@@ -161,8 +161,8 @@ bool Config::operator<(const IElement& other) const noexcept {
 }
 
 bool Config::operator<=(const Config& other) const noexcept {
-    __CHECK_TYPE_IS_NOT_NULL_EXCEPTION__((*this))
-    __CHECK_TYPES_IS_EQUAL_EXCEPTION__((*this), other)
+    __CHECK_TYPE_IS_NOT_NULL__((*this))
+    __CHECK_TYPES_IS_EQUAL__((*this), other)
 
     using namespace utils;
     switch(getType()) {
@@ -183,8 +183,8 @@ bool Config::operator<=(const Config& other) const noexcept {
 }
 
 bool Config::operator<=(const IElement& other) const noexcept {
-    __CHECK_TYPE_IS_NOT_NULL_EXCEPTION__((*this))
-    __CHECK_TYPES_IS_EQUAL_EXCEPTION__((*this), other)
+    __CHECK_TYPE_IS_NOT_NULL__((*this))
+    __CHECK_TYPES_IS_EQUAL__((*this), other)
 
     using namespace utils;
     switch(getType()) {
@@ -269,52 +269,52 @@ bool Config::isEqual(const Config &other, const bool compare_comments) const noe
 }
 
 bool &Config::getBool() {
-    __CHECK_TYPE_IS_BOOL_EXCEPTION__((*this))
+    __CHECK_TYPE_IS_BOOL__((*this))
     return dynamic_cast<ElementBool*>(m_element.get())->getValue();
 }
 
 bool Config::getBool() const {
-    __CHECK_TYPE_IS_BOOL_EXCEPTION__((*this))
+    __CHECK_TYPE_IS_BOOL__((*this))
     return dynamic_cast<const ElementBool*>(m_element.get())->getValue();
 }
 
 long double &Config::getNumber() {
-    __CHECK_TYPE_IS_NUMBER_EXCEPTION__((*this))
+    __CHECK_TYPE_IS_NUMBER__((*this))
     return dynamic_cast<ElementNumber*>(m_element.get())->getValue();
 }
 
 long double Config::getNumber() const {
-    __CHECK_TYPE_IS_NUMBER_EXCEPTION__((*this))
+    __CHECK_TYPE_IS_NUMBER__((*this))
     return dynamic_cast<const ElementNumber*>(m_element.get())->getValue();
 }
 
 std::string &Config::getString() {
-    __CHECK_TYPE_IS_STRING_EXCEPTION__((*this))
+    __CHECK_TYPE_IS_STRING__((*this))
     return dynamic_cast<ElementString*>(m_element.get())->getValue();
 }
 
 std::string Config::getString() const {
-    __CHECK_TYPE_IS_STRING_EXCEPTION__((*this))
+    __CHECK_TYPE_IS_STRING__((*this))
     return dynamic_cast<const ElementString*>(m_element.get())->getValue();
 }
 
 ElementArray &Config::getArray() {
-    __CHECK_TYPE_IS_ARRAY_EXCEPTION__((*this))
+    __CHECK_TYPE_IS_ARRAY__((*this))
     return dynamic_cast<ElementArray&>(*m_element.get());
 }
 
 ElementArray Config::getArray() const {
-    __CHECK_TYPE_IS_ARRAY_EXCEPTION__((*this))
+    __CHECK_TYPE_IS_ARRAY__((*this))
     return dynamic_cast<ElementArray&>(*m_element.get());
 }
 
 ElementJson &Config::getJson() {
-    __CHECK_TYPE_IS_JSON_EXCEPTION__((*this))
+    __CHECK_TYPE_IS_JSON__((*this))
     return dynamic_cast<ElementJson&>(*m_element.get());
 }
 
 ElementJson Config::getJson() const {
-    __CHECK_TYPE_IS_JSON_EXCEPTION__((*this))
+    __CHECK_TYPE_IS_JSON__((*this))
     return dynamic_cast<ElementJson&>(*m_element.get());
 }
 
