@@ -46,31 +46,32 @@ private:
 
 public:
     // Operators =======================================================================================================
-    IElement&       operator=(const IElement& other)  noexcept;
-    IElement&       operator=(IElement&& other)       noexcept;
+    virtual IElement&   operator=(const IElement& other)  noexcept;
+    virtual IElement&   operator=(IElement&& other)       noexcept;
 
-    bool            operator==(const IElement& other) const noexcept;
-    bool            operator!=(const IElement& other) const noexcept;
+    //WARNING: комментарии не учитываются!
+    virtual bool        operator==(const IElement& other) const noexcept    { return isEqual(other); }
+    virtual bool        operator!=(const IElement& other) const noexcept    { return !isEqual(other); }
 
     //числа, контейнеры(размер), строки(длина в видимых символах)
-    bool            operator>(const IElement& other)  const noexcept;
-    bool            operator>=(const IElement& other) const noexcept;
-    bool            operator<(const IElement& other)  const noexcept;
-    bool            operator<=(const IElement& other) const noexcept;
+    virtual bool        operator>(const IElement& other)  const noexcept;
+    virtual bool        operator>=(const IElement& other) const noexcept;
+    virtual bool        operator<(const IElement& other)  const noexcept;
+    virtual bool        operator<=(const IElement& other) const noexcept;
 
     //контейнеры
-    //на подумать: https://en.cppreference.com/w/cpp/language/operators
-    //    IElement& operator<<(const IElement& other)     noexcept;       //аналог push_back()
-    //    IElement& operator<<(const IElement& other)   noexcept;       //аналог push_back()
-    //    IElement  operator>>()                        noexcept;       //аналог pop_front()
-    IElement&       operator[](const size_t index)    noexcept;       //(ARRAY, JSON)
-    IElement        operator[](const size_t index)    const noexcept; //(ARRAY, JSON)
-    IElement&       operator[](const std::string key) noexcept;       //(JSON)
-    IElement        operator[](const std::string key) const noexcept; //(JSON)
+    //FIXME: на подумать: https://en.cppreference.com/w/cpp/language/operators
+//    IElement& operator<<(const IElement& other)   noexcept;       //аналог push_back()
+//    IElement& operator<<(const IElement& other)   noexcept;       //аналог push_back()
+//    IElement  operator>>()                        noexcept;       //аналог pop_front()
+    virtual IElement&   operator[](const size_t index)    noexcept;       //(ARRAY, JSON)
+    virtual IElement    operator[](const size_t index)    const noexcept; //(ARRAY, JSON)
+    virtual IElement&   operator[](const std::string key) noexcept;       //(JSON)
+    virtual IElement    operator[](const std::string key) const noexcept; //(JSON)
     // ======================================================================================================= Operators
 
     // Info ============================================================================================================
-    ValueType       getType()       const noexcept  { return getType(); }
+    ValueType       getType()       const noexcept  { return m_type; }
     bool            isNull()        const noexcept  { return getType() == ValueType::eNull; }
     bool            isBool()        const noexcept  { return getType() == ValueType::eBool; }
     bool            isNumber()      const noexcept  { return getType() == ValueType::eNumber; }
@@ -81,8 +82,8 @@ public:
 //TODO: bool isXml() const noexcept
     bool            isContainer()   const noexcept;
 
-    size_t          size()          const noexcept;
-    bool            isEqual(const IElement& other, const bool compare_comments = false) const noexcept;
+    virtual size_t  size()          const noexcept;
+    virtual bool    isEqual(const IElement& other, const bool compare_comments = false) const noexcept;
     // ============================================================================================================ Info
 
     // Getters =========================================================================================================
@@ -99,8 +100,13 @@ public:
 
     // вложенные контейнеры
     IElement&       get_front();
+    IElement        get_front()                     const;
     IElement&       get_at(const size_t index);
+    IElement        get_at(const size_t index)      const;
+    IElement&       get_at(const std::string& key);
+    IElement        get_at(const std::string& key)  const;
     IElement&       get_back();
+    IElement        get_back()                      const;
     // ========================================================================================================= Getters
 
     // Setters =========================================================================================================
@@ -200,27 +206,27 @@ public:
 
 //STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC
 //return - получившийся распаршенный корневой элемент, ElementNull если не удалось чтение
-IElement  ReadFile(const std::string& file_path, const ConfigFormat format,
-                  const bool with_comments = false, std::string* error_log = nullptr);
-IElement  ReadFileJson(const std::string& file_path, const bool with_comments = 0,
-                      std::string* error_log = nullptr);
-IElement  ReadFileIni(const std::string& file_path, const bool with_comments = 0,
-                     std::string* error_log = nullptr);
+IElement    ReadFile(const std::string& file_path, const ConfigFormat format,
+                const bool with_comments = false, std::string* error_log = nullptr);
+IElement    ReadFileJson(const std::string& file_path, const bool with_comments = 0,
+                std::string* error_log = nullptr);
+IElement    ReadFileIni(const std::string& file_path, const bool with_comments = 0,
+                std::string* error_log = nullptr);
 
 //return - удалось записать файл или нет
-bool    WriteFile(const IElement& config, const std::string& file_path,
-               const ConfigFormat format, const bool with_comments = 0)  noexcept;
-bool    WriteFileJson(const IElement& config, const std::string& file_path,
-                   const bool with_comments = 0)                         noexcept;
-bool    WriteFileIni(const IElement& config, const std::string& file_path,
-                  const bool with_comments = 0)                          noexcept;
+bool        WriteFile(const IElement& config, const std::string& file_path,
+                const ConfigFormat format, const bool with_comments = 0)    noexcept;
+bool        WriteFileJson(const IElement& config, const std::string& file_path,
+                const bool with_comments = 0)                               noexcept;
+bool        WriteFileIni(const IElement& config, const std::string& file_path,
+                const bool with_comments = 0)                               noexcept;
 
-IElement  Parse(const std::string& content, const ConfigFormat format,
-               const bool with_comments = false, std::string* error_log = nullptr);
-IElement  ParseJson(const std::string& content, const bool with_comments = 0,
-                   std::string* error_log = nullptr);
-IElement  ParseIni(const std::string& content, const bool with_comments = 0,
-                  std::string* error_log = nullptr);
+IElement    Parse(const std::string& content, const ConfigFormat format,
+                const bool with_comments = false, std::string* error_log = nullptr);
+IElement    ParseJson(const std::string& content, const bool with_comments = 0,
+                std::string* error_log = nullptr);
+IElement    ParseIni(const std::string& content, const bool with_comments = 0,
+                std::string* error_log = nullptr);
 //STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC
 
 
