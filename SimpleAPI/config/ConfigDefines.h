@@ -40,7 +40,7 @@
 //==========================================================================VALUES
 
 //EXEPTIONS=======================================================================
-#define __INCORRECT_TYPE_EXCEPTION__(str)   throw std::invalid_argument("This Element is not a " + #str + " type");
+#define __INCORRECT_TYPE_EXCEPTION__(str)   throw std::invalid_argument(std::string("This Element is not a ") + #str + " type");
 
 #define __CHECK_TYPE_IS_NULL__(object)      if(!object.isNull())    __INCORRECT_TYPE_EXCEPTION__("NULL")
 #define __CHECK_TYPE_IS_BOOL__(object)      if(!object.isBool())    __INCORRECT_TYPE_EXCEPTION__("BOOL")

@@ -11,24 +11,24 @@
 #include <stdexcept>
 
 
-Config &Config::operator=(const Config& other) noexcept {
+IElement &Config::operator=(const IElement& other) noexcept {
     if(m_element.get() != other.m_element.get())
         m_element = other.m_element;
     return *this;
 }
 
-Config &Config::operator=(Config&& other) noexcept {
+IElement &Config::operator=(IElement&& other) noexcept {
     if(m_element.get() != other.m_element.get())
         m_element = other.m_element;
     return *this;
 }
 
-bool Config::operator==(const Config& other) const {
+bool Config::operator==(const IElement& other) const {
     return isEqual(other); //без учёта комментариев
 }
 
 //числа, контейнеры(размер), строки(количество выводимых СИМВОЛОВ)
-bool Config::operator>(const Config& other) const noexcept {
+bool Config::operator>(const IElement& other) const noexcept {
     __CHECK_TYPE_IS_NOT_NULL__((*this))
     __CHECK_TYPES_IS_EQUAL__((*this), other)
 
@@ -72,7 +72,7 @@ bool Config::operator>(const IElement& other) const noexcept {
     }
 }
 
-bool Config::operator>=(const Config& other) const noexcept {
+bool Config::operator>=(const IElement& other) const noexcept {
     __CHECK_TYPE_IS_NOT_NULL__((*this))
     __CHECK_TYPES_IS_EQUAL__((*this), other)
 
@@ -116,7 +116,7 @@ bool Config::operator>=(const IElement& other) const noexcept {
     }
 }
 
-bool Config::operator<(const Config& other) const noexcept {
+bool Config::operator<(const IElement& other) const noexcept {
     __CHECK_TYPE_IS_NOT_NULL__((*this))
     __CHECK_TYPES_IS_EQUAL__((*this), other)
 
@@ -160,7 +160,7 @@ bool Config::operator<(const IElement& other) const noexcept {
     }
 }
 
-bool Config::operator<=(const Config& other) const noexcept {
+bool Config::operator<=(const IElement& other) const noexcept {
     __CHECK_TYPE_IS_NOT_NULL__((*this))
     __CHECK_TYPES_IS_EQUAL__((*this), other)
 
@@ -204,26 +204,6 @@ bool Config::operator<=(const IElement& other) const noexcept {
     }
 }
 
-Config &Config::operator<<(const Config& other) noexcept {
-    ...
-}
-
-Config &Config::operator<<(const IElement& other) noexcept {
-    ...
-}
-
-Config  Config::operator>>(const Config& other) noexcept {
-    ...
-}
-
-Config  Config::operator>>(const IElement& other) noexcept {
-    ...
-}
-
-Config &Config::operator[](const size_t index) noexcept {
-    ...
-}
-
 bool Config::isContainer() const noexcept {
     switch(getType()) {
     //контейнерные типы
@@ -239,16 +219,14 @@ bool Config::isContainer() const noexcept {
     return false;
 }
 
-Config  Config::operator[](const size_t index) const noexcept {
-    ...
+IElement Config::operator[](const size_t index) noexcept {
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    return get_at(index);
 }
 
-Config &Config::operator[](const std::string key) noexcept {
-    ...
-}
-
-Config  Config::operator[](const std::string key) const noexcept {
-    ...
+IElement Config::operator[](const std::string key) noexcept {
+    __CHECK_TYPE_IS_JSON__((*this))
+    return IElement(dynamic_cast<ElementJson*>(m_element.get())->);
 }
 
 size_t Config::size() const noexcept {
@@ -263,7 +241,7 @@ size_t Config::size() const noexcept {
     }
 }
 
-bool Config::isEqual(const Config &other, const bool compare_comments) const noexcept {
+bool Config::isEqual(const IElement &other, const bool compare_comments) const noexcept {
     return compare_comments ? m_element->isEqualWithComments(*other.m_element)
                             : m_element->isEqual(*other.m_element);
 }
@@ -318,56 +296,57 @@ ElementJson Config::getJson() const {
     return dynamic_cast<ElementJson&>(*m_element.get());
 }
 
-Config &Config::get_front(const size_t index) {
-    ...
-}
-
-Config &Config::get_front(const size_t index) const {
-    ...
-}
-
-Config &Config::get_at(const size_t index) {
-    ...
-}
-
-Config &Config::get_at(const size_t index) const {
-    ...
-}
-
-Config &Config::get_back(const size_t index) {
-    ...
-}
-
-Config &Config::get_back(const size_t index) const {
+IElement Config::get_front() {
     __CHECK_TYPE_IS_CONTAINER__((*this))
 
     switch(getType()) {
-    case ValueType::eJson: {
-        return
-    }
-    case ValueType::eArray:
-//NOTE: вручную учитывать контейнерные типы
+    case ValueType::eJson:  return IElement(dynamic_cast<ElementJson*>(m_element.get())->get_front());
+    case ValueType::eArray: return IElement(dynamic_cast<ElementArray*>(m_element.get())->get_front());
+    //NOTE: вручную учитывать контейнерные типы
 //TODO:    case ValueType::eYaml:
 //TODO:    case ValueType::eXml:
     default:                break;
     }
 
-    if(getType() == ValueType::eArray)
-        //FIXME: нужно упаковать в Config
-        return dynamic_cast<ElementArray*>(m_element.get())->get_back();
-
-case ValueType::eArray: return (void*) &*(array_begin());
-    case ValueType::eJson:  return (void*) &*(json_begin());
-    default:
-    }
+    return IElement();
 }
 
-Config &Config::setValue() noexcept {
+IElement Config::get_at(const size_t index) {
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+
+    switch(getType()) {
+    case ValueType::eJson:  return IElement(dynamic_cast<ElementJson*>(m_element.get())->get_at(index));
+    case ValueType::eArray: return IElement(dynamic_cast<ElementArray*>(m_element.get())->get_at(index));
+    //NOTE: вручную учитывать контейнерные типы
+//TODO:    case ValueType::eYaml:
+//TODO:    case ValueType::eXml:
+    default:                break;
+    }
+
+    return IElement();
+}
+
+IElement Config::get_back() {
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+
+    switch(getType()) {
+    case ValueType::eJson:  return IElement(dynamic_cast<ElementJson*>(m_element.get())->get_back());
+    case ValueType::eArray: return IElement(dynamic_cast<ElementArray*>(m_element.get())->get_back());
+    //NOTE: вручную учитывать контейнерные типы
+//TODO:    case ValueType::eYaml:
+//TODO:    case ValueType::eXml:
+    default:                break;
+    }
+
+    return IElement();
+}
+
+IElement &Config::setValue() noexcept {
     m_element = std::unique_ptr<IElement>(new ElementNull());
     return *this;
 }
 
-Config &Config::setValue(const Config &value) noexcept {
+IElement &Config::setValue(const IElement &value) noexcept {
     switch(value.getType()) {
     case ValueType::eNumber:    setValue(value.getNumber());
     case ValueType::eBool:      setValue(value.getBool());
@@ -379,7 +358,7 @@ Config &Config::setValue(const Config &value) noexcept {
     return *this;
 }
 
-Config &Config::setValue(const IElement& value) noexcept {
+IElement &Config::setValue(const IElement& value) noexcept {
     switch(value.getType()) {
     case ValueType::eNumber:    setValue(value.getNumber());
     case ValueType::eBool:      setValue(value.getBool());
@@ -391,27 +370,27 @@ Config &Config::setValue(const IElement& value) noexcept {
     return *this;
 }
 
-Config &Config::setValue(const bool value) noexcept {
+IElement &Config::setValue(const bool value) noexcept {
     m_element = std::unique_ptr<IElement>(new ElementBool(value));
     return *this;
 }
 
-Config &Config::setValue(const long double& value) noexcept {
+IElement &Config::setValue(const long double& value) noexcept {
     m_element = std::unique_ptr<IElement>(new ElementNumber(value));
     return *this;
 }
 
-Config &Config::setValue(const std::string& value) noexcept {
+IElement &Config::setValue(const std::string& value) noexcept {
     m_element = std::unique_ptr<IElement>(new ElementString(value));
     return *this;
 }
 
-Config &Config::setValue(const ElementArray &value) noexcept {
+IElement &Config::setValue(const ElementArray &value) noexcept {
     m_element = std::unique_ptr<IElement>(new ElementArray(value));
     return *this;
 }
 
-Config &Config::setValue(const ElementJson &value) noexcept {
+IElement &Config::setValue(const ElementJson &value) noexcept {
     m_element = std::unique_ptr<IElement>(new ElementJson(value));
     return *this;
 }
@@ -426,21 +405,21 @@ std::string Config::toString(const ConfigFormat format, const int8_t tabulation_
     return m_element->toString(format, tabulation_level);
 }
 
-Config &Config::readFile(const std::string &file_path, const ConfigFormat format,
+IElement &Config::readFile(const std::string &file_path, const ConfigFormat format,
                          const bool with_comments, std::string *error_log)
 {
     *this = ReadFile(file_path, format, with_comments, error_log);
     return *this;
 }
 
-Config &Config::readFileJson(const std::string &file_path, const bool with_comments,
+IElement &Config::readFileJson(const std::string &file_path, const bool with_comments,
                              std::string *error_log)
 {
     *this = ReadFileJson(file_path, with_comments, error_log);
     return *this;
 }
 
-Config &Config::readFileIni(const std::string &file_path, const bool with_comments,
+IElement &Config::readFileIni(const std::string &file_path, const bool with_comments,
                             std::string *error_log)
 {
     *this = ReadFileIni(file_path, with_comments, error_log);
@@ -461,28 +440,28 @@ bool Config::writeFileIni(const std::string &file_path, const bool with_comments
     return WriteFileIni(*this, file_path, with_comments);
 }
 
-Config &Config::parse(const std::string &content, const ConfigFormat format,
+IElement &Config::parse(const std::string &content, const ConfigFormat format,
                       const bool with_comments, std::string *error_log)
 {
     *this = Parse(content, format, with_comments, error_log);
     return *this;
 }
 
-Config &Config::parseJson(const std::string &content, const bool with_comments,
+IElement &Config::parseJson(const std::string &content, const bool with_comments,
                           std::string *error_log)
 {
     *this = ParseJson(content, with_comments, error_log);
     return *this;
 }
 
-Config &Config::parseIni(const std::string &content, const bool with_comments,
+IElement &Config::parseIni(const std::string &content, const bool with_comments,
                          std::string *error_log)
 {
     *this = ParseIni(content, with_comments, error_log);
     return *this;
 }
 
-void *Config::begin() noexcept {
+void *Config::begin() {
     __CHECK_TYPE_IS_CONTAINER__((*this))
 
     switch(getType()) {
@@ -497,7 +476,7 @@ void *Config::begin() noexcept {
     return nullptr;
 }
 
-void *Config::end() noexcept {
+void *Config::end() {
     __CHECK_TYPE_IS_CONTAINER__((*this))
 
     switch(getType()) {
@@ -512,7 +491,7 @@ void *Config::end() noexcept {
     return nullptr;
 }
 
-void *Config::cbegin() const noexcept {
+void *Config::cbegin() const {
     __CHECK_TYPE_IS_CONTAINER__((*this))
 
     switch(getType()) {
@@ -527,7 +506,7 @@ void *Config::cbegin() const noexcept {
     return nullptr;
 }
 
-void *Config::cend() const noexcept {
+void *Config::cend() const {
     __CHECK_TYPE_IS_CONTAINER__((*this))
 
     switch(getType()) {
@@ -542,89 +521,97 @@ void *Config::cend() const noexcept {
     return nullptr;
 }
 
-VElement::iterator Config::array_begin() noexcept {
+VElement::iterator Config::array_begin() {
+    __CHECK_TYPE_IS_ARRAY__((*this))
     return dynamic_cast<ElementArray*>(m_element.get())->begin();
 }
 
-VElement::iterator Config::array_end() noexcept {
+VElement::iterator Config::array_end() {
+    __CHECK_TYPE_IS_ARRAY__((*this))
     return dynamic_cast<ElementArray*>(m_element.get())->end();
 }
 
-VElement::const_iterator Config::array_cbegin() const noexcept {
+VElement::const_iterator Config::array_cbegin() const {
+    __CHECK_TYPE_IS_ARRAY__((*this))
     return dynamic_cast<ElementArray*>(m_element.get())->cbegin();
 }
 
-VElement::const_iterator Config::array_cend() const noexcept {
+VElement::const_iterator Config::array_cend() const{
+    __CHECK_TYPE_IS_ARRAY__((*this))
     return dynamic_cast<ElementArray*>(m_element.get())->cend();
 }
 
-VPairElement::iterator Config::json_begin() noexcept {
+VPairElement::iterator Config::json_begin() {
+    __CHECK_TYPE_IS_JSON__((*this))
     return dynamic_cast<ElementJson*>(m_element.get())->begin();
 }
 
-VPairElement::iterator Config::json_end() noexcept {
+VPairElement::iterator Config::json_end() {
+    __CHECK_TYPE_IS_JSON__((*this))
     return dynamic_cast<ElementJson*>(m_element.get())->end();
 }
 
-VPairElement::const_iterator Config::json_cbegin() const noexcept {
+VPairElement::const_iterator Config::json_cbegin() const {
+    __CHECK_TYPE_IS_JSON__((*this))
     return dynamic_cast<ElementJson*>(m_element.get())->cbegin();
 }
 
-VPairElement::const_iterator Config::json_cend() const noexcept {
+VPairElement::const_iterator Config::json_cend() const {
+    __CHECK_TYPE_IS_JSON__((*this))
     return dynamic_cast<ElementJson*>(m_element.get())->cend();
 }
 
 
 
-Config ReadFile(const std::string &file_path, const ConfigFormat format,
+IElement ReadFile(const std::string &file_path, const ConfigFormat format,
                 const bool with_comments, std::string *error_log)
 {
     ...
 }
 
-Config ReadFileJson(const std::string &file_path, const bool with_comments,
+IElement ReadFileJson(const std::string &file_path, const bool with_comments,
                     std::string *error_log)
 {
     ...
 }
 
-Config ReadFileIni(const std::string &file_path, const bool with_comments,
+IElement ReadFileIni(const std::string &file_path, const bool with_comments,
                    std::string *error_log)
 {
     ...
 }
 
-bool WriteFile(const Config &config, const std::string &file_path,
+bool WriteFile(const IElement &config, const std::string &file_path,
                const ConfigFormat format, const bool with_comments) noexcept
 {
     ...
 }
 
-bool WriteFileJson(const Config &config, const std::string &file_path,
+bool WriteFileJson(const IElement &config, const std::string &file_path,
                    const bool with_comments) noexcept
 {
     ...
 }
 
-bool WriteFileIni(const Config &config, const std::string &file_path,
+bool WriteFileIni(const IElement &config, const std::string &file_path,
                   const bool with_comments) noexcept
 {
     ...
 }
 
-Config Parse(const std::string &content, const ConfigFormat format,
+IElement Parse(const std::string &content, const ConfigFormat format,
              const bool with_comments, std::string *error_log)
 {
     ...
 }
 
-Config ParseJson(const std::string &content, const bool with_comments,
+IElement ParseJson(const std::string &content, const bool with_comments,
                  std::string *error_log)
 {
     ...
 }
 
-Config ParseIni(const std::string &content, const bool with_comments,
+IElement ParseIni(const std::string &content, const bool with_comments,
                 std::string *error_log)
 {
     ...
