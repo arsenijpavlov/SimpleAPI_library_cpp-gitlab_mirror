@@ -1,49 +1,8 @@
 
 
-IElement &IElement::get_front() {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
 
-    switch(getType()) {
-    case ValueType::eJson:  return IElement(dynamic_cast<ElementJson*>(this)->get_front());
-    case ValueType::eArray: return IElement(dynamic_cast<ElementArray*>(this)->get_front());
-    //NOTE: вручную учитывать контейнерные типы
-//TODO:    case ValueType::eYaml:
-//TODO:    case ValueType::eXml:
-    default:                break;
-    }
 
-    return IElement();
-}
 
-IElement &IElement::get_at(const size_t index) {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
-    switch(getType()) {
-    case ValueType::eJson:  return IElement(dynamic_cast<ElementJson*>(this)->get_at(index));
-    case ValueType::eArray: return IElement(dynamic_cast<ElementArray*>(this)->get_at(index));
-    //NOTE: вручную учитывать контейнерные типы
-//TODO:    case ValueType::eYaml:
-//TODO:    case ValueType::eXml:
-    default:                break;
-    }
-
-    return IElement();
-}
-
-IElement &IElement::get_back() {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
-    switch(getType()) {
-    case ValueType::eJson:  return IElement(dynamic_cast<ElementJson*>(this)->get_back());
-    case ValueType::eArray: return IElement(dynamic_cast<ElementArray*>(this)->get_back());
-    //NOTE: вручную учитывать контейнерные типы
-//TODO:    case ValueType::eYaml:
-//TODO:    case ValueType::eXml:
-    default:                break;
-    }
-
-    return IElement();
-}
 
 IElement &&IElement::setValue() noexcept {
     m_element = std::unique_ptr<IElement>(new ElementNull());

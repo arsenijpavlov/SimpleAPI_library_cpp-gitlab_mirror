@@ -15,9 +15,9 @@ class ElementArray;
 class ElementJson;
 class IElement;
 
-using JPair         = std::pair<std::string, IElement>;
+using JPair         = std::pair<std::string, std::shared_ptr<IElement>>;
 using VPairElement  = std::vector<JPair>;
-using VElement      = std::vector<IElement>;
+using VElement      = std::vector<std::shared_ptr<IElement>>;
 
 //базовый класс
 //NOTE: равносилен ELEMENT_NULL
@@ -66,8 +66,8 @@ public:
 //    IElement  operator>>()                        noexcept;       //аналог pop_front()
     virtual IElement&   operator[](const size_t index)    noexcept;       //(ARRAY, JSON)
     virtual IElement    operator[](const size_t index)    const noexcept; //(ARRAY, JSON)
-    virtual IElement&   operator[](const std::string key) noexcept;       //(JSON)
-    virtual IElement    operator[](const std::string key) const noexcept; //(JSON)
+    virtual IElement&   operator[](const std::string& key) noexcept;       //(JSON)
+    virtual IElement    operator[](const std::string& key) const noexcept; //(JSON)
     // ======================================================================================================= Operators
 
     // Info ============================================================================================================
@@ -124,11 +124,11 @@ public:
 protected:
     Comment m_comment;
 public:
-    void            addComment(const Comment& content)      noexcept                { m_comment = content; }
-    void            addComment(const std::string &content_before, const std::string &content_after) noexcept
-                                                                                    { m_comment = Comment(content_before, content_after); }
-    void            addPrefixComment(const std::string& content) noexcept           { m_comment.setPrefix(content); }
-    void            addSuffixComment(const std::string& content) noexcept           { m_comment.setSuffix(content); }
+    IElement&       addComment(const Comment& content)      noexcept                { m_comment = content; }
+    IElement&       addComment(const std::string &content_before, const std::string &content_after) noexcept
+    																				{ m_comment = Comment(content_before, content_after); }
+    IElement&       addPrefixComment(const std::string& content) noexcept           { m_comment.setPrefix(content); }
+    IElement&       addSuffixComment(const std::string& content) noexcept           { m_comment.setSuffix(content); }
 
     Comment&        getComment()                            noexcept                { return m_comment; }
     Comment         getComment()                            const noexcept          { return m_comment; }
@@ -137,24 +137,24 @@ public:
     std::string&    getSuffixComment()                      noexcept                { return m_comment.suffix(); }
     std::string     getSuffixComment()                      const noexcept          { return m_comment.suffix(); }
 
-    void            clearComment()                          noexcept                { m_comment.clear(); }
-    void            clearPrefixComment()                    noexcept                { m_comment.clearPrefix(); }
-    void            clearSuffixComment()                    noexcept                { m_comment.clearSuffix(); }
-    void            deleteComment()                         noexcept                { m_comment.del(); }
-    void            deletePrefixComment()                   noexcept                { m_comment.delPrefix(); }
-    void            deleteSuffixComment()                   noexcept                { m_comment.delSuffix(); }
+    IElement&       clearComment()                          noexcept                { m_comment.clear(); }
+    IElement&       clearPrefixComment()                    noexcept                { m_comment.clearPrefix(); }
+    IElement&       clearSuffixComment()                    noexcept                { m_comment.clearSuffix(); }
+    IElement&       deleteComment()                         noexcept                { m_comment.del(); }
+    IElement&       deletePrefixComment()                   noexcept                { m_comment.delPrefix(); }
+    IElement&       deleteSuffixComment()                   noexcept                { m_comment.delSuffix(); }
 
     CommentDesign&  getCommentDesign()                      noexcept                { return m_comment.commentDesign(); }
     CommentDesign   getCommentDesign()                      const noexcept          { return m_comment.commentDesign(); }
-    void            setCommentDesign(const CommentDesign& design)
-                                                            noexcept                { m_comment.setDesign(design); }
-    void            clearCommentDesign()                    noexcept                { m_comment.clearDesign(); }
+    IElement&       setCommentDesign(const CommentDesign& design)
+        													noexcept                { m_comment.setDesign(design); }
+    IElement&       clearCommentDesign()                    noexcept                { m_comment.clearDesign(); }
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= COMMENTS
 
     // String ==========================================================================================================
 //TODO:    std::string toStringWithComments();
     virtual std::string toString(const ConfigFormat format, const CommentDesign &design,
-                         const int8_t tabulation_level = 0) const noexcept;
+                                 const int8_t tabulation_level = 0) const noexcept;
     //вывод без комментариев, "tabulation_level == -1" => запись в одну строку
     virtual std::string toString(const ConfigFormat format = ConfigFormat::eJSON, const int8_t tabulation_level = 0) const noexcept;
     // ========================================================================================================== String

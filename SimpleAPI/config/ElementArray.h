@@ -18,7 +18,7 @@ public:
     ElementArray(Types&&... args) noexcept {
         init();
 
-        //NOTE: без объявления массива не работает
+        //NOTE: без объявления массива не работает в c++11
         int dummy[] = { (push_back(std::forward<Types>(args)), 0)... };
         (void)dummy; // suppress unused variable warning
     }
@@ -31,11 +31,11 @@ private:
 public:
 
     //PARSING -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    void        parseArray(const std::string& string, const bool enable_comment = false,
+    ElementArray&   parseArray(const std::string& string, const bool enable_comment = false,
                             const ConfigFormat config_format = ConfigFormat::eJSON, CommentDesign* design = nullptr);
-    void        parseJsonArray(const std::string& string, const bool enable_comment = false,
+    ElementArray&   parseJsonArray(const std::string& string, const bool enable_comment = false,
                             CommentDesign* design = nullptr);
-    void        parseIniArray(const std::string& string, const bool enable_comment = false,
+    ElementArray&   parseIniArray(const std::string& string, const bool enable_comment = false,
                             CommentDesign* design = nullptr);
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- PARSING
 
@@ -56,11 +56,11 @@ public:
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
 
     //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    void        add_comment(const size_t index, const Comment& content);
-    void        add_comment(const size_t index, const std::string& content_before,
+    ElementArray&   add_comment(const size_t index, const Comment& content);
+    ElementArray&   add_comment(const size_t index, const std::string& content_before,
                            const std::string& content_after);
-    void        add_prefix_comment(const size_t index, const std::string& content);
-    void        add_suffix_comment(const size_t index, const std::string& content);
+    ElementArray&   add_prefix_comment(const size_t index, const std::string& content);
+    ElementArray&   add_suffix_comment(const size_t index, const std::string& content);
 
     Comment&        get_comment(const size_t index);
     Comment         get_comment(const size_t index) const;
@@ -70,12 +70,12 @@ public:
     std::string     get_suffix_comment(const size_t index) const;
 
     //NOTE: noexcept, потому что неправильный индекс просто пропустит действие
-    void        clear_comment(const size_t index) noexcept;
-    void        clear_prefix_comment(const size_t index) noexcept;
-    void        clear_suffix_comment(const size_t index) noexcept;
-    void        delete_comment(const size_t index) noexcept;
-    void        delete_prefix_comment(const size_t index) noexcept;
-    void        delete_suffix_comment(const size_t index) noexcept;
+    ElementArray&   clear_comment(const size_t index) noexcept;
+    ElementArray&   clear_prefix_comment(const size_t index) noexcept;
+    ElementArray&   clear_suffix_comment(const size_t index) noexcept;
+    ElementArray&   delete_comment(const size_t index) noexcept;
+    ElementArray&   delete_prefix_comment(const size_t index) noexcept;
+    ElementArray&   delete_suffix_comment(const size_t index) noexcept;
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= COMMENTS
 
     ElementArray&   clear() noexcept;
@@ -83,12 +83,12 @@ public:
                                                                 { return m_values.size() > index; }
     bool            isEmpty() const noexcept                    { return m_values.empty(); }
     bool            isEqual(const IElement& other, const bool compare_comments = false) const noexcept override;
-    size_t          size() const noexcept                       { return m_values.size(); }
+    size_t          size() const noexcept override              { return m_values.size(); }
 
     //TYPES -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    ValueType   get_type_front();
-    ValueType   get_type_at(const size_t index);
-    ValueType   get_type_back();
+    ValueType       get_type_front();
+    ValueType       get_type_at(const size_t index);
+    ValueType       get_type_back();
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- TYPES
 
     //SETTERS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
