@@ -3,68 +3,67 @@
 
 #include "Comment.h"
 #include "ConfigCommon.h"
-#include "ConfigDefines.h"
 
 #include <map>
 #include <vector>
 
 
 //предобъявление
-class ElementArray;
-class ElementJson;
+class Config;
 class IElement;
 
 using JPair         = std::pair<std::string, std::shared_ptr<IElement>>;
 using VPairElement  = std::vector<JPair>;
 using VElement      = std::vector<std::shared_ptr<IElement>>;
 
-//базовый класс
-//NOTE: равносилен ELEMENT_NULL
+//базовый класс, в идеале используется только для ссылки на производный
 class IElement {
-
 public:
-    IElement()                      noexcept    {}
-    virtual ~IElement()             noexcept    {}
+    IElement()                                                  noexcept            {}
+    virtual ~IElement()                                         noexcept            {}
 
-public:
+    // Getters =========================================================================================================
+    virtual bool&           getBool();
+    virtual bool            getBool()                           const;
+    virtual long double&    getNumber();
+    virtual long double     getNumber()                         const;
+    virtual std::string&    getString();
+    virtual std::string     getString()                         const;
+
+    // вложенные контейнеры
+    virtual Config&         get_front();
+    virtual Config          get_front()                         const;
+    virtual Config&         get_at(const size_t index);
+    virtual Config          get_at(const size_t index)          const;
+    virtual Config&         get_at(const std::string& key);
+    virtual Config          get_at(const std::string& key)      const;
+    virtual Config&         get_back();
+    virtual Config          get_back()                          const;
+    // ========================================================================================================= Getters
+
+    // Info ============================================================================================================
+    virtual bool            isContainer()                       const noexcept      { return false; }
+    virtual bool            isEqual(const Config& other)        const noexcept      { return false; }
+    virtual bool            isEqual(const bool other)           const noexcept      { return false; }
+    virtual bool            isEqual(const long double& other)   const noexcept      { return false; }
+    virtual bool            isEqual(const std::string& other)   const noexcept      { return false; }
+    virtual size_t          size()                              const noexcept      { return 0; }
+    // ============================================================================================================ Info
+
+    // Operators =======================================================================================================
+    virtual Config&         operator[](const size_t index)      noexcept;
+    virtual Config          operator[](const size_t index)      const noexcept;
+    virtual Config&         operator[](const std::string& key)  noexcept;
+    virtual Config          operator[](const std::string& key)  const noexcept;
+    // ======================================================================================================= Operators
+
     // String ==========================================================================================================
-
-
-//TODO:    std::string toStringWithComments();
-    virtual std::string toString() const noexcept;
-
-    virtual std::string toString(const ConfigFormat format = ConfigFormat::eJSON, const int8_t tabulation_level = 0) const noexcept;
+    //вывод без комментариев, "tabulation_level == -1" => запись в одну строку
+    virtual std::string     toString(const ConfigFormat format = ConfigFormat::eJSON,
+                         const int8_t tabulation_level = 0,
+                         const CommentDesign &design = {})      const noexcept      { return ""; }
     // ========================================================================================================== String
-
-
 };
-
-
-//    //PRINTING =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//    //для рекурсивного вызова, без комментариев, в одну строку
-//    virtual std::string toString(const ConfigFormat format = ConfigFormat::eJSON,
-//                                  const int8_t tabulation_level = 0) const noexcept
-//                                                                { return ""; }
-//    //для рекурсивного вызова, с использованием комментариев
-//    virtual std::string toString(const ConfigFormat format, const CommentDesign &design,
-//                                  const int8_t tabulation_level = 0) const noexcept
-//                                                                { return ""; }
-//    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
-
-
-
-//    virtual bool isEqual(const IElement& other)                 const noexcept { return false; }
-//    virtual bool isEqualWithComments(const IElement& other)     const noexcept { return false; }
-
-//    //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-//    //NOTE: комментарии при присваивании копируются
-////    IElement& operator=(const IElement& other) noexcept;
-//    //NOTE: комментарии при сравнении не учитываются
-//    bool operator==(const IElement& other) const noexcept       { return (m_type == other.m_type ? isEqual(other) : false); }
-//    bool operator!=(const IElement& other) const noexcept       { return !(*this == other); }
-//    //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= OPERATORS
-//};
-
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
