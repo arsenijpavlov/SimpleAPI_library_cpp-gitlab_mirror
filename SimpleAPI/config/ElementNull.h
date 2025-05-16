@@ -17,23 +17,41 @@ class ElementNull : public IElement {
 private:
 
 public:
-    ElementNull()                                               { m_type = ValueType::eNull; }
-    ~ElementNull()                                              {}
+    ElementNull()                                       noexcept            {}
+    ~ElementNull()                                      noexcept            {}
 
-    //PRINTING =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    //для рекурсивного вызова, без комментариев, в одну строку
-    std::string toString(const ConfigFormat format = ConfigFormat::eJSON,
-                         const int8_t tabulation_level = 0) const noexcept override
-                                                                { return "null"; }
-    //для рекурсивного вызова, с использованием комментариев
-    std::string toString(const ConfigFormat format, const CommentDesign &design,
-                         const int8_t tabulation_level = 0) const noexcept override
-                                                                { return "null"; }
-    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
+    // Getters =========================================================================================================
+    bool&           getBool()                                           override;
+    bool            getBool()                           const           override;
+    long double&    getNumber()                                         override;
+    long double     getNumber()                         const           override;
+    std::string&    getString()                                         override;
+    std::string     getString()                         const           override;
 
-    //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    bool        isEqual(const IElement& other, const bool compare_comments = false) const noexcept override;
-    //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= OPERATORS
+    // вложенные контейнеры
+    Config&         get_front()                                         override;
+    Config          get_front()                         const           override;
+    Config&         get_at(const size_t index)                          override;
+    Config          get_at(const size_t index)          const           override;
+    Config&         get_at(const std::string& key)                      override;
+    Config          get_at(const std::string& key)      const           override;
+    Config&         get_back()                                          override;
+    Config          get_back()                          const           override;
+    // ========================================================================================================= Getters
+
+    // Operators =======================================================================================================
+    Config&         operator[](const size_t index)      noexcept        override;
+    Config          operator[](const size_t index)      const noexcept  override;
+    Config&         operator[](const std::string& key)  noexcept        override;
+    Config          operator[](const std::string& key)  const noexcept  override;
+    // ======================================================================================================= Operators
+
+    // String ==========================================================================================================
+    //вывод без комментариев, "tabulation_level == -1" => запись в одну строку
+    std::string     toString(const ConfigFormat format = ConfigFormat::eJSON,
+                        const int8_t tabulation_level = 0, const CommentDesign &design = {})
+                                                        const noexcept  override;
+    // ========================================================================================================== String
 };
 
 bool IsElementNull(const std::string& str) noexcept;
