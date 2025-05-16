@@ -19,11 +19,13 @@ enum class ConfigFormat {
 //Value type ===================================================================================
 enum class ValueType {
     eNull,
-    eNumber,
     eBool,
+    eNumber,
     eString,
-    eJson,
-    eArray
+    eArray,
+    eJson
+//    eYaml,
+//    eXml
 };
  std::string ToString(const ValueType type) noexcept;
 //=================================================================================== Value type

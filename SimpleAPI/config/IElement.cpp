@@ -139,10 +139,17 @@
 //}
 
 //NOTE: каждый дочерний класс должен описать эту функцию
-IElement &IElement::operator=(const IElement &other) noexcept {
+IElement &IElement::operator=(const IElement &other) {
     if(this != &other) {
-        m_type      = other.m_type;
-        m_comment   = other.m_comment;
+        switch(other.getType()) {
+        case ValueType::eNull:
+        case ValueType::eNumber:
+        case ValueType::eBool:
+        case ValueType::eString:
+        case ValueType::eJson:
+        case ValueType::eArray:     this = dynamic_cast<ElementArray*>(ElementArray(other));
+        default:                    break;
+        }
     }
 
     return *this;
