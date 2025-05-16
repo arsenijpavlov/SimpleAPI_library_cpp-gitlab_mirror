@@ -10,7 +10,8 @@ class Config {
 private:
     ValueType   m_type;
     IElement*   m_value;
-    Comment     m_comment;
+    //Комментарии существуют ТОЛЬКО на этом уровне абстракции?
+    Comment     m_comment;  //FIXME: сейчас никем не используется!
 
 public:
     Config()                                                noexcept            { init(); }
@@ -85,7 +86,7 @@ public:
     bool            isContainer()                           const noexcept      { return m_value->isContainer(); }
 
     bool            isEqual(const Config& other, const bool compare_comments = false)
-                                                            const noexcept      { return m_value->isEqual(other.m_value, compare_comments); }
+                                                            const noexcept;
 //    bool            isEqual(const bool other)               const noexcept;
 //    bool            isEqual(const long double& other)       const noexcept;
 //    bool            isEqual(const std::string& other)       const noexcept;

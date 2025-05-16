@@ -135,6 +135,12 @@ Config &Config::setValue(ElementJson &&value) noexcept {
     return *this;
 }
 
+bool Config::isEqual(const Config &other, const bool compare_comments) const noexcept {
+    if(compare_comments && m_comment != other.m_comment)
+        return false;
+    return m_value->isEqual(other.m_value);
+}
+
 Config &Config::operator=(const Config &other) noexcept {
     return setValue(other);
 }

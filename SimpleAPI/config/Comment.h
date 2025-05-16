@@ -64,7 +64,7 @@ private:
 public:
     Comment() noexcept;
     Comment(const Comment& other) noexcept;
-    Comment(const Comment&& other) noexcept;
+/*FIXME*/    Comment(const Comment&& other) noexcept;
     Comment(const std::string& comment_before, const std::string& comment_after = "") noexcept;
     ~Comment() noexcept;
 
@@ -103,10 +103,11 @@ public:
     //-----------------------------------------------------------------------------
 
     bool        operator==(const Comment& other) const noexcept;
+    bool        operator!=(const Comment& other) const noexcept { return !(*this == other); }
     Comment&    operator=(const Comment& other) noexcept;
-    Comment&    operator=(const Comment&& other) noexcept;
+/*FIXME*/    Comment&    operator=(const Comment&& other) noexcept;
     Comment&    operator=(const std::string& prefix_comment) noexcept;
-    Comment&    operator=(const std::string&& prefix_comment) noexcept;
+/*FIXME*/    Comment&    operator=(const std::string&& prefix_comment) noexcept;
 };
 
 
