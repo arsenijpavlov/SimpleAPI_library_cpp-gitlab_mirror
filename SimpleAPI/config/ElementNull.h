@@ -54,7 +54,7 @@ public:
     // ========================================================================================================== String
 };
 
-bool IsElementNull(const std::string& str) noexcept;
-bool IsElementNull(const IElement& e) noexcept;
+bool IsElementNull(const std::string& str)              noexcept;
+bool IsElementNull(const IElement& e)                   noexcept;
 
 #endif // ELEMENT_NULL_H
