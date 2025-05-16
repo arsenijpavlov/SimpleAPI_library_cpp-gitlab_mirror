@@ -6,8 +6,8 @@
 #include "ElementString.h"
 #include "ElementArray.h"
 #include "ElementJson.h"
-#include "ElementYaml.h"
-#include "ElementXml.h"
+//#include "ElementYaml.h"
+//#include "ElementXml.h"
 
 
 Config &Config::setValue() noexcept {
@@ -136,8 +136,11 @@ Config &Config::setValue(ElementJson &&value) noexcept {
 }
 
 bool Config::isEqual(const Config &other, const bool compare_comments) const noexcept {
+    if(m_type != other.getType())
+        return false;
     if(compare_comments && m_comment != other.m_comment)
         return false;
+
     return m_value->isEqual(other.m_value);
 }
 

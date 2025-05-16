@@ -44,10 +44,6 @@ public:
     Config&         setValue(ElementArray&& value)          noexcept;
     Config&         setValue(const ElementJson& value)      noexcept;
     Config&         setValue(ElementJson&& value)           noexcept;
-//    Config&         setValue(const ElementYaml& value)      noexcept;
-//    Config&         setValue(ElementYaml&& value)           noexcept;
-//    Config&         setValue(const ElementXml& value)       noexcept;
-//    Config&         setValue(ElementXml&& value)            noexcept;
     // ========================================================================================================= Setters
 
     // Getters =========================================================================================================
@@ -57,10 +53,6 @@ public:
     long double     getNumber()                             const               { return m_value->getNumber(); }
     std::string&    getString()                                                 { return m_value->getString(); }
     std::string     getString()                             const               { return m_value->getString(); }
-    ElementArray&   getArray()                                                  { return m_value->getArray(); }
-    ElementArray    getArray()                              const               { return m_value->getArray(); }
-    ElementJson&    getJson()                                                   { return m_value->getJson(); }
-    ElementJson     getJson()                               const               { return m_value->getJson(); }
 
     // вложенные контейнеры
     Config&         get_front()                                                 { return m_value->get_front(); }
@@ -90,10 +82,6 @@ public:
 //    bool            isEqual(const bool other)               const noexcept;
 //    bool            isEqual(const long double& other)       const noexcept;
 //    bool            isEqual(const std::string& other)       const noexcept;
-//    bool            isEqual(const ElementArray& other)      const noexcept;
-//    bool            isEqual(const ElementJson& other)       const noexcept;
-//    bool            isEqual(const ElementYaml& other)       const noexcept;
-//    bool            isEqual(const ElementXml& other)        const noexcept;
 
     size_t          size()                                  const noexcept      { return m_value->size(); }
     // ============================================================================================================ Info
@@ -101,40 +89,22 @@ public:
     // Operators =======================================================================================================
     Config&         operator=(const Config& other)          noexcept;
     Config&         operator=(Config&& other)               noexcept;
-//    Config&         operator=(const IElement& other)        noexcept;
-//    Config&         operator=(IElement&& other)             noexcept;
 //    Config&         operator=(const bool other)             noexcept;
 //    Config&         operator=(const long double& other)     noexcept;
 //    Config&         operator=(long double&& other)          noexcept;
 //    Config&         operator=(const std::string& other)     noexcept;
 //    Config&         operator=(std::string&& other)          noexcept;
-//    Config&         operator=(const ElementArray& other)    noexcept;
-//    Config&         operator=(ElementArray&& other)         noexcept;
-//    Config&         operator=(const ElementJson& other)     noexcept;
-//    Config&         operator=(ElementJson&& other)          noexcept;
-//    Config&         operator=(const ElementYaml& other)     noexcept;
-//    Config&         operator=(ElementYaml&& other)          noexcept;
-//    Config&         operator=(const ElementXml& other)      noexcept;
-//    Config&         operator=(ElementXml&& other)           noexcept;
 
     //WARNING: комментарии не учитываются! Учитывание комментариев только при вызове isEqual()
     bool            operator==(const Config& other)         const noexcept      { return isEqual(other); }
 //    bool            operator==(const bool other)            const noexcept      { return isEqual(other); }
 //    bool            operator==(const long double& other)    const noexcept      { return isEqual(other); }
 //    bool            operator==(const std::string& other)    const noexcept      { return isEqual(other); }
-//    bool            operator==(const ElementArray& other)   const noexcept      { return isEqual(other); }
-//    bool            operator==(const ElementJson& other)    const noexcept      { return isEqual(other); }
-//    bool            operator==(const ElementYaml& other)    const noexcept      { return isEqual(other); }
-//    bool            operator==(const ElementXml& other)     const noexcept      { return isEqual(other); }
 
     bool            operator!=(const Config& other)         const noexcept      { return !isEqual(other); }
 //    bool            operator!=(const bool other)            const noexcept      { return !isEqual(other); }
 //    bool            operator!=(const long double& other)    const noexcept      { return !isEqual(other); }
 //    bool            operator!=(const std::string& other)    const noexcept      { return !isEqual(other); }
-//    bool            operator!=(const ElementArray& other)   const noexcept      { return !isEqual(other); }
-//    bool            operator!=(const ElementJson& other)    const noexcept      { return !isEqual(other); }
-//    bool            operator!=(const ElementYaml& other)    const noexcept      { return !isEqual(other); }
-//    bool            operator!=(const ElementXml& other)     const noexcept      { return !isEqual(other); }
 
     //числа, контейнеры(размер), строки(длина в видимых символах)
     bool            operator>(const Config& other)          const noexcept      { return m_value > other.m_value; }
