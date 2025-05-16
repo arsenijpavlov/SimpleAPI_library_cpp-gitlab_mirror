@@ -75,8 +75,8 @@ public:
     // String ==========================================================================================================
     //вывод без комментариев, "tabulation_level == -1" => запись в одну строку
     virtual std::string     toString(const ConfigFormat format = ConfigFormat::eJSON,
-                         const int8_t tabulation_level = 0,
-                         const CommentDesign &design = {})      const noexcept      { return ""; }
+                                const int8_t tabulation_level = 0, const CommentDesign &design = {})
+                                                                const noexcept      { return ""; }
     // ========================================================================================================== String
 };
 
