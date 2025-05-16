@@ -7,7 +7,7 @@
 #include "IElement.h"
 
 class Config {
-protected:
+private:
     ValueType   m_type;
     IElement*   m_value;
     Comment     m_comment;
@@ -146,10 +146,10 @@ public:
     //Config&         operator<<(const IElement& other)       noexcept;       //аналог push_back()
     //Config&         operator<<(const IElement& other)       noexcept;       //аналог push_back()
     //Config          operator>>()                            noexcept;       //аналог pop_front()
-    Config&         operator[](const size_t index)          noexcept            { return (*m_value)[index]; } //(ARRAY, JSON)
-    Config          operator[](const size_t index)          const noexcept      { return (*m_value)[index]; } //(ARRAY, JSON)
-    Config&         operator[](const std::string& key)      noexcept            { return (*m_value)[key]; } //(JSON)
-    Config          operator[](const std::string& key)      const noexcept      { return (*m_value)[key]; } //(JSON)
+    Config&         operator[](const size_t index)          noexcept            { return (*m_value)[index]; }   //(ARRAY, JSON)
+    Config          operator[](const size_t index)          const noexcept      { return (*m_value)[index]; }   //(ARRAY, JSON)
+    Config&         operator[](const std::string& key)      noexcept            { return (*m_value)[key]; }     //(JSON)
+    Config          operator[](const std::string& key)      const noexcept      { return (*m_value)[key]; }     //(JSON)
     // ======================================================================================================= Operators
 
     //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -243,11 +243,11 @@ Config  ReadFileIni(const std::string& file_path, const bool with_comments = 0,
             std::string* error_log = nullptr);
 
 //return - удалось записать файл или нет
-bool    WriteFile(const IElement& config, const std::string& file_path,
+bool    WriteFile(const Config& config, const std::string& file_path,
             const ConfigFormat format, const bool with_comments = 0)            noexcept;
-bool    WriteFileJson(const IElement& config, const std::string& file_path,
+bool    WriteFileJson(const Config& config, const std::string& file_path,
             const bool with_comments = 0)                                       noexcept;
-bool    WriteFileIni(const IElement& config, const std::string& file_path,
+bool    WriteFileIni(const Config& config, const std::string& file_path,
             const bool with_comments = 0)                                       noexcept;
 
 Config  Parse(const std::string& content, const ConfigFormat format,
