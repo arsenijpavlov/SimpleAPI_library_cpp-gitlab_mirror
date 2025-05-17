@@ -10,8 +10,6 @@ class Config {
 private:
     ValueType   m_type;
     IElement*   m_value;
-    //Комментарии существуют ТОЛЬКО на этом уровне абстракции?
-    Comment     m_comment;  //FIXME: сейчас никем не используется!
 
 public:
     Config()                                                noexcept            { init(); }
@@ -124,31 +122,29 @@ public:
     // ======================================================================================================= Operators
 
     //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    Config&         addComment(const Comment& content)      noexcept            { m_comment = content; return *this; }
-    Config&         addComment(const std::string &content_before, const std::string &content_after) noexcept
-                                                                                { m_comment = Comment(content_before, content_after); return *this; }
-    Config&         addPrefixComment(const std::string& content) noexcept       { m_comment.setPrefix(content); return *this; }
-    Config&         addSuffixComment(const std::string& content) noexcept       { m_comment.setSuffix(content); return *this; }
+    Config&         addComment(const Comment& content)              noexcept;
+    Config&         addComment(const std::string &content_before, const std::string &content_after) noexcept;
+    Config&         addPrefixComment(const std::string& content)    noexcept;
+    Config&         addSuffixComment(const std::string& content)    noexcept;
 
-    Comment&        getComment()                            noexcept            { return m_comment; }
-    Comment         getComment()                            const noexcept      { return m_comment; }
-    std::string&    getPrefixComment()                      noexcept            { return m_comment.prefix(); }
-    std::string     getPrefixComment()                      const noexcept      { return m_comment.prefix(); }
-    std::string&    getSuffixComment()                      noexcept            { return m_comment.suffix(); }
-    std::string     getSuffixComment()                      const noexcept      { return m_comment.suffix(); }
+    Comment&        getComment()                                    noexcept        { return m_value->getComment(); }
+    Comment         getComment()                                    const noexcept  { return m_value->getComment(); }
+    std::string&    getPrefixComment()                              noexcept        { return m_value->getPrefixComment(); }
+    std::string     getPrefixComment()                              const noexcept  { return m_value->getPrefixComment(); }
+    std::string&    getSuffixComment()                              noexcept        { return m_value->getSuffixComment(); }
+    std::string     getSuffixComment()                              const noexcept  { return m_value->getSuffixComment(); }
 
-    Config&         clearComment()                          noexcept            { m_comment.clear(); return *this; }
-    Config&         clearPrefixComment()                    noexcept            { m_comment.clearPrefix(); return *this; }
-    Config&         clearSuffixComment()                    noexcept            { m_comment.clearSuffix(); return *this; }
-    Config&         deleteComment()                         noexcept            { m_comment.del(); return *this; }
-    Config&         deletePrefixComment()                   noexcept            { m_comment.delPrefix(); return *this; }
-    Config&         deleteSuffixComment()                   noexcept            { m_comment.delSuffix(); return *this; }
+    Config&         clearComment()                                  noexcept;
+    Config&         clearPrefixComment()                            noexcept;
+    Config&         clearSuffixComment()                            noexcept;
+    Config&         deleteComment()                                 noexcept;
+    Config&         deletePrefixComment()                           noexcept;
+    Config&         deleteSuffixComment()                           noexcept;
 
-    CommentDesign&  getCommentDesign()                      noexcept            { return m_comment.commentDesign(); }
-    CommentDesign   getCommentDesign()                      const noexcept      { return m_comment.commentDesign(); }
-    Config&         setCommentDesign(const CommentDesign& design)
-                                                            noexcept            { m_comment.setDesign(design); return *this; }
-    Config&         clearCommentDesign()                    noexcept            { m_comment.clearDesign(); return *this; }
+    CommentDesign&  getCommentDesign()                              noexcept        { return m_value->getCommentDesign(); }
+    CommentDesign   getCommentDesign()                              const noexcept  { return m_value->getCommentDesign(); }
+    Config&         setCommentDesign(const CommentDesign& design)   noexcept;
+    Config&         clearCommentDesign()                            noexcept;
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= COMMENTS
 
     // String ==========================================================================================================

@@ -152,6 +152,66 @@ Config &Config::operator=(Config &&other) noexcept {
     return setValue(std::move(other));
 }
 
+Config &Config::addComment(const Comment &content) noexcept {
+    m_value->addComment(content);
+    return *this;
+}
+
+Config &Config::addComment(const std::string &content_before, const std::string &content_after) noexcept {
+    m_value->addComment(content_before, content_after);
+    return *this;
+}
+
+Config &Config::addPrefixComment(const std::string &content) noexcept {
+    m_value->addPrefixComment(content);
+    return *this;
+}
+
+Config &Config::addSuffixComment(const std::string &content) noexcept {
+    m_value->addSuffixComment(content);
+    return *this;
+}
+
+Config &Config::clearComment() noexcept {
+    m_value->clearComment();
+    return *this;
+}
+
+Config &Config::clearPrefixComment() noexcept {
+    m_value->clearPrefixComment();
+    return *this;
+}
+
+Config &Config::clearSuffixComment() noexcept {
+    m_value->clearSuffixComment();
+    return *this;
+}
+
+Config &Config::deleteComment() noexcept {
+    m_value->deleteComment();
+    return *this;
+}
+
+Config &Config::deletePrefixComment() noexcept {
+    m_value->deletePrefixComment();
+    return *this;
+}
+
+Config &Config::deleteSuffixComment() noexcept {
+    m_value->deleteSuffixComment();
+    return *this;
+}
+
+Config &Config::setCommentDesign(const CommentDesign &design) noexcept {
+    m_value->setCommentDesign(design);
+    return *this;
+}
+
+Config &Config::clearCommentDesign() noexcept {
+    m_value->clearCommentDesign();
+    return *this;
+}
+
 Config &Config::readFile(const std::string &file_path, const ConfigFormat format,
                          const bool with_comments, std::string *error_log)
 {
