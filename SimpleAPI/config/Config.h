@@ -5,6 +5,8 @@
 #include "ConfigCommon.h"
 #include "ConfigDefines.h"
 #include "IElement.h"
+#include "ElementArray.h"
+#include "ElementJson.h"
 
 class Config {
 private:
@@ -21,6 +23,11 @@ public:
     Config(T&& value)                                       noexcept            { setValue(static_cast<long double&>(value)); }
     __ONLY_STRING_TYPES__(T)
     Config(T&& value)                                       noexcept            { setValue(std::string(value)); }
+    //TODO: подумать, как исключить прямое указание типа при вызове конструктора
+    Config(const ElementArray& value)                       noexcept            { setValue(value); }
+    Config(ElementArray&& value)                            noexcept            { setValue(value); }
+    Config(const ElementJson& value)                        noexcept            { setValue(value); }
+    Config(ElementJson&& value)                             noexcept            { setValue(value); }
 
     ~Config()                                               noexcept            { delete m_value; }
 
@@ -55,12 +62,44 @@ public:
     // вложенные контейнеры
     Config&         get_front()                                                 { return m_value->get_front(); }
     Config          get_front()                             const               { return m_value->get_front(); }
+    //TODO: получение значения по списку индексов/ключей
     Config&         get_at(const size_t index)                                  { return m_value->get_at(index); }
     Config          get_at(const size_t index)              const               { return m_value->get_at(index); }
+    //TODO: получение значения по списку индексов/ключей
     Config&         get_at(const std::string& key)                              { return m_value->get_at(key); }
     Config          get_at(const std::string& key)          const               { return m_value->get_at(key); }
     Config&         get_back()                                                  { return m_value->get_back(); }
     Config          get_back()                              const               { return m_value->get_back(); }
+
+    bool&           get_front_bool()                                            { return m_value->get_front().getBool(); }
+    bool            get_front_bool()                        const               { return m_value->get_front().getBool(); }
+    long double&    get_front_number()                                          { return m_value->get_front().getNumber(); }
+    long double     get_front_number()                      const               { return m_value->get_front().getNumber(); }
+    std::string&    get_front_string()                                          { return m_value->get_front().getString(); }
+    std::string     get_front_string()                      const               { return m_value->get_front().getString(); }
+
+    //TODO: получение значения по списку индексов/ключей
+    bool&           get_bool_at(const size_t index)                             { return m_value->get_at(index).getBool(); }
+    bool            get_bool_at(const size_t index)         const               { return m_value->get_at(index).getBool(); }
+    long double&    get_number_at(const size_t index)                           { return m_value->get_at(index).getNumber(); }
+    long double     get_number_at(const size_t index)       const               { return m_value->get_at(index).getNumber(); }
+    std::string&    get_string_at(const size_t index)                           { return m_value->get_at(index).getString(); }
+    std::string     get_string_at(const size_t index)       const               { return m_value->get_at(index).getString(); }
+
+    //TODO: получение значения по списку индексов/ключей
+    bool&           get_bool_at(const std::string& key)                         { return m_value->get_at(key).getBool(); }
+    bool            get_bool_at(const std::string& key)     const               { return m_value->get_at(key).getBool(); }
+    long double&    get_number_at(const std::string& key)                       { return m_value->get_at(key).getNumber(); }
+    long double     get_number_at(const std::string& key)   const               { return m_value->get_at(key).getNumber(); }
+    std::string&    get_string_at(const std::string& key)                       { return m_value->get_at(key).getString(); }
+    std::string     get_string_at(const std::string& key)   const               { return m_value->get_at(key).getString(); }
+
+    bool&           get_back_bool()                                             { return m_value->get_back().getBool(); }
+    bool            get_back_bool()                         const               { return m_value->get_back().getBool(); }
+    long double&    get_back_number()                                           { return m_value->get_back().getNumber(); }
+    long double     get_back_number()                       const               { return m_value->get_back().getNumber(); }
+    std::string&    get_back_string()                                           { return m_value->get_back().getString(); }
+    std::string     get_back_string()                       const               { return m_value->get_back().getString(); }
     // ========================================================================================================= Getters
 
     // Info ============================================================================================================
@@ -115,6 +154,7 @@ public:
     //Config&         operator<<(const IElement& other)       noexcept;       //аналог push_back()
     //Config&         operator<<(const IElement& other)       noexcept;       //аналог push_back()
     //Config          operator>>()                            noexcept;       //аналог pop_front()
+    //TODO: получение значения по списку индексов/ключей
     Config&         operator[](const size_t index)          noexcept            { return (*m_value)[index]; }   //(ARRAY, JSON)
     Config          operator[](const size_t index)          const noexcept      { return (*m_value)[index]; }   //(ARRAY, JSON)
     Config&         operator[](const std::string& key)      noexcept            { return (*m_value)[key]; }     //(JSON)
