@@ -20,8 +20,8 @@ using VElement      = std::vector<std::shared_ptr<IElement>>;
 class IElement {
 protected:
     Comment     m_comment;
-public:
     IElement()                                                  noexcept            {}
+public:
     virtual ~IElement()                                         noexcept            {}
 
     // Getters =========================================================================================================
