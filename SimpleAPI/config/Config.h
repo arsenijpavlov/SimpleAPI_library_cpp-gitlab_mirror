@@ -189,9 +189,9 @@ public:
 
     // String ==========================================================================================================
     //вывод без комментариев, "tabulation_level == -1" => запись в одну строку
-    std::string     toString(const ConfigFormat format = ConfigFormat::eJSON,
+    std::string     toString(const ConfigFormat format = ConfigFormat::eONLY_VALUE,
                         const int8_t tabulation_level = 0,
-                        const CommentDesign &design = {})   const noexcept      { return m_value->toString(format, tabulation_level, design); }
+                        const CommentDesign &design = {})           const noexcept  { return m_value->toString(format, tabulation_level, design); }
     // ========================================================================================================== String
 
     // File ============================================================================================================

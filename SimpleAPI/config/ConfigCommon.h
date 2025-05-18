@@ -9,6 +9,7 @@ using VString = std::vector<std::string>;
 
 //Format =======================================================================================
 enum class ConfigFormat {
+    eONLY_VALUE,
     eJSON,
     eINI,
     eYAML,
