@@ -1,6 +1,8 @@
 #ifndef JSON_DEFINES_H
 #define JSON_DEFINES_H
 
+#include "stdexcept"
+
 //TYPES===========================================================================
 #define __ONLY_ALLOWED_TYPES__(ARG) \
     template<typename ARG, \

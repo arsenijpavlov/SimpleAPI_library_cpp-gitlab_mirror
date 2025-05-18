@@ -17,8 +17,8 @@ class ElementNull : public IElement {
 private:
 
 public:
-    ElementNull()                                       noexcept            {}
-    ~ElementNull()                                      noexcept            {}
+    ElementNull()                                       noexcept        {}
+    ~ElementNull()                                      noexcept        {}
 
     // Getters =========================================================================================================
     bool&           getBool()                                           override;

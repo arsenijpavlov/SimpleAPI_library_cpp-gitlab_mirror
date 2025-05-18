@@ -1,6 +1,9 @@
 #include "ElementNull.h"
 
 #include "../utils/Utils.h"
+#include "ConfigDefines.h"
+#include "ElementBool.h"
+
 #include <algorithm>
 
 
@@ -31,3 +34,9 @@ bool IsElementNull(const IElement &e) noexcept {
     return e.getType() == ValueType::eNull;
 }
 
+
+bool &ElementNull::getBool() {
+    __CHECK_TYPE_IS_NOT_NULL__((*this))
+    bool b = false;
+    return b;
+}

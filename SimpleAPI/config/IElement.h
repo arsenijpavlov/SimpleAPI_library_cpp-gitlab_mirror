@@ -19,31 +19,33 @@ using VElement      = std::vector<std::shared_ptr<IElement>>;
 //базовый класс, в идеале используется только для ссылки на производный
 class IElement {
 protected:
+    ValueType   m_type;
     Comment     m_comment;
     IElement()                                                  noexcept            {}
 public:
     virtual ~IElement()                                         noexcept            {}
 
     // Getters =========================================================================================================
-    virtual bool&           getBool();
-    virtual bool            getBool()                           const;
-    virtual long double&    getNumber();
-    virtual long double     getNumber()                         const;
-    virtual std::string&    getString();
-    virtual std::string     getString()                         const;
+//    virtual bool&           getBool();
+//    virtual bool            getBool()                           const;
+//    virtual long double&    getNumber();
+//    virtual long double     getNumber()                         const;
+//    virtual std::string&    getString();
+//    virtual std::string     getString()                         const;
 
     // вложенные контейнеры
-    virtual Config&         get_front();
-    virtual Config          get_front()                         const;
-    virtual Config&         get_at(const size_t index);
-    virtual Config          get_at(const size_t index)          const;
-    virtual Config&         get_at(const std::string& key);
-    virtual Config          get_at(const std::string& key)      const;
-    virtual Config&         get_back();
-    virtual Config          get_back()                          const;
+//    virtual Config&         get_front();
+//    virtual Config          get_front()                         const;
+//    virtual Config&         get_at(const size_t index);
+//    virtual Config          get_at(const size_t index)          const;
+//    virtual Config&         get_at(const std::string& key);
+//    virtual Config          get_at(const std::string& key)      const;
+//    virtual Config&         get_back();
+//    virtual Config          get_back()                          const;
     // ========================================================================================================= Getters
 
     // Info ============================================================================================================
+    ValueType               getType()                           const noexcept      { return m_type; }
     virtual bool            isContainer()                       const noexcept      { return false; }
     virtual bool            isEqual(const Config& other)        const noexcept      { return false; }
     virtual bool            isEqual(const bool other)           const noexcept      { return false; }
@@ -53,25 +55,25 @@ public:
     // ============================================================================================================ Info
 
     // Operators =======================================================================================================
-    bool                    operator==(const Config& other)     const noexcept      { return isEqual(other); }
-    bool                    operator==(const bool other)        const noexcept      { return isEqual(other); }
-    bool                    operator==(const long double& other)const noexcept      { return isEqual(other); }
-    bool                    operator==(const std::string& other)const noexcept      { return isEqual(other); }
+//    bool                    operator==(const Config& other)     const noexcept      { return isEqual(other); }
+//    bool                    operator==(const bool other)        const noexcept      { return isEqual(other); }
+//    bool                    operator==(const long double& other)const noexcept      { return isEqual(other); }
+//    bool                    operator==(const std::string& other)const noexcept      { return isEqual(other); }
 
-    bool                    operator!=(const Config& other)     const noexcept      { return !isEqual(other); }
-    bool                    operator!=(const bool other)        const noexcept      { return !isEqual(other); }
-    bool                    operator!=(const long double& other)const noexcept      { return !isEqual(other); }
-    bool                    operator!=(const std::string& other)const noexcept      { return !isEqual(other); }
+//    bool                    operator!=(const Config& other)     const noexcept      { return !isEqual(other); }
+//    bool                    operator!=(const bool other)        const noexcept      { return !isEqual(other); }
+//    bool                    operator!=(const long double& other)const noexcept      { return !isEqual(other); }
+//    bool                    operator!=(const std::string& other)const noexcept      { return !isEqual(other); }
 
     //числа, контейнеры(размер), строки(длина в видимых символах)
     virtual bool            operator>(const Config& other)      const noexcept      { return false; }
     virtual bool            operator>=(const Config& other)     const noexcept      { return false; }
     virtual bool            operator<(const Config& other)      const noexcept      { return false; }
     virtual bool            operator<=(const Config& other)     const noexcept      { return false; }
-    virtual Config&         operator[](const size_t index)      noexcept;
-    virtual Config          operator[](const size_t index)      const noexcept;
-    virtual Config&         operator[](const std::string& key)  noexcept;
-    virtual Config          operator[](const std::string& key)  const noexcept;
+//    virtual Config&         operator[](const size_t index)      noexcept;
+//    virtual Config          operator[](const size_t index)      const noexcept;
+//    virtual Config&         operator[](const std::string& key)  noexcept;
+//    virtual Config          operator[](const std::string& key)  const noexcept;
     // ======================================================================================================= Operators
 
     //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -111,21 +113,21 @@ public:
 
     // Iterators =======================================================================================================
     // (!) Для foreach итераторы необходимо кастить вручную к нужному типу; за основу брать типы ниже
-    /* (!) */ void*                 begin();
-    /* (!) */ void*                 end();
-    /* (!) */ void*                 cbegin()                    const;
-    /* (!) */ void*                 cend()                      const;
+//    /* (!) */ void*                 begin();
+//    /* (!) */ void*                 end();
+//    /* (!) */ void*                 cbegin()                    const;
+//    /* (!) */ void*                 cend()                      const;
     // (!) Для foreach итераторы необходимо кастить вручную к нужному типу; за основу брать типы ниже
     //Array
-    VElement::iterator              array_begin();
-    VElement::iterator              array_end();
-    VElement::const_iterator        array_cbegin()              const;
-    VElement::const_iterator        array_cend()                const;
+//    VElement::iterator              array_begin();
+//    VElement::iterator              array_end();
+//    VElement::const_iterator        array_cbegin()              const;
+//    VElement::const_iterator        array_cend()                const;
     //Json
-    VPairElement::iterator          json_begin();
-    VPairElement::iterator          json_end();
-    VPairElement::const_iterator    json_cbegin()               const;
-    VPairElement::const_iterator    json_cend()                 const;
+//    VPairElement::iterator          json_begin();
+//    VPairElement::iterator          json_end();
+//    VPairElement::const_iterator    json_cbegin()               const;
+//    VPairElement::const_iterator    json_cend()                 const;
     // ======================================================================================================= Iterators
 };
 

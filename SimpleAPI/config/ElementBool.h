@@ -14,22 +14,8 @@ public:
     ~ElementBool()              noexcept                    {}
 
     // Getters =========================================================================================================
-    bool&           getBool()                                           override    { return m_value; }
-    bool            getBool()                           const           override    { return m_value; }
-    long double&    getNumber()                                         override;
-    long double     getNumber()                         const           override;
-    std::string&    getString()                                         override;
-    std::string     getString()                         const           override;
-
-    // вложенные контейнеры
-    Config&         get_front()                                         override;
-    Config          get_front()                         const           override;
-    Config&         get_at(const size_t index)                          override;
-    Config          get_at(const size_t index)          const           override;
-    Config&         get_at(const std::string& key)                      override;
-    Config          get_at(const std::string& key)      const           override;
-    Config&         get_back()                                          override;
-    Config          get_back()                          const           override;
+    bool&           getBool()                                           { return m_value; }
+    bool            getBool()                           const           { return m_value; }
     // ========================================================================================================= Getters
 
     // Info ============================================================================================================
@@ -38,11 +24,7 @@ public:
     // ============================================================================================================ Info
 
     // Operators =======================================================================================================
-    //числа, контейнеры(размер), строки(длина в видимых символах)
-    Config&         operator[](const size_t index)      noexcept        override;
-    Config          operator[](const size_t index)      const noexcept  override;
-    Config&         operator[](const std::string& key)  noexcept        override;
-    Config          operator[](const std::string& key)  const noexcept  override;
+
     // ======================================================================================================= Operators
 
     // String ==========================================================================================================

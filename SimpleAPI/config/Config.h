@@ -10,8 +10,7 @@
 
 class Config {
 private:
-    ValueType   m_type;
-    IElement*   m_value;
+    IElement* m_value;
 
 public:
     Config()                                                noexcept            { init(); }
@@ -52,24 +51,28 @@ public:
     // ========================================================================================================= Setters
 
     // Getters =========================================================================================================
-    bool&           getBool()                                                   { return m_value->getBool(); }
-    bool            getBool()                               const               { return m_value->getBool(); }
-    long double&    getNumber()                                                 { return m_value->getNumber(); }
-    long double     getNumber()                             const               { return m_value->getNumber(); }
-    std::string&    getString()                                                 { return m_value->getString(); }
-    std::string     getString()                             const               { return m_value->getString(); }
+    bool&           getBool();
+    bool            getBool()                               const;
+    long double&    getNumber();
+    long double     getNumber()                             const;
+    std::string&    getString();
+    std::string     getString()                             const;
 
     // вложенные контейнеры
-    Config&         get_front()                                                 { return m_value->get_front(); }
-    Config          get_front()                             const               { return m_value->get_front(); }
+    Config&         get_front();
+    Config          get_front()                             const;
+    Config&         get_at(const size_t index);
+    Config          get_at(const size_t index)              const;
     //TODO: получение значения по списку индексов/ключей
-    Config&         get_at(const size_t index)                                  { return m_value->get_at(index); }
-    Config          get_at(const size_t index)              const               { return m_value->get_at(index); }
+//    Config&         get_at(const std::vector<size_t>& indexes)                  {}
+//    Config          get_at(const std::vector<size_t>& indexes)  const           {}
+    Config&         get_at(const std::string& key);
+    Config          get_at(const std::string& key)          const;
     //TODO: получение значения по списку индексов/ключей
-    Config&         get_at(const std::string& key)                              { return m_value->get_at(key); }
-    Config          get_at(const std::string& key)          const               { return m_value->get_at(key); }
-    Config&         get_back()                                                  { return m_value->get_back(); }
-    Config          get_back()                              const               { return m_value->get_back(); }
+//    Config&         get_at(const std::vector<std::string>& indexes)             {}
+//    Config          get_at(const std::vector<std::string>& indexes)  const      {}
+    Config&         get_back();
+    Config          get_back()                              const;
 
     bool&           get_front_bool()                                            { return m_value->get_front().getBool(); }
     bool            get_front_bool()                        const               { return m_value->get_front().getBool(); }
@@ -103,7 +106,7 @@ public:
     // ========================================================================================================= Getters
 
     // Info ============================================================================================================
-    ValueType       getType()                               const noexcept      { return m_type; }
+    ValueType       getType()                               const noexcept      { return m_value->getType(); }
     bool            isNull()                                const noexcept      { return getType() == ValueType::eNull; }
     bool            isBool()                                const noexcept      { return getType() == ValueType::eBool; }
     bool            isNumber()                              const noexcept      { return getType() == ValueType::eNumber; }

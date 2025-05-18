@@ -14,7 +14,6 @@ Config &Config::setValue() noexcept {
     if(m_value != nullptr)
         delete m_value;
 
-    m_type  = ValueType::eNull;
     m_value = dynamic_cast<IElement*>(new ElementNull());
     return *this;
 }
@@ -58,7 +57,6 @@ Config &Config::setValue(const bool value) noexcept {
     if(m_value != nullptr)
         delete m_value;
 
-    m_type  = ValueType::eBool;
     m_value = dynamic_cast<IElement*>(new ElementBool(value));
     return *this;
 }
@@ -67,7 +65,6 @@ Config &Config::setValue(const long double &value) noexcept {
     if(m_value != nullptr)
         delete m_value;
 
-    m_type  = ValueType::eNumber;
     m_value = dynamic_cast<IElement*>(new ElementNumber(value));
     return *this;
 }
@@ -76,7 +73,6 @@ Config &Config::setValue(long double &&value) noexcept {
     if(m_value != nullptr)
         delete m_value;
 
-    m_type  = ValueType::eNumber;
     m_value = dynamic_cast<IElement*>(new ElementNumber(std::move(value)));
     return *this;
 }
@@ -85,7 +81,6 @@ Config &Config::setValue(const std::string &value) noexcept {
     if(m_value != nullptr)
         delete m_value;
 
-    m_type  = ValueType::eString;
     m_value = dynamic_cast<IElement*>(new ElementString(value));
     return *this;
 }
@@ -94,7 +89,6 @@ Config &Config::setValue(std::string &&value) noexcept {
     if(m_value != nullptr)
         delete m_value;
 
-    m_type  = ValueType::eString;
     m_value = dynamic_cast<IElement*>(new ElementString(std::move(value)));
     return *this;
 }
@@ -103,7 +97,6 @@ Config &Config::setValue(const ElementArray &value) noexcept {
     if(m_value != nullptr)
         delete m_value;
 
-    m_type  = ValueType::eArray;
     m_value = dynamic_cast<IElement*>(new ElementArray(value));
     return *this;
 }
@@ -112,7 +105,6 @@ Config &Config::setValue(ElementArray &&value) noexcept {
     if(m_value != nullptr)
         delete m_value;
 
-    m_type  = ValueType::eArray;
     m_value = dynamic_cast<IElement*>(new ElementArray(std::move(value)));
     return *this;
 }
@@ -121,7 +113,6 @@ Config &Config::setValue(const ElementJson &value) noexcept {
     if(m_value != nullptr)
         delete m_value;
 
-    m_type  = ValueType::eJson;
     m_value = dynamic_cast<IElement*>(new ElementJson(value));
     return *this;
 }
@@ -130,15 +121,127 @@ Config &Config::setValue(ElementJson &&value) noexcept {
     if(m_value != nullptr)
         delete m_value;
 
-    m_type  = ValueType::eJson;
     m_value = dynamic_cast<IElement*>(new ElementJson(std::move(value)));
     return *this;
 }
 
+bool &Config::getBool() {
+    __CHECK_TYPE_IS_BOOL__((*this))
+    return dynamic_cast<ElementBool*>(m_value)->getBool();
+}
+
+bool Config::getBool() const {
+    __CHECK_TYPE_IS_BOOL__((*this))
+    return dynamic_cast<const ElementBool*>(m_value)->getBool();
+}
+
+long double &Config::getNumber() {
+    __CHECK_TYPE_IS_NUMBER__((*this))
+    return dynamic_cast<ElementNumber*>(m_value)->getNumber();
+}
+
+long double Config::getNumber() const {
+    __CHECK_TYPE_IS_NUMBER__((*this))
+    return dynamic_cast<const ElementNumber*>(m_value)->getNumber();
+}
+
+std::string &Config::getString() {
+    __CHECK_TYPE_IS_STRING__((*this))
+    return dynamic_cast<ElementString*>(m_value)->getString();
+}
+
+std::string Config::getString() const {
+    __CHECK_TYPE_IS_STRING__((*this))
+    return dynamic_cast<const ElementString*>(m_value)->getString();
+}
+
+Config &Config::get_front() {
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+
+    switch(getType()) {
+    case ValueType::eArray: return dynamic_cast<ElementArray*>(m_value)->get_front();
+    case ValueType::eJson:  return dynamic_cast<ElementJson*>(m_value)->get_front();
+    default:                break;
+    }
+
+    return *this;
+}
+
+Config Config::get_front() const {
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+
+    switch(getType()) {
+    case ValueType::eArray: return dynamic_cast<const ElementArray*>(m_value)->get_front();
+    case ValueType::eJson:  return dynamic_cast<const ElementJson*>(m_value)->get_front();
+    default:                break;
+    }
+
+    return *this;
+}
+
+Config &Config::get_at(const size_t index) {
+
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+
+    switch(getType()) {
+    case ValueType::eArray: return dynamic_cast<ElementArray*>(m_value)->get_at(index);
+    case ValueType::eJson:  return dynamic_cast<ElementJson*>(m_value)->get_at(index);
+    default:                break;
+    }
+
+    return *this;
+}
+
+Config Config::get_at(const size_t index) const {
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+
+    switch(getType()) {
+    case ValueType::eArray: return dynamic_cast<const ElementArray*>(m_value)->get_at(index);
+    case ValueType::eJson:  return dynamic_cast<const ElementJson*>(m_value)->get_at(index);
+    default:                break;
+    }
+
+    return *this;
+}
+
+Config &Config::get_at(const std::string& key) {
+    __CHECK_TYPE_IS_JSON__((*this))
+    return dynamic_cast<ElementJson*>(m_value)->get_at(key);
+}
+
+Config Config::get_at(const std::string& key) const {
+    __CHECK_TYPE_IS_JSON__((*this))
+    return dynamic_cast<const ElementJson*>(m_value)->get_at(key);
+}
+
+Config &Config::get_back() {
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+
+    switch(getType()) {
+    case ValueType::eArray: return dynamic_cast<ElementArray*>(m_value)->get_back();
+    case ValueType::eJson:  return dynamic_cast<ElementJson*>(m_value)->get_back();
+    default:                break;
+    }
+
+    return *this;
+}
+
+Config Config::get_back() const {
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+
+    switch(getType()) {
+    case ValueType::eArray: return dynamic_cast<const ElementArray*>(m_value)->get_back();
+    case ValueType::eJson:  return dynamic_cast<const ElementJson*>(m_value)->get_back();
+    default:                break;
+    }
+
+    return *this;
+}
+
 bool Config::isEqual(const Config &other, const bool compare_comments) const noexcept {
-    if(m_type != other.getType())
-        return false;
-    if(compare_comments && m_comment != other.m_comment)
+    __CHECK_TYPES_IS_EQUAL__((*this), (other))
+
+    if(compare_comments && getComment() != other.getComment())
         return false;
 
     return m_value->isEqual(other.m_value);
