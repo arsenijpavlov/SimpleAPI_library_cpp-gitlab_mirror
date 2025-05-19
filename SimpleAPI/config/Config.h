@@ -74,35 +74,35 @@ public:
     Config&         get_back();
     Config          get_back()                              const;
 
-    bool&           get_front_bool()                                            { return m_value->get_front().getBool(); }
-    bool            get_front_bool()                        const               { return m_value->get_front().getBool(); }
-    long double&    get_front_number()                                          { return m_value->get_front().getNumber(); }
-    long double     get_front_number()                      const               { return m_value->get_front().getNumber(); }
-    std::string&    get_front_string()                                          { return m_value->get_front().getString(); }
-    std::string     get_front_string()                      const               { return m_value->get_front().getString(); }
+    bool&           get_front_bool();
+    bool            get_front_bool()                        const;
+    long double&    get_front_number();
+    long double     get_front_number()                      const;
+    std::string&    get_front_string();
+    std::string     get_front_string()                      const;
 
     //TODO: получение значения по списку индексов/ключей
-    bool&           get_bool_at(const size_t index)                             { return m_value->get_at(index).getBool(); }
-    bool            get_bool_at(const size_t index)         const               { return m_value->get_at(index).getBool(); }
-    long double&    get_number_at(const size_t index)                           { return m_value->get_at(index).getNumber(); }
-    long double     get_number_at(const size_t index)       const               { return m_value->get_at(index).getNumber(); }
-    std::string&    get_string_at(const size_t index)                           { return m_value->get_at(index).getString(); }
-    std::string     get_string_at(const size_t index)       const               { return m_value->get_at(index).getString(); }
+    bool&           get_bool_at(const size_t index);
+    bool            get_bool_at(const size_t index)         const;
+    long double&    get_number_at(const size_t index);
+    long double     get_number_at(const size_t index)       const;
+    std::string&    get_string_at(const size_t index);
+    std::string     get_string_at(const size_t index)       const;
 
     //TODO: получение значения по списку индексов/ключей
-    bool&           get_bool_at(const std::string& key)                         { return m_value->get_at(key).getBool(); }
-    bool            get_bool_at(const std::string& key)     const               { return m_value->get_at(key).getBool(); }
-    long double&    get_number_at(const std::string& key)                       { return m_value->get_at(key).getNumber(); }
-    long double     get_number_at(const std::string& key)   const               { return m_value->get_at(key).getNumber(); }
-    std::string&    get_string_at(const std::string& key)                       { return m_value->get_at(key).getString(); }
-    std::string     get_string_at(const std::string& key)   const               { return m_value->get_at(key).getString(); }
+    bool&           get_bool_at(const std::string& key);
+    bool            get_bool_at(const std::string& key)     const;
+    long double&    get_number_at(const std::string& key);
+    long double     get_number_at(const std::string& key)   const;
+    std::string&    get_string_at(const std::string& key);
+    std::string     get_string_at(const std::string& key)   const;
 
-    bool&           get_back_bool()                                             { return m_value->get_back().getBool(); }
-    bool            get_back_bool()                         const               { return m_value->get_back().getBool(); }
-    long double&    get_back_number()                                           { return m_value->get_back().getNumber(); }
-    long double     get_back_number()                       const               { return m_value->get_back().getNumber(); }
-    std::string&    get_back_string()                                           { return m_value->get_back().getString(); }
-    std::string     get_back_string()                       const               { return m_value->get_back().getString(); }
+    bool&           get_back_bool();
+    bool            get_back_bool()                         const;
+    long double&    get_back_number();
+    long double     get_back_number()                       const;
+    std::string&    get_back_string();
+    std::string     get_back_string()                       const;
     // ========================================================================================================= Getters
 
     // Info ============================================================================================================
@@ -158,10 +158,10 @@ public:
     //Config&         operator<<(const IElement& other)       noexcept;       //аналог push_back()
     //Config          operator>>()                            noexcept;       //аналог pop_front()
     //TODO: получение значения по списку индексов/ключей
-    Config&         operator[](const size_t index)          noexcept            { return (*m_value)[index]; }   //(ARRAY, JSON)
-    Config          operator[](const size_t index)          const noexcept      { return (*m_value)[index]; }   //(ARRAY, JSON)
-    Config&         operator[](const std::string& key)      noexcept            { return (*m_value)[key]; }     //(JSON)
-    Config          operator[](const std::string& key)      const noexcept      { return (*m_value)[key]; }     //(JSON)
+    Config&         operator[](const size_t index)          noexcept            { return get_at(index); }   //(ARRAY, JSON)
+    Config          operator[](const size_t index)          const noexcept      { return get_at(index); }   //(ARRAY, JSON)
+    Config&         operator[](const std::string& key)      noexcept            { return get_at(key); }     //(JSON)
+    Config          operator[](const std::string& key)      const noexcept      { return get_at(key); }     //(JSON)
     // ======================================================================================================= Operators
 
     //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -224,21 +224,21 @@ public:
 
     // Iterators =======================================================================================================
     // (!) Для foreach итераторы необходимо кастить вручную к нужному типу; за основу брать типы ниже
-    /* (!) */ void*                 begin()                                     { return m_value->begin(); }
-    /* (!) */ void*                 end()                                       { return m_value->end(); }
-    /* (!) */ void*                 cbegin()                const               { return m_value->cbegin(); }
-    /* (!) */ void*                 cend()                  const               { return m_value->cend(); }
+    /* (!) */ void*                 begin();
+    /* (!) */ void*                 cbegin()                const;
+    /* (!) */ void*                 end();
+    /* (!) */ void*                 cend()                  const;
     // (!) Для foreach итераторы необходимо кастить вручную к нужному типу; за основу брать типы ниже
     //Array
-    VElement::iterator              array_begin()                               { return m_value->array_begin(); }
-    VElement::iterator              array_end()                                 { return m_value->array_end(); }
-    VElement::const_iterator        array_cbegin()          const               { return m_value->array_cbegin(); }
-    VElement::const_iterator        array_cend()            const               { return m_value->array_cend(); }
+    VElement::iterator              array_begin();
+    VElement::const_iterator        array_cbegin()          const;
+    VElement::iterator              array_end();
+    VElement::const_iterator        array_cend()            const;
     //Json
-    VPairElement::iterator          json_begin()                                { return m_value->json_begin(); }
-    VPairElement::iterator          json_end()                                  { return m_value->json_end(); }
-    VPairElement::const_iterator    json_cbegin()           const               { return m_value->json_cbegin(); }
-    VPairElement::const_iterator    json_cend()             const               { return m_value->json_cend(); }
+    VPairElement::iterator          json_begin();
+    VPairElement::const_iterator    json_cbegin()           const;
+    VPairElement::iterator          json_end();
+    VPairElement::const_iterator    json_cend()             const;
     // ======================================================================================================= Iterators
 };
 
