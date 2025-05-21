@@ -21,29 +21,12 @@ public:
     ~ElementNull()                                      noexcept        {}
 
     // Getters =========================================================================================================
-    bool&           getBool()                                           override;
-    bool            getBool()                           const           override;
-    long double&    getNumber()                                         override;
-    long double     getNumber()                         const           override;
-    std::string&    getString()                                         override;
-    std::string     getString()                         const           override;
-
-    // вложенные контейнеры
-    Config&         get_front()                                         override;
-    Config          get_front()                         const           override;
-    Config&         get_at(const size_t index)                          override;
-    Config          get_at(const size_t index)          const           override;
-    Config&         get_at(const std::string& key)                      override;
-    Config          get_at(const std::string& key)      const           override;
-    Config&         get_back()                                          override;
-    Config          get_back()                          const           override;
     // ========================================================================================================= Getters
 
+    // Info ============================================================================================================
+    // ============================================================================================================ Info
+
     // Operators =======================================================================================================
-    Config&         operator[](const size_t index)      noexcept        override;
-    Config          operator[](const size_t index)      const noexcept  override;
-    Config&         operator[](const std::string& key)  noexcept        override;
-    Config          operator[](const std::string& key)  const noexcept  override;
     // ======================================================================================================= Operators
 
     // String ==========================================================================================================
@@ -56,5 +39,6 @@ public:
 
 bool IsElementNull(const std::string& str)              noexcept;
 bool IsElementNull(const IElement& e)                   noexcept;
+bool IsElementNull(const Config& cfg)                   noexcept;
 
 #endif // ELEMENT_NULL_H

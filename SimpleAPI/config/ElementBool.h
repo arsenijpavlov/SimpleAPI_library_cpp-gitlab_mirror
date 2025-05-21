@@ -9,22 +9,21 @@ protected:
     bool m_value;
 
 public:
-    ElementBool()               noexcept : m_value(false)   {}
-    ElementBool(const bool b)   noexcept : m_value(b)       {}
-    ~ElementBool()              noexcept                    {}
+    ElementBool()               noexcept : m_value(false)                           {}
+    ElementBool(const bool b)   noexcept : m_value(b)                               {}
+    ~ElementBool()              noexcept                                            {}
 
     // Getters =========================================================================================================
-    bool&           getBool()                                           { return m_value; }
-    bool            getBool()                           const           { return m_value; }
+    bool&           getBool()                                                       { return m_value; }
+    bool            getBool()                           const                       { return m_value; }
     // ========================================================================================================= Getters
 
     // Info ============================================================================================================
-    bool            isEqual(const bool other)           const noexcept  override    { return m_value; }
+    bool            isEqual(const bool other)           const noexcept  override    { return m_value == other; }
     size_t          size()                              const noexcept  override    { return 1; }
     // ============================================================================================================ Info
 
     // Operators =======================================================================================================
-
     // ======================================================================================================= Operators
 
     // String ==========================================================================================================

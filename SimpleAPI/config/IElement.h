@@ -66,10 +66,10 @@ public:
 //    bool                    operator!=(const std::string& other)const noexcept      { return !isEqual(other); }
 
     //числа, контейнеры(размер), строки(длина в видимых символах)
-    virtual bool            operator>(const Config& other)      const noexcept      { return false; }
-    virtual bool            operator>=(const Config& other)     const noexcept      { return false; }
-    virtual bool            operator<(const Config& other)      const noexcept      { return false; }
-    virtual bool            operator<=(const Config& other)     const noexcept      { return false; }
+//    virtual bool            operator>(const Config& other)      const noexcept      { return false; }
+//    virtual bool            operator>=(const Config& other)     const noexcept      { return false; }
+//    virtual bool            operator<(const Config& other)      const noexcept      { return false; }
+//    virtual bool            operator<=(const Config& other)     const noexcept      { return false; }
 //    virtual Config&         operator[](const size_t index)      noexcept;
 //    virtual Config          operator[](const size_t index)      const noexcept;
 //    virtual Config&         operator[](const std::string& key)  noexcept;
