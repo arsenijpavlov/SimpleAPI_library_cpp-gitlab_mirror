@@ -225,20 +225,20 @@ public:
     // Iterators =======================================================================================================
     // (!) Для foreach итераторы необходимо кастить вручную к нужному типу; за основу брать типы ниже
     /* (!) */ void*                 begin();
-    /* (!) */ void*                 cbegin()                const;
+    /* (!) */ void*                 cbegin()                        const;
     /* (!) */ void*                 end();
-    /* (!) */ void*                 cend()                  const;
+    /* (!) */ void*                 cend()                          const;
     // (!) Для foreach итераторы необходимо кастить вручную к нужному типу; за основу брать типы ниже
     //Array
     VElement::iterator              array_begin();
-    VElement::const_iterator        array_cbegin()          const;
+    VElement::const_iterator        array_cbegin()                  const;
     VElement::iterator              array_end();
-    VElement::const_iterator        array_cend()            const;
+    VElement::const_iterator        array_cend()                    const;
     //Json
     VPairElement::iterator          json_begin();
-    VPairElement::const_iterator    json_cbegin()           const;
+    VPairElement::const_iterator    json_cbegin()                   const;
     VPairElement::iterator          json_end();
-    VPairElement::const_iterator    json_cend()             const;
+    VPairElement::const_iterator    json_cend()                     const;
     // ======================================================================================================= Iterators
 };
 
