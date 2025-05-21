@@ -2,6 +2,7 @@
 #define ELEMENT_STRING_H
 
 #include "IElement.h"
+#include "../utils/Utils.h"
 
 
 class ElementString : public IElement {
@@ -9,47 +10,48 @@ protected:
     std::string m_value;
 
 public:
-    ElementString() noexcept : m_value()                        { m_type = ValueType::eString; }
-    ElementString(const std::string& s) noexcept : m_value(s)   { m_type = ValueType::eString; }
-    ~ElementString() noexcept {}
+    ElementString()                     noexcept : m_value()                        { init(); }
+    ElementString(const std::string& s) noexcept : m_value(s)                       { init(); }
+    ElementString(std::string&& s)      noexcept : m_value(std::move(s))            { init(); }
+    ~ElementString()                    noexcept                                    {}
 
-    //PRINTING =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    //для рекурсивного вызова, без комментариев, в одну строку
-    std::string toString(const ConfigFormat format = ConfigFormat::eJSON,
-                          const int8_t tabulation_level = 0) const noexcept override
-                                                                { return m_value; }
-    std::string toJsonString(const int8_t tabulation_level = 0) const noexcept
-                                                                { return m_value; }
-    std::string toIniString(const int8_t tabulation_level = 0) const noexcept
-                                                                { return m_value; }
+    void            init()                              noexcept                    { m_type = ValueType::eString; }
 
-    //для рекурсивного вызова, с использованием комментариев
-    std::string toString(const ConfigFormat format, const CommentDesign &design,
-                         const int8_t tabulation_level = 0) const noexcept override
-                                                                { return m_value; }
-    std::string toJsonString(const CommentDesign &design,
-                             const int8_t tabulation_level = 0) const noexcept
-                                                                { return m_value; }
-    std::string toIniString(const CommentDesign &design,
-                            const int8_t tabulation_level = 0) const noexcept
-                                                                { return m_value; }
-    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
+    // Getters =========================================================================================================
+    std::string&    getValue();
+    std::string     getValue()                          const;
+    // ========================================================================================================= Getters
 
-    std::string     getValue() const noexcept                   { return m_value; }
-    std::string&    getValue() noexcept                         { return m_value; }
+    // Info ============================================================================================================
+    bool            isEqual(const std::string& other)   const noexcept  override    { return m_value == other; }
+    size_t          size()                              const noexcept  override    { return utils::GetStringCharCount(m_value); }
+    // ============================================================================================================ Info
 
-    bool        isEqual(const IElement& other, const bool compare_comments = false) const noexcept override;
+    // Operators =======================================================================================================
+    bool            operator>(const std::string& other) const noexcept              { return utils::GetStringCharCount(m_value) >  utils::GetStringCharCount(other); }
+    bool            operator>=(const std::string& other)const noexcept              { return utils::GetStringCharCount(m_value) >= utils::GetStringCharCount(other); }
+    bool            operator<(const std::string& other) const noexcept              { return utils::GetStringCharCount(m_value) <  utils::GetStringCharCount(other); }
+    bool            operator<=(const std::string& other)const noexcept              { return utils::GetStringCharCount(m_value) <= utils::GetStringCharCount(other); }
+    //TODO: operator>>
+    // ======================================================================================================= Operators
 
-    //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    void operator<<(const std::string& other) noexcept;
-    void operator=(const std::string& other) noexcept;
-    //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= OPERATORS
+    // String ==========================================================================================================
+    //вывод без комментариев, "tabulation_level == -1" => запись в одну строку
+    virtual std::string     toString(const ConfigFormat format = ConfigFormat::eONLY_VALUE,
+                                 const int8_t tabulation_level = 0, const CommentDesign &design = {})
+                                                        const noexcept  override;
+    // ========================================================================================================== String
+
+    // Iterators =======================================================================================================
+    //Не предполагается использовать через класс. Использовать getValue().begin() / getValue().cbegin()
+    // ======================================================================================================= Iterators
 };
 
 //не const, потому что предполагается использовать эту же переменную для возврата прочитанного значения
 bool IsElementString(std::string& str, const ConfigFormat format = ConfigFormat::eJSON,
-                     std::string* error_log = nullptr) noexcept;
-bool IsElementString(const IElement& e) noexcept;
+                     std::string* error_log = nullptr)  noexcept;
+bool IsElementString(const IElement& e)                 noexcept;
+bool IsElementString(const Config& cfg)                 noexcept;
 
 
 #endif // ELEMENT_STRING_H

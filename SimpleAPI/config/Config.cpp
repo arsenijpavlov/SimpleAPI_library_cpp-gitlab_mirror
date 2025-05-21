@@ -244,7 +244,7 @@ bool &Config::get_front_bool() {
     Config& config = get_front();
     __CHECK_TYPE_IS_BOOL__(config)
 
-    return dynamic_cast<ElementBool*>(config.m_value)->getBool();
+    return dynamic_cast<ElementBool*>(config.m_value)->getValue();
 }
 
 bool Config::get_front_bool() const {
@@ -253,7 +253,7 @@ bool Config::get_front_bool() const {
     const Config& config = get_front();
     __CHECK_TYPE_IS_BOOL__(config)
 
-    return dynamic_cast<const ElementBool*>(config.m_value)->getBool();
+    return dynamic_cast<const ElementBool*>(config.m_value)->getValue();
 }
 
 long double &Config::get_front_number() {
@@ -262,7 +262,7 @@ long double &Config::get_front_number() {
     Config& config = get_front();
     __CHECK_TYPE_IS_NUMBER__(config)
 
-    return dynamic_cast<ElementNumber*>(config.m_value)->getNumber();
+    return dynamic_cast<ElementNumber*>(config.m_value)->getValue();
 }
 
 long double Config::get_front_number() const {
@@ -271,7 +271,7 @@ long double Config::get_front_number() const {
     const Config& config = get_front();
     __CHECK_TYPE_IS_NUMBER__(config)
 
-    return dynamic_cast<const ElementNumber*>(config.m_value)->getNumber();
+    return dynamic_cast<const ElementNumber*>(config.m_value)->getValue();
 }
 
 std::string &Config::get_front_string() {
@@ -280,7 +280,7 @@ std::string &Config::get_front_string() {
     Config& config = get_front();
     __CHECK_TYPE_IS_STRING__(config)
 
-    return dynamic_cast<ElementString*>(config.m_value)->getString();
+    return dynamic_cast<ElementString*>(config.m_value)->getValue();
 }
 
 std::string Config::get_front_string() const {
@@ -289,7 +289,7 @@ std::string Config::get_front_string() const {
     const Config& config = get_front();
     __CHECK_TYPE_IS_STRING__(config)
 
-    return dynamic_cast<const ElementString*>(config.m_value)->getString();
+    return dynamic_cast<const ElementString*>(config.m_value)->getValue();
 }
 
 bool &Config::get_bool_at(const size_t index) {
@@ -298,7 +298,7 @@ bool &Config::get_bool_at(const size_t index) {
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_BOOL__(config)
 
-    return dynamic_cast<ElementBool*>(config.m_value)->getBool();
+    return dynamic_cast<ElementBool*>(config.m_value)->getValue();
 }
 
 bool Config::get_bool_at(const size_t index) const {
@@ -307,7 +307,7 @@ bool Config::get_bool_at(const size_t index) const {
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_BOOL__(config)
 
-    return dynamic_cast<const ElementBool*>(config.m_value)->getBool();
+    return dynamic_cast<const ElementBool*>(config.m_value)->getValue();
 }
 
 long double &Config::get_number_at(const size_t index) {
@@ -316,7 +316,7 @@ long double &Config::get_number_at(const size_t index) {
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_NUMBER__(config)
 
-    return dynamic_cast<ElementNumber*>(config.m_value)->getNumber();
+    return dynamic_cast<ElementNumber*>(config.m_value)->getValue();
 }
 
 long double Config::get_number_at(const size_t index) const {
@@ -325,7 +325,7 @@ long double Config::get_number_at(const size_t index) const {
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_NUMBER__(config)
 
-    return dynamic_cast<const ElementNumber*>(config.m_value)->getNumber();
+    return dynamic_cast<const ElementNumber*>(config.m_value)->getValue();
 }
 
 std::string &Config::get_string_at(const size_t index) {
@@ -334,7 +334,7 @@ std::string &Config::get_string_at(const size_t index) {
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_STRING__(config)
 
-    return dynamic_cast<ElementString*>(config.m_value)->getString();
+    return dynamic_cast<ElementString*>(config.m_value)->getValue();
 }
 
 std::string Config::get_string_at(const size_t index) const {
@@ -343,7 +343,7 @@ std::string Config::get_string_at(const size_t index) const {
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_STRING__(config)
 
-    return dynamic_cast<const ElementString*>(config.m_value)->getString();
+    return dynamic_cast<const ElementString*>(config.m_value)->getValue();
 }
 
 bool &Config::get_bool_at(const std::string& key) {
@@ -352,7 +352,7 @@ bool &Config::get_bool_at(const std::string& key) {
     const Config& config = get_at(key);
     __CHECK_TYPE_IS_BOOL__(config)
 
-    return dynamic_cast<ElementBool*>(config.m_value)->getBool();
+    return dynamic_cast<ElementBool*>(config.m_value)->getValue();
 }
 
 bool Config::get_bool_at(const std::string& key) const {
@@ -361,7 +361,7 @@ bool Config::get_bool_at(const std::string& key) const {
     const Config& config = get_at(key);
     __CHECK_TYPE_IS_BOOL__(config)
 
-    return dynamic_cast<const ElementBool*>(config.m_value)->getBool();
+    return dynamic_cast<const ElementBool*>(config.m_value)->getValue();
 }
 
 long double &Config::get_number_at(const std::string& key) {
@@ -370,7 +370,7 @@ long double &Config::get_number_at(const std::string& key) {
     const Config& config = get_at(key);
     __CHECK_TYPE_IS_NUMBER__(config)
 
-    return dynamic_cast<ElementNumber*>(config.m_value)->getNumber();
+    return dynamic_cast<ElementNumber*>(config.m_value)->getValue();
 }
 
 long double Config::get_number_at(const std::string& key) const {
@@ -379,7 +379,7 @@ long double Config::get_number_at(const std::string& key) const {
     const Config& config = get_at(key);
     __CHECK_TYPE_IS_NUMBER__(config)
 
-    return dynamic_cast<const ElementNumber*>(config.m_value)->getNumber();
+    return dynamic_cast<const ElementNumber*>(config.m_value)->getValue();
 }
 
 std::string &Config::get_string_at(const std::string& key) {
@@ -388,7 +388,7 @@ std::string &Config::get_string_at(const std::string& key) {
     const Config& config = get_at(key);
     __CHECK_TYPE_IS_STRING__(config)
 
-    return dynamic_cast<ElementString*>(config.m_value)->getString();
+    return dynamic_cast<ElementString*>(config.m_value)->getValue();
 }
 
 std::string Config::get_string_at(const std::string& key) const {
@@ -397,7 +397,7 @@ std::string Config::get_string_at(const std::string& key) const {
     const Config& config = get_at(key);
     __CHECK_TYPE_IS_STRING__(config)
 
-    return dynamic_cast<const ElementString*>(config.m_value)->getString();
+    return dynamic_cast<const ElementString*>(config.m_value)->getValue();
 }
 
 bool &Config::get_back_bool() {
@@ -406,7 +406,7 @@ bool &Config::get_back_bool() {
     const Config& config = get_back();
     __CHECK_TYPE_IS_BOOL__(config)
 
-    return dynamic_cast<ElementBool*>(config.m_value)->getBool();
+    return dynamic_cast<ElementBool*>(config.m_value)->getValue();
 }
 
 bool Config::get_back_bool() const {
@@ -415,7 +415,7 @@ bool Config::get_back_bool() const {
     const Config& config = get_back();
     __CHECK_TYPE_IS_BOOL__(config)
 
-    return dynamic_cast<const ElementBool*>(config.m_value)->getBool();
+    return dynamic_cast<const ElementBool*>(config.m_value)->getValue();
 }
 
 long double &Config::get_back_number() {
@@ -424,7 +424,7 @@ long double &Config::get_back_number() {
     const Config& config = get_back();
     __CHECK_TYPE_IS_NUMBER__(config)
 
-    return dynamic_cast<ElementNumber*>(config.m_value)->getNumber();
+    return dynamic_cast<ElementNumber*>(config.m_value)->getValue();
 }
 
 long double Config::get_back_number() const {
@@ -433,7 +433,7 @@ long double Config::get_back_number() const {
     const Config& config = get_back();
     __CHECK_TYPE_IS_NUMBER__(config)
 
-    return dynamic_cast<const ElementNumber*>(config.m_value)->getNumber();
+    return dynamic_cast<const ElementNumber*>(config.m_value)->getValue();
 }
 
 std::string &Config::get_back_string() {
@@ -442,7 +442,7 @@ std::string &Config::get_back_string() {
     const Config& config = get_back();
     __CHECK_TYPE_IS_STRING__(config)
 
-    return dynamic_cast<ElementString*>(config.m_value)->getString();
+    return dynamic_cast<ElementString*>(config.m_value)->getValue();
 }
 
 std::string Config::get_back_string() const {
@@ -451,7 +451,7 @@ std::string Config::get_back_string() const {
     const Config& config = get_back();
     __CHECK_TYPE_IS_STRING__(config)
 
-    return dynamic_cast<const ElementString*>(config.m_value)->getString();
+    return dynamic_cast<const ElementString*>(config.m_value)->getValue();
 }
 
 bool Config::isEqual(const Config &other, const bool compare_comments) const noexcept {

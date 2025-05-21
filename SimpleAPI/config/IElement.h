@@ -65,6 +65,8 @@ public:
 //    bool                    operator!=(const long double& other)const noexcept      { return !isEqual(other); }
 //    bool                    operator!=(const std::string& other)const noexcept      { return !isEqual(other); }
 
+    //TODO: operator<<
+
     //числа, контейнеры(размер), строки(длина в видимых символах)
 //    virtual bool            operator>(const Config& other)      const noexcept      { return false; }
 //    virtual bool            operator>=(const Config& other)     const noexcept      { return false; }

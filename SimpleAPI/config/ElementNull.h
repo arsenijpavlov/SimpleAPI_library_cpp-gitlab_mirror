@@ -13,12 +13,11 @@ class ElementNull : public IElement {
      *      - ~
      *      - (ничего)
     */
-
-private:
-
 public:
-    ElementNull()                                       noexcept        {}
-    ~ElementNull()                                      noexcept        {}
+    ElementNull()                                       noexcept                    { init(); }
+    ~ElementNull()                                      noexcept                    {}
+
+    void            init()                              noexcept                    { m_type = ValueType::eNull; }
 
     // Getters =========================================================================================================
     // ========================================================================================================= Getters
@@ -35,10 +34,13 @@ public:
                         const int8_t tabulation_level = 0, const CommentDesign &design = {})
                                                         const noexcept  override;
     // ========================================================================================================== String
+
+    // Iterators =======================================================================================================
+    // ======================================================================================================= Iterators
 };
 
 bool IsElementNull(const std::string& str)              noexcept;
-bool IsElementNull(const IElement& e)                   noexcept;
-bool IsElementNull(const Config& cfg)                   noexcept;
+bool IsElementNull(const IElement& e)                   noexcept;        //{ return e.getType() == ValueType::eNull; }
+bool IsElementNull(const Config& cfg)                   noexcept;        //{ return cfg.isNull(); }
 
 #endif // ELEMENT_NULL_H

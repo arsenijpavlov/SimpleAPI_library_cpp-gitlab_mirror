@@ -9,41 +9,36 @@ protected:
     long double m_value;
 
 public:
-    ElementNumber() noexcept : m_value(0)       { init(); }
-    ElementNumber(const long double& num) noexcept : m_value(num)
-                                                { init(); }
+    ElementNumber()                             noexcept : m_value(0)               { init(); }
+    ElementNumber(const long double& num)       noexcept : m_value(num)             { init(); }
+    ElementNumber(long double&& num)            noexcept : m_value(std::move(num))  { init(); }
 //TODO: фича под вопросом    ElementNumber(const std::string& num) noexcept
-    ~ElementNumber() noexcept {}
+    ~ElementNumber()                            noexcept                            {}
 
-    void init() noexcept 						{ m_type = ValueType::eNumber; }
+    void init()                                 noexcept                            { m_type = ValueType::eNumber; }
 
-    //PRINTING =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    //для рекурсивного вызова, без комментариев, в одну строку
-    std::string toString(const ConfigFormat format = ConfigFormat::eJSON,
-                          const int8_t tabulation_level = 0) const noexcept override
-                                                { return std::to_string(m_value); }
-    //для рекурсивного вызова, с использованием комментариев
-    std::string toString(const ConfigFormat format, const CommentDesign &design,
-                          const int8_t tabulation_level = 0) const noexcept override
-                                                { return std::to_string(m_value); }
-    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
+    // Getters =========================================================================================================
+    long double&    getValue();
+    long double     getValue()                  const;
+    // ========================================================================================================= Getters
 
-    long double     getValue() const noexcept   { return m_value; }
-    long double&    getValue() noexcept         { return m_value; }
+    // Info ============================================================================================================
+    bool            isEqual(const bool other)   const noexcept  override            { return m_value == other; }
+    size_t          size()                      const noexcept  override            { return 1; }
+    // ============================================================================================================ Info
 
-    bool        isEqual(const IElement& other, const bool compare_comments = false) const noexcept override;
-
-    //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    void operator=(const long double& other)    { m_value = other; }
-    bool operator==(const long double& other)   { return m_value == other; }
-    bool operator>(const long double& other)    { return m_value > other; }
-    bool operator<(const long double& other)    { return m_value < other; }
-    bool operator>=(const long double& other)   { return m_value >= other; }
-    bool operator<=(const long double& other)   { return m_value <= other; }
-    //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= OPERATORS
+    // Operators =======================================================================================================
+    void operator=(const long double& other)    noexcept                            { m_value = other; }
+    bool operator==(const long double& other)   const noexcept                      { return m_value == other; }
+    bool operator>(const long double& other)    const noexcept                      { return m_value > other; }
+    bool operator<(const long double& other)    const noexcept                      { return m_value < other; }
+    bool operator>=(const long double& other)   const noexcept                      { return m_value >= other; }
+    bool operator<=(const long double& other)   const noexcept                      { return m_value <= other; }
+    // ======================================================================================================= Operators
 };
 
-bool IsElementNumber(const std::string& str) noexcept;
-bool IsElementNumber(const IElement& e) noexcept;
+bool IsElementNumber(const std::string& str)    noexcept;
+bool IsElementNumber(const IElement& e)         noexcept;
+bool IsElementNumber(const Config& cfg)         noexcept;
 
 #endif // ELEMENT_NUMBER_H

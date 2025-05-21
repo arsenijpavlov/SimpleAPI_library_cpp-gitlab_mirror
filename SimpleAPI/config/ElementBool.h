@@ -3,19 +3,20 @@
 
 #include "IElement.h"
 
-
 class ElementBool : public IElement {
 protected:
     bool m_value;
 
 public:
-    ElementBool()               noexcept : m_value(false)                           {}
-    ElementBool(const bool b)   noexcept : m_value(b)                               {}
+    ElementBool()               noexcept : m_value(false)                           { init(); }
+    ElementBool(const bool b)   noexcept : m_value(b)                               { init(); }
     ~ElementBool()              noexcept                                            {}
 
+    void            init()                               noexcept                   { m_type = ValueType::eBool; }
+
     // Getters =========================================================================================================
-    bool&           getBool()                                                       { return m_value; }
-    bool            getBool()                           const                       { return m_value; }
+    bool&           getValue()                                                      { return m_value; }
+    bool            getValue()                          const                       { return m_value; }
     // ========================================================================================================= Getters
 
     // Info ============================================================================================================
@@ -32,9 +33,13 @@ public:
                         const int8_t tabulation_level = 0, const CommentDesign &design = {})
                                                         const noexcept  override;
     // ========================================================================================================== String
+
+    // Iterators =======================================================================================================
+    // ======================================================================================================= Iterators
 };
 
 bool IsElementBool(const std::string& str)              noexcept;
-bool IsElementBool(const IElement& e)                   noexcept;
+bool IsElementBool(const IElement& e)                   noexcept;                    //{ return e.getType() == ValueType::eBool; }
+bool IsElementBool(const Config& cfg)                   noexcept;                    //{ return cfg.isBool(); }
 
 #endif // ELEMENT_BOOL_H
