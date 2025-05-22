@@ -49,7 +49,7 @@ public:
     virtual bool      isContainer()                             const noexcept      { return false; }
 //    bool            isEqual(const Config& other)                const noexcept      { }
     bool              isEqual(const IElement& other, const bool compare_comments = false)
-                                                                const               {  }
+                                                                const;
 //    bool            isEqual(const bool other)                   const noexcept      { }
 //    bool            isEqual(const long double& other)           const noexcept      { }
 //    bool            isEqual(const std::string& other)           const noexcept      { }

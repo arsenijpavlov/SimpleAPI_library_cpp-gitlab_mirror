@@ -17,16 +17,16 @@ public:
     Config(const Config& value)                             noexcept            { setValue(value); }
     Config(Config&& value)                                  noexcept            { setValue(std::move(value)); }
 
-    Config(const bool value)                                noexcept            { setValue(value); }
+    explicit Config(const bool value)                       noexcept            { setValue(value); }
     __ONLY_NUMBER_TYPES__(T)
-    Config(T&& value)                                       noexcept            { setValue(static_cast<long double&>(value)); }
+    explicit Config(T&& value)                              noexcept            { setValue(static_cast<long double&>(value)); }
     __ONLY_STRING_TYPES__(T)
-    Config(T&& value)                                       noexcept            { setValue(std::string(value)); }
+    explicit Config(T&& value)                              noexcept            { setValue(std::string(value)); }
     //TODO: подумать, как исключить прямое указание типа при вызове конструктора
-    Config(const ElementArray& value)                       noexcept            { setValue(value); }
-    Config(ElementArray&& value)                            noexcept            { setValue(value); }
-    Config(const ElementJson& value)                        noexcept            { setValue(value); }
-    Config(ElementJson&& value)                             noexcept            { setValue(value); }
+    explicit Config(const ElementArray& value)              noexcept            { setValue(value); }
+    explicit Config(ElementArray&& value)                   noexcept            { setValue(value); }
+    explicit Config(const ElementJson& value)               noexcept            { setValue(value); }
+    explicit Config(ElementJson&& value)                    noexcept            { setValue(value); }
 
     ~Config()                                               noexcept            { delete m_value; }
 
@@ -162,6 +162,7 @@ public:
     bool            operator==(const std::string& other)    const                   { return isEqual(other); }
 
     bool            operator!=(const Config& other)         const                   { return !isEqual(other); }
+    bool            operator!=(const IElement& other)       const                   { return !isEqual(other); }
     bool            operator!=(const bool other)            const                   { return !isEqual(other); }
     bool            operator!=(const long double& other)    const                   { return !isEqual(other); }
     bool            operator!=(const std::string& other)    const                   { return !isEqual(other); }
@@ -181,12 +182,12 @@ public:
     //TODO: получение значения по списку индексов/ключей
     Config&         operator[](const size_t index)                                  { return get_at(index); }       //(ARRAY, JSON)
     Config          operator[](const size_t index)                          const   { return get_at(index); }       //(ARRAY, JSON)
-    Config&         operator[](const std::vector<size_t> indexes)                   { return get_at(indexes); }     //(ARRAY, JSON)
-    Config          operator[](const std::vector<size_t> indexes)           const   { return get_at(indexes); }     //(ARRAY, JSON)
+    Config&         operator[](const std::vector<size_t>& indexes)                  { return get_at(indexes); }     //(ARRAY, JSON)
+    Config          operator[](const std::vector<size_t>& indexes)           const  { return get_at(indexes); }     //(ARRAY, JSON)
     Config&         operator[](const std::string& key)                              { return get_at(key); }         //(JSON)
     Config          operator[](const std::string& key)                      const   { return get_at(key); }         //(JSON)
-    Config&         operator[](const std::vector<std::string> complex_key)          { return get_at(complex_key); } //(ARRAY(при условии, что внутри числа), JSON)
-    Config          operator[](const std::vector<std::string> complex_key)  const   { return get_at(complex_key); } //(ARRAY(при условии, что внутри числа), JSON)
+    Config&         operator[](const std::vector<std::string>& complex_key)         { return get_at(complex_key); } //(ARRAY(при условии, что внутри числа), JSON)
+    Config          operator[](const std::vector<std::string>& complex_key)  const  { return get_at(complex_key); } //(ARRAY(при условии, что внутри числа), JSON)
     // ======================================================================================================= Operators
 
     //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
