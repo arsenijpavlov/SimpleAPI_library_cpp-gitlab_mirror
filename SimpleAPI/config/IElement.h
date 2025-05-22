@@ -26,56 +26,58 @@ public:
     virtual ~IElement()                                         noexcept            {}
 
     // Getters =========================================================================================================
-//    virtual bool&           getBool();
-//    virtual bool            getBool()                           const;
-//    virtual long double&    getNumber();
-//    virtual long double     getNumber()                         const;
-//    virtual std::string&    getString();
-//    virtual std::string     getString()                         const;
+//    bool&           getBool();
+//    bool            getBool()                           const;
+//    long double&    getNumber();
+//    long double     getNumber()                         const;
+//    std::string&    getString();
+//    std::string     getString()                         const;
 
     // вложенные контейнеры
-//    virtual Config&         get_front();
-//    virtual Config          get_front()                         const;
-//    virtual Config&         get_at(const size_t index);
-//    virtual Config          get_at(const size_t index)          const;
-//    virtual Config&         get_at(const std::string& key);
-//    virtual Config          get_at(const std::string& key)      const;
-//    virtual Config&         get_back();
-//    virtual Config          get_back()                          const;
+//    Config&         get_front();
+//    Config          get_front()                         const;
+//    Config&         get_at(const size_t index);
+//    Config          get_at(const size_t index)          const;
+//    Config&         get_at(const std::string& key);
+//    Config          get_at(const std::string& key)      const;
+//    Config&         get_back();
+//    Config          get_back()                          const;
     // ========================================================================================================= Getters
 
     // Info ============================================================================================================
-    ValueType               getType()                           const noexcept      { return m_type; }
-    virtual bool            isContainer()                       const noexcept      { return false; }
-    virtual bool            isEqual(const Config& other)        const noexcept      { return false; }
-    virtual bool            isEqual(const bool other)           const noexcept      { return false; }
-    virtual bool            isEqual(const long double& other)   const noexcept      { return false; }
-    virtual bool            isEqual(const std::string& other)   const noexcept      { return false; }
-    virtual size_t          size()                              const noexcept      { return 0; }
+    ValueType         getType()                                 const noexcept      { return m_type; }
+    virtual bool      isContainer()                             const noexcept      { return false; }
+//    bool            isEqual(const Config& other)                const noexcept      { }
+    bool              isEqual(const IElement& other, const bool compare_comments = false)
+                                                                const               {  }
+//    bool            isEqual(const bool other)                   const noexcept      { }
+//    bool            isEqual(const long double& other)           const noexcept      { }
+//    bool            isEqual(const std::string& other)           const noexcept      { }
+    virtual size_t    size()                                    const noexcept      { return 0; }
     // ============================================================================================================ Info
 
     // Operators =======================================================================================================
-//    bool                    operator==(const Config& other)     const noexcept      { return isEqual(other); }
-//    bool                    operator==(const bool other)        const noexcept      { return isEqual(other); }
-//    bool                    operator==(const long double& other)const noexcept      { return isEqual(other); }
-//    bool                    operator==(const std::string& other)const noexcept      { return isEqual(other); }
+//    bool            operator==(const Config& other)     const noexcept      { }
+//    bool            operator==(const bool other)        const noexcept      { }
+//    bool            operator==(const long double& other)const noexcept      { }
+//    bool            operator==(const std::string& other)const noexcept      { }
 
-//    bool                    operator!=(const Config& other)     const noexcept      { return !isEqual(other); }
-//    bool                    operator!=(const bool other)        const noexcept      { return !isEqual(other); }
-//    bool                    operator!=(const long double& other)const noexcept      { return !isEqual(other); }
-//    bool                    operator!=(const std::string& other)const noexcept      { return !isEqual(other); }
+//    bool            operator!=(const Config& other)     const noexcept      { }
+//    bool            operator!=(const bool other)        const noexcept      { }
+//    bool            operator!=(const long double& other)const noexcept      { }
+//    bool            operator!=(const std::string& other)const noexcept      { }
 
     //TODO: operator<<
 
     //числа, контейнеры(размер), строки(длина в видимых символах)
-//    virtual bool            operator>(const Config& other)      const noexcept      { return false; }
-//    virtual bool            operator>=(const Config& other)     const noexcept      { return false; }
-//    virtual bool            operator<(const Config& other)      const noexcept      { return false; }
-//    virtual bool            operator<=(const Config& other)     const noexcept      { return false; }
-//    virtual Config&         operator[](const size_t index)      noexcept;
-//    virtual Config          operator[](const size_t index)      const noexcept;
-//    virtual Config&         operator[](const std::string& key)  noexcept;
-//    virtual Config          operator[](const std::string& key)  const noexcept;
+//    bool            operator>(const Config& other)      const noexcept      { }
+//    bool            operator>=(const Config& other)     const noexcept      { }
+//    bool            operator<(const Config& other)      const noexcept      { }
+//    bool            operator<=(const Config& other)     const noexcept      { }
+//    Config&         operator[](const size_t index)      noexcept;
+//    Config          operator[](const size_t index)      const noexcept;
+//    Config&         operator[](const std::string& key)  noexcept;
+//    Config          operator[](const std::string& key)  const noexcept;
     // ======================================================================================================= Operators
 
     //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=

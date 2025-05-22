@@ -10,7 +10,7 @@
 //предобъявление
 //class ElementArray;
 //
-//class ElementJson : public IElement {
+class ElementJson : public IElement {
 //protected:
 //    VPairElement m_values;
 //
@@ -245,9 +245,10 @@
 //    VPairElement::iterator       end() noexcept             { return m_values.end(); }
 //    VPairElement::const_iterator cbegin() const noexcept    { return m_values.begin(); }
 //    VPairElement::const_iterator cend() const noexcept      { return m_values.end(); }
-//};
-//
-//bool IsElementJson(const std::string& str) noexcept;
-//bool IsElementJson(const IElement& e) noexcept;
+};
+
+bool IsElementJson(const std::string& str)  noexcept;
+bool IsElementJson(const IElement& e)       noexcept;
+bool IsElementJson(const Config& cfg)       noexcept;
 
 #endif // ELEMENT_JSON_H

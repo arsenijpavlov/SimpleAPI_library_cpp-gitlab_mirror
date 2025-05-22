@@ -52,105 +52,126 @@ public:
 
     // Getters =========================================================================================================
     bool&           getBool();
-    bool            getBool()                               const;
+    bool            getBool()                                                   const;
     long double&    getNumber();
-    long double     getNumber()                             const;
+    long double     getNumber()                                                 const;
     std::string&    getString();
-    std::string     getString()                             const;
+    std::string     getString()                                                 const;
 
     // вложенные контейнеры
+    // @complex_key - список индексов(в текстовом виде)/ключей
     Config&         get_front();
-    Config          get_front()                             const;
+    Config          get_front()                                                 const;
     Config&         get_at(const size_t index);
-    Config          get_at(const size_t index)              const;
-    //TODO: получение значения по списку индексов/ключей
-//    Config&         get_at(const std::vector<size_t>& indexes)                  {}
-//    Config          get_at(const std::vector<size_t>& indexes)  const           {}
+    Config          get_at(const size_t index)                                  const;
+    Config&         get_at(const std::vector<size_t>& indexes);
+    Config          get_at(const std::vector<size_t>& indexes)                  const;
     Config&         get_at(const std::string& key);
-    Config          get_at(const std::string& key)          const;
-    //TODO: получение значения по списку индексов/ключей
-//    Config&         get_at(const std::vector<std::string>& indexes)             {}
-//    Config          get_at(const std::vector<std::string>& indexes)  const      {}
+    Config          get_at(const std::string& key)                              const;
+    Config&         get_at(const std::vector<std::string>& complex_key);
+    Config          get_at(const std::vector<std::string>& complex_key)         const;
     Config&         get_back();
-    Config          get_back()                              const;
+    Config          get_back()                                                  const;
 
     bool&           get_front_bool();
-    bool            get_front_bool()                        const;
+    bool            get_front_bool()                                            const;
     long double&    get_front_number();
-    long double     get_front_number()                      const;
+    long double     get_front_number()                                          const;
     std::string&    get_front_string();
-    std::string     get_front_string()                      const;
+    std::string     get_front_string()                                          const;
 
     //TODO: получение значения по списку индексов/ключей
     bool&           get_bool_at(const size_t index);
-    bool            get_bool_at(const size_t index)         const;
+    bool            get_bool_at(const size_t index)                             const;
+    bool&           get_bool_at(const std::vector<size_t>& indexes);
+    bool            get_bool_at(const std::vector<size_t>& indexes)             const;
     long double&    get_number_at(const size_t index);
-    long double     get_number_at(const size_t index)       const;
+    long double     get_number_at(const size_t index)                           const;
+    long double&    get_number_at(const std::vector<size_t>& indexes);
+    long double     get_number_at(const std::vector<size_t>& indexes)           const;
     std::string&    get_string_at(const size_t index);
-    std::string     get_string_at(const size_t index)       const;
+    std::string     get_string_at(const size_t index)                           const;
+    std::string&    get_string_at(const std::vector<size_t>& indexes);
+    std::string     get_string_at(const std::vector<size_t>& indexes)           const;
 
     //TODO: получение значения по списку индексов/ключей
     bool&           get_bool_at(const std::string& key);
-    bool            get_bool_at(const std::string& key)     const;
+    bool            get_bool_at(const std::string& key)                         const;
+    bool&           get_bool_at(const std::vector<std::string>& complex_key);
+    bool            get_bool_at(const std::vector<std::string>& complex_key)    const;
     long double&    get_number_at(const std::string& key);
-    long double     get_number_at(const std::string& key)   const;
+    long double     get_number_at(const std::string& key)                       const;
+    long double&    get_number_at(const std::vector<std::string>& complex_key);
+    long double     get_number_at(const std::vector<std::string>& complex_key)  const;
     std::string&    get_string_at(const std::string& key);
-    std::string     get_string_at(const std::string& key)   const;
+    std::string     get_string_at(const std::string& key)                       const;
+    std::string&    get_string_at(const std::vector<std::string>& complex_key);
+    std::string     get_string_at(const std::vector<std::string>& complex_key)  const;
 
     bool&           get_back_bool();
-    bool            get_back_bool()                         const;
+    bool            get_back_bool()                                             const;
     long double&    get_back_number();
-    long double     get_back_number()                       const;
+    long double     get_back_number()                                           const;
     std::string&    get_back_string();
-    std::string     get_back_string()                       const;
+    std::string     get_back_string()                                           const;
     // ========================================================================================================= Getters
 
     // Info ============================================================================================================
-    ValueType       getType()                               const noexcept      { return m_value->getType(); }
-    bool            isNull()                                const noexcept      { return getType() == ValueType::eNull; }
-    bool            isBool()                                const noexcept      { return getType() == ValueType::eBool; }
-    bool            isNumber()                              const noexcept      { return getType() == ValueType::eNumber; }
-    bool            isString()                              const noexcept      { return getType() == ValueType::eString; }
-    bool            isArray()                               const noexcept      { return getType() == ValueType::eArray; }
-    bool            isJson()                                const noexcept      { return getType() == ValueType::eJson; }
-//    bool            isYaml()                                const noexcept      { return getType() == ValueType::eYaml; }
-//    bool            isXml()                                 const noexcept      { return getType() == ValueType::eXml; }
-    bool            isContainer()                           const noexcept      { return m_value->isContainer(); }
+    ValueType       getType()                               const noexcept          { return m_value->getType(); }
+    bool            isNull()                                const noexcept          { return getType() == ValueType::eNull; }
+    bool            isBool()                                const noexcept          { return getType() == ValueType::eBool; }
+    bool            isNumber()                              const noexcept          { return getType() == ValueType::eNumber; }
+    bool            isString()                              const noexcept          { return getType() == ValueType::eString; }
+    bool            isArray()                               const noexcept          { return getType() == ValueType::eArray; }
+    bool            isJson()                                const noexcept          { return getType() == ValueType::eJson; }
+//    bool            isYaml()                                const noexcept          { return getType() == ValueType::eYaml; }
+//    bool            isXml()                                 const noexcept          { return getType() == ValueType::eXml; }
+    bool            isContainer()                           const noexcept          { return m_value->isContainer(); }
 
     bool            isEqual(const Config& other, const bool compare_comments = false)
-                                                            const noexcept;
-//    bool            isEqual(const bool other)               const noexcept;
-//    bool            isEqual(const long double& other)       const noexcept;
-//    bool            isEqual(const std::string& other)       const noexcept;
+                                                            const;
+    bool            isEqual(const IElement& other, const bool compare_comments = false)
+                                                            const;
+    bool            isEqual(const bool other)               const;
+    bool            isEqual(const long double& other)       const;
+    bool            isEqual(const std::string& other)       const;
 
-    size_t          size()                                  const noexcept      { return m_value->size(); }
+    size_t          size()                                  const noexcept          { return m_value->size(); }
     // ============================================================================================================ Info
 
     // Operators =======================================================================================================
     Config&         operator=(const Config& other)          noexcept;
     Config&         operator=(Config&& other)               noexcept;
-//    Config&         operator=(const bool other)             noexcept;
-//    Config&         operator=(const long double& other)     noexcept;
-//    Config&         operator=(long double&& other)          noexcept;
-//    Config&         operator=(const std::string& other)     noexcept;
-//    Config&         operator=(std::string&& other)          noexcept;
+    Config&         operator=(const IElement& other)        noexcept;
+    Config&         operator=(IElement&& other)             noexcept;
+    Config&         operator=(const bool other)             noexcept;
+    Config&         operator=(const long double& other)     noexcept;
+    Config&         operator=(long double&& other)          noexcept;
+    Config&         operator=(const std::string& other)     noexcept;
+    Config&         operator=(std::string&& other)          noexcept;
+    Config&         operator=(const ElementArray& other)    noexcept;
+    Config&         operator=(ElementArray&& other)         noexcept;
+    Config&         operator=(const ElementJson& other)     noexcept;
+    Config&         operator=(ElementJson&& other)          noexcept;
 
     //WARNING: комментарии не учитываются! Учитывание комментариев только при вызове isEqual()
-    bool            operator==(const Config& other)         const noexcept      { return isEqual(other); }
-//    bool            operator==(const bool other)            const noexcept      { return isEqual(other); }
-//    bool            operator==(const long double& other)    const noexcept      { return isEqual(other); }
-//    bool            operator==(const std::string& other)    const noexcept      { return isEqual(other); }
+    bool            operator==(const Config& other)         const                   { return isEqual(other); }
+    bool            operator==(const IElement& other)       const                   { return isEqual(other); }
+    bool            operator==(const bool other)            const                   { return isEqual(other); }
+    bool            operator==(const long double& other)    const                   { return isEqual(other); }
+    bool            operator==(const std::string& other)    const                   { return isEqual(other); }
 
-    bool            operator!=(const Config& other)         const noexcept      { return !isEqual(other); }
-//    bool            operator!=(const bool other)            const noexcept      { return !isEqual(other); }
-//    bool            operator!=(const long double& other)    const noexcept      { return !isEqual(other); }
-//    bool            operator!=(const std::string& other)    const noexcept      { return !isEqual(other); }
+    bool            operator!=(const Config& other)         const                   { return !isEqual(other); }
+    bool            operator!=(const bool other)            const                   { return !isEqual(other); }
+    bool            operator!=(const long double& other)    const                   { return !isEqual(other); }
+    bool            operator!=(const std::string& other)    const                   { return !isEqual(other); }
 
     //числа, контейнеры(размер), строки(длина в видимых символах)
-    bool            operator>(const Config& other)          const noexcept      { return m_value > other.m_value; }
-    bool            operator>=(const Config& other)         const noexcept      { return m_value >= other.m_value; }
-    bool            operator<(const Config& other)          const noexcept      { return m_value < other.m_value; }
-    bool            operator<=(const Config& other)         const noexcept      { return m_value <= other.m_value; }
+    bool            operator>(const Config& other)          const;
+    bool            operator>=(const Config& other)         const;
+    bool            operator<(const Config& other)          const;
+    bool            operator<=(const Config& other)         const;
+
 
     //контейнеры
     //FIXME: на подумать: https://en.cppreference.com/w/cpp/language/operators
@@ -158,10 +179,14 @@ public:
     //Config&         operator<<(const IElement& other)       noexcept;       //аналог push_back()
     //Config          operator>>()                            noexcept;       //аналог pop_front()
     //TODO: получение значения по списку индексов/ключей
-    Config&         operator[](const size_t index)          noexcept            { return get_at(index); }   //(ARRAY, JSON)
-    Config          operator[](const size_t index)          const noexcept      { return get_at(index); }   //(ARRAY, JSON)
-    Config&         operator[](const std::string& key)      noexcept            { return get_at(key); }     //(JSON)
-    Config          operator[](const std::string& key)      const noexcept      { return get_at(key); }     //(JSON)
+    Config&         operator[](const size_t index)                                  { return get_at(index); }       //(ARRAY, JSON)
+    Config          operator[](const size_t index)                          const   { return get_at(index); }       //(ARRAY, JSON)
+    Config&         operator[](const std::vector<size_t> indexes)                   { return get_at(indexes); }     //(ARRAY, JSON)
+    Config          operator[](const std::vector<size_t> indexes)           const   { return get_at(indexes); }     //(ARRAY, JSON)
+    Config&         operator[](const std::string& key)                              { return get_at(key); }         //(JSON)
+    Config          operator[](const std::string& key)                      const   { return get_at(key); }         //(JSON)
+    Config&         operator[](const std::vector<std::string> complex_key)          { return get_at(complex_key); } //(ARRAY(при условии, что внутри числа), JSON)
+    Config          operator[](const std::vector<std::string> complex_key)  const   { return get_at(complex_key); } //(ARRAY(при условии, что внутри числа), JSON)
     // ======================================================================================================= Operators
 
     //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
