@@ -4,7 +4,10 @@
 #include "Comment.h"
 #include "ConfigCommon.h"
 #include "ConfigDefines.h"
-#include "IElement.h"
+#include "ElementNull.h"
+#include "ElementBool.h"
+#include "ElementNumber.h"
+#include "ElementString.h"
 #include "ElementArray.h"
 #include "ElementJson.h"
 
@@ -14,19 +17,16 @@ private:
 
 public:
     Config()                                                noexcept            { init(); }
-    Config(const Config& value)                             noexcept            { setValue(value); }
-    Config(Config&& value)                                  noexcept            { setValue(std::move(value)); }
+    Config(const Config& other)                             noexcept            { setValue(other); }
+    Config(Config&& other)                                  noexcept            { setValue(std::move(other)); }
+    explicit Config(const IElement& other)                  noexcept            { setValue(other); }
+    explicit Config(IElement&& other)                       noexcept            { setValue(std::move(other)); }
 
-    explicit Config(const bool value)                       noexcept            { setValue(value); }
+    explicit Config(const bool other)                       noexcept            { setValue(other); }
     __ONLY_NUMBER_TYPES__(T)
-    explicit Config(T&& value)                              noexcept            { setValue(static_cast<long double&>(value)); }
+    explicit Config(T&& other)                              noexcept            { setValue(static_cast<long double&>(other)); }
     __ONLY_STRING_TYPES__(T)
-    explicit Config(T&& value)                              noexcept            { setValue(std::string(value)); }
-    //TODO: подумать, как исключить прямое указание типа при вызове конструктора
-    explicit Config(const ElementArray& value)              noexcept            { setValue(value); }
-    explicit Config(ElementArray&& value)                   noexcept            { setValue(value); }
-    explicit Config(const ElementJson& value)               noexcept            { setValue(value); }
-    explicit Config(ElementJson&& value)                    noexcept            { setValue(value); }
+    explicit Config(T&& other)                              noexcept            { setValue(std::string(other)); }
 
     ~Config()                                               noexcept            { delete m_value; }
 
@@ -37,17 +37,15 @@ private:
 public:
     // Setters =========================================================================================================
     Config&         setValue()                              noexcept;
-    Config&         setValue(const Config& value)           noexcept;
-    Config&         setValue(Config&& value)                noexcept;
-    Config&         setValue(const bool value)              noexcept;
-    Config&         setValue(const long double& value)      noexcept;
-    Config&         setValue(long double&& value)           noexcept;
-    Config&         setValue(const std::string& value)      noexcept;
-    Config&         setValue(std::string&& value)           noexcept;
-    Config&         setValue(const ElementArray& value)     noexcept;
-    Config&         setValue(ElementArray&& value)          noexcept;
-    Config&         setValue(const ElementJson& value)      noexcept;
-    Config&         setValue(ElementJson&& value)           noexcept;
+    Config&         setValue(const Config& other)           noexcept;
+    Config&         setValue(Config&& other)                noexcept;
+    Config&         setValue(const IElement& other)         noexcept;
+    Config&         setValue(IElement&& other)              noexcept;
+    Config&         setValue(const bool other)              noexcept;
+    Config&         setValue(const long double& other)      noexcept;
+    Config&         setValue(long double&& other)           noexcept;
+    Config&         setValue(const std::string& other)      noexcept;
+    Config&         setValue(std::string&& other)           noexcept;
     // ========================================================================================================= Setters
 
     // Getters =========================================================================================================
@@ -80,7 +78,6 @@ public:
     std::string&    get_front_string();
     std::string     get_front_string()                                          const;
 
-    //TODO: получение значения по списку индексов/ключей
     bool&           get_bool_at(const size_t index);
     bool            get_bool_at(const size_t index)                             const;
     bool&           get_bool_at(const std::vector<size_t>& indexes);
@@ -94,7 +91,6 @@ public:
     std::string&    get_string_at(const std::vector<size_t>& indexes);
     std::string     get_string_at(const std::vector<size_t>& indexes)           const;
 
-    //TODO: получение значения по списку индексов/ключей
     bool&           get_bool_at(const std::string& key);
     bool            get_bool_at(const std::string& key)                         const;
     bool&           get_bool_at(const std::vector<std::string>& complex_key);
@@ -128,33 +124,29 @@ public:
 //    bool            isXml()                                 const noexcept          { return getType() == ValueType::eXml; }
     bool            isContainer()                           const noexcept          { return m_value->isContainer(); }
 
-    bool            isEqual(const Config& other, const bool compare_comments = false)
-                                                            const;
-    bool            isEqual(const IElement& other, const bool compare_comments = false)
-                                                            const;
-    bool            isEqual(const bool other)               const;
-    bool            isEqual(const long double& other)       const;
-    bool            isEqual(const std::string& other)       const;
+    bool            isEqual(const Config& other, const bool compare_comments = false)   const;
+    bool            isEqual(const IElement& other, const bool compare_comments = false) const;
+    bool            isEqual(const bool other)                                           const;
+    bool            isEqual(const long double& other)                                   const;
+    bool            isEqual(const std::string& other)                                   const;
 
     size_t          size()                                  const noexcept          { return m_value->size(); }
     // ============================================================================================================ Info
 
     // Operators =======================================================================================================
-    Config&         operator=(const Config& other)          noexcept;
-    Config&         operator=(Config&& other)               noexcept;
-    Config&         operator=(const IElement& other)        noexcept;
-    Config&         operator=(IElement&& other)             noexcept;
-    Config&         operator=(const bool other)             noexcept;
-    Config&         operator=(const long double& other)     noexcept;
-    Config&         operator=(long double&& other)          noexcept;
-    Config&         operator=(const std::string& other)     noexcept;
-    Config&         operator=(std::string&& other)          noexcept;
-    Config&         operator=(const ElementArray& other)    noexcept;
-    Config&         operator=(ElementArray&& other)         noexcept;
-    Config&         operator=(const ElementJson& other)     noexcept;
-    Config&         operator=(ElementJson&& other)          noexcept;
+    Config&         operator=(const Config& other)          noexcept                { return setValue(other); }
+    Config&         operator=(Config&& other)               noexcept                { return setValue(std::move(other)); }
+    Config&         operator=(const IElement& other)        noexcept                { return setValue(other); }
+    Config&         operator=(IElement&& other)             noexcept                { return setValue(std::move(other)); }
+    Config&         operator=(const bool other)             noexcept                { return setValue(other); }
+    Config&         operator=(const long double& other)     noexcept                { return setValue(other); }
+    Config&         operator=(long double&& other)          noexcept                { return setValue(std::move(other)); }
+    Config&         operator=(const std::string& other)     noexcept                { return setValue(other); }
+    Config&         operator=(std::string&& other)          noexcept                { return setValue(std::move(other)); }
 
-    //WARNING: комментарии не учитываются! Учитывание комментариев только при вызове isEqual()
+    /* WARNING: комментарии при сравнении не учитываются!
+     * Учитывание комментариев только при вызове isEqual(<object>, true)
+     */
     bool            operator==(const Config& other)         const                   { return isEqual(other); }
     bool            operator==(const IElement& other)       const                   { return isEqual(other); }
     bool            operator==(const bool other)            const                   { return isEqual(other); }
@@ -173,21 +165,15 @@ public:
     bool            operator<(const Config& other)          const;
     bool            operator<=(const Config& other)         const;
 
-
     //контейнеры
-    //FIXME: на подумать: https://en.cppreference.com/w/cpp/language/operators
-    //Config&         operator<<(const IElement& other)       noexcept;       //аналог push_back()
-    //Config&         operator<<(const IElement& other)       noexcept;       //аналог push_back()
-    //Config          operator>>()                            noexcept;       //аналог pop_front()
-    //TODO: получение значения по списку индексов/ключей
     Config&         operator[](const size_t index)                                  { return get_at(index); }       //(ARRAY, JSON)
     Config          operator[](const size_t index)                          const   { return get_at(index); }       //(ARRAY, JSON)
     Config&         operator[](const std::vector<size_t>& indexes)                  { return get_at(indexes); }     //(ARRAY, JSON)
-    Config          operator[](const std::vector<size_t>& indexes)           const  { return get_at(indexes); }     //(ARRAY, JSON)
+    Config          operator[](const std::vector<size_t>& indexes)          const   { return get_at(indexes); }     //(ARRAY, JSON)
     Config&         operator[](const std::string& key)                              { return get_at(key); }         //(JSON)
     Config          operator[](const std::string& key)                      const   { return get_at(key); }         //(JSON)
     Config&         operator[](const std::vector<std::string>& complex_key)         { return get_at(complex_key); } //(ARRAY(при условии, что внутри числа), JSON)
-    Config          operator[](const std::vector<std::string>& complex_key)  const  { return get_at(complex_key); } //(ARRAY(при условии, что внутри числа), JSON)
+    Config          operator[](const std::vector<std::string>& complex_key) const   { return get_at(complex_key); } //(ARRAY(при условии, что внутри числа), JSON)
     // ======================================================================================================= Operators
 
     //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -221,6 +207,8 @@ public:
     std::string     toString(const ConfigFormat format = ConfigFormat::eONLY_VALUE,
                         const int8_t tabulation_level = 0,
                         const CommentDesign &design = {})           const noexcept  { return m_value->toString(format, tabulation_level, design); }
+    friend std::ostream& operator<<(std::ostream& os, const Config& config)         noexcept;
+    friend std::ostream& operator<<(std::ostream& os, const IElement& config)       noexcept;
     // ========================================================================================================== String
 
     // File ============================================================================================================
