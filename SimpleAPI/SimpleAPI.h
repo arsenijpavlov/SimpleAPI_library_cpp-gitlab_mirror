@@ -7,11 +7,7 @@
 //TODO: на замену
 #include "json/Json.h"
 
-#include "config/ElementBool.h"
-#include "config/ElementString.h"
-#include "config/ElementNumber.h"
-#include "config/ElementArray.h"
-#include "config/ElementJson.h"
+#include "config/Config.h"
 
 #include "network/Socket.h"
 #include "network/SocketThread.h"
