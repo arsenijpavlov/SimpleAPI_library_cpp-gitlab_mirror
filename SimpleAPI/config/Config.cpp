@@ -11,148 +11,168 @@
 
 
 Config &Config::setValue() noexcept {
-    if(m_value != nullptr)
-        delete m_value;
+    if(m_value) delete m_value;
 
     m_value = dynamic_cast<IElement*>(new ElementNull());
     return *this;
 }
 
-Config &Config::setValue(const Config &value) noexcept {
-    if(m_value != nullptr)
-        delete m_value;
+Config &Config::setValue(const Config &other) noexcept {
+    if(m_value) delete m_value;
 
-    switch(value.getType()) {
-    case ValueType::eNull:      setValue();
-    case ValueType::eBool:      setValue(value.getBool());
-    case ValueType::eNumber:    setValue(value.getNumber());
-    case ValueType::eString:    setValue(value.getString());
-    case ValueType::eArray:     setValue(value.getArray());
-    case ValueType::eJson:      setValue(value.getJson());
+    switch(other.getType()) {
+    case ValueType::eNull:      { setValue();                                                               break; }
+    case ValueType::eBool:      { setValue(dynamic_cast<const ElementBool*>(other.m_value)->getValue());    break; }
+    case ValueType::eNumber:    { setValue(dynamic_cast<const ElementNumber*>(other.m_value)->getValue());  break; }
+    case ValueType::eString:    { setValue(dynamic_cast<const ElementString*>(other.m_value)->getValue());  break; }
+    case ValueType::eArray:     { setValue(dynamic_cast<const ElementArray&>(*other.m_value));              break; }
+    case ValueType::eJson:      { setValue(dynamic_cast<const ElementJson&>(*other.m_value));               break; }
     default: break;
     }
 
     return *this;
 }
 
-Config &Config::setValue(Config &&value) noexcept {
-    if(m_value != nullptr)
-        delete m_value;
+Config &Config::setValue(Config &&other) noexcept {
+    if(m_value) delete m_value;
 
-    switch(value.getType()) {
-    case ValueType::eNull:      setValue();
-    case ValueType::eBool:      setValue(value.getBool());
-    case ValueType::eNumber:    setValue(std::move(value.getNumber()));
-    case ValueType::eString:    setValue(std::move(value.getString()));
-    case ValueType::eArray:     setValue(std::move(value.getArray()));
-    case ValueType::eJson:      setValue(std::move(value.getJson()));
+    switch(other.getType()) {
+    case ValueType::eNull:      { setValue();                                                                           break; }
+    case ValueType::eBool:      { setValue(dynamic_cast<const ElementBool*>(other.m_value)->getValue());                break; }
+    case ValueType::eNumber:    { setValue(std::move(dynamic_cast<const ElementNumber*>(other.m_value)->getValue()));   break; }
+    case ValueType::eString:    { setValue(std::move(dynamic_cast<const ElementString*>(other.m_value)->getValue()));   break; }
+    case ValueType::eArray:     { setValue(std::move(dynamic_cast<const ElementArray&>(*other.m_value)));               break; }
+    case ValueType::eJson:      { setValue(std::move(dynamic_cast<const ElementJson&>(*other.m_value)));                break; }
     default:                    break;
     }
 
-    value.init();
+    other.init(); //обнулить значение
     return *this;
 }
 
-Config &Config::setValue(const bool value) noexcept {
-    if(m_value != nullptr)
-        delete m_value;
+Config &Config::setValue(const IElement &other) noexcept {
+    if(m_value) delete m_value;
 
-    m_value = dynamic_cast<IElement*>(new ElementBool(value));
+    switch(other.getType()) {
+    case ValueType::eNull:      { setValue();                                                       break; }
+    case ValueType::eBool:      { setValue(dynamic_cast<const ElementBool*>(&other)->getValue());   break; }
+    case ValueType::eNumber:    { setValue(dynamic_cast<const ElementNumber*>(&other)->getValue()); break; }
+    case ValueType::eString:    { setValue(dynamic_cast<const ElementString*>(&other)->getValue()); break; }
+    case ValueType::eArray:     { setValue(dynamic_cast<const ElementArray&>(other));               break; }
+    case ValueType::eJson:      { setValue(dynamic_cast<const ElementJson&>(other));                break; }
+    default:                    break;
+    }
+
     return *this;
 }
 
-Config &Config::setValue(const long double &value) noexcept {
-    if(m_value != nullptr)
-        delete m_value;
+Config &Config::setValue(IElement &&other) noexcept {
+    if(m_value) delete m_value;
 
-    m_value = dynamic_cast<IElement*>(new ElementNumber(value));
+    switch(other.getType()) {
+    case ValueType::eNull:      { setValue();                                                                   break; }
+    case ValueType::eBool:      { setValue(dynamic_cast<const ElementBool*>(&other)->getValue());               break; }
+    case ValueType::eNumber:    { setValue(std::move(dynamic_cast<const ElementNumber*>(&other)->getValue()));  break; }
+    case ValueType::eString:    { setValue(std::move(dynamic_cast<const ElementString*>(&other)->getValue()));  break; }
+    case ValueType::eArray:     { setValue(std::move(dynamic_cast<ElementArray&&>(other)));                     break; }
+    case ValueType::eJson:      { setValue(std::move(dynamic_cast<ElementJson&&>(other)));                      break; }
+    default:                    break;
+    }
+
     return *this;
 }
 
-Config &Config::setValue(long double &&value) noexcept {
-    if(m_value != nullptr)
-        delete m_value;
+Config &Config::setValue(const bool other) noexcept {
+    if(m_value) delete m_value;
 
-    m_value = dynamic_cast<IElement*>(new ElementNumber(std::move(value)));
+    m_value = dynamic_cast<IElement*>(new ElementBool(other));
     return *this;
 }
 
-Config &Config::setValue(const std::string &value) noexcept {
-    if(m_value != nullptr)
-        delete m_value;
+Config &Config::setValue(const long double &other) noexcept {
+    if(m_value) delete m_value;
 
-    m_value = dynamic_cast<IElement*>(new ElementString(value));
+    m_value = dynamic_cast<IElement*>(new ElementNumber(other));
     return *this;
 }
 
-Config &Config::setValue(std::string &&value) noexcept {
-    if(m_value != nullptr)
-        delete m_value;
+Config &Config::setValue(long double &&other) noexcept {
+    if(m_value) delete m_value;
 
-    m_value = dynamic_cast<IElement*>(new ElementString(std::move(value)));
+    m_value = dynamic_cast<IElement*>(new ElementNumber(std::move(other)));
     return *this;
 }
 
-Config &Config::setValue(const ElementArray &value) noexcept {
-    if(m_value != nullptr)
-        delete m_value;
+Config &Config::setValue(const std::string &other) noexcept {
+    if(m_value) delete m_value;
 
-    m_value = dynamic_cast<IElement*>(new ElementArray(value));
+    m_value = dynamic_cast<IElement*>(new ElementString(other));
     return *this;
 }
 
-Config &Config::setValue(ElementArray &&value) noexcept {
-    if(m_value != nullptr)
-        delete m_value;
+Config &Config::setValue(std::string &&other) noexcept {
+    if(m_value) delete m_value;
 
-    m_value = dynamic_cast<IElement*>(new ElementArray(std::move(value)));
+    m_value = dynamic_cast<IElement*>(new ElementString(std::move(other)));
     return *this;
 }
 
-Config &Config::setValue(const ElementJson &value) noexcept {
-    if(m_value != nullptr)
-        delete m_value;
+Config &Config::setValue(const ElementArray &other) noexcept {
+    if(m_value) delete m_value;
 
-    m_value = dynamic_cast<IElement*>(new ElementJson(value));
+    m_value = dynamic_cast<IElement*>(new ElementArray(other));
     return *this;
 }
 
-Config &Config::setValue(ElementJson &&value) noexcept {
-    if(m_value != nullptr)
-        delete m_value;
+Config &Config::setValue(ElementArray &&other) noexcept {
+    if(m_value) delete m_value;
 
-    m_value = dynamic_cast<IElement*>(new ElementJson(std::move(value)));
+    m_value = dynamic_cast<IElement*>(new ElementArray(std::move(other)));
+    return *this;
+}
+
+Config &Config::setValue(const ElementJson &other) noexcept {
+    if(m_value) delete m_value;
+
+    m_value = dynamic_cast<IElement*>(new ElementJson(other));
+    return *this;
+}
+
+Config &Config::setValue(ElementJson &&other) noexcept {
+    if(m_value) delete m_value;
+
+    m_value = dynamic_cast<IElement*>(new ElementJson(std::move(other)));
     return *this;
 }
 
 bool &Config::getBool() {
     __CHECK_TYPE_IS_BOOL__((*this))
-    return dynamic_cast<ElementBool*>(m_value)->getBool();
+    return dynamic_cast<ElementBool*>(m_value)->getValue();
 }
 
 bool Config::getBool() const {
     __CHECK_TYPE_IS_BOOL__((*this))
-    return dynamic_cast<const ElementBool*>(m_value)->getBool();
+    return dynamic_cast<const ElementBool*>(m_value)->getValue();
 }
 
 long double &Config::getNumber() {
     __CHECK_TYPE_IS_NUMBER__((*this))
-    return dynamic_cast<ElementNumber*>(m_value)->getNumber();
+    return dynamic_cast<ElementNumber*>(m_value)->getValue();
 }
 
 long double Config::getNumber() const {
     __CHECK_TYPE_IS_NUMBER__((*this))
-    return dynamic_cast<const ElementNumber*>(m_value)->getNumber();
+    return dynamic_cast<const ElementNumber*>(m_value)->getValue();
 }
 
 std::string &Config::getString() {
     __CHECK_TYPE_IS_STRING__((*this))
-    return dynamic_cast<ElementString*>(m_value)->getString();
+    return dynamic_cast<ElementString*>(m_value)->getValue();
 }
 
 std::string Config::getString() const {
     __CHECK_TYPE_IS_STRING__((*this))
-    return dynamic_cast<const ElementString*>(m_value)->getString();
+    return dynamic_cast<const ElementString*>(m_value)->getValue();
 }
 
 Config &Config::get_front() {
@@ -204,6 +224,15 @@ Config Config::get_at(const size_t index) const {
     return *this;
 }
 
+Config &Config::get_at(const std::vector<size_t> &indexes) {
+    ...
+}
+
+Config Config::get_at(const std::vector<size_t> &indexes) const
+{
+    ...
+}
+
 Config &Config::get_at(const std::string& key) {
     __CHECK_TYPE_IS_JSON__((*this))
     return dynamic_cast<ElementJson*>(m_value)->get_at(key);
@@ -212,6 +241,16 @@ Config &Config::get_at(const std::string& key) {
 Config Config::get_at(const std::string& key) const {
     __CHECK_TYPE_IS_JSON__((*this))
     return dynamic_cast<const ElementJson*>(m_value)->get_at(key);
+}
+
+Config &Config::get_at(const std::vector<std::string> &complex_key)
+{
+    ...
+}
+
+Config Config::get_at(const std::vector<std::string> &complex_key) const
+{
+    ...
 }
 
 Config &Config::get_back() {
@@ -310,6 +349,16 @@ bool Config::get_bool_at(const size_t index) const {
     return dynamic_cast<const ElementBool*>(config.m_value)->getValue();
 }
 
+bool &Config::get_bool_at(const std::vector<size_t> &indexes)
+{
+    ...
+}
+
+bool Config::get_bool_at(const std::vector<size_t> &indexes) const
+{
+    ...
+}
+
 long double &Config::get_number_at(const size_t index) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
 
@@ -326,6 +375,16 @@ long double Config::get_number_at(const size_t index) const {
     __CHECK_TYPE_IS_NUMBER__(config)
 
     return dynamic_cast<const ElementNumber*>(config.m_value)->getValue();
+}
+
+long double &Config::get_number_at(const std::vector<size_t> &indexes)
+{
+    ...
+}
+
+long double Config::get_number_at(const std::vector<size_t> &indexes) const
+{
+    ...
 }
 
 std::string &Config::get_string_at(const size_t index) {
@@ -346,6 +405,16 @@ std::string Config::get_string_at(const size_t index) const {
     return dynamic_cast<const ElementString*>(config.m_value)->getValue();
 }
 
+std::string &Config::get_string_at(const std::vector<size_t> &indexes)
+{
+    ...
+}
+
+std::string Config::get_string_at(const std::vector<size_t> &indexes) const
+{
+    ...
+}
+
 bool &Config::get_bool_at(const std::string& key) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
 
@@ -362,6 +431,16 @@ bool Config::get_bool_at(const std::string& key) const {
     __CHECK_TYPE_IS_BOOL__(config)
 
     return dynamic_cast<const ElementBool*>(config.m_value)->getValue();
+}
+
+bool &Config::get_bool_at(const std::vector<std::string> &complex_key)
+{
+    ...
+}
+
+bool Config::get_bool_at(const std::vector<std::string> &complex_key) const
+{
+    ...
 }
 
 long double &Config::get_number_at(const std::string& key) {
@@ -382,6 +461,16 @@ long double Config::get_number_at(const std::string& key) const {
     return dynamic_cast<const ElementNumber*>(config.m_value)->getValue();
 }
 
+long double &Config::get_number_at(const std::vector<std::string> &complex_key)
+{
+    ...
+}
+
+long double Config::get_number_at(const std::vector<std::string> &complex_key) const
+{
+    ...
+}
+
 std::string &Config::get_string_at(const std::string& key) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
 
@@ -398,6 +487,16 @@ std::string Config::get_string_at(const std::string& key) const {
     __CHECK_TYPE_IS_STRING__(config)
 
     return dynamic_cast<const ElementString*>(config.m_value)->getValue();
+}
+
+std::string &Config::get_string_at(const std::vector<std::string> &complex_key)
+{
+    ...
+}
+
+std::string Config::get_string_at(const std::vector<std::string> &complex_key) const
+{
+    ...
 }
 
 bool &Config::get_back_bool() {
@@ -463,6 +562,11 @@ bool Config::isEqual(const Config &other, const bool compare_comments) const {
     return m_value->isEqual(other.m_value);
 }
 
+bool Config::isEqual(const IElement &other, const bool compare_comments) const
+{
+    ...
+}
+
 bool Config::isEqual(const IElement &other) const {
     __CHECK_TYPES_IS_EQUAL__((*this), (other))
 
@@ -497,12 +601,26 @@ bool Config::isEqual(const std::string &other) const {
     return dynamic_cast<const ElementString*>(m_value)->getValue() == other;
 }
 
-Config &Config::operator=(const Config &other) noexcept {
-    return setValue(other);
+Config &Config::operator=(const Config &other) noexcept                { setValue(other); return *this; }
+
+bool Config::operator>(const Config &other) const
+{
+    ...
 }
 
-Config &Config::operator=(Config &&other) noexcept {
-    return setValue(std::move(other));
+bool Config::operator>=(const Config &other) const
+{
+    ...
+}
+
+bool Config::operator<(const Config &other) const
+{
+    ...
+}
+
+bool Config::operator<=(const Config &other) const
+{
+    ...
 }
 
 Config &Config::addComment(const Comment &content) noexcept {

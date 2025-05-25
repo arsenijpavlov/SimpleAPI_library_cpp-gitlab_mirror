@@ -46,6 +46,15 @@ public:
     Config&         setValue(long double&& other)           noexcept;
     Config&         setValue(const std::string& other)      noexcept;
     Config&         setValue(std::string&& other)           noexcept;
+
+    Config&         setValue(const ElementArray& other)     noexcept;
+    Config&         setValue(ElementArray&& other)          noexcept;
+    Config&         setValue(const ElementJson& other)      noexcept;
+    Config&         setValue(ElementJson&& other)           noexcept;
+//TODO:    Config&         setValue(const ElementYaml& other)      noexcept;
+//TODO:    Config&         setValue(ElementYaml&& other)           noexcept;
+//TODO:    Config&         setValue(const ElementXml& other)       noexcept;
+//TODO:    Config&         setValue(ElementXml&& other)            noexcept;
     // ========================================================================================================= Setters
 
     // Getters =========================================================================================================
