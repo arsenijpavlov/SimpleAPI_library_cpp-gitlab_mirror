@@ -73,6 +73,11 @@ public:
     Config          get_at(const size_t index)                                  const;
     Config&         get_at(const std::vector<size_t>& indexes);
     Config          get_at(const std::vector<size_t>& indexes)                  const;
+    //TODO: сделать кастомный класс для хранения строк и чисел для обращения ко вложенным элементам
+//TODO:                    template<std::size_t SIZE>
+//TODO:    Config&         get_at(const std::array<size_t, SIZE>& indexes);
+//TODO:                    template<std::size_t SIZE>
+//TODO:    Config          get_at(const std::array<size_t, SIZE>& indexes)             const;
     Config&         get_at(const std::string& key);
     Config          get_at(const std::string& key)                              const;
     Config&         get_at(const std::vector<std::string>& complex_key);
@@ -91,14 +96,26 @@ public:
     bool            get_bool_at(const size_t index)                             const;
     bool&           get_bool_at(const std::vector<size_t>& indexes);
     bool            get_bool_at(const std::vector<size_t>& indexes)             const;
+//TODO:                    template<std::size_t SIZE>
+//TODO:    bool&           get_bool_at(const std::array<size_t, SIZE>& indexes);
+//TODO:                    template<std::size_t SIZE>
+//TODO:    bool            get_bool_at(const std::array<size_t, SIZE>& indexes)             const;
     long double&    get_number_at(const size_t index);
     long double     get_number_at(const size_t index)                           const;
     long double&    get_number_at(const std::vector<size_t>& indexes);
     long double     get_number_at(const std::vector<size_t>& indexes)           const;
+//TODO:                    template<std::size_t SIZE>
+//TODO:    long double&    get_number_at(const std::array<size_t, SIZE>& indexes);
+//TODO:                    template<std::size_t SIZE>
+//TODO:    long double     get_number_at(const std::array<size_t, SIZE>& indexes)             const;
     std::string&    get_string_at(const size_t index);
     std::string     get_string_at(const size_t index)                           const;
     std::string&    get_string_at(const std::vector<size_t>& indexes);
     std::string     get_string_at(const std::vector<size_t>& indexes)           const;
+//TODO:                    template<std::size_t SIZE>
+//TODO:    std::string&    get_string_at(const std::array<size_t, SIZE>& indexes);
+//TODO:                    template<std::size_t SIZE>
+//TODO:    std::string     get_string_at(const std::array<size_t, SIZE>& indexes)             const;
 
     bool&           get_bool_at(const std::string& key);
     bool            get_bool_at(const std::string& key)                         const;
