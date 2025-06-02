@@ -225,7 +225,31 @@ Config Config::get_at(const size_t index) const {
 }
 
 Config &Config::get_at(const std::vector<size_t> &indexes) {
-    ...
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    if(indexes.empty())
+        return *this;
+
+    size_t current_index = indexes.front();
+
+    if(indexes.size() == 1) {
+        __CHECK_INDEX_BOUND__((*this), indexes[0])
+        switch(getType()) {
+        case ValueType::eArray: return dynamic_cast<ElementArray*>(m_value)->get_at(current_index);
+        case ValueType::eJson:  return dynamic_cast<ElementJson*>(m_value)->get_at(current_index);
+        default: break;
+        }
+    } else {
+        std::vector<size_t> new_indexes;
+        new_indexes.assign(indexes.cbegin() + 1, indexes.cend());
+
+        switch(getType()) {
+        case ValueType::eArray: return dynamic_cast<ElementArray*>(m_value)->get_at(new_indexes);
+        case ValueType::eJson:  return dynamic_cast<ElementJson*>(m_value)->get_at(new_indexes);
+        default: break;
+        }
+    }
+
+    return *this;
 }
 
 Config Config::get_at(const std::vector<size_t> &indexes) const

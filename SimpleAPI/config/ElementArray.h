@@ -112,12 +112,12 @@ public:
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- SETTERS
 
     //GETTERS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    IElement&    get_value(const size_t index);
-    IElement&    get_value(const VString& complex_key);
-    IElement&    get_value(const std::vector<size_t>& complex_key);
-    IElement&    get_front()                                    { return m_values.front(); }
-    IElement&    get_at(const size_t index)                     { return get_value(index); }
-    IElement&    get_back()                                     { return m_values.back(); }
+    Config&    get_value(const size_t index);
+    Config&    get_value(const VString& complex_key);
+    Config&    get_value(const std::vector<size_t>& complex_key);
+    Config&    get_front()                                    { return m_values.front(); }
+    Config&    get_at(const size_t index)                     { return get_value(index); }
+    Config&    get_back()                                     { return m_values.back(); }
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- GETTERS
 
     //DELETERS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -133,10 +133,10 @@ public:
     //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     void            operator=(const VElement& other) noexcept;
     ElementArray&   operator<<(const IElement& element) noexcept{ return push_back(element); }
-    IElement&       operator[](const size_t index)              { return get_value(index); }
-    IElement&       operator[](const VString& complex_key)      { return get_value(complex_key); }
+    Config&       operator[](const size_t index)              { return get_value(index); }
+    Config&       operator[](const VString& complex_key)      { return get_value(complex_key); }
                     template<std::size_t SIZE>
-    IElement&       operator[](const std::array<std::string, SIZE>& complex_key) {
+    Config&       operator[](const std::array<std::string, SIZE>& complex_key) {
                         VString complex_key_vec;
                         complex_key_vec.reserve(SIZE);
                         std::copy(complex_key.begin() + 1, complex_key.end(), complex_key_vec.begin());

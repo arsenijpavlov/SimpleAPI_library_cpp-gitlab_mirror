@@ -138,6 +138,10 @@ public:
     std::string     get_back_string()                                           const;
     // ========================================================================================================= Getters
 
+    //TODO: erase
+    //TODO: insert
+    //TODO: clear
+
     // Info ============================================================================================================
     ValueType       getType()                               const noexcept          { return m_value->getType(); }
     bool            isNull()                                const noexcept          { return getType() == ValueType::eNull; }
