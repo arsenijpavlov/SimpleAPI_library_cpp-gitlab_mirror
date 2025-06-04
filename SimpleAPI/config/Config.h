@@ -138,9 +138,23 @@ public:
     std::string     get_back_string()                                           const;
     // ========================================================================================================= Getters
 
-    //TODO: erase
-    //TODO: insert
-    //TODO: clear
+    // Modify ==========================================================================================================
+    Config& clear();
+
+    //контейнеры
+    //TODO: erase_front
+    //TODO: erase_at(iterator)
+    //TODO: erase_at(index)
+    //TODO: erase_at(key)
+    //TODO: erase_back
+
+    //TODO: insert_front
+    //TODO: insert_at(iterator)
+    //TODO: insert_at(index)
+    //TODO: insert_at(key)
+    //TODO: insert_back
+    //TODO: insert_after(key)
+    // ========================================================================================================== Modify
 
     // Info ============================================================================================================
     ValueType       getType()                               const noexcept          { return m_value->getType(); }
