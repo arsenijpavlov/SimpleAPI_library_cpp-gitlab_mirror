@@ -167,6 +167,7 @@ public:
 //    bool            isYaml()                                const noexcept          { return getType() == ValueType::eYaml; }
 //    bool            isXml()                                 const noexcept          { return getType() == ValueType::eXml; }
     bool            isContainer()                           const noexcept          { return m_value->isContainer(); }
+    bool            isMapContainer()                        const noexcept          { return m_value->isMapContainer(); }
 
     bool            isEqual(const Config& other, const bool compare_comments = false)   const;
     bool            isEqual(const IElement& other, const bool compare_comments = false) const;

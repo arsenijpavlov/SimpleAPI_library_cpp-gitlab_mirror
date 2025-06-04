@@ -51,7 +51,9 @@
 #define __CHECK_TYPE_IS_ARRAY__(object)     if(!object.isArray())   __INCORRECT_TYPE_EXCEPTION__("ARRAY")
 #define __CHECK_TYPE_IS_JSON__(object)      if(!object.isJson())    __INCORRECT_TYPE_EXCEPTION__("JSON")
 
-#define __CHECK_TYPE_IS_CONTAINER__(object) if(!object.isContainer()) __INCORRECT_TYPE_EXCEPTION__("container")
+#define __CHECK_TYPE_IS_CONTAINER__(object) if(!object.isContainer())   __INCORRECT_TYPE_EXCEPTION__("container")
+#define __CHECK_TYPE_IS_MAP_CONTAINER__(object) \
+                                            if(!object.isMapContainer()) __INCORRECT_TYPE_EXCEPTION__("map<key,value>")
 
 #define __CHECK_TYPE_IS_NOT_NULL__(object)  if(object.isNull()) \
                                                 throw std::invalid_argument("This element is a NULL type");
