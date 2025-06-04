@@ -245,7 +245,7 @@ Config &Config::get_at(const std::vector<size_t> &indexes) {
         switch(getType()) {
         case ValueType::eArray: return dynamic_cast<ElementArray*>(m_value)->get_at(new_indexes);
         case ValueType::eJson:  return dynamic_cast<ElementJson*>(m_value)->get_at(new_indexes);
-        default: break;
+        default: break;;
         }
     }
 
@@ -254,7 +254,31 @@ Config &Config::get_at(const std::vector<size_t> &indexes) {
 
 Config Config::get_at(const std::vector<size_t> &indexes) const
 {
-    ...
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    if(indexes.empty())
+        return *this;
+
+    size_t current_index = indexes.front();
+
+    if(indexes.size() == 1) {
+        __CHECK_INDEX_BOUND__((*this), indexes[0])
+        switch(getType()) {
+        case ValueType::eArray: return dynamic_cast<const ElementArray*>(m_value)->get_at(current_index);
+        case ValueType::eJson:  return dynamic_cast<const ElementJson*>(m_value)->get_at(current_index);
+        default: break;
+        }
+    } else {
+        std::vector<size_t> new_indexes;
+        new_indexes.assign(indexes.cbegin() + 1, indexes.cend());
+
+        switch(getType()) {
+        case ValueType::eArray: return dynamic_cast<const ElementArray*>(m_value)->get_at(new_indexes);
+        case ValueType::eJson:  return dynamic_cast<const ElementJson*>(m_value)->get_at(new_indexes);
+        default: break;;
+        }
+    }
+
+    return *this;
 }
 
 Config &Config::get_at(const std::string& key) {
@@ -267,9 +291,33 @@ Config Config::get_at(const std::string& key) const {
     return dynamic_cast<const ElementJson*>(m_value)->get_at(key);
 }
 
-Config &Config::get_at(const std::vector<std::string> &complex_key)
-{
-    ...
+Config &Config::get_at(const std::vector<std::string> &complex_key) {
+    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+    if(complex_key.empty())
+        return *this;
+
+    const std::string& current_key = complex_key.front();
+//    ключ может быть либо строкой, либо целым числом
+
+    if(complex_key.size() == 1) {
+        __KEY_NOT_FOUND_EXCEPTION__((*this), current_key)
+        switch(getType()) {
+        case ValueType::eArray: return dynamic_cast<ElementArray*>(m_value)->get_at(current_index);
+        case ValueType::eJson:  return dynamic_cast<ElementJson*>(m_value)->get_at(current_index);
+        default: break;
+        }
+    } else {
+        std::vector<size_t> new_indexes;
+        new_indexes.assign(indexes.cbegin() + 1, indexes.cend());
+
+        switch(getType()) {
+        case ValueType::eArray: return dynamic_cast<ElementArray*>(m_value)->get_at(new_indexes);
+        case ValueType::eJson:  return dynamic_cast<ElementJson*>(m_value)->get_at(new_indexes);
+        default: break;;
+        }
+    }
+
+    return *this;
 }
 
 Config Config::get_at(const std::vector<std::string> &complex_key) const
