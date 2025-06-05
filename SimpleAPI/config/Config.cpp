@@ -226,25 +226,27 @@ Config Config::get_at(const size_t index) const {
 
 Config &Config::get_at(const std::vector<size_t> &indexes) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
-    if(indexes.empty())
-        return *this;
 
-    size_t current_index = indexes.front();
+    if(indexes.empty())
+        throw std::invalid_argument("indexes argument cannot be empty");
+
+    Config* cfg;
+    __CHECK_INDEX_BOUND__((*this), indexes[0])
+    switch(getType()) {
+    case ValueType::eArray: cfg = &dynamic_cast<ElementArray*>(m_value)->get_at(indexes[0]);
+    case ValueType::eJson:  cfg = &dynamic_cast<ElementJson*>(m_value)->get_at(indexes[0]);
+    default: break;
+    }
 
     if(indexes.size() == 1) {
-        __CHECK_INDEX_BOUND__((*this), indexes[0])
-        switch(getType()) {
-        case ValueType::eArray: return dynamic_cast<ElementArray*>(m_value)->get_at(current_index);
-        case ValueType::eJson:  return dynamic_cast<ElementJson*>(m_value)->get_at(current_index);
-        default: break;
-        }
+        return *cfg;
     } else {
         std::vector<size_t> new_indexes;
         new_indexes.assign(indexes.cbegin() + 1, indexes.cend());
 
-        switch(getType()) {
-        case ValueType::eArray: return dynamic_cast<ElementArray*>(m_value)->get_at(new_indexes);
-        case ValueType::eJson:  return dynamic_cast<ElementJson*>(m_value)->get_at(new_indexes);
+        switch(cfg->getType()) {
+        case ValueType::eArray: return dynamic_cast<ElementArray*>(cfg->m_value)->get_at(new_indexes);
+        case ValueType::eJson:  return dynamic_cast<ElementJson*>(cfg->m_value)->get_at(new_indexes);
         default: break;;
         }
     }
@@ -252,28 +254,29 @@ Config &Config::get_at(const std::vector<size_t> &indexes) {
     return *this;
 }
 
-Config Config::get_at(const std::vector<size_t> &indexes) const
-{
+Config Config::get_at(const std::vector<size_t> &indexes) const {
     __CHECK_TYPE_IS_CONTAINER__((*this))
-    if(indexes.empty())
-        return *this;
 
-    size_t current_index = indexes.front();
+    if(indexes.empty())
+        throw std::invalid_argument("indexes argument cannot be empty");
+
+    const Config* cfg;
+    __CHECK_INDEX_BOUND__((*this), indexes[0])
+    switch(getType()) {
+    case ValueType::eArray: cfg = &dynamic_cast<const ElementArray*>(m_value)->get_at(indexes[0]);
+    case ValueType::eJson:  cfg = &dynamic_cast<const ElementJson*>(m_value)->get_at(indexes[0]);
+    default: break;
+    }
 
     if(indexes.size() == 1) {
-        __CHECK_INDEX_BOUND__((*this), indexes[0])
-        switch(getType()) {
-        case ValueType::eArray: return dynamic_cast<const ElementArray*>(m_value)->get_at(current_index);
-        case ValueType::eJson:  return dynamic_cast<const ElementJson*>(m_value)->get_at(current_index);
-        default: break;
-        }
+        return *cfg;
     } else {
         std::vector<size_t> new_indexes;
         new_indexes.assign(indexes.cbegin() + 1, indexes.cend());
 
-        switch(getType()) {
-        case ValueType::eArray: return dynamic_cast<const ElementArray*>(m_value)->get_at(new_indexes);
-        case ValueType::eJson:  return dynamic_cast<const ElementJson*>(m_value)->get_at(new_indexes);
+        switch(cfg->getType()) {
+        case ValueType::eArray: return dynamic_cast<const ElementArray*>(cfg->m_value)->get_at(new_indexes);
+        case ValueType::eJson:  return dynamic_cast<const ElementJson*>(cfg->m_value)->get_at(new_indexes);
         default: break;;
         }
     }
@@ -292,12 +295,19 @@ Config Config::get_at(const std::string& key) const {
 }
 
 Config &Config::get_at(const std::vector<std::string> &complex_key) {
-    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
-    if(complex_key.empty())
-        return *this;
+    __CHECK_TYPE_IS_CONTAINER__((*this))
 
+    if(complex_key.empty())
+        throw std::invalid_argument("complex_key argument cannot be empty");
+
+    //ключ может быть либо строкой, либо целым числом
     const std::string& current_key = complex_key.front();
-//    ключ может быть либо строкой, либо целым числом
+    size_t current_index;
+    bool index_parsed = utils::IsStringOfUIntNumber(current_key, current_index);
+
+    if(isMapContainer())
+        __KEY_NOT_FOUND_EXCEPTION__(*this)
+        __ARRAY_INCORRECT_INDEX_EXCEPTION__
 
     if(complex_key.size() == 1) {
         __KEY_NOT_FOUND_EXCEPTION__((*this), current_key)
