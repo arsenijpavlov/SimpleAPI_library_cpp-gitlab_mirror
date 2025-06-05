@@ -1,6 +1,7 @@
 #include "Utils.h"
 
 #include <iostream>
+#include <regex>
 #include <string>
 
 namespace utils {
@@ -79,24 +80,24 @@ std::string ToHexString(const std::vector<uint8_t>& data) noexcept {
     auto getHex = [&](uint8_t halfByte) -> char {
         halfByte = halfByte & 0xF;
         switch(halfByte) {
-        case 0:     { return '0'; }
-        case 1:     { return '1'; }
-        case 2:     { return '2'; }
-        case 3:     { return '3'; }
-        case 4:     { return '4'; }
-        case 5:     { return '5'; }
-        case 6:     { return '6'; }
-        case 7:     { return '7'; }
-        case 8:     { return '8'; }
-        case 9:     { return '9'; }
-        case 0xA:   { return 'A'; }
-        case 0xB:   { return 'B'; }
-        case 0xC:   { return 'C'; }
-        case 0xD:   { return 'D'; }
-        case 0xE:   { return 'E'; }
-        case 0xF:   { return 'F'; }
-        default: throw "";
+        case 0:     return '0';
+        case 1:     return '1';
+        case 2:     return '2';
+        case 3:     return '3';
+        case 4:     return '4';
+        case 5:     return '5';
+        case 6:     return '6';
+        case 7:     return '7';
+        case 8:     return '8';
+        case 9:     return '9';
+        case 0xA:   return 'A';
+        case 0xB:   return 'B';
+        case 0xC:   return 'C';
+        case 0xD:   return 'D';
+        case 0xE:   return 'E';
+        case 0xF:   return 'F';
         }
+        return '\0';
     };
 
     std::string str;
@@ -411,6 +412,53 @@ std::string ToStringWithEsc(const std::string &str, const bool use_backslash) no
     }
 
     return ret;
+}
+
+bool IsStringOfFloatNumber(const std::string& str, long double& result) noexcept {
+    std::regex reg("^[+-]?[0-9]*[.]?[0-9]*[eE]?[+-]?[0-9]*[fF]?$");
+    bool matched = std::regex_match(str, reg);
+    bool e_is_last = str[str.length() - 1] == 'e' || str[str.length() - 1] == 'E';
+    bool f_is_last = str[str.length() - 1] == 'f' || str[str.length() - 1] == 'F';
+
+    if(f_is_last && str.length() > 1)
+        e_is_last = str[str.length() - 2] == 'e' || str[str.length() - 2] == 'E';
+
+    if(matched && !e_is_last) {
+        try {
+            result = std::stod(str);
+            return true;
+        } catch (...) {}
+    }
+
+    return false;
+}
+
+bool IsStringOfIntNumber(const std::string& str, long int& result) noexcept {
+    std::regex reg("^[+-]?[0-9]+$");
+    bool matched = std::regex_match(str, reg);
+
+    if(matched) {
+        try {
+            result = std::stoi(str);
+            return true;
+        } catch (...) {}
+    }
+
+    return false;
+}
+
+bool IsStringOfUIntNumber(const std::string& str, uint64_t& result) noexcept {
+    std::regex reg("^[0-9]+$");
+    bool matched = std::regex_match(str, reg);
+
+    if(matched) {
+        try {
+            result = std::stoi(str);
+            return true;
+        } catch (...) {}
+    }
+
+    return false;
 }
 
 
