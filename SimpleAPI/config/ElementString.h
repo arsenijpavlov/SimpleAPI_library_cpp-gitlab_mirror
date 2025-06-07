@@ -41,7 +41,6 @@ public:
     std::string     toString(const ConfigFormat format = ConfigFormat::eONLY_VALUE,
                          const int8_t tabulation_level = 0,
                          const CommentDesign &design = {})  const noexcept  override;
-    // NOTE: работа с std::cout реализована в Config
     // ========================================================================================================== String
 
     // File ============================================================================================================
