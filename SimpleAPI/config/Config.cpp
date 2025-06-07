@@ -313,6 +313,7 @@ Config &Config::get_at(const VString &complex_key) {
         default: break;
         }
     } else {
+        __CHECK_TYPE_IS_MAP_CONTAINER__((*cfg))
         //TODO: switch(getNamedMapType())
         switch(getType()) {
         case ValueType::eJson:  cfg = &dynamic_cast<ElementJson*>(m_value)->get_value(current_key);
@@ -324,7 +325,6 @@ Config &Config::get_at(const VString &complex_key) {
         if(complex_key.size() == 1) {
             return *cfg;
         } else {
-            __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
             VString new_complex_key;
             new_complex_key.assign(complex_key.cbegin() + 1, complex_key.cend());
 
@@ -359,6 +359,7 @@ Config Config::get_at(const VString &complex_key) const {
         default: break;
         }
     } else {
+        __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
         //TODO: switch(getNamedMapType())
         switch(getType()) {
         case ValueType::eJson:  cfg = &dynamic_cast<const ElementJson*>(m_value)->get_value(current_key);
@@ -370,7 +371,6 @@ Config Config::get_at(const VString &complex_key) const {
         if(complex_key.size() == 1) {
             return *cfg;
         } else {
-            __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
             VString new_complex_key;
             new_complex_key.assign(complex_key.cbegin() + 1, complex_key.cend());
 
