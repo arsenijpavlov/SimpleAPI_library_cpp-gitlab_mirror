@@ -30,8 +30,8 @@ public:
     void            addComment(const Comment& content)          noexcept            { m_comment = content; }
     void            addComment(const std::string &content_before, const std::string &content_after)
                                                                 noexcept            { m_comment = Comment(content_before, content_after); }
-    void            addPrefixComment(const std::string& content) noexcept           { m_comment.setPrefix(content); }
-    void            addSuffixComment(const std::string& content) noexcept           { m_comment.setSuffix(content); }
+    void            addPrefixComment(const std::string& content)noexcept            { m_comment.setPrefix(content); }
+    void            addSuffixComment(const std::string& content)noexcept            { m_comment.setSuffix(content); }
 
     Comment&        getComment()                                noexcept            { return m_comment; }
     Comment         getComment()                                const noexcept      { return m_comment; }
@@ -77,7 +77,7 @@ public:
     bool            isEqual(const IElement& other, const bool compare_comments = false) const;
 
     //числа, контейнеры(размер), строки(длина в видимых символах)
-    virtual size_t  size()                                  const noexcept          { return 0; }
+    virtual size_t  size()                                      const noexcept      { return 0; }
     // ============================================================================================================ Info
 
     // Operators =======================================================================================================
@@ -94,7 +94,7 @@ public:
     //вывод без комментариев, "tabulation_level == -1" => запись в одну строку
     virtual std::string toString(const ConfigFormat format = ConfigFormat::eONLY_VALUE,
                                  const int8_t tabulation_level = 0,
-                                 const CommentDesign &design = {})                  const noexcept = 0;
+                                 const CommentDesign &design = {})  const noexcept  = 0;
     // NOTE: работа с std::cout реализована в Config
     // ========================================================================================================== String
 
