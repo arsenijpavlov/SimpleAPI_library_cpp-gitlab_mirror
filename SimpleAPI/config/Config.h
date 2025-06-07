@@ -173,7 +173,7 @@ public:
         // json    = {}
         // yaml    = false
         // xml     = false
-    Config&         clear()                                 noexcept                { m_value->clear(); }
+    Config&         clear()                                 noexcept                { m_value->clear(); return *this; }
 
     //контейнеры
     //TODO: erase_front
@@ -188,6 +188,11 @@ public:
     //TODO: insert_at(key)
     //TODO: insert_back
     //TODO: insert_after(key)
+
+    //TODO: update
+    //TODO: get_and_pop
+    //TODO: pop
+    //TODO: push
     // ========================================================================================================== Modify
 
     // Info ============================================================================================================
