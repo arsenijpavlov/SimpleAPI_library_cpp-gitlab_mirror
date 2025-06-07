@@ -230,24 +230,26 @@ Config &Config::get_at(const std::vector<size_t> &indexes) {
     if(indexes.empty())
         throw std::invalid_argument("indexes argument cannot be empty");
 
-    Config* cfg;
+    Config* cfg = nullptr;
     __CHECK_INDEX_BOUND__((*this), indexes[0])
     switch(getType()) {
-    case ValueType::eArray: cfg = &dynamic_cast<ElementArray*>(m_value)->get_at(indexes[0]);
-    case ValueType::eJson:  cfg = &dynamic_cast<ElementJson*>(m_value)->get_at(indexes[0]);
+    case ValueType::eArray: { cfg = &dynamic_cast<ElementArray*>(m_value)->get_at(indexes[0]);      break;  }
+    case ValueType::eJson:  { cfg = &dynamic_cast<ElementJson*>(m_value)->get_at(indexes[0]);       break;  }
     default: break;
     }
 
-    if(indexes.size() == 1) {
-        return *cfg;
-    } else {
-        std::vector<size_t> new_indexes;
-        new_indexes.assign(indexes.cbegin() + 1, indexes.cend());
+    if(cfg) {
+        if(indexes.size() == 1) {
+            return *cfg;
+        } else {
+            std::vector<size_t> new_indexes;
+            new_indexes.assign(indexes.cbegin() + 1, indexes.cend());
 
-        switch(cfg->getType()) {
-        case ValueType::eArray: return dynamic_cast<ElementArray*>(cfg->m_value)->get_at(new_indexes);
-        case ValueType::eJson:  return dynamic_cast<ElementJson*>(cfg->m_value)->get_at(new_indexes);
-        default: break;;
+            switch(cfg->getType()) {
+            case ValueType::eArray: return cfg->get_at(new_indexes);
+            case ValueType::eJson:  return cfg->get_at(new_indexes);
+            default: break;;
+            }
         }
     }
 
@@ -260,25 +262,29 @@ Config Config::get_at(const std::vector<size_t> &indexes) const {
     if(indexes.empty())
         throw std::invalid_argument("indexes argument cannot be empty");
 
-    const Config* cfg;
+    Config cfg = Config();
     __CHECK_INDEX_BOUND__((*this), indexes[0])
     switch(getType()) {
-    case ValueType::eArray: cfg = &dynamic_cast<const ElementArray*>(m_value)->get_at(indexes[0]);
-    case ValueType::eJson:  cfg = &dynamic_cast<const ElementJson*>(m_value)->get_at(indexes[0]);
+    case ValueType::eArray: { cfg = std::move(dynamic_cast<const ElementArray*>(m_value)->get_at(indexes[0]));  break;  }
+    case ValueType::eJson:  { cfg = std::move(dynamic_cast<const ElementJson*>(m_value)->get_at(indexes[0]));   break;  }
     default: break;
     }
 
-    if(indexes.size() == 1) {
-        return *cfg;
-    } else {
-        std::vector<size_t> new_indexes;
-        new_indexes.assign(indexes.cbegin() + 1, indexes.cend());
+    if(!cfg.isNull()) {
+        if(indexes.size() == 1) {
+            return cfg;
+        } else {
+            std::vector<size_t> new_indexes;
+            new_indexes.assign(indexes.cbegin() + 1, indexes.cend());
 
-        switch(cfg->getType()) {
-        case ValueType::eArray: return dynamic_cast<const ElementArray*>(cfg->m_value)->get_at(new_indexes);
-        case ValueType::eJson:  return dynamic_cast<const ElementJson*>(cfg->m_value)->get_at(new_indexes);
-        default: break;;
+            switch(cfg.getType()) {
+            case ValueType::eArray: return cfg.get_at(new_indexes);
+            case ValueType::eJson:  return cfg.get_at(new_indexes);
+            default: break;;
+            }
         }
+    } else {
+        __CHECK_TYPE_IS_CONTAINER__(cfg)
     }
 
     return *this;
@@ -308,15 +314,15 @@ Config &Config::get_at(const VString &complex_key) {
     Config* cfg = nullptr;
     if(index_parsed) {
         switch (getType()) {
-        case ValueType::eArray: cfg = &dynamic_cast<ElementArray*>(m_value)->get_value(current_index);
-        case ValueType::eJson:  cfg = &dynamic_cast<ElementJson*>(m_value)->get_value(current_index);
+        case ValueType::eArray: { cfg = &dynamic_cast<ElementArray*>(m_value)->get_at(current_index);   break;  }
+        case ValueType::eJson:  { cfg = &dynamic_cast<ElementJson*>(m_value)->get_at(current_index);    break;  }
         default: break;
         }
     } else {
-        __CHECK_TYPE_IS_MAP_CONTAINER__((*cfg))
+        __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
         //TODO: switch(getNamedMapType())
         switch(getType()) {
-        case ValueType::eJson:  cfg = &dynamic_cast<ElementJson*>(m_value)->get_value(current_key);
+        case ValueType::eJson:  { cfg = &dynamic_cast<ElementJson*>(m_value)->get_at(current_key);      break;  }
         default: break;
         }
     }
@@ -329,8 +335,8 @@ Config &Config::get_at(const VString &complex_key) {
             new_complex_key.assign(complex_key.cbegin() + 1, complex_key.cend());
 
             switch (cfg->getType()) {
-            case ValueType::eArray: return dynamic_cast<ElementArray*>(m_value)->get_value(new_complex_key);
-            case ValueType::eJson:  return dynamic_cast<ElementJson*>(m_value)->get_value(new_complex_key);
+            case ValueType::eArray: return cfg->get_at(new_complex_key);
+            case ValueType::eJson:  return cfg->get_at(new_complex_key);
             default: break;
             }
         }
@@ -351,35 +357,37 @@ Config Config::get_at(const VString &complex_key) const {
     size_t current_index;
     bool index_parsed = utils::IsStringOfUIntNumber(current_key, current_index);
 
-    Config* cfg = nullptr;
+    Config cfg = Config();
     if(index_parsed) {
         switch (getType()) {
-        case ValueType::eArray: cfg = &dynamic_cast<const ElementArray*>(m_value)->get_value(current_index);
-        case ValueType::eJson:  cfg = &dynamic_cast<const ElementJson*>(m_value)->get_value(current_index);
+        case ValueType::eArray: { cfg = dynamic_cast<const ElementArray*>(m_value)->get_at(current_index);  break;  }
+        case ValueType::eJson:  { cfg = dynamic_cast<const ElementJson*>(m_value)->get_at(current_index);   break;  }
         default: break;
         }
     } else {
         __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
         //TODO: switch(getNamedMapType())
         switch(getType()) {
-        case ValueType::eJson:  cfg = &dynamic_cast<const ElementJson*>(m_value)->get_value(current_key);
+        case ValueType::eJson:  { cfg = dynamic_cast<const ElementJson*>(m_value)->get_at(current_key);     break;  }
         default: break;
         }
     }
 
-    if(cfg) {
+    if(!cfg.isNull()) {
         if(complex_key.size() == 1) {
-            return *cfg;
+            return cfg;
         } else {
             VString new_complex_key;
             new_complex_key.assign(complex_key.cbegin() + 1, complex_key.cend());
 
-            switch (cfg->getType()) {
-            case ValueType::eArray: return dynamic_cast<const ElementArray*>(m_value)->get_value(new_complex_key);
-            case ValueType::eJson:  return dynamic_cast<const ElementJson*>(m_value)->get_value(new_complex_key);
+            switch (cfg.getType()) {
+            case ValueType::eArray: return cfg.get_at(new_complex_key);
+            case ValueType::eJson:  return cfg.get_at(new_complex_key);
             default: break;
             }
         }
+    } else {
+        __CHECK_TYPE_IS_CONTAINER__(cfg)
     }
 
     //NOTE: в идеале, до этого кода доходить не должно никогда - либо свичи выше, либо exception
@@ -861,8 +869,8 @@ void *Config::begin() {
     __CHECK_TYPE_IS_CONTAINER__((*this))
 
     switch(getType()) {
-    case ValueType::eArray: return reinterpret_cast<void*>(dynamic_cast<const ElementArray*>(m_value)->begin());
-    case ValueType::eJson:  return reinterpret_cast<void*>(dynamic_cast<const ElementJson*>(m_value)->begin());
+    case ValueType::eArray: return reinterpret_cast<void*>(dynamic_cast<ElementArray*>(m_value)->begin());
+    case ValueType::eJson:  return reinterpret_cast<void*>(dynamic_cast<ElementJson*>(m_value)->begin());
     default:                break;
     }
 
@@ -885,8 +893,8 @@ void *Config::end() {
     __CHECK_TYPE_IS_CONTAINER__((*this))
 
     switch(getType()) {
-    case ValueType::eArray: return reinterpret_cast<void*>(dynamic_cast<const ElementArray*>(m_value)->end());
-    case ValueType::eJson:  return reinterpret_cast<void*>(dynamic_cast<const ElementJson*>(m_value)->end());
+    case ValueType::eArray: return reinterpret_cast<void*>(dynamic_cast<ElementArray*>(m_value)->end());
+    case ValueType::eJson:  return reinterpret_cast<void*>(dynamic_cast<ElementJson*>(m_value)->end());
     default:                break;
     }
 
