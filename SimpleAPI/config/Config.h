@@ -80,8 +80,8 @@ public:
 //TODO:    Config          get_at(const std::array<size_t, SIZE>& indexes)             const;
     Config&         get_at(const std::string& key);
     Config          get_at(const std::string& key)                              const;
-    Config&         get_at(const std::vector<std::string>& complex_key);
-    Config          get_at(const std::vector<std::string>& complex_key)         const;
+    Config&         get_at(const VString& complex_key);
+    Config          get_at(const VString& complex_key)         const;
     Config&         get_back();
     Config          get_back()                                                  const;
 
@@ -119,16 +119,16 @@ public:
 
     bool&           get_bool_at(const std::string& key);
     bool            get_bool_at(const std::string& key)                         const;
-    bool&           get_bool_at(const std::vector<std::string>& complex_key);
-    bool            get_bool_at(const std::vector<std::string>& complex_key)    const;
+    bool&           get_bool_at(const VString& complex_key);
+    bool            get_bool_at(const VString& complex_key)    const;
     long double&    get_number_at(const std::string& key);
     long double     get_number_at(const std::string& key)                       const;
-    long double&    get_number_at(const std::vector<std::string>& complex_key);
-    long double     get_number_at(const std::vector<std::string>& complex_key)  const;
+    long double&    get_number_at(const VString& complex_key);
+    long double     get_number_at(const VString& complex_key)  const;
     std::string&    get_string_at(const std::string& key);
     std::string     get_string_at(const std::string& key)                       const;
-    std::string&    get_string_at(const std::vector<std::string>& complex_key);
-    std::string     get_string_at(const std::vector<std::string>& complex_key)  const;
+    std::string&    get_string_at(const VString& complex_key);
+    std::string     get_string_at(const VString& complex_key)  const;
 
     bool&           get_back_bool();
     bool            get_back_bool()                                             const;
@@ -217,8 +217,8 @@ public:
     Config          operator[](const std::vector<size_t>& indexes)          const   { return get_at(indexes); }     //(ARRAY, JSON)
     Config&         operator[](const std::string& key)                              { return get_at(key); }         //(JSON)
     Config          operator[](const std::string& key)                      const   { return get_at(key); }         //(JSON)
-    Config&         operator[](const std::vector<std::string>& complex_key)         { return get_at(complex_key); } //(ARRAY(при условии, что внутри числа), JSON)
-    Config          operator[](const std::vector<std::string>& complex_key) const   { return get_at(complex_key); } //(ARRAY(при условии, что внутри числа), JSON)
+    Config&         operator[](const VString& complex_key)         { return get_at(complex_key); } //(ARRAY(при условии, что внутри числа), JSON)
+    Config          operator[](const VString& complex_key) const   { return get_at(complex_key); } //(ARRAY(при условии, что внутри числа), JSON)
     // ======================================================================================================= Operators
 
     //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=

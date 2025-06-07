@@ -294,7 +294,7 @@ Config Config::get_at(const std::string& key) const {
     return dynamic_cast<const ElementJson*>(m_value)->get_at(key);
 }
 
-Config &Config::get_at(const std::vector<std::string> &complex_key) {
+Config &Config::get_at(const VString &complex_key) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
 
     if(complex_key.empty())
@@ -305,34 +305,85 @@ Config &Config::get_at(const std::vector<std::string> &complex_key) {
     size_t current_index;
     bool index_parsed = utils::IsStringOfUIntNumber(current_key, current_index);
 
-    if(isMapContainer())
-        __KEY_NOT_FOUND_EXCEPTION__(*this)
-        __ARRAY_INCORRECT_INDEX_EXCEPTION__
-
-    if(complex_key.size() == 1) {
-        __KEY_NOT_FOUND_EXCEPTION__((*this), current_key)
-        switch(getType()) {
-        case ValueType::eArray: return dynamic_cast<ElementArray*>(m_value)->get_at(current_index);
-        case ValueType::eJson:  return dynamic_cast<ElementJson*>(m_value)->get_at(current_index);
+    Config* cfg = nullptr;
+    if(index_parsed) {
+        switch (getType()) {
+        case ValueType::eArray: cfg = &dynamic_cast<ElementArray*>(m_value)->get_value(current_index);
+        case ValueType::eJson:  cfg = &dynamic_cast<ElementJson*>(m_value)->get_value(current_index);
         default: break;
         }
     } else {
-        std::vector<size_t> new_indexes;
-        new_indexes.assign(indexes.cbegin() + 1, indexes.cend());
-
+        //TODO: switch(getNamedMapType())
         switch(getType()) {
-        case ValueType::eArray: return dynamic_cast<ElementArray*>(m_value)->get_at(new_indexes);
-        case ValueType::eJson:  return dynamic_cast<ElementJson*>(m_value)->get_at(new_indexes);
-        default: break;;
+        case ValueType::eJson:  cfg = &dynamic_cast<ElementJson*>(m_value)->get_value(current_key);
+        default: break;
         }
     }
 
+    if(cfg) {
+        if(complex_key.size() == 1) {
+            return *cfg;
+        } else {
+            __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+            VString new_complex_key;
+            new_complex_key.assign(complex_key.cbegin() + 1, complex_key.cend());
+
+            switch (cfg->getType()) {
+            case ValueType::eArray: return dynamic_cast<ElementArray*>(m_value)->get_value(new_complex_key);
+            case ValueType::eJson:  return dynamic_cast<ElementJson*>(m_value)->get_value(new_complex_key);
+            default: break;
+            }
+        }
+    }
+
+    //NOTE: в идеале, до этого кода доходить не должно никогда - либо свичи выше, либо exception
     return *this;
 }
 
-Config Config::get_at(const std::vector<std::string> &complex_key) const
-{
-    ...
+Config Config::get_at(const VString &complex_key) const {
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+
+    if(complex_key.empty())
+        throw std::invalid_argument("complex_key argument cannot be empty");
+
+    //ключ может быть либо строкой, либо целым числом
+    const std::string& current_key = complex_key.front();
+    size_t current_index;
+    bool index_parsed = utils::IsStringOfUIntNumber(current_key, current_index);
+
+    Config* cfg = nullptr;
+    if(index_parsed) {
+        switch (getType()) {
+        case ValueType::eArray: cfg = &dynamic_cast<const ElementArray*>(m_value)->get_value(current_index);
+        case ValueType::eJson:  cfg = &dynamic_cast<const ElementJson*>(m_value)->get_value(current_index);
+        default: break;
+        }
+    } else {
+        //TODO: switch(getNamedMapType())
+        switch(getType()) {
+        case ValueType::eJson:  cfg = &dynamic_cast<const ElementJson*>(m_value)->get_value(current_key);
+        default: break;
+        }
+    }
+
+    if(cfg) {
+        if(complex_key.size() == 1) {
+            return *cfg;
+        } else {
+            __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+            VString new_complex_key;
+            new_complex_key.assign(complex_key.cbegin() + 1, complex_key.cend());
+
+            switch (cfg->getType()) {
+            case ValueType::eArray: return dynamic_cast<const ElementArray*>(m_value)->get_value(new_complex_key);
+            case ValueType::eJson:  return dynamic_cast<const ElementJson*>(m_value)->get_value(new_complex_key);
+            default: break;
+            }
+        }
+    }
+
+    //NOTE: в идеале, до этого кода доходить не должно никогда - либо свичи выше, либо exception
+    return *this;
 }
 
 Config &Config::get_back() {
@@ -515,12 +566,12 @@ bool Config::get_bool_at(const std::string& key) const {
     return dynamic_cast<const ElementBool*>(config.m_value)->getValue();
 }
 
-bool &Config::get_bool_at(const std::vector<std::string> &complex_key)
+bool &Config::get_bool_at(const VString &complex_key)
 {
     ...
 }
 
-bool Config::get_bool_at(const std::vector<std::string> &complex_key) const
+bool Config::get_bool_at(const VString &complex_key) const
 {
     ...
 }
@@ -543,12 +594,12 @@ long double Config::get_number_at(const std::string& key) const {
     return dynamic_cast<const ElementNumber*>(config.m_value)->getValue();
 }
 
-long double &Config::get_number_at(const std::vector<std::string> &complex_key)
+long double &Config::get_number_at(const VString &complex_key)
 {
     ...
 }
 
-long double Config::get_number_at(const std::vector<std::string> &complex_key) const
+long double Config::get_number_at(const VString &complex_key) const
 {
     ...
 }
@@ -571,12 +622,12 @@ std::string Config::get_string_at(const std::string& key) const {
     return dynamic_cast<const ElementString*>(config.m_value)->getValue();
 }
 
-std::string &Config::get_string_at(const std::vector<std::string> &complex_key)
+std::string &Config::get_string_at(const VString &complex_key)
 {
     ...
 }
 
-std::string Config::get_string_at(const std::vector<std::string> &complex_key) const
+std::string Config::get_string_at(const VString &complex_key) const
 {
     ...
 }

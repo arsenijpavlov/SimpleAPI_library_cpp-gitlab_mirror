@@ -51,15 +51,22 @@
 #define __CHECK_TYPE_IS_ARRAY__(object)     if(!object.isArray())   __INCORRECT_TYPE_EXCEPTION__("ARRAY")
 #define __CHECK_TYPE_IS_JSON__(object)      if(!object.isJson())    __INCORRECT_TYPE_EXCEPTION__("JSON")
 
-#define __CHECK_TYPE_IS_CONTAINER__(object) if(!object.isContainer())   __INCORRECT_TYPE_EXCEPTION__("container")
+#define __CHECK_TYPE_IS_CONTAINER__(object) if(!object.isContainer())       __INCORRECT_TYPE_EXCEPTION__("container")
 #define __CHECK_TYPE_IS_MAP_CONTAINER__(object) \
-                                            if(!object.isMapContainer()) __INCORRECT_TYPE_EXCEPTION__("map<key,value>")
+                                            if(!object.isMapContainer())    __INCORRECT_TYPE_EXCEPTION__("map<key,value>")
 
 #define __CHECK_TYPE_IS_NOT_NULL__(object)  if(object.isNull()) \
                                                 throw std::invalid_argument("This element is a NULL type");
 #define __CHECK_TYPES_IS_EQUAL__(object1, object2) \
                                             if(object1.getType() == object2.getType()) \
                                                 throw std::invalid_argument("Types is not equal");
+
+#define __INCORRECT_INDEX_EXCEPTION__(index) throw std::invalid_argument(std::string("Index ") + #index + " not contain an object");
+
+#define __CHECK_CONTAINER_INDEX_CORRECT__(object, index) \
+                                            if(index + 1 >= object.size())  __INCORRECT_INDEX_EXCEPTION__(#index)
+
+//--------------------
 
 #define __IF_INDEX_NOT_BOUND__(object, index)   if(index + 1 <= object->size())
 #define __IF_INDEX_NOT_BOUND2__(object, index)  if(index + 1 <= object.size())
