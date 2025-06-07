@@ -610,14 +610,18 @@ long double Config::get_number_at(const std::string& key) const {
     return dynamic_cast<const ElementNumber*>(config.m_value)->getValue();
 }
 
-long double &Config::get_number_at(const VString &complex_key)
-{
-    ...
+long double &Config::get_number_at(const VString &complex_key) {
+    Config& cfg = get_at(complex_key);
+
+    __CHECK_TYPE_IS_NUMBER__(cfg)
+    return dynamic_cast<ElementNumber*>(cfg.m_value)->getValue();
 }
 
-long double Config::get_number_at(const VString &complex_key) const
-{
-    ...
+long double Config::get_number_at(const VString &complex_key) const {
+    const Config& cfg = get_at(complex_key);
+
+    __CHECK_TYPE_IS_NUMBER__(cfg)
+    return dynamic_cast<ElementNumber*>(cfg.m_value)->getValue();
 }
 
 std::string &Config::get_string_at(const std::string& key) {
