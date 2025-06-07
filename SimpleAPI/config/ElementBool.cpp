@@ -1,5 +1,18 @@
 #include "ElementBool.h"
+
+#include "Config.h"
 #include <algorithm>
+
+
+std::string ElementBool::toString(const ConfigFormat format, const int8_t tabulation_level,
+                                  const CommentDesign &design) const noexcept
+{
+//TODO: ElementBool::toString()
+    return "";
+}
+
+
+//----------------------------------------------------------------------------------------------------------------------
 
 
 bool IsElementBool(const std::string &str) noexcept {
@@ -16,4 +29,8 @@ bool IsElementBool(const std::string &str) noexcept {
 
 bool IsElementBool(const IElement &e) noexcept {
     return e.getType() == ValueType::eBool;
+}
+
+bool IsElementBool(const Config &cfg) noexcept {
+    return cfg.isBool();
 }

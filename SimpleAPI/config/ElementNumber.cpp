@@ -1,15 +1,21 @@
 #include "ElementNumber.h"
 
+#include "Config.h"
 #include <regex>
 
 
-bool ElementNumber::isEqual(const IElement &other, const bool compare_comments) const noexcept {
-    if(m_value != dynamic_cast<const ElementNumber&>(other).m_value)    return false;
-    if(compare_comments && m_comment == other.getComment())             return false;
-
-    return true;
+std::string ElementNumber::toString(const ConfigFormat format, const int8_t tabulation_level,
+                                    const CommentDesign &design) const noexcept
+{
+//TODO: ElementNumber::toString()
+    return "";
 }
 
+
+//----------------------------------------------------------------------------------------------------------------------
+
+
+//FIXME: сейчас дублируется код из папки utils
 bool IsElementNumber(const std::string &str) noexcept {
     if(str.empty()) return false;
     if(str[0] == 'e' || str[0] == 'E' || str[0] == 'f' || str[0] == 'F')
@@ -30,4 +36,8 @@ bool IsElementNumber(const std::string &str) noexcept {
 
 bool IsElementNumber(const IElement &e) noexcept {
     return e.getType() == ValueType::eNumber;
+}
+
+bool IsElementNumber(const Config &cfg) noexcept {
+    return cfg.isNumber();
 }

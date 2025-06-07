@@ -1,16 +1,15 @@
 #include "ElementNull.h"
 
-#include "../utils/Utils.h"
-#include "ConfigDefines.h"
-#include "ElementBool.h"
+#include "Config.h"
 
 #include <algorithm>
 
 
-bool ElementNull::isEqual(const IElement &other, const bool compare_comments) const noexcept {
-    if(compare_comments && m_comment == other.getComment()) return false;
-
-    return true; //предполагаем, что проверка типа проведена уже в базовом классе
+std::string ElementNull::toString(const ConfigFormat format, const int8_t tabulation_level,
+                                  const CommentDesign &design) const noexcept
+{
+//TODO: ElementNull::toString()
+    return "";
 }
 
 
@@ -34,9 +33,7 @@ bool IsElementNull(const IElement &e) noexcept {
     return e.getType() == ValueType::eNull;
 }
 
-
-bool &ElementNull::getBool() {
-    __CHECK_TYPE_IS_NOT_NULL__((*this))
-    bool b = false;
-    return b;
+bool IsElementNull(const Config &cfg) noexcept {
+    return cfg.isNull();
 }
+

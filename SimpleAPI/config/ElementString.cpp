@@ -1,24 +1,19 @@
 #include "ElementString.h"
 
+#include "Config.h"
 #include "ConfigDefines.h"
 
 #include "../utils/Utils.h"
 
 
-bool ElementString::isEqual(const IElement &other, const bool compare_comments) const noexcept {
-    if(m_value != dynamic_cast<const ElementString&>(other).m_value)    return false;
-    if(compare_comments && m_comment == other.getComment())             return false;
-
-    return true;
+std::string ElementString::toString(const ConfigFormat format, const int8_t tabulation_level,
+                                    const CommentDesign &design) const noexcept
+{
+//TODO: ElementString::toString()
+    return "";
 }
 
-void ElementString::operator<<(const std::string &other) noexcept {
-    m_value.append(other);
-}
-
-void ElementString::operator=(const std::string &other) noexcept {
-    m_value = other;
-}
+//----------------------------------------------------------------------------------------------------------------------
 
 
 bool IsElementString(std::string &str, const ConfigFormat format,
@@ -98,4 +93,8 @@ bool IsElementString(std::string &str, const ConfigFormat format,
 
 bool IsElementString(const IElement &e) noexcept {
     return e.getType() == ValueType::eString;
+}
+
+bool IsElementString(const Config &cfg) noexcept {
+    return cfg.isString();
 }

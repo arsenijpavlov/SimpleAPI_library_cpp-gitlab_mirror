@@ -52,7 +52,7 @@ public:
 };
 
 bool IsElementBool(const std::string& str)              noexcept;
-bool IsElementBool(const IElement& e)                   noexcept;                    //{ return e.getType() == ValueType::eBool; }
-bool IsElementBool(const Config& cfg)                   noexcept;                    //{ return cfg.isBool(); }
+bool IsElementBool(const IElement& e)                   noexcept;
+bool IsElementBool(const Config& cfg)                   noexcept;
 
 #endif // ELEMENT_BOOL_H

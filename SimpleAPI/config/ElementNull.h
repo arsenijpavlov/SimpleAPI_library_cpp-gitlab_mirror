@@ -53,7 +53,7 @@ public:
 };
 
 bool IsElementNull(const std::string& str)              noexcept;
-bool IsElementNull(const IElement& e)                   noexcept;        //{ return e.getType() == ValueType::eNull; }
-bool IsElementNull(const Config& cfg)                   noexcept;        //{ return cfg.isNull(); }
+bool IsElementNull(const IElement& e)                   noexcept;
+bool IsElementNull(const Config& cfg)                   noexcept;
 
 #endif // ELEMENT_NULL_H
