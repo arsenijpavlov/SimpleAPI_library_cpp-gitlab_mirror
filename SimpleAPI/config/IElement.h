@@ -21,7 +21,7 @@ class IElement {
 protected:
     ValueType   m_type;
     Comment     m_comment;
-    IElement()                                                  noexcept            {}
+    IElement()                                                  noexcept            { m_type = ValueType::eNull; }
 public:
     virtual ~IElement()                                         noexcept            {}
 
@@ -69,14 +69,14 @@ public:
     // ========================================================================================================== Modify
 
     // Info ============================================================================================================
-    virtual ValueType   getType()                               const noexcept          { return ValueType::eNull; }
-    virtual bool        isContainer()                           const noexcept          { return false; }
-    virtual bool        isMapContainer()                        const noexcept          { return false; }
+    ValueType       getType()                                   const noexcept      { return m_type; }
+    virtual bool    isContainer()                               const noexcept      { return false; }
+    virtual bool    isMapContainer()                            const noexcept      { return false; }
 
-    bool                isEqual(const IElement& other, const bool compare_comments = false) const;
+    bool            isEqual(const IElement& other, const bool compare_comments = false) const;
 
     //числа, контейнеры(размер), строки(длина в видимых символах)
-    virtual size_t      size()                                  const noexcept          { return 0; }
+    virtual size_t  size()                                  const noexcept          { return 0; }
     // ============================================================================================================ Info
 
     // Operators =======================================================================================================
@@ -87,11 +87,6 @@ public:
         // operator>=() не реализован для потомков
         // operator<() не реализован для потомков
         // operator<=() не реализован для потомков
-    //именованные контейнеры (индивидуально для ElementMapContainer классов)
-    //    Config&         operator[](const std::string& key);
-    //    Config          operator[](const std::string& key)              const;
-    //    Config&         operator[](const VString& complex_key);
-    //    Config          operator[](const VString& complex_key)          const;
     // ======================================================================================================= Operators
 
     // String ==========================================================================================================
