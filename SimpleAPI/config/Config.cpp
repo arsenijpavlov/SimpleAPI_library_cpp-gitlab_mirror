@@ -710,74 +710,24 @@ std::string Config::get_back_string() const {
     return dynamic_cast<const ElementString*>(config.m_value)->getValue();
 }
 
-bool Config::isEqual(const Config &other, const bool compare_comments) const {
+bool Config::isEqual(const IElement &other, const bool compare_comments) const {
     __CHECK_TYPES_IS_EQUAL__((*this), (other))
-
-    if(compare_comments && getComment() != other.getComment())
-        return false;
-
-    return m_value->isEqual(other.m_value);
-}
-
-bool Config::isEqual(const IElement &other, const bool compare_comments) const
-{
-    ...
-}
-
-bool Config::isEqual(const IElement &other) const {
-    __CHECK_TYPES_IS_EQUAL__((*this), (other))
-
-    switch(getType()){
-    case ValueType::eNull:      return dynamic_cast<const ElementNull*>(m_value);
-    case ValueType::eBool:      return dynamic_cast<const ElementBool*>(m_value);
-    case ValueType::eNumber:    return dynamic_cast<const ElementNumber*>(m_value);
-    case ValueType::eString:    return dynamic_cast<const ElementString*>(m_value);
-    case ValueType::eArray:     return dynamic_cast<const ElementArray*>(m_value);
-    case ValueType::eJson:      return dynamic_cast<const ElementJson*>(m_value);
-    default:                    break;
-    }
-
-    return false;
+    return m_value->isEqual(other, compare_comments);
 }
 
 bool Config::isEqual(const bool other) const {
     __CHECK_TYPE_IS_BOOL__((*this))
-
     return dynamic_cast<const ElementBool*>(m_value)->getValue() == other;
 }
 
 bool Config::isEqual(const long double &other) const {
     __CHECK_TYPE_IS_NUMBER__((*this))
-
     return dynamic_cast<const ElementNumber*>(m_value)->getValue() == other;
 }
 
 bool Config::isEqual(const std::string &other) const {
     __CHECK_TYPE_IS_STRING__((*this))
-
     return dynamic_cast<const ElementString*>(m_value)->getValue() == other;
-}
-
-Config &Config::operator=(const Config &other) noexcept                { setValue(other); return *this; }
-
-bool Config::operator>(const Config &other) const
-{
-    ...
-}
-
-bool Config::operator>=(const Config &other) const
-{
-    ...
-}
-
-bool Config::operator<(const Config &other) const
-{
-    ...
-}
-
-bool Config::operator<=(const Config &other) const
-{
-    ...
 }
 
 Config &Config::addComment(const Comment &content) noexcept {

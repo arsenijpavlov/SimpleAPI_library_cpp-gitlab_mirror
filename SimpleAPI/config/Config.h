@@ -35,6 +35,32 @@ private:
     void init()                                             noexcept            { setValue(); }
 
 public:
+    //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    Config&         addComment(const Comment& content)              noexcept;
+    Config&         addComment(const std::string &content_before, const std::string &content_after) noexcept;
+    Config&         addPrefixComment(const std::string& content)    noexcept;
+    Config&         addSuffixComment(const std::string& content)    noexcept;
+
+    Comment&        getComment()                                    noexcept        { return m_value->getComment(); }
+    Comment         getComment()                                    const noexcept  { return m_value->getComment(); }
+    std::string&    getPrefixComment()                              noexcept        { return m_value->getPrefixComment(); }
+    std::string     getPrefixComment()                              const noexcept  { return m_value->getPrefixComment(); }
+    std::string&    getSuffixComment()                              noexcept        { return m_value->getSuffixComment(); }
+    std::string     getSuffixComment()                              const noexcept  { return m_value->getSuffixComment(); }
+
+    Config&         clearComment()                                  noexcept;
+    Config&         clearPrefixComment()                            noexcept;
+    Config&         clearSuffixComment()                            noexcept;
+    Config&         deleteComment()                                 noexcept;
+    Config&         deletePrefixComment()                           noexcept;
+    Config&         deleteSuffixComment()                           noexcept;
+
+    CommentDesign&  getCommentDesign()                              noexcept        { return m_value->getCommentDesign(); }
+    CommentDesign   getCommentDesign()                              const noexcept  { return m_value->getCommentDesign(); }
+    Config&         setCommentDesign(const CommentDesign& design)   noexcept;
+    Config&         clearCommentDesign()                            noexcept;
+    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= COMMENTS
+
     // Setters =========================================================================================================
     Config&         setValue()                              noexcept;
     Config&         setValue(const Config& other)           noexcept;
@@ -139,14 +165,22 @@ public:
     // ========================================================================================================= Getters
 
     // Modify ==========================================================================================================
-    Config& clear();
+    //NOTE: не путать с remove(), здесь просто сброс комментариев, сброс значения до:
+        // bool    = false
+        // number  = 0
+        // string  = ""
+        // array   = {}
+        // json    = {}
+        // yaml    = false
+        // xml     = false
+    Config&         clear()                                 noexcept                { m_value->clear(); }
 
     //контейнеры
     //TODO: erase_front
     //TODO: erase_at(iterator)
     //TODO: erase_at(index)
     //TODO: erase_at(key)
-    //TODO: erase_back
+    //TODO: erase_backf
 
     //TODO: insert_front
     //TODO: insert_at(iterator)
@@ -169,7 +203,8 @@ public:
     bool            isContainer()                           const noexcept          { return m_value->isContainer(); }
     bool            isMapContainer()                        const noexcept          { return m_value->isMapContainer(); }
 
-    bool            isEqual(const Config& other, const bool compare_comments = false)   const;
+    bool            isEqual(const Config& other, const bool compare_comments = false)   const
+                                                                                    { return isEqual(*other.m_value, compare_comments); }
     bool            isEqual(const IElement& other, const bool compare_comments = false) const;
     bool            isEqual(const bool other)                                           const;
     bool            isEqual(const long double& other)                                   const;
@@ -205,47 +240,21 @@ public:
     bool            operator!=(const std::string& other)    const                   { return !isEqual(other); }
 
     //числа, контейнеры(размер), строки(длина в видимых символах)
-    bool            operator>(const Config& other)          const;
-    bool            operator>=(const Config& other)         const;
-    bool            operator<(const Config& other)          const;
-    bool            operator<=(const Config& other)         const;
+    bool            operator>(const Config& other)          const                   { return size() > other.size(); }
+    bool            operator>=(const Config& other)         const                   { return size() >= other.size(); }
+    bool            operator<(const Config& other)          const                   { return size() < other.size(); }
+    bool            operator<=(const Config& other)         const                   { return size() <= other.size(); }
 
     //контейнеры
     Config&         operator[](const size_t index)                                  { return get_at(index); }       //(ARRAY, JSON)
-    Config          operator[](const size_t index)                          const   { return get_at(index); }       //(ARRAY, JSON)
+    Config          operator[](const size_t index)                  const           { return get_at(index); }       //(ARRAY, JSON)
     Config&         operator[](const std::vector<size_t>& indexes)                  { return get_at(indexes); }     //(ARRAY, JSON)
-    Config          operator[](const std::vector<size_t>& indexes)          const   { return get_at(indexes); }     //(ARRAY, JSON)
+    Config          operator[](const std::vector<size_t>& indexes)  const           { return get_at(indexes); }     //(ARRAY, JSON)
     Config&         operator[](const std::string& key)                              { return get_at(key); }         //(JSON)
-    Config          operator[](const std::string& key)                      const   { return get_at(key); }         //(JSON)
-    Config&         operator[](const VString& complex_key)         { return get_at(complex_key); } //(ARRAY(при условии, что внутри числа), JSON)
-    Config          operator[](const VString& complex_key) const   { return get_at(complex_key); } //(ARRAY(при условии, что внутри числа), JSON)
+    Config          operator[](const std::string& key)              const           { return get_at(key); }         //(JSON)
+    Config&         operator[](const VString& complex_key)                          { return get_at(complex_key); } //(ARRAY(при условии, что внутри числа), JSON)
+    Config          operator[](const VString& complex_key)          const           { return get_at(complex_key); } //(ARRAY(при условии, что внутри числа), JSON)
     // ======================================================================================================= Operators
-
-    //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    Config&         addComment(const Comment& content)              noexcept;
-    Config&         addComment(const std::string &content_before, const std::string &content_after) noexcept;
-    Config&         addPrefixComment(const std::string& content)    noexcept;
-    Config&         addSuffixComment(const std::string& content)    noexcept;
-
-    Comment&        getComment()                                    noexcept        { return m_value->getComment(); }
-    Comment         getComment()                                    const noexcept  { return m_value->getComment(); }
-    std::string&    getPrefixComment()                              noexcept        { return m_value->getPrefixComment(); }
-    std::string     getPrefixComment()                              const noexcept  { return m_value->getPrefixComment(); }
-    std::string&    getSuffixComment()                              noexcept        { return m_value->getSuffixComment(); }
-    std::string     getSuffixComment()                              const noexcept  { return m_value->getSuffixComment(); }
-
-    Config&         clearComment()                                  noexcept;
-    Config&         clearPrefixComment()                            noexcept;
-    Config&         clearSuffixComment()                            noexcept;
-    Config&         deleteComment()                                 noexcept;
-    Config&         deletePrefixComment()                           noexcept;
-    Config&         deleteSuffixComment()                           noexcept;
-
-    CommentDesign&  getCommentDesign()                              noexcept        { return m_value->getCommentDesign(); }
-    CommentDesign   getCommentDesign()                              const noexcept  { return m_value->getCommentDesign(); }
-    Config&         setCommentDesign(const CommentDesign& design)   noexcept;
-    Config&         clearCommentDesign()                            noexcept;
-    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= COMMENTS
 
     // String ==========================================================================================================
     //вывод без комментариев, "tabulation_level == -1" => запись в одну строку
