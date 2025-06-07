@@ -482,14 +482,18 @@ bool Config::get_bool_at(const size_t index) const {
     return dynamic_cast<const ElementBool*>(config.m_value)->getValue();
 }
 
-bool &Config::get_bool_at(const std::vector<size_t> &indexes)
-{
-    ...
+bool &Config::get_bool_at(const std::vector<size_t> &indexes) {
+    Config& cfg = get_at(indexes);
+
+    __CHECK_TYPE_IS_BOOL__(cfg)
+    return dynamic_cast<ElementBool*>(cfg.m_value)->getValue();
 }
 
-bool Config::get_bool_at(const std::vector<size_t> &indexes) const
-{
-    ...
+bool Config::get_bool_at(const std::vector<size_t> &indexes) const {
+    const Config& cfg = get_at(indexes);
+
+    __CHECK_TYPE_IS_BOOL__(cfg)
+    return dynamic_cast<ElementBool*>(cfg.m_value)->getValue();
 }
 
 long double &Config::get_number_at(const size_t index) {
