@@ -2,18 +2,6 @@
 #include <algorithm>
 
 
-bool ElementBool::isEqual(const IElement &other, const bool compare_comments) const noexcept {
-    if(m_value != dynamic_cast<const ElementBool&>(other).m_value)  return false;
-    if(compare_comments && m_comment == other.getComment())         return false;
-
-    return true;
-}
-
-void ElementBool::operator=(const bool other) noexcept {
-    m_value = other;
-}
-
-
 bool IsElementBool(const std::string &str) noexcept {
     std::string temp = str;
 
