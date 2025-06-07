@@ -1,10 +1,10 @@
 #ifndef ELEMENT_ARRAY_H
 #define ELEMENT_ARRAY_H
 
-#include "IElementContainer.h"
+#include "IElementNonMapContainer.h"
 
 
-class ElementArray : public IElementContainer {
+class ElementArray : public IElementNonMapContainer {
 protected:
     VElement m_values;
 
