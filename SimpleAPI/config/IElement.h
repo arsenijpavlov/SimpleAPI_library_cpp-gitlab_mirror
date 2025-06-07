@@ -12,9 +12,9 @@
 class Config;
 class IElement;
 
-using JPair         = std::pair<std::string, std::shared_ptr<IElement>>;
+using JPair         = std::pair<std::string, std::shared_ptr<Config>>;
 using VPairElement  = std::vector<JPair>;
-using VElement      = std::vector<std::shared_ptr<IElement>>;
+using VElement      = std::vector<std::shared_ptr<Config>>;
 
 //базовый класс, в идеале используется только для ссылки на производный
 class IElement {

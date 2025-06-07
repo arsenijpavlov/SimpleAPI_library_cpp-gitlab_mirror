@@ -1,153 +1,101 @@
 #ifndef ELEMENT_ARRAY_H
 #define ELEMENT_ARRAY_H
 
-#include "IElement.h"
-#include "ConfigDefines.h"
+#include "IElementContainer.h"
 
 
-//предобъявление
-class ElementJson;
-
-class ElementArray : public IElement {
+class ElementArray : public IElementContainer {
 protected:
     VElement m_values;
 
 public:
-    ElementArray() noexcept                                     { init(); }
+    ElementArray() noexcept                                                                     { init(); }
     template<typename ... Types>
-    ElementArray(Types&&... args) noexcept {
+    explicit ElementArray(Types&&... args) noexcept {
         init();
-
         //NOTE: без объявления массива не работает в c++11
         int dummy[] = { (push_back(std::forward<Types>(args)), 0)... };
-        (void)dummy; // suppress unused variable warning
+        (void)dummy; //suppress unused variable warning
     }
     ElementArray(const std::string& string, const ConfigFormat format,
-                 const bool enable_comments = false) noexcept;
-    ~ElementArray() noexcept                                    {}
+                 const bool enable_comments = false)                noexcept;
+    ~ElementArray()                                                 noexcept                    {}
 
+    // Setters =========================================================================================================
 private:
-    void init() noexcept                                        { m_type = ValueType::eArray; }
+    void        init()                                              noexcept                    { m_type = ValueType::eArray; }
 public:
+    // ========================================================================================================= Setters
 
-    //PARSING -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    ElementArray&   parseArray(const std::string& string, const bool enable_comment = false,
-                            const ConfigFormat config_format = ConfigFormat::eJSON, CommentDesign* design = nullptr);
-    ElementArray&   parseJsonArray(const std::string& string, const bool enable_comment = false,
-                            CommentDesign* design = nullptr);
-    ElementArray&   parseIniArray(const std::string& string, const bool enable_comment = false,
-                            CommentDesign* design = nullptr);
-    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- PARSING
+    // Getters =========================================================================================================
+    Config&     get_front()                                                         override;
+    Config      get_front()                                         const           override;
+    Config&     get_at(const size_t index)                                          override;
+    Config      get_at(const size_t index)                          const           override;
+    Config&     get_back()                                                          override;
+    Config      get_back()                                          const           override;
+    // ========================================================================================================= Getters
 
-    //PRINTING =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    //для рекурсивного вызова, без комментариев, в одну строку
-    std::string toString(const ConfigFormat format = ConfigFormat::eJSON,
-                          const int8_t tabulation_level = 0) const noexcept override;
-    std::string toJsonString(const int8_t tabulation_level = 0) const noexcept;
-    std::string toIniString(const int8_t tabulation_level = 0) const noexcept;
+    // Modify ==========================================================================================================
+    void        clear()                                             noexcept        override    { m_values.clear(); }
+    void        update_front(const Config& new_value)               noexcept        override;
+    void        update_front(Config&& new_value)                    noexcept        override;
+    //если нужного индекса не существует, то будет добавлено N пустых элементов до необходимого индекса
+    void        update_at(const size_t index, const Config& new_value)
+                                                                    noexcept        override;
+    void        update_at(const size_t index, Config&& new_value)   noexcept        override;
+    void        update_back(const Config& new_value)                noexcept        override;
+    void        update_back(Config&& new_value)                     noexcept        override;
+    // ========================================================================================================== Modify
 
-    //для рекурсивного вызова, с использованием комментариев
-    std::string toString(const ConfigFormat format, const CommentDesign &design,
-                          const int8_t tabulation_level = 0) const noexcept override;
-    std::string toJsonString(const CommentDesign &design,
-                               const int8_t tabulation_level = 0) const noexcept;
-    std::string toIniString(const CommentDesign &design,
-                              const int8_t tabulation_level = 0) const noexcept;
-    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= PRINTING
+    // Adding ==========================================================================================================
+    void        insert_front(const Config& value)                   noexcept        override;
+    void        insert_front(Config&& value)                        noexcept        override;
+//TODO: когда-нибудь, void insert_at(iterator, const Config& value);
+//TODO: когда-нибудь, void insert_at(iterator, Config&& value);
+    void        insert_at(const size_t index, const Config& value)  noexcept        override;
+    void        insert_at(const size_t index, Config&& value)       noexcept        override;
+    void        insert_back(const Config& value)                    noexcept        override;
+    void        insert_back(Config&& value)                         noexcept        override;
+    // ========================================================================================================== Adding
 
-    //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    ElementArray&   add_comment(const size_t index, const Comment& content);
-    ElementArray&   add_comment(const size_t index, const std::string& content_before,
-                           const std::string& content_after);
-    ElementArray&   add_prefix_comment(const size_t index, const std::string& content);
-    ElementArray&   add_suffix_comment(const size_t index, const std::string& content);
+    // Removing ========================================================================================================
+    Config      get_and_pop_front()                                                 override;
+    Config      get_and_pop_at(const size_t index)                                  override;
+    Config      get_and_pop_back()                                                  override;
+    void        erase_front()                                                       override;
+//TODO: когда-нибудь, void erase_at(iterator)
+    void        erase_at(const size_t index)                                        override;
+    void        erase_back()                                                        override;
+    // ======================================================================================================== Removing
 
-    Comment&        get_comment(const size_t index);
-    Comment         get_comment(const size_t index) const;
-    std::string&    get_prefix_comment(const size_t index);
-    std::string     get_prefix_comment(const size_t index) const;
-    std::string&    get_suffix_comment(const size_t index);
-    std::string     get_suffix_comment(const size_t index) const;
+    // Info ============================================================================================================
+    bool        isContainer()                                       const noexcept  override    { return true; }
+    size_t      size()                                              const noexcept  override    { return m_values.size(); }
+    // ============================================================================================================ Info
 
-    //NOTE: noexcept, потому что неправильный индекс просто пропустит действие
-    ElementArray&   clear_comment(const size_t index) noexcept;
-    ElementArray&   clear_prefix_comment(const size_t index) noexcept;
-    ElementArray&   clear_suffix_comment(const size_t index) noexcept;
-    ElementArray&   delete_comment(const size_t index) noexcept;
-    ElementArray&   delete_prefix_comment(const size_t index) noexcept;
-    ElementArray&   delete_suffix_comment(const size_t index) noexcept;
-    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= COMMENTS
+    // Operators =======================================================================================================
+    // ======================================================================================================= Operators
 
-    ElementArray&   clear() noexcept;
-    bool            contains(const size_t& index) const noexcept
-                                                                { return m_values.size() > index; }
-    bool            isEmpty() const noexcept                    { return m_values.empty(); }
-    bool            isEqual(const IElement& other, const bool compare_comments = false) const noexcept override;
-    size_t          size() const noexcept override              { return m_values.size(); }
+    // String ==========================================================================================================
+    //вывод без комментариев, "tabulation_level == -1" => запись в одну строку
+    std::string toString(const ConfigFormat format = ConfigFormat::eONLY_VALUE,
+                                 const int8_t tabulation_level = 0,
+                                 const CommentDesign &design = {})  const noexcept  override;
+    // ========================================================================================================== String
 
-    //TYPES -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    ValueType       get_type_front();
-    ValueType       get_type_at(const size_t index);
-    ValueType       get_type_back();
-    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- TYPES
+    // File ============================================================================================================
+    // ============================================================================================================ File
 
-    //SETTERS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    //NOTE: если индекс больше количества вложенных элементов, то добавятся в конец
-    ElementArray&   append(const IElement& element) noexcept    { return push_back(element); }
-    ElementArray&   appendArray(const ElementArray& array) noexcept;
-    ElementArray&   push_front(const IElement& element) noexcept;
-    ElementArray&   push_at(const IElement& element, const size_t index);
-    ElementArray&   push_back(const IElement& element) noexcept;
-                    __ONLY_ALLOWED_TYPES__(T)
-    ElementArray&   insert(const size_t index, const T& value) noexcept {
-                        if(index > m_values.size() - 1) m_values.push_back(value);
-                        else                            m_values.insert(m_values.cbegin() + index, IElement(value));
-                        return *this;
-                    }
-                    __ONLY_ALLOWED_TYPES__(T)
-    ElementArray&   insert(const VElement::iterator& iterator, const T& value) {
-                        m_values.insert(iterator, value);
-                        return *this;
-                    }
-    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- SETTERS
+    // Parser ==========================================================================================================
+    // ========================================================================================================== Parser
 
-    //GETTERS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    Config&    get_value(const size_t index);
-    Config&    get_value(const VString& complex_key);
-    Config&    get_value(const std::vector<size_t>& complex_key);
-    Config&    get_front()                                    { return m_values.front(); }
-    Config&    get_at(const size_t index)                     { return get_value(index); }
-    Config&    get_back()                                     { return m_values.back(); }
-    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- GETTERS
-
-    //DELETERS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    ElementArray&   pop_front();
-    ElementArray&   pop_at(const size_t index);
-    ElementArray&   pop_back();
-    ElementArray&   erase(const size_t index);
-    ElementArray&   erase(const VElement::iterator& iterator);
-    ElementArray&   erase(const VElement::iterator& begin, const VElement::iterator& end);
-    ElementArray&   erase(const std::vector<size_t> indexes);
-    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= DELETERS
-
-    //OPERATORS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    void            operator=(const VElement& other) noexcept;
-    ElementArray&   operator<<(const IElement& element) noexcept{ return push_back(element); }
-    Config&       operator[](const size_t index)              { return get_value(index); }
-    Config&       operator[](const VString& complex_key)      { return get_value(complex_key); }
-                    template<std::size_t SIZE>
-    Config&       operator[](const std::array<std::string, SIZE>& complex_key) {
-                        VString complex_key_vec;
-                        complex_key_vec.reserve(SIZE);
-                        std::copy(complex_key.begin() + 1, complex_key.end(), complex_key_vec.begin());
-                        return (*this)[complex_key_vec];
-                    }
-    //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= OPERATORS
-
-    VElement::iterator       begin() noexcept                   { return m_values.begin(); }
-    VElement::iterator       end() noexcept                     { return m_values.end(); }
-    VElement::const_iterator cbegin() const noexcept            { return m_values.cbegin(); }
-    VElement::const_iterator cend() const noexcept              { return m_values.cend(); }
+    // Iterators =======================================================================================================
+    VElement::iterator       begin()                                noexcept                    { return m_values.begin(); }
+    VElement::iterator       end()                                  noexcept                    { return m_values.end(); }
+    VElement::const_iterator cbegin()                               const noexcept              { return m_values.cbegin(); }
+    VElement::const_iterator cend()                                 const noexcept              { return m_values.cend(); }
+    // ======================================================================================================= Iterators
 };
 
 bool IsElementArray(const std::string& str, const ConfigFormat format = ConfigFormat::eJSON) noexcept;
