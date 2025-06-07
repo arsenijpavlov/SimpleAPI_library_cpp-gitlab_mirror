@@ -35,6 +35,7 @@ class IElementContainer : public IElement {
     virtual void    insert_back(const Config& value)                        noexcept        = 0;
     virtual void    insert_back(Config&& value)                             noexcept        = 0;
 
+//FIXME: необходимо разделить реализацию методов для именованных и неименованных добавлений push_back(key, value)
     void            push_front(const Config& value)                         noexcept        { insert_front(value); }
     void            push_front(Config&& value)                              noexcept        { insert_front(std::move(value)); }
     void            push_back(const Config& value)                          noexcept        { insert_back(value); }
