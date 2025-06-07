@@ -514,14 +514,18 @@ long double Config::get_number_at(const size_t index) const {
     return dynamic_cast<const ElementNumber*>(config.m_value)->getValue();
 }
 
-long double &Config::get_number_at(const std::vector<size_t> &indexes)
-{
-    ...
+long double &Config::get_number_at(const std::vector<size_t> &indexes) {
+    Config& cfg = get_at(indexes);
+
+    __CHECK_TYPE_IS_NUMBER__(cfg)
+    return dynamic_cast<ElementNumber*>(cfg.m_value)->getValue();
 }
 
-long double Config::get_number_at(const std::vector<size_t> &indexes) const
-{
-    ...
+long double Config::get_number_at(const std::vector<size_t> &indexes) const {
+    const Config& cfg = get_at(indexes);
+
+    __CHECK_TYPE_IS_NUMBER__(cfg)
+    return dynamic_cast<ElementNumber*>(cfg.m_value)->getValue();
 }
 
 std::string &Config::get_string_at(const size_t index) {
