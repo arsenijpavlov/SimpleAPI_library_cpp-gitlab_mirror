@@ -18,7 +18,7 @@ public:
     }
     explicit ElementJson(const JPair& pair) noexcept {
         init();
-        put(pair.first, pair.second);
+        push_back(pair.first, pair.second);
     }
     //разнесено для решения конфликта, не изменять следующие два конструктора!
     explicit ElementJson(const std::string& input_string) noexcept {
