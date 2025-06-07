@@ -8,20 +8,25 @@ protected:
     bool m_value;
 
 public:
-    ElementBool()               noexcept : m_value(false)                           { init(); }
-    ElementBool(const bool b)   noexcept : m_value(b)                               { init(); }
-    ~ElementBool()              noexcept                                            {}
+    ElementBool()                       noexcept : m_value(false)                       { init(); }
+    explicit ElementBool(const bool b)  noexcept : m_value(b)                           { init(); }
+    ~ElementBool()                      noexcept                                        {}
 
-    void            init()                               noexcept                   { m_type = ValueType::eBool; }
+    // Setters =========================================================================================================
+    void        init()                                      noexcept                    { m_type = ValueType::eBool; }
+    // ========================================================================================================= Setters
 
     // Getters =========================================================================================================
-    bool&           getValue()                                                      { return m_value; }
-    bool            getValue()                          const                       { return m_value; }
+    bool&       getValue()                                                              { return m_value; }
+    bool        getValue()                                  const                       { return m_value; }
     // ========================================================================================================= Getters
 
+    // Modify ==========================================================================================================
+    void        clear()                                     noexcept        override    { m_value = false; }
+    // ========================================================================================================== Modify
+
     // Info ============================================================================================================
-    bool            isEqual(const bool other)           const noexcept  override    { return m_value == other; }
-    size_t          size()                              const noexcept  override    { return 1; }
+    size_t      size()                                      const noexcept  override    { return 1; }
     // ============================================================================================================ Info
 
     // Operators =======================================================================================================
@@ -29,10 +34,16 @@ public:
 
     // String ==========================================================================================================
     //вывод без комментариев, "tabulation_level == -1" => запись в одну строку
-    std::string     toString(const ConfigFormat format = ConfigFormat::eJSON,
-                        const int8_t tabulation_level = 0, const CommentDesign &design = {})
-                                                        const noexcept  override;
+    std::string toString(const ConfigFormat format = ConfigFormat::eONLY_VALUE,
+                         const int8_t tabulation_level = 0,
+                         const CommentDesign &design = {})  const noexcept  override;
     // ========================================================================================================== String
+
+    // File ============================================================================================================
+    // ============================================================================================================ File
+
+    // Parser ==========================================================================================================
+    // ========================================================================================================== Parser
 
     // Iterators =======================================================================================================
     // ======================================================================================================= Iterators

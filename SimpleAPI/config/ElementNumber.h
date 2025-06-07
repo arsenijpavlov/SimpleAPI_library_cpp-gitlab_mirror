@@ -9,32 +9,48 @@ protected:
     long double m_value;
 
 public:
-    ElementNumber()                             noexcept : m_value(0)               { init(); }
-    ElementNumber(const long double& num)       noexcept : m_value(num)             { init(); }
-    ElementNumber(long double&& num)            noexcept : m_value(std::move(num))  { init(); }
+    ElementNumber()                                 noexcept : m_value(0)               { init(); }
+    explicit ElementNumber(const long double& num)  noexcept : m_value(num)             { init(); }
+    explicit ElementNumber(long double&& num)       noexcept : m_value(std::move(num))  { init(); }
 //TODO: фича под вопросом    ElementNumber(const std::string& num) noexcept
-    ~ElementNumber()                            noexcept                            {}
+    ~ElementNumber()                                noexcept                            {}
 
-    void init()                                 noexcept                            { m_type = ValueType::eNumber; }
+    // Setters =========================================================================================================
+    void init()                                     noexcept                            { m_type = ValueType::eNumber; }
+    // ========================================================================================================= Setters
 
     // Getters =========================================================================================================
     long double&    getValue();
-    long double     getValue()                  const;
+    long double     getValue()                      const;
     // ========================================================================================================= Getters
 
+    // Modify ==========================================================================================================
+    void            clear()                         noexcept                override    { m_value = 0; }
+    // ========================================================================================================== Modify
+
     // Info ============================================================================================================
-    bool            isEqual(const bool other)   const noexcept  override            { return m_value == other; }
-    size_t          size()                      const noexcept  override            { return 1; }
+    size_t          size()                          const noexcept          override    { return 1; }
     // ============================================================================================================ Info
 
     // Operators =======================================================================================================
-    void operator=(const long double& other)    noexcept                            { m_value = other; }
-    bool operator==(const long double& other)   const noexcept                      { return m_value == other; }
-    bool operator>(const long double& other)    const noexcept                      { return m_value > other; }
-    bool operator<(const long double& other)    const noexcept                      { return m_value < other; }
-    bool operator>=(const long double& other)   const noexcept                      { return m_value >= other; }
-    bool operator<=(const long double& other)   const noexcept                      { return m_value <= other; }
     // ======================================================================================================= Operators
+
+    // String ==========================================================================================================
+    //вывод без комментариев, "tabulation_level == -1" => запись в одну строку
+    std::string     toString(const ConfigFormat format = ConfigFormat::eONLY_VALUE,
+                         const int8_t tabulation_level = 0,
+                         const CommentDesign &design = {}) const noexcept   override;
+    // NOTE: работа с std::cout реализована в Config
+    // ========================================================================================================== String
+
+    // File ============================================================================================================
+    // ============================================================================================================ File
+
+    // Parser ==========================================================================================================
+    // ========================================================================================================== Parser
+
+    // Iterators =======================================================================================================
+    // ======================================================================================================= Iterators
 };
 
 bool IsElementNumber(const std::string& str)    noexcept;
