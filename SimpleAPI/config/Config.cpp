@@ -546,14 +546,18 @@ std::string Config::get_string_at(const size_t index) const {
     return dynamic_cast<const ElementString*>(config.m_value)->getValue();
 }
 
-std::string &Config::get_string_at(const std::vector<size_t> &indexes)
-{
-    ...
+std::string &Config::get_string_at(const std::vector<size_t> &indexes) {
+    Config& cfg = get_at(indexes);
+
+    __CHECK_TYPE_IS_STRING__(cfg)
+    return dynamic_cast<ElementString*>(cfg.m_value)->getValue();
 }
 
-std::string Config::get_string_at(const std::vector<size_t> &indexes) const
-{
-    ...
+std::string Config::get_string_at(const std::vector<size_t> &indexes) const {
+    const Config& cfg = get_at(indexes);
+
+    __CHECK_TYPE_IS_STRING__(cfg)
+    return dynamic_cast<ElementString*>(cfg.m_value)->getValue();
 }
 
 bool &Config::get_bool_at(const std::string& key) {
