@@ -30,8 +30,8 @@ class IElementMapContainer : public IElementContainer {
     // ======================================================================================================== Removing
 
     // Operators =======================================================================================================
-    Config& operator[](const std::string& key)                                  noexcept;
-    Config  operator[](const std::string& key)                                  const noexcept;
+    Config&         operator[](const std::string& key)                          noexcept;
+    Config          operator[](const std::string& key)                          const noexcept;
     // ======================================================================================================= Operators
 };
 
