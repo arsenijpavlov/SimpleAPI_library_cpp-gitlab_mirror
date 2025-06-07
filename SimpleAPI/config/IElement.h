@@ -29,7 +29,7 @@ public:
     //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     void            addComment(const Comment& content)          noexcept            { m_comment = content; }
     void            addComment(const std::string &content_before, const std::string &content_after)
-        noexcept            { m_comment = Comment(content_before, content_after); }
+                                                                noexcept            { m_comment = Comment(content_before, content_after); }
     void            addPrefixComment(const std::string& content) noexcept           { m_comment.setPrefix(content); }
     void            addSuffixComment(const std::string& content) noexcept           { m_comment.setSuffix(content); }
 
