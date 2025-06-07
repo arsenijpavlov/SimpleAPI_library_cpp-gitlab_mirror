@@ -16,30 +16,30 @@ class IElementContainer : public IElement {
     // ========================================================================================================= Getters
 
     // Modify ==========================================================================================================
-    virtual void    update_front(const Config& new_value)                   noexcept        = 0;
-    virtual void    update_front(Config&& new_value)                        noexcept        = 0;
+    virtual void    update_front(const Config& new_value)                   noexcept        = 0; /*FIXME: move from this*/
+    virtual void    update_front(Config&& new_value)                        noexcept        = 0; /*FIXME: move from this*/
     //если нужного индекса не существует, то будет добавлено N пустых элементов до необходимого индекса
-    virtual void    update_at(const size_t index, const Config& new_value)  noexcept        = 0;
-    virtual void    update_at(const size_t index, Config&& new_value)       noexcept        = 0;
-    virtual void    update_back(const Config& new_value)                    noexcept        = 0;
-    virtual void    update_back(Config&& new_value)                         noexcept        = 0;
+    virtual void    update_at(const size_t index, const Config& new_value)  noexcept        = 0; /*FIXME: move from this*/
+    virtual void    update_at(const size_t index, Config&& new_value)       noexcept        = 0; /*FIXME: move from this*/
+    virtual void    update_back(const Config& new_value)                    noexcept        = 0; /*FIXME: move from this*/
+    virtual void    update_back(Config&& new_value)                         noexcept        = 0; /*FIXME: move from this*/
     // ========================================================================================================== Modify
 
     // Adding ==========================================================================================================
-    virtual void    insert_front(const Config& value)                       noexcept        = 0;
-    virtual void    insert_front(Config&& value)                            noexcept        = 0;
+    virtual void    insert_front(const Config& value)                       noexcept        = 0; /*FIXME: move from this*/
+    virtual void    insert_front(Config&& value)                            noexcept        = 0; /*FIXME: move from this*/
 //TODO: когда-нибудь, virtual void insert_at(iterator, const Config& value);
 //TODO: когда-нибудь, virtual void insert_at(iterator, Config&& value);
-    virtual void    insert_at(const size_t index, const Config& value)      noexcept        = 0;
-    virtual void    insert_at(const size_t index, Config&& value)           noexcept        = 0;
-    virtual void    insert_back(const Config& value)                        noexcept        = 0;
-    virtual void    insert_back(Config&& value)                             noexcept        = 0;
+    virtual void    insert_at(const size_t index, const Config& value)      noexcept        = 0; /*FIXME: move from this*/
+    virtual void    insert_at(const size_t index, Config&& value)           noexcept        = 0; /*FIXME: move from this*/
+    virtual void    insert_back(const Config& value)                        noexcept        = 0; /*FIXME: move from this*/
+    virtual void    insert_back(Config&& value)                             noexcept        = 0; /*FIXME: move from this*/
 
 //FIXME: необходимо разделить реализацию методов для именованных и неименованных добавлений push_back(key, value)
-    void            push_front(const Config& value)                         noexcept        { insert_front(value); }
-    void            push_front(Config&& value)                              noexcept        { insert_front(std::move(value)); }
-    void            push_back(const Config& value)                          noexcept        { insert_back(value); }
-    void            push_back(Config&& value)                               noexcept        { insert_back(std::move(value)); }
+    void            push_front(const Config& value)                         noexcept        { insert_front(value); }             /*FIXME: move from this*/
+    void            push_front(Config&& value)                              noexcept        { insert_front(std::move(value)); }  /*FIXME: move from this*/
+    void            push_back(const Config& value)                          noexcept        { insert_back(value); }              /*FIXME: move from this*/
+    void            push_back(Config&& value)                               noexcept        { insert_back(std::move(value)); }   /*FIXME: move from this*/
     // ========================================================================================================== Adding
 
     // Removing ========================================================================================================
