@@ -156,12 +156,12 @@ public:
     std::string&    get_string_at(const VString& complex_key);
     std::string     get_string_at(const VString& complex_key)  const;
 
-    bool&           get_back_bool();
-    bool            get_back_bool()                                             const;
-    long double&    get_back_number();
-    long double     get_back_number()                                           const;
-    std::string&    get_back_string();
-    std::string     get_back_string()                                           const;
+    bool&           get_bool_back();
+    bool            get_bool_back()                                             const;
+    long double&    get_number_back();
+    long double     get_number_back()                                           const;
+    std::string&    get_string_back();
+    std::string     get_string_back()                                           const;
     // ========================================================================================================= Getters
 
     // Modify ==========================================================================================================

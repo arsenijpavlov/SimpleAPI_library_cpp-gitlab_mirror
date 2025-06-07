@@ -656,7 +656,7 @@ std::string Config::get_string_at(const VString &complex_key) const {
     return dynamic_cast<ElementString*>(cfg.m_value)->getValue();
 }
 
-bool &Config::get_back_bool() {
+bool &Config::get_bool_back() {
     __CHECK_TYPE_IS_CONTAINER__((*this))
 
     const Config& config = get_back();
@@ -665,7 +665,7 @@ bool &Config::get_back_bool() {
     return dynamic_cast<ElementBool*>(config.m_value)->getValue();
 }
 
-bool Config::get_back_bool() const {
+bool Config::get_bool_back() const {
     __CHECK_TYPE_IS_CONTAINER__((*this))
 
     const Config& config = get_back();
@@ -674,7 +674,7 @@ bool Config::get_back_bool() const {
     return dynamic_cast<const ElementBool*>(config.m_value)->getValue();
 }
 
-long double &Config::get_back_number() {
+long double &Config::get_number_back() {
     __CHECK_TYPE_IS_CONTAINER__((*this))
 
     const Config& config = get_back();
@@ -683,7 +683,7 @@ long double &Config::get_back_number() {
     return dynamic_cast<ElementNumber*>(config.m_value)->getValue();
 }
 
-long double Config::get_back_number() const {
+long double Config::get_number_back() const {
     __CHECK_TYPE_IS_CONTAINER__((*this))
 
     const Config& config = get_back();
@@ -692,7 +692,7 @@ long double Config::get_back_number() const {
     return dynamic_cast<const ElementNumber*>(config.m_value)->getValue();
 }
 
-std::string &Config::get_back_string() {
+std::string &Config::get_string_back() {
     __CHECK_TYPE_IS_CONTAINER__((*this))
 
     const Config& config = get_back();
@@ -701,7 +701,7 @@ std::string &Config::get_back_string() {
     return dynamic_cast<ElementString*>(config.m_value)->getValue();
 }
 
-std::string Config::get_back_string() const {
+std::string Config::get_string_back() const {
     __CHECK_TYPE_IS_CONTAINER__((*this))
 
     const Config& config = get_back();
@@ -711,7 +711,7 @@ std::string Config::get_back_string() const {
 }
 
 bool Config::isEqual(const IElement &other, const bool compare_comments) const {
-    __CHECK_TYPES_IS_EQUAL__((*this), (other))
+    __CHECK_TYPES_IS_EQUAL__((*this), other)
     return m_value->isEqual(other, compare_comments);
 }
 
