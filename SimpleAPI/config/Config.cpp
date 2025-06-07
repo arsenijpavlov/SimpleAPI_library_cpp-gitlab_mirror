@@ -642,14 +642,18 @@ std::string Config::get_string_at(const std::string& key) const {
     return dynamic_cast<const ElementString*>(config.m_value)->getValue();
 }
 
-std::string &Config::get_string_at(const VString &complex_key)
-{
-    ...
+std::string &Config::get_string_at(const VString &complex_key) {
+    Config& cfg = get_at(complex_key);
+
+    __CHECK_TYPE_IS_STRING__(cfg)
+    return dynamic_cast<ElementString*>(cfg.m_value)->getValue();
 }
 
-std::string Config::get_string_at(const VString &complex_key) const
-{
-    ...
+std::string Config::get_string_at(const VString &complex_key) const {
+    const Config& cfg = get_at(complex_key);
+
+    __CHECK_TYPE_IS_STRING__(cfg)
+    return dynamic_cast<ElementString*>(cfg.m_value)->getValue();
 }
 
 bool &Config::get_back_bool() {
