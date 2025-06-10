@@ -40,8 +40,8 @@ class IElementContainer : public IElement {
     // ======================================================================================================== Removing
 
     // Operators =======================================================================================================
-    Config&         operator[](const size_t index);
-    Config          operator[](const size_t index)                          const;
+    virtual Config& operator[](const size_t index)                                          = 0;
+    virtual Config  operator[](const size_t index)                          const           = 0;
     // ======================================================================================================= Operators
 
     // Iterators =======================================================================================================
