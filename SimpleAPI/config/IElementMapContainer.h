@@ -12,6 +12,8 @@ class IElementMapContainer : public IElementContainer {
 
     // Modify ==========================================================================================================
     //если нужного ключа не существует, то будет добавлено N пустых элементов до необходимого ключа
+    //TODO: set_if_null(const std::string& key, const Config& new_value)        noexcept;
+    //TODO: set_if_null(const std::string& key, Config&& new_value)             noexcept;
     virtual void    update_at(const std::string& key, const Config& new_value)  noexcept        = 0;
     virtual void    update_at(const std::string& key, Config&& new_value)       noexcept        = 0;
     // ========================================================================================================== Modify
