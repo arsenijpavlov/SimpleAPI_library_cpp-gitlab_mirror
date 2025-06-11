@@ -5,12 +5,31 @@
 
 
 class IElementMapContainer : public IElementContainer {
+protected:
+    VPairElement m_values;
+public:
+    // Setters =========================================================================================================
+    void    set(const std::string& key, const Config& new_value,
+             bool update = true)                                        noexcept                    {}
+    void    set(const std::string& key, Config&& new_value,
+             bool update = true)                                        noexcept                    {}
+    void    set_if_null(const std::string& key, const Config& new_value)noexcept                    {}
+    void    set_if_null(const std::string& key, Config&& new_value)     noexcept                    {}
+    // ========================================================================================================= Setters
+
     // Getters =========================================================================================================
-    virtual Config& get_at(const std::string& key)                              noexcept        = 0;
-    virtual Config  get_at(const std::string& key)                              const noexcept  = 0;
+    Config& get_front()                                                                 override    {}
+    Config  get_front()                                                 const           override    {}
+    Config& get_at(const size_t index)                                                  override    {}
+    Config  get_at(const size_t index)                                  const           override    {}
+    Config& get_back()                                                                  override    {}
+    Config  get_back()                                                  const           override    {}
+    Config& get_at(const std::string& key)                              noexcept                    {}
+    Config  get_at(const std::string& key)                              const noexcept              {}
     // ========================================================================================================= Getters
 
     // Modify ==========================================================================================================
+    void    clear()                                                     noexcept        override    { m_values.clear(); }
     //если нужного ключа не существует, то будет добавлено N пустых элементов до необходимого ключа
     //TODO: set_if_null(const std::string& key, const Config& new_value)        noexcept;
     //TODO: set_if_null(const std::string& key, Config&& new_value)             noexcept;
