@@ -1,7 +1,7 @@
 #ifndef ELEMENT_ARRAY_H
 #define ELEMENT_ARRAY_H
 
-#include "IElementNonMapContainer.h"
+#include "interface/IElementNonMapContainer.h"
 
 
 class ElementArray : public IElementNonMapContainer {

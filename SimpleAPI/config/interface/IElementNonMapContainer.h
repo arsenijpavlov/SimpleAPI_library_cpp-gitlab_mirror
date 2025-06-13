@@ -10,68 +10,80 @@ protected:
 
 public:
     // Getters =========================================================================================================
-    Config& get_front()                                                             override;
-    Config  get_front()                                                 const       override;
-    Config& get_at(const size_t index)                                              override;
-    Config  get_at(const size_t index)                                  const       override;
-    Config& get_back()                                                              override;
-    Config  get_back()                                                  const       override;
     // ========================================================================================================= Getters
 
     // Modify ==========================================================================================================
-    //NOTE: имеет смысл ТОЛЬКО для именованных списков <ключ>:<значение>
-//    void    update_front(const Config& new_value)                                   noexcept;
-//    void    update_front(Config&& new_value)                                        noexcept;
-//    //если нужного индекса не существует, то будет добавлено N пустых элементов до необходимого индекса
-//    void    update_at(const size_t index, const Config& new_value)                  noexcept;
-//    void    update_at(const size_t index, Config&& new_value)                       noexcept;
-//    void    update_at(const VElement::iterator iterator, const Config& new_value)   noexcept;
-//    void    update_at(const VElement::iterator iterator, Config&& new_value)        noexcept;
-//    void    update_back(const Config& new_value)                                    noexcept;
-//    void    update_back(Config&& new_value)                                         noexcept;
     // ========================================================================================================== Modify
 
     // Adding ==========================================================================================================
-    void    insert_front(const Config& value)                           noexcept;
-    void    insert_front(Config&& value)                                noexcept;
-    void    insert_at(const size_t index, const Config& value)          noexcept;
-    void    insert_at(const size_t index, Config&& value)               noexcept;
-    void    insert_at(VElement::iterator iterator, const Config& value) /*may throw except*/        { m_values.insert(iterator, std::make_shared<Config>(value)); }
-    void    insert_at(VElement::iterator iterator, Config&& value)      /*may throw except*/        { m_values.insert(iterator, std::make_shared<Config>(std::move(value))); }
-    void    insert_back(const Config& value)                            noexcept                    { m_values.push_back(std::make_shared<Config>(value)); }
-    void    insert_back(Config&& value)                                 noexcept                    { m_values.push_back(std::make_shared<Config>(std::move(value))); }
+    //одиночные элементы
+    virtual void    insert_front(const Config& value)                                   noexcept    = 0;
+    virtual void    insert_front(Config&& value)                                        noexcept    = 0;
+    virtual void    insert_at(const size_t index, const Config& value)                  noexcept    = 0;
+    virtual void    insert_at(const size_t index, Config&& value)                       noexcept    = 0;
+    virtual void    insert_at(VElement::iterator iterator, const Config& value)                     = 0;
+    virtual void    insert_at(VElement::iterator iterator, Config&& value)                          = 0;
+    virtual void    insert_back(const Config& value)                                    noexcept    = 0;
+    virtual void    insert_back(Config&& value)                                         noexcept    = 0;
 
-    void    push_front(const Config& value)                             noexcept                    { insert_front(value); }
-    void    push_front(Config&& value)                                  noexcept                    { insert_front(std::move(value)); }
-    void    push_back(const Config& value)                              noexcept                    { insert_back(value); }
-    void    push_back(Config&& value)                                   noexcept                    { insert_back(std::move(value)); }
+    //группы элементов
+    void            insert_front(const VElement& elements)                              noexcept;
+    void            insert_front(VElement&& elements)                                   noexcept;
+    void            insert_at(const size_t index, const VElement& elements)             noexcept;
+    void            insert_at(const size_t index, VElement&& elements)                  noexcept;
+    void            insert_back(const VElement& elements)                               noexcept;
+    void            insert_back(VElement&& elements)                                    noexcept;
+
+    //неизвестное количество элементов
+                    template<typename ... Args>
+    void            insert_front(Args&& ... args) noexcept {
+                        VElement ve;
+                        (void)std::initializer_list<int>{(ve.push_back(std::forward<Args>(args)), 0)...};
+                        insert_front(std::move(ve));
+                    }
+                    template<typename ... Args>
+    void            insert_at(const size_t index, Args&& ... args) noexcept {
+                        VElement ve;
+                        (void)std::initializer_list<int>{(insert_back(std::forward<Args>(args)), 0)...};
+                        insert_at(index, std::move(ve));
+                    }
+                    template<typename ... Args>
+    void            insert_back(Args&& ... args) noexcept {
+                        (void)std::initializer_list<int>{(insert_back(std::forward<Args>(args)), 0)...};
+                    }
+
+    //другое имя для тех же действий
+    void            push_front(const Config& value)                                     noexcept    { insert_front(value); }
+    void            push_front(Config&& value)                                          noexcept    { insert_front(std::move(value)); }
+    void            push_back(const Config& value)                                      noexcept    { insert_back(value); }
+    void            push_back(Config&& value)                                           noexcept    { insert_back(std::move(value)); }
+
+                    template<typename ... Args>
+    void            push_front(Args&& ... args)                                         noexcept    { insert_front((args)...); }
+                    template<typename ... Args>
+    void            push_back(Args&& ... args)                                          noexcept    { (void)std::initializer_list<int>{(insert_back(std::forward<Args>(args)), 0)...}; }
 private:
-    void    append_null(size_t size)                                    noexcept;
+    void            append_null(size_t size)                                            noexcept;
 public:
     // ========================================================================================================== Adding
 
     // Removing ========================================================================================================
-    void    pop_at(const VElement::iterator iterator)                                               { m_values.erase(iterator); }
-    Config  get_and_pop_at(const VElement::iterator iterator);
-    void    erase_at(const VElement::iterator iterator)                                             { m_values.erase(iterator); }
-
-    void    remove_at(const VElement::iterator iterator)                                            { erase_at(iterator); }
     // ======================================================================================================== Removing
 
     // Info ============================================================================================================
-    size_t  size()                                                      const noexcept  override    { return m_values.size(); }
+    size_t          size()                                                              const noexcept  override    { return m_values.size(); }
     // ============================================================================================================ Info
 
     // Operators =======================================================================================================
-    Config& operator[](const size_t index)                                              override;
-    Config  operator[](const size_t index)                              const           override;
+    Config&         operator[](const size_t index)                                                      override;
+    Config          operator[](const size_t index)                                      const           override;
     // ======================================================================================================= Operators
 
     // Iterators =======================================================================================================
-    VElement::iterator          begin()                                 noexcept                    { return m_values.begin(); }
-    VElement::iterator          end()                                   noexcept                    { return m_values.end(); }
-    VElement::const_iterator    cbegin()                                const noexcept              { return m_values.cbegin(); }
-    VElement::const_iterator    cend()                                  const noexcept              { return m_values.cend(); }
+    VElement::iterator          begin()                                                 noexcept                    { return m_values.begin(); }
+    VElement::iterator          end()                                                   noexcept                    { return m_values.end(); }
+    VElement::const_iterator    cbegin()                                                const noexcept              { return m_values.cbegin(); }
+    VElement::const_iterator    cend()                                                  const noexcept              { return m_values.cend(); }
     // ======================================================================================================= Iterators
 };
 

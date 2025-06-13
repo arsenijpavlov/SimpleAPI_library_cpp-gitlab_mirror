@@ -27,9 +27,9 @@ class IElementContainer : public IElement {
     virtual void    pop_front()                                                             = 0;
     virtual void    pop_at(const size_t index)                                              = 0;
     virtual void    pop_back()                                                              = 0;
-    virtual Config  get_and_pop_front()                                                     = 0;
-    virtual Config  get_and_pop_at(const size_t index)                                      = 0;
-    virtual Config  get_and_pop_back()                                                      = 0;
+    virtual Config  get_and_pop_front()                                     noexcept        = 0;
+    virtual Config  get_and_pop_at(const size_t index)                      noexcept        = 0;
+    virtual Config  get_and_pop_back()                                      noexcept        = 0;
     virtual void    erase_front()                                                           = 0;
     virtual void    erase_at(const size_t index)                                            = 0;
     virtual void    erase_back()                                                            = 0;
