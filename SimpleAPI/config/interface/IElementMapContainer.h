@@ -19,10 +19,10 @@ public:
 
     // Getters =========================================================================================================
     //если элемента с таким ключом не существует - создать пустой и вернуть его
-    Config&         get_at(const std::string& key)                                                      noexcept;
-    Config          get_at(const std::string& key)                                                      const noexcept;
-    Config&         get_or_default_at(const std::string& key, Config&& default_value)                   noexcept;
-    Config          get_or_default_at(const std::string& key, Config&& default_value)                   const noexcept;
+    Config&         get_at(const std::string& key)                                      noexcept;
+    Config          get_at(const std::string& key)                                      const noexcept;
+    Config&         get_or_default_at(const std::string& key, Config&& default_value)   noexcept;
+    Config          get_or_default_at(const std::string& key, Config&& default_value)   const noexcept;
     // ========================================================================================================= Getters
 
     // Modify ==========================================================================================================
@@ -30,20 +30,52 @@ public:
 
     // Adding ==========================================================================================================
     //одиночные элементы
-    virtual void    insert_front(const std::string& key, const Config& value)                           noexcept    = 0;
-    virtual void    insert_front(const std::string& key, Config&& value)                                noexcept    = 0;
-    virtual void    insert_at(const size_t index, const std::string& key, const Config& value)          noexcept    = 0;
-    virtual void    insert_at(const size_t index, const std::string& key, Config&& value)               noexcept    = 0;
-    virtual void    insert_at(VElement::iterator iterator, const std::string& key, const Config& value)             = 0;
-    virtual void    insert_at(VElement::iterator iterator, const std::string& key, Config&& value)                  = 0;
-    virtual void    insert_back(const std::string& key, const Config& value)                            noexcept    = 0;
-    virtual void    insert_back(const std::string& key, Config&& value)                                 noexcept    = 0;
+    virtual void    insert_front(const std::string& key, const Config& value)   noexcept                    = 0;
+    virtual void    insert_front(const std::string& key, Config&& value)        noexcept                    = 0;
+    virtual void    insert_at(const size_t index, const std::string& key,
+                           const Config& value)                                 noexcept                    = 0;
+    virtual void    insert_at(const size_t index, const std::string& key,
+                           Config&& value)                                      noexcept                    = 0;
+    virtual void    insert_at(VElement::iterator iterator, const std::string& key,
+                           const Config& value)                                                             = 0;
+    virtual void    insert_at(VElement::iterator iterator, const std::string& key,
+                           Config&& value)                                                                  = 0;
+    virtual void    insert_back(const std::string& key, const Config& value)    noexcept                    = 0;
+    virtual void    insert_back(const std::string& key, Config&& value)         noexcept                    = 0;
+
+    //группы элементов
+    void            insert_front(const VPairElement& elements)                  noexcept;
+    void            insert_front(VPairElement&& elements)                       noexcept;
+    void            insert_at(const size_t index, const VPairElement& elements) noexcept;
+    void            insert_at(const size_t index, VPairElement&& elements)      noexcept;
+    void            insert_back(const VPairElement& elements)                   noexcept;
+    void            insert_back(VPairElement&& elements)                        noexcept;
+
+    //неизвестное количество элементов
+    template<typename ... Value>
+    void            insert_front(std::pair<std::string, Value>&& ... pairs) noexcept {
+                        VPairElement vpe;
+                        if(vpe.capacity() < sizeof...(pairs))
+                            vpe.reserve(sizeof...(pairs));
+                        (void)std::initializer_list<int>{(vpe.push_back(std::forward<std::pair<std::string, Value>>(pairs)), 0)...};
+                        insert_front(std::move(vpe));
+                    }
+                    template<typename ... Value>
+    void            insert_at(const size_t index, std::pair<std::string, Value>&& ... pairs) noexcept {
+                        VPairElement vpe;
+                        (void)std::initializer_list<int>{(insert_back(std::forward<std::pair<std::string, Value>>(pairs)), 0)...};
+                        insert_at(index, std::move(vpe));
+                    }
+                    template<typename ... Value>
+    void            insert_back(std::pair<std::string, Value>&& ... pairs) noexcept {
+                        (void)std::initializer_list<int>{(insert_back(std::forward<std::pair<std::string, Value>>(pairs)), 0)...};
+                    }
 
     //другое имя для тех же действий
-    void            push_front(const std::string& key, const Config& value)     noexcept                    { insert_front(value); }
-    void            push_front(const std::string& key, Config&& value)          noexcept                    { insert_front(std::move(value)); }
-    void            push_back(const std::string& key, const Config& value)      noexcept                    { insert_back(value); }
-    void            push_back(const std::string& key, Config&& value)           noexcept                    { insert_back(std::move(value)); }
+    void            push_front(const std::string& key, const Config& value)     noexcept                    { insert_front(key, value); }
+    void            push_front(const std::string& key, Config&& value)          noexcept                    { insert_front(key, std::move(value)); }
+    void            push_back(const std::string& key, const Config& value)      noexcept                    { insert_back(key, value); }
+    void            push_back(const std::string& key, Config&& value)           noexcept                    { insert_back(key, std::move(value)); }
 
     virtual void    insert_at(const std::string& key, const Config& value)      noexcept                    = 0;
     virtual void    insert_at(const std::string& key, Config&& value)           noexcept                    = 0;
