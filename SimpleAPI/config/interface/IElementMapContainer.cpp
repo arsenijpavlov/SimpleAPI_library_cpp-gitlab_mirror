@@ -1,5 +1,5 @@
 #include "IElementMapContainer.h"
-#include "Config.h"
+#include "../Config.h"
 #include <algorithm>
 
 
@@ -13,21 +13,21 @@ void IElementMapContainer::set_if_null(const std::string &key, Config &&new_valu
         set(key, std::move(new_value));
 }
 
-Config &IElementMapContainer::get_at(const std::string &key) noexcept {
-    auto cfg_it = std::find_if(cbegin(), cend(), [&](JPair pair){ return pair.first == key; });
-    if(cfg_it != m_values.end())
-        return *cfg_it->second;
+//Config &IElementMapContainer::get_at(const std::string &key) noexcept {
+//    auto cfg_it = std::find_if(cbegin(), cend(), [&](JPair pair){ return pair.first == key; });
+//    if(cfg_it != m_values.end())
+//        return *cfg_it->second;
 
-    m_values.push_back(std::make_pair(key, std::move(std::make_shared<Config>())));
-    return *m_values.back().second;
-}
+//    m_values.push_back(std::make_pair(key, std::move(std::make_shared<Config>())));
+//    return *m_values.back().second;
+//}
 
-Config IElementMapContainer::get_at(const std::string &key) const noexcept {
-    auto cfg_it = std::find_if(cbegin(), cend(), [&](JPair pair){ return pair.first == key; });
-    if(cfg_it != m_values.end())
-        return *cfg_it->second;
-    return Config();
-}
+//Config IElementMapContainer::get_at(const std::string &key) const noexcept {
+//    auto cfg_it = std::find_if(cbegin(), cend(), [&](JPair pair){ return pair.first == key; });
+//    if(cfg_it != m_values.end())
+//        return *cfg_it->second;
+//    return Config();
+//}
 
 void IElementMapContainer::insert_front(const VPairElement &elements) noexcept {
     for(size_t i = 0; i < elements.size(); i++)

@@ -1,7 +1,7 @@
 #ifndef ELEMENT_BOOL_H
 #define ELEMENT_BOOL_H
 
-#include "IElement.h"
+#include "interface/IElement.h"
 
 class ElementBool : public IElement {
 protected:

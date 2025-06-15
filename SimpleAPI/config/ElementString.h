@@ -1,7 +1,7 @@
 #ifndef ELEMENT_STRING_H
 #define ELEMENT_STRING_H
 
-#include "IElement.h"
+#include "interface/IElement.h"
 #include "../utils/Utils.h"
 
 

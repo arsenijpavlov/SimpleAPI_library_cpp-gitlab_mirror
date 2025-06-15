@@ -19,13 +19,14 @@ public:
 
     // Getters =========================================================================================================
     //если элемента с таким ключом не существует - создать пустой и вернуть его
-    Config&         get_at(const std::string& key)                                      noexcept;
-    Config          get_at(const std::string& key)                                      const noexcept;
+    virtual Config& get_at(const std::string& key)                                      noexcept            = 0;
+    virtual Config  get_at(const std::string& key)                                      const noexcept      = 0;
     Config&         get_or_default_at(const std::string& key, Config&& default_value)   noexcept;
     Config          get_or_default_at(const std::string& key, Config&& default_value)   const noexcept;
     // ========================================================================================================= Getters
 
     // Modify ==========================================================================================================
+    void            clear()                                                     noexcept    override        { m_values.clear(); }
     // ========================================================================================================== Modify
 
     // Adding ==========================================================================================================
@@ -93,6 +94,8 @@ public:
     // ======================================================================================================== Removing
 
     // Info ============================================================================================================
+    bool            isContainer()                                               const noexcept  override    { return true; }
+    bool            isMapContainer()                                            const noexcept  override    { return true; }
     size_t          size()                                                      const noexcept  override    { return m_values.size(); }
     bool            contains(const std::string& key)                            const noexcept;
     // ============================================================================================================ Info
