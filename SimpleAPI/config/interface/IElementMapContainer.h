@@ -53,7 +53,7 @@ public:
     void            insert_back(VPairElement&& elements)                        noexcept;
 
     //неизвестное количество элементов
-    template<typename ... Value>
+                    template<typename ... Value>
     void            insert_front(std::pair<std::string, Value>&& ... pairs) noexcept {
                         VPairElement vpe;
                         if(vpe.capacity() < sizeof...(pairs))
@@ -101,8 +101,10 @@ public:
     // ============================================================================================================ Info
 
     // Operators =======================================================================================================
-    Config&         operator[](const std::string& key)                          noexcept;
-    Config          operator[](const std::string& key)                          const noexcept;
+    virtual Config& operator[](const std::string& key)                          noexcept                    = 0;
+    virtual Config  operator[](const std::string& key)                          const noexcept              = 0;
+    Config&         operator[](const size_t index)                                              override;
+    Config          operator[](const size_t index)                              const           override;
     // ======================================================================================================= Operators
 
     // Iterators =======================================================================================================

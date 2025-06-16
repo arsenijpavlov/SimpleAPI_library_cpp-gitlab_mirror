@@ -6,12 +6,12 @@
 
 void IElementNonMapContainer::insert_front(const VElement &elements) noexcept {
     for(size_t i = 0; i < elements.size(); i++)
-        m_values.insert(m_values.begin() + i, std::make_shared<Config>(elements[i]));
+        m_values.insert(m_values.begin() + i, elements[i]);
 }
 
 void IElementNonMapContainer::insert_front(VElement &&elements) noexcept {
     for(size_t i = 0; i < elements.size(); i++)
-        m_values.insert(m_values.begin() + i, std::make_shared<Config>(std::move(elements[i])));
+        m_values.insert(m_values.begin() + i, std::move(elements[i]));
 }
 
 void IElementNonMapContainer::insert_at(const size_t index, const VElement &elements) noexcept {
@@ -19,7 +19,7 @@ void IElementNonMapContainer::insert_at(const size_t index, const VElement &elem
         append_null(m_values.size() - index - 1);   // если не хватает элементов - создать пустые
     }
     for(size_t i = 0; i < elements.size(); i++)
-        m_values.insert(m_values.begin() + index + i, std::make_shared<Config>(elements[i]));
+        m_values.insert(m_values.begin() + index + i, elements[i]);
 }
 
 void IElementNonMapContainer::insert_at(const size_t index, VElement &&elements) noexcept {
@@ -27,17 +27,17 @@ void IElementNonMapContainer::insert_at(const size_t index, VElement &&elements)
         append_null(m_values.size() - index - 1);   // если не хватает элементов - создать пустые
     }
     for(size_t i = 0; i < elements.size(); i++)
-        m_values.insert(m_values.begin() + index + i, std::make_shared<Config>(std::move(elements[i])));
+        m_values.insert(m_values.begin() + index + i, std::move(elements[i]));
 }
 
 void IElementNonMapContainer::insert_back(const VElement &elements) noexcept {
     for(size_t i = 0; i < elements.size(); i++)
-        insert_back(std::make_shared<Config>(elements[i]));
+        insert_back(elements[i]);
 }
 
 void IElementNonMapContainer::insert_back(VElement &&elements) noexcept {
     for(size_t i = 0; i < elements.size(); i++)
-        insert_back(std::make_shared<Config>(std::move(elements[i])));
+        insert_back(std::move(elements[i]));
 }
 
 void IElementNonMapContainer::insert_at(const size_t index, const Config &value) noexcept {

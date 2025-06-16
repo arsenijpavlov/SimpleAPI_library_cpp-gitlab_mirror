@@ -1,4 +1,5 @@
 #include "IElementMapContainer.h"
+
 #include "../Config.h"
 #include <algorithm>
 
@@ -77,4 +78,12 @@ Config &IElementMapContainer::operator[](const std::string &key) noexcept {
 
 Config IElementMapContainer::operator[](const std::string &key) const noexcept {
     return get_at(key);
+}
+
+Config &IElementNonMapContainer::operator[](const size_t index) {
+    return *m_values[index];
+}
+
+Config IElementNonMapContainer::operator[](const size_t index) const {
+    return *m_values[index];
 }
