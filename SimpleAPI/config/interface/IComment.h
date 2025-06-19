@@ -8,6 +8,8 @@ class IComment {
 protected:
     Comment     m_comment;
 public:
+    virtual ~IComment() {}
+
     //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     void            addComment(const Comment& content)          noexcept            { m_comment = content; }
     void            addComment(const std::string &content_before, const std::string &content_after)
