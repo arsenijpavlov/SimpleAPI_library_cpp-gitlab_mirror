@@ -14,9 +14,14 @@
 class Config;
 class IElement;
 
-using JPair         = std::pair<std::string, std::shared_ptr<Config>>;
-using VPairElement  = std::vector<JPair>;
-using VElement      = std::vector<std::shared_ptr<Config>>;
+using JPair                 = std::pair<std::string, Config>;
+using shared_JPair          = std::pair<std::string, std::shared_ptr<Config>>;
+
+using VPairElement          = std::vector<JPair>;
+using shared_VPairElement   = std::vector<shared_JPair>;
+
+using VElement              = std::vector<Config>;
+using shared_VElement       = std::vector<std::shared_ptr<Config>>;
 
 //базовый класс, в идеале используется только для ссылки на производный
 class IElement : public IComment {
@@ -49,6 +54,7 @@ public:
 
     //числа, контейнеры(размер), строки(длина в видимых символах)
     virtual size_t  size()                                      const noexcept      { return 0; }
+    virtual bool    empty()                                     const noexcept      { return true; }
     // ============================================================================================================ Info
 
     // Operators =======================================================================================================
@@ -64,8 +70,16 @@ public:
     // String ==========================================================================================================
     //вывод без комментариев, "tabulation_level == -1" => запись в одну строку
     virtual std::string toString(const ConfigFormat format = ConfigFormat::eONLY_VALUE,
-                                 const int8_t tabulation_level = 0,
-                                 const CommentDesign &design = {})  const noexcept  = 0;
+                                 const int8_t tabulation_level = -1, const CommentDesign &design = {})
+                                                                const noexcept      = 0;
+    virtual std::string toJsonString(const int8_t tabulation_level = -1, const CommentDesign &design = {})
+                                                                const noexcept      = 0;
+    virtual std::string toIniString(const int8_t tabulation_level = -1, const CommentDesign &design = {})
+                                                                const noexcept      = 0;
+    virtual std::string toYamlString(const int8_t tabulation_level = -1, const CommentDesign &design = {})
+                                                                const noexcept      = 0;
+    virtual std::string toXmlString(const int8_t tabulation_level = -1, const CommentDesign &design = {})
+                                                                const noexcept      = 0;
     // NOTE: работа с std::cout реализована в Config
     // ========================================================================================================== String
 

@@ -1,720 +1,756 @@
 #include "ElementArray.h"
 
+#include <algorithm>
 #include <stdexcept>
 #include "../utils/Utils.h"
 
 //предобъявление
+#include "Config.h"
 #include "ElementBool.h"
-#include "ElementJson.h"
+#include "ElementArray.h"
 #include "ElementNumber.h"
 #include "ElementString.h"
-class ElementJson;
+class ElementArray;
 
 
-ElementArray::ElementArray(const std::string &string, const ConfigFormat format,
-                           const bool enable_comments) noexcept {
-    init();
-    parseArray(string, enable_comments, format);
-}
+//void ElementArray::parseArray(const std::string &string, const bool enable_comment,
+//                              const ConfigFormat config_format, CommentDesign* design) {
+//    switch(config_format) {
+//    case ConfigFormat::eJSON:   parseJsonArray(string, enable_comment, design);
+//    case ConfigFormat::eINI:    parseIniArray(string, enable_comment, design);
+//    default:                    return;
+//    }
+//}
 
-void ElementArray::parseArray(const std::string &string, const bool enable_comment,
-                              const ConfigFormat config_format, CommentDesign* design) {
-    switch(config_format) {
-    case ConfigFormat::eJSON:   parseJsonArray(string, enable_comment, design);
-    case ConfigFormat::eINI:    parseIniArray(string, enable_comment, design);
-    default:                    return;
-    }
-}
+//void ElementArray::parseJsonArray(const std::string &string, const bool enable_comment,
+//                                   CommentDesign* design) {
+//    clear(); //очистка списка перед новым заполнением
+//    if(string.empty()) return;
 
-void ElementArray::parseJsonArray(const std::string &string, const bool enable_comment,
-                                   CommentDesign* design) {
-    clear(); //очистка списка перед новым заполнением
-    if(string.empty()) return;
+//    using namespace utils;
 
-    using namespace utils;
+//    //Если пользователь не задал переменную, то использовать стандартную
+//    CommentDesign temp_design;
+//    CommentDesign& comment_design = design ? *design : temp_design;
 
-    //Если пользователь не задал переменную, то использовать стандартную
-    CommentDesign temp_design;
-    CommentDesign& comment_design = design ? *design : temp_design;
+//    bool    is_oneline_comment      = false;
+//    bool    is_multiline_comment    = false;
+//    uint8_t comment_counter         = 0;
+//    std::string current_comment;
 
-    bool    is_oneline_comment      = false;
-    bool    is_multiline_comment    = false;
-    uint8_t comment_counter         = 0;
-    std::string current_comment;
+//    bool is_critical_error              = false;
+//    bool is_quotes                      = false;
+//    bool is_word_started                = false;
+//    bool is_word_finished               = false;
+//    bool is_value_comment_after_saved   = true; //изначально TRUE, чтобы не сработало для первого прохода
 
-    bool is_critical_error              = false;
-    bool is_quotes                      = false;
-    bool is_word_started                = false;
-    bool is_word_finished               = false;
-    bool is_value_comment_after_saved   = true; //изначально TRUE, чтобы не сработало для первого прохода
+//    uint16_t    inner_json_counter  = 0;
+//    uint16_t    inner_array_counter = 0;
+//    std::string value_string;
+//    Comment     value_comment;
+//    IElement    value_element;
 
-    uint16_t    inner_json_counter  = 0;
-    uint16_t    inner_array_counter = 0;
-    std::string value_string;
-    Comment     value_comment;
-    IElement    value_element;
+//    uint16_t line_counter   = 0; //NOTE: (ElementArray) ограничение на FFFF строк
+//    uint16_t symbol_counter = 0; //NOTE: (ElementArray) ограничение на FFFF символов в строке
 
-    uint16_t line_counter   = 0; //NOTE: (ElementArray) ограничение на FFFF строк
-    uint16_t symbol_counter = 0; //NOTE: (ElementArray) ограничение на FFFF символов в строке
+//    enum class State {
+//        eARRAY_START,
+//        eARRAY_VALUE,
+//        eARRAY_VALUE_SEPARATOR,
+//        eARRAY_FINISH
+//    } state = State::eARRAY_START;
 
-    enum class State {
-        eARRAY_START,
-        eARRAY_VALUE,
-        eARRAY_VALUE_SEPARATOR,
-        eARRAY_FINISH
-    } state = State::eARRAY_START;
+//    auto ToString = [](State state) {
+//        switch(state) {
+//        case State::eARRAY_START:           return "ARRAY_START";
+//        case State::eARRAY_VALUE:           return "ARRAY_VALUE";
+//        case State::eARRAY_VALUE_SEPARATOR: return "ARRAY_VALUE_SEPARATOR";
+//        case State::eARRAY_FINISH:          return "ARRAY_FINISH";
+//        default:                            return "UNKNOWN_STAGE";
+//        }
+//    };
+//    auto UpdateState = [&](State new_state) {
+//        state = new_state;
+////        std::cout << ToString(new_state) << std::endl;
+//    };
 
-    auto ToString = [](State state) {
-        switch(state) {
-        case State::eARRAY_START:           return "ARRAY_START";
-        case State::eARRAY_VALUE:           return "ARRAY_VALUE";
-        case State::eARRAY_VALUE_SEPARATOR: return "ARRAY_VALUE_SEPARATOR";
-        case State::eARRAY_FINISH:          return "ARRAY_FINISH";
-        default:                            return "UNKNOWN_STAGE";
-        }
-    };
-    auto UpdateState = [&](State new_state) {
-        state = new_state;
-//        std::cout << ToString(new_state) << std::endl;
-    };
+//    enum ValueFormat {
+//        VALUE_NOPE,
+//        VALUE_JSON,
+//        VALUE_ARRAY,
+//        VALUE_OTHER
+//    } value_format = VALUE_NOPE;
 
-    enum ValueFormat {
-        VALUE_NOPE,
-        VALUE_JSON,
-        VALUE_ARRAY,
-        VALUE_OTHER
-    } value_format = VALUE_NOPE;
+//    /* NOTE: для документации
+//     * комментарий массива
+//     * начало массива
+//     * (+комментарий перед значением)
+//     * значение массива
+//     * (+комментарий после значения) = на строке значения
+//     * (разделитель)
+//     * (+комментарий перед значением)= после разделителя
+//     * (+значение массива)           = после разделителя
+//     * (+комментарий после значения) = после разделителя
+//     * конец массива
+//    */
 
-    /* TODO: для документации
-     * комментарий массива
-     * начало массива
-     * (+комментарий перед значением)
-     * значение массива
-     * (+комментарий после значения) = на строке значения
-     * (разделитель)
-     * (+комментарий перед значением)= после разделителя
-     * (+значение массива)           = после разделителя
-     * (+комментарий после значения) = после разделителя
-     * конец массива
-    */
+//    CommentChecker comment_checker = CommentChecker::eIsNotComment;
+//    for(size_t i = 0; i < string.size(); i++) {
+//        char previous_ch    = i == 0 ? 0 : string[i - 1];
+//        char current_ch     = string[i];
+//        char next_ch        = i < string.size() ? string[i + 1] : 0;
 
-    CommentChecker comment_checker = CommentChecker::eIsNotComment;
-    for(size_t i = 0; i < string.size(); i++) {
-        char previous_ch    = i == 0 ? 0 : string[i - 1];
-        char current_ch     = string[i];
-        char next_ch        = i < string.size() ? string[i + 1] : 0;
+//        //счётчик строк и столбцов =============================================
+//        auto Counter = [&]() {
+//            if(current_ch == '\n') {
+//                line_counter++;
+//                symbol_counter = 0; //должен перескочить строго на следующей строке
+//            } else symbol_counter++;
+//        };
+//        //======================================================================
 
-        //счётчик строк и столбцов =============================================
-        auto Counter = [&]() {
-            if(current_ch == '\n') {
-                line_counter++;
-                symbol_counter = 0; //должен перескочить строго на следующей строке
-            } else symbol_counter++;
-        };
-        //======================================================================
+//        //поиск комментариев ===================================================
+//        const bool ext_f = !is_quotes
+//                           && value_format != VALUE_ARRAY
+//                           && value_format != VALUE_JSON;
+//        CheckComments(current_ch, next_ch,
+//                      comment_checker, enable_comment,
+//                      comment_design, current_comment,
+//                      i, ext_f);
+//        //сюда зайдёт, если внутри комментария
+//        if(comment_checker != CommentChecker::eIsNotComment) {
+//            Counter();
+//            continue;
+//        } //================================================= поиск комментариев
 
-        //поиск комментариев ===================================================
-        const bool ext_f = !is_quotes
-                           && value_format != VALUE_ARRAY
-                           && value_format != VALUE_JSON;
-        CheckComments(current_ch, next_ch,
-                      comment_checker, enable_comment,
-                      comment_design, current_comment,
-                      i, ext_f);
-        //сюда зайдёт, если внутри комментария
-        if(comment_checker != CommentChecker::eIsNotComment) {
-            Counter();
-            continue;
-        } //================================================= поиск комментариев
+//        //работа с синтаксисом JSON_ARRAY
+//        switch(state) {
+//        case State::eARRAY_START: {
+//            //пропуск пробелов =====================================================
+//            if(CharsInString(current_ch, __SPACES__)) break;
+//            //===================================================== пропуск пробелов
 
-        //работа с синтаксисом JSON_ARRAY
-        switch(state) {
-        case State::eARRAY_START: {
-            //пропуск пробелов =====================================================
-            if(CharsInString(current_ch, __SPACES__)) break;
-            //===================================================== пропуск пробелов
+//            //работа с комментариями (до разбора массива) ==========================
+//            if(!current_comment.empty() && enable_comment) {
+//                addComment(FromComment(current_comment, comment_design));
+//                current_comment.clear();
+////                std::cout << "ElementArray:PreviewComment: " << "\"" << current_comment << "\"" << std::endl;
+//            } //================================= работа с комментариями (первичный)
 
-            //работа с комментариями (до разбора массива) ==========================
-            if(!current_comment.empty() && enable_comment) {
-                addComment(FromComment(current_comment, comment_design));
-                current_comment.clear();
-//                std::cout << "ElementArray:PreviewComment: " << "\"" << current_comment << "\"" << std::endl;
-            } //================================= работа с комментариями (первичный)
+//            if(current_ch != '[') {
+//                is_critical_error = true;
+//                break;
+//            }
+//            UpdateState(State::eARRAY_VALUE);
 
-            if(current_ch != '[') {
-                is_critical_error = true;
-                break;
-            }
-            UpdateState(State::eARRAY_VALUE);
+//            break;
+//        }
+//        case State::eARRAY_VALUE: {
+//            //пропуск пробелов ====================================================
+//            if(current_ch == '\n' && !is_value_comment_after_saved) {
+//                //работа с комментариями (после значения #2) ==========================
+//                if(!current_comment.empty() && enable_comment) {
+//                    add_suffix_comment(m_values.size() - 1, FromComment(current_comment, comment_design));
+//                    current_comment.clear();
+////                    std::cout << "ElementArray:comment:after: " << "\"" << current_comment << "\"" << std::endl;
+//                } //======================== работа с комментариями (после значения #2)
+//                is_value_comment_after_saved = true;
+//                break;
+//            }
+//            if(CharsInString(current_ch, __SPACES__) && !is_quotes && value_format == ValueFormat::VALUE_NOPE)
+//                break;
+//            //==================================================== пропуск пробелов
 
-            break;
-        }
-        case State::eARRAY_VALUE: {
-            //пропуск пробелов ====================================================
-            if(current_ch == '\n' && !is_value_comment_after_saved) {
-                //работа с комментариями (после значения #2) ==========================
-                if(!current_comment.empty() && enable_comment) {
-                    add_suffix_comment(m_values.size() - 1, FromComment(current_comment, comment_design));
-                    current_comment.clear();
-//                    std::cout << "ElementArray:comment:after: " << "\"" << current_comment << "\"" << std::endl;
-                } //======================== работа с комментариями (после значения #2)
-                is_value_comment_after_saved = true;
-                break;
-            }
-            if(CharsInString(current_ch, __SPACES__) && !is_quotes && value_format == ValueFormat::VALUE_NOPE)
-                break;
-            //==================================================== пропуск пробелов
+//            if(current_ch == ']') {
+//                UpdateState(State::eARRAY_FINISH);
+//                break;
+//            }
 
-            if(current_ch == ']') {
-                UpdateState(State::eARRAY_FINISH);
-                break;
-            }
+//            if(!is_word_started) {
+//                is_word_started                 = true;
+//                is_value_comment_after_saved    = false;
+//                value_string.clear();
+//            }
 
-            if(!is_word_started) {
-                is_word_started                 = true;
-                is_value_comment_after_saved    = false;
-                value_string.clear();
-            }
+//            switch(current_ch) {
+//            case '{': {
+//                if(!is_quotes) {
+//                    if(value_format == ValueFormat::VALUE_NOPE)
+//                        value_format = ValueFormat::VALUE_JSON;
+//                    inner_json_counter++;
+//                }
+//                break;
+//            }
+//            case '}': {
+//                if(!is_quotes)
+//                    inner_json_counter--;
+//                break;
+//            }
+//            case '[': {
+//                if(!is_quotes) {
+//                    if(value_format == ValueFormat::VALUE_NOPE)
+//                        value_format = ValueFormat::VALUE_ARRAY;
+//                    inner_array_counter++;
+//                }
+//                break;
+//            }
+//            case ']': {
+//                if(!is_quotes)
+//                    inner_array_counter--;
+//                break;
+//            }
+//            case '"': {
+//                if(previous_ch != '\\') {
+//                    is_quotes = !is_quotes;
+////                    std::cout << "value."
+////                              << "isQuotes: (" << to_string(isQuotes) << ") "
+////                              << "'" << previous << current << next << "'"
+////                              << std::endl;
+//                }
+//            }
+//            default: {
+//                if(value_format == ValueFormat::VALUE_NOPE)
+//                    value_format = ValueFormat::VALUE_OTHER;
+//                break;
+//            }
+//            }
 
-            switch(current_ch) {
-            case '{': {
-                if(!is_quotes) {
-                    if(value_format == ValueFormat::VALUE_NOPE)
-                        value_format = ValueFormat::VALUE_JSON;
-                    inner_json_counter++;
-                }
-                break;
-            }
-            case '}': {
-                if(!is_quotes)
-                    inner_json_counter--;
-                break;
-            }
-            case '[': {
-                if(!is_quotes) {
-                    if(value_format == ValueFormat::VALUE_NOPE)
-                        value_format = ValueFormat::VALUE_ARRAY;
-                    inner_array_counter++;
-                }
-                break;
-            }
-            case ']': {
-                if(!is_quotes)
-                    inner_array_counter--;
-                break;
-            }
-            case '"': {
-                if(previous_ch != '\\') {
-                    is_quotes = !is_quotes;
-//                    std::cout << "value."
-//                              << "isQuotes: (" << to_string(isQuotes) << ") "
-//                              << "'" << previous << current << next << "'"
-//                              << std::endl;
-                }
-            }
-            default: {
-                if(value_format == ValueFormat::VALUE_NOPE)
-                    value_format = ValueFormat::VALUE_OTHER;
-                break;
-            }
-            }
+//            //поиск конца значения =================================================
+//            switch(value_format) {
+//            case VALUE_JSON: {
+//                if(inner_json_counter == 0) //прочли весь вложенный JSON
+//                    is_word_finished = true;
 
-            //поиск конца значения =================================================
-            switch(value_format) {
-            case VALUE_JSON: {
-                if(inner_json_counter == 0) //прочли весь вложенный JSON
-                    is_word_finished = true;
+//                value_string += current_ch;
+//                break;
+//            }
+//            case VALUE_ARRAY: {
+//                if(inner_array_counter == 0) //прочли весь вложенный массив
+//                    is_word_finished = true;
 
-                value_string += current_ch;
-                break;
-            }
-            case VALUE_ARRAY: {
-                if(inner_array_counter == 0) //прочли весь вложенный массив
-                    is_word_finished = true;
+//                value_string += current_ch;
+//                break;
+//            }
+//            case VALUE_OTHER: {
+//                if(!is_quotes && CharsInString(current_ch, __SPACES__)) //прочли всё значение
+//                    is_word_finished = true;
 
-                value_string += current_ch;
-                break;
-            }
-            case VALUE_OTHER: {
-                if(!is_quotes && CharsInString(current_ch, __SPACES__)) //прочли всё значение
-                    is_word_finished = true;
+//                value_string += current_ch;
+//                break;
+//            }
+//            default: break;
+//            }
 
-                value_string += current_ch;
-                break;
-            }
-            default: break;
-            }
-
-            if(!is_word_finished
-                && !is_quotes
-                && (inner_json_counter == 0)
-                && (inner_array_counter == 0))
-            {
-                //если ТЕКУЩИЙ символ должен обрабатываться другим кодом
-                if(CharsInString(current_ch, __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : ""))) {
-                    is_word_finished = true;
-                    i--;
-                    value_string.pop_back();
-                }
-                //если СЛЕДУЮЩИЙ символ должен обрабатываться другим кодом
-                if(CharsInString(next_ch, __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : ""))) {
-                    is_word_finished = true;
-                }
-            }
-            //================================================= поиск конца значения
+//            if(!is_word_finished
+//                && !is_quotes
+//                && (inner_json_counter == 0)
+//                && (inner_array_counter == 0))
+//            {
+//                //если ТЕКУЩИЙ символ должен обрабатываться другим кодом
+//                if(CharsInString(current_ch, __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : ""))) {
+//                    is_word_finished = true;
+//                    i--;
+//                    value_string.pop_back();
+//                }
+//                //если СЛЕДУЮЩИЙ символ должен обрабатываться другим кодом
+//                if(CharsInString(next_ch, __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : ""))) {
+//                    is_word_finished = true;
+//                }
+//            }
+//            //================================================= поиск конца значения
 
 
-            //обработка итогового значения =========================================
-            if(is_word_finished) {
-                is_word_started     = false; //страховка
-                is_word_finished    = false;
+//            //обработка итогового значения =========================================
+//            if(is_word_finished) {
+//                is_word_started     = false; //страховка
+//                is_word_finished    = false;
 
-                switch(value_format) {
-                case VALUE_OTHER: {
-                    switch(CheckValue(value_string, ConfigFormat::eJSON)) {
-                    case ValueType::eNumber: {
-                        try {
-                            push_back(ElementNumber(std::stod(value_string)));
-                        } catch (...) {
-                            is_critical_error = true;
-                        }
+//                switch(value_format) {
+//                case VALUE_OTHER: {
+//                    switch(CheckValue(value_string, ConfigFormat::eJSON)) {
+//                    case ValueType::eNumber: {
+//                        try {
+//                            push_back(ElementNumber(std::stod(value_string)));
+//                        } catch (...) {
+//                            is_critical_error = true;
+//                        }
 
-                        break;
-                    }
-                    case ValueType::eBool: {
-                        if(IsBool(value_string))
-                            push_back(ElementBool(ToBool(value_string)));
-                        else
-                            is_critical_error = true;
+//                        break;
+//                    }
+//                    case ValueType::eBool: {
+//                        if(IsBool(value_string))
+//                            push_back(ElementBool(ToBool(value_string)));
+//                        else
+//                            is_critical_error = true;
 
-                        break;
-                    }
-                    case ValueType::eNull: {
-                        push_back(IElement());
+//                        break;
+//                    }
+//                    case ValueType::eNull: {
+//                        push_back(IElement());
 
-                        break;
-                    }
-                    case ValueType::eString: {
-                        push_back(ElementString(value_string));
-                        break;
-                    }
-                    default: //значение не определено
-                        is_critical_error = true;
-                        break;
-                    }
+//                        break;
+//                    }
+//                    case ValueType::eString: {
+//                        push_back(ElementString(value_string));
+//                        break;
+//                    }
+//                    default: //значение не определено
+//                        is_critical_error = true;
+//                        break;
+//                    }
 
-                    break;
-                }
-                case VALUE_JSON: {
-                    try {
-//                        ElementJson _inner_json;
-//TODO:                        _inner_json.parseJson(value_string, enable_comment);
-//                        push_back(_inner_json);
-                    } catch (std::invalid_argument& e) {
-                        is_critical_error = true;
-                    }
+//                    break;
+//                }
+//                case VALUE_JSON: {
+//                    try {
+////                        ElementArray _inner_json;
+////TODO:                        _inner_json.parseJson(value_string, enable_comment);
+////                        push_back(_inner_json);
+//                    } catch (std::invalid_argument& e) {
+//                        is_critical_error = true;
+//                    }
 
-                    break;
-                }
-                case VALUE_ARRAY: {
-                    try {
-                        ElementArray _inner_array;
-                        _inner_array.parseArray(value_string, enable_comment);
-                        push_back(_inner_array);
-                    } catch (std::invalid_argument& e) {
-                        is_critical_error = true;
-                    }
+//                    break;
+//                }
+//                case VALUE_ARRAY: {
+//                    try {
+//                        ElementArray _inner_array;
+//                        _inner_array.parseArray(value_string, enable_comment);
+//                        push_back(_inner_array);
+//                    } catch (std::invalid_argument& e) {
+//                        is_critical_error = true;
+//                    }
 
-                    break;
-                }
-                default: {
-                    is_critical_error = true;
-                    break;
-                }
-                }
+//                    break;
+//                }
+//                default: {
+//                    is_critical_error = true;
+//                    break;
+//                }
+//                }
 
-                //работа с комментариями (перед значением) =============================
-                if(!current_comment.empty() && enable_comment) {
-                    add_prefix_comment(m_values.size() - 1, FromComment(current_comment, comment_design));
-                    current_comment.clear();
-//                    std::cout << "ElementArray:comment:before: " << "\"" << current_comment << "\"" << std::endl;
-                } //=========================== работа с комментариями (перед значением)
+//                //работа с комментариями (перед значением) =============================
+//                if(!current_comment.empty() && enable_comment) {
+//                    add_prefix_comment(m_values.size() - 1, FromComment(current_comment, comment_design));
+//                    current_comment.clear();
+////                    std::cout << "ElementArray:comment:before: " << "\"" << current_comment << "\"" << std::endl;
+//                } //=========================== работа с комментариями (перед значением)
 
-                UpdateState(State::eARRAY_VALUE_SEPARATOR);
-                value_format = ValueFormat::VALUE_NOPE;
-            } //======================================= обработка итогового значения
+//                UpdateState(State::eARRAY_VALUE_SEPARATOR);
+//                value_format = ValueFormat::VALUE_NOPE;
+//            } //======================================= обработка итогового значения
 
-            break;
-        }
-        case State::eARRAY_VALUE_SEPARATOR: {
-            //пропуск пробелов ====================================================
-            if(CharsInString(current_ch, __SPACES_WITHOUT_SEPARATORS__))
-                break;
-            //=====================================================================
-            if(!CharsInString(current_ch, __SEPARATORS__ "]")) {
-                is_critical_error = true;
-                break;
-            }
+//            break;
+//        }
+//        case State::eARRAY_VALUE_SEPARATOR: {
+//            //пропуск пробелов ====================================================
+//            if(CharsInString(current_ch, __SPACES_WITHOUT_SEPARATORS__))
+//                break;
+//            //=====================================================================
+//            if(!CharsInString(current_ch, __SEPARATORS__ "]")) {
+//                is_critical_error = true;
+//                break;
+//            }
 
-            if(current_ch == '\n') {
-                //работа с комментариями (после значения #1) ==========================
-                if(enable_comment && !current_comment.empty()) {
-                    add_suffix_comment(m_values.size() - 1, FromComment(current_comment, comment_design));
-                    current_comment.clear();
-//                    std::cout << "ElementArray:comment:after: " << "\"" << current_comment << "\"" << std::endl;
-                } //===================================================================
-                is_value_comment_after_saved = true;
-            }
-            UpdateState(current_ch == ']' ? State::eARRAY_FINISH : State::eARRAY_VALUE);
+//            if(current_ch == '\n') {
+//                //работа с комментариями (после значения #1) ==========================
+//                if(enable_comment && !current_comment.empty()) {
+//                    add_suffix_comment(m_values.size() - 1, FromComment(current_comment, comment_design));
+//                    current_comment.clear();
+////                    std::cout << "ElementArray:comment:after: " << "\"" << current_comment << "\"" << std::endl;
+//                } //===================================================================
+//                is_value_comment_after_saved = true;
+//            }
+//            UpdateState(current_ch == ']' ? State::eARRAY_FINISH : State::eARRAY_VALUE);
 
-            if(enable_comment && (!value_comment.prefix().empty() || !value_comment.suffix().empty())) {
-                add_comment(m_values.size() - 1, value_comment.prefix(), value_comment.suffix());
-//                std::cout << "\tvalue_before: " << value_comment.prefix << std::endl
-//                          << "\tvalue_after: " << value_comment.suffix << std::endl;
-            }
+//            if(enable_comment && (!value_comment.prefix().empty() || !value_comment.suffix().empty())) {
+//                add_comment(m_values.size() - 1, value_comment.prefix(), value_comment.suffix());
+////                std::cout << "\tvalue_before: " << value_comment.prefix << std::endl
+////                          << "\tvalue_after: " << value_comment.suffix << std::endl;
+//            }
 
-            break;
-        }
-        default: break;
-        }
+//            break;
+//        }
+//        default: break;
+//        }
 
-        if(is_critical_error) {
-//            std::cout << "symbols: '" << previous << current << next << "'" << std::endl;
-            clear();
-            throw std::invalid_argument("JSON_ARRAY parse error at line "
-                                        + std::to_string(line_counter) + ":" + std::to_string(symbol_counter)
-                                        + " '" + current_ch + "', current state:" + ToString(state));
-        }
+//        if(is_critical_error) {
+////            std::cout << "symbols: '" << previous << current << next << "'" << std::endl;
+//            clear();
+//            throw std::invalid_argument("JSON_ARRAY parse error at line "
+//                                        + std::to_string(line_counter) + ":" + std::to_string(symbol_counter)
+//                                        + " '" + current_ch + "', current state:" + ToString(state));
+//        }
 
-        Counter();
-    }
+//        Counter();
+//    }
 
 
-    if(state != State::eARRAY_FINISH) {
-        clear();
-        throw std::invalid_argument("JSON_ARRAY parse error, end of JSON array structure not found");
-    }
-}
+//    if(state != State::eARRAY_FINISH) {
+//        clear();
+//        throw std::invalid_argument("JSON_ARRAY parse error, end of JSON array structure not found");
+//    }
+//}
 
-void ElementArray::parseIniArray(const std::string &string, const bool enable_comment,
-                                  CommentDesign* design)
-{
-    //TODO: ElementArray::parseIniArray()
-    //TODO: std::exception
-}
+//void ElementArray::parseIniArray(const std::string &string, const bool enable_comment,
+//                                  CommentDesign* design)
+//{
+//    //TODO: ElementArray::parseIniArray()
+//    //TODO: std::exception
+//}
 
-std::string ElementArray::toString(const ConfigFormat format, const int8_t tabulation_level) const noexcept {
-    switch(format) {
-    case ConfigFormat::eJSON:   return toJsonString(tabulation_level);
-    case ConfigFormat::eINI:    return toIniString(tabulation_level);
-    default: return "";
-    }
-}
+//std::string ElementArray::toString(const ConfigFormat format, const int8_t tabulation_level) const noexcept {
+//    switch(format) {
+//    case ConfigFormat::eJSON:   return toJsonString(tabulation_level);
+//    case ConfigFormat::eINI:    return toIniString(tabulation_level);
+//    default: return "";
+//    }
+//}
 
-std::string ElementArray::toJsonString(const int8_t tabulation_level) const noexcept {
-    if(m_values.empty()) return "[]";
+//std::string ElementArray::toJsonString(const int8_t tabulation_level) const noexcept {
+//    if(m_values.empty()) return "[]";
 
-    using namespace utils;
-    bool without_space = tabulation_level == -1;
+//    using namespace utils;
+//    bool without_space = tabulation_level == -1;
 
-    std::string ret = "[";
-    for(auto& it : m_values) {
-        if(!without_space) ret += "\n" + RepeatSymToStr('\t', tabulation_level);
-        ret += it.toString(ConfigFormat::eJSON, tabulation_level+1) + ",";
-    }
-    if(!without_space) ret += "\n" + RepeatSymToStr('\t', tabulation_level);
-    ret += "]";
+//    std::string ret = "[";
+//    for(auto& it : m_values) {
+//        if(!without_space) ret += "\n" + RepeatSymToStr('\t', tabulation_level);
+//        ret += it.toString(ConfigFormat::eJSON, tabulation_level+1) + ",";
+//    }
+//    if(!without_space) ret += "\n" + RepeatSymToStr('\t', tabulation_level);
+//    ret += "]";
 
-    return ret;
-}
+//    return ret;
+//}
 
-std::string ElementArray::toIniString(const int8_t tabulation_level) const noexcept {
-    //TODO: ElementArray::toIniString()
-    return "";
-}
+//std::string ElementArray::toIniString(const int8_t tabulation_level) const noexcept {
+//    //TODO: ElementArray::toIniString()
+//    return "";
+//}
 
-std::string ElementArray::toString(const ConfigFormat format, const CommentDesign &design,
-                                    const int8_t tabulation_level) const noexcept {
-    switch(format) {
-    case ConfigFormat::eJSON:   return toJsonString(design, tabulation_level);
-    case ConfigFormat::eINI:    return toIniString(design, tabulation_level);
-    default: return "";
-    }
-}
+//std::string ElementArray::toString(const ConfigFormat format, const CommentDesign &design,
+//                                    const int8_t tabulation_level) const noexcept {
+//    switch(format) {
+//    case ConfigFormat::eJSON:   return toJsonString(design, tabulation_level);
+//    case ConfigFormat::eINI:    return toIniString(design, tabulation_level);
+//    default: return "";
+//    }
+//}
 
-std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t tabulation_level) const noexcept {
-    if(m_values.empty()) return "[]";
+//std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t tabulation_level) const noexcept {
+//    if(m_values.empty()) return "[]";
 
-    using namespace utils;
-    std::string ret = "[";
-    for(auto it : m_values) {
-        ret += "\n" + RepeatSymToStr('\t', tabulation_level);
-        ret += ToComment(it.getPrefixComment(), design, tabulation_level);
-        ret += "\n" + RepeatSymToStr('\t', tabulation_level);
-        ret += it.toString(ConfigFormat::eJSON, design, tabulation_level + 1) + ", ";
-        //NOTE: суффиксный многострочный комментарий должен начинаться на той же строке, что и значение переменной
-        ret += ToComment(it.getSuffixComment(), design, tabulation_level);
-    }
-    ret += "\n" + RepeatSymToStr('\t', tabulation_level);
-    ret += "]";
+//    using namespace utils;
+//    std::string ret = "[";
+//    for(auto it : m_values) {
+//        ret += "\n" + RepeatSymToStr('\t', tabulation_level);
+//        ret += ToComment(it.getPrefixComment(), design, tabulation_level);
+//        ret += "\n" + RepeatSymToStr('\t', tabulation_level);
+//        ret += it.toString(ConfigFormat::eJSON, design, tabulation_level + 1) + ", ";
+//        //NOTE: суффиксный многострочный комментарий должен начинаться на той же строке, что и значение переменной
+//        ret += ToComment(it.getSuffixComment(), design, tabulation_level);
+//    }
+//    ret += "\n" + RepeatSymToStr('\t', tabulation_level);
+//    ret += "]";
 
-    return ret;
-}
-
-std::string ElementArray::toIniString(const CommentDesign &design, const int8_t tabulation_level) const noexcept {
-    //TODO: ElementArray::toIniString()
-    return "";
-}
+//    return ret;
+//}
 
 void ElementArray::add_comment(const size_t index, const Comment &content) {
-    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    m_values[index].addComment(content);
+    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
+    m_values.at(index)->addComment(content);
 }
 
 void ElementArray::add_comment(const size_t index, const std::string &content_before,
-                              const std::string &content_after) {
-    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    m_values[index].addComment(content_before, content_after);
+                              const std::string &content_after)
+{
+    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
+    m_values.at(index)->addComment(content_before, content_after);
 }
 
 void ElementArray::add_prefix_comment(const size_t index, const std::string &content) {
-    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    m_values[index].addPrefixComment(content);
+    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
+    m_values.at(index)->addPrefixComment(content);
 }
 
 void ElementArray::add_suffix_comment(const size_t index, const std::string &content) {
-    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    m_values[index].addSuffixComment(content);
+    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
+    m_values.at(index)->addSuffixComment(content);
 }
 
-Comment& ElementArray::get_comment(const size_t index) {
-    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    return m_values[index].getComment();
+Comment &ElementArray::get_comment(const size_t index) {
+    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
+    return m_values.at(index)->getComment();
 }
 
 Comment ElementArray::get_comment(const size_t index) const {
-    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    return m_values[index].getComment();
+    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
+    return m_values.at(index)->getComment();
 }
 
-std::string& ElementArray::get_prefix_comment(const size_t index) {
-    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    return m_values[index].getPrefixComment();
+std::string &ElementArray::get_prefix_comment(const size_t index) {
+    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
+    return m_values.at(index)->getPrefixComment();
 }
 
 std::string ElementArray::get_prefix_comment(const size_t index) const {
-    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    return m_values[index].getPrefixComment();
+    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
+    return m_values.at(index)->getPrefixComment();
 }
 
-std::string& ElementArray::get_suffix_comment(const size_t index) {
-    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    return m_values[index].getSuffixComment();
+std::string &ElementArray::get_suffix_comment(const size_t index) {
+    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
+    return m_values.at(index)->getSuffixComment();
 }
 
 std::string ElementArray::get_suffix_comment(const size_t index) const {
-    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    return m_values[index].getSuffixComment();
+    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
+    return m_values.at(index)->getSuffixComment();
 }
 
-void ElementArray::clear_comment(const size_t index) noexcept {
-    __IF_INDEX_NOT_BOUND2__(m_values, index)
-    m_values[index].deleteComment();
+void ElementArray::clear_comment(const size_t index) {
+    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
+    m_values.at(index)->clearComment();
 }
 
-void ElementArray::clear_prefix_comment(const size_t index) noexcept {
-    __IF_INDEX_NOT_BOUND2__(m_values, index)
-    m_values[index].deletePrefixComment();
+void ElementArray::clear_prefix_comment(const size_t index) {
+    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
+    m_values.at(index)->clearPrefixComment();
 }
 
-void ElementArray::clear_suffix_comment(const size_t index) noexcept {
-    __IF_INDEX_NOT_BOUND2__(m_values, index)
-    m_values[index].deleteSuffixComment();
+void ElementArray::clear_suffix_comment(const size_t index) {
+    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
+    m_values.at(index)->clearSuffixComment();
 }
 
-void ElementArray::delete_comment(const size_t index) noexcept {
-    __IF_INDEX_NOT_BOUND2__(m_values, index)
-    m_values[index].deleteComment();
+void ElementArray::delete_comment(const size_t index) {
+    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
+    m_values.at(index)->deleteComment();
 }
 
-void ElementArray::delete_prefix_comment(const size_t index) noexcept {
-    __IF_INDEX_NOT_BOUND2__(m_values, index)
-    m_values[index].deletePrefixComment();
+void ElementArray::delete_prefix_comment(const size_t index) {
+    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
+    m_values.at(index)->deletePrefixComment();
 }
 
-void ElementArray::delete_suffix_comment(const size_t index) noexcept {
-    __IF_INDEX_NOT_BOUND2__(m_values, index)
-    m_values[index].deleteSuffixComment();
+void ElementArray::delete_suffix_comment(const size_t index) {
+    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
+    m_values.at(index)->deleteSuffixComment();
 }
 
-ElementArray &ElementArray::clear() noexcept {
+void ElementArray::append_if_not_contains(const Config &config) noexcept {
+    if(!contains(config))
+        m_values.push_back(std::make_shared<Config>(config));
+}
+
+void ElementArray::append_if_not_contains(Config &&config) noexcept {
+    if(!contains(config))
+        m_values.push_back(std::make_shared<Config>(std::move(config)));
+}
+
+Config &ElementArray::get_front() {
+    __CHECK_ARRAY_EMPTY_EXCEPTION__((*this))
+    return *m_values.front();
+}
+
+Config ElementArray::get_front() const {
+    __CHECK_ARRAY_EMPTY_EXCEPTION__((*this))
+    return *m_values.front();
+}
+
+Config &ElementArray::get_at(const size_t index) {
+    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
+    return *m_values[index];
+}
+
+Config ElementArray::get_at(const size_t index) const {
+    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
+    return *m_values[index];
+}
+
+Config &ElementArray::get_back() {
+    __CHECK_ARRAY_EMPTY_EXCEPTION__((*this))
+    return *m_values.back();
+}
+
+Config ElementArray::get_back() const {
+    __CHECK_ARRAY_EMPTY_EXCEPTION__((*this))
+    return *m_values.back();
+}
+
+void ElementArray::clear() noexcept {
     m_values.clear();
-    return *this;
 }
 
-bool ElementArray::isEqual(const IElement &other, const bool compare_comments) const noexcept {
-    if(m_values != dynamic_cast<const ElementArray&>(other).m_values)   return false;
-    if(compare_comments && m_comment == other.getComment())             return false;
-
-    return true;
+void ElementArray::insert_front(const Config &value) noexcept {
+    m_values.insert(cbegin(), std::make_shared<Config>(value));
 }
 
-ValueType ElementArray::get_type_front() {
-    __CHECK_ARRAY_EMPTY_EXCEPTION__(m_values)
-    return m_values.front().getType();
+void ElementArray::insert_front(Config &&value) noexcept {
+    m_values.insert(cbegin(), std::make_shared<Config>(std::move(value)));
 }
 
-ValueType ElementArray::get_type_at(const size_t index) {
-    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    return m_values[index].getType();
-}
-
-ValueType ElementArray::get_type_back() {
-    __CHECK_ARRAY_EMPTY_EXCEPTION__(m_values)
-    return m_values.back().getType();
-}
-
-ElementArray &ElementArray::appendArray(const ElementArray &array) noexcept {
-    for(const IElement& element : array.m_values)
-        push_back(element);
-    return *this;
-}
-
-ElementArray& ElementArray::push_front(const IElement &element) noexcept {
-    m_values.insert(m_values.cbegin(), element);
-    return *this;
-}
-
-ElementArray& ElementArray::push_at(const IElement &element, const size_t index) {
-    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index - 1) //проверяем, что size() < index - 1 (+1[нумерация с 0])
-    m_values.insert(m_values.cbegin() + index, element);
-    return *this;
-}
-
-ElementArray& ElementArray::push_back(const IElement &element) noexcept {
-    m_values.push_back(element);
-    return *this;
-}
-
-IElement& ElementArray::get_value(const size_t index) {
-    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    return m_values[index];
-}
-
-IElement& ElementArray::get_value(const VString& complex_key) {
-    if(complex_key.size() == 0)
-        throw std::invalid_argument("complex_key vector is empty");
-
-    __CHECK_ARRAY_EMPTY_EXCEPTION__(m_values)
-
-    if(complex_key.front().empty())
-        throw std::invalid_argument("complex_key argument cannot be empty");
-
-    size_t current_index;
-    try         { current_index = std::stoi(complex_key.front()); }
-    catch(...)  { __ARRAY_INCORRECT_INDEX_EXCEPTION__ }
-
-    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, current_index)
-
-    if(complex_key.size() == 1)
-        return (*this)[current_index];
-    else {
-        IElement& el = (*this)[current_index];
-
-        auto new_complex_key = complex_key;
-        new_complex_key.erase(new_complex_key.begin());
-        switch(el.getType()) {
-//TODO:        case ValueType::eJson:  return dynamic_cast<ElementJson&>((*this)[current_index])[new_complex_key];
-        case ValueType::eArray: return dynamic_cast<ElementArray&>((*this)[current_index])[new_complex_key];
-        default: __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__
-        }
+void ElementArray::insert_at(const size_t index, const Config &value) noexcept {
+    if(size() < index - 1) {
+        m_values.push_back(std::make_shared<Config>(value));
+    } else {
+        m_values.insert(cbegin() + (index - 1), std::make_shared<Config>(value));
     }
 }
 
-IElement& ElementArray::get_value(const std::vector<size_t>& complex_key) {
-    if(complex_key.size() == 0)
-        throw std::invalid_argument("complex_key vector is empty");
-
-    __CHECK_ARRAY_EMPTY_EXCEPTION__(m_values)
-
-    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, complex_key.front())
-
-    if(complex_key.size() == 1)
-        return (*this)[complex_key.front()];
-    else {
-        IElement& el = (*this)[complex_key.front()];
-
-        auto new_complex_key = complex_key;
-        new_complex_key.erase(new_complex_key.begin());
-        switch(el.getType()) {
-//TODO:        case ValueType::eJson:     return dynamic_cast<ElementJson&>((*this)[complex_key.front()]).get_value(new_complex_key);
-        case ValueType::eArray: return dynamic_cast<ElementArray&>((*this)[complex_key.front()]).get_value(new_complex_key);
-        default: __INCORRECT_TYPE_ELEMENT_FOR_INDEX_EXCEPTION__
-        }
+void ElementArray::insert_at(const size_t index, Config &&value) noexcept {
+    if(size() < index - 1) {
+        m_values.push_back(std::make_shared<Config>(std::move(value)));
+    } else {
+        m_values.insert(cbegin() + (index - 1), std::make_shared<Config>(std::move(value)));
     }
 }
 
-ElementArray &ElementArray::pop_front() {
-    __CHECK_ARRAY_EMPTY_EXCEPTION__(m_values)
-    m_values.erase(m_values.cbegin());
-    return *this;
+void ElementArray::insert_at(shared_VElement::iterator iterator, const Config &value) {
+    m_values.insert(iterator, std::make_shared<Config>(value));
 }
 
-ElementArray &ElementArray::pop_at(const size_t index) {
-    __CHECK_INDEX_BOUND2_EXCEPTION__(m_values, index)
-    m_values.erase(m_values.cbegin() + index);
-    return *this;
+void ElementArray::insert_at(shared_VElement::iterator iterator, Config &&value) {
+    m_values.insert(iterator, std::make_shared<Config>(std::move(value)));
 }
 
-ElementArray &ElementArray::pop_back() {
-    __CHECK_ARRAY_EMPTY_EXCEPTION__(m_values)
+void ElementArray::insert_back(const Config &value) noexcept {
+    m_values.push_back(std::make_shared<Config>(value));
+}
+
+void ElementArray::insert_back(Config &&value) noexcept {
+    m_values.push_back(std::make_shared<Config>(std::move(value)));
+}
+
+void ElementArray::insert_front(const VElement &elements) noexcept {
+    for(size_t i = 0; i < elements.size(); i++)
+        m_values.insert(cbegin() + i, std::make_shared<Config>(elements[i]));
+}
+
+void ElementArray::insert_front(VElement &&elements) noexcept {
+    for(size_t i = 0; i < elements.size(); i++)
+        m_values.insert(cbegin() + i, std::make_shared<Config>(std::move(elements[i])));
+}
+
+void ElementArray::insert_at(const size_t index, const VElement &elements) noexcept {
+    size_t counter = 0;
+    for(const auto &element : elements) {
+        insert_at(index + counter, element);
+        counter++;
+    }
+}
+
+void ElementArray::insert_at(const size_t index, VElement &&elements) noexcept {
+    size_t counter = 0;
+    for(auto &element : elements) {
+        insert_at(index + counter, std::move(element));
+        counter++;
+    }
+}
+
+void ElementArray::insert_back(const VElement &elements) noexcept {
+    std::transform(elements.cbegin(), elements.cend(), std::back_inserter(m_values),
+                   [](const Config& element){ return std::make_shared<Config>(element); });
+}
+
+void ElementArray::insert_back(VElement &&elements) noexcept {
+    std::transform(std::make_move_iterator(elements.begin()),
+                   std::make_move_iterator(elements.end()),
+                   std::back_inserter(m_values),
+                   [](const Config& element) {
+                       return std::make_shared<Config>(std::move(element));
+                   });
+}
+
+void ElementArray::append_null(size_t size) noexcept {
+    for(size_t i = size; i > 0; --i)
+        m_values.push_back(std::make_shared<Config>());
+}
+
+void ElementArray::pop_front() {
+    __CHECK_ARRAY_EMPTY_EXCEPTION__((*this))
+    m_values.erase(cbegin());
+}
+
+void ElementArray::pop_at(const size_t index) {
+    __CHECK_INDEX_BOUND__((*this), index)
+    m_values.erase(cbegin() + index);
+}
+
+void ElementArray::pop_back() {
+    __CHECK_ARRAY_EMPTY_EXCEPTION__((*this))
     m_values.pop_back();
-    return *this;
 }
 
-ElementArray &ElementArray::erase(const size_t index) {
+Config ElementArray::get_and_pop_front() {
+    Config cfg = get_front();
+    pop_front();
+    return cfg;
+}
+
+Config ElementArray::get_and_pop_at(const size_t index) {
+    Config cfg = get_at(index);
     pop_at(index);
-    return *this;
+    return cfg;
 }
 
-ElementArray &ElementArray::erase(const VElement::iterator &iterator) {
-    m_values.erase(iterator);
-    return *this;
+Config ElementArray::get_and_pop_back() {
+    Config cfg = get_back();
+    pop_back();
+    return cfg;
 }
 
-ElementArray &ElementArray::erase(const VElement::iterator &begin, const VElement::iterator &end) {
-    m_values.erase(begin, end);
-    return *this;
+void ElementArray::erase_front() {
+    __CHECK_ARRAY_EMPTY_EXCEPTION__((*this))
+    m_values.erase(cbegin());
 }
 
-ElementArray &ElementArray::erase(const std::vector<size_t> indexes) {
-    for(auto i : indexes) pop_at(i);
-    return *this;
+void ElementArray::erase_at(const size_t index) {
+    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
+    m_values.erase(cbegin() + index);
 }
 
-void ElementArray::operator=(const VElement &other) noexcept {
-    m_values = other;
+void ElementArray::erase_back() {
+    __CHECK_ARRAY_EMPTY_EXCEPTION__((*this))
+    m_values.pop_back();
 }
 
-
-bool IsElementArray(const std::string &str, const ConfigFormat format) noexcept {
-    switch(format) {
-    case ConfigFormat::eJSON:   return IsElementJsonArray(str);
-    case ConfigFormat::eINI:    return IsElementIniArray(str);
-    default: return false;
-    }
-
-    return false;
+//комментарии при поиске не учитываются
+bool ElementArray::contains(const Config &config) const noexcept {
+    return std::any_of(cbegin(), cend(), [&config](const std::shared_ptr<Config> &value){ return value->isEqual(config); });
 }
 
-bool IsElementJsonArray(const std::string &str) noexcept {
-    //TODO: IsElementJsonArray()
-    return false;
+Config &ElementArray::operator[](const size_t index) {
+    return *m_values[index];
 }
 
-bool IsElementIniArray(const std::string &str) noexcept {
-    //TODO: IsElementIniArray()
-    return false;
+Config ElementArray::operator[](const size_t index) const {
+    return *m_values[index];
 }
 
-bool IsElementArray(const IElement &e) noexcept                 { return e.getType() == ValueType::eArray; }
+std::string ElementArray::toString(const ConfigFormat format, const int8_t tabulation_level,
+                                   const CommentDesign &design) const noexcept
+{
+    //TODO: std::string ElementArray::toString()
+}
+
+std::string ElementArray::toJsonString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
+{
+    //TODO: std::string ElementArray::toJsonString()
+}
+
+std::string ElementArray::toIniString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
+{
+    //TODO: std::string ElementArray::toIniString()
+}
+
+std::string ElementArray::toYamlString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
+{
+    //TODO: std::string ElementArray::toYamlString()
+}
+
+std::string ElementArray::toXmlString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
+{
+    //TODO: std::string ElementArray::toXmlString()
+}

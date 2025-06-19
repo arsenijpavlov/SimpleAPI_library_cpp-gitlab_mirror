@@ -6,6 +6,29 @@
 
 //абстрактный класс для управления списками элементов
 class IElementContainer : public IElement {
+    // Comment =========================================================================================================
+    virtual void    add_comment(const size_t index, const Comment &content)                 = 0;
+    virtual void    add_comment(const size_t index, const std::string &content_before,
+                             const std::string &content_after)                              = 0;
+    virtual void    add_prefix_comment(const size_t index, const std::string &content)      = 0;
+    virtual void    add_suffix_comment(const size_t index, const std::string &content)      = 0;
+    virtual Comment&        get_comment(const size_t index)                                 = 0;
+    virtual Comment         get_comment(const size_t index)                 const           = 0;
+    virtual std::string&    get_prefix_comment(const size_t index)                          = 0;
+    virtual std::string     get_prefix_comment(const size_t index)          const           = 0;
+    virtual std::string&    get_suffix_comment(const size_t index)                          = 0;
+    virtual std::string     get_suffix_comment(const size_t index)          const           = 0;
+    virtual void    clear_comment(const size_t index)                                       = 0;
+    virtual void    clear_prefix_comment(const size_t index)                                = 0;
+    virtual void    clear_suffix_comment(const size_t index)                                = 0;
+    virtual void    delete_comment(const size_t index)                                      = 0;
+    virtual void    delete_prefix_comment(const size_t index)                               = 0;
+    virtual void    delete_suffix_comment(const size_t index)                               = 0;
+    // ========================================================================================================= Comment
+
+    // Setters =========================================================================================================
+    // ========================================================================================================= Setters
+
     // Getters =========================================================================================================
     virtual Config& get_front()                                                             = 0;
     virtual Config  get_front()                                             const           = 0;
@@ -16,20 +39,18 @@ class IElementContainer : public IElement {
     // ========================================================================================================= Getters
 
     // Modify ==========================================================================================================
-    //индивидуально для потомков (разные условия хранения)
     // ========================================================================================================== Modify
 
     // Adding ==========================================================================================================
-    //индивидуально для потомков (разные условия хранения)
     // ========================================================================================================== Adding
 
     // Removing ========================================================================================================
     virtual void    pop_front()                                                             = 0;
     virtual void    pop_at(const size_t index)                                              = 0;
     virtual void    pop_back()                                                              = 0;
-    virtual Config  get_and_pop_front()                                     noexcept        = 0;
-    virtual Config  get_and_pop_at(const size_t index)                      noexcept        = 0;
-    virtual Config  get_and_pop_back()                                      noexcept        = 0;
+    virtual Config  get_and_pop_front()                                                     = 0;
+    virtual Config  get_and_pop_at(const size_t index)                                      = 0;
+    virtual Config  get_and_pop_back()                                                      = 0;
     virtual void    erase_front()                                                           = 0;
     virtual void    erase_at(const size_t index)                                            = 0;
     virtual void    erase_back()                                                            = 0;
@@ -45,7 +66,6 @@ class IElementContainer : public IElement {
     // ======================================================================================================= Operators
 
     // Iterators =======================================================================================================
-    //индивидуально для потомков
     // ======================================================================================================= Iterators
 };
 
