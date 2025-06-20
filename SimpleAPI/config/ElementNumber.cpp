@@ -7,7 +7,31 @@
 std::string ElementNumber::toString(const ConfigFormat format, const int8_t tabulation_level,
                                     const CommentDesign &design) const noexcept
 {
-//TODO: ElementNumber::toString()
+    //TODO: ElementNumber::toString()
+    return "";
+}
+
+std::string ElementNumber::toJsonString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
+{
+    //TODO: std::string ElementNumber::toJsonString()
+    return "";
+}
+
+std::string ElementNumber::toIniString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
+{
+    //TODO: std::string ElementNumber::toIniString()
+    return "";
+}
+
+std::string ElementNumber::toYamlString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
+{
+    //TODO: std::string ElementNumber::toYamlString()
+    return "";
+}
+
+std::string ElementNumber::toXmlString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
+{
+    //TODO: std::string ElementNumber::toXmlString()
     return "";
 }
 

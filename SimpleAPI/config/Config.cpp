@@ -865,97 +865,49 @@ Config &Config::parseIni(const std::string &content, const bool with_comments,
     return *this;
 }
 
-void *Config::begin() {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
-    switch(getType()) {
-    case ValueType::eArray: return reinterpret_cast<void*>(dynamic_cast<ElementArray*>(m_value)->begin());
-    case ValueType::eJson:  return reinterpret_cast<void*>(dynamic_cast<ElementJson*>(m_value)->begin());
-    default:                break;
-    }
-
-    return nullptr;
-}
-
-void *Config::cbegin() const {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
-    switch(getType()) {
-    case ValueType::eArray: return reinterpret_cast<void*>(dynamic_cast<const ElementArray*>(m_value)->cbegin());
-    case ValueType::eJson:  return reinterpret_cast<void*>(dynamic_cast<const ElementJson*>(m_value)->cbegin());
-    default:                break;
-    }
-
-    return nullptr;
-}
-
-void *Config::end() {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
-    switch(getType()) {
-    case ValueType::eArray: return reinterpret_cast<void*>(dynamic_cast<ElementArray*>(m_value)->end());
-    case ValueType::eJson:  return reinterpret_cast<void*>(dynamic_cast<ElementJson*>(m_value)->end());
-    default:                break;
-    }
-
-    return nullptr;
-}
-
-void *Config::cend() const {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
-    switch(getType()) {
-    case ValueType::eArray: return reinterpret_cast<void*>(dynamic_cast<const ElementArray*>(m_value)->cend());
-    case ValueType::eJson:  return reinterpret_cast<void*>(dynamic_cast<const ElementJson*>(m_value)->cend());
-    default:                break;
-    }
-
-    return nullptr;
-}
-
-VElement::iterator Config::array_begin() {
+shared_VElement::iterator Config::array_begin() {
     __CHECK_TYPE_IS_ARRAY__((*this))
 
     return dynamic_cast<ElementArray*>(m_value)->begin();
 }
 
-VElement::const_iterator Config::array_cbegin() const {
+shared_VElement::const_iterator Config::array_cbegin() const {
     __CHECK_TYPE_IS_ARRAY__((*this))
 
     return dynamic_cast<const ElementArray*>(m_value)->cbegin();
 }
 
-VElement::iterator Config::array_end() {
+shared_VElement::iterator Config::array_end() {
     __CHECK_TYPE_IS_ARRAY__((*this))
 
     return dynamic_cast<ElementArray*>(m_value)->end();
 }
 
-VElement::const_iterator Config::array_cend() const {
+shared_VElement::const_iterator Config::array_cend() const {
     __CHECK_TYPE_IS_ARRAY__((*this))
 
     return dynamic_cast<const ElementArray*>(m_value)->cend();
 }
 
-VPairElement::iterator Config::json_begin() {
+shared_VPairElement::iterator Config::json_begin() {
     __CHECK_TYPE_IS_JSON__((*this))
 
     return dynamic_cast<ElementJson*>(m_value)->begin();
 }
 
-VPairElement::const_iterator Config::json_cbegin() const {
+shared_VPairElement::const_iterator Config::json_cbegin() const {
     __CHECK_TYPE_IS_JSON__((*this))
 
     return dynamic_cast<const ElementJson*>(m_value)->cbegin();
 }
 
-VPairElement::iterator Config::json_end() {
+shared_VPairElement::iterator Config::json_end() {
     __CHECK_TYPE_IS_JSON__((*this))
 
     return dynamic_cast<ElementJson*>(m_value)->end();
 }
 
-VPairElement::const_iterator Config::json_cend() const {
+shared_VPairElement::const_iterator Config::json_cend() const {
     __CHECK_TYPE_IS_JSON__((*this))
 
     return dynamic_cast<const ElementJson*>(m_value)->cend();

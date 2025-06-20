@@ -41,6 +41,14 @@ public:
     std::string toString(const ConfigFormat format = ConfigFormat::eONLY_VALUE,
                          const int8_t tabulation_level = 0,
                          const CommentDesign &design = {})  const noexcept  override;
+    std::string toJsonString(const int8_t tabulation_level = -1, const CommentDesign &design = {})
+                                                            const noexcept  override;
+    std::string toIniString(const int8_t tabulation_level = -1, const CommentDesign &design = {})
+                                                            const noexcept  override;
+    std::string toYamlString(const int8_t tabulation_level = -1, const CommentDesign &design = {})
+                                                            const noexcept  override;
+    std::string toXmlString(const int8_t tabulation_level = -1, const CommentDesign &design = {})
+                                                            const noexcept  override;
     // ========================================================================================================== String
 
     // File ============================================================================================================

@@ -733,24 +733,29 @@ std::string ElementArray::toString(const ConfigFormat format, const int8_t tabul
                                    const CommentDesign &design) const noexcept
 {
     //TODO: std::string ElementArray::toString()
+    return "";
 }
 
 std::string ElementArray::toJsonString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
 {
     //TODO: std::string ElementArray::toJsonString()
+    return "";
 }
 
 std::string ElementArray::toIniString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
 {
     //TODO: std::string ElementArray::toIniString()
+    return "";
 }
 
 std::string ElementArray::toYamlString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
 {
     //TODO: std::string ElementArray::toYamlString()
+    return "";
 }
 
 std::string ElementArray::toXmlString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
 {
     //TODO: std::string ElementArray::toXmlString()
+    return "";
 }

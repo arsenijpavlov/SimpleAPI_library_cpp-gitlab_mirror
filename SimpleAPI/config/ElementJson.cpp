@@ -571,24 +571,29 @@ std::string ElementJson::toString(const ConfigFormat format, const int8_t tabula
                                   const CommentDesign &design) const noexcept
 {
     //TODO: std::string ElementJson::toString()
+    return "";
 }
 
 std::string ElementJson::toJsonString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
 {
     //TODO: std::string ElementJson::toJsonString()
+    return "";
 }
 
 std::string ElementJson::toIniString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
 {
     //TODO: std::string ElementJson::toIniString()
+    return "";
 }
 
 std::string ElementJson::toYamlString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
 {
     //TODO: std::string ElementJson::toYamlString()
+    return "";
 }
 
 std::string ElementJson::toXmlString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
 {
     //TODO: std::string ElementJson::toXmlString()
+    return "";
 }
