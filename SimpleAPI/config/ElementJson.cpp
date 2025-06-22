@@ -258,6 +258,7 @@ Config ElementJson::get_or_default_at(const std::string& key, Config&& default_v
 }
 
 void ElementJson::clear() noexcept {
+    clearComment();
     m_values.clear();
 }
 
@@ -596,4 +597,10 @@ std::string ElementJson::toXmlString(const int8_t tabulation_level, const Commen
 {
     //TODO: std::string ElementJson::toXmlString()
     return "";
+}
+
+void ElementJson::parse(std::string &&input_string, const ConfigFormat format,
+                        bool parse_comments)
+{
+    //TODO: void ElementJson::parse()
 }

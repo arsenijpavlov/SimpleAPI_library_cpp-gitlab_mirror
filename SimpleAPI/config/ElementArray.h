@@ -144,6 +144,13 @@ public:
     Config  operator[](const size_t index)                              const           override;
     // ======================================================================================================= Operators
 
+    // Iterators =======================================================================================================
+    shared_VElement::iterator       begin()                             noexcept                    { return m_values.begin(); }
+    shared_VElement::iterator       end()                               noexcept                    { return m_values.end(); }
+    shared_VElement::const_iterator cbegin()                            const noexcept              { return m_values.cbegin(); }
+    shared_VElement::const_iterator cend()                              const noexcept              { return m_values.cend(); }
+    // ======================================================================================================= Iterators
+
     // String ==========================================================================================================
     //вывод без комментариев, "tabulation_level == -1" => запись в одну строку
     std::string toString(const ConfigFormat format = ConfigFormat::eJSON,
@@ -163,19 +170,16 @@ public:
     // ============================================================================================================ File
 
     // Parser ==========================================================================================================
+    void    parse(std::string&& input_string, const ConfigFormat format = ConfigFormat::eJSON,
+               bool parse_comments = true)                                              override;
     // ========================================================================================================== Parser
-
-    // Iterators =======================================================================================================
-    shared_VElement::iterator       begin()                             noexcept                    { return m_values.begin(); }
-    shared_VElement::iterator       end()                               noexcept                    { return m_values.end(); }
-    shared_VElement::const_iterator cbegin()                            const noexcept              { return m_values.cbegin(); }
-    shared_VElement::const_iterator cend()                              const noexcept              { return m_values.cend(); }
-    // ======================================================================================================= Iterators
 };
 
-bool IsElementArray(const std::string& str, const ConfigFormat format = ConfigFormat::eJSON) noexcept;
-bool IsElementJsonArray(const std::string& str)                         noexcept;
-bool IsElementIniArray(const std::string& str)                          noexcept;
-bool IsElementArray(const IElement& e)                                  noexcept;
+//TODO: bool IsElementArray(const std::string& str, const ConfigFormat format = ConfigFormat::eJSON) noexcept;
+//TODO: bool IsElementJsonArray(const std::string& str)                         noexcept;
+//TODO: bool IsElementIniArray(const std::string& str)                          noexcept;
+//TODO: bool IsElementArray(const IElement& e)                                  noexcept;
+
+//TODO: ElementArray ParseArray(std::string&& input_string, const ConfigFormat format = ConfigFormat::eJSON, bool parse_comments = true)
 
 #endif // ELEMENT_ARRAY_H

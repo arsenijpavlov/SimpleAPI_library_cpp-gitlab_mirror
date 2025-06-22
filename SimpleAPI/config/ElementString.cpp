@@ -6,6 +6,11 @@
 #include "../utils/Utils.h"
 
 
+void ElementString::clear() noexcept {
+    clearComment();
+    m_value.clear();
+}
+
 std::string ElementString::toString(const ConfigFormat format, const int8_t tabulation_level,
                                     const CommentDesign &design) const noexcept
 {

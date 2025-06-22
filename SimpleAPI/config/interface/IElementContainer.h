@@ -7,6 +7,9 @@
 //абстрактный класс для управления списками элементов
 class IElementContainer : public IElement {
     // Comment =========================================================================================================
+protected:
+    CommentDesign m_comment_design;
+public:
     virtual void    add_comment(const size_t index, const Comment &content)                 = 0;
     virtual void    add_comment(const size_t index, const std::string &content_before,
                              const std::string &content_after)                              = 0;
@@ -60,6 +63,9 @@ class IElementContainer : public IElement {
     void            remove_back()                                                           { erase_back(); }
     // ======================================================================================================== Removing
 
+    // Info ============================================================================================================
+    // ============================================================================================================ Info
+
     // Operators =======================================================================================================
     virtual Config& operator[](const size_t index)                                          = 0;
     virtual Config  operator[](const size_t index)                          const           = 0;
@@ -67,6 +73,19 @@ class IElementContainer : public IElement {
 
     // Iterators =======================================================================================================
     // ======================================================================================================= Iterators
+
+    // String ==========================================================================================================
+    // ========================================================================================================== String
+
+    // File ============================================================================================================
+    // ============================================================================================================ File
+
+    // Parser ==========================================================================================================
+    void            parse(const std::string& input_string, const ConfigFormat format = ConfigFormat::eJSON,
+                        bool parse_comments = true)                                         { parse(std::move(std::string(input_string)), format, parse_comments); }
+    virtual void    parse(std::string&& input_string, const ConfigFormat format = ConfigFormat::eJSON,
+                        bool parse_comments = true)                                         = 0;
+    // ========================================================================================================== Parser
 };
 
 #endif // I_ELEMENT_CONTAINER_H

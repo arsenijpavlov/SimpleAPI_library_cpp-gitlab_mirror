@@ -230,11 +230,15 @@ public:
     // ============================================================================================================ File
 
     // Parser ==========================================================================================================
+    void    parse(std::string&& input_string, const ConfigFormat format = ConfigFormat::eJSON,
+               bool parse_comments = true)                                                      override;
     // ========================================================================================================== Parser
 };
 
-bool IsElementJson(const std::string& str)                                      noexcept;
-bool IsElementJson(const IElement& e)                                           noexcept;
-bool IsElementJson(const Config& cfg)                                           noexcept;
+//TODO: bool IsElementJson(const std::string& str)                                      noexcept;
+//TODO: bool IsElementJson(const IElement& e)                                           noexcept;
+//TODO: bool IsElementJson(const Config& cfg)                                           noexcept;
+
+//TODO: ElementJson ParseJson(std::string&& input_string, const ConfigFormat format = ConfigFormat::eJSON, bool parse_comments = true)
 
 #endif // ELEMENT_JSON_H

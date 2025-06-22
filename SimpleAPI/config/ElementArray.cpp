@@ -580,6 +580,7 @@ Config ElementArray::get_back() const {
 }
 
 void ElementArray::clear() noexcept {
+    clearComment();
     m_values.clear();
 }
 
@@ -758,4 +759,10 @@ std::string ElementArray::toXmlString(const int8_t tabulation_level, const Comme
 {
     //TODO: std::string ElementArray::toXmlString()
     return "";
+}
+
+void ElementArray::parse(std::string &&input_string, const ConfigFormat format,
+                         bool parse_comments)
+{
+    //TODO: void ElementArray::parse()
 }

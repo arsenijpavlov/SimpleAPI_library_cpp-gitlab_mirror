@@ -4,6 +4,11 @@
 #include <regex>
 
 
+void ElementNumber::clear() noexcept {
+    clearComment();
+    m_value = 0;
+}
+
 std::string ElementNumber::toString(const ConfigFormat format, const int8_t tabulation_level,
                                     const CommentDesign &design) const noexcept
 {

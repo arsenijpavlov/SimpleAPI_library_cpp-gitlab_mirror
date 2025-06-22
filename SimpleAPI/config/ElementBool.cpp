@@ -4,6 +4,11 @@
 #include <algorithm>
 
 
+void ElementBool::clear() noexcept {
+    clearComment();
+    m_value = false;
+}
+
 std::string ElementBool::toString(const ConfigFormat format, const int8_t tabulation_level,
                                   const CommentDesign &design) const noexcept
 {
