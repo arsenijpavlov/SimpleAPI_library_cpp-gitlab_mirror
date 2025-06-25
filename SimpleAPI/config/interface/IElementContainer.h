@@ -81,10 +81,18 @@ public:
     // ============================================================================================================ File
 
     // Parser ==========================================================================================================
-    void            parse(const std::string& input_string, const ConfigFormat format = ConfigFormat::eJSON,
-                        bool parse_comments = true)                                         { parse(std::move(std::string(input_string)), format, parse_comments); }
+    virtual void    parse(const std::string& input_string, const ConfigFormat format = ConfigFormat::eJSON,
+                        bool parse_comments = true)                                         = 0;
     virtual void    parse(std::string&& input_string, const ConfigFormat format = ConfigFormat::eJSON,
                         bool parse_comments = true)                                         = 0;
+    virtual void    parseJson(const std::string& input_string, bool parse_comments = true)  = 0;
+    virtual void    parseJson(std::string&& input_string, bool parse_comments = true)       = 0;
+    virtual void    parseIni(const std::string& input_string, bool parse_comments = true)   = 0;
+    virtual void    parseIni(std::string&& input_string, bool parse_comments = true)        = 0;
+    virtual void    parseYaml(const std::string& input_string, bool parse_comments = true)  = 0;
+    virtual void    parseYaml(std::string&& input_string, bool parse_comments = true)       = 0;
+    virtual void    parseXml(const std::string& input_string, bool parse_comments = true)   = 0;
+    virtual void    parseXml(std::string&& input_string, bool parse_comments = true)        = 0;
     // ========================================================================================================== Parser
 };
 

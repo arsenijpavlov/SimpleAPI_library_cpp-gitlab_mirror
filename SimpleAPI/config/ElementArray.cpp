@@ -762,7 +762,29 @@ std::string ElementArray::toXmlString(const int8_t tabulation_level, const Comme
 }
 
 void ElementArray::parse(std::string &&input_string, const ConfigFormat format,
-                         bool parse_comments)
+                        bool parse_comments)
 {
-    //TODO: void ElementArray::parse()
+    switch(format) {
+    default:
+    case ConfigFormat::eJSON:   parseJson(std::move(input_string), parse_comments); break;
+    case ConfigFormat::eINI:    parseIni(std::move(input_string), parse_comments);  break;
+    case ConfigFormat::eYAML:   parseYaml(std::move(input_string), parse_comments); break;
+    case ConfigFormat::eXML:    parseXml(std::move(input_string), parse_comments);  break;
+    }
+}
+
+void ElementArray::parseJson(std::string &&input_string, bool parse_comments) {
+    //TODO: void ElementArray::parseJson()
+}
+
+void ElementArray::parseIni(std::string &&input_string, bool parse_comments) {
+    //TODO: void ElementArray::parseIni()
+}
+
+void ElementArray::parseYaml(std::string &&input_string, bool parse_comments) {
+    //TODO: void ElementArray::parseYaml()
+}
+
+void ElementArray::parseXml(std::string &&input_string, bool parse_comments) {
+    //TODO: void ElementArray::parseXml()
 }

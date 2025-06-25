@@ -16,15 +16,10 @@ public:
         m_values = json.m_values;
     }
     explicit ElementJson(const JPair& pair)                                     noexcept;
-    //разнесено для решения конфликта, не изменять следующие два конструктора!
-    explicit ElementJson(const std::string& input_string) noexcept {
-        init();
-        parseJson(input_string);
-    }
-    explicit ElementJson(const std::string& input_string, const ConfigFormat config_format,
+    explicit ElementJson(const std::string& input_string, const ConfigFormat config_format = ConfigFormat::eJSON,
                 const bool enable_comment = false) noexcept {
         init();
-        parse(input_string, config_format, enable_comment);
+        IElementContainer::parse(input_string, config_format, enable_comment);
     }
     __ONLY_ALLOWED_TYPES__(T)
     explicit ElementJson(const std::string& key, const T& value) noexcept {
@@ -33,7 +28,7 @@ public:
     }
     explicit ElementJson(const VPairElement& vec) noexcept {
         init();
-        m_values = vec;
+        insert_back(vec);
     }
     explicit ElementJson(const IElement& element)                               noexcept        { init(); }
     ~ElementJson()                                                              noexcept        {}
@@ -230,8 +225,18 @@ public:
     // ============================================================================================================ File
 
     // Parser ==========================================================================================================
+    void    parse(const std::string& input_string, const ConfigFormat format = ConfigFormat::eJSON,
+               bool parse_comments = true)                                                      override    { parse(std::move(std::string(input_string)), format, parse_comments); }
     void    parse(std::string&& input_string, const ConfigFormat format = ConfigFormat::eJSON,
                bool parse_comments = true)                                                      override;
+    void    parseJson(const std::string& input_string, bool parse_comments = true)              override    { parseJson(std::move(std::string(input_string)), parse_comments); }
+    void    parseJson(std::string&& input_string, bool parse_comments = true)                   override;
+    void    parseIni(const std::string& input_string, bool parse_comments = true)               override    { parseIni(std::move(std::string(input_string)), parse_comments); }
+    void    parseIni(std::string&& input_string, bool parse_comments = true)                    override;
+    void    parseYaml(const std::string& input_string, bool parse_comments = true)              override    { parseYaml(std::move(std::string(input_string)), parse_comments); }
+    void    parseYaml(std::string&& input_string, bool parse_comments = true)                   override;
+    void    parseXml(const std::string& input_string, bool parse_comments = true)               override    { parseXml(std::move(std::string(input_string)), parse_comments); }
+    void    parseXml(std::string&& input_string, bool parse_comments = true)                    override;
     // ========================================================================================================== Parser
 };
 

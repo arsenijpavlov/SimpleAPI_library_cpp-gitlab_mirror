@@ -18,7 +18,7 @@ public:
     ElementArray(const std::string& string, const ConfigFormat format,
                  const bool enable_comments = false)                    noexcept {
         init();
-        parseArray(string, enable_comments, format);
+        IElementContainer::parse(string, format, enable_comments);
     }
     ~ElementArray()                                                     noexcept                    {}
 
@@ -170,8 +170,34 @@ public:
     // ============================================================================================================ File
 
     // Parser ==========================================================================================================
+private:
+    enum class ParseState {
+        eARRAY_START,
+        eARRAY_VALUE,
+        eARRAY_SEPARATOR,
+        eARRAY_FINISH
+    };
+    enum class ValueFormat {
+        eVALUE_NOPE,    // неинициализированное значение
+        eVALUE_JSON,
+        eVALUE_ARRAY,
+        eVALUE_OTHER    // НЕ контейнер
+    };
+    std::string to_string(const ParseState state)                       const noexcept;
+    void UpdateState(ParseState& state)                              const noexcept;
+public:
+    void    parse(const std::string& input_string, const ConfigFormat format = ConfigFormat::eJSON,
+               bool parse_comments = true)                                              override    { parse(std::move(std::string(input_string)), format, parse_comments); }
     void    parse(std::string&& input_string, const ConfigFormat format = ConfigFormat::eJSON,
                bool parse_comments = true)                                              override;
+    void    parseJson(const std::string& input_string, bool parse_comments = true)      override    { parseJson(std::move(std::string(input_string)), parse_comments); }
+    void    parseJson(std::string&& input_string, bool parse_comments = true)           override;
+    void    parseIni(const std::string& input_string, bool parse_comments = true)       override    { parseIni(std::move(std::string(input_string)), parse_comments); }
+    void    parseIni(std::string&& input_string, bool parse_comments = true)            override;
+    void    parseYaml(const std::string& input_string, bool parse_comments = true)      override    { parseYaml(std::move(std::string(input_string)), parse_comments); }
+    void    parseYaml(std::string&& input_string, bool parse_comments = true)           override;
+    void    parseXml(const std::string& input_string, bool parse_comments = true)       override    { parseXml(std::move(std::string(input_string)), parse_comments); }
+    void    parseXml(std::string&& input_string, bool parse_comments = true)            override;
     // ========================================================================================================== Parser
 };
 

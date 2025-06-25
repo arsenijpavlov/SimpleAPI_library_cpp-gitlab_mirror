@@ -602,5 +602,27 @@ std::string ElementJson::toXmlString(const int8_t tabulation_level, const Commen
 void ElementJson::parse(std::string &&input_string, const ConfigFormat format,
                         bool parse_comments)
 {
-    //TODO: void ElementJson::parse()
+    switch(format) {
+    default:
+    case ConfigFormat::eJSON:   parseJson(std::move(input_string), parse_comments); break;
+    case ConfigFormat::eINI:    parseIni(std::move(input_string), parse_comments);  break;
+    case ConfigFormat::eYAML:   parseYaml(std::move(input_string), parse_comments); break;
+    case ConfigFormat::eXML:    parseXml(std::move(input_string), parse_comments);  break;
+    }
+}
+
+void ElementJson::parseJson(std::string &&input_string, bool parse_comments) {
+    //TODO: void ElementJson::parseJson()
+}
+
+void ElementJson::parseIni(std::string &&input_string, bool parse_comments) {
+    //TODO: void ElementJson::parseIni()
+}
+
+void ElementJson::parseYaml(std::string &&input_string, bool parse_comments) {
+    //TODO: void ElementJson::parseYaml()
+}
+
+void ElementJson::parseXml(std::string &&input_string, bool parse_comments) {
+    //TODO: void ElementJson::parseXml()
 }
