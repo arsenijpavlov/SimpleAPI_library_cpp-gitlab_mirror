@@ -532,7 +532,7 @@ void RemoveComments(std::string &str, bool &startComment,
 }
 
 CommentType IsCommentStart(const char first, const char second,
-                           CommentDesign& design, size_t &iter_counter) noexcept
+                           const CommentDesign& design, size_t &iter_counter) noexcept
 {
     auto UpdOnelineDesign = [&](const char first_sym, const char second_sym){
         design.oneline_comment_symbols[0] = first_sym;
@@ -587,6 +587,7 @@ CommentType IsCommentStart(const char first, const char second,
     return CommentType::eNotComment;
 }
 
+//FIXME: void CheckComments()
 void CheckComments(const char current_sym, const char next_sym,
                    CommentChecker& checker, const bool enable_comment,
                    CommentDesign& design, std::string &current_sym_comment_line,

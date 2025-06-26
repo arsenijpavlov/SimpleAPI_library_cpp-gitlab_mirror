@@ -13,15 +13,6 @@
 class ElementArray;
 
 
-//void ElementArray::parseArray(const std::string &string, const bool enable_comment,
-//                              const ConfigFormat config_format, CommentDesign* design) {
-//    switch(config_format) {
-//    case ConfigFormat::eJSON:   parseJsonArray(string, enable_comment, design);
-//    case ConfigFormat::eINI:    parseIniArray(string, enable_comment, design);
-//    default:                    return;
-//    }
-//}
-
 //void ElementArray::parseJsonArray(const std::string &string, const bool enable_comment,
 //                                   CommentDesign* design) {
 //    clear(); //очистка списка перед новым заполнением
@@ -761,8 +752,37 @@ std::string ElementArray::toXmlString(const int8_t tabulation_level, const Comme
     return "";
 }
 
+std::string ElementArray::to_string(const ParseState state) const noexcept {
+    switch (state) {
+    case ParseState::eARRAY_ERROR_STATE:    return "[ARRAY_ERROR_STATE]";
+    case ParseState::eARRAY_START:          return "[ARRAY_START]";
+    case ParseState::eARRAY_VALUE:          return "[ARRAY_VALUE]";
+    case ParseState::eARRAY_SEPARATOR:      return "[ARRAY_SEPARATOR]";
+    case ParseState::eARRAY_FINISH:         return "[ARRAY_FINISH]";
+    }
+}
+
+void ElementArray::UpdateState(ParseState &state) const noexcept {
+    //TODO: void ElementArray::UpdateState()
+}
+
+void ElementArray::LineCounter(const char current_ch, size_t &line_counter,
+                               size_t &symbol_counter) const noexcept
+{
+    if(current_ch == '\n') {
+        line_counter++;
+        symbol_counter = 0; //должен перескочить строго на следующей строке
+    } else symbol_counter++;
+}
+
+void ElementArray::parse(const std::string &input_string, const ConfigFormat format,
+                         bool parse_comments, const CommentDesign &design)
+{
+    parse(std::move(std::string(input_string)), format, parse_comments, design);
+}
+
 void ElementArray::parse(std::string &&input_string, const ConfigFormat format,
-                        bool parse_comments)
+                         bool parse_comments, const CommentDesign &design)
 {
     switch(format) {
     default:
@@ -773,18 +793,133 @@ void ElementArray::parse(std::string &&input_string, const ConfigFormat format,
     }
 }
 
-void ElementArray::parseJson(std::string &&input_string, bool parse_comments) {
-    //TODO: void ElementArray::parseJson()
+void ElementArray::parseJson(const std::string &input_string, bool parse_comments,
+                             const CommentDesign &design)
+{
+    parseJson(std::move(std::string(input_string)), parse_comments, design);
 }
 
-void ElementArray::parseIni(std::string &&input_string, bool parse_comments) {
+void ElementArray::parseJson(std::string &&input_string, bool parse_comments,
+                             const CommentDesign &design)
+{
+    //TODO: void ElementArray::parseJson()
+    using namespace utils;
+
+    /* NOTE: для документации
+     * комментарий массива
+     * начало массива
+     * (+комментарий перед значением)
+     * значение массива
+     * (+комментарий после значения) = на строке значения
+     * (разделитель)
+     * (+комментарий перед значением)= после разделителя
+     * (+значение массива)           = после разделителя
+     * (+комментарий после значения) = после разделителя
+     * конец массива
+    */
+
+    //первоначальная очистка всех элементов
+    clear();
+    //пустой документ не является ошибкой синтаксиса
+    RemoveIllegalSpaces(input_string);
+    if(input_string.empty()) return;
+
+    size_t line_counter   = 0;
+    size_t symbol_counter = 0;
+    ParseState state = ParseState::eARRAY_START;
+    struct TempCommentDesign {
+        enum class CommentType {
+            not_comment,
+            oneline_comment,
+            muiltiline_comment
+        } comment_type;
+        CommentDesign design;
+        std::array<char, 3> current_comment_symbols;
+    };
+    TempCommentDesign temp_design;
+    temp_design.design = design;
+    std::string comment;
+    ValueFormat value_format = ValueFormat::eVALUE_NOPE;
+    std::string value;
+    bool is_quotes = false;
+    CommentChecker comment_checker = CommentChecker::eIsNotComment;
+
+    for(size_t i = 0; i < input_string.size(); i++) {
+        char previous_ch    = i == 0 ? 0 : input_string[i - 1];
+        char current_ch     = input_string[i];
+        char next_ch        = i < input_string.size() ? input_string[i + 1] : 0;
+
+        //поиск комментариев ===================================================
+        const bool ext_f = !is_quotes
+                           && value_format != ValueFormat::eVALUE_ARRAY
+                           && value_format != ValueFormat::eVALUE_JSON;
+        CheckComments(current_ch, next_ch,
+                      comment_checker, parse_comments,
+                      temp_design, comment,
+                      i, ext_f);
+        //сюда зайдёт, если внутри комментария
+        if(comment_checker != CommentChecker::eIsNotComment) {
+            Counter();
+            continue;
+        } //================================================= поиск комментариев
+
+        switch(state) {
+        case ParseState::eARRAY_START: {
+
+            break;
+        }
+        case ParseState::eARRAY_VALUE: {
+
+            break;
+        }
+        case ParseState::eARRAY_SEPARATOR: {
+
+            break;
+        }
+        case ParseState::eARRAY_FINISH: {
+
+            break;
+        }
+        case ParseState::eARRAY_ERROR_STATE: {
+
+            break;
+        }
+        }
+    }
+}
+
+void ElementArray::parseIni(const std::string &input_string, bool parse_comments,
+                            const CommentDesign &design)
+{
+    parseIni(std::move(std::string(input_string)), parse_comments, design);
+}
+
+void ElementArray::parseIni(std::string &&input_string, bool parse_comments,
+                            const CommentDesign &design)
+{
     //TODO: void ElementArray::parseIni()
 }
 
-void ElementArray::parseYaml(std::string &&input_string, bool parse_comments) {
+void ElementArray::parseYaml(const std::string &input_string, bool parse_comments,
+                             const CommentDesign &design)
+{
+    parseYaml(std::move(std::string(input_string)), parse_comments, design);
+}
+
+void ElementArray::parseYaml(std::string &&input_string, bool parse_comments,
+                             const CommentDesign &design)
+{
     //TODO: void ElementArray::parseYaml()
 }
 
-void ElementArray::parseXml(std::string &&input_string, bool parse_comments) {
+void ElementArray::parseXml(const std::string &input_string, bool parse_comments,
+                            const CommentDesign &design)
+{
+    parseXml(std::move(std::string(input_string)), parse_comments, design);
+}
+
+void ElementArray::parseXml(std::string &&input_string, bool parse_comments,
+                            const CommentDesign &design)
+{
     //TODO: void ElementArray::parseXml()
 }
