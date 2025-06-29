@@ -27,29 +27,50 @@ constexpr char comment_one_line[SIZE_comment_one_line][2] {
     {'/', '/'}
 };
 
-
+enum class CommentType : uint8_t {
+    eNotComment,
+    eOneLineComment,
+    eMultiLineComment,
+    eCommentEnd       //последний требует continue!
+};
 //#define DEFAULT_COMMENT_COLUMN_SIZE 50
 struct CommentDesign {
-    //NOTE: однострочные комментарии могут иметь два символа в начале
-    std::array<char,2>  oneline_comment_symbols;
-    /* NOTE: многострочные комментарии должны быть заданы в стиле <*> (<*comment_string*>)   *
-     * третий символ может быть пустым, тогда для завершения будет использован первый символ */
-    std::array<char,3>  multiline_comment_symbols;
-    char                opt_multiline_border;
-    uint8_t             opt_multiline_column_size;
+    // применяется ТОЛЬКО для многострочных комментариев, по умолчанию не используются
+    char    opt_multiline_border;
+    uint8_t opt_multiline_column_size;
 
-    std::vector<std::array<uint8_t, 2>> user_oneline_comment_braces;
-    std::vector<std::array<uint8_t, 3>> user_multiline_comment_braces;
+    // многострочность комментария пользователь задаёт сам
+    //  либо самостоятельно ставя '\n'
+    //  либо задав максимальный размер
+    //NOTE: однострочные комментарии могут иметь два символа в начале
+    // (1) {x,0} - комментарий от символа x до конца строки
+    // (2) {x,y} - комментарий от последовательностит символов 'x' и 'y' до конца строки
+    std::vector<std::array<uint8_t, 2>> oneline_comment_variants;
+
+    // (1) {x, 0, 0} - один символ открывает и завершает многострочный комментарий
+    // (2) {x, 0, y} - один символ открывает многострочный комментарий, другой - завершает
+    // (3) {x, y, 0}
+    // (4) {x, y, z}
+    // 1) # ... #
+    // 2) # ... $
+    // 3) /* ... */
+    // 4) {* ... *}
+    std::vector<std::array<uint8_t, 3>> multiline_comment_variants;
+
+    //NOTE: чтение по всем вариантам вектора, запись строго по первому элементу
 
     CommentDesign() :
-        oneline_comment_symbols{'/', '/'},
-        multiline_comment_symbols{'/', '*', 0}, // 0 - завершающий символ повторяет первый
-        opt_multiline_border(0),                // применяется ТОЛЬКО для многострочных комментариев,
-                                                //  по умолчанию не используется
-        opt_multiline_column_size(0)            // многострочность комментария пользователь задаёт сам
-                                                //  либо самостоятельно ставя '\n'
-                                                //  либо задав максимальный размер
-    {}
+        opt_multiline_border(0),
+        opt_multiline_column_size(0)
+    {
+        oneline_comment_variants.push_back({'/', '/'});         // {#,0} - второй символ 0 -> один символ уже комментирует
+        multiline_comment_variants.push_back({'/', '*', 0});    // 0 - завершающий символ повторяет первый
+    }
+};
+struct CommentSettings {
+    CommentDesign           design;
+    CommentType             type;
+    std::array<uint8_t, 2>  temp_multiline_stop; //используется только во время парсинга
 };
 
 class Comment {
@@ -59,17 +80,17 @@ private:
 
     //NOTE: при выводе в файл (+комментарии) будут учитываться только параметры корневого элемента
     //NOTE: если не назначено, то будет применён стиль C++: //однострочный,  /*многострочный*/, с шириной DEFAULT_COMMENT_COLUMN_SIZE знаков
-    CommentDesign *m_commentDesign;
+    CommentDesign *m_comment_design;
 
 public:
     Comment() noexcept;
-    Comment(const Comment& other) noexcept;
+    explicit Comment(const Comment& other) noexcept;
 /*FIXME*/    Comment(const Comment&& other) noexcept;
-    Comment(const std::string& comment_before, const std::string& comment_after = "") noexcept;
+    explicit Comment(const std::string& comment_before, const std::string& comment_after = "") noexcept;
     ~Comment() noexcept;
 
 private:
-    void init() {}
+//    void init() {}
 
 public:
     bool isEmpty() const noexcept;
@@ -120,27 +141,14 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
 std::string FromComment(const std::string &comment_string, CommentDesign& design) noexcept;
 
 
-enum class CommentType : uint8_t {
-    eNotComment,
-    eOneLineComment,
-    eMultiLineComment
-};
-enum class CommentChecker : uint8_t {
-    eIsOnelineComment,
-    eIsMultilineComment,
-    eIsNotComment,
-    eIsCommentEnd       //последний требует continue!
-};
-
 void RemoveComments(std::string& str, bool& startComment, char& quote,
                     char& start_comment_sym, char& stop_comment_sym);
 
 CommentType IsCommentStart(const char first, const char second,
-                           CommentDesign& design, size_t &iter_counter) noexcept;
+                           CommentSettings& settings, size_t &iter_counter) noexcept;
 
 void CheckComments(const char current_sym, const char next_sym,
-                   CommentChecker& checker, const bool enable_comment,
-                   CommentDesign& design, std::string &current_sym_comment_line,
-                   size_t &iter_counter, const bool external_flag = true);
+                   size_t &iter_counter, CommentSettings& settings,
+                   std::string &current_comment, const bool external_flag = true);
 
 #endif // COMMENT_H

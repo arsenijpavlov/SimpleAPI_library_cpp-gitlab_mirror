@@ -4,13 +4,14 @@
 #include "../utils/Logger.h"
 #include "ConfigDefines.h"
 #include "ConfigCommon.h"
+#include <algorithm>
 
 
 Comment::Comment() noexcept {
     m_prefix = nullptr;
     m_suffix = nullptr;
 
-    m_commentDesign = nullptr;
+    m_comment_design = nullptr;
 }
 
 Comment::Comment(const Comment &other) noexcept {
@@ -31,14 +32,14 @@ Comment::Comment(const std::string &comment_before, const std::string &comment_a
     m_prefix = (comment_before.empty()) ? nullptr : new std::string(comment_before);
     m_suffix = (comment_after.empty()) ? nullptr : new std::string(comment_after);
 
-    m_commentDesign = nullptr;
+    m_comment_design = nullptr;
 }
 
 Comment::~Comment() noexcept {
     if(m_prefix) delete m_prefix;
     if(m_suffix) delete m_suffix;
 
-    if(m_commentDesign) delete m_commentDesign;
+    if(m_comment_design) delete m_comment_design;
 }
 
 bool Comment::isEmpty() const noexcept {
@@ -107,7 +108,7 @@ void Comment::clearSuffix() noexcept {
 void Comment::del() noexcept {
     if(m_prefix) delete m_prefix;
     if(m_suffix) delete m_suffix;
-    if(m_commentDesign) delete m_commentDesign;
+    if(m_comment_design) delete m_comment_design;
 }
 
 void Comment::delPrefix() noexcept {
@@ -119,25 +120,25 @@ void Comment::delSuffix() noexcept {
 }
 
 CommentDesign &Comment::commentDesign() noexcept {
-    if(!m_commentDesign) m_commentDesign = new CommentDesign();
-    return *m_commentDesign;
+    if(!m_comment_design) m_comment_design = new CommentDesign();
+    return *m_comment_design;
 }
 
 CommentDesign Comment::commentDesign() const noexcept {
-    if(!m_commentDesign) return {};
-    return *m_commentDesign;
+    if(!m_comment_design) return {};
+    return *m_comment_design;
 }
 
 void Comment::setDesign(const CommentDesign &design) noexcept {
-    if(!m_commentDesign) {
-        m_commentDesign = new CommentDesign(design);
+    if(!m_comment_design) {
+        m_comment_design = new CommentDesign(design);
         return;
     }
-    *m_commentDesign = design;
+    *m_comment_design = design;
 }
 
 void Comment::clearDesign() noexcept {
-    if(m_commentDesign) delete m_commentDesign;
+    if(m_comment_design) delete m_comment_design;
 }
 
 //TODO: исправить. Не работает.
@@ -532,119 +533,95 @@ void RemoveComments(std::string &str, bool &startComment,
 }
 
 CommentType IsCommentStart(const char first, const char second,
-                           const CommentDesign& design, size_t &iter_counter) noexcept
+                           CommentSettings& settings, size_t &iter_counter) noexcept
 {
-    auto UpdOnelineDesign = [&](const char first_sym, const char second_sym){
-        design.oneline_comment_symbols[0] = first_sym;
-        design.oneline_comment_symbols[1] = second_sym;
-        iter_counter++;
-        return CommentType::eOneLineComment;
-    };
-    auto UpdMultilineDesign = [&](){
-        design.multiline_comment_symbols[0] = first;
-        design.multiline_comment_symbols[1] = second;
-//        design.multiline_comment_symbols[2]; //завершающий символ установится в функции CheckComments()
-        iter_counter++; //проскакиваем следующий символ при парсинге
+    auto UpdMultilineDesign = [&settings, &iter_counter](const char before_last, const char last){
+        settings.temp_multiline_stop[0] = before_last;
+        settings.temp_multiline_stop[1] = last;
+        if(before_last != 0) iter_counter++; //проскакиваем следующий символ при парсинге
         return CommentType::eMultiLineComment;
     };
+    auto IsMultFound = [&first, &second](const std::array<uint8_t, 3> arr) {
+        return first == arr[0] && (arr[1] == 0 || second == arr[1]);
+    };
+    auto IsOneFound = [&first, &second](const std::array<uint8_t, 2> arr) {
+        return first == arr[0] && (arr[1] == 0 || second == arr[1]);
+    };
 
-    //ПОЛЬЗОВАТЕЛЬСКИЕ========================================
     //сперва искать многострочные комментарии!
-    for(auto m_arr : design.user_multiline_comment_braces) {
-        if(first == m_arr[0] && second == m_arr[1])
-            return UpdMultilineDesign();
+    auto multi_it = std::find_if(
+        settings.design.multiline_comment_variants.begin(),
+        settings.design.multiline_comment_variants.end(),
+        IsMultFound);
+    if(multi_it != settings.design.multiline_comment_variants.end()) {
+        return UpdMultilineDesign(multi_it->at(1),
+                                  multi_it->at(2) == 0 ? multi_it->at(0) : multi_it->at(2));
     }
-    //поиск однострочных комментариев
-    for(auto o_arr : design.user_oneline_comment_braces) {
-        if(first == o_arr[0]) {
-            if(o_arr[1] == 0) {
-                if(second == o_arr[1])
-                    return UpdOnelineDesign(first, second);
-            } else
-                return UpdOnelineDesign(first, 0);
-        }
-    }
-    //========================================ПОЛЬЗОВАТЕЛЬСКИЕ
 
-    //СТАНДАРТНЫЕ=============================================
-    //сперва искать многострочные комментарии!
-    for(uint8_t i = 0; i < SIZE_comment_multi_line; i++) {
-        if(first == comment_multi_line[i][0] && second == comment_multi_line[i][1])
-            return UpdMultilineDesign();
-    }
     //поиск однострочных комментариев
-    for(uint8_t i = 0; i < SIZE_comment_one_line; i++) {
-        if(first == comment_one_line[i][0]) {
-            if((comment_one_line[i][1] != 0)) {
-                if(second == comment_one_line[i][1])
-                    return UpdOnelineDesign(first, second);
-            } else
-                return UpdOnelineDesign(first, 0);
-        }
+    auto one_it = std::find_if(
+        settings.design.oneline_comment_variants.begin(),
+        settings.design.oneline_comment_variants.end(),
+        IsOneFound);
+    if(one_it != settings.design.oneline_comment_variants.end()) {
+        if(one_it->at(1) == 0) iter_counter++; //проскакиваем следующий символ при парсинге
+        return CommentType::eOneLineComment;
     }
-    //=============================================СТАНДАРТНЫЕ
 
     return CommentType::eNotComment;
 }
 
-//FIXME: void CheckComments()
+//предполагается использовать только для парсинга
 void CheckComments(const char current_sym, const char next_sym,
-                   CommentChecker& checker, const bool enable_comment,
-                   CommentDesign& design, std::string &current_sym_comment_line,
-                   size_t &iter_counter, const bool external_flag)
+                   size_t &iter_counter, CommentSettings& settings,
+                   std::string &current_comment, const bool external_flag)
 {
-    if(!external_flag) {
-        //значения в кавычках не могут влиять на комментирование
-        checker = CommentChecker::eIsNotComment;
+    if(!external_flag) { //например, значения в кавычках не могут влиять на комментирование
+        settings.type = CommentType::eNotComment;
         return;
     }
 
-    switch(checker) {
-    case CommentChecker::eIsOnelineComment: {
-        current_sym_comment_line += current_sym;
+    switch(settings.type) {
+    case CommentType::eOneLineComment: {
+        current_comment += current_sym;
 
         //если следующий символ должен обрабатываться другим кодом
-        if((current_sym == '\n') || ((next_sym != 0) && (next_sym == '\n'))) {
-            if(current_sym != '\n') current_sym_comment_line += '\n';
-            checker = CommentChecker::eIsCommentEnd;
+        if((current_sym == '\n') || (next_sym == '\n')) {
+            if(current_sym != '\n') current_comment += '\n';
+            settings.type = CommentType::eCommentEnd;
             return;
         }
-
-        checker = CommentChecker::eIsOnelineComment;
         return;
     }
-    case CommentChecker::eIsMultilineComment: {
+    case CommentType::eMultiLineComment: {
         //нужен следующий символ, если нет - исключение
         if(next_sym == 0)
             throw std::invalid_argument("invalid length of input string, multiline comment not closed");
 
-        if((current_sym == design.multiline_comment_symbols[1])
-            && (next_sym == (design.multiline_comment_symbols[2] ? design.multiline_comment_symbols[0]
-                                                                 : design.multiline_comment_symbols[2])))
+        if((current_sym == settings.temp_multiline_stop[0])
+            && (settings.temp_multiline_stop[1] == 0
+                || next_sym == settings.temp_multiline_stop[1]))
         {
-            //многострочные комментарии всегда обособляются двумя символами в начале и двумя символами в конце комментария
-            iter_counter++;
-            checker = CommentChecker::eIsCommentEnd;
+            if(settings.temp_multiline_stop[1] != 0)
+                iter_counter++;
+            settings.type = CommentType::eCommentEnd;
             return;
         }
 
-        current_sym_comment_line += current_sym;
-        checker = CommentChecker::eIsMultilineComment;
+        current_comment += current_sym;
+        settings.type = CommentType::eMultiLineComment;
         return;
     }
-    case CommentChecker::eIsNotComment:
-    case CommentChecker::eIsCommentEnd: {
-        switch(IsCommentStart(current_sym, next_sym, design, iter_counter)) {
-        case CommentType::eOneLineComment: {
-            if(enable_comment && !current_sym_comment_line.empty())
-                current_sym_comment_line += "\n";
-            checker = CommentChecker::eIsOnelineComment;
-            return;
-        }
-        case CommentType::eMultiLineComment: {
-            if(enable_comment && !current_sym_comment_line.empty())
-                current_sym_comment_line += "\n";
-            checker = CommentChecker::eIsMultilineComment;
+    case CommentType::eNotComment:
+    {
+        CommentType result = IsCommentStart(current_sym, next_sym, settings, iter_counter);
+        switch(result) {
+        case CommentType::eOneLineComment:
+        case CommentType::eMultiLineComment:
+        {
+            if(!current_comment.empty())
+                current_comment += "\n";
+            settings.type = result;
             return;
         }
         default: break;
@@ -653,6 +630,6 @@ void CheckComments(const char current_sym, const char next_sym,
     default: break;
     }
 
-    checker = CommentChecker::eIsNotComment;
+    settings.type = CommentType::eNotComment;
     return;
 }
