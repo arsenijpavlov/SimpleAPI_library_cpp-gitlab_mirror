@@ -5,6 +5,11 @@
 #include <sstream>
 #include <vector>
 
+#ifdef __DEBUG__
+    #include <iostream>
+    #define DEBUG_LOG(...) { std::cout << __VA_ARGS__; };
+#endif
+
 
 namespace utils {
 

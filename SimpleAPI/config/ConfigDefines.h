@@ -1,5 +1,5 @@
-#ifndef JSON_DEFINES_H
-#define JSON_DEFINES_H
+#ifndef CONFIG_DEFINES_H
+#define CONFIG_DEFINES_H
 
 #include "stdexcept"
 
@@ -104,6 +104,4 @@
                                                 throw std::invalid_argument("There are no Element(s)");
 //=======================================================================EXEPTIONS
 
-
-
-#endif // JSON_DEFINES_H
+#endif // CONFIG_DEFINES_H

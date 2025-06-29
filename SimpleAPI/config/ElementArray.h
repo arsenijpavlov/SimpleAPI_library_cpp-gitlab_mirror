@@ -186,8 +186,8 @@ private:
         eVALUE_OTHER    // НЕ контейнер
     };
     std::string to_string(const ParseState state)                       const noexcept;
-    void    UpdateState(ParseState& state)                              const noexcept;
-    void    LineCounter(const char current_ch, size_t& line_counter,
+    void    UpdateState(ParseState& state, const ParseState new_state)  const noexcept;
+    void    SymbolCounter(const char current_ch, size_t& line_counter,
                 size_t& symbol_counter)                                 const noexcept;
 public:
     void    parse(const std::string& input_string, const ConfigFormat format = ConfigFormat::eJSON,

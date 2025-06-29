@@ -754,19 +754,21 @@ std::string ElementArray::toXmlString(const int8_t tabulation_level, const Comme
 
 std::string ElementArray::to_string(const ParseState state) const noexcept {
     switch (state) {
-    case ParseState::eARRAY_ERROR_STATE:    return "[ARRAY_ERROR_STATE]";
     case ParseState::eARRAY_START:          return "[ARRAY_START]";
     case ParseState::eARRAY_VALUE:          return "[ARRAY_VALUE]";
     case ParseState::eARRAY_SEPARATOR:      return "[ARRAY_SEPARATOR]";
     case ParseState::eARRAY_FINISH:         return "[ARRAY_FINISH]";
+    default:
+    case ParseState::eARRAY_ERROR_STATE:    return "[ARRAY_ERROR_STATE]";
     }
 }
 
-void ElementArray::UpdateState(ParseState &state) const noexcept {
-    //TODO: void ElementArray::UpdateState()
+void ElementArray::UpdateState(ParseState &state, const ParseState new_state) const noexcept {
+    state = new_state;
+    DEBUG_LOG("upd state: " << to_string(state) << std::endl);
 }
 
-void ElementArray::LineCounter(const char current_ch, size_t &line_counter,
+void ElementArray::SymbolCounter(const char current_ch, size_t &line_counter,
                                size_t &symbol_counter) const noexcept
 {
     if(current_ch == '\n') {
@@ -802,7 +804,6 @@ void ElementArray::parseJson(const std::string &input_string, bool parse_comment
 void ElementArray::parseJson(std::string &&input_string, bool parse_comments,
                              const CommentDesign &design)
 {
-    //TODO: void ElementArray::parseJson()
     using namespace utils;
 
     /* NOTE: для документации
@@ -826,23 +827,16 @@ void ElementArray::parseJson(std::string &&input_string, bool parse_comments,
 
     size_t line_counter   = 0;
     size_t symbol_counter = 0;
+
+    CommentSettings temp_comment_settings;
+    temp_comment_settings.design    = design;
+    temp_comment_settings.type      = CommentType::eNotComment;
+
     ParseState state = ParseState::eARRAY_START;
-    struct TempCommentDesign {
-        enum class CommentType {
-            not_comment,
-            oneline_comment,
-            muiltiline_comment
-        } comment_type;
-        CommentDesign design;
-        std::array<char, 3> current_comment_symbols;
-    };
-    TempCommentDesign temp_design;
-    temp_design.design = design;
     std::string comment;
     ValueFormat value_format = ValueFormat::eVALUE_NOPE;
     std::string value;
     bool is_quotes = false;
-    CommentChecker comment_checker = CommentChecker::eIsNotComment;
 
     for(size_t i = 0; i < input_string.size(); i++) {
         char previous_ch    = i == 0 ? 0 : input_string[i - 1];
@@ -850,33 +844,40 @@ void ElementArray::parseJson(std::string &&input_string, bool parse_comments,
         char next_ch        = i < input_string.size() ? input_string[i + 1] : 0;
 
         //поиск комментариев ===================================================
-        const bool ext_f = !is_quotes
-                           && value_format != ValueFormat::eVALUE_ARRAY
-                           && value_format != ValueFormat::eVALUE_JSON;
-        CheckComments(current_ch, next_ch,
-                      comment_checker, parse_comments,
-                      temp_design, comment,
-                      i, ext_f);
-        //сюда зайдёт, если внутри комментария
-        if(comment_checker != CommentChecker::eIsNotComment) {
-            Counter();
+        const bool ext_flag = !is_quotes
+                              && value_format != ValueFormat::eVALUE_ARRAY
+                              && value_format != ValueFormat::eVALUE_JSON;
+        CheckComments(current_ch, next_ch, i, temp_comment_settings, comment, ext_flag);
+        //сюда зайдёт, если внутри комментария либо если встречен конец комментария
+        if(temp_comment_settings.type != CommentType::eNotComment) {
+            SymbolCounter(current_ch, line_counter, symbol_counter);
             continue;
         } //================================================= поиск комментариев
 
         switch(state) {
         case ParseState::eARRAY_START: {
+            //начальный комментарий ...
+
+            //открывающая скобка ...
+            if(current_ch == '[')
+                UpdateState(state, ParseState::eARRAY_VALUE);
 
             break;
         }
         case ParseState::eARRAY_VALUE: {
+            //(комментарий перед значением ...)
+            //значение ...
 
             break;
         }
         case ParseState::eARRAY_SEPARATOR: {
+            //(комментарий после значения, на строке значения ...)
+            //разделитель ...
 
             break;
         }
         case ParseState::eARRAY_FINISH: {
+            //закрывающая скобка ...
 
             break;
         }
@@ -885,6 +886,7 @@ void ElementArray::parseJson(std::string &&input_string, bool parse_comments,
             break;
         }
         }
+        //конечный комментарий ...
     }
 }
 
