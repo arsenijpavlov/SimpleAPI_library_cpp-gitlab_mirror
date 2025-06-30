@@ -34,10 +34,15 @@ enum class CommentType : uint8_t {
     eCommentEnd       //последний требует continue!
 };
 //#define DEFAULT_COMMENT_COLUMN_SIZE 50
+
 struct CommentDesign {
     // применяется ТОЛЬКО для многострочных комментариев, по умолчанию не используются
     char    opt_multiline_border;
     uint8_t opt_multiline_column_size;
+
+    //следующие два поля нужны только для парсинга
+    CommentType             temp_type;
+    std::array<uint8_t, 2>  temp_multiline_stop; //используется только во время парсинга
 
     // многострочность комментария пользователь задаёт сам
     //  либо самостоятельно ставя '\n'
@@ -57,20 +62,18 @@ struct CommentDesign {
     // 4) {* ... *}
     std::vector<std::array<uint8_t, 3>> multiline_comment_variants;
 
-    //NOTE: чтение по всем вариантам вектора, запись строго по первому элементу
+    //NOTE: попытка чтения по всем вариантам вектора
+    //NOTE: запись строго по первому элементу
 
     CommentDesign() :
         opt_multiline_border(0),
-        opt_multiline_column_size(0)
+        opt_multiline_column_size(0),
+        temp_type(CommentType::eNotComment),
+        temp_multiline_stop{}
     {
         oneline_comment_variants.push_back({'/', '/'});         // {#,0} - второй символ 0 -> один символ уже комментирует
         multiline_comment_variants.push_back({'/', '*', 0});    // 0 - завершающий символ повторяет первый
     }
-};
-struct CommentSettings {
-    CommentDesign           design;
-    CommentType             type;
-    std::array<uint8_t, 2>  temp_multiline_stop; //используется только во время парсинга
 };
 
 class Comment {

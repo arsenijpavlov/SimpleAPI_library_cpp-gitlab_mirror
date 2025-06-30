@@ -777,32 +777,51 @@ void ElementArray::SymbolCounter(const char current_ch, size_t &line_counter,
     } else symbol_counter++;
 }
 
-void ElementArray::parse(const std::string &input_string, const ConfigFormat format,
-                         bool parse_comments, const CommentDesign &design)
+void ElementArray::parse(const std::string &input_string, CommentDesign &design,
+                         const ConfigFormat format, bool parse_comments)
 {
-    parse(std::move(std::string(input_string)), format, parse_comments, design);
+    parse(std::move(std::string(input_string)), design, format, parse_comments);
 }
 
-void ElementArray::parse(std::string &&input_string, const ConfigFormat format,
-                         bool parse_comments, const CommentDesign &design)
+void ElementArray::parse(const std::string &input_string, const ConfigFormat format,
+                         const bool parse_comments)
+{
+    CommentDesign design;
+    parse(input_string, design, format, parse_comments);
+}
+
+void ElementArray::parse(std::string &&input_string, CommentDesign &design,
+                         const ConfigFormat format, bool parse_comments)
 {
     switch(format) {
     default:
-    case ConfigFormat::eJSON:   parseJson(std::move(input_string), parse_comments); break;
-    case ConfigFormat::eINI:    parseIni(std::move(input_string), parse_comments);  break;
-    case ConfigFormat::eYAML:   parseYaml(std::move(input_string), parse_comments); break;
-    case ConfigFormat::eXML:    parseXml(std::move(input_string), parse_comments);  break;
+    case ConfigFormat::eJSON:   parseJson(std::move(input_string), design, parse_comments); break;
+    case ConfigFormat::eINI:    parseIni(std::move(input_string), design, parse_comments);  break;
+    case ConfigFormat::eYAML:   parseYaml(std::move(input_string), design, parse_comments); break;
+    case ConfigFormat::eXML:    parseXml(std::move(input_string), design, parse_comments);  break;
     }
 }
 
-void ElementArray::parseJson(const std::string &input_string, bool parse_comments,
-                             const CommentDesign &design)
+void ElementArray::parse(std::string &&input_string, const ConfigFormat format,
+                         const bool parse_comments)
 {
-    parseJson(std::move(std::string(input_string)), parse_comments, design);
+    CommentDesign design;
+    parse(std::move(input_string), design, format, parse_comments);
 }
 
-void ElementArray::parseJson(std::string &&input_string, bool parse_comments,
-                             const CommentDesign &design)
+void ElementArray::parseJson(const std::string &input_string, CommentDesign &design,
+                             bool parse_comments)
+{
+    parseJson(std::move(std::string(input_string)), design, parse_comments);
+}
+
+void ElementArray::parseJson(const std::string &input_string, bool parse_comments) {
+    CommentDesign design;
+    parseXml(input_string, design, parse_comments);
+}
+
+void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
+                             bool parse_comments)
 {
     using namespace utils;
 
@@ -828,9 +847,7 @@ void ElementArray::parseJson(std::string &&input_string, bool parse_comments,
     size_t line_counter   = 0;
     size_t symbol_counter = 0;
 
-    CommentSettings temp_comment_settings;
-    temp_comment_settings.design    = design;
-    temp_comment_settings.type      = CommentType::eNotComment;
+    design.temp_type = CommentType::eNotComment;
 
     ParseState state = ParseState::eARRAY_START;
     std::string comment;
@@ -856,11 +873,14 @@ void ElementArray::parseJson(std::string &&input_string, bool parse_comments,
 
         switch(state) {
         case ParseState::eARRAY_START: {
-            //начальный комментарий ...
-
-            //открывающая скобка ...
-            if(current_ch == '[')
+            //начальный комментарий будет сохранён после входа в массив
+            if(current_ch == '[') {
                 UpdateState(state, ParseState::eARRAY_VALUE);
+                //начальный комментарий
+                if(parse_comments && !comment.empty()) {
+                    FromComment(comment, design);
+                }
+            }
 
             break;
         }
@@ -890,38 +910,73 @@ void ElementArray::parseJson(std::string &&input_string, bool parse_comments,
     }
 }
 
-void ElementArray::parseIni(const std::string &input_string, bool parse_comments,
-                            const CommentDesign &design)
-{
-    parseIni(std::move(std::string(input_string)), parse_comments, design);
+void ElementArray::parseJson(std::string &&input_string, bool parse_comments) {
+    CommentDesign design;
+    parseJson(std::move(input_string), design, parse_comments);
 }
 
-void ElementArray::parseIni(std::string &&input_string, bool parse_comments,
-                            const CommentDesign &design)
+void ElementArray::parseIni(const std::string &input_string, CommentDesign &design,
+                            bool parse_comments)
+{
+    parseIni(std::move(std::string(input_string)), design, parse_comments);
+}
+
+void ElementArray::parseIni(const std::string &input_string, bool parse_comments) {
+    CommentDesign design;
+    parseIni(input_string, design, parse_comments);
+}
+
+void ElementArray::parseIni(std::string &&input_string, CommentDesign &design,
+                            bool parse_comments)
 {
     //TODO: void ElementArray::parseIni()
 }
 
-void ElementArray::parseYaml(const std::string &input_string, bool parse_comments,
-                             const CommentDesign &design)
-{
-    parseYaml(std::move(std::string(input_string)), parse_comments, design);
+void ElementArray::parseIni(std::string &&input_string, bool parse_comments) {
+    CommentDesign design;
+    parseIni(std::move(input_string), design, parse_comments);
 }
 
-void ElementArray::parseYaml(std::string &&input_string, bool parse_comments,
-                             const CommentDesign &design)
+void ElementArray::parseYaml(const std::string &input_string, CommentDesign &design,
+                             bool parse_comments)
+{
+    parseYaml(std::move(std::string(input_string)), design, parse_comments);
+}
+
+void ElementArray::parseYaml(const std::string &input_string, bool parse_comments) {
+    CommentDesign design;
+    parseYaml(input_string, design, parse_comments);
+}
+
+void ElementArray::parseYaml(std::string &&input_string, CommentDesign &design,
+                             bool parse_comments)
 {
     //TODO: void ElementArray::parseYaml()
 }
 
-void ElementArray::parseXml(const std::string &input_string, bool parse_comments,
-                            const CommentDesign &design)
-{
-    parseXml(std::move(std::string(input_string)), parse_comments, design);
+void ElementArray::parseYaml(std::string &&input_string, bool parse_comments) {
+    CommentDesign design;
+    parseYaml(std::move(input_string), design, parse_comments);
 }
 
-void ElementArray::parseXml(std::string &&input_string, bool parse_comments,
-                            const CommentDesign &design)
+void ElementArray::parseXml(const std::string &input_string, CommentDesign &design,
+                            bool parse_comments)
+{
+    parseXml(std::move(std::string(input_string)), design, parse_comments);
+}
+
+void ElementArray::parseXml(const std::string &input_string, bool parse_comments) {
+    CommentDesign design;
+    parseXml(input_string, design, parse_comments);
+}
+
+void ElementArray::parseXml(std::string &&input_string, CommentDesign &design,
+                            bool parse_comments)
 {
     //TODO: void ElementArray::parseXml()
+}
+
+void ElementArray::parseXml(std::string &&input_string, bool parse_comments) {
+    CommentDesign design;
+    parseXml(std::move(input_string), design, parse_comments);
 }

@@ -190,26 +190,69 @@ private:
     void    SymbolCounter(const char current_ch, size_t& line_counter,
                 size_t& symbol_counter)                                 const noexcept;
 public:
-    void    parse(const std::string& input_string, const ConfigFormat format = ConfigFormat::eJSON,
-               bool parse_comments = true, const CommentDesign& design = {})             override;
-    void    parse(std::string&& input_string, const ConfigFormat format = ConfigFormat::eJSON,
-               bool parse_comments = true, const CommentDesign& design = {})             override;
-    void    parseJson(const std::string& input_string, bool parse_comments = true,
-                const CommentDesign& design = {})                                        override;
-    void    parseJson(std::string&& input_string, bool parse_comments = true,
-                const CommentDesign& design = {})                                        override;
-    void    parseIni(const std::string& input_string, bool parse_comments = true,
-                const CommentDesign& design = {})                                        override;
-    void    parseIni(std::string&& input_string, bool parse_comments = true,
-                const CommentDesign& design = {})                                        override;
-    void    parseYaml(const std::string& input_string, bool parse_comments = true,
-                const CommentDesign& design = {})                                        override;
-    void    parseYaml(std::string&& input_string, bool parse_comments = true,
-                const CommentDesign& design = {})                                        override;
-    void    parseXml(const std::string& input_string, bool parse_comments = true,
-                const CommentDesign& design = {})                                        override;
-    void    parseXml(std::string&& input_string, bool parse_comments = true,
-                const CommentDesign& design = {})                                        override;
+    void    parse(const std::string& input_string,
+               CommentDesign& design,
+               const ConfigFormat format = ConfigFormat::eJSON,
+               const bool parse_comments = true)                                        override;
+    void    parse(const std::string& input_string,
+               const ConfigFormat format = ConfigFormat::eJSON,
+               const bool parse_comments = true)                                        override;
+
+    void    parse(std::string&& input_string,
+               CommentDesign& design,
+               const ConfigFormat format = ConfigFormat::eJSON,
+               const bool parse_comments = true)                                        override;
+    void    parse(std::string&& input_string,
+               const ConfigFormat format = ConfigFormat::eJSON,
+               const bool parse_comments = true)                                        override;
+
+    void    parseJson(const std::string& input_string,
+                   CommentDesign& design,
+                   bool parse_comments = true)                                          override;
+    void    parseJson(const std::string& input_string,
+                   bool parse_comments = true)                                          override;
+
+    void    parseJson(std::string&& input_string,
+                   CommentDesign& design,
+                   bool parse_comments = true)                                          override;
+    void    parseJson(std::string&& input_string,
+                   bool parse_comments = true)                                          override;
+
+    void    parseIni(const std::string& input_string,
+                  CommentDesign& design,
+                  bool parse_comments = true)                                           override;
+    void    parseIni(const std::string& input_string,
+                  bool parse_comments = true)                                           override;
+
+    void    parseIni(std::string&& input_string,
+                  CommentDesign& design,
+                  bool parse_comments = true)                                           override;
+    void    parseIni(std::string&& input_string,
+                  bool parse_comments = true)                                           override;
+
+    void    parseYaml(const std::string& input_string,
+                   CommentDesign& design,
+                   bool parse_comments = true)                                          override;
+    void    parseYaml(const std::string& input_string,
+                   bool parse_comments = true)                                          override;
+
+    void    parseYaml(std::string&& input_string,
+                   CommentDesign& design,
+                   bool parse_comments = true)                                          override;
+    void    parseYaml(std::string&& input_string,
+                   bool parse_comments = true)                                          override;
+
+    void    parseXml(const std::string& input_string,
+                  CommentDesign& design,
+                  bool parse_comments = true)                                           override;
+    void    parseXml(const std::string& input_string,
+                  bool parse_comments = true)                                           override;
+
+    void    parseXml(std::string&& input_string,
+                  CommentDesign& design,
+                  bool parse_comments = true)                                           override;
+    void    parseXml(std::string&& input_string,
+                  bool parse_comments = true)                                           override;
     // ========================================================================================================== Parser
 };
 
