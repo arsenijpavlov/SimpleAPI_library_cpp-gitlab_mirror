@@ -25,7 +25,7 @@ size_t CountSymInStr(const std::string &str, const char ch) noexcept {
     return counter;
 }
 
-bool CharsInString(const char ch, std::string symbols) noexcept {
+bool CharInString(const char ch, std::string symbols) noexcept {
     for(char c : symbols)
         if(c == ch) return true;
     return false;

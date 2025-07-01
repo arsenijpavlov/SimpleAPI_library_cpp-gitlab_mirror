@@ -853,35 +853,39 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
     std::string comment;
     ValueFormat value_format = ValueFormat::eVALUE_NOPE;
     std::string value;
+    std::string error_string;
     bool is_quotes = false;
 
     for(size_t i = 0; i < input_string.size(); i++) {
         char previous_ch    = i == 0 ? 0 : input_string[i - 1];
         char current_ch     = input_string[i];
         char next_ch        = i < input_string.size() ? input_string[i + 1] : 0;
+        SymbolCounter(current_ch, line_counter, symbol_counter);
 
         //поиск комментариев ===================================================
         const bool ext_flag = !is_quotes
                               && value_format != ValueFormat::eVALUE_ARRAY
                               && value_format != ValueFormat::eVALUE_JSON;
-        CheckComments(current_ch, next_ch, i, temp_comment_settings, comment, ext_flag);
+        CheckComments(current_ch, next_ch, i, design, comment, ext_flag);
         //сюда зайдёт, если внутри комментария либо если встречен конец комментария
-        if(temp_comment_settings.type != CommentType::eNotComment) {
-            SymbolCounter(current_ch, line_counter, symbol_counter);
+        if(design.temp_type != CommentType::eNotComment)
             continue;
-        } //================================================= поиск комментариев
+        //=================================================== поиск комментариев
 
         switch(state) {
         case ParseState::eARRAY_START: {
-            //начальный комментарий будет сохранён после входа в массив
+            if(CharInString(current_ch, __SPACES__))
+                continue;
+
             if(current_ch == '[') {
-                UpdateState(state, ParseState::eARRAY_VALUE);
                 //начальный комментарий
-                if(parse_comments && !comment.empty()) {
-                    FromComment(comment, design);
-                }
+                if(parse_comments && !comment.empty())
+                    addPrefixComment(FromComment(comment, design));
+                UpdateState(state, ParseState::eARRAY_VALUE);
             }
 
+            UpdateState(state, ParseState::eARRAY_ERROR_STATE);
+            error_string = "Not found start of ARRAY.";
             break;
         }
         case ParseState::eARRAY_VALUE: {
@@ -897,12 +901,26 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
             break;
         }
         case ParseState::eARRAY_FINISH: {
-            //закрывающая скобка ...
+            if(CharInString(current_ch, __SPACES__))
+                continue;
 
+            if(current_ch == '[') {
+                //завершающий комментарий значения?
+//                if(parse_comments && !comment.empty())
+//                    addPrefixComment(FromComment(comment, design));
+            }
+
+            UpdateState(state, ParseState::eARRAY_ERROR_STATE);
+            error_string = "Not found finish of ARRAY.";
             break;
         }
         case ParseState::eARRAY_ERROR_STATE: {
-
+            error_string = std::string("Unexpected symbol at [")
+                           + std::to_string(line_counter)
+                           + "][" + std::to_string(symbol_counter) + "]. "
+                           + error_string;
+            DEBUG_LOG(error_string);
+            throw std::invalid_argument(error_string);
             break;
         }
         }

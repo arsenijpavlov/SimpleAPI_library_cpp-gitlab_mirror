@@ -17,7 +17,7 @@ bool        IsNumber(const std::string& str, bool use_point = true)             
 bool        IsNumber(const char ch, bool use_point = true)                              noexcept;
 
 size_t      CountSymInStr(const std::string& str, const char ch)                        noexcept;
-bool        CharsInString(const char ch, std::string symbols)                           noexcept;
+bool        CharInString(const char ch, std::string symbols)                            noexcept;
 std::string ToString(double d)                                                          noexcept; //исключить лишние знаки при выводе чисел
 bool        IsBool(std::string& str)                                                    noexcept;
 bool        ToBool(std::string& str)                                                    noexcept;
