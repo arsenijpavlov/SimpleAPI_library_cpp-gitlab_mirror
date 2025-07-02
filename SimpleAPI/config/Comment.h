@@ -148,10 +148,10 @@ void RemoveComments(std::string& str, bool& startComment, char& quote,
                     char& start_comment_sym, char& stop_comment_sym);
 
 CommentType IsCommentStart(const char first, const char second,
-                           CommentSettings& settings, size_t &iter_counter) noexcept;
+                           CommentDesign& design, size_t &iter_counter) noexcept;
 
 void CheckComments(const char current_sym, const char next_sym,
-                   size_t &iter_counter, CommentSettings& settings,
+                   size_t &iter_counter, CommentDesign& design,
                    std::string &current_comment, const bool external_flag = true);
 
 #endif // COMMENT_H
