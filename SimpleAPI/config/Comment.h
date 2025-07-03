@@ -86,69 +86,67 @@ private:
     CommentDesign *m_comment_design;
 
 public:
-    Comment() noexcept;
-    explicit Comment(const Comment& other) noexcept;
-/*FIXME*/    Comment(const Comment&& other) noexcept;
-    explicit Comment(const std::string& comment_before, const std::string& comment_after = "") noexcept;
-    ~Comment() noexcept;
-
-private:
-//    void init() {}
+    Comment()                                                                                   noexcept;
+    Comment(const Comment& other)                                                               noexcept;
+    Comment(const Comment&& other)                                                              noexcept;
+    explicit Comment(const std::string& comment_before, const std::string& comment_after = "")  noexcept;
+    ~Comment()                                                                                  noexcept;
 
 public:
-    bool isEmpty() const noexcept;
+    bool isEmpty()                                                                              const noexcept;
 
     //NOTE: выделит память, если nullptr
-    std::string&    prefix() noexcept;
-    std::string     prefix() const noexcept;
-    std::string&    suffix() noexcept;
-    std::string     suffix() const noexcept;
+    std::string&    prefix()                                                                    noexcept;
+    std::string     prefix()                                                                    const noexcept;
+    std::string&    suffix()                                                                    noexcept;
+    std::string     suffix()                                                                    const noexcept;
 
-    void set(const std::string& prefix_comment, const std::string& suffix_comment) noexcept;
-    void set(const Comment& other) noexcept;
-    void setPrefix(const std::string& comment) noexcept;
-    void setSuffix(const std::string& comment) noexcept;
+    void set(const std::string& prefix_comment, const std::string& suffix_comment = "")         noexcept;
+    void set(const Comment& other)                                                              noexcept;
+    void setPrefix(const std::string& comment)                                                  noexcept;
+    void setSuffix(const std::string& comment)                                                  noexcept;
 
-    void clear() noexcept;
-    void clearPrefix() noexcept;
-    void clearSuffix() noexcept;
+    void clear()                                                                                noexcept;
+    void clearPrefix()                                                                          noexcept;
+    void clearSuffix()                                                                          noexcept;
 
-    void del() noexcept;
-    void delPrefix() noexcept;
-    void delSuffix() noexcept;
+    void del()                                                                                  noexcept;
+    void delPrefix()                                                                            noexcept;
+    void delSuffix()                                                                            noexcept;
 
     //Оформление комментариев при выводе в файл -----------------------------------
     //NOTE: выделит память, если nullptr
-    CommentDesign&  commentDesign() noexcept;
-    CommentDesign   commentDesign() const noexcept;
+    CommentDesign&  commentDesign()                                                             noexcept;
+    CommentDesign   commentDesign()                                                             const noexcept;
 
-    void setDesign(const CommentDesign &design) noexcept;
-    void clearDesign() noexcept; //он же освободит память
+    void setDesign(const CommentDesign &design)                                                 noexcept;
+    //он же освободит память
+    void clearDesign()                                                                          noexcept;
     //-----------------------------------------------------------------------------
 
-    bool        operator==(const Comment& other) const noexcept;
-    bool        operator!=(const Comment& other) const noexcept { return !(*this == other); }
-    Comment&    operator=(const Comment& other) noexcept;
-/*FIXME*/    Comment&    operator=(const Comment&& other) noexcept;
-    Comment&    operator=(const std::string& prefix_comment) noexcept;
-/*FIXME*/    Comment&    operator=(const std::string&& prefix_comment) noexcept;
+    bool        operator==(const Comment& other)                                                const noexcept;
+    bool        operator!=(const Comment& other)                                                const noexcept  { return !(*this == other); }
+    Comment&    operator=(const Comment& other)                                                 noexcept;
+    Comment&    operator=(const Comment&& other)                                                noexcept;
+    Comment&    operator=(const std::string& prefix_comment)                                    noexcept;
+    Comment&    operator=(const std::string&& prefix_comment)                                   noexcept;
 };
 
 
-std::string GetOnelineCommentStr(const CommentDesign& design) noexcept;
-std::string GetMultilineCommentStartStr(const CommentDesign& design) noexcept;
-std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept;
+std::string GetOnelineCommentStr(const CommentDesign& design)                                   noexcept;
+std::string GetMultilineCommentStartStr(const CommentDesign& design)                            noexcept;
+std::string GetMultilineCommentStopStr(const CommentDesign& design)                             noexcept;
 
 std::string ToComment(const std::string &comment, const CommentDesign& design,
-                      const uint8_t tabulation_level = 0) noexcept;
-std::string FromComment(const std::string &comment_string, CommentDesign& design) noexcept;
+                      const uint8_t tabulation_level = 0)                                       noexcept;
+std::string FromComment(const std::string &comment_string, CommentDesign& design)               noexcept;
 
 
 void RemoveComments(std::string& str, bool& startComment, char& quote,
                     char& start_comment_sym, char& stop_comment_sym);
 
 CommentType IsCommentStart(const char first, const char second,
-                           CommentDesign& design, size_t &iter_counter) noexcept;
+                           CommentDesign& design, size_t &iter_counter)                         noexcept;
 
 void CheckComments(const char current_sym, const char next_sym,
                    size_t &iter_counter, CommentDesign& design,
