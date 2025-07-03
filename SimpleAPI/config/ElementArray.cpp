@@ -758,8 +758,8 @@ std::string ElementArray::to_string(const ParseState state) const noexcept {
     case ParseState::eARRAY_VALUE:          return "[ARRAY_VALUE]";
     case ParseState::eARRAY_SEPARATOR:      return "[ARRAY_SEPARATOR]";
     case ParseState::eARRAY_FINISH:         return "[ARRAY_FINISH]";
-    default:
-    case ParseState::eARRAY_ERROR_STATE:    return "[ARRAY_ERROR_STATE]";
+    case ParseState::eARRAY_ERROR_STATE:
+    default:                                return "[ARRAY_ERROR_STATE]";
     }
 }
 
