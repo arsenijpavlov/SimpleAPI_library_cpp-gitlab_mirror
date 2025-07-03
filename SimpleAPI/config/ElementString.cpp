@@ -4,6 +4,7 @@
 #include "ConfigDefines.h"
 
 #include "../utils/Utils.h"
+#include <algorithm>
 
 
 void ElementString::clear() noexcept {
@@ -77,7 +78,7 @@ bool IsElementString(std::string &str, const ConfigFormat format,
                         else                temp += str[i];
                     } else { //замкнули слово, надо проверить оставшиеся символы
                         //TODO: пробелов уже быть не может! Надо сразу ошибку возвращать!
-                        if(!utils::CharsInString(str[i], __SPACES__)) {
+                        if(!utils::CharInString(str[i], __SPACES__)) {
                             if(error_log) *error_log = std::string("Error with parse String in: ") + str[i];
                             return false;
                         }
@@ -89,11 +90,9 @@ bool IsElementString(std::string &str, const ConfigFormat format,
             str = temp;
             return done;
         } else {
-            for(char ch : str)
-                //TODO: пробелов уже быть не может! Надо сразу ошибку возвращать!
-                if(utils::CharsInString(ch, __SPACES__))
-                    return false;
-            return true;
+            //TODO: пробелов уже быть не может! Надо сразу ошибку возвращать!
+            return !std::any_of(str.cbegin(), str.cend(),
+                                [](const char ch) { return utils::CharInString(ch, __SPACES__); });
         }
     }
     case ConfigFormat::eINI: {
