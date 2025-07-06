@@ -185,18 +185,18 @@ Comment& Comment::operator=(const std::string&& prefix_comment) noexcept {
 }
 
 
-// @TEST(COMMENT, default_wrappers)
+//FIXME: @TEST(COMMENT, default_wrappers)
 std::string GetOnelineCommentStr(const CommentDesign& design) noexcept {
     return std::string(design.oneline_comment_symbols.data(),
                        (design.oneline_comment_symbols[1] == 0 ? 1 : 2));
 }
 
-// @TEST(COMMENT, default_wrappers)
+//FIXME: @TEST(COMMENT, default_wrappers)
 std::string GetMultilineCommentStartStr(const CommentDesign& design) noexcept {
     return std::string(design.multiline_comment_symbols.data(), 2);
 }
 
-// @TEST(COMMENT, default_wrappers)
+//FIXME: @TEST(COMMENT, default_wrappers)
 std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept {
     std::stringstream ss;
     ss << design.multiline_comment_symbols[1];
@@ -226,7 +226,7 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
     for(size_t i = 0; i < current_string.length(); i++) {
         char ch = current_string[i];
         //если встретили разделитель
-        if(utils::CharsInString(ch, __COMMENT_SEPARATOR_SYMBOLS__))
+        if(CharInString(ch, __COMMENT_SEPARATOR_SYMBOLS__))
             separators.push_back(temp.length());
 
         if(ch == '\n') {
@@ -245,7 +245,7 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
         // (м, если COLUMN_SIZE не 0) разделить комментарий на строки
         if(design.opt_multiline_column_size && !temp.empty()) {
             if(GetStringCharCount(temp) >= design.opt_multiline_column_size
-                && (CharsInString(ch, __COMMENT_SEPARATOR_SYMBOLS__) || (i == current_string.length() - 1)) )
+                && (CharInString(ch, __COMMENT_SEPARATOR_SYMBOLS__) || (i == current_string.length() - 1)) )
             {
                 //если превышен максимальный размер строки
                 if(GetStringCharCount(temp) > design.opt_multiline_column_size && !separators.empty()) {
@@ -267,14 +267,14 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
                     std::string left = SeparateString(temp, separate_size);
                     RemoveIllegalSpaces(left);
 
-                    if(!CharsInString(temp.back(), __COMMENT_SEPARATOR_SYMBOLS__))
+                    if(!CharInString(temp.back(), __COMMENT_SEPARATOR_SYMBOLS__))
                         temp += ' ';
                     result_lines.push_back(left);
 
                     //снова найти индексы разделителей
                     separators.clear();
                     for(size_t j = 0; j < temp.length(); j++) {
-                        if(CharsInString(temp[j], __COMMENT_SEPARATOR_SYMBOLS__))
+                        if(CharInString(temp[j], __COMMENT_SEPARATOR_SYMBOLS__))
                             separators.push_back(j);
                     }
                 } else {
@@ -533,11 +533,11 @@ void RemoveComments(std::string &str, bool &startComment,
 }
 
 CommentType IsCommentStart(const char first, const char second,
-                           CommentSettings& settings, size_t &iter_counter) noexcept
+                           CommentDesign& design, size_t &iter_counter) noexcept
 {
-    auto UpdMultilineDesign = [&settings, &iter_counter](const char before_last, const char last){
-        settings.temp_multiline_stop[0] = before_last;
-        settings.temp_multiline_stop[1] = last;
+    auto UpdMultilineDesign = [&design, &iter_counter](const char before_last, const char last){
+        design.temp_multiline_stop[0] = before_last;
+        design.temp_multiline_stop[1] = last;
         if(before_last != 0) iter_counter++; //проскакиваем следующий символ при парсинге
         return CommentType::eMultiLineComment;
     };
@@ -550,20 +550,20 @@ CommentType IsCommentStart(const char first, const char second,
 
     //сперва искать многострочные комментарии!
     auto multi_it = std::find_if(
-        settings.design.multiline_comment_variants.begin(),
-        settings.design.multiline_comment_variants.end(),
+        design.multiline_comment_variants.begin(),
+        design.multiline_comment_variants.end(),
         IsMultFound);
-    if(multi_it != settings.design.multiline_comment_variants.end()) {
+    if(multi_it != design.multiline_comment_variants.end()) {
         return UpdMultilineDesign(multi_it->at(1),
                                   multi_it->at(2) == 0 ? multi_it->at(0) : multi_it->at(2));
     }
 
     //поиск однострочных комментариев
     auto one_it = std::find_if(
-        settings.design.oneline_comment_variants.begin(),
-        settings.design.oneline_comment_variants.end(),
+        design.oneline_comment_variants.begin(),
+        design.oneline_comment_variants.end(),
         IsOneFound);
-    if(one_it != settings.design.oneline_comment_variants.end()) {
+    if(one_it != design.oneline_comment_variants.end()) {
         if(one_it->at(1) == 0) iter_counter++; //проскакиваем следующий символ при парсинге
         return CommentType::eOneLineComment;
     }
@@ -573,22 +573,22 @@ CommentType IsCommentStart(const char first, const char second,
 
 //предполагается использовать только для парсинга
 void CheckComments(const char current_sym, const char next_sym,
-                   size_t &iter_counter, CommentSettings& settings,
+                   size_t &iter_counter, CommentDesign& design,
                    std::string &current_comment, const bool external_flag)
 {
     if(!external_flag) { //например, значения в кавычках не могут влиять на комментирование
-        settings.type = CommentType::eNotComment;
+        design.temp_type = CommentType::eNotComment;
         return;
     }
 
-    switch(settings.type) {
+    switch(design.temp_type) {
     case CommentType::eOneLineComment: {
         current_comment += current_sym;
 
         //если следующий символ должен обрабатываться другим кодом
         if((current_sym == '\n') || (next_sym == '\n')) {
             if(current_sym != '\n') current_comment += '\n';
-            settings.type = CommentType::eCommentEnd;
+            design.temp_type = CommentType::eCommentEnd;
             return;
         }
         return;
@@ -598,30 +598,29 @@ void CheckComments(const char current_sym, const char next_sym,
         if(next_sym == 0)
             throw std::invalid_argument("invalid length of input string, multiline comment not closed");
 
-        if((current_sym == settings.temp_multiline_stop[0])
-            && (settings.temp_multiline_stop[1] == 0
-                || next_sym == settings.temp_multiline_stop[1]))
+        if((current_sym == design.temp_multiline_stop[0])
+            && (design.temp_multiline_stop[1] == 0
+                || next_sym == design.temp_multiline_stop[1]))
         {
-            if(settings.temp_multiline_stop[1] != 0)
+            if(design.temp_multiline_stop[1] != 0)
                 iter_counter++;
-            settings.type = CommentType::eCommentEnd;
+            design.temp_type = CommentType::eCommentEnd;
             return;
         }
 
         current_comment += current_sym;
-        settings.type = CommentType::eMultiLineComment;
+        design.temp_type = CommentType::eMultiLineComment;
         return;
     }
-    case CommentType::eNotComment:
-    {
-        CommentType result = IsCommentStart(current_sym, next_sym, settings, iter_counter);
+    case CommentType::eNotComment: {
+        CommentType result = IsCommentStart(current_sym, next_sym, design, iter_counter);
         switch(result) {
         case CommentType::eOneLineComment:
         case CommentType::eMultiLineComment:
         {
             if(!current_comment.empty())
                 current_comment += "\n";
-            settings.type = result;
+            design.temp_type = result;
             return;
         }
         default: break;
@@ -630,6 +629,6 @@ void CheckComments(const char current_sym, const char next_sym,
     default: break;
     }
 
-    settings.type = CommentType::eNotComment;
+    design.temp_type = CommentType::eNotComment;
     return;
 }

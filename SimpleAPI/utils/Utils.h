@@ -7,7 +7,7 @@
 
 #ifdef __DEBUG__
     #include <iostream>
-    #define DEBUG_LOG(...) { std::cout << __VA_ARGS__; };
+    #define DEBUG_LOG(...) { std::cout << __VA_ARGS__ << std::endl; };
 #endif
 
 

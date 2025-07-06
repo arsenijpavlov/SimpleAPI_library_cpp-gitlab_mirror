@@ -117,24 +117,24 @@ class ElementArray;
 //        //работа с синтаксисом JSON_ARRAY
 //        switch(state) {
 //        case State::eARRAY_START: {
-//            //пропуск пробелов =====================================================
-//            if(CharsInString(current_ch, __SPACES__)) break;
-//            //===================================================== пропуск пробелов
+                                        //            //пропуск пробелов =====================================================
+                                        //            if(CharsInString(current_ch, __SPACES__)) break;
+                                        //            //===================================================== пропуск пробелов
 
-//            //работа с комментариями (до разбора массива) ==========================
-//            if(!current_comment.empty() && enable_comment) {
-//                addComment(FromComment(current_comment, comment_design));
-//                current_comment.clear();
-////                std::cout << "ElementArray:PreviewComment: " << "\"" << current_comment << "\"" << std::endl;
-//            } //================================= работа с комментариями (первичный)
+                                        //            //работа с комментариями (до разбора массива) ==========================
+                                        //            if(!current_comment.empty() && enable_comment) {
+                                        //                addComment(FromComment(current_comment, comment_design));
+                                        //                current_comment.clear();
+                                        ////                std::cout << "ElementArray:PreviewComment: " << "\"" << current_comment << "\"" << std::endl;
+                                        //            } //================================= работа с комментариями (первичный)
 
-//            if(current_ch != '[') {
-//                is_critical_error = true;
-//                break;
-//            }
-//            UpdateState(State::eARRAY_VALUE);
+                                        //            if(current_ch != '[') {
+                                        //                is_critical_error = true;
+                                        //                break;
+                                        //            }
+                                        //            UpdateState(State::eARRAY_VALUE);
 
-//            break;
+                                        //            break;
 //        }
 //        case State::eARRAY_VALUE: {
 //            //пропуск пробелов ====================================================
@@ -334,14 +334,14 @@ class ElementArray;
 //            break;
 //        }
 //        case State::eARRAY_VALUE_SEPARATOR: {
-//            //пропуск пробелов ====================================================
-//            if(CharsInString(current_ch, __SPACES_WITHOUT_SEPARATORS__))
-//                break;
-//            //=====================================================================
-//            if(!CharsInString(current_ch, __SEPARATORS__ "]")) {
-//                is_critical_error = true;
-//                break;
-//            }
+                                            //            //пропуск пробелов ====================================================
+                                            //            if(CharsInString(current_ch, __SPACES_WITHOUT_SEPARATORS__))
+                                            //                break;
+                                            //            //=====================================================================
+//      ???      if(!CharsInString(current_ch, __SEPARATORS__ "]")) {
+//      ???          is_critical_error = true;
+//      ???          break;
+//      ???      }
 
 //            if(current_ch == '\n') {
 //                //работа с комментариями (после значения #1) ==========================
@@ -874,14 +874,20 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
 
         switch(state) {
         case ParseState::eARRAY_START: {
-            if(CharInString(current_ch, __SPACES__))
-                continue;
+            //пропуск пробелов =====================================================
+            if(CharInString(current_ch, __SPACES__)) break;
+            //===================================================== пропуск пробелов
 
             if(current_ch == '[') {
-                //начальный комментарий
-                if(parse_comments && !comment.empty())
+                //работа с комментариями (до разбора массива) ==========================
+                if(parse_comments && !comment.empty()) {
                     addPrefixComment(FromComment(comment, design));
+                    DEBUG_LOG("ElementArray:PreviewComment: " << "\"" << comment << "\"");
+                    comment.clear();
+                }
+                //========================== работа с комментариями (до разбора массива)
                 UpdateState(state, ParseState::eARRAY_VALUE);
+                break;
             }
 
             UpdateState(state, ParseState::eARRAY_ERROR_STATE);
@@ -895,9 +901,26 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
             break;
         }
         case ParseState::eARRAY_SEPARATOR: {
+            //пропуск пробелов =====================================================
+            if(CharInString(current_ch, __SPACES_WITHOUT_SEPARATORS__)) break;
+            //===================================================== пропуск пробелов
+
+            //может встретиться разделитель или знак завершения массива
+            //  комментарий ПОСЛЕ значения может начинаться только на той же строке, что и значение
+            //  разделитель может быть как ДО, так и ПОСЛЕ комментария
+
+            if(CharInString(current_ch, __SEPARATORS__ "]")) {
+                ...
+
+                UpdateState(state, current_ch == ']' ? ParseState::eARRAY_FINISH : ParseState::eARRAY_VALUE);
+                break;
+            }
+
             //(комментарий после значения, на строке значения ...)
             //разделитель ...
 
+            UpdateState(state, ParseState::eARRAY_ERROR_STATE);
+            error_string = "Not found stop of ARRAY.";
             break;
         }
         case ParseState::eARRAY_FINISH: {
