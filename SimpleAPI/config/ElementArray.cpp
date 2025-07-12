@@ -135,120 +135,120 @@ class ElementArray;
                                         //            UpdateState(State::eARRAY_VALUE);
 
                                         //            break;
-//        }
+                                        //        }
 //        case State::eARRAY_VALUE: {
-//            //пропуск пробелов ====================================================
-//            if(current_ch == '\n' && !is_value_comment_after_saved) {
-//                //работа с комментариями (после значения #2) ==========================
-//                if(!current_comment.empty() && enable_comment) {
-//                    add_suffix_comment(m_values.size() - 1, FromComment(current_comment, comment_design));
-//                    current_comment.clear();
-////                    std::cout << "ElementArray:comment:after: " << "\"" << current_comment << "\"" << std::endl;
-//                } //======================== работа с комментариями (после значения #2)
-//                is_value_comment_after_saved = true;
-//                break;
-//            }
-//            if(CharsInString(current_ch, __SPACES__) && !is_quotes && value_format == ValueFormat::VALUE_NOPE)
-//                break;
-//            //==================================================== пропуск пробелов
+                                        //            //пропуск пробелов ====================================================
+                                        //            if(current_ch == '\n' && !is_value_comment_after_saved) {
+                                        //                //работа с комментариями (после значения #2) ==========================
+                                        //                if(!current_comment.empty() && enable_comment) {
+                                        //                    add_suffix_comment(m_values.size() - 1, FromComment(current_comment, comment_design));
+                                        //                    current_comment.clear();
+                                        ////                    std::cout << "ElementArray:comment:after: " << "\"" << current_comment << "\"" << std::endl;
+                                        //                } //======================== работа с комментариями (после значения #2)
+                                        //                is_value_comment_after_saved = true;
+                                        //                break;
+                                        //            }
+                                        //            if(CharsInString(current_ch, __SPACES__) && !is_quotes && value_format == ValueFormat::VALUE_NOPE)
+                                        //                break;
+                                        //            //==================================================== пропуск пробелов
 
-//            if(current_ch == ']') {
-//                UpdateState(State::eARRAY_FINISH);
-//                break;
-//            }
+                                        //            if(current_ch == ']') {
+                                        //                UpdateState(State::eARRAY_FINISH);
+                                        //                break;
+                                        //            }
 
-//            if(!is_word_started) {
-//                is_word_started                 = true;
-//                is_value_comment_after_saved    = false;
-//                value_string.clear();
-//            }
+                                        //            if(!is_word_started) {
+                                        //                is_word_started                 = true;
+                                        //                is_value_comment_after_saved    = false;
+                                        //                value_string.clear();
+                                        //            }
 
-//            switch(current_ch) {
-//            case '{': {
-//                if(!is_quotes) {
-//                    if(value_format == ValueFormat::VALUE_NOPE)
-//                        value_format = ValueFormat::VALUE_JSON;
-//                    inner_json_counter++;
-//                }
-//                break;
-//            }
-//            case '}': {
-//                if(!is_quotes)
-//                    inner_json_counter--;
-//                break;
-//            }
-//            case '[': {
-//                if(!is_quotes) {
-//                    if(value_format == ValueFormat::VALUE_NOPE)
-//                        value_format = ValueFormat::VALUE_ARRAY;
-//                    inner_array_counter++;
-//                }
-//                break;
-//            }
-//            case ']': {
-//                if(!is_quotes)
-//                    inner_array_counter--;
-//                break;
-//            }
-//            case '"': {
-//                if(previous_ch != '\\') {
-//                    is_quotes = !is_quotes;
-////                    std::cout << "value."
-////                              << "isQuotes: (" << to_string(isQuotes) << ") "
-////                              << "'" << previous << current << next << "'"
-////                              << std::endl;
-//                }
-//            }
-//            default: {
-//                if(value_format == ValueFormat::VALUE_NOPE)
-//                    value_format = ValueFormat::VALUE_OTHER;
-//                break;
-//            }
-//            }
+                                        //            switch(current_ch) {
+                                        //            case '{': {
+                                        //                if(!is_quotes) {
+                                        //                    if(value_format == ValueFormat::VALUE_NOPE)
+                                        //                        value_format = ValueFormat::VALUE_JSON;
+                                        //                    inner_json_counter++;
+                                        //                }
+                                        //                break;
+                                        //            }
+                                        //            case '}': {
+                                        //                if(!is_quotes)
+                                        //                    inner_json_counter--;
+                                        //                break;
+                                        //            }
+                                        //            case '[': {
+                                        //                if(!is_quotes) {
+                                        //                    if(value_format == ValueFormat::VALUE_NOPE)
+                                        //                        value_format = ValueFormat::VALUE_ARRAY;
+                                        //                    inner_array_counter++;
+                                        //                }
+                                        //                break;
+                                        //            }
+                                        //            case ']': {
+                                        //                if(!is_quotes)
+                                        //                    inner_array_counter--;
+                                        //                break;
+                                        //            }
+                                        //            case '"': {
+                                        //                if(previous_ch != '\\') {
+                                        //                    is_quotes = !is_quotes;
+                                        ////                    std::cout << "value."
+                                        ////                              << "isQuotes: (" << to_string(isQuotes) << ") "
+                                        ////                              << "'" << previous << current << next << "'"
+                                        ////                              << std::endl;
+                                        //                }
+                                        //            }
+                                        //            default: {
+                                        //                if(value_format == ValueFormat::VALUE_NOPE)
+                                        //                    value_format = ValueFormat::VALUE_OTHER;
+                                        //                break;
+                                        //            }
+                                        //            }
 
-//            //поиск конца значения =================================================
-//            switch(value_format) {
-//            case VALUE_JSON: {
-//                if(inner_json_counter == 0) //прочли весь вложенный JSON
-//                    is_word_finished = true;
+                                        //            //поиск конца значения =================================================
+                                        //            switch(value_format) {
+                                        //            case VALUE_JSON: {
+                                        //                if(inner_json_counter == 0) //прочли весь вложенный JSON
+                                        //                    is_word_finished = true;
 
-//                value_string += current_ch;
-//                break;
-//            }
-//            case VALUE_ARRAY: {
-//                if(inner_array_counter == 0) //прочли весь вложенный массив
-//                    is_word_finished = true;
+                                        //                value_string += current_ch;
+                                        //                break;
+                                        //            }
+                                        //            case VALUE_ARRAY: {
+                                        //                if(inner_array_counter == 0) //прочли весь вложенный массив
+                                        //                    is_word_finished = true;
 
-//                value_string += current_ch;
-//                break;
-//            }
-//            case VALUE_OTHER: {
-//                if(!is_quotes && CharsInString(current_ch, __SPACES__)) //прочли всё значение
-//                    is_word_finished = true;
+                                        //                value_string += current_ch;
+                                        //                break;
+                                        //            }
+                                        //            case VALUE_OTHER: {
+                                        //                if(!is_quotes && CharsInString(current_ch, __SPACES__)) //прочли всё значение
+                                        //                    is_word_finished = true;
 
-//                value_string += current_ch;
-//                break;
-//            }
-//            default: break;
-//            }
+                                        //                value_string += current_ch;
+                                        //                break;
+                                        //            }
+                                        //            default: break;
+                                        //            }
 
-//            if(!is_word_finished
-//                && !is_quotes
-//                && (inner_json_counter == 0)
-//                && (inner_array_counter == 0))
-//            {
-//                //если ТЕКУЩИЙ символ должен обрабатываться другим кодом
-//                if(CharsInString(current_ch, __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : ""))) {
-//                    is_word_finished = true;
-//                    i--;
-//                    value_string.pop_back();
-//                }
-//                //если СЛЕДУЮЩИЙ символ должен обрабатываться другим кодом
-//                if(CharsInString(next_ch, __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : ""))) {
-//                    is_word_finished = true;
-//                }
-//            }
-//            //================================================= поиск конца значения
+                                        //            if(!is_word_finished
+                                        //                && !is_quotes
+                                        //                && (inner_json_counter == 0)
+                                        //                && (inner_array_counter == 0))
+                                        //            {
+                                        //                //если ТЕКУЩИЙ символ должен обрабатываться другим кодом
+                                        //                if(CharsInString(current_ch, __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : ""))) {
+                                        //                    is_word_finished = true;
+                                        //                    i--;
+                                        //                    value_string.pop_back();
+                                        //                }
+                                        //                //если СЛЕДУЮЩИЙ символ должен обрабатываться другим кодом
+                                        //                if(CharsInString(next_ch, __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : ""))) {
+                                        //                    is_word_finished = true;
+                                        //                }
+                                        //            }
+                                        //            //================================================= поиск конца значения
 
 
 //            //обработка итогового значения =========================================
@@ -338,49 +338,49 @@ class ElementArray;
                                             //            if(CharsInString(current_ch, __SPACES_WITHOUT_SEPARATORS__))
                                             //                break;
                                             //            //=====================================================================
-//      ???      if(!CharsInString(current_ch, __SEPARATORS__ "]")) {
-//      ???          is_critical_error = true;
-//      ???          break;
-//      ???      }
+                                            //            if(!CharsInString(current_ch, __SEPARATORS__ "]")) {
+                                            //                is_critical_error = true;
+                                            //                break;
+                                            //            }
 
-//            if(current_ch == '\n') {
-//                //работа с комментариями (после значения #1) ==========================
-//                if(enable_comment && !current_comment.empty()) {
-//                    add_suffix_comment(m_values.size() - 1, FromComment(current_comment, comment_design));
-//                    current_comment.clear();
-////                    std::cout << "ElementArray:comment:after: " << "\"" << current_comment << "\"" << std::endl;
-//                } //===================================================================
-//                is_value_comment_after_saved = true;
-//            }
-//            UpdateState(current_ch == ']' ? State::eARRAY_FINISH : State::eARRAY_VALUE);
+                                            //            if(current_ch == '\n') {
+                                            //                //работа с комментариями (после значения #1) ==========================
+                                            //                if(enable_comment && !current_comment.empty()) {
+                                            //                    add_suffix_comment(m_values.size() - 1, FromComment(current_comment, comment_design));
+                                            //                    current_comment.clear();
+                                            ////                    std::cout << "ElementArray:comment:after: " << "\"" << current_comment << "\"" << std::endl;
+                                            //                } //===================================================================
+                                            //                is_value_comment_after_saved = true;
+                                            //            }
+                                            //            UpdateState(current_ch == ']' ? State::eARRAY_FINISH : State::eARRAY_VALUE);
 
-//            if(enable_comment && (!value_comment.prefix().empty() || !value_comment.suffix().empty())) {
-//                add_comment(m_values.size() - 1, value_comment.prefix(), value_comment.suffix());
-////                std::cout << "\tvalue_before: " << value_comment.prefix << std::endl
-////                          << "\tvalue_after: " << value_comment.suffix << std::endl;
-//            }
+                                            //            if(enable_comment && (!value_comment.prefix().empty() || !value_comment.suffix().empty())) {
+                                            //                add_comment(m_values.size() - 1, value_comment.prefix(), value_comment.suffix());
+                                            ////                std::cout << "\tvalue_before: " << value_comment.prefix << std::endl
+                                            ////                          << "\tvalue_after: " << value_comment.suffix << std::endl;
+                                            //            }
 
-//            break;
-//        }
+                                            //            break;
+                                            //        }
 //        default: break;
 //        }
 
-//        if(is_critical_error) {
-////            std::cout << "symbols: '" << previous << current << next << "'" << std::endl;
-//            clear();
-//            throw std::invalid_argument("JSON_ARRAY parse error at line "
-//                                        + std::to_string(line_counter) + ":" + std::to_string(symbol_counter)
-//                                        + " '" + current_ch + "', current state:" + ToString(state));
-//        }
+                                            //        if(is_critical_error) {
+                                            ////            std::cout << "symbols: '" << previous << current << next << "'" << std::endl;
+                                            //            clear();
+                                            //            throw std::invalid_argument("JSON_ARRAY parse error at line "
+                                            //                                        + std::to_string(line_counter) + ":" + std::to_string(symbol_counter)
+                                            //                                        + " '" + current_ch + "', current state:" + ToString(state));
+                                            //        }
 
-//        Counter();
-//    }
+                                            //        Counter();
+                                            //    }
 
 
-//    if(state != State::eARRAY_FINISH) {
-//        clear();
-//        throw std::invalid_argument("JSON_ARRAY parse error, end of JSON array structure not found");
-//    }
+                                            //    if(state != State::eARRAY_FINISH) {
+                                            //        clear();
+                                            //        throw std::invalid_argument("JSON_ARRAY parse error, end of JSON array structure not found");
+                                            //    }
 //}
 
 //void ElementArray::parseIniArray(const std::string &string, const bool enable_comment,
@@ -758,6 +758,7 @@ std::string ElementArray::to_string(const ParseState state) const noexcept {
     case ParseState::eARRAY_VALUE:          return "[ARRAY_VALUE]";
     case ParseState::eARRAY_SEPARATOR:      return "[ARRAY_SEPARATOR]";
     case ParseState::eARRAY_FINISH:         return "[ARRAY_FINISH]";
+    case ParseState::eARRAY_COMMENT:        return "[ARRAY_COMMENT]";
     case ParseState::eARRAY_ERROR_STATE:
     default:                                return "[ARRAY_ERROR_STATE]";
     }
@@ -850,11 +851,15 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
     design.temp_type = CommentType::eNotComment;
 
     ParseState state = ParseState::eARRAY_START;
+    ParseState state_comment = ParseState::eARRAY_ERROR_STATE;
     std::string comment;
     ValueFormat value_format = ValueFormat::eVALUE_NOPE;
     std::string value;
     std::string error_string;
-    bool is_quotes = false;
+    bool is_quotes          = false;
+    bool is_separator_comma = false;
+    uint16_t inner_json_counter     = 0;
+    uint16_t inner_array_counter    = 0;
 
     for(size_t i = 0; i < input_string.size(); i++) {
         char previous_ch    = i == 0 ? 0 : input_string[i - 1];
@@ -867,10 +872,13 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
                               && value_format != ValueFormat::eVALUE_ARRAY
                               && value_format != ValueFormat::eVALUE_JSON;
         CheckComments(current_ch, next_ch, i, design, comment, ext_flag);
+        if(!parse_comments)
+            comment.clear();
         //сюда зайдёт, если внутри комментария либо если встречен конец комментария
         if(design.temp_type != CommentType::eNotComment)
             continue;
         //=================================================== поиск комментариев
+
 
         switch(state) {
         case ParseState::eARRAY_START: {
@@ -880,9 +888,9 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
 
             if(current_ch == '[') {
                 //работа с комментариями (до разбора массива) ==========================
-                if(parse_comments && !comment.empty()) {
+                if(!comment.empty()) {
                     addPrefixComment(FromComment(comment, design));
-                    DEBUG_LOG("ElementArray:PreviewComment: " << "\"" << comment << "\"");
+                    DEBUG_LOG("ElementArray: PreviewComment: " << "\"" << comment << "\"");
                     comment.clear();
                 }
                 //========================== работа с комментариями (до разбора массива)
@@ -895,8 +903,46 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
             break;
         }
         case ParseState::eARRAY_VALUE: {
-            //(комментарий перед значением ...)
-            //значение ...
+            //игнор пробелов и разделителей пока значение пустое
+            if(!is_quotes
+                && value.empty()
+                && CharInString(current_ch, __SPACES__ ","))
+            {
+                break;
+            }
+
+            if(current_ch == '\"'
+                && previous_ch != '\\'
+                && inner_json_counter + inner_array_counter == 0)
+            {
+                is_quotes = !is_quotes;
+            }
+
+            //кавычки, именованные списки, массивы
+            if(!is_quotes) {
+                switch(current_ch) {
+                case '{':   { ++inner_json_counter;     break; }
+                case '}':   { --inner_json_counter;     break; }
+                case '[':   { ++inner_array_counter;    break; }
+                case ']':   { --inner_array_counter;    break; }
+                default: break;
+                }
+            }
+            value += current_ch;
+
+            //значение прочитано полностью?
+            if(!is_quotes && CharInString(next_ch, __SEPARATORS__ " ")) {
+                DEBUG_LOG("ElementArray: current value done: \"" << value << "\"");
+
+                { /*TODO: проверить значение*/ }
+
+                if(!comment.empty()) {
+                    get_back().addPrefixComment(FromComment(comment, design));
+                    DEBUG_LOG("ElementArray: inner Element add PreviewComment: " << "\"" << comment << "\"");
+                    comment.clear();
+                }
+                UpdateState(state, ParseState::eARRAY_SEPARATOR);
+            }
 
             break;
         }
@@ -908,33 +954,34 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
             //может встретиться разделитель или знак завершения массива
             //  комментарий ПОСЛЕ значения может начинаться только на той же строке, что и значение
             //  разделитель может быть как ДО, так и ПОСЛЕ комментария
+            //  если комментарий расписан после переноса строки, но до знака ], то комментарий попадёт в суффикс основы
 
-            if(CharInString(current_ch, __SEPARATORS__ "]")) {
-                ...
-
-                UpdateState(state, current_ch == ']' ? ParseState::eARRAY_FINISH : ParseState::eARRAY_VALUE);
+            if(CharInString(current_ch, __SEPARATORS__)) {
+                is_separator_comma = current_ch == ',';
+                UpdateState(state_comment, ParseState::eARRAY_VALUE);
+                UpdateState(state, ParseState::eARRAY_COMMENT);
                 break;
             }
-
-            //(комментарий после значения, на строке значения ...)
-            //разделитель ...
+            if(CharInString(current_ch, "]")) {
+                UpdateState(state_comment, ParseState::eARRAY_FINISH);
+                UpdateState(state, ParseState::eARRAY_COMMENT);
+                break;
+            }
 
             UpdateState(state, ParseState::eARRAY_ERROR_STATE);
             error_string = "Not found stop of ARRAY.";
             break;
         }
-        case ParseState::eARRAY_FINISH: {
-            if(CharInString(current_ch, __SPACES__))
-                continue;
-
-            if(current_ch == '[') {
-                //завершающий комментарий значения?
-//                if(parse_comments && !comment.empty())
-//                    addPrefixComment(FromComment(comment, design));
+        case ParseState::eARRAY_COMMENT: {
+            //(комментарий после значения, на строке значения после запятой)
+            if(!is_separator_comma || current_ch == '\n') {
+                if(!comment.empty()) {
+                    get_back().addSuffixComment(FromComment(comment, design));
+                    DEBUG_LOG("ElementArray: inner Element add SuffixComment: " << "\"" << comment << "\"");
+                    comment.clear();
+                }
+                UpdateState(state, state_comment);
             }
-
-            UpdateState(state, ParseState::eARRAY_ERROR_STATE);
-            error_string = "Not found finish of ARRAY.";
             break;
         }
         case ParseState::eARRAY_ERROR_STATE: {
@@ -942,12 +989,23 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
                            + std::to_string(line_counter)
                            + "][" + std::to_string(symbol_counter) + "]. "
                            + error_string;
-            DEBUG_LOG(error_string);
+            DEBUG_LOG("ERROR: " << error_string);
             throw std::invalid_argument(error_string);
-            break;
         }
+        default: break;
         }
-        //конечный комментарий ...
+    }
+
+    //конечный комментарий ...
+    if(!comment.empty()) {
+        addSuffixComment(FromComment(comment, design));
+        DEBUG_LOG("ElementArray: SuffixComment: " << "\"" << comment << "\"");
+        comment.clear();
+    }
+
+    if(state != ParseState::eARRAY_FINISH) {
+        clear();
+        throw std::invalid_argument("ARRAY parse error, end of JSON array structure not found");
     }
 }
 

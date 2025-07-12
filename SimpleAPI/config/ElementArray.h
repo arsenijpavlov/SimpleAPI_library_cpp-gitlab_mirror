@@ -174,6 +174,7 @@ private:
     //всё это можно вынести из класса
     enum class ParseState {
         eARRAY_ERROR_STATE,
+        eARRAY_COMMENT,
         eARRAY_START,
         eARRAY_VALUE,
         eARRAY_SEPARATOR,
