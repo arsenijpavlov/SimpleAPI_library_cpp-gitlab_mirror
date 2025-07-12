@@ -19,11 +19,12 @@ std::string ToString(const ValueType type) noexcept {
 }
 
 void RemoveIllegalSpaces(std::string &string) noexcept {
+    using namespace utils;
     if(!string.empty()) {
-        while(utils::CharsInString(string.back(), __SPACES_WITHOUT_SEPARATORS__))
+        while(CharInString(string.back(), __SPACES_WITHOUT_SEPARATORS__))
             string.pop_back();
 
-        while(utils::CharsInString(*string.begin(), __SPACES_WITHOUT_SEPARATORS__))
+        while(CharInString(*string.begin(), __SPACES_WITHOUT_SEPARATORS__))
             string = string.erase(0, 1);
     }
 }
@@ -89,14 +90,14 @@ ValueType CheckValue(std::string &value, const ConfigFormat &format) noexcept {
             RemoveIllegalSpaces(value);
 
             if(IsNumber(value[i])
-                || CharsInString(value[i], "-+"))
+                || CharInString(value[i], "-+"))
             {
                 vType = ValueType::eNumber;
-            } else if(!CharsInString(value[i], __SPACES__)
+            } else if(!CharInString(value[i], __SPACES__)
                        && (std::tolower(value[0]) == 't' || std::tolower(value[0]) == 'f'))
             {
                 vType = ValueType::eBool;
-            } else if(!CharsInString(value[i], __SPACES__)
+            } else if(!CharInString(value[i], __SPACES__)
                        && (std::tolower(value[0]) == 'n'))
             {
                 vType = ValueType::eNull;
@@ -154,7 +155,7 @@ bool CheckNumber(const std::string &value) noexcept {
         || std::tolower(value[0]) == 'f')
     { return false; }
 
-    std::regex reg("^[+-]?[0-9]*[.]?[0-9]*[eE]?[+-]?[0-9]*[fF]?$");
+    std::regex reg("^[+-]?[0-9]+[.]?[0-9]*[eE]?[+-]?[0-9]*[fF]?$");
     bool matched = std::regex_match(value, reg);
 
     bool e_is_last = std::tolower(value[value.length() - 1]) == 'e';
@@ -173,7 +174,7 @@ bool CheckBool(std::string &value) noexcept {
     std::string temp;
     bool flag = false;
     for(char c : value) {
-        if(CharsInString(c, __SPACES__)) {
+        if(CharInString(c, __SPACES__)) {
             if(flag) break;
         } else {
             if(!flag)   flag = true;
@@ -193,7 +194,7 @@ bool CheckNull(std::string &value) noexcept {
     std::string temp;
     bool flag = false;
     for(char c : value) {
-        if(CharsInString(c, __SPACES__)) {
+        if(CharInString(c, __SPACES__)) {
             if(flag) break;
         } else {
             //TODO: зачем?
@@ -240,7 +241,7 @@ bool CheckString(std::string &value, const ConfigFormat &format) noexcept {
                         if(value[i] == '"') done = true;
                         else                temp += value[i];
                     } else { //замкнули слово, надо проверить оставшиеся символы
-                        if(!CharsInString(value[i], __SPACES__)) {
+                        if(!CharInString(value[i], __SPACES__)) {
 //                            std::cout << "Error with parse String in: " << value[i] << std::endl;
                             return false;
                         }
@@ -253,7 +254,7 @@ bool CheckString(std::string &value, const ConfigFormat &format) noexcept {
             return done;
         } else {
             for(char ch : value)
-                if(CharsInString(ch, __SPACES__))
+                if(CharInString(ch, __SPACES__))
                     return false;
             return true;
         }
@@ -316,12 +317,12 @@ bool CheckJson(std::string &value) noexcept {
                 }
                 temp += value[i];
             } else { //замкнули слово, надо проверить оставшиеся символы
-                if(!CharsInString(value[i], __SPACES__)) {
+                if(!CharInString(value[i], __SPACES__)) {
 //                    std::cout << "Error with parse Json in: [" << value[i] << "]" << std::endl;
                     return false;
                 }
             }
-        } else if(!CharsInString(value[i], __SPACES__)) {
+        } else if(!CharInString(value[i], __SPACES__)) {
             if (value[i] == '{') {
                 temp += value[i];
                 ch = '}';
@@ -380,12 +381,12 @@ bool CheckArray(std::string &value) noexcept {
                 }
                 temp += value[i];
             } else { //замкнули слово, надо проверить оставшиеся символы
-                if(!CharsInString(value[i], __SPACES__)) {
+                if(!CharInString(value[i], __SPACES__)) {
 //                    std::cout << "Error with parse ElementArray in: [" << value[i] << "]" << std::endl;
                     return false;
                 }
             }
-        } else if(!CharsInString(value[i], __SPACES_WITHOUT_SEPARATORS__)) {
+        } else if(!CharInString(value[i], __SPACES_WITHOUT_SEPARATORS__)) {
             if (value[i] == '[') {
                 temp += value[i];
                 ch = ']';

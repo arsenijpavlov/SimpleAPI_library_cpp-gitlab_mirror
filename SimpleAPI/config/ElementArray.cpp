@@ -118,7 +118,7 @@ class ElementArray;
 //        switch(state) {
 //        case State::eARRAY_START: {
                                         //            //пропуск пробелов =====================================================
-                                        //            if(CharsInString(current_ch, __SPACES__)) break;
+                                        //            if(CharInString(current_ch, __SPACES__)) break;
                                         //            //===================================================== пропуск пробелов
 
                                         //            //работа с комментариями (до разбора массива) ==========================
@@ -148,7 +148,7 @@ class ElementArray;
                                         //                is_value_comment_after_saved = true;
                                         //                break;
                                         //            }
-                                        //            if(CharsInString(current_ch, __SPACES__) && !is_quotes && value_format == ValueFormat::VALUE_NOPE)
+                                        //            if(CharInString(current_ch, __SPACES__) && !is_quotes && value_format == ValueFormat::VALUE_NOPE)
                                         //                break;
                                         //            //==================================================== пропуск пробелов
 
@@ -223,7 +223,7 @@ class ElementArray;
                                         //                break;
                                         //            }
                                         //            case VALUE_OTHER: {
-                                        //                if(!is_quotes && CharsInString(current_ch, __SPACES__)) //прочли всё значение
+                                        //                if(!is_quotes && CharInString(current_ch, __SPACES__)) //прочли всё значение
                                         //                    is_word_finished = true;
 
                                         //                value_string += current_ch;
@@ -238,13 +238,13 @@ class ElementArray;
                                         //                && (inner_array_counter == 0))
                                         //            {
                                         //                //если ТЕКУЩИЙ символ должен обрабатываться другим кодом
-                                        //                if(CharsInString(current_ch, __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : ""))) {
+                                        //                if(CharInString(current_ch, __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : ""))) {
                                         //                    is_word_finished = true;
                                         //                    i--;
                                         //                    value_string.pop_back();
                                         //                }
                                         //                //если СЛЕДУЮЩИЙ символ должен обрабатываться другим кодом
-                                        //                if(CharsInString(next_ch, __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : ""))) {
+                                        //                if(CharInString(next_ch, __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : ""))) {
                                         //                    is_word_finished = true;
                                         //                }
                                         //            }
@@ -335,10 +335,10 @@ class ElementArray;
 //        }
 //        case State::eARRAY_VALUE_SEPARATOR: {
                                             //            //пропуск пробелов ====================================================
-                                            //            if(CharsInString(current_ch, __SPACES_WITHOUT_SEPARATORS__))
+                                            //            if(CharInString(current_ch, __SPACES_WITHOUT_SEPARATORS__))
                                             //                break;
                                             //            //=====================================================================
-                                            //            if(!CharsInString(current_ch, __SEPARATORS__ "]")) {
+                                            //            if(!CharInString(current_ch, __SEPARATORS__ "]")) {
                                             //                is_critical_error = true;
                                             //                break;
                                             //            }
@@ -933,8 +933,14 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
             //значение прочитано полностью?
             if(!is_quotes && CharInString(next_ch, __SEPARATORS__ " ")) {
                 DEBUG_LOG("ElementArray: current value done: \"" << value << "\"");
-
-                { /*TODO: проверить значение*/ }
+                try {
+                    Config element = Config::CreateElementFromString(std::move(value), ConfigFormat::eJSON, parse_comments, design);
+                    push_back(std::move(element));
+                } catch (std::exception& e) {
+                    error_string = e.what();
+                    UpdateState(state, ParseState::eARRAY_ERROR_STATE);
+                    break;
+                }
 
                 if(!comment.empty()) {
                     get_back().addPrefixComment(FromComment(comment, design));

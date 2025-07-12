@@ -6,6 +6,8 @@
 #include "ElementString.h"
 #include "ElementArray.h"
 #include "ElementJson.h"
+
+#include <regex>
 //#include "ElementYaml.h"
 //#include "ElementXml.h"
 
@@ -21,12 +23,12 @@ Config &Config::setValue(const Config &other) noexcept {
     if(m_value) delete m_value;
 
     switch(other.getType()) {
-    case ValueType::eNull:      { setValue();                                                               break; }
-    case ValueType::eBool:      { setValue(dynamic_cast<const ElementBool*>(other.m_value)->getValue());    break; }
-    case ValueType::eNumber:    { setValue(dynamic_cast<const ElementNumber*>(other.m_value)->getValue());  break; }
-    case ValueType::eString:    { setValue(dynamic_cast<const ElementString*>(other.m_value)->getValue());  break; }
-    case ValueType::eArray:     { setValue(dynamic_cast<const ElementArray&>(*other.m_value));              break; }
-    case ValueType::eJson:      { setValue(dynamic_cast<const ElementJson&>(*other.m_value));               break; }
+    case ValueType::eNull:      { return setValue();                                                                }
+    case ValueType::eBool:      { return setValue(dynamic_cast<const ElementBool*>(other.m_value)->getValue());     }
+    case ValueType::eNumber:    { return setValue(dynamic_cast<const ElementNumber*>(other.m_value)->getValue());   }
+    case ValueType::eString:    { return setValue(dynamic_cast<const ElementString*>(other.m_value)->getValue());   }
+    case ValueType::eArray:     { return setValue(dynamic_cast<const ElementArray&>(*other.m_value));               }
+    case ValueType::eJson:      { return setValue(dynamic_cast<const ElementJson&>(*other.m_value));                }
     default: break;
     }
 
@@ -37,12 +39,12 @@ Config &Config::setValue(Config &&other) noexcept {
     if(m_value) delete m_value;
 
     switch(other.getType()) {
-    case ValueType::eNull:      { setValue();                                                                           break; }
-    case ValueType::eBool:      { setValue(dynamic_cast<const ElementBool*>(other.m_value)->getValue());                break; }
-    case ValueType::eNumber:    { setValue(std::move(dynamic_cast<const ElementNumber*>(other.m_value)->getValue()));   break; }
-    case ValueType::eString:    { setValue(std::move(dynamic_cast<const ElementString*>(other.m_value)->getValue()));   break; }
-    case ValueType::eArray:     { setValue(std::move(dynamic_cast<const ElementArray&>(*other.m_value)));               break; }
-    case ValueType::eJson:      { setValue(std::move(dynamic_cast<const ElementJson&>(*other.m_value)));                break; }
+    case ValueType::eNull:      { return setValue();                                                                            }
+    case ValueType::eBool:      { return setValue(dynamic_cast<const ElementBool*>(other.m_value)->getValue());                 }
+    case ValueType::eNumber:    { return setValue(std::move(dynamic_cast<const ElementNumber*>(other.m_value)->getValue()));    }
+    case ValueType::eString:    { return setValue(std::move(dynamic_cast<const ElementString*>(other.m_value)->getValue()));    }
+    case ValueType::eArray:     { return setValue(std::move(dynamic_cast<const ElementArray&>(*other.m_value)));                }
+    case ValueType::eJson:      { return setValue(std::move(dynamic_cast<const ElementJson&>(*other.m_value)));                 }
     default:                    break;
     }
 
@@ -54,12 +56,12 @@ Config &Config::setValue(const IElement &other) noexcept {
     if(m_value) delete m_value;
 
     switch(other.getType()) {
-    case ValueType::eNull:      { setValue();                                                       break; }
-    case ValueType::eBool:      { setValue(dynamic_cast<const ElementBool*>(&other)->getValue());   break; }
-    case ValueType::eNumber:    { setValue(dynamic_cast<const ElementNumber*>(&other)->getValue()); break; }
-    case ValueType::eString:    { setValue(dynamic_cast<const ElementString*>(&other)->getValue()); break; }
-    case ValueType::eArray:     { setValue(dynamic_cast<const ElementArray&>(other));               break; }
-    case ValueType::eJson:      { setValue(dynamic_cast<const ElementJson&>(other));                break; }
+    case ValueType::eNull:      { return setValue();                                                        }
+    case ValueType::eBool:      { return setValue(dynamic_cast<const ElementBool*>(&other)->getValue());    }
+    case ValueType::eNumber:    { return setValue(dynamic_cast<const ElementNumber*>(&other)->getValue());  }
+    case ValueType::eString:    { return setValue(dynamic_cast<const ElementString*>(&other)->getValue());  }
+    case ValueType::eArray:     { return setValue(dynamic_cast<const ElementArray&>(other));                }
+    case ValueType::eJson:      { return setValue(dynamic_cast<const ElementJson&>(other));                 }
     default:                    break;
     }
 
@@ -70,12 +72,12 @@ Config &Config::setValue(IElement &&other) noexcept {
     if(m_value) delete m_value;
 
     switch(other.getType()) {
-    case ValueType::eNull:      { setValue();                                                                   break; }
-    case ValueType::eBool:      { setValue(dynamic_cast<const ElementBool*>(&other)->getValue());               break; }
-    case ValueType::eNumber:    { setValue(std::move(dynamic_cast<const ElementNumber*>(&other)->getValue()));  break; }
-    case ValueType::eString:    { setValue(std::move(dynamic_cast<const ElementString*>(&other)->getValue()));  break; }
-    case ValueType::eArray:     { setValue(std::move(dynamic_cast<ElementArray&&>(other)));                     break; }
-    case ValueType::eJson:      { setValue(std::move(dynamic_cast<ElementJson&&>(other)));                      break; }
+    case ValueType::eNull:      { return setValue();                                                                    }
+    case ValueType::eBool:      { return setValue(dynamic_cast<const ElementBool*>(&other)->getValue());                }
+    case ValueType::eNumber:    { return setValue(std::move(dynamic_cast<const ElementNumber*>(&other)->getValue()));   }
+    case ValueType::eString:    { return setValue(std::move(dynamic_cast<const ElementString*>(&other)->getValue()));   }
+    case ValueType::eArray:     { return setValue(std::move(dynamic_cast<ElementArray&&>(other)));                      }
+    case ValueType::eJson:      { return setValue(std::move(dynamic_cast<ElementJson&&>(other)));                       }
     default:                    break;
     }
 
@@ -903,6 +905,82 @@ shared_VPairElement::iterator Config::json_end() {
 shared_VPairElement::const_iterator Config::json_cend() const {
     __CHECK_TYPE_IS_JSON__((*this))
     return dynamic_cast<const ElementJson*>(m_value)->cend();
+}
+
+Config Config::CreateElementFromString(std::string &&value_string, const ConfigFormat format,
+                                       const bool enable_comments, const CommentDesign& design)
+{
+    using namespace utils;
+    //удаление незначащих пробелов
+    RemoveIllegalSpaces(value_string);
+
+    std::string temp;
+    auto Append = [&](const char c) {
+        temp += std::tolower(c);
+    };
+
+    //проверка типа, по порядку
+    /*NULL*/ {
+        if(value_string.empty())
+            return Config();
+        if(value_string.size() == 4) {
+            for(auto ch : value_string)
+                Append(ch);
+            if(temp == "null")  return Config();
+            temp.clear();
+        }
+    }
+    /*BOOL*/ {
+        if(value_string.size() == 4 || value_string.size() == 5) {
+            for(auto ch : value_string)
+                Append(ch);
+            if(temp == "true")  return Config(true);
+            if(temp == "false") return Config(false);
+            temp.clear();
+        }
+        if(value_string.size() == 1) {
+            if(value_string == "T" || value_string == "t" || value_string == "+")  return Config(true);
+            if(value_string == "F" || value_string == "f" || value_string == "-")  return Config(false);
+        }
+    }
+    char first = value_string.front();
+    char last = value_string.back();
+    /*NUMBER*/ {
+        try {
+            std::regex reg("^[+-]?[0-9]+[.]?[0-9]*[eE]?[+-]?[0-9]*[fF]?$");
+            if(std::regex_match(value_string, reg))
+                return Config(std::stod(value_string));
+        } catch (...) {}
+    }
+    /*STRING*/ {
+        if(first == '"' && last == '"') {
+            value_string.erase(0, 1);
+            value_string.pop_back();
+            return Config(value_string);
+        }
+    }
+    /*ARRAY*/ {
+        if(first == '[' && last == ']') {
+            try {
+                ElementArray array;
+                array.setCommentDesign(design);
+                array.parse(value_string, format, enable_comments);
+                return Config(array);
+            } catch(...) {}
+        }
+    }
+    /*JSON*/ {
+        if(first == '{' && last == '}') {
+            try {
+                ElementJson json;
+                json.setCommentDesign(design);
+                json.parse(value_string, format, enable_comments);
+                return Config(json);
+            } catch(...) {}
+        }
+    }
+
+    throw std::invalid_argument("incorrect value format");
 }
 
 

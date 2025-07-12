@@ -54,7 +54,7 @@ std::string ToString(bool b) noexcept {
 
 bool OnlySpaces(const std::string& str) noexcept {
     for(char c : str)
-        if(!CharsInString(c, " \n\t"))
+        if(!CharInString(c, " \n\t"))
             return false;
     return true;
 }

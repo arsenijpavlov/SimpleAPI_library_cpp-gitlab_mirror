@@ -308,6 +308,10 @@ public:
     shared_VPairElement::iterator       json_end();
     shared_VPairElement::const_iterator json_cend()                                             const;
     // ======================================================================================================= Iterators
+
+    //STATIC
+    static Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
+                                          const bool enable_comments = true, const CommentDesign& design = {});
 };
 
 

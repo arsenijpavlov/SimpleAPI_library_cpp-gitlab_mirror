@@ -467,7 +467,7 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
 //        switch(state) {
 //        case ARRAY_START: {
 //            //пропуск пробелов ====================================================
-//            if(utils::CharsInString(current, __SPACES__))
+//            if(utils::CharInString(current, __SPACES__))
 //                break;
 //            //=====================================================================
 
@@ -498,7 +498,7 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
 //                isValueCommentAfterSaved = true;
 //                break;
 //            }
-//            if(utils::CharsInString(current, __SPACES__) && !isQuotes && value_format == ValueFormat::VALUE_NOPE)
+//            if(utils::CharInString(current, __SPACES__) && !isQuotes && value_format == ValueFormat::VALUE_NOPE)
 //                break;
 //            //=====================================================================
 //            if(current == ']') {
@@ -568,7 +568,7 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
 //                break;
 //            }
 //            case VALUE_OTHER: {
-//                if(!isQuotes && utils::CharsInString(current, __SPACES__))
+//                if(!isQuotes && utils::CharInString(current, __SPACES__))
 //                    isWordFinished = true;
 
 //                value_string += current;
@@ -580,13 +580,13 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
 //            if(!isWordFinished && !isQuotes
 //                && (innerJsonCounter == 0) && (innerArrayCounter == 0)) {
 //                //если текущий символ должен обрабатываться другим кодом
-//                if(utils::CharsInString(current, __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : ""))) {
+//                if(utils::CharInString(current, __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : ""))) {
 //                    isWordFinished = true;
 //                    i--;
 //                    value_string.pop_back();
 //                }
 //                //если следующий символ должен обрабатываться другим кодом
-//                if(utils::CharsInString(next, __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : ""))) {
+//                if(utils::CharInString(next, __SEPARATORS__ + std::string((value_format != VALUE_ARRAY) ? "]" : ""))) {
 //                    isWordFinished = true;
 //                }
 //            }
@@ -674,10 +674,10 @@ void JArray::parseJSON_array(const std::string &string_of_array, const bool enab
 //        }
 //        case ARRAY_ELEMENT_SEPARATOR: {
 //            //пропуск пробелов ====================================================
-//            if(utils::CharsInString(current, __SPACES_WITHOUT_SEPARATORS__))
+//            if(utils::CharInString(current, __SPACES_WITHOUT_SEPARATORS__))
 //                break;
 //            //=====================================================================
-//            if(!utils::CharsInString(current, __SEPARATORS__ "]")) {
+//            if(!utils::CharInString(current, __SEPARATORS__ "]")) {
 //                isCriticalError = true;
 //                break;
 //            }
@@ -1234,7 +1234,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 //        switch(state) {
 //        case JSON_START: {
 //            //пропуск пробелов ====================================================
-//            if(utils::CharsInString(current, __SPACES__))
+//            if(utils::CharInString(current, __SPACES__))
 //                break;
 //            //=====================================================================
 
@@ -1268,7 +1268,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 //                isValueCommentAfterSaved = true;
 //                break;
 //            }
-//            if(utils::CharsInString(current, __SPACES__) && !isQuotes && !isWordStarted)
+//            if(utils::CharInString(current, __SPACES__) && !isQuotes && !isWordStarted)
 //                break;
 //            //=====================================================================
 //            if(current == '}') {
@@ -1299,7 +1299,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 //            else                key_string += current;
 
 //            //поиск конца значения
-//            if(!isQuotes && utils::CharsInString(current, __SPACES__))
+//            if(!isQuotes && utils::CharInString(current, __SPACES__))
 //                isWordFinished = true;
 //            if(isQuotes
 //                && string_of_json.length() > i + 1
@@ -1319,7 +1319,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 //            //если следующий символ должен обрабатываться другим кодом
 //            if(!isWordFinished && !isQuotes) {
 //                if((string_of_json.length() > i + 1)
-//                    && utils::CharsInString(string_of_json[i + 1], __KEY_VALUE_SEPARATOR__))
+//                    && utils::CharInString(string_of_json[i + 1], __KEY_VALUE_SEPARATOR__))
 //                    isWordFinished = true;
 //            }
 
@@ -1347,11 +1347,11 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 ////                      << "'" << previous << current << next << "'"
 ////                      << std::endl;
 //            //пропуск пробелов ====================================================
-//            if(utils::CharsInString(current, __SPACES__) && !isQuotes)
+//            if(utils::CharInString(current, __SPACES__) && !isQuotes)
 //                break;
 //            //=====================================================================
 
-//            if(!utils::CharsInString(current, __KEY_VALUE_SEPARATOR__)) {
+//            if(!utils::CharInString(current, __KEY_VALUE_SEPARATOR__)) {
 //                isCriticalError = true;
 //                break;
 //            }
@@ -1368,7 +1368,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 //        }
 //        case JSON_VALUE: {
 //            //пропуск пробелов ====================================================
-//            if(utils::CharsInString(current, __SPACES__) && !isQuotes && value_format == ValueFormat::VALUE_NOPE)
+//            if(utils::CharInString(current, __SPACES__) && !isQuotes && value_format == ValueFormat::VALUE_NOPE)
 //                if(next != 0) break;
 //            //=====================================================================
 //            if(!isWordStarted) {
@@ -1435,7 +1435,7 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 //                break;
 //            }
 //            case VALUE_OTHER: {
-//                if(!isQuotes && utils::CharsInString(current, __SPACES__))
+//                if(!isQuotes && utils::CharInString(current, __SPACES__))
 //                    isWordFinished = true;
 
 //                value_string += current;
@@ -1446,13 +1446,13 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 //            if(!isWordFinished && !isQuotes
 //                && (innerJsonCounter == 0) && (innerArrayCounter == 0)) {
 //                //если текущий символ должен обрабатываться другим кодом
-//                if(utils::CharsInString(current, __SEPARATORS__ + std::string((value_format != VALUE_JSON) ? "}" : ""))) {
+//                if(utils::CharInString(current, __SEPARATORS__ + std::string((value_format != VALUE_JSON) ? "}" : ""))) {
 //                    isWordFinished = true;
 //                    i--;
 //                    value_string.pop_back();
 //                }
 //                //если следующий символ должен обрабатываться другим кодом
-//                if(utils::CharsInString(next, __SEPARATORS__ + std::string((value_format != VALUE_JSON) ? "}" : ""))
+//                if(utils::CharInString(next, __SEPARATORS__ + std::string((value_format != VALUE_JSON) ? "}" : ""))
 //                    || next == 0 /*конец строки*/) {
 //                    isWordFinished = true;
 //                }
@@ -1542,10 +1542,10 @@ void Json::parseJSON(const std::string &string_of_json, const bool enable_commen
 //        }
 //        case JSON_ELEMENT_SEPARATOR: {
 //            //пропуск пробелов ====================================================
-//            if(utils::CharsInString(current, __SPACES_WITHOUT_SEPARATORS__))
+//            if(utils::CharInString(current, __SPACES_WITHOUT_SEPARATORS__))
 //                break;
 //            //=====================================================================
-//            if(!utils::CharsInString(current, __SEPARATORS__ "}")) {
+//            if(!utils::CharInString(current, __SEPARATORS__ "}")) {
 //                isCriticalError = true;
 //                break;
 //            }
@@ -1636,7 +1636,7 @@ std::vector<std::string> parseIniKeys(std::string& ini_key_value) noexcept {
     std::string local_string;
     local_string.reserve(200);
     for(char c : ini_key_value) {
-        if(utils::CharsInString(c, __KEY_VALUE_SEPARATOR__) && !local_string.empty() && flag) {
+        if(utils::CharInString(c, __KEY_VALUE_SEPARATOR__) && !local_string.empty() && flag) {
             RemoveIllegalSpaces(local_string);
 
             std::regex reg(__POSSIBLE_KEY_SYMBOLS__);
@@ -1662,7 +1662,7 @@ std::vector<std::string> parseIniCustomKeys(std::string& preview_key) noexcept {
     std::string local_string;
     local_string.reserve(200);
     for(char c : preview_key) {
-        if(utils::CharsInString(c, "/\\")) {
+        if(utils::CharInString(c, "/\\")) {
             RemoveIllegalSpaces(local_string);
             ret.push_back(local_string);
             local_string = "";
@@ -1877,13 +1877,13 @@ void Json::parseINI(const std::string &string_of_ini, const bool enable_comment)
 //                } //===================================================================
 //                isValueCommentAfterSaved = true;
 //            }
-//            if(utils::CharsInString(current, __SPACES_WITHOUT_SEPARATORS__) && !isQuotes && !isWordStarted) {
+//            if(utils::CharInString(current, __SPACES_WITHOUT_SEPARATORS__) && !isQuotes && !isWordStarted) {
 //                continue;
 //            }
 //            //=====================================================================
 
 //            if(!isWordStarted) {
-//                if(utils::CharsInString(current, __SPACES_WITHOUT_SEPARATORS__))
+//                if(utils::CharInString(current, __SPACES_WITHOUT_SEPARATORS__))
 //                    continue;
 
 //                isWordStarted = true;
@@ -2560,15 +2560,15 @@ Comment &Json::getOrCreateComment(const size_t index) {
 //            RemoveIllegalSpaces(value);
 
 //            if(utils::IsNumber(value[i])
-//                || utils::CharsInString(value[i], "-+"))
+//                || utils::CharInString(value[i], "-+"))
 //                vType = ValueType::eNumber;
-//            else if(!utils::CharsInString(value[i], __SPACES__)
+//            else if(!utils::CharInString(value[i], __SPACES__)
 //                     && (value[0] == 't'
 //                         || value[0] == 'f'
 //                         || value[0] == 'T'
 //                         || value[0] == 'F'))
 //                                            vType = ValueType::eBool;
-//            else if(!utils::CharsInString(value[i], __SPACES__)
+//            else if(!utils::CharInString(value[i], __SPACES__)
 //                     && (value[0] == 'N' || value[0] == 'n'))
 //                                            vType = ValueType::eNull;
 //            else                            vType = ValueType::eString;
@@ -2635,7 +2635,7 @@ Comment &Json::getOrCreateComment(const size_t index) {
 //    std::string temp;
 //    bool flag = false;
 //    for(char c : value) {
-//        if(utils::CharsInString(c, __SPACES__)) {
+//        if(utils::CharInString(c, __SPACES__)) {
 //            if(flag) break;
 //        } else {
 //            if(!flag)   flag = true;
@@ -2653,7 +2653,7 @@ Comment &Json::getOrCreateComment(const size_t index) {
 //    std::string temp;
 //    bool flag = false;
 //    for(char c : value) {
-//        if(utils::CharsInString(c, __SPACES__)) {
+//        if(utils::CharInString(c, __SPACES__)) {
 //            if(flag) break;
 //        } else {
 //            if(!flag)   flag = true;
@@ -2698,7 +2698,7 @@ Comment &Json::getOrCreateComment(const size_t index) {
 //                        if(value[i] == '"') done = true;
 //                        else                temp += value[i];
 //                    } else { //замкнули слово, надо проверить оставшиеся символы
-//                        if(!utils::CharsInString(value[i], __SPACES__)) {
+//                        if(!utils::CharInString(value[i], __SPACES__)) {
 //                            std::cout << "Error with parse String in: " << value[i] << std::endl;
 //                            return false;
 //                        }
@@ -2711,7 +2711,7 @@ Comment &Json::getOrCreateComment(const size_t index) {
 //            return done;
 //        } else {
 //            for(char ch : value)
-//                                            if(utils::CharsInString(ch, __SPACES__))
+//                                            if(utils::CharInString(ch, __SPACES__))
 //                    return false;
 //            return true;
 //        }
@@ -2772,12 +2772,12 @@ Comment &Json::getOrCreateComment(const size_t index) {
 //                }
 //                temp += value[i];
 //            } else { //замкнули слово, надо проверить оставшиеся символы
-//                if(!utils::CharsInString(value[i], __SPACES__)) {
+//                if(!utils::CharInString(value[i], __SPACES__)) {
 //                    std::cout << "Error with parse Json in: [" << value[i] << "]" << std::endl;
 //                    return false;
 //                }
 //            }
-//        } else if(!utils::CharsInString(value[i], __SPACES__)) {
+//        } else if(!utils::CharInString(value[i], __SPACES__)) {
 //            if (value[i] == '{') {
 //                temp += value[i];
 //                ch = '}';
@@ -2834,12 +2834,12 @@ Comment &Json::getOrCreateComment(const size_t index) {
 //                }
 //                temp += value[i];
 //            } else { //замкнули слово, надо проверить оставшиеся символы
-//                if(!utils::CharsInString(value[i], __SPACES__)) {
+//                if(!utils::CharInString(value[i], __SPACES__)) {
 //                    std::cout << "Error with parse JArray in: [" << value[i] << "]" << std::endl;
 //                    return false;
 //                }
 //            }
-//        } else if(!utils::CharsInString(value[i], __SPACES_WITHOUT_SEPARATORS__)) {
+//        } else if(!utils::CharInString(value[i], __SPACES_WITHOUT_SEPARATORS__)) {
 //            if (value[i] == '[') {
 //                temp += value[i];
 //                ch = ']';
@@ -2857,10 +2857,10 @@ Comment &Json::getOrCreateComment(const size_t index) {
 //удалить пробелы в начале и конце строки
 //void RemoveIllegalSpaces(std::string& string) noexcept {
 //    if(!string.empty()) {
-//        while(utils::CharsInString(string.back(), __SPACES_WITHOUT_SEPARATORS__))
+//        while(utils::CharInString(string.back(), __SPACES_WITHOUT_SEPARATORS__))
 //            string.pop_back();
 
-//        while(utils::CharsInString(*string.begin(), __SPACES_WITHOUT_SEPARATORS__))
+//        while(utils::CharInString(*string.begin(), __SPACES_WITHOUT_SEPARATORS__))
 //            string = string.erase(0, 1);
 //    }
 //}
@@ -2888,7 +2888,7 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
             continue;
 
         //если встретили разделитель
-        if(utils::CharsInString(ch, __COMMENT_SEPARATOR_SYMBOLS__))
+        if(utils::CharInString(ch, __COMMENT_SEPARATOR_SYMBOLS__))
             separators.push_back(current_string.length());
 
         current_string += ch;
@@ -2909,7 +2909,7 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
 
         if((column_size != 0
             && utils::GetStringCharCount(current_string) >= column_size)
-            && (utils::CharsInString(ch, __COMMENT_SEPARATOR_SYMBOLS__) || (i == comment_string.length() - 1))
+            && (utils::CharInString(ch, __COMMENT_SEPARATOR_SYMBOLS__) || (i == comment_string.length() - 1))
             ) {
             //удалить пробелы в начале и конце строки
             RemoveIllegalSpaces(current_string);
@@ -2935,14 +2935,14 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
                     std::string left = utils::SeparateString(current_string, separate_size);
                     RemoveIllegalSpaces(left);
 
-                    if(!utils::CharsInString(current_string.back(), __COMMENT_SEPARATOR_SYMBOLS__))
+                    if(!utils::CharInString(current_string.back(), __COMMENT_SEPARATOR_SYMBOLS__))
                         current_string += ' ';
                     result += left + "\n";
 
                     //снова найти индексы разделителей
                     separators.clear();
                     for(size_t j = 0; j < current_string.length(); j++) {
-                        if(utils::CharsInString(current_string[j], __COMMENT_SEPARATOR_SYMBOLS__))
+                        if(utils::CharInString(current_string[j], __COMMENT_SEPARATOR_SYMBOLS__))
                             separators.push_back(j);
                     }
                 } else {
@@ -2988,7 +2988,7 @@ std::string ToComment(const std::string &comment_string, const uint8_t tabulatio
 std::string FromComment(const std::string &comment_string, uint8_t &column_size, char &border_symbol) noexcept {
     std::string ret;
 
-    bool isBorderExists = utils::CharsInString(comment_string[0], __BORDER_SYMBOLS__); //от 5 до 0xFF символов
+    bool isBorderExists = utils::CharInString(comment_string[0], __BORDER_SYMBOLS__); //от 5 до 0xFF символов
     if(border_symbol == 0 && isBorderExists) border_symbol = comment_string[0];
     bool isFirstBorderLine = isBorderExists;
     uint8_t border_size = 0;
