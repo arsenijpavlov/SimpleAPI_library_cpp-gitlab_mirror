@@ -11,21 +11,6 @@
 class ElementArray;
 
 
-//void ElementArray::parseIniArray(const std::string &string, const bool enable_comment,
-//                                  CommentDesign* design)
-//{
-//    //TODO: ElementArray::parseIniArray()
-//    //TODO: std::exception
-//}
-
-//std::string ElementArray::toString(const ConfigFormat format, const int8_t tabulation_level) const noexcept {
-//    switch(format) {
-//    case ConfigFormat::eJSON:   return toJsonString(tabulation_level);
-//    case ConfigFormat::eINI:    return toIniString(tabulation_level);
-//    default: return "";
-//    }
-//}
-
 //std::string ElementArray::toJsonString(const int8_t tabulation_level) const noexcept {
 //    if(m_values.empty()) return "[]";
 
@@ -41,20 +26,6 @@ class ElementArray;
 //    ret += "]";
 
 //    return ret;
-//}
-
-//std::string ElementArray::toIniString(const int8_t tabulation_level) const noexcept {
-//    //TODO: ElementArray::toIniString()
-//    return "";
-//}
-
-//std::string ElementArray::toString(const ConfigFormat format, const CommentDesign &design,
-//                                    const int8_t tabulation_level) const noexcept {
-//    switch(format) {
-//    case ConfigFormat::eJSON:   return toJsonString(design, tabulation_level);
-//    case ConfigFormat::eINI:    return toIniString(design, tabulation_level);
-//    default: return "";
-//    }
 //}
 
 //std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t tabulation_level) const noexcept {
