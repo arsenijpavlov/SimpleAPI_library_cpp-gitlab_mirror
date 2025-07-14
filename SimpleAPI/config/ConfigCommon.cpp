@@ -400,3 +400,12 @@ bool CheckArray(std::string &value) noexcept {
     value = temp;
     return true;
 }
+
+void SymbolCounter(const char current_ch, size_t &line_counter,
+                   size_t &symbol_counter) noexcept
+{
+    if(current_ch == '\n') {
+        line_counter++;
+        symbol_counter = 0; //должен перескочить строго на следующей строке
+    } else symbol_counter++;
+}
