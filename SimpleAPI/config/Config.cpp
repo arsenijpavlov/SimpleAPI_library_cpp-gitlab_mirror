@@ -949,7 +949,7 @@ Config Config::CreateElementFromString(std::string &&value_string, const ConfigF
         try {
             std::regex reg("^[+-]?[0-9]+[.]?[0-9]*[eE]?[+-]?[0-9]*[fF]?$");
             if(std::regex_match(value_string, reg))
-                return Config(std::stod(value_string));
+                return Config(std::stold(value_string));
         } catch (...) {}
     }
     /*STRING*/ {
