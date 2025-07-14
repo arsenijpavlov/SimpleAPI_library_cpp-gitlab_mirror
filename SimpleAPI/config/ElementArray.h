@@ -171,25 +171,17 @@ public:
 
     // Parser ==========================================================================================================
 private:
-    //всё это можно вынести из класса
+    //NOTE: всё это можно вынести из класса
     enum class ParseState {
-        eARRAY_ERROR_STATE,
-        eARRAY_COMMENT,
         eARRAY_START,
         eARRAY_VALUE,
         eARRAY_SEPARATOR,
-        eARRAY_FINISH
-    };
-    enum class ValueFormat {
-        eVALUE_NOPE,    // неинициализированное значение
-        eVALUE_JSON,
-        eVALUE_ARRAY,
-        eVALUE_OTHER    // НЕ контейнер
+        eARRAY_COMMENT,
+        eARRAY_FINISH,
+        eARRAY_ERROR_STATE
     };
     std::string to_string(const ParseState state)                       const noexcept;
     void    UpdateState(ParseState& state, const ParseState new_state)  const noexcept;
-    void    SymbolCounter(const char current_ch, size_t& line_counter,
-                size_t& symbol_counter)                                 const noexcept;
 public:
     void    parse(const std::string& input_string,
                CommentDesign& design,
@@ -209,51 +201,51 @@ public:
 
     void    parseJson(const std::string& input_string,
                    CommentDesign& design,
-                   bool parse_comments = true)                                          override;
+                   const bool parse_comments = true)                                    override;
     void    parseJson(const std::string& input_string,
-                   bool parse_comments = true)                                          override;
+                   const bool parse_comments = true)                                    override;
 
     void    parseJson(std::string&& input_string,
                    CommentDesign& design,
-                   bool parse_comments = true)                                          override;
+                   const bool parse_comments = true)                                    override;
     void    parseJson(std::string&& input_string,
-                   bool parse_comments = true)                                          override;
+                   const bool parse_comments = true)                                    override;
 
     void    parseIni(const std::string& input_string,
                   CommentDesign& design,
-                  bool parse_comments = true)                                           override;
+                  const bool parse_comments = true)                                     override;
     void    parseIni(const std::string& input_string,
-                  bool parse_comments = true)                                           override;
+                  const bool parse_comments = true)                                     override;
 
     void    parseIni(std::string&& input_string,
                   CommentDesign& design,
-                  bool parse_comments = true)                                           override;
+                  const bool parse_comments = true)                                     override;
     void    parseIni(std::string&& input_string,
-                  bool parse_comments = true)                                           override;
+                  const bool parse_comments = true)                                     override;
 
     void    parseYaml(const std::string& input_string,
                    CommentDesign& design,
-                   bool parse_comments = true)                                          override;
+                   const bool parse_comments = true)                                    override;
     void    parseYaml(const std::string& input_string,
-                   bool parse_comments = true)                                          override;
+                   const bool parse_comments = true)                                    override;
 
     void    parseYaml(std::string&& input_string,
                    CommentDesign& design,
-                   bool parse_comments = true)                                          override;
+                   const bool parse_comments = true)                                    override;
     void    parseYaml(std::string&& input_string,
-                   bool parse_comments = true)                                          override;
+                   const bool parse_comments = true)                                    override;
 
     void    parseXml(const std::string& input_string,
                   CommentDesign& design,
-                  bool parse_comments = true)                                           override;
+                  const bool parse_comments = true)                                     override;
     void    parseXml(const std::string& input_string,
-                  bool parse_comments = true)                                           override;
+                  const bool parse_comments = true)                                     override;
 
     void    parseXml(std::string&& input_string,
                   CommentDesign& design,
-                  bool parse_comments = true)                                           override;
+                  const bool parse_comments = true)                                     override;
     void    parseXml(std::string&& input_string,
-                  bool parse_comments = true)                                           override;
+                  const bool parse_comments = true)                                     override;
     // ========================================================================================================== Parser
 };
 
@@ -262,6 +254,6 @@ public:
 //TODO: bool IsElementIniArray(const std::string& str)                          noexcept;
 //TODO: bool IsElementArray(const IElement& e)                                  noexcept;
 
-//TODO: ElementArray ParseArray(std::string&& input_string, const ConfigFormat format = ConfigFormat::eJSON, bool parse_comments = true)
+//TODO: ElementArray ParseArray(std::string&& input_string, const ConfigFormat format = ConfigFormat::eJSON, const bool parse_comments = true)
 
 #endif // ELEMENT_ARRAY_H

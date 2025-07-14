@@ -599,30 +599,133 @@ std::string ElementJson::toXmlString(const int8_t tabulation_level, const Commen
     return "";
 }
 
-void ElementJson::parse(std::string &&input_string, const ConfigFormat format,
-                        bool parse_comments)
-{
-    switch(format) {
-    default:
-    case ConfigFormat::eJSON:   parseJson(std::move(input_string), parse_comments); break;
-    case ConfigFormat::eINI:    parseIni(std::move(input_string), parse_comments);  break;
-    case ConfigFormat::eYAML:   parseYaml(std::move(input_string), parse_comments); break;
-    case ConfigFormat::eXML:    parseXml(std::move(input_string), parse_comments);  break;
+std::string ElementJson::to_string(const ParseState state) const noexcept {
+    switch (state) {
+    case ParseState::eJSON_START:       return "[JSON_START]";
+    case ParseState::eJSON_KEY:         return "[JSON_KEY]";
+    case ParseState::eJSON_VALUE:       return "[JSON_VALUE]";
+    case ParseState::eJSON_SEPARATOR:   return "[JSON_SEPARATOR]";
+    case ParseState::eJSON_COMMENT:     return "[JSON_COMMENT]";
+    case ParseState::eJSON_FINISH:      return "[JSON_FINISH]";
+    case ParseState::eJSON_ERROR_STATE:
+    default:                            return "[JSON_ERROR_STATE]";
     }
 }
 
-void ElementJson::parseJson(std::string &&input_string, bool parse_comments) {
+void ElementJson::UpdateState(ParseState &state, const ParseState new_state) const noexcept {
+    state = new_state;
+    DEBUG_LOG("Parse Json, upd state: " << to_string(state) << std::endl);
+}
+
+void ElementJson::parse(const std::string &input_string, CommentDesign &design,
+                        const ConfigFormat format, const bool parse_comments)
+{
+    parse(std::move(std::string(input_string)), design, format, parse_comments);
+}
+
+void ElementJson::parse(const std::string &input_string, const ConfigFormat format,
+                        const bool parse_comments)
+{
+    CommentDesign design;
+    parse(input_string, design, format, parse_comments);
+}
+
+void ElementJson::parse(std::string &&input_string, CommentDesign &design,
+                        const ConfigFormat format, const bool parse_comments)
+{
+    switch(format) {
+    default:
+    case ConfigFormat::eJSON:   parseJson(std::move(input_string), design, parse_comments); break;
+    case ConfigFormat::eINI:    parseIni(std::move(input_string), design, parse_comments);  break;
+    case ConfigFormat::eYAML:   parseYaml(std::move(input_string), design, parse_comments); break;
+    case ConfigFormat::eXML:    parseXml(std::move(input_string), design, parse_comments);  break;
+    }
+}
+
+void ElementJson::parse(std::string &&input_string, const ConfigFormat format,
+                        const bool parse_comments)
+{
+    CommentDesign design;
+    parse(std::move(input_string), design, format, parse_comments);
+}
+
+void ElementJson::parseJson(const std::string &input_string, CommentDesign &design, const bool parse_comments)
+{
     //TODO: void ElementJson::parseJson()
 }
 
-void ElementJson::parseIni(std::string &&input_string, bool parse_comments) {
+void ElementJson::parseJson(const std::string &input_string, const bool parse_comments)
+{
+    //TODO: void ElementJson::parseJson()
+}
+
+void ElementJson::parseJson(std::string &&input_string, CommentDesign &design, const bool parse_comments)
+{
+    //TODO: void ElementJson::parseJson()
+}
+
+void ElementJson::parseJson(std::string &&input_string, const bool parse_comments)
+{
+    //TODO: void ElementJson::parseJson()
+}
+
+void ElementJson::parseIni(const std::string &input_string, CommentDesign &design, const bool parse_comments)
+{
     //TODO: void ElementJson::parseIni()
 }
 
-void ElementJson::parseYaml(std::string &&input_string, bool parse_comments) {
+void ElementJson::parseIni(const std::string &input_string, const bool parse_comments)
+{
+    //TODO: void ElementJson::parseIni()
+}
+
+void ElementJson::parseIni(std::string &&input_string, CommentDesign &design, const bool parse_comments)
+{
+    //TODO: void ElementJson::parseIni()
+}
+
+void ElementJson::parseIni(std::string &&input_string, const bool parse_comments)
+{
+    //TODO: void ElementJson::parseIni()
+}
+
+void ElementJson::parseYaml(const std::string &input_string, CommentDesign &design, const bool parse_comments)
+{
     //TODO: void ElementJson::parseYaml()
 }
 
-void ElementJson::parseXml(std::string &&input_string, bool parse_comments) {
+void ElementJson::parseYaml(const std::string &input_string, const bool parse_comments)
+{
+    //TODO: void ElementJson::parseYaml()
+}
+
+void ElementJson::parseYaml(std::string &&input_string, CommentDesign &design, const bool parse_comments)
+{
+    //TODO: void ElementJson::parseYaml()
+}
+
+void ElementJson::parseYaml(std::string &&input_string, const bool parse_comments)
+{
+    //TODO: void ElementJson::parseYaml()
+}
+
+void ElementJson::parseXml(const std::string &input_string, CommentDesign &design, const bool parse_comments)
+{
     //TODO: void ElementJson::parseXml()
 }
+
+void ElementJson::parseXml(const std::string &input_string, const bool parse_comments)
+{
+    //TODO: void ElementJson::parseXml()
+}
+
+void ElementJson::parseXml(std::string &&input_string, CommentDesign &design, const bool parse_comments)
+{
+    //TODO: void ElementJson::parseXml()
+}
+
+void ElementJson::parseXml(std::string &&input_string, const bool parse_comments)
+{
+    //TODO: void ElementJson::parseXml()
+}
+

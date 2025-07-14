@@ -99,51 +99,51 @@ public:
 
     virtual void    parseJson(const std::string& input_string,
                         CommentDesign& design,
-                        bool parse_comments = true)                                         = 0;
+                        const bool parse_comments = true)                                   = 0;
     virtual void    parseJson(const std::string& input_string,
-                        bool parse_comments = true)                                         = 0;
+                        const bool parse_comments = true)                                   = 0;
 
     virtual void    parseJson(std::string&& input_string,
                         CommentDesign& design,
-                        bool parse_comments = true)                                         = 0;
+                        const bool parse_comments = true)                                   = 0;
     virtual void    parseJson(std::string&& input_string,
-                        bool parse_comments = true)                                         = 0;
+                        const bool parse_comments = true)                                   = 0;
 
     virtual void    parseIni(const std::string& input_string,
                         CommentDesign& design,
-                        bool parse_comments = true)                                         = 0;
+                        const bool parse_comments = true)                                   = 0;
     virtual void    parseIni(const std::string& input_string,
-                        bool parse_comments = true)                                         = 0;
+                        const bool parse_comments = true)                                   = 0;
 
     virtual void    parseIni(std::string&& input_string,
                         CommentDesign& design,
-                        bool parse_comments = true)                                         = 0;
+                        const bool parse_comments = true)                                   = 0;
     virtual void    parseIni(std::string&& input_string,
-                        bool parse_comments = true)                                         = 0;
+                        const bool parse_comments = true)                                   = 0;
 
     virtual void    parseYaml(const std::string& input_string,
                         CommentDesign& design,
-                        bool parse_comments = true)                                         = 0;
+                        const bool parse_comments = true)                                   = 0;
     virtual void    parseYaml(const std::string& input_string,
-                        bool parse_comments = true)                                         = 0;
+                        const bool parse_comments = true)                                   = 0;
 
     virtual void    parseYaml(std::string&& input_string,
                         CommentDesign& design,
-                        bool parse_comments = true)                                         = 0;
+                        const bool parse_comments = true)                                   = 0;
     virtual void    parseYaml(std::string&& input_string,
-                        bool parse_comments = true)                                         = 0;
+                        const bool parse_comments = true)                                   = 0;
 
     virtual void    parseXml(const std::string& input_string,
                         CommentDesign& design,
-                        bool parse_comments = true)                                         = 0;
+                        const bool parse_comments = true)                                   = 0;
     virtual void    parseXml(const std::string& input_string,
-                        bool parse_comments = true)                                         = 0;
+                        const bool parse_comments = true)                                   = 0;
 
     virtual void    parseXml(std::string&& input_string,
                         CommentDesign& design,
-                        bool parse_comments = true)                                         = 0;
+                        const bool parse_comments = true)                                   = 0;
     virtual void    parseXml(std::string&& input_string,
-                        bool parse_comments = true)                                         = 0;
+                        const bool parse_comments = true)                                   = 0;
 
     // ========================================================================================================== Parser
 };

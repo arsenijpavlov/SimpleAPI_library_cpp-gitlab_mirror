@@ -225,18 +225,83 @@ public:
     // ============================================================================================================ File
 
     // Parser ==========================================================================================================
-    void    parse(const std::string& input_string, const ConfigFormat format = ConfigFormat::eJSON,
-               bool parse_comments = true)                                                      override    { parse(std::move(std::string(input_string)), format, parse_comments); }
-    void    parse(std::string&& input_string, const ConfigFormat format = ConfigFormat::eJSON,
-               bool parse_comments = true)                                                      override;
-    void    parseJson(const std::string& input_string, bool parse_comments = true)              override    { parseJson(std::move(std::string(input_string)), parse_comments); }
-    void    parseJson(std::string&& input_string, bool parse_comments = true)                   override;
-    void    parseIni(const std::string& input_string, bool parse_comments = true)               override    { parseIni(std::move(std::string(input_string)), parse_comments); }
-    void    parseIni(std::string&& input_string, bool parse_comments = true)                    override;
-    void    parseYaml(const std::string& input_string, bool parse_comments = true)              override    { parseYaml(std::move(std::string(input_string)), parse_comments); }
-    void    parseYaml(std::string&& input_string, bool parse_comments = true)                   override;
-    void    parseXml(const std::string& input_string, bool parse_comments = true)               override    { parseXml(std::move(std::string(input_string)), parse_comments); }
-    void    parseXml(std::string&& input_string, bool parse_comments = true)                    override;
+private:
+    //NOTE: всё это можно вынести из класса
+    enum class ParseState {
+        eJSON_START,
+        eJSON_KEY,
+        eJSON_VALUE,
+        eJSON_SEPARATOR,
+        eJSON_COMMENT,
+        eJSON_FINISH,
+        eJSON_ERROR_STATE
+    };
+    std::string to_string(const ParseState state)                               const noexcept;
+    void    UpdateState(ParseState& state, const ParseState new_state)          const noexcept;
+public:
+    void    parse(const std::string& input_string,
+               CommentDesign& design,
+               const ConfigFormat format = ConfigFormat::eJSON,
+               const bool parse_comments = true)                                                override;
+    void    parse(const std::string& input_string,
+               const ConfigFormat format = ConfigFormat::eJSON,
+               const bool parse_comments = true)                                                override;
+
+    void    parse(std::string&& input_string,
+               CommentDesign& design,
+               const ConfigFormat format = ConfigFormat::eJSON,
+               const bool parse_comments = true)                                                override;
+    void    parse(std::string&& input_string,
+               const ConfigFormat format = ConfigFormat::eJSON,
+               const bool parse_comments = true)                                                override;
+
+    void    parseJson(const std::string& input_string,
+                   CommentDesign& design,
+                   const bool parse_comments = true)                                            override;
+    void    parseJson(const std::string& input_string,
+                   const bool parse_comments = true)                                            override;
+
+    void    parseJson(std::string&& input_string,
+                   CommentDesign& design,
+                   const bool parse_comments = true)                                            override;
+    void    parseJson(std::string&& input_string,
+                   const bool parse_comments = true)                                            override;
+
+    void    parseIni(const std::string& input_string,
+                  CommentDesign& design,
+                  bool parse_comments = true)                                                   override;
+    void    parseIni(const std::string& input_string,
+                  const bool parse_comments = true)                                             override;
+
+    void    parseIni(std::string&& input_string,
+                  CommentDesign& design,
+                  const bool parse_comments = true)                                             override;
+    void    parseIni(std::string&& input_string,
+                  const bool parse_comments = true)                                             override;
+
+    void    parseYaml(const std::string& input_string,
+                   CommentDesign& design,
+                   bool parse_comments = true)                                                  override;
+    void    parseYaml(const std::string& input_string,
+                   const bool parse_comments = true)                                            override;
+
+    void    parseYaml(std::string&& input_string,
+                   CommentDesign& design,
+                   const bool parse_comments = true)                                            override;
+    void    parseYaml(std::string&& input_string,
+                   const bool parse_comments = true)                                            override;
+
+    void    parseXml(const std::string& input_string,
+                  CommentDesign& design,
+                  const bool parse_comments = true)                                             override;
+    void    parseXml(const std::string& input_string,
+                  const bool parse_comments = true)                                             override;
+
+    void    parseXml(std::string&& input_string,
+                  CommentDesign& design,
+                  const bool parse_comments = true)                                             override;
+    void    parseXml(std::string&& input_string,
+                  const bool parse_comments = true)                                             override;
     // ========================================================================================================== Parser
 };
 
@@ -244,6 +309,6 @@ public:
 //TODO: bool IsElementJson(const IElement& e)                                           noexcept;
 //TODO: bool IsElementJson(const Config& cfg)                                           noexcept;
 
-//TODO: ElementJson ParseJson(std::string&& input_string, const ConfigFormat format = ConfigFormat::eJSON, bool parse_comments = true)
+//TODO: ElementJson ParseJson(std::string&& input_string, const ConfigFormat format = ConfigFormat::eJSON, const bool parse_comments = true)
 
 #endif // ELEMENT_JSON_H
