@@ -665,6 +665,151 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
                             const bool parse_comments)
 {
     //TODO: void ElementJson::parseJson()
+
+    using namespace utils;
+
+    /* NOTE: для документации
+     * комментарий json
+     * начало json
+     * (+комментарий перед ключом)
+     * значение элемента json
+     * (+комментарий после значения)    = на строке значения
+     * (разделитель)
+     * (+комментарий перед ключом)      = после разделителя
+     * (+значение элемента json)        = после разделителя
+     * (+комментарий после значения)    = после разделителя
+     * конец json
+    */
+
+    //первоначальная очистка всех элементов
+    clear();
+    //пустой документ не является ошибкой синтаксиса
+    RemoveIllegalSpaces(input_string);
+    if(input_string.empty()) return;
+
+    size_t line_counter   = 0;
+    size_t symbol_counter = 0;
+
+    design.temp_type = CommentType::eNotComment;
+
+    ParseState state                = ParseState::eJSON_START;
+    ParseState state_comment        = ParseState::eJSON_ERROR_STATE;
+    std::string comment;
+    std::string key;
+    std::string value;
+    std::string error_string;
+    bool is_quotes                  = false;
+    bool is_separator_comma         = false;
+    uint16_t inner_json_counter     = 0;
+    uint16_t inner_array_counter    = 0;
+
+    for(size_t i = 0; i < input_string.size(); i++) {
+        char previous_ch    = i == 0 ? 0 : input_string[i - 1];
+        char current_ch     = input_string[i];
+        char next_ch        = i < input_string.size() ? input_string[i + 1] : 0;
+        SymbolCounter(current_ch, line_counter, symbol_counter);
+
+        //поиск комментариев ===================================================
+        const bool ext_flag = !is_quotes;
+        CheckComments(current_ch, next_ch, i, design, comment, ext_flag);
+        if(!parse_comments)
+            comment.clear();
+        //сюда зайдёт, если внутри комментария либо если встречен конец комментария
+        if(design.temp_type != CommentType::eNotComment)
+            continue;
+        //=================================================== поиск комментариев
+
+        switch (state) {
+        case ParseState::eJSON_START: {
+            //пропуск пробелов =====================================================
+            if(CharInString(current_ch, __SPACES__)) break;
+            //===================================================== пропуск пробелов
+
+            if(current_ch == '{') {
+                //работа с комментариями (до разбора json) =============================
+                if(!comment.empty()) {
+                    addPrefixComment(FromComment(comment, design));
+                    DEBUG_LOG("ElementJson: PreviewComment: " << "\"" << comment << "\"");
+                    comment.clear();
+                }
+                //============================= работа с комментариями (до разбора json)
+                UpdateState(state, ParseState::eJSON_KEY);
+                break;
+            }
+
+            UpdateState(state, ParseState::eJSON_ERROR_STATE);
+            error_string = "Not found start of JSON.";
+            break;
+        }
+        case ParseState::eJSON_KEY: {
+
+            break;
+        }
+        case ParseState::eJSON_VALUE: {
+
+            break;
+        }
+        case ParseState::eJSON_SEPARATOR: {
+            //пропуск пробелов =====================================================
+            if(CharInString(current_ch, __SPACES_WITHOUT_SEPARATORS__)) break;
+            //===================================================== пропуск пробелов
+
+            //может встретиться разделитель или знак завершения массива
+            //  комментарий ПОСЛЕ значения может начинаться только на той же строке, что и значение
+            //  разделитель может быть как ДО, так и ПОСЛЕ комментария
+            //  если комментарий расписан после переноса строки, но до знака }, то комментарий попадёт в суффикс основы
+
+            if(CharInString(current_ch, __SEPARATORS__)) {
+                is_separator_comma = current_ch == ',';
+                UpdateState(state_comment, ParseState::eJSON_KEY);
+                UpdateState(state, ParseState::eJSON_COMMENT);
+                break;
+            }
+            if(CharInString(current_ch, "}")) {
+                UpdateState(state_comment, ParseState::eJSON_FINISH);
+                UpdateState(state, ParseState::eJSON_COMMENT);
+                break;
+            }
+
+            UpdateState(state, ParseState::eJSON_ERROR_STATE);
+            error_string = "Not found stop of ARRAY.";
+            break;
+        }
+        case ParseState::eJSON_COMMENT: {
+            //(комментарий после значения, на строке значения после запятой)
+            if(!is_separator_comma || current_ch == '\n') {
+                if(!comment.empty()) {
+                    get_back().addSuffixComment(FromComment(comment, design));
+                    DEBUG_LOG("ElementJson: inner Element add SuffixComment: " << "\"" << comment << "\"");
+                    comment.clear();
+                }
+                UpdateState(state, state_comment);
+            }
+            break;
+        }
+        case ParseState::eJSON_ERROR_STATE: {
+            error_string = std::string("Unexpected symbol at [")
+                           + std::to_string(line_counter)
+                           + "][" + std::to_string(symbol_counter) + "]. "
+                           + error_string;
+            DEBUG_LOG("ERROR: " << error_string);
+            throw std::invalid_argument(error_string);
+        }
+        default: break;
+        }
+    }
+
+    //конечный комментарий ...
+    if(!comment.empty()) {
+        addSuffixComment(FromComment(comment, design));
+        DEBUG_LOG("ElementJson: SuffixComment: " << "\"" << comment << "\"");
+        comment.clear();
+    }
+
+    if(state != ParseState::eJSON_FINISH) {
+        clear();
+        throw std::invalid_argument("JSON parse error, end of JSON structure not found");
+    }
 }
 
 void ElementJson::parseJson(std::string &&input_string, const bool parse_comments) {
