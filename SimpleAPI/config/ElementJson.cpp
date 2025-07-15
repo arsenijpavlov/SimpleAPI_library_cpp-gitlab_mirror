@@ -649,34 +649,38 @@ void ElementJson::parse(std::string &&input_string, const ConfigFormat format,
     parse(std::move(input_string), design, format, parse_comments);
 }
 
-void ElementJson::parseJson(const std::string &input_string, CommentDesign &design, const bool parse_comments)
+void ElementJson::parseJson(const std::string &input_string, CommentDesign &design,
+                            const bool parse_comments)
+{
+    parseJson(std::move(std::string(input_string)), design, parse_comments);
+}
+
+void ElementJson::parseJson(const std::string &input_string, const bool parse_comments) {
+    CommentDesign design;
+    parseXml(input_string, design, parse_comments);
+}
+
+// MAIN
+void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
+                            const bool parse_comments)
 {
     //TODO: void ElementJson::parseJson()
 }
 
-void ElementJson::parseJson(const std::string &input_string, const bool parse_comments)
-{
-    //TODO: void ElementJson::parseJson()
+void ElementJson::parseJson(std::string &&input_string, const bool parse_comments) {
+    CommentDesign design;
+    parseJson(std::move(input_string), design, parse_comments);
 }
 
-void ElementJson::parseJson(std::string &&input_string, CommentDesign &design, const bool parse_comments)
+void ElementJson::parseIni(const std::string &input_string, CommentDesign &design,
+                           const bool parse_comments)
 {
-    //TODO: void ElementJson::parseJson()
+    parseIni(std::move(std::string(input_string)), design, parse_comments);
 }
 
-void ElementJson::parseJson(std::string &&input_string, const bool parse_comments)
-{
-    //TODO: void ElementJson::parseJson()
-}
-
-void ElementJson::parseIni(const std::string &input_string, CommentDesign &design, const bool parse_comments)
-{
-    //TODO: void ElementJson::parseIni()
-}
-
-void ElementJson::parseIni(const std::string &input_string, const bool parse_comments)
-{
-    //TODO: void ElementJson::parseIni()
+void ElementJson::parseIni(const std::string &input_string, const bool parse_comments) {
+    CommentDesign design;
+    parseIni(input_string, design, parse_comments);
 }
 
 void ElementJson::parseIni(std::string &&input_string, CommentDesign &design, const bool parse_comments)
@@ -684,19 +688,20 @@ void ElementJson::parseIni(std::string &&input_string, CommentDesign &design, co
     //TODO: void ElementJson::parseIni()
 }
 
-void ElementJson::parseIni(std::string &&input_string, const bool parse_comments)
-{
-    //TODO: void ElementJson::parseIni()
+void ElementJson::parseIni(std::string &&input_string, const bool parse_comments) {
+    CommentDesign design;
+    parseIni(std::move(input_string), design, parse_comments);
 }
 
-void ElementJson::parseYaml(const std::string &input_string, CommentDesign &design, const bool parse_comments)
+void ElementJson::parseYaml(const std::string &input_string, CommentDesign &design,
+                            const bool parse_comments)
 {
-    //TODO: void ElementJson::parseYaml()
+    parseYaml(std::move(std::string(input_string)), design, parse_comments);
 }
 
-void ElementJson::parseYaml(const std::string &input_string, const bool parse_comments)
-{
-    //TODO: void ElementJson::parseYaml()
+void ElementJson::parseYaml(const std::string &input_string, const bool parse_comments) {
+    CommentDesign design;
+    parseYaml(input_string, design, parse_comments);
 }
 
 void ElementJson::parseYaml(std::string &&input_string, CommentDesign &design, const bool parse_comments)
@@ -704,19 +709,21 @@ void ElementJson::parseYaml(std::string &&input_string, CommentDesign &design, c
     //TODO: void ElementJson::parseYaml()
 }
 
-void ElementJson::parseYaml(std::string &&input_string, const bool parse_comments)
-{
-    //TODO: void ElementJson::parseYaml()
+void ElementJson::parseYaml(std::string &&input_string, const bool parse_comments) {
+    CommentDesign design;
+    parseYaml(std::move(input_string), design, parse_comments);
 }
 
-void ElementJson::parseXml(const std::string &input_string, CommentDesign &design, const bool parse_comments)
+void ElementJson::parseXml(const std::string &input_string, CommentDesign &design,
+                           const bool parse_comments)
 {
-    //TODO: void ElementJson::parseXml()
+    parseXml(std::move(std::string(input_string)), design, parse_comments);
 }
 
-void ElementJson::parseXml(const std::string &input_string, const bool parse_comments)
-{
-    //TODO: void ElementJson::parseXml()
+void ElementJson::parseXml(const std::string &input_string,
+                           const bool parse_comments) {
+    CommentDesign design;
+    parseXml(input_string, design, parse_comments);
 }
 
 void ElementJson::parseXml(std::string &&input_string, CommentDesign &design, const bool parse_comments)
@@ -724,8 +731,8 @@ void ElementJson::parseXml(std::string &&input_string, CommentDesign &design, co
     //TODO: void ElementJson::parseXml()
 }
 
-void ElementJson::parseXml(std::string &&input_string, const bool parse_comments)
-{
-    //TODO: void ElementJson::parseXml()
+void ElementJson::parseXml(std::string &&input_string, const bool parse_comments) {
+    CommentDesign design;
+    parseXml(std::move(input_string), design, parse_comments);
 }
 
