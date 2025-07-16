@@ -35,6 +35,8 @@ enum class ValueType {
 //удалить пробелы в начале и конце строки
 void RemoveIllegalSpaces(std::string& string) noexcept;
 
+bool RemoveQuotes(std::string& string) noexcept;
+
 //READING -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 bool GetAllStringsFromFile(const std::string& path, std::string& dest_string,
                            std::string* error_log = nullptr) noexcept;

@@ -601,14 +601,15 @@ std::string ElementJson::toXmlString(const int8_t tabulation_level, const Commen
 
 std::string ElementJson::to_string(const ParseState state) const noexcept {
     switch (state) {
-    case ParseState::eJSON_START:       return "[JSON_START]";
-    case ParseState::eJSON_KEY:         return "[JSON_KEY]";
-    case ParseState::eJSON_VALUE:       return "[JSON_VALUE]";
-    case ParseState::eJSON_SEPARATOR:   return "[JSON_SEPARATOR]";
-    case ParseState::eJSON_COMMENT:     return "[JSON_COMMENT]";
-    case ParseState::eJSON_FINISH:      return "[JSON_FINISH]";
+    case ParseState::eJSON_START:               return "[JSON_START]";
+    case ParseState::eJSON_KEY:                 return "[JSON_KEY]";
+    case ParseState::eJSON_KEY_VALUE_SEPARATOR: return "[JSON_KEY_VALUE_SEPARATOR]";
+    case ParseState::eJSON_VALUE:               return "[JSON_VALUE]";
+    case ParseState::eJSON_SEPARATOR:           return "[JSON_SEPARATOR]";
+    case ParseState::eJSON_COMMENT:             return "[JSON_COMMENT]";
+    case ParseState::eJSON_FINISH:              return "[JSON_FINISH]";
     case ParseState::eJSON_ERROR_STATE:
-    default:                            return "[JSON_ERROR_STATE]";
+    default:                                    return "[JSON_ERROR_STATE]";
     }
 }
 
@@ -742,11 +743,105 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
             break;
         }
         case ParseState::eJSON_KEY: {
+            //игнор пробелов и разделителей пока ключ пустой
+            if(!is_quotes
+                && key.empty()
+                && CharInString(current_ch, __SPACES__))
+            {
+                break;
+            }
+
+            //если ключ в кавычках, то ждём кавычки, иначе любой __SPACES__
+            if(current_ch == '\"'
+                && previous_ch != '\\'
+                && inner_json_counter + inner_array_counter == 0)
+            {
+                is_quotes = !is_quotes;
+            }
+            //защита от дурака: кавычки, именованные списки, массивы
+            if(!is_quotes) {
+                switch(current_ch) {
+                case '{':   { ++inner_json_counter;     break; }
+                case '}':   { --inner_json_counter;     break; }
+                case '[':   { ++inner_array_counter;    break; }
+                case ']':   { --inner_array_counter;    break; }
+                default: break;
+                }
+            }
+            key += current_ch;
+
+            //ключ прочитан полностью?
+            if(!is_quotes && CharInString(next_ch, __SPACES__ ":=")) {
+                DEBUG_LOG("ElementJson: current key done: \"" << key << "\"");
+                if(!RemoveQuotes(key)) {
+                    error_string = "incorrect json key \"" + key + "\"";
+                    UpdateState(state, ParseState::eJSON_ERROR_STATE);
+                    break;
+                }
+                UpdateState(state, ParseState::eJSON_KEY_VALUE_SEPARATOR);
+            }
 
             break;
         }
-        case ParseState::eJSON_VALUE: {
+        case ParseState::eJSON_KEY_VALUE_SEPARATOR: {
+            if(CharInString(current_ch, __SPACES__))
+                break;
+            if(CharInString(current_ch, ":=")) {
+                UpdateState(state, ParseState::eJSON_VALUE);
+                break;
+            }
 
+            error_string = "not found json key-value separator (: or =)";
+            UpdateState(state, ParseState::eJSON_ERROR_STATE);
+            break;
+        }
+        case ParseState::eJSON_VALUE: {
+            //игнор пробелов пока значение пустое
+            if(!is_quotes
+                && value.empty()
+                && CharInString(current_ch, __SPACES__))
+            {
+                break;
+            }
+
+            if(current_ch == '\"'
+                && previous_ch != '\\'
+                && inner_json_counter + inner_array_counter == 0)
+            {
+                is_quotes = !is_quotes;
+            }
+
+            //кавычки, именованные списки, массивы
+            if(!is_quotes) {
+                switch(current_ch) {
+                case '{':   { ++inner_json_counter;     break; }
+                case '}':   { --inner_json_counter;     break; }
+                case '[':   { ++inner_array_counter;    break; }
+                case ']':   { --inner_array_counter;    break; }
+                default: break;
+                }
+            }
+            value += current_ch;
+
+            //значение прочитано полностью?
+            if(!is_quotes && CharInString(next_ch, __SEPARATORS__ " ")) {
+                DEBUG_LOG("ElementJson: current value done: \"" << value << "\"");
+                try {
+                    Config element = Config::CreateElementFromString(std::move(value), ConfigFormat::eJSON, parse_comments, design);
+                    push_back(std::move(key), std::move(element));
+                } catch (std::exception& e) {
+                    error_string = e.what();
+                    UpdateState(state, ParseState::eJSON_ERROR_STATE);
+                    break;
+                }
+
+                if(!comment.empty()) {
+                    get_back().addPrefixComment(FromComment(comment, design));
+                    DEBUG_LOG("ElementJson: inner Element add PreviewComment: " << "\"" << comment << "\"");
+                    comment.clear();
+                }
+                UpdateState(state, ParseState::eJSON_SEPARATOR);
+            }
             break;
         }
         case ParseState::eJSON_SEPARATOR: {

@@ -230,6 +230,7 @@ private:
     enum class ParseState {
         eJSON_START,
         eJSON_KEY,
+        eJSON_KEY_VALUE_SEPARATOR,
         eJSON_VALUE,
         eJSON_SEPARATOR,
         eJSON_COMMENT,
