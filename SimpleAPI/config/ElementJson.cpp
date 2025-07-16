@@ -696,8 +696,8 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
     ParseState state                = ParseState::eJSON_START;
     ParseState state_comment        = ParseState::eJSON_ERROR_STATE;
     std::string comment;
-    std::string key;
-    std::string value;
+    std::string key                 = "";
+    std::string value               = "";
     std::string error_string;
     bool is_quotes                  = false;
     bool is_separator_comma         = false;

@@ -442,9 +442,9 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
 
     ParseState state                = ParseState::eARRAY_START;
     ParseState state_comment        = ParseState::eARRAY_ERROR_STATE;
-    std::string comment;
-    std::string value;
-    std::string error_string;
+    std::string comment             = "";
+    std::string value               = "";
+    std::string error_string        = "";
     bool is_quotes                  = false;
     bool is_separator_comma         = false;
     uint16_t inner_json_counter     = 0;
