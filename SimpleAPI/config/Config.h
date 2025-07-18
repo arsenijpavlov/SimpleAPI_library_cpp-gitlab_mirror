@@ -35,6 +35,14 @@ private:
     void init()                                             noexcept            { setValue(); }
 
 public:
+    //NOTE: API_ - приписка для обозначения интерфейсных функций при использовании через класс Config
+    //#define API_ALL
+    //#define API_BOOL
+    //#define API_NUMBER
+    //#define API_STRING
+    //#define API_ARRAY
+    //#define API_JSON
+
     //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
     Config&         addComment(const Comment& content)              noexcept;
     Config&         addComment(const std::string &content_before, const std::string &content_after) noexcept;
