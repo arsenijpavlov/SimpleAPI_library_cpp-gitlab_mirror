@@ -26,7 +26,7 @@ using shared_VElement       = std::vector<std::shared_ptr<Config>>;
 //базовый класс, в идеале используется только для ссылки на производный
 class IElement : public IComment {
 protected:
-    ValueType   m_type;
+    ValueType m_type;
     IElement()                                                  noexcept            { m_type = ValueType::eNull; }
 public:
     virtual ~IElement()                                         noexcept            {}
@@ -68,8 +68,6 @@ public:
 
     // Parser ==========================================================================================================
     // ========================================================================================================== Parser
-
-    //----------------------------------------------------------
 
     // Info ============================================================================================================
     ValueType       getType()                                   const noexcept      { return m_type; }
