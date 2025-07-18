@@ -184,26 +184,35 @@ Comment& Comment::operator=(const std::string&& prefix_comment) noexcept {
     return *this;
 }
 
-
 //FIXME: @TEST(COMMENT, default_wrappers)
 std::string GetOnelineCommentStr(const CommentDesign& design) noexcept {
-    return std::string(design.oneline_comment_symbols.data(),
-                       (design.oneline_comment_symbols[1] == 0 ? 1 : 2));
+    if(design.oneline_comment_variants.empty())
+        return "";
+    return std::string(design.oneline_comment_variants.front().cbegin());
 }
 
 //FIXME: @TEST(COMMENT, default_wrappers)
 std::string GetMultilineCommentStartStr(const CommentDesign& design) noexcept {
-    return std::string(design.multiline_comment_symbols.data(), 2);
+    if(design.multiline_comment_variants.empty())
+        return "";
+    if(design.multiline_comment_variants.front()[1] == 0) {
+        return std::to_string(design.multiline_comment_variants.front()[0]);
+    }
+    return std::string(design.multiline_comment_variants.front().cbegin(),
+                       design.oneline_comment_variants.front().cbegin() + 2);
 }
 
 //FIXME: @TEST(COMMENT, default_wrappers)
 std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept {
+    if(design.multiline_comment_variants.front()[1] == 0) {
+        uint8_t index = design.multiline_comment_variants.front()[2] == 0 ? 0 : 2;
+        return std::to_string(design.multiline_comment_variants.front()[index]);
+    }
+
+    uint8_t index = design.multiline_comment_variants.front()[2] == 0 ? 0 : 2;
     std::stringstream ss;
-    ss << design.multiline_comment_symbols[1];
-    if(design.multiline_comment_symbols[2])
-        ss << design.multiline_comment_symbols[2];
-    else
-        ss << design.multiline_comment_symbols[0];
+    ss << design.multiline_comment_variants.front()[1];
+    ss << design.multiline_comment_variants.front()[index];
 
     return ss.str();
 }
@@ -328,12 +337,13 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
             result_lines.back()[result_lines.back().size() - 2] = GetMultilineCommentStopStr(design)[0];
             result_lines.back()[result_lines.back().size() - 1] = GetMultilineCommentStopStr(design)[1];
         } else {
-            for(std::string& s : result_lines)
+            std::transform(result_lines.begin(), result_lines.end(), result_lines.begin(), [&max](std::string& s){
                 s = logs::columned(s, max);
-            result_lines.front()    = GetMultilineCommentStartStr(design) + " " + result_lines.front();
+            });
+            result_lines.front() = GetMultilineCommentStartStr(design) + " " + result_lines.front();
             for(size_t i = 1; i < result_lines.size(); i++)
                 result_lines[i] = " " + result_lines[i];
-            result_lines.back()     = result_lines.back() + " " + GetMultilineCommentStopStr(design);
+            result_lines.back() = result_lines.back() + " " + GetMultilineCommentStopStr(design);
         }
         // ==================================================
 
@@ -344,9 +354,9 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
     // выставить табуляцию и завершить формирование =====
     std::string ret;
     temp = RepeatSymToStr('\t', tabulation_level);
-    for(std::string& s : result_lines) {
+    std::transform(result_lines.begin(), result_lines.end(), result_lines.begin(), [&ret, &temp](const std::string& s){
         ret += temp + s + '\n';
-    }
+    });
     if(ret.back() == '\n') ret.pop_back();
     // ==================================================
 

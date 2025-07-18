@@ -41,8 +41,8 @@ struct CommentDesign {
     uint8_t opt_multiline_column_size;
 
     //следующие два поля нужны только для парсинга
-    CommentType             temp_type;
-    std::array<uint8_t, 2>  temp_multiline_stop; //используется только во время парсинга
+    CommentType         temp_type;
+    std::array<char, 2> temp_multiline_stop; //используется только во время парсинга
 
     // многострочность комментария пользователь задаёт сам
     //  либо самостоятельно ставя '\n'
@@ -50,7 +50,7 @@ struct CommentDesign {
     //NOTE: однострочные комментарии могут иметь два символа в начале
     // (1) {x,0} - комментарий от символа x до конца строки
     // (2) {x,y} - комментарий от последовательностит символов 'x' и 'y' до конца строки
-    std::vector<std::array<uint8_t, 2>> oneline_comment_variants;
+    std::vector<std::array<char, 2>> oneline_comment_variants;
 
     // (1) {x, 0, 0} - один символ открывает и завершает многострочный комментарий
     // (2) {x, 0, y} - один символ открывает многострочный комментарий, другой - завершает
@@ -60,7 +60,7 @@ struct CommentDesign {
     // 2) # ... $
     // 3) /* ... */
     // 4) {* ... *}
-    std::vector<std::array<uint8_t, 3>> multiline_comment_variants;
+    std::vector<std::array<char, 3>> multiline_comment_variants;
 
     //NOTE: попытка чтения по всем вариантам вектора
     //NOTE: запись строго по первому элементу
