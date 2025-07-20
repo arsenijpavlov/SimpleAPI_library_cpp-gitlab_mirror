@@ -184,6 +184,7 @@ Comment& Comment::operator=(const std::string&& prefix_comment) noexcept {
     return *this;
 }
 
+//только для to_string(design)
 //FIXME: @TEST(COMMENT, default_wrappers)
 std::string GetOnelineCommentStr(const CommentDesign& design) noexcept {
     if(design.oneline_comment_variants.empty())
@@ -191,6 +192,7 @@ std::string GetOnelineCommentStr(const CommentDesign& design) noexcept {
     return std::string(design.oneline_comment_variants.front().cbegin());
 }
 
+//только для to_string(design)
 //FIXME: @TEST(COMMENT, default_wrappers)
 std::string GetMultilineCommentStartStr(const CommentDesign& design) noexcept {
     if(design.multiline_comment_variants.empty())
@@ -202,6 +204,7 @@ std::string GetMultilineCommentStartStr(const CommentDesign& design) noexcept {
                        design.oneline_comment_variants.front().cbegin() + 2);
 }
 
+//только для to_string(design)
 //FIXME: @TEST(COMMENT, default_wrappers)
 std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept {
     if(design.multiline_comment_variants.front()[1] == 0) {
@@ -337,8 +340,8 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
             result_lines.back()[result_lines.back().size() - 2] = GetMultilineCommentStopStr(design)[0];
             result_lines.back()[result_lines.back().size() - 1] = GetMultilineCommentStopStr(design)[1];
         } else {
-            std::transform(result_lines.begin(), result_lines.end(), result_lines.begin(), [&max](std::string& s){
-                s = logs::columned(s, max);
+            std::transform(result_lines.begin(), result_lines.end(), result_lines.begin(), [&max](const std::string& s){
+                return logs::columned(s, max);
             });
             result_lines.front() = GetMultilineCommentStartStr(design) + " " + result_lines.front();
             for(size_t i = 1; i < result_lines.size(); i++)
@@ -354,7 +357,7 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
     // выставить табуляцию и завершить формирование =====
     std::string ret;
     temp = RepeatSymToStr('\t', tabulation_level);
-    std::transform(result_lines.begin(), result_lines.end(), result_lines.begin(), [&ret, &temp](const std::string& s){
+    std::for_each(result_lines.begin(), result_lines.end(), [&ret, &temp](const std::string& s){
         ret += temp + s + '\n';
     });
     if(ret.back() == '\n') ret.pop_back();
@@ -383,29 +386,14 @@ std::string FromComment(const std::string &comment_string, CommentDesign& design
     if(lines.empty()) return "";
 
     bool is_multiline   = lines.size() > 1;
-    bool temp_bool      = true;
     if(is_multiline) {
-        //первые два символа считаются открывающими комментарий (/*)
-        if(lines.front().size() > 3) {
-            for(size_t i = 3; i < lines.front().size(); i++) {
-                if(lines.front()[i] != lines.front()[2]) {
-                    temp_bool = false;
-                    break;
-                }
-            }
-        } else
-            temp_bool = false;
-    }
-    bool is_border_exists       = is_multiline && temp_bool;
-    design.opt_multiline_border = is_border_exists ? lines.front()[2]
-                                                   : 0;
-
-    if(is_multiline) {
+        //определение открывающего(их) символа(ов)
         if(lines.front().size() > 2) {
             design.multiline_comment_symbols[0] = lines.front()[0];
             design.multiline_comment_symbols[1] = lines.front()[1];
             lines.front().erase(0, 2);
         }
+        //определение закрывающего(их) символа(ов)
         if(lines.back().size() > 2) {
             if(design.multiline_comment_symbols[0] == lines.back().back())
                 design.multiline_comment_symbols[2] = 0;
@@ -428,6 +416,22 @@ std::string FromComment(const std::string &comment_string, CommentDesign& design
         design.opt_multiline_column_size = 0;
     }
 
+    bool temp_bool      = true;
+    if(is_multiline) {
+        //первые один(два) символ(а) считаются открывающими комментарий (/*)
+        if(lines.front().size() > 3) {
+            for(size_t i = 3; i < lines.front().size(); i++) {
+                if(lines.front()[i] != lines.front()[2]) {
+                    temp_bool = false;
+                    break;
+                }
+            }
+        } else
+            temp_bool = false;
+    }
+    bool is_border_exists       = is_multiline && temp_bool;
+    design.opt_multiline_border = is_border_exists ? lines.front()[2]
+                                                   : 0;
     if(is_border_exists) {
         lines.erase(lines.cbegin());
         lines.pop_back();
@@ -456,8 +460,10 @@ std::string FromComment(const std::string &comment_string, CommentDesign& design
     //          + "\n---------------------------------------"
     //          + "\n";
 
-    for(auto& s : lines)
+
+    std::for_each(lines.begin(), lines.end(), [&ret](const std::string& s){
         ret += s + "\n";
+    });
 
     return ret;
 }
@@ -471,7 +477,7 @@ void RemoveComments(std::string &str, bool &startComment,
     bool isOneLineComment = false;
     bool IsMultiLineComment = startComment;
     for(size_t i = 0; i < str.length(); i++) {
-        char previous = (i - 1 >= 0) ? str[i - 1] : 0;
+        char previous = (i > 0) ? str[i - 1] : 0;
         char current = str[i];
         char next = (str.length() > i + 1 ? str[i + 1] : 0);
 
@@ -551,10 +557,10 @@ CommentType IsCommentStart(const char first, const char second,
         if(before_last != 0) iter_counter++; //проскакиваем следующий символ при парсинге
         return CommentType::eMultiLineComment;
     };
-    auto IsMultFound = [&first, &second](const std::array<uint8_t, 3> arr) {
+    auto IsMultFound = [&first, &second](const std::array<char, 3> arr) {
         return first == arr[0] && (arr[1] == 0 || second == arr[1]);
     };
-    auto IsOneFound = [&first, &second](const std::array<uint8_t, 2> arr) {
+    auto IsOneFound = [&first, &second](const std::array<char, 2> arr) {
         return first == arr[0] && (arr[1] == 0 || second == arr[1]);
     };
 
@@ -593,14 +599,13 @@ void CheckComments(const char current_sym, const char next_sym,
 
     switch(design.temp_type) {
     case CommentType::eOneLineComment: {
-        current_comment += current_sym;
-
         //если следующий символ должен обрабатываться другим кодом
         if((current_sym == '\n') || (next_sym == '\n')) {
-            if(current_sym != '\n') current_comment += '\n';
             design.temp_type = CommentType::eCommentEnd;
             return;
         }
+
+        current_comment += current_sym;
         return;
     }
     case CommentType::eMultiLineComment: {
@@ -608,9 +613,12 @@ void CheckComments(const char current_sym, const char next_sym,
         if(next_sym == 0)
             throw std::invalid_argument("invalid length of input string, multiline comment not closed");
 
-        if((current_sym == design.temp_multiline_stop[0])
-            && (design.temp_multiline_stop[1] == 0
-                || next_sym == design.temp_multiline_stop[1]))
+        if() {
+            design.temp_type = CommentType::eCommentEnd;
+            return;
+        }
+        if(current_sym == design.temp_multiline_stop[0]
+            && (design.temp_multiline_stop[1] == 0 || next_sym == design.temp_multiline_stop[1]))
         {
             if(design.temp_multiline_stop[1] != 0)
                 iter_counter++;
@@ -619,10 +627,10 @@ void CheckComments(const char current_sym, const char next_sym,
         }
 
         current_comment += current_sym;
-        design.temp_type = CommentType::eMultiLineComment;
         return;
     }
     case CommentType::eNotComment: {
+        //FIXME: struct XXX { arr[3]; type; }
         CommentType result = IsCommentStart(current_sym, next_sym, design, iter_counter);
         switch(result) {
         case CommentType::eOneLineComment:
