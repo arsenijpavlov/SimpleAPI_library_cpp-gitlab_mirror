@@ -712,6 +712,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
 
         //поиск комментариев ===================================================
         const bool ext_flag = !is_quotes;
+        //вернёт комментарий без обрамления
         CheckComments(current_ch, next_ch, i, design, comment, ext_flag);
         if(!parse_comments)
             comment.clear();
@@ -728,7 +729,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
 
             if(current_ch == '{') {
                 //работа с комментариями (до разбора json) =============================
-                if(!comment.empty()) {
+                if(!comment.empty() && design.temp_type == CommentType::eCommentEnd) {
                     addPrefixComment(FromComment(comment, design));
                     DEBUG_LOG("ElementJson: PreviewComment: " << "\"" << comment << "\"");
                     comment.clear();
@@ -835,7 +836,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
                     break;
                 }
 
-                if(!comment.empty()) {
+                if(!comment.empty() && design.temp_type == CommentType::eCommentEnd) {
                     get_back().addPrefixComment(FromComment(comment, design));
                     DEBUG_LOG("ElementJson: inner Element add PreviewComment: " << "\"" << comment << "\"");
                     comment.clear();
@@ -873,7 +874,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
         case ParseState::eJSON_COMMENT: {
             //(комментарий после значения, на строке значения после запятой)
             if(!is_separator_comma || current_ch == '\n') {
-                if(!comment.empty()) {
+                if(!comment.empty() && design.temp_type == CommentType::eCommentEnd) {
                     get_back().addSuffixComment(FromComment(comment, design));
                     DEBUG_LOG("ElementJson: inner Element add SuffixComment: " << "\"" << comment << "\"");
                     comment.clear();
@@ -895,7 +896,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
     }
 
     //конечный комментарий ...
-    if(!comment.empty()) {
+    if(!comment.empty() && design.temp_type == CommentType::eCommentEnd) {
         addSuffixComment(FromComment(comment, design));
         DEBUG_LOG("ElementJson: SuffixComment: " << "\"" << comment << "\"");
         comment.clear();
