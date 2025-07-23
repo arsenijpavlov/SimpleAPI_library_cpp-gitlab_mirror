@@ -42,7 +42,7 @@ struct CommentDesign {
 
     //следующие два поля нужны только для парсинга
     CommentType         temp_type;
-    std::array<char, 2> temp_multiline_stop; //используется только во время парсинга
+    std::array<char, 3> temp_multiline_schema; //используется только во время парсинга
 
     // многострочность комментария пользователь задаёт сам
     //  либо самостоятельно ставя '\n'
@@ -69,7 +69,7 @@ struct CommentDesign {
         opt_multiline_border(0),
         opt_multiline_column_size(0),
         temp_type(CommentType::eNotComment),
-        temp_multiline_stop{}
+        temp_multiline_schema{}
     {
         oneline_comment_variants.push_back({'/', '/'});         // {#,0} - второй символ 0 -> один символ уже комментирует
         multiline_comment_variants.push_back({'/', '*', 0});    // 0 - завершающий символ повторяет первый
@@ -144,9 +144,6 @@ std::string FromComment(const std::string &comment_string, CommentDesign& design
 
 void RemoveComments(std::string& str, bool& startComment, char& quote,
                     char& start_comment_sym, char& stop_comment_sym);
-
-CommentType IsCommentStart(const char first, const char second,
-                           CommentDesign& design, size_t &iter_counter)                         noexcept;
 
 void CheckComments(const char current_sym, const char next_sym,
                    size_t &iter_counter, CommentDesign& design,

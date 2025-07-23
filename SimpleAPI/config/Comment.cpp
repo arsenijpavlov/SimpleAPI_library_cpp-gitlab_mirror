@@ -548,45 +548,6 @@ void RemoveComments(std::string &str, bool &startComment,
     startComment = IsMultiLineComment;
 }
 
-CommentType IsCommentStart(const char first, const char second,
-                           CommentDesign& design, size_t &iter_counter) noexcept
-{
-    auto UpdMultilineDesign = [&design, &iter_counter](const char before_last, const char last){
-        design.temp_multiline_stop[0] = before_last;
-        design.temp_multiline_stop[1] = last;
-        if(before_last != 0) iter_counter++; //проскакиваем следующий символ при парсинге
-        return CommentType::eMultiLineComment;
-    };
-    auto IsMultFound = [&first, &second](const std::array<char, 3> arr) {
-        return first == arr[0] && (arr[1] == 0 || second == arr[1]);
-    };
-    auto IsOneFound = [&first, &second](const std::array<char, 2> arr) {
-        return first == arr[0] && (arr[1] == 0 || second == arr[1]);
-    };
-
-    //сперва искать многострочные комментарии!
-    auto multi_it = std::find_if(
-        design.multiline_comment_variants.begin(),
-        design.multiline_comment_variants.end(),
-        IsMultFound);
-    if(multi_it != design.multiline_comment_variants.end()) {
-        return UpdMultilineDesign(multi_it->at(1),
-                                  multi_it->at(2) == 0 ? multi_it->at(0) : multi_it->at(2));
-    }
-
-    //поиск однострочных комментариев
-    auto one_it = std::find_if(
-        design.oneline_comment_variants.begin(),
-        design.oneline_comment_variants.end(),
-        IsOneFound);
-    if(one_it != design.oneline_comment_variants.end()) {
-        if(one_it->at(1) == 0) iter_counter++; //проскакиваем следующий символ при парсинге
-        return CommentType::eOneLineComment;
-    }
-
-    return CommentType::eNotComment;
-}
-
 //предполагается использовать только для парсинга
 void CheckComments(const char current_sym, const char next_sym,
                    size_t &iter_counter, CommentDesign& design,
@@ -599,8 +560,8 @@ void CheckComments(const char current_sym, const char next_sym,
 
     switch(design.temp_type) {
     case CommentType::eOneLineComment: {
-        //если следующий символ должен обрабатываться другим кодом
-        if((current_sym == '\n') || (next_sym == '\n')) {
+        //считывается строго до переноса строки
+        if(next_sym == '\n') {
             design.temp_type = CommentType::eCommentEnd;
             return;
         }
@@ -609,40 +570,57 @@ void CheckComments(const char current_sym, const char next_sym,
         return;
     }
     case CommentType::eMultiLineComment: {
-        //нужен следующий символ, если нет - исключение
-        if(next_sym == 0)
-            throw std::invalid_argument("invalid length of input string, multiline comment not closed");
+        bool b2 = design.temp_multiline_schema[1] == 0;
+        bool b3 = design.temp_multiline_schema[2] == 0;
+        char finish_ch = design.temp_multiline_schema[(b3 ? 0 : 2)];
+        if(b2) {
+            //второй символ не участвует
+            //коммент закрывает последовательность [finish_ch]
+            if(current_sym == finish_ch) {
+                design.temp_type = CommentType::eCommentEnd;
+                return;
+            }
+        } else {
+            //второй символ участвует
+            if(next_sym == 0)
+                throw std::invalid_argument("invalid length of input string, multiline comment not closed");
 
-        if() {
-            design.temp_type = CommentType::eCommentEnd;
-            return;
-        }
-        if(current_sym == design.temp_multiline_stop[0]
-            && (design.temp_multiline_stop[1] == 0 || next_sym == design.temp_multiline_stop[1]))
-        {
-            if(design.temp_multiline_stop[1] != 0)
+            //коммент закрывает последовательность [1][finish_ch]
+            if(current_sym == design.temp_multiline_schema[1] && next_sym == finish_ch) {
                 iter_counter++;
-            design.temp_type = CommentType::eCommentEnd;
-            return;
+                design.temp_type = CommentType::eCommentEnd;
+                return;
+            }
         }
 
         current_comment += current_sym;
         return;
     }
     case CommentType::eNotComment: {
-        //FIXME: struct XXX { arr[3]; type; }
-        CommentType result = IsCommentStart(current_sym, next_sym, design, iter_counter);
-        switch(result) {
-        case CommentType::eOneLineComment:
-        case CommentType::eMultiLineComment:
-        {
-            if(!current_comment.empty())
-                current_comment += "\n";
-            design.temp_type = result;
-            return;
+        //поиск многострочных комментариев
+        for(const auto& format : design.multiline_comment_variants) {
+            //v1: {X,0} - #...
+            //v2: {X,Y} - #!...
+            bool b2 = format[1] == 0;
+            bool b3 = format[2] == 0;
+            if(current_sym == format[0] && (b2 || next_sym == format[1])) {
+                design.temp_multiline_schema = format;
+                design.temp_type = CommentType::eMultiLineComment;
+                return;
+            }
         }
-        default: break;
+        //поиск однострочных комментариев
+        for(const auto& format : design.oneline_comment_variants) {
+            //v1: {X,0} - #...
+            //v2: {X,Y} - #!...
+            bool b2 = format[1] == 0;
+            bool b3 = format[2] == 0;
+            if(current_sym == format[0] && (b2 || next_sym == format[1])) {
+                design.temp_type = CommentType::eOneLineComment;
+                return;
+            }
         }
+        break;
     }
     default: break;
     }
