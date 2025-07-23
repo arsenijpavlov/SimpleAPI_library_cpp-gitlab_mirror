@@ -140,7 +140,8 @@ std::string GetMultilineCommentStopStr(const CommentDesign& design)             
 std::string ToComment(const std::string &comment, const CommentDesign& design,
                       const uint8_t tabulation_level = 0)                                       noexcept;
 std::string FromComment(const std::string &comment_string, CommentDesign& design,
-                        const uint8_t tabulation_level = 0)                                     noexcept;
+//TODO: заменить после фикса парсеров                        const uint8_t tabulation_level = 0)                                     noexcept;
+                        const uint8_t tabulation_level)                                         noexcept;
 
 
 void RemoveComments(std::string& str, bool& startComment, char& quote,
