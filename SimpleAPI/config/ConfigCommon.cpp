@@ -18,15 +18,33 @@ std::string ToString(const ValueType type) noexcept {
     }
 }
 
-void RemoveIllegalSpaces(std::string &string) noexcept {
+void RemoveFrontTabsIllegalSpaces(std::string &string, const uint8_t tabulation_level) noexcept {
     using namespace utils;
-    if(!string.empty()) {
-        while(CharInString(string.back(), __SPACES_WITHOUT_SEPARATORS__))
-            string.pop_back();
+    if(string.empty()) return;
 
-        while(CharInString(*string.begin(), __SPACES_WITHOUT_SEPARATORS__))
-            string = string.erase(0, 1);
-    }
+    for(uint8_t i = tabulation_level; i > 0 && CharInString(*string.begin(), "\t"); --i)
+        string = string.erase(0, 1);
+}
+
+void RemoveFrontIllegalSpaces(std::string &string) noexcept {
+    using namespace utils;
+    if(string.empty()) return;
+
+    while(CharInString(*string.begin(), __SPACES_WITHOUT_SEPARATORS__))
+        string = string.erase(0, 1);
+}
+
+void RemoveEndIllegalSpaces(std::string &string) noexcept {
+    using namespace utils;
+    if(string.empty()) return;
+
+    while(CharInString(string.back(), __SPACES_WITHOUT_SEPARATORS__))
+        string.pop_back();
+}
+
+void RemoveIllegalSpaces(std::string &string) noexcept {
+    RemoveFrontIllegalSpaces(string);
+    RemoveEndIllegalSpaces(string);
 }
 
 bool RemoveQuotes(std::string &string) noexcept {
@@ -56,7 +74,7 @@ bool GetAllStringsFromFile(const std::string& path, std::string& dest_string,
         while(getline(file, temp_string))
             dest_string += temp_string + '\n';
         file.close();
-    } catch (std::exception e) {
+    } catch (const std::exception& e) {
         if(error_log) *error_log = std::string("Unable to read file: ") + e.what();
         return false;
     }
@@ -80,7 +98,7 @@ bool CreateEmptyFile(const std::string &file_path, const std::string &start_comm
         file.write(finish_comment.c_str(), finish_comment.length());
         file.write("\n", 1);
         file.close();
-    } catch (std::exception e) {
+    } catch (const std::exception& e) {
         if(error_log) *error_log = std::string("Unable to write file: ") + e.what();
         return false;
     }
