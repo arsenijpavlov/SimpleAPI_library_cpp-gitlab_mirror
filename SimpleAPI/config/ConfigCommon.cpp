@@ -18,7 +18,7 @@ std::string ToString(const ValueType type) noexcept {
     }
 }
 
-void RemoveFrontTabsIllegalSpaces(std::string &string, const uint8_t tabulation_level) noexcept {
+void RemoveFrontTabsIllegalSpaces(std::string &string, const int8_t tabulation_level) noexcept {
     using namespace utils;
     if(string.empty()) return;
 

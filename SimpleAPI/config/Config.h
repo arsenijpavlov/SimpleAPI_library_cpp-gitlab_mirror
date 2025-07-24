@@ -319,7 +319,8 @@ public:
 
     //STATIC
     static Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
-                                          const bool enable_comments = true, const CommentDesign& design = {});
+                                          const bool enable_comments = true, const CommentDesign& design = {},
+                                          const int8_t tabulation_level = 0);
 };
 
 

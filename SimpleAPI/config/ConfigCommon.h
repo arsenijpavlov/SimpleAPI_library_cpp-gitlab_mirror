@@ -33,7 +33,7 @@ enum class ValueType {
 
 
 //удалить пробелы в начале и конце строки
-void RemoveFrontTabsIllegalSpaces(std::string& string, const uint8_t tabulation_level)                      noexcept;
+void RemoveFrontTabsIllegalSpaces(std::string& string, const int8_t tabulation_level)                      noexcept;
 void RemoveFrontIllegalSpaces(std::string& string)                                                          noexcept;
 void RemoveEndIllegalSpaces(std::string& string)                                                            noexcept;
 void RemoveIllegalSpaces(std::string& string)                                                               noexcept;

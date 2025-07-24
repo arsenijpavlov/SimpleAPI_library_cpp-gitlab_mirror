@@ -908,7 +908,8 @@ shared_VPairElement::const_iterator Config::json_cend() const {
 }
 
 Config Config::CreateElementFromString(std::string &&value_string, const ConfigFormat format,
-                                       const bool enable_comments, const CommentDesign& design)
+                                       const bool enable_comments, const CommentDesign& design,
+                                       const int8_t tabulation_level)
 {
     using namespace utils;
     //удаление незначащих пробелов
@@ -959,12 +960,13 @@ Config Config::CreateElementFromString(std::string &&value_string, const ConfigF
             return Config(value_string);
         }
     }
+    int8_t new_tab_lvl = tabulation_level == -1 ? -1 : tabulation_level + 1;
     /*ARRAY*/ {
         if(first == '[' && last == ']') {
             try {
                 ElementArray array;
                 array.setCommentDesign(design);
-                array.parse(value_string, format, enable_comments);
+                array.parse(value_string, format, enable_comments, new_tab_lvl);
                 return Config(array);
             } catch(...) {}
         }
@@ -974,7 +976,7 @@ Config Config::CreateElementFromString(std::string &&value_string, const ConfigF
             try {
                 ElementJson json;
                 json.setCommentDesign(design);
-                json.parse(value_string, format, enable_comments);
+                json.parse(value_string, format, enable_comments, new_tab_lvl);
                 return Config(json);
             } catch(...) {}
         }

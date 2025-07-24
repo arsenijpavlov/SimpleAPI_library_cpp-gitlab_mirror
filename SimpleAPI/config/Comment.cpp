@@ -221,7 +221,7 @@ std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept {
 }
 
 std::string ToComment(const std::string &comment, const CommentDesign& design,
-                      const uint8_t tabulation_level) noexcept
+                      const int8_t tabulation_level) noexcept
 {
     if(comment.empty()) return "";
 
@@ -368,7 +368,7 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
 
 //NOTE: для всего файла конфига подменяется символ границы только если не задан (первый комментарий с границей)
 std::string FromComment(const std::string &comment_string, CommentDesign& design,
-                        const uint8_t tabulation_level) noexcept
+                        const int8_t tabulation_level) noexcept
 {
     using namespace utils;
     VString     lines;
