@@ -36,37 +36,90 @@ private:
 
 public:
     //NOTE: API_ - приписка для обозначения интерфейсных функций при использовании через класс Config
-    //#define API_ALL
-    //#define API_BOOL
-    //#define API_NUMBER
-    //#define API_STRING
-    //#define API_ARRAY
-    //#define API_JSON
+    #define API_ALL
+    #define API_BOOL
+    #define API_NUMBER
+    #define API_STRING
+    #define API_CONTAINER
+
+    // Comment =========================================================================================================
+    Config&         addComment(const Comment& content)              noexcept;                                               API_ALL
+    Config&         addComment(const std::string &content_before, const std::string &content_after) noexcept;               API_ALL
+    Config&         addPrefixComment(const std::string& content)    noexcept;                                               API_ALL
+    Config&         addSuffixComment(const std::string& content)    noexcept;                                               API_ALL
+
+    Comment&        getComment()                                    noexcept        { return m_value->getComment(); }       API_ALL
+    Comment         getComment()                                    const noexcept  { return m_value->getComment(); }       API_ALL
+    std::string&    getPrefixComment()                              noexcept        { return m_value->getPrefixComment(); } API_ALL
+    std::string     getPrefixComment()                              const noexcept  { return m_value->getPrefixComment(); } API_ALL
+    std::string&    getSuffixComment()                              noexcept        { return m_value->getSuffixComment(); } API_ALL
+    std::string     getSuffixComment()                              const noexcept  { return m_value->getSuffixComment(); } API_ALL
+
+    Config&         clearComment()                                  noexcept;                                               API_ALL
+    Config&         clearPrefixComment()                            noexcept;                                               API_ALL
+    Config&         clearSuffixComment()                            noexcept;                                               API_ALL
+    Config&         deleteComment()                                 noexcept;                                               API_ALL
+    Config&         deletePrefixComment()                           noexcept;                                               API_ALL
+    Config&         deleteSuffixComment()                           noexcept;                                               API_ALL
+
+    CommentDesign&  getCommentDesign()                              noexcept        { return m_value->getCommentDesign(); } API_ALL
+    CommentDesign   getCommentDesign()                              const noexcept  { return m_value->getCommentDesign(); } API_ALL
+    Config&         setCommentDesign(const CommentDesign& design)   noexcept;                                               API_ALL
+    Config&         clearCommentDesign()                            noexcept;                                               API_ALL
+    void            add_comment(const size_t index, const Comment &content)                 { ...; }                        API_CONTAINER
+    void            add_comment(const size_t index, const std::string &content_before,
+                             const std::string &content_after)                              { ...; }                        API_CONTAINER
+    void            add_prefix_comment(const size_t index, const std::string &content)      { ...; }                        API_CONTAINER
+    void            add_suffix_comment(const size_t index, const std::string &content)      { ...; }                        API_CONTAINER
+    Comment&        get_comment(const size_t index)                                         { ...; }                        API_CONTAINER
+    Comment         get_comment(const size_t index)                 const                   { ...; }                        API_CONTAINER
+    std::string&    get_prefix_comment(const size_t index)                                  { ...; }                        API_CONTAINER
+    std::string     get_prefix_comment(const size_t index)          const                   { ...; }                        API_CONTAINER
+    std::string&    get_suffix_comment(const size_t index)                                  { ...; }                        API_CONTAINER
+    std::string     get_suffix_comment(const size_t index)          const                   { ...; }                        API_CONTAINER
+    void            clear_comment(const size_t index)                                       { ...; }                        API_CONTAINER
+    void            clear_prefix_comment(const size_t index)                                { ...; }                        API_CONTAINER
+    void            clear_suffix_comment(const size_t index)                                { ...; }                        API_CONTAINER
+    void            delete_comment(const size_t index)                                      { ...; }                        API_CONTAINER
+    void            delete_prefix_comment(const size_t index)                               { ...; }                        API_CONTAINER
+    void            delete_suffix_comment(const size_t index)                               { ...; }                        API_CONTAINER
+    // ========================================================================================================= Comment
+
+    // Setters =========================================================================================================
+    // ========================================================================================================= Setters
+
+    // Getters =========================================================================================================
+    // ========================================================================================================= Getters
+
+    // Modify ==========================================================================================================
+    // ========================================================================================================== Modify
+
+    // Adding ==========================================================================================================
+    // ========================================================================================================== Adding
+
+    // Removing ========================================================================================================
+    // ======================================================================================================== Removing
+
+    // Info ============================================================================================================
+    // ============================================================================================================ Info
+
+    // Operators =======================================================================================================
+    // ======================================================================================================= Operators
+
+    // Iterators =======================================================================================================
+    // ======================================================================================================= Iterators
+
+    // String ==========================================================================================================
+    // ========================================================================================================== String
+
+    // File ============================================================================================================
+    // ============================================================================================================ File
+
+    // Parser ==========================================================================================================
+    // ========================================================================================================== Parser
+
 
     //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    Config&         addComment(const Comment& content)              noexcept;
-    Config&         addComment(const std::string &content_before, const std::string &content_after) noexcept;
-    Config&         addPrefixComment(const std::string& content)    noexcept;
-    Config&         addSuffixComment(const std::string& content)    noexcept;
-
-    Comment&        getComment()                                    noexcept        { return m_value->getComment(); }
-    Comment         getComment()                                    const noexcept  { return m_value->getComment(); }
-    std::string&    getPrefixComment()                              noexcept        { return m_value->getPrefixComment(); }
-    std::string     getPrefixComment()                              const noexcept  { return m_value->getPrefixComment(); }
-    std::string&    getSuffixComment()                              noexcept        { return m_value->getSuffixComment(); }
-    std::string     getSuffixComment()                              const noexcept  { return m_value->getSuffixComment(); }
-
-    Config&         clearComment()                                  noexcept;
-    Config&         clearPrefixComment()                            noexcept;
-    Config&         clearSuffixComment()                            noexcept;
-    Config&         deleteComment()                                 noexcept;
-    Config&         deletePrefixComment()                           noexcept;
-    Config&         deleteSuffixComment()                           noexcept;
-
-    CommentDesign&  getCommentDesign()                              noexcept        { return m_value->getCommentDesign(); }
-    CommentDesign   getCommentDesign()                              const noexcept  { return m_value->getCommentDesign(); }
-    Config&         setCommentDesign(const CommentDesign& design)   noexcept;
-    Config&         clearCommentDesign()                            noexcept;
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= COMMENTS
 
     // Setters =========================================================================================================
