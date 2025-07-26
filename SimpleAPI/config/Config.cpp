@@ -72,13 +72,13 @@ Config &Config::clearCommentDesign() noexcept {
     return *this;
 }
 
-Config& Config::add_comment(const size_t index, const Comment &content) {
+Config &Config::add_comment(const size_t index, const Comment &content) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     reinterpret_cast<IElementContainer*>(m_value)->add_comment(index, content);
     return *this;
 }
 
-Config& Config::add_comment(const size_t index, const std::string &content_before,
+Config &Config::add_comment(const size_t index, const std::string &content_before,
                             const std::string &content_after)
 {
     __CHECK_TYPE_IS_CONTAINER__((*this))
@@ -86,13 +86,13 @@ Config& Config::add_comment(const size_t index, const std::string &content_befor
     return *this;
 }
 
-Config& Config::add_prefix_comment(const size_t index, const std::string &content) {
+Config &Config::add_prefix_comment(const size_t index, const std::string &content) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     reinterpret_cast<IElementContainer*>(m_value)->add_prefix_comment(index, content);
     return *this;
 }
 
-Config& Config::add_suffix_comment(const size_t index, const std::string &content) {
+Config &Config::add_suffix_comment(const size_t index, const std::string &content) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     reinterpret_cast<IElementContainer*>(m_value)->add_suffix_comment(index, content);
     return *this;
@@ -128,52 +128,50 @@ std::string Config::get_suffix_comment(const size_t index) const {
     return reinterpret_cast<IElementContainer*>(m_value)->get_suffix_comment(index);
 }
 
-Config& Config::clear_comment(const size_t index) {
+Config &Config::clear_comment(const size_t index) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     reinterpret_cast<IElementContainer*>(m_value)->clear_comment(index);
     return *this;
 }
 
-Config& Config::clear_prefix_comment(const size_t index) {
+Config &Config::clear_prefix_comment(const size_t index) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     reinterpret_cast<IElementContainer*>(m_value)->clear_prefix_comment(index);
     return *this;
 }
 
-Config& Config::clear_suffix_comment(const size_t index) {
+Config &Config::clear_suffix_comment(const size_t index) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     reinterpret_cast<IElementContainer*>(m_value)->clear_suffix_comment(index);
     return *this;
 }
 
-Config& Config::delete_comment(const size_t index) {
+Config &Config::delete_comment(const size_t index) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     reinterpret_cast<IElementContainer*>(m_value)->delete_comment(index);
     return *this;
 }
 
-Config& Config::delete_prefix_comment(const size_t index) {
+Config &Config::delete_prefix_comment(const size_t index) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     reinterpret_cast<IElementContainer*>(m_value)->delete_prefix_comment(index);
     return *this;
 }
 
-Config& Config::delete_suffix_comment(const size_t index) {
+Config &Config::delete_suffix_comment(const size_t index) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     reinterpret_cast<IElementContainer*>(m_value)->delete_suffix_comment(index);
     return *this;
 }
 
 Config &Config::setValue() noexcept {
-    if(m_value) delete m_value;
-
+    release();
     m_value = dynamic_cast<IElement*>(new ElementNull());
     return *this;
 }
 
 Config &Config::setValue(const Config &other) noexcept {
-    if(m_value) delete m_value;
-
+    release();
     switch(other.getType()) {
     case ValueType::eNull:      { return setValue();                                                                }
     case ValueType::eBool:      { return setValue(dynamic_cast<const ElementBool*>(other.m_value)->getValue());     }
@@ -188,8 +186,7 @@ Config &Config::setValue(const Config &other) noexcept {
 }
 
 Config &Config::setValue(Config &&other) noexcept {
-    if(m_value) delete m_value;
-
+    release();
     switch(other.getType()) {
     case ValueType::eNull:      { return setValue();                                                                            }
     case ValueType::eBool:      { return setValue(dynamic_cast<const ElementBool*>(other.m_value)->getValue());                 }
@@ -200,13 +197,12 @@ Config &Config::setValue(Config &&other) noexcept {
     default:                    break;
     }
 
-    other.init(); //обнулить значение
+    other.release(); //обнулить значение
     return *this;
 }
 
 Config &Config::setValue(const IElement &other) noexcept {
-    if(m_value) delete m_value;
-
+    release();
     switch(other.getType()) {
     case ValueType::eNull:      { return setValue();                                                        }
     case ValueType::eBool:      { return setValue(dynamic_cast<const ElementBool*>(&other)->getValue());    }
@@ -221,8 +217,7 @@ Config &Config::setValue(const IElement &other) noexcept {
 }
 
 Config &Config::setValue(IElement &&other) noexcept {
-    if(m_value) delete m_value;
-
+    release();
     switch(other.getType()) {
     case ValueType::eNull:      { return setValue();                                                                    }
     case ValueType::eBool:      { return setValue(dynamic_cast<const ElementBool*>(&other)->getValue());                }
@@ -237,64 +232,55 @@ Config &Config::setValue(IElement &&other) noexcept {
 }
 
 Config &Config::setValue(const bool other) noexcept {
-    if(m_value) delete m_value;
-
+    release();
     m_value = dynamic_cast<IElement*>(new ElementBool(other));
     return *this;
 }
 
 Config &Config::setValue(const long double &other) noexcept {
-    if(m_value) delete m_value;
-
+    release();
     m_value = dynamic_cast<IElement*>(new ElementNumber(other));
     return *this;
 }
 
 Config &Config::setValue(long double &&other) noexcept {
-    if(m_value) delete m_value;
-
+    release();
     m_value = dynamic_cast<IElement*>(new ElementNumber(std::move(other)));
     return *this;
 }
 
 Config &Config::setValue(const std::string &other) noexcept {
-    if(m_value) delete m_value;
-
+    release();
     m_value = dynamic_cast<IElement*>(new ElementString(other));
     return *this;
 }
 
 Config &Config::setValue(std::string &&other) noexcept {
-    if(m_value) delete m_value;
-
+    release();
     m_value = dynamic_cast<IElement*>(new ElementString(std::move(other)));
     return *this;
 }
 
 Config &Config::setValue(const ElementArray &other) noexcept {
-    if(m_value) delete m_value;
-
+    release();
     m_value = dynamic_cast<IElement*>(new ElementArray(other));
     return *this;
 }
 
 Config &Config::setValue(ElementArray &&other) noexcept {
-    if(m_value) delete m_value;
-
+    release();
     m_value = dynamic_cast<IElement*>(new ElementArray(std::move(other)));
     return *this;
 }
 
 Config &Config::setValue(const ElementJson &other) noexcept {
-    if(m_value) delete m_value;
-
+    release();
     m_value = dynamic_cast<IElement*>(new ElementJson(other));
     return *this;
 }
 
 Config &Config::setValue(ElementJson &&other) noexcept {
-    if(m_value) delete m_value;
-
+    release();
     m_value = dynamic_cast<IElement*>(new ElementJson(std::move(other)));
     return *this;
 }
@@ -331,7 +317,6 @@ std::string Config::getString() const {
 
 Config &Config::get_front() {
     __CHECK_TYPE_IS_CONTAINER__((*this))
-
     switch(getType()) {
     case ValueType::eArray: return dynamic_cast<ElementArray*>(m_value)->get_front();
     case ValueType::eJson:  return dynamic_cast<ElementJson*>(m_value)->get_front();
@@ -343,7 +328,6 @@ Config &Config::get_front() {
 
 Config Config::get_front() const {
     __CHECK_TYPE_IS_CONTAINER__((*this))
-
     switch(getType()) {
     case ValueType::eArray: return dynamic_cast<const ElementArray*>(m_value)->get_front();
     case ValueType::eJson:  return dynamic_cast<const ElementJson*>(m_value)->get_front();
@@ -354,9 +338,7 @@ Config Config::get_front() const {
 }
 
 Config &Config::get_at(const size_t index) {
-
     __CHECK_TYPE_IS_CONTAINER__((*this))
-
     switch(getType()) {
     case ValueType::eArray: return dynamic_cast<ElementArray*>(m_value)->get_at(index);
     case ValueType::eJson:  return dynamic_cast<ElementJson*>(m_value)->get_at(index);
@@ -368,7 +350,6 @@ Config &Config::get_at(const size_t index) {
 
 Config Config::get_at(const size_t index) const {
     __CHECK_TYPE_IS_CONTAINER__((*this))
-
     switch(getType()) {
     case ValueType::eArray: return dynamic_cast<const ElementArray*>(m_value)->get_at(index);
     case ValueType::eJson:  return dynamic_cast<const ElementJson*>(m_value)->get_at(index);
@@ -380,7 +361,6 @@ Config Config::get_at(const size_t index) const {
 
 Config &Config::get_at(const std::vector<size_t> &indexes) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
-
     if(indexes.empty())
         throw std::invalid_argument("indexes argument cannot be empty");
 
@@ -456,7 +436,6 @@ Config Config::get_at(const std::string& key) const {
 
 Config &Config::get_at(const VString &complex_key) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
-
     if(complex_key.empty())
         throw std::invalid_argument("complex_key argument cannot be empty");
 
@@ -502,7 +481,6 @@ Config &Config::get_at(const VString &complex_key) {
 
 Config Config::get_at(const VString &complex_key) const {
     __CHECK_TYPE_IS_CONTAINER__((*this))
-
     if(complex_key.empty())
         throw std::invalid_argument("complex_key argument cannot be empty");
 
@@ -550,7 +528,6 @@ Config Config::get_at(const VString &complex_key) const {
 
 Config &Config::get_back() {
     __CHECK_TYPE_IS_CONTAINER__((*this))
-
     switch(getType()) {
     case ValueType::eArray: return dynamic_cast<ElementArray*>(m_value)->get_back();
     case ValueType::eJson:  return dynamic_cast<ElementJson*>(m_value)->get_back();
@@ -562,7 +539,6 @@ Config &Config::get_back() {
 
 Config Config::get_back() const {
     __CHECK_TYPE_IS_CONTAINER__((*this))
-
     switch(getType()) {
     case ValueType::eArray: return dynamic_cast<const ElementArray*>(m_value)->get_back();
     case ValueType::eJson:  return dynamic_cast<const ElementJson*>(m_value)->get_back();
@@ -573,8 +549,6 @@ Config Config::get_back() const {
 }
 
 bool &Config::get_front_bool() {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
     Config& config = get_front();
     __CHECK_TYPE_IS_BOOL__(config)
 
@@ -582,8 +556,6 @@ bool &Config::get_front_bool() {
 }
 
 bool Config::get_front_bool() const {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
     const Config& config = get_front();
     __CHECK_TYPE_IS_BOOL__(config)
 
@@ -591,8 +563,6 @@ bool Config::get_front_bool() const {
 }
 
 long double &Config::get_front_number() {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
     Config& config = get_front();
     __CHECK_TYPE_IS_NUMBER__(config)
 
@@ -600,8 +570,6 @@ long double &Config::get_front_number() {
 }
 
 long double Config::get_front_number() const {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
     const Config& config = get_front();
     __CHECK_TYPE_IS_NUMBER__(config)
 
@@ -609,8 +577,6 @@ long double Config::get_front_number() const {
 }
 
 std::string &Config::get_front_string() {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
     Config& config = get_front();
     __CHECK_TYPE_IS_STRING__(config)
 
@@ -618,8 +584,6 @@ std::string &Config::get_front_string() {
 }
 
 std::string Config::get_front_string() const {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
     const Config& config = get_front();
     __CHECK_TYPE_IS_STRING__(config)
 
@@ -627,8 +591,6 @@ std::string Config::get_front_string() const {
 }
 
 bool &Config::get_bool_at(const size_t index) {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_BOOL__(config)
 
@@ -636,8 +598,6 @@ bool &Config::get_bool_at(const size_t index) {
 }
 
 bool Config::get_bool_at(const size_t index) const {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_BOOL__(config)
 
@@ -646,21 +606,17 @@ bool Config::get_bool_at(const size_t index) const {
 
 bool &Config::get_bool_at(const std::vector<size_t> &indexes) {
     Config& cfg = get_at(indexes);
-
     __CHECK_TYPE_IS_BOOL__(cfg)
     return dynamic_cast<ElementBool*>(cfg.m_value)->getValue();
 }
 
 bool Config::get_bool_at(const std::vector<size_t> &indexes) const {
     const Config& cfg = get_at(indexes);
-
     __CHECK_TYPE_IS_BOOL__(cfg)
     return dynamic_cast<ElementBool*>(cfg.m_value)->getValue();
 }
 
 long double &Config::get_number_at(const size_t index) {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_NUMBER__(config)
 
@@ -668,8 +624,6 @@ long double &Config::get_number_at(const size_t index) {
 }
 
 long double Config::get_number_at(const size_t index) const {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_NUMBER__(config)
 
@@ -678,8 +632,8 @@ long double Config::get_number_at(const size_t index) const {
 
 long double &Config::get_number_at(const std::vector<size_t> &indexes) {
     Config& cfg = get_at(indexes);
-
     __CHECK_TYPE_IS_NUMBER__(cfg)
+
     return dynamic_cast<ElementNumber*>(cfg.m_value)->getValue();
 }
 
@@ -691,8 +645,6 @@ long double Config::get_number_at(const std::vector<size_t> &indexes) const {
 }
 
 std::string &Config::get_string_at(const size_t index) {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_STRING__(config)
 
@@ -700,8 +652,6 @@ std::string &Config::get_string_at(const size_t index) {
 }
 
 std::string Config::get_string_at(const size_t index) const {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_STRING__(config)
 
@@ -710,21 +660,19 @@ std::string Config::get_string_at(const size_t index) const {
 
 std::string &Config::get_string_at(const std::vector<size_t> &indexes) {
     Config& cfg = get_at(indexes);
-
     __CHECK_TYPE_IS_STRING__(cfg)
+
     return dynamic_cast<ElementString*>(cfg.m_value)->getValue();
 }
 
 std::string Config::get_string_at(const std::vector<size_t> &indexes) const {
     const Config& cfg = get_at(indexes);
-
     __CHECK_TYPE_IS_STRING__(cfg)
+
     return dynamic_cast<ElementString*>(cfg.m_value)->getValue();
 }
 
 bool &Config::get_bool_at(const std::string& key) {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
     const Config& config = get_at(key);
     __CHECK_TYPE_IS_BOOL__(config)
 
@@ -732,8 +680,6 @@ bool &Config::get_bool_at(const std::string& key) {
 }
 
 bool Config::get_bool_at(const std::string& key) const {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
     const Config& config = get_at(key);
     __CHECK_TYPE_IS_BOOL__(config)
 
@@ -742,21 +688,19 @@ bool Config::get_bool_at(const std::string& key) const {
 
 bool &Config::get_bool_at(const VString &complex_key) {
     Config& cfg = get_at(complex_key);
-
     __CHECK_TYPE_IS_BOOL__(cfg)
+
     return dynamic_cast<ElementBool*>(cfg.m_value)->getValue();
 }
 
 bool Config::get_bool_at(const VString &complex_key) const {
     const Config& cfg = get_at(complex_key);
-
     __CHECK_TYPE_IS_BOOL__(cfg)
+
     return dynamic_cast<ElementBool*>(cfg.m_value)->getValue();
 }
 
 long double &Config::get_number_at(const std::string& key) {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
     const Config& config = get_at(key);
     __CHECK_TYPE_IS_NUMBER__(config)
 
@@ -764,8 +708,6 @@ long double &Config::get_number_at(const std::string& key) {
 }
 
 long double Config::get_number_at(const std::string& key) const {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
     const Config& config = get_at(key);
     __CHECK_TYPE_IS_NUMBER__(config)
 
@@ -774,21 +716,19 @@ long double Config::get_number_at(const std::string& key) const {
 
 long double &Config::get_number_at(const VString &complex_key) {
     Config& cfg = get_at(complex_key);
-
     __CHECK_TYPE_IS_NUMBER__(cfg)
+
     return dynamic_cast<ElementNumber*>(cfg.m_value)->getValue();
 }
 
 long double Config::get_number_at(const VString &complex_key) const {
     const Config& cfg = get_at(complex_key);
-
     __CHECK_TYPE_IS_NUMBER__(cfg)
+
     return dynamic_cast<ElementNumber*>(cfg.m_value)->getValue();
 }
 
 std::string &Config::get_string_at(const std::string& key) {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
     const Config& config = get_at(key);
     __CHECK_TYPE_IS_STRING__(config)
 
@@ -796,8 +736,6 @@ std::string &Config::get_string_at(const std::string& key) {
 }
 
 std::string Config::get_string_at(const std::string& key) const {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
     const Config& config = get_at(key);
     __CHECK_TYPE_IS_STRING__(config)
 
@@ -806,21 +744,19 @@ std::string Config::get_string_at(const std::string& key) const {
 
 std::string &Config::get_string_at(const VString &complex_key) {
     Config& cfg = get_at(complex_key);
-
     __CHECK_TYPE_IS_STRING__(cfg)
+
     return dynamic_cast<ElementString*>(cfg.m_value)->getValue();
 }
 
 std::string Config::get_string_at(const VString &complex_key) const {
     const Config& cfg = get_at(complex_key);
-
     __CHECK_TYPE_IS_STRING__(cfg)
+
     return dynamic_cast<ElementString*>(cfg.m_value)->getValue();
 }
 
 bool &Config::get_bool_back() {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
     const Config& config = get_back();
     __CHECK_TYPE_IS_BOOL__(config)
 
@@ -828,8 +764,6 @@ bool &Config::get_bool_back() {
 }
 
 bool Config::get_bool_back() const {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
     const Config& config = get_back();
     __CHECK_TYPE_IS_BOOL__(config)
 
@@ -837,8 +771,6 @@ bool Config::get_bool_back() const {
 }
 
 long double &Config::get_number_back() {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
     const Config& config = get_back();
     __CHECK_TYPE_IS_NUMBER__(config)
 
@@ -846,8 +778,6 @@ long double &Config::get_number_back() {
 }
 
 long double Config::get_number_back() const {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
     const Config& config = get_back();
     __CHECK_TYPE_IS_NUMBER__(config)
 
@@ -855,8 +785,6 @@ long double Config::get_number_back() const {
 }
 
 std::string &Config::get_string_back() {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
     const Config& config = get_back();
     __CHECK_TYPE_IS_STRING__(config)
 
@@ -864,8 +792,6 @@ std::string &Config::get_string_back() {
 }
 
 std::string Config::get_string_back() const {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
     const Config& config = get_back();
     __CHECK_TYPE_IS_STRING__(config)
 

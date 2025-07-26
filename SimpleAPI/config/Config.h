@@ -12,23 +12,24 @@ private:
     IElement* m_value;
 
 public:
-    Config()                                                noexcept            { init(); }
-    Config(const Config& other)                             noexcept            { setValue(other); }
-    Config(Config&& other)                                  noexcept            { setValue(std::move(other)); }
-    explicit Config(const IElement& other)                  noexcept            { setValue(other); }
-    explicit Config(IElement&& other)                       noexcept            { setValue(std::move(other)); }
+    Config()                                noexcept : m_value(nullptr)         { init(); }
+    Config(const Config& other)             noexcept : m_value(nullptr)         { setValue(other); }
+    Config(Config&& other)                  noexcept : m_value(nullptr)         { setValue(std::move(other)); }
+    explicit Config(const IElement& other)  noexcept : m_value(nullptr)         { setValue(other); }
+    explicit Config(IElement&& other)       noexcept : m_value(nullptr)         { setValue(std::move(other)); }
 
-    explicit Config(const bool other)                       noexcept            { setValue(other); }
+    explicit Config(const bool other)       noexcept : m_value(nullptr)         { setValue(other); }
     __ONLY_NUMBER_TYPES__(T)
-    explicit Config(T&& other)                              noexcept            { setValue(static_cast<long double&>(other)); }
+    explicit Config(T&& other)              noexcept : m_value(nullptr)         { setValue(static_cast<long double&>(other)); }
     __ONLY_STRING_TYPES__(T)
-    explicit Config(T&& other)                              noexcept            { setValue(std::string(other)); }
+    explicit Config(T&& other)              noexcept : m_value(nullptr)         { setValue(std::string(other)); }
 
-    ~Config()                                               noexcept            { delete m_value; }
+    ~Config()                                               noexcept            { release(); }
 
 private:
     //создание ПУСТОГО(NULL) элемента
-    void init()                                             noexcept            { setValue(); }
+    void init()                                                     noexcept    { setValue(); }
+    void release()                                                  noexcept    { if(m_value != nullptr) delete m_value; }
 
 public:
     //NOTE: API_ - приписка для обозначения интерфейсных функций при использовании через класс Config
@@ -37,6 +38,7 @@ public:
     #define API_NUMBER
     #define API_STRING
     #define API_CONTAINER
+    #define API_MAP_CONTAINER
 
     // Comment =========================================================================================================
     Config&         addComment(const Comment& content)              noexcept;                                               API_ALL
@@ -63,6 +65,7 @@ public:
     Config&         setCommentDesign(const CommentDesign& design)   noexcept;                                               API_ALL
     Config&         clearCommentDesign()                            noexcept;                                               API_ALL
 
+    // вложенные контейнеры
     Config&         add_comment(const size_t index, const Comment &content);                                                API_CONTAINER
     Config&         add_comment(const size_t index, const std::string &content_before,
                      const std::string &content_after);                                                                     API_CONTAINER
@@ -85,12 +88,136 @@ public:
     // ========================================================================================================= Comment
 
     // Setters =========================================================================================================
+    Config&         setValue()                                      noexcept;                                               API_ALL
+    Config&         setValue(const Config& other)                   noexcept;                                               API_ALL
+    Config&         setValue(Config&& other)                        noexcept;                                               API_ALL
+    Config&         setValue(const IElement& other)                 noexcept;                                               API_ALL
+    Config&         setValue(IElement&& other)                      noexcept;                                               API_ALL
+    Config&         setValue(const bool other)                      noexcept;                                               API_ALL
+    Config&         setValue(const long double& other)              noexcept;                                               API_ALL
+    Config&         setValue(long double&& other)                   noexcept;                                               API_ALL
+    Config&         setValue(const std::string& other)              noexcept;                                               API_ALL
+    Config&         setValue(std::string&& other)                   noexcept;                                               API_ALL
+
+    Config&         setValue(const ElementArray& other)             noexcept;                                               API_ALL
+    Config&         setValue(ElementArray&& other)                  noexcept;                                               API_ALL
+    Config&         setValue(const ElementJson& other)              noexcept;                                               API_ALL
+    Config&         setValue(ElementJson&& other)                   noexcept;                                               API_ALL
+    //TODO:    Config&         setValue(const ElementYaml& other)      noexcept;
+    //TODO:    Config&         setValue(ElementYaml&& other)           noexcept;
+    //TODO:    Config&         setValue(const ElementXml& other)       noexcept;
+    //TODO:    Config&         setValue(ElementXml&& other)            noexcept;
     // ========================================================================================================= Setters
 
     // Getters =========================================================================================================
+    bool&           getBool();                                                                                              API_BOOL
+    bool            getBool()                                                   const;                                      API_BOOL
+    long double&    getNumber();                                                                                            API_NUMBER
+    long double     getNumber()                                                 const;                                      API_NUMBER
+    std::string&    getString();                                                                                            API_STRING
+    std::string     getString()                                                 const;                                      API_STRING
+
+    // вложенные контейнеры
+    // @complex_key - список индексов(в текстовом виде)/ключей
+    Config&         get_front();                                                                                            API_CONTAINER
+    Config          get_front()                                                 const;                                      API_CONTAINER
+    Config&         get_at(const size_t index);                                                                             API_CONTAINER
+    Config          get_at(const size_t index)                                  const;                                      API_CONTAINER
+    Config&         get_at(const std::vector<size_t>& indexes);                                                             API_CONTAINER
+    Config          get_at(const std::vector<size_t>& indexes)                  const;                                      API_CONTAINER
+    //TODO: сделать кастомный класс для хранения строк и чисел для обращения ко вложенным элементам
+    //TODO:                    template<std::size_t SIZE>
+    //TODO:    Config&         get_at(const std::array<size_t, SIZE>& indexes);
+    //TODO:                    template<std::size_t SIZE>
+    //TODO:    Config          get_at(const std::array<size_t, SIZE>& indexes)             const;
+    Config&         get_at(const std::string& key);                                                                         API_MAP_CONTAINER
+    Config          get_at(const std::string& key)                              const;                                      API_MAP_CONTAINER
+    Config&         get_at(const VString& complex_key);                                                                     API_MAP_CONTAINER
+    Config          get_at(const VString& complex_key)                          const;                                      API_MAP_CONTAINER
+    Config&         get_back();                                                                                             API_MAP_CONTAINER
+    Config          get_back()                                                  const;                                      API_MAP_CONTAINER
+
+    bool&           get_front_bool();                                                                                       API_CONTAINER
+    bool            get_front_bool()                                            const;                                      API_CONTAINER
+    long double&    get_front_number();                                                                                     API_CONTAINER
+    long double     get_front_number()                                          const;                                      API_CONTAINER
+    std::string&    get_front_string();                                                                                     API_CONTAINER
+    std::string     get_front_string()                                          const;                                      API_CONTAINER
+
+    bool&           get_bool_at(const size_t index);                                                                        API_CONTAINER
+    bool            get_bool_at(const size_t index)                             const;                                      API_CONTAINER
+    bool&           get_bool_at(const std::vector<size_t>& indexes);                                                        API_CONTAINER
+    bool            get_bool_at(const std::vector<size_t>& indexes)             const;                                      API_CONTAINER
+    //TODO:                    template<std::size_t SIZE>
+    //TODO:    bool&           get_bool_at(const std::array<size_t, SIZE>& indexes);
+    //TODO:                    template<std::size_t SIZE>
+    //TODO:    bool            get_bool_at(const std::array<size_t, SIZE>& indexes)             const;
+    long double&    get_number_at(const size_t index);                                                                      API_CONTAINER
+    long double     get_number_at(const size_t index)                           const;                                      API_CONTAINER
+    long double&    get_number_at(const std::vector<size_t>& indexes);                                                      API_CONTAINER
+    long double     get_number_at(const std::vector<size_t>& indexes)           const;                                      API_CONTAINER
+    //TODO:                    template<std::size_t SIZE>
+    //TODO:    long double&    get_number_at(const std::array<size_t, SIZE>& indexes);
+    //TODO:                    template<std::size_t SIZE>
+    //TODO:    long double     get_number_at(const std::array<size_t, SIZE>& indexes)             const;
+    std::string&    get_string_at(const size_t index);                                                                      API_CONTAINER
+    std::string     get_string_at(const size_t index)                           const;                                      API_CONTAINER
+    std::string&    get_string_at(const std::vector<size_t>& indexes);                                                      API_CONTAINER
+    std::string     get_string_at(const std::vector<size_t>& indexes)           const;                                      API_CONTAINER
+    //TODO:                    template<std::size_t SIZE>
+    //TODO:    std::string&    get_string_at(const std::array<size_t, SIZE>& indexes);
+    //TODO:                    template<std::size_t SIZE>
+    //TODO:    std::string     get_string_at(const std::array<size_t, SIZE>& indexes)             const;
+
+    bool&           get_bool_at(const std::string& key);                                                                    API_MAP_CONTAINER
+    bool            get_bool_at(const std::string& key)                         const;                                      API_MAP_CONTAINER
+    bool&           get_bool_at(const VString& complex_key);                                                                API_MAP_CONTAINER
+    bool            get_bool_at(const VString& complex_key)                     const;                                      API_MAP_CONTAINER
+    long double&    get_number_at(const std::string& key);                                                                  API_MAP_CONTAINER
+    long double     get_number_at(const std::string& key)                       const;                                      API_MAP_CONTAINER
+    long double&    get_number_at(const VString& complex_key);                                                              API_MAP_CONTAINER
+    long double     get_number_at(const VString& complex_key)                   const;                                      API_MAP_CONTAINER
+    std::string&    get_string_at(const std::string& key);                                                                  API_MAP_CONTAINER
+    std::string     get_string_at(const std::string& key)                       const;                                      API_MAP_CONTAINER
+    std::string&    get_string_at(const VString& complex_key);                                                              API_MAP_CONTAINER
+    std::string     get_string_at(const VString& complex_key)                   const;                                      API_MAP_CONTAINER
+
+    bool&           get_bool_back();                                                                                        API_CONTAINER
+    bool            get_bool_back()                                             const;                                      API_CONTAINER
+    long double&    get_number_back();                                                                                      API_CONTAINER
+    long double     get_number_back()                                           const;                                      API_CONTAINER
+    std::string&    get_string_back();                                                                                      API_CONTAINER
+    std::string     get_string_back()                                           const;                                      API_CONTAINER
     // ========================================================================================================= Getters
 
     // Modify ==========================================================================================================
+    //NOTE: не путать с remove(), здесь просто сброс комментариев, сброс значения до:
+        // bool    = false
+        // number  = 0
+        // string  = ""
+        // array   = []
+        // json    = {}
+        // yaml    =
+        // xml     =
+    Config&         clear()                                     noexcept    { m_value->clear(); return *this; }             API_ALL
+    //контейнеры
+    //TODO: erase_front
+    //TODO: erase_at(iterator)
+    //TODO: erase_at(index)
+    //TODO: erase_at(key)
+    //TODO: erase_backf
+
+    //TODO: insert_front
+    //TODO: insert_at(iterator)
+    //TODO: insert_at(index)
+    //TODO: insert_at(key)
+    //TODO: insert_back
+    //TODO: insert_after(key)
+
+    //TODO: update
+    //TODO: get_and_pop
+    //TODO: pop
+    //TODO: push
     // ========================================================================================================== Modify
 
     // Adding ==========================================================================================================
@@ -118,141 +245,12 @@ public:
     // ========================================================================================================== Parser
 
 
-    //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= COMMENTS
 
-    // Setters =========================================================================================================
-    Config&         setValue()                              noexcept;
-    Config&         setValue(const Config& other)           noexcept;
-    Config&         setValue(Config&& other)                noexcept;
-    Config&         setValue(const IElement& other)         noexcept;
-    Config&         setValue(IElement&& other)              noexcept;
-    Config&         setValue(const bool other)              noexcept;
-    Config&         setValue(const long double& other)      noexcept;
-    Config&         setValue(long double&& other)           noexcept;
-    Config&         setValue(const std::string& other)      noexcept;
-    Config&         setValue(std::string&& other)           noexcept;
-
-    Config&         setValue(const ElementArray& other)     noexcept;
-    Config&         setValue(ElementArray&& other)          noexcept;
-    Config&         setValue(const ElementJson& other)      noexcept;
-    Config&         setValue(ElementJson&& other)           noexcept;
-//TODO:    Config&         setValue(const ElementYaml& other)      noexcept;
-//TODO:    Config&         setValue(ElementYaml&& other)           noexcept;
-//TODO:    Config&         setValue(const ElementXml& other)       noexcept;
-//TODO:    Config&         setValue(ElementXml&& other)            noexcept;
-    // ========================================================================================================= Setters
 
     // Getters =========================================================================================================
-    bool&           getBool();
-    bool            getBool()                                                   const;
-    long double&    getNumber();
-    long double     getNumber()                                                 const;
-    std::string&    getString();
-    std::string     getString()                                                 const;
-
-    // вложенные контейнеры
-    // @complex_key - список индексов(в текстовом виде)/ключей
-    Config&         get_front();
-    Config          get_front()                                                 const;
-    Config&         get_at(const size_t index);
-    Config          get_at(const size_t index)                                  const;
-    Config&         get_at(const std::vector<size_t>& indexes);
-    Config          get_at(const std::vector<size_t>& indexes)                  const;
-    //TODO: сделать кастомный класс для хранения строк и чисел для обращения ко вложенным элементам
-//TODO:                    template<std::size_t SIZE>
-//TODO:    Config&         get_at(const std::array<size_t, SIZE>& indexes);
-//TODO:                    template<std::size_t SIZE>
-//TODO:    Config          get_at(const std::array<size_t, SIZE>& indexes)             const;
-    Config&         get_at(const std::string& key);
-    Config          get_at(const std::string& key)                              const;
-    Config&         get_at(const VString& complex_key);
-    Config          get_at(const VString& complex_key)         const;
-    Config&         get_back();
-    Config          get_back()                                                  const;
-
-    bool&           get_front_bool();
-    bool            get_front_bool()                                            const;
-    long double&    get_front_number();
-    long double     get_front_number()                                          const;
-    std::string&    get_front_string();
-    std::string     get_front_string()                                          const;
-
-    bool&           get_bool_at(const size_t index);
-    bool            get_bool_at(const size_t index)                             const;
-    bool&           get_bool_at(const std::vector<size_t>& indexes);
-    bool            get_bool_at(const std::vector<size_t>& indexes)             const;
-//TODO:                    template<std::size_t SIZE>
-//TODO:    bool&           get_bool_at(const std::array<size_t, SIZE>& indexes);
-//TODO:                    template<std::size_t SIZE>
-//TODO:    bool            get_bool_at(const std::array<size_t, SIZE>& indexes)             const;
-    long double&    get_number_at(const size_t index);
-    long double     get_number_at(const size_t index)                           const;
-    long double&    get_number_at(const std::vector<size_t>& indexes);
-    long double     get_number_at(const std::vector<size_t>& indexes)           const;
-//TODO:                    template<std::size_t SIZE>
-//TODO:    long double&    get_number_at(const std::array<size_t, SIZE>& indexes);
-//TODO:                    template<std::size_t SIZE>
-//TODO:    long double     get_number_at(const std::array<size_t, SIZE>& indexes)             const;
-    std::string&    get_string_at(const size_t index);
-    std::string     get_string_at(const size_t index)                           const;
-    std::string&    get_string_at(const std::vector<size_t>& indexes);
-    std::string     get_string_at(const std::vector<size_t>& indexes)           const;
-//TODO:                    template<std::size_t SIZE>
-//TODO:    std::string&    get_string_at(const std::array<size_t, SIZE>& indexes);
-//TODO:                    template<std::size_t SIZE>
-//TODO:    std::string     get_string_at(const std::array<size_t, SIZE>& indexes)             const;
-
-    bool&           get_bool_at(const std::string& key);
-    bool            get_bool_at(const std::string& key)                         const;
-    bool&           get_bool_at(const VString& complex_key);
-    bool            get_bool_at(const VString& complex_key)    const;
-    long double&    get_number_at(const std::string& key);
-    long double     get_number_at(const std::string& key)                       const;
-    long double&    get_number_at(const VString& complex_key);
-    long double     get_number_at(const VString& complex_key)  const;
-    std::string&    get_string_at(const std::string& key);
-    std::string     get_string_at(const std::string& key)                       const;
-    std::string&    get_string_at(const VString& complex_key);
-    std::string     get_string_at(const VString& complex_key)  const;
-
-    bool&           get_bool_back();
-    bool            get_bool_back()                                             const;
-    long double&    get_number_back();
-    long double     get_number_back()                                           const;
-    std::string&    get_string_back();
-    std::string     get_string_back()                                           const;
     // ========================================================================================================= Getters
 
     // Modify ==========================================================================================================
-    //NOTE: не путать с remove(), здесь просто сброс комментариев, сброс значения до:
-        // bool    = false
-        // number  = 0
-        // string  = ""
-        // array   = {}
-        // json    = {}
-        // yaml    = false
-        // xml     = false
-    Config&         clear()                                 noexcept                { m_value->clear(); return *this; }
-
-    //контейнеры
-    //TODO: erase_front
-    //TODO: erase_at(iterator)
-    //TODO: erase_at(index)
-    //TODO: erase_at(key)
-    //TODO: erase_backf
-
-    //TODO: insert_front
-    //TODO: insert_at(iterator)
-    //TODO: insert_at(index)
-    //TODO: insert_at(key)
-    //TODO: insert_back
-    //TODO: insert_after(key)
-
-    //TODO: update
-    //TODO: get_and_pop
-    //TODO: pop
-    //TODO: push
     // ========================================================================================================== Modify
 
     // Info ============================================================================================================
