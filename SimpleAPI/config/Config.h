@@ -4,10 +4,6 @@
 #include "Comment.h"
 #include "ConfigCommon.h"
 #include "ConfigDefines.h"
-#include "ElementNull.h"
-#include "ElementBool.h"
-#include "ElementNumber.h"
-#include "ElementString.h"
 #include "ElementArray.h"
 #include "ElementJson.h"
 
@@ -66,23 +62,26 @@ public:
     CommentDesign   getCommentDesign()                              const noexcept  { return m_value->getCommentDesign(); } API_ALL
     Config&         setCommentDesign(const CommentDesign& design)   noexcept;                                               API_ALL
     Config&         clearCommentDesign()                            noexcept;                                               API_ALL
-    void            add_comment(const size_t index, const Comment &content)                 { ...; }                        API_CONTAINER
-    void            add_comment(const size_t index, const std::string &content_before,
-                             const std::string &content_after)                              { ...; }                        API_CONTAINER
-    void            add_prefix_comment(const size_t index, const std::string &content)      { ...; }                        API_CONTAINER
-    void            add_suffix_comment(const size_t index, const std::string &content)      { ...; }                        API_CONTAINER
-    Comment&        get_comment(const size_t index)                                         { ...; }                        API_CONTAINER
-    Comment         get_comment(const size_t index)                 const                   { ...; }                        API_CONTAINER
-    std::string&    get_prefix_comment(const size_t index)                                  { ...; }                        API_CONTAINER
-    std::string     get_prefix_comment(const size_t index)          const                   { ...; }                        API_CONTAINER
-    std::string&    get_suffix_comment(const size_t index)                                  { ...; }                        API_CONTAINER
-    std::string     get_suffix_comment(const size_t index)          const                   { ...; }                        API_CONTAINER
-    void            clear_comment(const size_t index)                                       { ...; }                        API_CONTAINER
-    void            clear_prefix_comment(const size_t index)                                { ...; }                        API_CONTAINER
-    void            clear_suffix_comment(const size_t index)                                { ...; }                        API_CONTAINER
-    void            delete_comment(const size_t index)                                      { ...; }                        API_CONTAINER
-    void            delete_prefix_comment(const size_t index)                               { ...; }                        API_CONTAINER
-    void            delete_suffix_comment(const size_t index)                               { ...; }                        API_CONTAINER
+
+    Config&         add_comment(const size_t index, const Comment &content);                                                API_CONTAINER
+    Config&         add_comment(const size_t index, const std::string &content_before,
+                     const std::string &content_after);                                                                     API_CONTAINER
+    Config&         add_prefix_comment(const size_t index, const std::string &content);                                     API_CONTAINER
+    Config&         add_suffix_comment(const size_t index, const std::string &content);                                     API_CONTAINER
+
+    Comment&        get_comment(const size_t index);                                                                        API_CONTAINER
+    Comment         get_comment(const size_t index)                 const;                                                  API_CONTAINER
+    std::string&    get_prefix_comment(const size_t index);                                                                 API_CONTAINER
+    std::string     get_prefix_comment(const size_t index)          const;                                                  API_CONTAINER
+    std::string&    get_suffix_comment(const size_t index);                                                                 API_CONTAINER
+    std::string     get_suffix_comment(const size_t index)          const;                                                  API_CONTAINER
+
+    Config&         clear_comment(const size_t index);                                                                      API_CONTAINER
+    Config&         clear_prefix_comment(const size_t index);                                                               API_CONTAINER
+    Config&         clear_suffix_comment(const size_t index);                                                               API_CONTAINER
+    Config&         delete_comment(const size_t index);                                                                     API_CONTAINER
+    Config&         delete_prefix_comment(const size_t index);                                                              API_CONTAINER
+    Config&         delete_suffix_comment(const size_t index);                                                              API_CONTAINER
     // ========================================================================================================= Comment
 
     // Setters =========================================================================================================

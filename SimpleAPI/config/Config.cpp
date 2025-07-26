@@ -12,6 +12,158 @@
 //#include "ElementXml.h"
 
 
+Config &Config::addComment(const Comment &content) noexcept {
+    m_value->addComment(content);
+    return *this;
+}
+
+Config &Config::addComment(const std::string &content_before, const std::string &content_after) noexcept {
+    m_value->addComment(content_before, content_after);
+    return *this;
+}
+
+Config &Config::addPrefixComment(const std::string &content) noexcept {
+    m_value->addPrefixComment(content);
+    return *this;
+}
+
+Config &Config::addSuffixComment(const std::string &content) noexcept {
+    m_value->addSuffixComment(content);
+    return *this;
+}
+
+Config &Config::clearComment() noexcept {
+    m_value->clearComment();
+    return *this;
+}
+
+Config &Config::clearPrefixComment() noexcept {
+    m_value->clearPrefixComment();
+    return *this;
+}
+
+Config &Config::clearSuffixComment() noexcept {
+    m_value->clearSuffixComment();
+    return *this;
+}
+
+Config &Config::deleteComment() noexcept {
+    m_value->deleteComment();
+    return *this;
+}
+
+Config &Config::deletePrefixComment() noexcept {
+    m_value->deletePrefixComment();
+    return *this;
+}
+
+Config &Config::deleteSuffixComment() noexcept {
+    m_value->deleteSuffixComment();
+    return *this;
+}
+
+Config &Config::setCommentDesign(const CommentDesign &design) noexcept {
+    m_value->setCommentDesign(design);
+    return *this;
+}
+
+Config &Config::clearCommentDesign() noexcept {
+    m_value->clearCommentDesign();
+    return *this;
+}
+
+Config& Config::add_comment(const size_t index, const Comment &content) {
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    reinterpret_cast<IElementContainer*>(m_value)->add_comment(index, content);
+    return *this;
+}
+
+Config& Config::add_comment(const size_t index, const std::string &content_before,
+                            const std::string &content_after)
+{
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    reinterpret_cast<IElementContainer*>(m_value)->add_comment(index, content_before, content_after);
+    return *this;
+}
+
+Config& Config::add_prefix_comment(const size_t index, const std::string &content) {
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    reinterpret_cast<IElementContainer*>(m_value)->add_prefix_comment(index, content);
+    return *this;
+}
+
+Config& Config::add_suffix_comment(const size_t index, const std::string &content) {
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    reinterpret_cast<IElementContainer*>(m_value)->add_suffix_comment(index, content);
+    return *this;
+}
+
+Comment &Config::get_comment(const size_t index) {
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    return reinterpret_cast<IElementContainer*>(m_value)->get_comment(index);
+}
+
+Comment Config::get_comment(const size_t index) const {
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    return reinterpret_cast<IElementContainer*>(m_value)->get_comment(index);
+}
+
+std::string &Config::get_prefix_comment(const size_t index) {
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    return reinterpret_cast<IElementContainer*>(m_value)->get_prefix_comment(index);
+}
+
+std::string Config::get_prefix_comment(const size_t index) const {
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    return reinterpret_cast<IElementContainer*>(m_value)->get_prefix_comment(index);
+}
+
+std::string &Config::get_suffix_comment(const size_t index){
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    return reinterpret_cast<IElementContainer*>(m_value)->get_suffix_comment(index);
+}
+
+std::string Config::get_suffix_comment(const size_t index) const {
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    return reinterpret_cast<IElementContainer*>(m_value)->get_suffix_comment(index);
+}
+
+Config& Config::clear_comment(const size_t index) {
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    reinterpret_cast<IElementContainer*>(m_value)->clear_comment(index);
+    return *this;
+}
+
+Config& Config::clear_prefix_comment(const size_t index) {
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    reinterpret_cast<IElementContainer*>(m_value)->clear_prefix_comment(index);
+    return *this;
+}
+
+Config& Config::clear_suffix_comment(const size_t index) {
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    reinterpret_cast<IElementContainer*>(m_value)->clear_suffix_comment(index);
+    return *this;
+}
+
+Config& Config::delete_comment(const size_t index) {
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    reinterpret_cast<IElementContainer*>(m_value)->delete_comment(index);
+    return *this;
+}
+
+Config& Config::delete_prefix_comment(const size_t index) {
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    reinterpret_cast<IElementContainer*>(m_value)->delete_prefix_comment(index);
+    return *this;
+}
+
+Config& Config::delete_suffix_comment(const size_t index) {
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    reinterpret_cast<IElementContainer*>(m_value)->delete_suffix_comment(index);
+    return *this;
+}
+
 Config &Config::setValue() noexcept {
     if(m_value) delete m_value;
 
@@ -740,65 +892,7 @@ bool Config::isEqual(const std::string &other) const {
     return dynamic_cast<const ElementString*>(m_value)->getValue() == other;
 }
 
-Config &Config::addComment(const Comment &content) noexcept {
-    m_value->addComment(content);
-    return *this;
-}
 
-Config &Config::addComment(const std::string &content_before, const std::string &content_after) noexcept {
-    m_value->addComment(content_before, content_after);
-    return *this;
-}
-
-Config &Config::addPrefixComment(const std::string &content) noexcept {
-    m_value->addPrefixComment(content);
-    return *this;
-}
-
-Config &Config::addSuffixComment(const std::string &content) noexcept {
-    m_value->addSuffixComment(content);
-    return *this;
-}
-
-Config &Config::clearComment() noexcept {
-    m_value->clearComment();
-    return *this;
-}
-
-Config &Config::clearPrefixComment() noexcept {
-    m_value->clearPrefixComment();
-    return *this;
-}
-
-Config &Config::clearSuffixComment() noexcept {
-    m_value->clearSuffixComment();
-    return *this;
-}
-
-Config &Config::deleteComment() noexcept {
-    m_value->deleteComment();
-    return *this;
-}
-
-Config &Config::deletePrefixComment() noexcept {
-    m_value->deletePrefixComment();
-    return *this;
-}
-
-Config &Config::deleteSuffixComment() noexcept {
-    m_value->deleteSuffixComment();
-    return *this;
-}
-
-Config &Config::setCommentDesign(const CommentDesign &design) noexcept {
-    m_value->setCommentDesign(design);
-    return *this;
-}
-
-Config &Config::clearCommentDesign() noexcept {
-    m_value->clearCommentDesign();
-    return *this;
-}
 
 Config &Config::readFile(const std::string &file_path, const ConfigFormat format,
                          const bool with_comments, std::string *error_log)
