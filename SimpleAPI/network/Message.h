@@ -2,7 +2,7 @@
 #define MESSAGE_H
 
 #include "../utils/EECounter.h"
-#include "../json/Json.h"
+#include "../config/Config.h"
 #include "IpPort.h"
 
 #include <cstdint>
@@ -114,14 +114,14 @@ public:
 class JsonMessage {
 public:
     IpPort      m_ip_port;
-    Json        m_json;
+    Config      m_json;
 
-    JsonMessage() noexcept                          {};
-    JsonMessage(const JsonMessage& jm) noexcept     { *this = jm; }
-    JsonMessage(const PacketMessage& pm) noexcept;
+    JsonMessage()                                   noexcept    {};
+    explicit JsonMessage(const JsonMessage& jm)     noexcept    { *this = jm; }
+    explicit JsonMessage(const PacketMessage& pm)   noexcept;
 
-    void clear() noexcept;
-    std::string to_string(int arg = -1) noexcept;
+    void clear()                                    noexcept;
+    std::string to_string(int arg = -1)             noexcept;
 };
 
 #endif // MESSAGE_H

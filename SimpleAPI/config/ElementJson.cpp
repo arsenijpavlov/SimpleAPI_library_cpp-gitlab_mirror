@@ -2,6 +2,7 @@
 
 #include "Config.h"
 #include <algorithm>
+#include "../utils/Utils.h"
 
 
 ElementJson::ElementJson(const JPair &pair) noexcept {
@@ -615,7 +616,7 @@ std::string ElementJson::to_string(const ParseState state) const noexcept {
 
 void ElementJson::UpdateState(ParseState &state, const ParseState new_state) const noexcept {
     state = new_state;
-    DEBUG_LOG("Parse Json, upd state: " << to_string(state) << std::endl);
+    DEBUG_LOG("Parse Json, upd state: " << to_string(state));
 }
 
 void ElementJson::parse(const std::string &input_string, CommentDesign &design,

@@ -2,7 +2,7 @@
 #define SOCKET_H
 
 #include "../utils/EECounter.h"
-#include "../json/Json.h"
+#include "../config/Config.h"
 #include "IpPort.h"
 #include "SocketSettings.h"
 

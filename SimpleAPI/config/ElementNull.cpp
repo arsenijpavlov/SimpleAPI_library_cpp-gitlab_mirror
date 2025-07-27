@@ -1,6 +1,7 @@
 #include "ElementNull.h"
 
 #include "Config.h"
+#include "../utils/Utils.h"
 
 #include <algorithm>
 
