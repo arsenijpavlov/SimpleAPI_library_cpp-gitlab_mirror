@@ -51,7 +51,7 @@ std::string PacketMessage::to_string() noexcept {
 
 JsonMessage::JsonMessage(const PacketMessage &pm) noexcept {
     m_ip_port = pm.m_ip_port;
-    m_json.parseJSON(convert_from_packet(pm.m_packet));
+    m_json.parseJson(convert_from_packet(pm.m_packet));
 }
 
 void JsonMessage::clear() noexcept {
@@ -59,11 +59,12 @@ void JsonMessage::clear() noexcept {
     m_json.clear();
 }
 
+//FIXME
 std::string JsonMessage::to_string(int arg) noexcept {
     std::string out;
 
     out = m_ip_port.to_string() + " ";
-    out += "[(" + std::to_string(m_json.size()) + ")" + m_json.to_string(arg) + "]";
+//    out += "[(" + std::to_string(m_json.size()) + ")" + m_json.to_string(arg) + "]";
 
     return out;
 }

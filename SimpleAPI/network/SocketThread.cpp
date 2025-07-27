@@ -129,7 +129,7 @@ void SocketThread::send(const IpPort &source, const IpPort &destination,
 }
 
 void SocketThread::send(const IpPort &source, const IpPort &destination,
-                        const Json &json) noexcept {
+                        const Config &json) noexcept {
     auto it = m_sockets.find(source);
     if(it != m_sockets.end())
         it->second->sendMsg(destination, json);

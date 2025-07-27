@@ -115,8 +115,8 @@ protected:
 
     virtual void    tick() noexcept                     = 0;
     virtual void    sendAutoMsg() noexcept              = 0;
-    virtual Json    recvAutoMsg(int timeout) noexcept   = 0;
-    virtual Json    processingBuiltPacket(const PacketMessage& pm) noexcept = 0;
+    virtual Config  recvAutoMsg(int timeout) noexcept   = 0;
+    virtual Config  processingBuiltPacket(const PacketMessage& pm) noexcept = 0;
     //=====================================
     friend class SocketThread; //для функции tick()
 
@@ -154,9 +154,9 @@ public:
                             const Packet& packet) noexcept
                                                         { sendMsg(IpPort{remote_ip, remote_port}, packet); }
     void            sendMsg(const std::string& remote_ip, const uint16_t remote_port,
-                            const Json& json) noexcept  { sendMsg(IpPort{remote_ip, remote_port}, json); }
+                            const Config& json) noexcept  { sendMsg(IpPort{remote_ip, remote_port}, json); }
     virtual void    sendMsg(const IpPort& remote_ip_port, const Packet& packet) = 0;
-    virtual void    sendMsg(const IpPort& remote_ip_port, const Json& json) = 0;
+    virtual void    sendMsg(const IpPort& remote_ip_port, const Config& json) = 0;
     //-----------------------------------------
     //Эти функции работают в связке с tick():
     //выдаст пустой пакет, если очередь пуста
@@ -180,8 +180,8 @@ class UDPSocket : public Socket {
     void            tick() noexcept;
     void            checkConnections() noexcept;//только UDP
     void            sendAutoMsg() noexcept;
-    Json            recvAutoMsg(int timeout) noexcept;
-    Json            processingBuiltPacket(const PacketMessage& pm) noexcept;
+    Config          recvAutoMsg(int timeout) noexcept;
+    Config          processingBuiltPacket(const PacketMessage& pm) noexcept;
     //=====================================
 
 public:
@@ -207,7 +207,7 @@ public:
     void            setDeliveryNeed(bool enabled = true) noexcept; //только UDP
 
     void            sendMsg(const IpPort& remote_ip_port, const Packet& packet);
-    void            sendMsg(const IpPort& remote_ip_port, const Json& json);
+    void            sendMsg(const IpPort& remote_ip_port, const Config& json);
 
     PacketMessage   getOutPacket() noexcept;
     JsonMessage     getOutJson() noexcept;

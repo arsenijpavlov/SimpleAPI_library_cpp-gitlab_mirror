@@ -53,7 +53,7 @@ public:
     void stopSocket(const IpPort& local_ip_port) noexcept;
 
     void send(const IpPort& source, const IpPort& destination, const Packet& packet) noexcept;
-    void send(const IpPort& source, const IpPort& destination, const Json& json) noexcept;
+    void send(const IpPort& source, const IpPort& destination, const Config& json) noexcept;
 
     bool isActive() noexcept                        { return m_active; }
     void startThread() noexcept;

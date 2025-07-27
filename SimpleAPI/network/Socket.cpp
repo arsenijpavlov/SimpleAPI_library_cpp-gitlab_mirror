@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <sys/select.h>
 #include <errno.h>
+#include "../utils/Utils.h"
 
 
 #define FULL_MSG_COLOR          {logs::COLOR::eYELLOW_BG, logs::COLOR::eBLACK_FG, logs::COLOR::eBOLD_TEXT}
@@ -388,23 +389,24 @@ void Socket::close() noexcept {
     }
 }
 
+//FIXME: logs
 void UDPSocket::sendFragments(const IpPort &remote_ip_port, const PacketType type,
                               const Packet &packet, const bool need_ack) noexcept {
-    Json json;
-    json.parseJSON(convert_from_packet(packet));
+    Config json;
+    json.parseJson(convert_from_packet(packet));
 
     log(type != eControlType ? logs::eINFO : logs::eDEBUG,
         "Send: " + to_string(type) + " "
-            + (json.isEmpty() ? "[Data:0x" + utils::ToHexString(packet) + "]"
-                              : "[Json:" + json.to_string(-1) + "]"
-                                    + " / [Data:" + "0x" + utils::ToHexString(packet) + "]"
-               ) + " "
+//            + (json.isEmpty() ? "[Data:0x" + utils::ToHexString(packet) + "]"
+//                              : "[Json:" + json.to_string(-1) + "]"
+//                                    + " / [Data:" + "0x" + utils::ToHexString(packet) + "]"
+//               ) + " "
             + remote_ip_port.to_string("to"),
         "Send: " + to_string(type) + " "
-            + (json.isEmpty() ? "[Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::ToHexString(packet)) + "]"
-                              : "[Json:" + logs::to_color_string(FULL_MSG_COLOR, json.to_string(-1)) + "]"
-                                    + " / [Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::ToHexString(packet)) + "]"
-               ) + " "
+//            + (json.isEmpty() ? "[Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::ToHexString(packet)) + "]"
+//                              : "[Json:" + logs::to_color_string(FULL_MSG_COLOR, json.to_string(-1)) + "]"
+//                                    + " / [Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::ToHexString(packet)) + "]"
+//               ) + " "
             + remote_ip_port.to_string("to"));
 
     uint8_t techInformationSize = 1;//1B: заголовок
@@ -558,11 +560,11 @@ void UDPSocket::sendFragments(const IpPort &remote_ip_port, const PacketType typ
         JsonMessage jm = pm;
         std::string appendString = "";
         appendString = "to map_global_packets, size: " + std::to_string(m_sent_global_packets.size());
-        log(logs::eDEBUG,
-            "append ["
-                + (jm.m_json.isEmpty() ? "Data:0x" + utils::ToHexString(pm.m_packet)
-                                     : "Json:" + jm.m_json.to_string(-1))
-                + "] " + appendString);//,
+//        log(logs::eDEBUG,
+//            "append ["
+//                + (jm.m_json.isEmpty() ? "Data:0x" + utils::ToHexString(pm.m_packet)
+//                                     : "Json:" + jm.m_json.to_string(-1))
+//                + "] " + appendString);//,
 //            logs::to_color_string(GLOBAL_APPEND_MSG_COLOR, "append ["
 //                + (jm.m_json.isEmpty() ? "Data:0x" + utils::ToHexString(pm.m_packet)
 //                                     : "Json:" + jm.m_json.to_string(-1))
@@ -571,30 +573,31 @@ void UDPSocket::sendFragments(const IpPort &remote_ip_port, const PacketType typ
     m_output_threads_mutex.unlock();
 }
 
+//FIXME
 void UDPSocket::tick() noexcept {
-    std::map<IpPort, Json> acknowledgeMap;
+    std::map<IpPort, Config> acknowledgeMap;
     checkConnections();
 
     //отправка фрагментов
     sendAutoMsg();
 
     //приём фрагментов
-    Json jRecv = recvAutoMsg(1);
+    Config jRecv = recvAutoMsg(1);
 
     //сборка пакетов для всех активных соединений
     for(auto it = m_map_connections.begin(); it != m_map_connections.end(); it++) {
         PacketMessage b_pm = buildPacket(it);
 
-        Json jProc = processingBuiltPacket(b_pm);
-        jProc.put(jRecv);
+        Config jProc = processingBuiltPacket(b_pm);
+        jProc.push_back(jRecv);
 
         auto it_json = acknowledgeMap.find(it->first);
         if(it_json != acknowledgeMap.end())
-            jProc.put(it_json->second);
+            jProc.push_back(it_json->second);
 
         if(!jProc.isEmpty()) {
-            log(logs::eDEBUG2, "send ack: " + jProc.to_string(-1) + b_pm.m_ip_port.to_string("to"));
-            sendFragments(it->first, eControlType, convert_to_packet(jProc.to_string(-1)), false);
+//            log(logs::eDEBUG2, "send ack: " + jProc.to_string(-1) + b_pm.m_ip_port.to_string("to"));
+//            sendFragments(it->first, eControlType, convert_to_packet(jProc.to_string(-1)), false);
         }
     }
 
@@ -610,8 +613,9 @@ void UDPSocket::tick() noexcept {
 void UDPSocket::checkConnections() noexcept {
     log(logs::eDEBUG2, "checkConnections()");
 
-    Json jPing;
-    jPing.put("ping", this->getLocalIpPort().to_string());
+    Config jPing;
+    //FIXME: Config(string) -> string
+    jPing.push_at("ping", Config(this->getLocalIpPort().to_string()));
 
     //перепосылка недоставленных глобальных пакетов ==================================
     struct prepPacket {
@@ -634,7 +638,7 @@ void UDPSocket::checkConnections() noexcept {
             ) {
             log(logs::eDEBUG2, "Send ping to " + it->first.to_string());
             log(logs::eDEBUG3, "Expected time: " + logs::get_time_string(it->second.m_last_output_activity + _halfInactivity));
-            sendFragments(it->first, eControlType, convert_to_packet(jPing.to_string(-1)), false);
+//            sendFragments(it->first, eControlType, convert_to_packet(jPing.to_string(-1)), false);
             it->second.m_last_output_activity = std::chrono::system_clock::now();
             continue;
         }
@@ -784,7 +788,7 @@ void UDPSocket::sendAutoMsg() noexcept {
 
 }
 
-Json UDPSocket::recvAutoMsg(int timeout) noexcept {
+Config UDPSocket::recvAutoMsg(int timeout) noexcept {
     log(logs::eDEBUG2, "recvAutoMsg()");
 
     PacketMessage pm = recvRawMsg(1);
@@ -812,7 +816,7 @@ Json UDPSocket::recvAutoMsg(int timeout) noexcept {
             + utils::ToHexString(pm.m_packet) + "] " + pm.m_ip_port.to_string("from"));
 
     if(pm.m_packet.empty()) return {};
-    Json outputJson;
+    Config outputJson;
     auto it = m_map_connections.find(pm.m_ip_port);
     if(it == m_map_connections.end() && pm.m_header.type == eControlType) {
         //если первый пакет от адресата является контрольным и НЕ требует отчёта о доставке
@@ -821,18 +825,18 @@ Json UDPSocket::recvAutoMsg(int timeout) noexcept {
                 + " " + pm.m_ip_port.to_string(),
             "Send initial ping for message sn=" + std::to_string(pm.m_sn.get())
                 + " " + logs::to_color_string(logs::eRED_BG, pm.m_ip_port.to_string()));
-        outputJson.put("ping", this->getLocalIpPort().to_string());
+        outputJson.push_back("ping", this->getLocalIpPort().to_string());
     }
 
     if(pm.m_header.type != eControlType)
-        outputJson.put("ack_sn", (double)pm.m_sn.get());
+        outputJson.push_back("ack_sn", (double)pm.m_sn.get());
 
     appendNewFragment(pm);
 
     return outputJson;
 }
 
-Json UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
+Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
     JsonMessage jm = pm;
 
     if(!pm.m_packet.empty()) {
@@ -849,7 +853,7 @@ Json UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
         //обработка собранного пакета (1 за проход)
         if(pm.m_header.type == eControlType) {
             if(jm.m_json.contains("ack_sn")) {
-                uint8_t sn = jm.m_json["ack_sn"].getNum();
+                uint8_t sn = jm.m_json["ack_sn"].getNumber();
                 for(auto it = m_map_auto_sent_packets.begin(); it != m_map_auto_sent_packets.end(); it++) {
                     if(it->second.m_sn.get() == sn) {
                         m_map_auto_sent_packets.erase(it->first);
@@ -858,7 +862,7 @@ Json UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                 }
             }
             if(jm.m_json.contains("ack_all_packet")) {
-                uint8_t first_sn = jm.m_json["ack_all_packet"].getNum(); //номер первого фрагмента сообщения
+                uint8_t first_sn = jm.m_json["ack_all_packet"].getNumber(); //номер первого фрагмента сообщения
 
                 m_output_threads_mutex.lock();
                 for(auto it = m_sent_global_packets.begin(); it != m_sent_global_packets.end(); it++) {
@@ -885,7 +889,7 @@ Json UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                 m_output_threads_mutex.unlock();
             }
             if(jm.m_json.contains("packet_error_last_sn")) {
-                uint8_t last_err_sn = jm.m_json["packet_error_last_sn"].getNum(); //номер первого фрагмента сообщения
+                uint8_t last_err_sn = jm.m_json["packet_error_last_sn"].getNumber(); //номер первого фрагмента сообщения
 
                 //удалить все упоминания фрагментов пакета из очереди переотправок
                 for(auto it = m_map_auto_sent_packets.begin(); it != m_map_auto_sent_packets.end(); it++) {
@@ -919,14 +923,14 @@ Json UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
             }
             if(jm.m_json.contains("get")) {
                 //get = JArrayElement
-                JArray requests = jm.m_json["get"].getArray();
+                Config requests = jm.m_json["get"];
                 for(auto it_req : requests) {
                     switch(it_req.first) {
                     case ValueType::eString: {
                         if(it_req.getString() == "chip_key") {
                             log(logs::eDEBUG, "append chiphering key");
-                            Json jChipKey;
-                            jChipKey.put("key", "abcdefgjiklmnopqrstuvwxyz0123456789");
+                            Config jChipKey;
+                            jChipKey.push_back("key", "abcdefgjiklmnopqrstuvwxyz0123456789");
                             sendFragments(pm.m_ip_port, eControlType, convert_to_packet(jChipKey.to_string(-1)));
                         }
                         break;
@@ -962,12 +966,12 @@ Json UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
     }
 
     //=========================================================================================
-    Json controlAcknowledgement;
+    Config controlAcknowledgement;
     if(pm.m_header.type != eControlType) {
         if(pm.m_is_built_complete)
-            controlAcknowledgement.put("ack_all_packet", (double)pm.m_sn.get());
+            controlAcknowledgement.push_back("ack_all_packet", pm.m_sn.get());
         if(pm.m_is_error)
-            controlAcknowledgement.put("packet_error_last_sn", (double)pm.m_error.sn_finish.get());
+            controlAcknowledgement.push_back("packet_error_last_sn", pm.m_error.sn_finish.get());
     }
     //=========================================================================================
     return controlAcknowledgement;
@@ -1115,7 +1119,7 @@ void UDPSocket::sendMsg(const IpPort& remote_ip_port, const Packet& packet) {
         auto connection_it = findOrCreateConnection(remote_ip_port);
 
         //отправить запрос ключа
-        Json jRequest("get", JArray("chip_key"));
+        Config jRequest("get", Config({"chip_key"}));
         sendFragments(remote_ip_port, eControlType, convert_to_packet(jRequest.to_string(-1)));
 
         //положить текущее сообщение в очередь шифрованных сообщений на отправку
@@ -1129,8 +1133,9 @@ void UDPSocket::sendMsg(const IpPort& remote_ip_port, const Packet& packet) {
     }
 }
 
-void UDPSocket::sendMsg(const IpPort& remote_ip_port, const Json& json) {
-    sendMsg(remote_ip_port, convert_to_packet(json.to_string(-1)));
+//FIXME
+void UDPSocket::sendMsg(const IpPort& remote_ip_port, const Config& json) {
+//    sendMsg(remote_ip_port, convert_to_packet(json.to_string(-1)));
 }
 
 PacketMessage UDPSocket::getOutPacket() noexcept {
