@@ -818,7 +818,21 @@ bool Config::isEqual(const std::string &other) const {
     return dynamic_cast<const ElementString*>(m_value)->getValue() == other;
 }
 
+std::string Config::toString(const ConfigFormat format, const int8_t tabulation_level,
+                             const CommentDesign &design) const noexcept
+{
+    return m_value->toString(format, tabulation_level, design);
+}
 
+std::ostream &operator<<(std::ostream &os, const Config &config) noexcept {
+    os << config.toString();
+    return os;
+}
+
+std::ostream &operator<<(std::ostream &os, const IElement &config) noexcept {
+    os << config.toString();
+    return os;
+}
 
 Config &Config::readFile(const std::string &file_path, const ConfigFormat format,
                          const bool with_comments, std::string *error_log)
@@ -860,9 +874,7 @@ bool Config::writeFileIni(const std::string &file_path, const bool with_comments
 Config &Config::parse(const std::string &content, const ConfigFormat format,
                       const bool with_comments, std::string *error_log)
 {
-    if(m_value != nullptr)
-        delete m_value;
-
+    release();
     *this = Parse(content, format, with_comments, error_log);
     return *this;
 }
@@ -870,9 +882,7 @@ Config &Config::parse(const std::string &content, const ConfigFormat format,
 Config &Config::parseJson(const std::string &content, const bool with_comments,
                           std::string *error_log)
 {
-    if(m_value != nullptr)
-        delete m_value;
-
+    release();
     *this = ParseJson(content, with_comments, error_log);
     return *this;
 }
@@ -880,9 +890,7 @@ Config &Config::parseJson(const std::string &content, const bool with_comments,
 Config &Config::parseIni(const std::string &content, const bool with_comments,
                           std::string *error_log)
 {
-    if(m_value != nullptr)
-        delete m_value;
-
+    release();
     *this = ParseIni(content, with_comments, error_log);
     return *this;
 }

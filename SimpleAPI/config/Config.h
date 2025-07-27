@@ -132,8 +132,8 @@ public:
     //TODO:    Config          get_at(const std::array<size_t, SIZE>& indexes)             const;
     Config&         get_at(const std::string& key);                                                                         API_MAP_CONTAINER
     Config          get_at(const std::string& key)                              const;                                      API_MAP_CONTAINER
-    Config&         get_at(const VString& complex_key);                                                                     API_MAP_CONTAINER
-    Config          get_at(const VString& complex_key)                          const;                                      API_MAP_CONTAINER
+    Config&         get_at(const VString& complex_key);                                                                     API_CONTAINER
+    Config          get_at(const VString& complex_key)                          const;                                      API_CONTAINER
     Config&         get_back();                                                                                             API_MAP_CONTAINER
     Config          get_back()                                                  const;                                      API_MAP_CONTAINER
 
@@ -171,16 +171,16 @@ public:
 
     bool&           get_bool_at(const std::string& key);                                                                    API_MAP_CONTAINER
     bool            get_bool_at(const std::string& key)                         const;                                      API_MAP_CONTAINER
-    bool&           get_bool_at(const VString& complex_key);                                                                API_MAP_CONTAINER
-    bool            get_bool_at(const VString& complex_key)                     const;                                      API_MAP_CONTAINER
+    bool&           get_bool_at(const VString& complex_key);                                                                API_CONTAINER
+    bool            get_bool_at(const VString& complex_key)                     const;                                      API_CONTAINER
     long double&    get_number_at(const std::string& key);                                                                  API_MAP_CONTAINER
     long double     get_number_at(const std::string& key)                       const;                                      API_MAP_CONTAINER
-    long double&    get_number_at(const VString& complex_key);                                                              API_MAP_CONTAINER
-    long double     get_number_at(const VString& complex_key)                   const;                                      API_MAP_CONTAINER
+    long double&    get_number_at(const VString& complex_key);                                                              API_CONTAINER
+    long double     get_number_at(const VString& complex_key)                   const;                                      API_CONTAINER
     std::string&    get_string_at(const std::string& key);                                                                  API_MAP_CONTAINER
     std::string     get_string_at(const std::string& key)                       const;                                      API_MAP_CONTAINER
-    std::string&    get_string_at(const VString& complex_key);                                                              API_MAP_CONTAINER
-    std::string     get_string_at(const VString& complex_key)                   const;                                      API_MAP_CONTAINER
+    std::string&    get_string_at(const VString& complex_key);                                                              API_CONTAINER
+    std::string     get_string_at(const VString& complex_key)                   const;                                      API_CONTAINER
 
     bool&           get_bool_back();                                                                                        API_CONTAINER
     bool            get_bool_back()                                             const;                                      API_CONTAINER
@@ -200,161 +200,126 @@ public:
         // yaml    =
         // xml     =
     Config&         clear()                                     noexcept    { m_value->clear(); return *this; }             API_ALL
-    //контейнеры
-    //TODO: erase_front
-    //TODO: erase_at(iterator)
-    //TODO: erase_at(index)
-    //TODO: erase_at(key)
-    //TODO: erase_backf
-
-    //TODO: insert_front
-    //TODO: insert_at(iterator)
-    //TODO: insert_at(index)
-    //TODO: insert_at(key)
-    //TODO: insert_back
-    //TODO: insert_after(key)
-
-    //TODO: update
-    //TODO: get_and_pop
-    //TODO: pop
-    //TODO: push
     // ========================================================================================================== Modify
 
     // Adding ==========================================================================================================
+    Config& insert_front(const Config& other)                           {}  API_CONTAINER
+    Config& insert_front(Config&& other)                                {}  API_CONTAINER
+    Config& insert_at(const size_t index, const Config& other)          {}  API_CONTAINER
+    Config& insert_at(const size_t index, Config&& other)               {}  API_CONTAINER
+    Config& insert_at(const std::string& key, const Config& other)      {}  API_MAP_CONTAINER
+    Config& insert_at(const std::string& key, Config&& other)           {}  API_MAP_CONTAINER
+    Config& insert_back(const Config& other)                            {}  API_CONTAINER
+    Config& insert_back(Config&& other)                                 {}  API_CONTAINER
+    Config& insert_after(const std::string& key, const Config& other)   {}  API_MAP_CONTAINER
+    Config& insert_after(const std::string& key, Config&& other)        {}  API_MAP_CONTAINER
+
+    //NOTE: в использовании итераторов здесь мало смысла видится
+    //NOTE: функции с произвольным количеством аргументов пока не кажутся необходимыми пользователю API
+
+    //TODO: update
+
+    Config& push_front(const Config& other)                             { return insert_front(other); }                     API_CONTAINER
+    Config& push_front(Config&& other)                                  { return insert_front(std::move(other)); }          API_CONTAINER
+    Config& push_at(const size_t index, const Config& other)            { return insert_at(index, other); }                 API_CONTAINER
+    Config& push_at(const size_t index, Config&& other)                 { return insert_at(index, std::move(other)); }      API_CONTAINER
+    Config& push_at(const std::string& key, const Config& other)        { return insert_at(key, other); }                   API_MAP_CONTAINER
+    Config& push_at(const std::string& key, Config&& other)             { return insert_at(key, std::move(other)); }        API_MAP_CONTAINER
+    Config& push_back(const Config& other)                              { return insert_back(other); }                      API_CONTAINER
+    Config& push_back(Config&& other)                                   { return insert_back(std::move(other)); }           API_CONTAINER
+    Config& push_after(const std::string& key, const Config& other)     { return insert_after(key, other); }                API_MAP_CONTAINER
+    Config& push_after(const std::string& key, Config&& other)          { return insert_after(key, std::move(other)); }     API_MAP_CONTAINER
     // ========================================================================================================== Adding
 
     // Removing ========================================================================================================
+    Config& erase_front()                                               {}  API_CONTAINER
+    Config& erase_at(const size_t index)                                {}  API_CONTAINER
+    Config& erase_at(const std::string& key)                            {}  API_MAP_CONTAINER
+    Config& erase_back()                                                {}  API_CONTAINER
+
+    Config& pop_front()                                                 {}  API_CONTAINER
+    Config& pop_at(const size_t index)                                  {}  API_CONTAINER
+    Config& pop_at(const std::string& key)                              {}  API_MAP_CONTAINER
+    Config& pop_back()                                                  {}  API_CONTAINER
+
+    Config& get_and_pop_front()                                         {}  API_CONTAINER
+    Config& get_and_pop_at(const size_t index)                          {}  API_CONTAINER
+    Config& get_and_pop_at(const std::string& key)                      {}  API_MAP_CONTAINER
+    Config& get_and_pop_back()                                          {}  API_CONTAINER
     // ======================================================================================================== Removing
 
     // Info ============================================================================================================
-    // ============================================================================================================ Info
-
-    // Operators =======================================================================================================
-    // ======================================================================================================= Operators
-
-    // Iterators =======================================================================================================
-    // ======================================================================================================= Iterators
-
-    // String ==========================================================================================================
-    // ========================================================================================================== String
-
-    // File ============================================================================================================
-    // ============================================================================================================ File
-
-    // Parser ==========================================================================================================
-    // ========================================================================================================== Parser
-
-
-
-
-    // Getters =========================================================================================================
-    // ========================================================================================================= Getters
-
-    // Modify ==========================================================================================================
-    // ========================================================================================================== Modify
-
-    // Info ============================================================================================================
-    ValueType       getType()                               const noexcept          { return m_value->getType(); }
-    bool            isNull()                                const noexcept          { return getType() == ValueType::eNull; }
-    bool            isBool()                                const noexcept          { return getType() == ValueType::eBool; }
-    bool            isNumber()                              const noexcept          { return getType() == ValueType::eNumber; }
-    bool            isString()                              const noexcept          { return getType() == ValueType::eString; }
-    bool            isArray()                               const noexcept          { return getType() == ValueType::eArray; }
-    bool            isJson()                                const noexcept          { return getType() == ValueType::eJson; }
+    ValueType       getType()                               const noexcept          { return m_value->getType(); }              API_ALL
+    bool            isNull()                                const noexcept          { return getType() == ValueType::eNull; }   API_ALL
+    bool            isBool()                                const noexcept          { return getType() == ValueType::eBool; }   API_ALL
+    bool            isNumber()                              const noexcept          { return getType() == ValueType::eNumber; } API_ALL
+    bool            isString()                              const noexcept          { return getType() == ValueType::eString; } API_ALL
+    bool            isArray()                               const noexcept          { return getType() == ValueType::eArray; }  API_ALL
+    bool            isJson()                                const noexcept          { return getType() == ValueType::eJson; }   API_ALL
 //    bool            isYaml()                                const noexcept          { return getType() == ValueType::eYaml; }
 //    bool            isXml()                                 const noexcept          { return getType() == ValueType::eXml; }
-    bool            isContainer()                           const noexcept          { return m_value->isContainer(); }
-    bool            isMapContainer()                        const noexcept          { return m_value->isMapContainer(); }
+    bool            isContainer()                           const noexcept          { return m_value->isContainer(); }          API_ALL
+    bool            isMapContainer()                        const noexcept          { return m_value->isMapContainer(); }       API_ALL
 
     bool            isEqual(const Config& other, const bool compare_comments = false)   const
                                                                                     { return isEqual(*other.m_value, compare_comments); }
-    bool            isEqual(const IElement& other, const bool compare_comments = false) const;
-    bool            isEqual(const bool other)                                           const;
-    bool            isEqual(const long double& other)                                   const;
-    bool            isEqual(const std::string& other)                                   const;
+    bool            isEqual(const IElement& other, const bool compare_comments = false) const;                                  API_ALL
+    bool            isEqual(const bool other)                                           const;                                  API_ALL
+    bool            isEqual(const long double& other)                                   const;                                  API_ALL
+    bool            isEqual(const std::string& other)                                   const;                                  API_ALL
 
-    size_t          size()                                  const noexcept          { return m_value->size(); }
+    size_t          size()                                  const noexcept          { return m_value->size(); }                 API_ALL
+    bool            isEmpty()                               const noexcept          { return size() == 0; }                     API_CONTAINER
+    bool            contains(const Config& config)          const noexcept          {}                                          API_CONTAINER
+    bool            contains(const std::string& key)        const noexcept          {}                                          API_MAP_CONTAINER
     // ============================================================================================================ Info
 
     // Operators =======================================================================================================
-    Config&         operator=(const Config& other)          noexcept                { return setValue(other); }
-    Config&         operator=(Config&& other)               noexcept                { return setValue(std::move(other)); }
-    Config&         operator=(const IElement& other)        noexcept                { return setValue(other); }
-    Config&         operator=(IElement&& other)             noexcept                { return setValue(std::move(other)); }
-    Config&         operator=(const bool other)             noexcept                { return setValue(other); }
-    Config&         operator=(const long double& other)     noexcept                { return setValue(other); }
-    Config&         operator=(long double&& other)          noexcept                { return setValue(std::move(other)); }
-    Config&         operator=(const std::string& other)     noexcept                { return setValue(other); }
-    Config&         operator=(std::string&& other)          noexcept                { return setValue(std::move(other)); }
+    Config&         operator=(const Config& other)          noexcept                { return setValue(other); }                 API_ALL
+    Config&         operator=(Config&& other)               noexcept                { return setValue(std::move(other)); }      API_ALL
+    Config&         operator=(const IElement& other)        noexcept                { return setValue(other); }                 API_ALL
+    Config&         operator=(IElement&& other)             noexcept                { return setValue(std::move(other)); }      API_ALL
+    Config&         operator=(const bool other)             noexcept                { return setValue(other); }                 API_ALL
+    Config&         operator=(const long double& other)     noexcept                { return setValue(other); }                 API_ALL
+    Config&         operator=(long double&& other)          noexcept                { return setValue(std::move(other)); }      API_ALL
+    Config&         operator=(const std::string& other)     noexcept                { return setValue(other); }                 API_ALL
+    Config&         operator=(std::string&& other)          noexcept                { return setValue(std::move(other)); }      API_ALL
 
     /* WARNING: комментарии при сравнении не учитываются!
      * Учитывание комментариев только при вызове isEqual(<object>, true)
      */
-    bool            operator==(const Config& other)         const                   { return isEqual(other); }
-    bool            operator==(const IElement& other)       const                   { return isEqual(other); }
-    bool            operator==(const bool other)            const                   { return isEqual(other); }
-    bool            operator==(const long double& other)    const                   { return isEqual(other); }
-    bool            operator==(const std::string& other)    const                   { return isEqual(other); }
+    bool            operator==(const Config& other)         const                   { return isEqual(other); }                  API_ALL
+    bool            operator==(const IElement& other)       const                   { return isEqual(other); }                  API_ALL
+    bool            operator==(const bool other)            const                   { return isEqual(other); }                  API_ALL
+    bool            operator==(const long double& other)    const                   { return isEqual(other); }                  API_ALL
+    bool            operator==(const std::string& other)    const                   { return isEqual(other); }                  API_ALL
 
-    bool            operator!=(const Config& other)         const                   { return !isEqual(other); }
-    bool            operator!=(const IElement& other)       const                   { return !isEqual(other); }
-    bool            operator!=(const bool other)            const                   { return !isEqual(other); }
-    bool            operator!=(const long double& other)    const                   { return !isEqual(other); }
-    bool            operator!=(const std::string& other)    const                   { return !isEqual(other); }
+    bool            operator!=(const Config& other)         const                   { return !isEqual(other); }                 API_ALL
+    bool            operator!=(const IElement& other)       const                   { return !isEqual(other); }                 API_ALL
+    bool            operator!=(const bool other)            const                   { return !isEqual(other); }                 API_ALL
+    bool            operator!=(const long double& other)    const                   { return !isEqual(other); }                 API_ALL
+    bool            operator!=(const std::string& other)    const                   { return !isEqual(other); }                 API_ALL
 
     //числа, контейнеры(размер), строки(длина в видимых символах)
-    bool            operator>(const Config& other)          const                   { return size() > other.size(); }
-    bool            operator>=(const Config& other)         const                   { return size() >= other.size(); }
-    bool            operator<(const Config& other)          const                   { return size() < other.size(); }
-    bool            operator<=(const Config& other)         const                   { return size() <= other.size(); }
+    bool            operator>(const Config& other)          const                   { return size() > other.size(); }           API_ALL
+    bool            operator>=(const Config& other)         const                   { return size() >= other.size(); }          API_ALL
+    bool            operator<(const Config& other)          const                   { return size() < other.size(); }           API_ALL
+    bool            operator<=(const Config& other)         const                   { return size() <= other.size(); }          API_ALL
 
     //контейнеры
-    Config&         operator[](const size_t index)                                  { return get_at(index); }       //(ARRAY, JSON)
-    Config          operator[](const size_t index)                  const           { return get_at(index); }       //(ARRAY, JSON)
-    Config&         operator[](const std::vector<size_t>& indexes)                  { return get_at(indexes); }     //(ARRAY, JSON)
-    Config          operator[](const std::vector<size_t>& indexes)  const           { return get_at(indexes); }     //(ARRAY, JSON)
-    Config&         operator[](const std::string& key)                              { return get_at(key); }         //(JSON)
-    Config          operator[](const std::string& key)              const           { return get_at(key); }         //(JSON)
-    Config&         operator[](const VString& complex_key)                          { return get_at(complex_key); } //(ARRAY(при условии, что внутри числа), JSON)
-    Config          operator[](const VString& complex_key)          const           { return get_at(complex_key); } //(ARRAY(при условии, что внутри числа), JSON)
+    Config&         operator[](const size_t index)                                  { return get_at(index); }                   API_CONTAINER
+    Config          operator[](const size_t index)                  const           { return get_at(index); }                   API_CONTAINER
+    Config&         operator[](const std::vector<size_t>& indexes)                  { return get_at(indexes); }                 API_CONTAINER
+    Config          operator[](const std::vector<size_t>& indexes)  const           { return get_at(indexes); }                 API_CONTAINER
+    Config&         operator[](const std::string& key)                              { return get_at(key); }                     API_CONTAINER
+    Config          operator[](const std::string& key)              const           { return get_at(key); }                     API_CONTAINER
+    Config&         operator[](const VString& complex_key)                          { return get_at(complex_key); }             API_CONTAINER
+    Config          operator[](const VString& complex_key)          const           { return get_at(complex_key); }             API_CONTAINER
     // ======================================================================================================= Operators
-
-    // String ==========================================================================================================
-    //вывод без комментариев, "tabulation_level == -1" => запись в одну строку
-    std::string     toString(const ConfigFormat format = ConfigFormat::eONLY_VALUE,
-                        const int8_t tabulation_level = 0,
-                        const CommentDesign &design = {})           const noexcept  { return m_value->toString(format, tabulation_level, design); }
-    friend std::ostream& operator<<(std::ostream& os, const Config& config)         noexcept;
-    friend std::ostream& operator<<(std::ostream& os, const IElement& config)       noexcept;
-    // ========================================================================================================== String
-
-    // File ============================================================================================================
-    //return - получившийся распаршенный корневой элемент, ElementNull если не удалось чтение
-    Config&         readFile(const std::string& file_path, const ConfigFormat format,
-                        const bool with_comments = false, std::string* error_log = nullptr);
-    Config&         readFileJson(const std::string& file_path, const bool with_comments = 0,
-                        std::string* error_log = nullptr);
-    Config&         readFileIni(const std::string& file_path, const bool with_comments = 0,
-                        std::string* error_log = nullptr);
-
-    //return - удалось записать файл или нет
-    bool            writeFile(const std::string& file_path, const ConfigFormat format,
-                        const bool with_comments = 0)                                           noexcept;
-    bool            writeFileJson(const std::string& file_path, const bool with_comments = 0)   noexcept;
-    bool            writeFileIni(const std::string& file_path, const bool with_comments = 0)    noexcept;
-    // ============================================================================================================ File
-
-    // Parser ==========================================================================================================
-    Config&         parse(const std::string& content, const ConfigFormat format,
-                        const bool with_comments = false, std::string* error_log = nullptr);
-    Config&         parseJson(const std::string& content, const bool with_comments = 0,
-                        std::string* error_log = nullptr);
-    Config&         parseIni(const std::string& content, const bool with_comments = 0,
-                        std::string* error_log = nullptr);
-    // ========================================================================================================== Parser
 
     // Iterators =======================================================================================================
     // (!) Для foreach итераторы необходимо кастить вручную к нужному типу; за основу брать типы ниже
+    //      проще всего использовать std::transform для таких целей, т.к. он принимает begin() и end()
     //Array
     shared_VElement::iterator           array_begin();
     shared_VElement::const_iterator     array_cbegin()                                          const;
@@ -366,6 +331,39 @@ public:
     shared_VPairElement::iterator       json_end();
     shared_VPairElement::const_iterator json_cend()                                             const;
     // ======================================================================================================= Iterators
+
+    // String ==========================================================================================================
+    //вывод без комментариев, "tabulation_level == -1" => запись в одну строку
+    std::string     toString(const ConfigFormat format = ConfigFormat::eONLY_VALUE,
+                         const int8_t tabulation_level = 0, const CommentDesign &design = {})   const noexcept;                 API_ALL
+    friend std::ostream& operator<<(std::ostream& os, const Config& config)                     noexcept;                       API_ALL
+    friend std::ostream& operator<<(std::ostream& os, const IElement& config)                   noexcept;                       API_ALL
+    // ========================================================================================================== String
+
+    // File ============================================================================================================
+    //return - получившийся распаршенный корневой элемент, ElementNull если не удалось чтение
+    Config&         readFile(const std::string& file_path, const ConfigFormat format,
+                     const bool with_comments = false, std::string* error_log = nullptr);                                       API_ALL
+    Config&         readFileJson(const std::string& file_path, const bool with_comments = 0,
+                     std::string* error_log = nullptr);                                                                         API_ALL
+    Config&         readFileIni(const std::string& file_path, const bool with_comments = 0,
+                     std::string* error_log = nullptr);                                                                         API_ALL
+
+    //return - удалось записать файл или нет
+    bool            writeFile(const std::string& file_path, const ConfigFormat format,
+                     const bool with_comments = 0)                                              noexcept;                       API_ALL
+    bool            writeFileJson(const std::string& file_path, const bool with_comments = 0)   noexcept;                       API_ALL
+    bool            writeFileIni(const std::string& file_path, const bool with_comments = 0)    noexcept;                       API_ALL
+    // ============================================================================================================ File
+
+    // Parser ==========================================================================================================
+    Config&         parse(const std::string& content, const ConfigFormat format,
+                      const bool with_comments = false, std::string* error_log = nullptr);                                      API_ALL
+    Config&         parseJson(const std::string& content, const bool with_comments = 0,
+                      std::string* error_log = nullptr);                                                                        API_ALL
+    Config&         parseIni(const std::string& content, const bool with_comments = 0,
+                     std::string* error_log = nullptr);                                                                         API_ALL
+    // ========================================================================================================== Parser
 
     //STATIC
     static Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
