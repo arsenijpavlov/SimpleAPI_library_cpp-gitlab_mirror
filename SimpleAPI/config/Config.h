@@ -358,8 +358,7 @@ public:
     // ======================================================================================================= Operators
 
     // Iterators =======================================================================================================
-    // (!) Для foreach итераторы необходимо кастить вручную к нужному типу; за основу брать типы ниже
-    //      проще всего использовать std::transform для таких целей, т.к. он принимает begin() и end()
+    // (!) Для foreach необходимо использовать обёртки getRange() и getNamedRange()
     //Array
     class Range {
     private:
@@ -384,6 +383,7 @@ public:
     shared_VElement::const_iterator     array_cbegin()                                          const;
     shared_VElement::iterator           array_end();
     shared_VElement::const_iterator     array_cend()                                            const;
+
     //Json
     class NamedRange {
     private:
