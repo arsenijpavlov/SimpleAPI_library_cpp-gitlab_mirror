@@ -310,8 +310,8 @@ public:
 
     size_t          size()                                  const noexcept          { return m_value->size(); }                 API_ALL
     bool            isEmpty()                               const noexcept          { return size() == 0; }                     API_CONTAINER
-    bool            contains(const Config& config)          const noexcept          { /*TODO*/ return false; }                                          API_CONTAINER
-    bool            contains(const std::string& key)        const noexcept          { /*TODO*/ return false; }                                          API_MAP_CONTAINER
+    bool            contains(const Config& config)          const noexcept;                                                     API_CONTAINER
+    bool            contains(const std::string& key)        const noexcept;                                                     API_MAP_CONTAINER
     // ============================================================================================================ Info
 
     // Operators =======================================================================================================
@@ -363,16 +363,21 @@ public:
     //Array
     class Range {
     private:
-        Config& m_config;
+        Config*         m_config;
+        const Config*   m_const_config;
     public:
-        explicit Range(Config& config) : m_config(config) {};
+        explicit Range(Config& config) : m_config(&config), m_const_config(nullptr)         {};
+        explicit Range(const Config& config) : m_config(nullptr), m_const_config(&config)   {};
 
-        shared_VElement::iterator       begin()             { return m_config.array_begin(); }
-        shared_VElement::iterator       end()               { return m_config.array_end(); }
-        shared_VElement::const_iterator cbegin()    const   { return m_config.array_cbegin(); }
-        shared_VElement::const_iterator cend()      const   { return m_config.array_cend(); }
+        shared_VElement::iterator       begin()             { return m_config->array_begin(); }
+        shared_VElement::iterator       end()               { return m_config->array_end(); }
+        shared_VElement::const_iterator cbegin()    const   { return m_const_config->array_cbegin(); }
+        shared_VElement::const_iterator cend()      const   { return m_const_config->array_cend(); }
     };
-    Range getArrayRange() {
+    Range getRange() {
+        return Range(*this);
+    }
+    Range getRange() const {
         return Range(*this);
     }
     shared_VElement::iterator           array_begin();
@@ -382,16 +387,21 @@ public:
     //Json
     class NamedRange {
     private:
-        Config& m_config;
+        Config*         m_config;
+        const Config*   m_const_config;
     public:
-        explicit NamedRange(Config& config) : m_config(config) {};
+        explicit NamedRange(Config& config) : m_config(&config), m_const_config(nullptr)        {};
+        explicit NamedRange(const Config& config) : m_config(nullptr), m_const_config(&config)  {};
 
-        shared_VPairElement::iterator       begin()             { return m_config.json_begin(); }
-        shared_VPairElement::iterator       end()               { return m_config.json_end(); }
-        shared_VPairElement::const_iterator cbegin()    const   { return m_config.json_cbegin(); }
-        shared_VPairElement::const_iterator cend()      const   { return m_config.json_cend(); }
+        shared_VPairElement::iterator       begin()             { return m_config->json_begin(); }
+        shared_VPairElement::iterator       end()               { return m_config->json_end(); }
+        shared_VPairElement::const_iterator cbegin()    const   { return m_const_config->json_cbegin(); }
+        shared_VPairElement::const_iterator cend()      const   { return m_const_config->json_cend(); }
     };
     NamedRange getNamedRange() {
+        return NamedRange(*this);
+    }
+    NamedRange getNamedRange() const {
         return NamedRange(*this);
     }
     shared_VPairElement::iterator       json_begin();

@@ -818,6 +818,35 @@ bool Config::isEqual(const std::string &other) const {
     return dynamic_cast<const ElementString*>(m_value)->getValue() == other;
 }
 
+bool Config::contains(const Config &config) const noexcept {
+    if(!isContainer()) return false;
+
+    //FIXME: warning предлагает сделать std::any_of, но там муть одна. Непонятно.
+    for(const auto& cfg : getRange()) {
+        if(*cfg == config)
+            return true;
+    }
+
+    return false;
+}
+
+bool Config::contains(const std::string &key) const noexcept {
+    if(!isMapContainer()) return false;
+
+    for(const auto& pair : getNamedRange()) {
+        if(pair.first == key)
+            return true;
+    }
+
+    //FIXME: warning предлагает сделать std::any_of, но там муть одна. Непонятно.
+//    std::any_of(getNamedRange().cbegin(), getNamedRange().cend(),
+//                [&key](const std::pair<std::string, std::shared_ptr<Config>>& pair) {
+//                    return pair.first == key;
+//                });
+
+    return false;
+}
+
 std::string Config::toString(const ConfigFormat format, const int8_t tabulation_level,
                              const CommentDesign &design) const noexcept
 {
