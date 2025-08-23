@@ -15,13 +15,8 @@
         >::type* = nullptr>
 #define __ONLY_STRING_TYPES__(ARG) \
     template<typename ARG, \
-        typename std::enable_if<std::is_convertible<ARG, std::string>::value \
+        typename std::enable_if<std::is_convertible<ARG, std::string>::value, int \
         >::type* = nullptr>
-//#define __ONLY_STRING_TYPES__(ARG) \
-//    template<typename ARG, \
-//        typename std::enable_if< \
-//            std::is_constructible<std::string, ARG>::value \
-//        >::type* = nullptr>
 #define __ONLY_NUMBER_TYPES__(ARG) \
     template<typename ARG, \
         typename std::enable_if< \

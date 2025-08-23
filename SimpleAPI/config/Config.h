@@ -203,16 +203,20 @@ public:
     // ========================================================================================================== Modify
 
     // Adding ==========================================================================================================
-    Config& insert_front(const Config& other)                           {}  API_CONTAINER
-    Config& insert_front(Config&& other)                                {}  API_CONTAINER
-    Config& insert_at(const size_t index, const Config& other)          {}  API_CONTAINER
-    Config& insert_at(const size_t index, Config&& other)               {}  API_CONTAINER
-    Config& insert_at(const std::string& key, const Config& other)      {}  API_MAP_CONTAINER
-    Config& insert_at(const std::string& key, Config&& other)           {}  API_MAP_CONTAINER
-    Config& insert_back(const Config& other)                            {}  API_CONTAINER
-    Config& insert_back(Config&& other)                                 {}  API_CONTAINER
-    Config& insert_after(const std::string& key, const Config& other)   {}  API_MAP_CONTAINER
-    Config& insert_after(const std::string& key, Config&& other)        {}  API_MAP_CONTAINER
+    Config& insert_front(const Config& other)                           { /*TODO*/ return *this; }  API_CONTAINER
+    Config& insert_front(Config&& other)                                { /*TODO*/ return *this; }  API_CONTAINER
+    Config& insert_front(const std::string& key, const Config& other)   { /*TODO*/ return *this; }  API_MAP_CONTAINER
+    Config& insert_front(const std::string& key, Config&& other)        { /*TODO*/ return *this; }  API_MAP_CONTAINER
+    Config& insert_at(const size_t index, const Config& other)          { /*TODO*/ return *this; }  API_CONTAINER
+    Config& insert_at(const size_t index, Config&& other)               { /*TODO*/ return *this; }  API_CONTAINER
+    Config& insert_at(const std::string& key, const Config& other)      { /*TODO*/ return *this; }  API_MAP_CONTAINER
+    Config& insert_at(const std::string& key, Config&& other)           { /*TODO*/ return *this; }  API_MAP_CONTAINER
+    Config& insert_back(const Config& other)                            { /*TODO*/ return *this; }  API_CONTAINER
+    Config& insert_back(Config&& other)                                 { /*TODO*/ return *this; }  API_CONTAINER
+    Config& insert_back(const std::string& key, const Config& other)    { /*TODO*/ return *this; }  API_MAP_CONTAINER
+    Config& insert_back(const std::string& key, Config&& other)         { /*TODO*/ return *this; }  API_MAP_CONTAINER
+    Config& insert_after(const std::string& key, const Config& other)   { /*TODO*/ return *this; }  API_MAP_CONTAINER
+    Config& insert_after(const std::string& key, Config&& other)        { /*TODO*/ return *this; }  API_MAP_CONTAINER
 
     //NOTE: в использовании итераторов здесь мало смысла видится
     //NOTE: функции с произвольным количеством аргументов пока не кажутся необходимыми пользователю API
@@ -221,31 +225,67 @@ public:
 
     Config& push_front(const Config& other)                             { return insert_front(other); }                     API_CONTAINER
     Config& push_front(Config&& other)                                  { return insert_front(std::move(other)); }          API_CONTAINER
+    Config& push_front(const std::string& key, const Config& other)     { return insert_front(key, other); }                API_MAP_CONTAINER
+    Config& push_front(const std::string& key, Config&& other)          { return insert_front(key, std::move(other)); }     API_MAP_CONTAINER
     Config& push_at(const size_t index, const Config& other)            { return insert_at(index, other); }                 API_CONTAINER
     Config& push_at(const size_t index, Config&& other)                 { return insert_at(index, std::move(other)); }      API_CONTAINER
     Config& push_at(const std::string& key, const Config& other)        { return insert_at(key, other); }                   API_MAP_CONTAINER
     Config& push_at(const std::string& key, Config&& other)             { return insert_at(key, std::move(other)); }        API_MAP_CONTAINER
     Config& push_back(const Config& other)                              { return insert_back(other); }                      API_CONTAINER
     Config& push_back(Config&& other)                                   { return insert_back(std::move(other)); }           API_CONTAINER
+    Config& push_back(const std::string& key, const Config& other)      { return insert_back(key, other); }                 API_MAP_CONTAINER
+    Config& push_back(const std::string& key, Config&& other)           { return insert_back(key, std::move(other)); }      API_MAP_CONTAINER
+
     Config& push_after(const std::string& key, const Config& other)     { return insert_after(key, other); }                API_MAP_CONTAINER
     Config& push_after(const std::string& key, Config&& other)          { return insert_after(key, std::move(other)); }     API_MAP_CONTAINER
+
+    //обход explicit
+    __ONLY_ALLOWED_TYPES__(T)
+    Config& push_front(const T& other)                                  { return insert_front(Config(other)); }                 API_CONTAINER
+    __ONLY_ALLOWED_TYPES__(T)
+    Config& push_front(T&& other)                                       { return insert_front(std::move(Config(other))); }      API_CONTAINER
+    __ONLY_ALLOWED_TYPES__(T)
+    Config& push_front(const std::string& key, const T& other)          { return insert_front(key, Config(other)); }            API_MAP_CONTAINER
+    __ONLY_ALLOWED_TYPES__(T)
+    Config& push_front(const std::string& key, T&& other)               { return insert_front(key, std::move(Config(other))); } API_MAP_CONTAINER
+    __ONLY_ALLOWED_TYPES__(T)
+    Config& push_at(const size_t index, const T& other)                 { return insert_at(index, Config(other)); }             API_CONTAINER
+    __ONLY_ALLOWED_TYPES__(T)
+    Config& push_at(const size_t index, T&& other)                      { return insert_at(index, std::move(Config(other))); }  API_CONTAINER
+    __ONLY_ALLOWED_TYPES__(T)
+    Config& push_at(const std::string& key, const T& other)             { return insert_at(key, Config(other)); }               API_MAP_CONTAINER
+    __ONLY_ALLOWED_TYPES__(T)
+    Config& push_at(const std::string& key, T&& other)                  { return insert_at(key, std::move(Config(other))); }    API_MAP_CONTAINER
+    __ONLY_ALLOWED_TYPES__(T)
+    Config& push_back(const T& other)                                   { return insert_back(Config(other)); }                  API_CONTAINER
+    __ONLY_ALLOWED_TYPES__(T)
+    Config& push_back(T&& other)                                        { return insert_back(std::move(Config(other))); }       API_CONTAINER
+    __ONLY_ALLOWED_TYPES__(T)
+    Config& push_back(const std::string& key, const T& other)           { return insert_back(key, Config(other)); }             API_MAP_CONTAINER
+    __ONLY_ALLOWED_TYPES__(T)
+    Config& push_back(const std::string& key, T&& other)                { return insert_back(key, std::move(Config(other))); }  API_MAP_CONTAINER
+
+    __ONLY_ALLOWED_TYPES__(T)
+    Config& push_after(const std::string& key, const T& other)          { return insert_after(key, Config(other)); }            API_MAP_CONTAINER
+    __ONLY_ALLOWED_TYPES__(T)
+    Config& push_after(const std::string& key, T&& other)               { return insert_after(key, std::move(Config(other))); } API_MAP_CONTAINER
     // ========================================================================================================== Adding
 
     // Removing ========================================================================================================
-    Config& erase_front()                                               {}  API_CONTAINER
-    Config& erase_at(const size_t index)                                {}  API_CONTAINER
-    Config& erase_at(const std::string& key)                            {}  API_MAP_CONTAINER
-    Config& erase_back()                                                {}  API_CONTAINER
+    Config& erase_front()                                               { /*TODO*/ return *this; }  API_CONTAINER
+    Config& erase_at(const size_t index)                                { /*TODO*/ return *this; }  API_CONTAINER
+    Config& erase_at(const std::string& key)                            { /*TODO*/ return *this; }  API_MAP_CONTAINER
+    Config& erase_back()                                                { /*TODO*/ return *this; }  API_CONTAINER
 
-    Config& pop_front()                                                 {}  API_CONTAINER
-    Config& pop_at(const size_t index)                                  {}  API_CONTAINER
-    Config& pop_at(const std::string& key)                              {}  API_MAP_CONTAINER
-    Config& pop_back()                                                  {}  API_CONTAINER
+    Config& pop_front()                                                 { /*TODO*/ return *this; }  API_CONTAINER
+    Config& pop_at(const size_t index)                                  { /*TODO*/ return *this; }  API_CONTAINER
+    Config& pop_at(const std::string& key)                              { /*TODO*/ return *this; }  API_MAP_CONTAINER
+    Config& pop_back()                                                  { /*TODO*/ return *this; }  API_CONTAINER
 
-    Config& get_and_pop_front()                                         {}  API_CONTAINER
-    Config& get_and_pop_at(const size_t index)                          {}  API_CONTAINER
-    Config& get_and_pop_at(const std::string& key)                      {}  API_MAP_CONTAINER
-    Config& get_and_pop_back()                                          {}  API_CONTAINER
+    Config& get_and_pop_front()                                         { /*TODO*/ return *this; }  API_CONTAINER
+    Config& get_and_pop_at(const size_t index)                          { /*TODO*/ return *this; }  API_CONTAINER
+    Config& get_and_pop_at(const std::string& key)                      { /*TODO*/ return *this; }  API_MAP_CONTAINER
+    Config& get_and_pop_back()                                          { /*TODO*/ return *this; }  API_CONTAINER
     // ======================================================================================================== Removing
 
     // Info ============================================================================================================
@@ -270,8 +310,8 @@ public:
 
     size_t          size()                                  const noexcept          { return m_value->size(); }                 API_ALL
     bool            isEmpty()                               const noexcept          { return size() == 0; }                     API_CONTAINER
-    bool            contains(const Config& config)          const noexcept          {}                                          API_CONTAINER
-    bool            contains(const std::string& key)        const noexcept          {}                                          API_MAP_CONTAINER
+    bool            contains(const Config& config)          const noexcept          { /*TODO*/ return false; }                                          API_CONTAINER
+    bool            contains(const std::string& key)        const noexcept          { /*TODO*/ return false; }                                          API_MAP_CONTAINER
     // ============================================================================================================ Info
 
     // Operators =======================================================================================================
@@ -321,11 +361,39 @@ public:
     // (!) Для foreach итераторы необходимо кастить вручную к нужному типу; за основу брать типы ниже
     //      проще всего использовать std::transform для таких целей, т.к. он принимает begin() и end()
     //Array
+    class Range {
+    private:
+        Config& m_config;
+    public:
+        explicit Range(Config& config) : m_config(config) {};
+
+        shared_VElement::iterator       begin()             { return m_config.array_begin(); }
+        shared_VElement::iterator       end()               { return m_config.array_end(); }
+        shared_VElement::const_iterator cbegin()    const   { return m_config.array_cbegin(); }
+        shared_VElement::const_iterator cend()      const   { return m_config.array_cend(); }
+    };
+    Range getArrayRange() {
+        return Range(*this);
+    }
     shared_VElement::iterator           array_begin();
     shared_VElement::const_iterator     array_cbegin()                                          const;
     shared_VElement::iterator           array_end();
     shared_VElement::const_iterator     array_cend()                                            const;
     //Json
+    class NamedRange {
+    private:
+        Config& m_config;
+    public:
+        explicit NamedRange(Config& config) : m_config(config) {};
+
+        shared_VPairElement::iterator       begin()             { return m_config.json_begin(); }
+        shared_VPairElement::iterator       end()               { return m_config.json_end(); }
+        shared_VPairElement::const_iterator cbegin()    const   { return m_config.json_cbegin(); }
+        shared_VPairElement::const_iterator cend()      const   { return m_config.json_cend(); }
+    };
+    NamedRange getNamedRange() {
+        return NamedRange(*this);
+    }
     shared_VPairElement::iterator       json_begin();
     shared_VPairElement::const_iterator json_cbegin()                                           const;
     shared_VPairElement::iterator       json_end();
