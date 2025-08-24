@@ -20,9 +20,33 @@ public:
 
     explicit Config(const bool other)       noexcept : m_value(nullptr)         { setValue(other); }
     __ONLY_NUMBER_TYPES__(T)
-    explicit Config(T&& other)              noexcept : m_value(nullptr)         { setValue(static_cast<long double&>(other)); }
+    explicit Config(T&& other)              noexcept : m_value(nullptr)         { setValue(static_cast<long double>(other)); }
     __ONLY_STRING_TYPES__(T)
     explicit Config(T&& other)              noexcept : m_value(nullptr)         { setValue(std::string(other)); }
+
+    explicit Config(const ValueType type);
+
+    //контейнеры
+    template<typename ... Value>
+    explicit Config(const Value& ... values) {
+        m_value = dynamic_cast<IElement*>(new ElementArray());
+        (void)std::initializer_list<int>{(push_back(values), 0)...};
+    }
+    template<typename ... Value>
+    explicit Config(Value&& ... values) {
+        m_value = dynamic_cast<IElement*>(new ElementArray());
+        (void)std::initializer_list<int>{(push_back(std::move(values)), 0)...};
+    }
+    template<typename ... Value>
+    explicit Config(const std::pair<std::string, Value>& ... pairs) {
+        m_value = dynamic_cast<IElement*>(new ElementJson());
+        (void)std::initializer_list<int>{(push_at(pairs.first, pairs.second), 0)...};
+    }
+    template<typename ... Value>
+    explicit Config(std::pair<std::string, Value>&& ... pairs) {
+        m_value = dynamic_cast<IElement*>(new ElementJson());
+        (void)std::initializer_list<int>{(push_at(std::move(pairs.first), std::move(pairs.second)), 0)...};
+    }
 
     ~Config()                                               noexcept            { release(); }
 

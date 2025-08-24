@@ -6,11 +6,41 @@
 #include "ElementString.h"
 #include "ElementArray.h"
 #include "ElementJson.h"
-
-#include <regex>
 //#include "ElementYaml.h"
 //#include "ElementXml.h"
 
+#include <regex>
+
+
+Config::Config(const ValueType type) {
+    init();
+    switch(type) {
+    default:
+    case ValueType::eNull: {
+        break;
+    }
+    case ValueType::eBool: {
+        m_value = dynamic_cast<IElement*>(new ElementBool());
+        break;
+    }
+    case ValueType::eNumber: {
+        m_value = dynamic_cast<IElement*>(new ElementNumber());
+        break;
+    }
+    case ValueType::eString: {
+        m_value = dynamic_cast<IElement*>(new ElementString());
+        break;
+    }
+    case ValueType::eArray: {
+        m_value = dynamic_cast<IElement*>(new ElementArray());
+        break;
+    }
+    case ValueType::eJson: {
+        m_value = dynamic_cast<IElement*>(new ElementJson());
+        break;
+    }
+    }
+}
 
 Config &Config::addComment(const Comment &content) noexcept {
     m_value->addComment(content);
