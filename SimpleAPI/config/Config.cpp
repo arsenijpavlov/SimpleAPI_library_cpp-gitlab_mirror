@@ -12,36 +12,6 @@
 #include <regex>
 
 
-Config::Config(const ValueType type) {
-    init();
-    switch(type) {
-    default:
-    case ValueType::eNull: {
-        break;
-    }
-    case ValueType::eBool: {
-        m_value = dynamic_cast<IElement*>(new ElementBool());
-        break;
-    }
-    case ValueType::eNumber: {
-        m_value = dynamic_cast<IElement*>(new ElementNumber());
-        break;
-    }
-    case ValueType::eString: {
-        m_value = dynamic_cast<IElement*>(new ElementString());
-        break;
-    }
-    case ValueType::eArray: {
-        m_value = dynamic_cast<IElement*>(new ElementArray());
-        break;
-    }
-    case ValueType::eJson: {
-        m_value = dynamic_cast<IElement*>(new ElementJson());
-        break;
-    }
-    }
-}
-
 Config &Config::addComment(const Comment &content) noexcept {
     m_value->addComment(content);
     return *this;
@@ -848,19 +818,36 @@ bool Config::isEqual(const std::string &other) const {
     return dynamic_cast<const ElementString*>(m_value)->getValue() == other;
 }
 
-bool Config::contains(const Config &config) const noexcept {
+bool Config::valueContains(const Config &config) const noexcept {
     if(!isContainer()) return false;
 
-    //FIXME: warning предлагает сделать std::any_of, но там муть одна. Непонятно.
-    for(const auto& cfg : getRange()) {
-        if(*cfg == config)
-            return true;
+    //FIXME: warning предлагает сделать всё через std::any_of, но там муть одна. Непонятно.
+    switch(getType()) {
+    default:
+    case ValueType::eNull:
+    case ValueType::eBool:
+    case ValueType::eNumber:
+    case ValueType::eString:    return false;
+    case ValueType::eArray: {
+        for(const auto& cfg : getRange()) {
+            if(*cfg == config)
+                return true;
+        }
+        break;
+    }
+    case ValueType::eJson: {
+        for(const auto& pair : getNamedRange()) {
+            if(*pair.second == config)
+                return true;
+        }
+        break;
+    }
     }
 
     return false;
 }
 
-bool Config::contains(const std::string &key) const noexcept {
+bool Config::keyContains(const std::string &key) const noexcept {
     if(!isMapContainer()) return false;
 
     for(const auto& pair : getNamedRange()) {
@@ -868,7 +855,7 @@ bool Config::contains(const std::string &key) const noexcept {
             return true;
     }
 
-    //FIXME: warning предлагает сделать std::any_of, но там муть одна. Непонятно.
+    //FIXME: warning предлагает сделать всё через std::any_of, но там муть одна. Непонятно.
 //    std::any_of(getNamedRange().cbegin(), getNamedRange().cend(),
 //                [&key](const std::pair<std::string, std::shared_ptr<Config>>& pair) {
 //                    return pair.first == key;
@@ -938,19 +925,27 @@ Config &Config::parse(const std::string &content, const ConfigFormat format,
     return *this;
 }
 
-Config &Config::parseJson(const std::string &content, const bool with_comments,
-                          std::string *error_log)
+Config &Config::parseArray(const std::string &content, const bool with_comments,
+                           const int8_t tabulation_level, std::string* error_log)
 {
     release();
-    *this = ParseJson(content, with_comments, error_log);
+    *this = ParseArray(content, with_comments, tabulation_level, error_log);
+    return *this;
+}
+
+Config &Config::parseJson(const std::string &content, const bool with_comments,
+                          const int8_t tabulation_level, std::string* error_log)
+{
+    release();
+    *this = ParseJson(content, with_comments, tabulation_level, error_log);
     return *this;
 }
 
 Config &Config::parseIni(const std::string &content, const bool with_comments,
-                          std::string *error_log)
+                         const int8_t tabulation_level, std::string* error_log)
 {
     release();
-    *this = ParseIni(content, with_comments, error_log);
+    *this = ParseIni(content, with_comments, tabulation_level, error_log);
     return *this;
 }
 
@@ -1051,9 +1046,9 @@ Config Config::CreateElementFromString(std::string &&value_string, const ConfigF
     /*ARRAY*/ {
         if(first == '[' && last == ']') {
             try {
-                ElementArray array;
+                Config array;
                 array.setCommentDesign(design);
-                array.parse(value_string, format, enable_comments, new_tab_lvl);
+                array.parseArray(value_string, enable_comments, new_tab_lvl);
                 return Config(array);
             } catch(...) {}
         }
@@ -1061,9 +1056,9 @@ Config Config::CreateElementFromString(std::string &&value_string, const ConfigF
     /*JSON*/ {
         if(first == '{' && last == '}') {
             try {
-                ElementJson json;
+                Config json;
                 json.setCommentDesign(design);
-                json.parse(value_string, format, enable_comments, new_tab_lvl);
+                json.parseJson(value_string, enable_comments, new_tab_lvl);
                 return Config(json);
             } catch(...) {}
         }
@@ -1126,27 +1121,35 @@ bool WriteFileIni(const Config &config, const std::string &file_path,
     return false;
 }
 
+//TODO: запретить пользователю считывать массивы?
 Config Parse(const std::string &content, const ConfigFormat format,
              const bool with_comments, std::string *error_log)
 {
     switch(format) {
-    case ConfigFormat::eJSON:   return ParseJson(content, with_comments, error_log);
-    case ConfigFormat::eINI:    return ParseIni(content, with_comments, error_log);
+    case ConfigFormat::eJSON:   return ParseJson(content, with_comments, 0, error_log);
+    case ConfigFormat::eINI:    return ParseIni(content, with_comments, 0, error_log);
 //    case ConfigFormat::eYAML:
 //    case ConfigFormat::eXML:
     default:                    return Config{};
     }
 }
 
+Config ParseArray(const std::string &content, const bool with_comments,
+                 const int8_t tabulation_level, std::string* error_log)
+{
+    //TODO: ParseArray
+    return {};
+}
+
 Config ParseJson(const std::string &content, const bool with_comments,
-                 std::string *error_log)
+                 const int8_t tabulation_level, std::string* error_log)
 {
     //TODO: ParseJson
     return {};
 }
 
 Config ParseIni(const std::string &content, const bool with_comments,
-                 std::string *error_log)
+                const int8_t tabulation_level, std::string* error_log)
 {
     //TODO: ParseIni
     return {};

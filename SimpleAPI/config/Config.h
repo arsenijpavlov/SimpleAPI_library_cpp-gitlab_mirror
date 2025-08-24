@@ -5,7 +5,31 @@
 #include "ConfigCommon.h"
 #include "ConfigDefines.h"
 #include "ElementArray.h"
+#include "ElementBool.h"
 #include "ElementJson.h"
+#include "ElementNumber.h"
+#include "ElementString.h"
+
+template<typename T>
+struct is_valid_config_type {
+    static constexpr bool value =
+        std::is_same<       typename std::decay<T>::type, ElementJson>::value ||
+        std::is_same<       typename std::decay<T>::type, ElementArray>::value ||
+        std::is_convertible<typename std::decay<T>::type, std::string>::value ||
+        std::is_arithmetic< typename std::decay<T>::type>::value ||
+        std::is_same<       typename std::decay<T>::type, bool>::value ||
+        std::is_same<       typename std::decay<T>::type, Config>::value;
+};
+template<bool...> struct bool_pack;
+template<bool... bs>
+struct all_true : std::is_same<bool_pack<bs..., true>, bool_pack<true, bs...>> {};
+
+#define __ONLY_ALLOWED_TYPES_VARIADIC__(ARG) \
+    template<typename ... ARG, \
+             typename std::enable_if< \
+                all_true<is_valid_config_type<ARG>::value...>::value, int \
+             >::type* = nullptr>
+
 
 class Config {
 private:
@@ -24,29 +48,53 @@ public:
     __ONLY_STRING_TYPES__(T)
     explicit Config(T&& other)              noexcept : m_value(nullptr)         { setValue(std::string(other)); }
 
-    explicit Config(const ValueType type);
-
     //контейнеры
-    template<typename ... Value>
-    explicit Config(const Value& ... values) {
-        m_value = dynamic_cast<IElement*>(new ElementArray());
-        (void)std::initializer_list<int>{(push_back(values), 0)...};
+    __ONLY_ALLOWED_TYPES_VARIADIC__(T)
+    explicit Config(const ValueType config_type, const T& ... values) {
+        init();
+        switch(config_type) {
+        default:
+        case ValueType::eNull:      return;
+        case ValueType::eBool: {
+            m_value = dynamic_cast<IElement*>(new ElementBool());
+            break;
+        }
+        case ValueType::eNumber: {
+            m_value = dynamic_cast<IElement*>(new ElementNumber());
+            break;
+        }
+        case ValueType::eString: {
+            m_value = dynamic_cast<IElement*>(new ElementString());
+            break;
+        }
+        case ValueType::eArray: {
+            m_value = dynamic_cast<IElement*>(new ElementArray());
+            (void)std::initializer_list<int>{(push_back(values), 0)...};
+            break;
+        }
+        case ValueType::eJson: {
+            m_value = dynamic_cast<IElement*>(new ElementJson());
+            if(sizeof...(values) == 0)
+                break;
+            variadicKVInputter(values...);
+            break;
+        }
+        }
     }
-    template<typename ... Value>
-    explicit Config(Value&& ... values) {
-        m_value = dynamic_cast<IElement*>(new ElementArray());
-        (void)std::initializer_list<int>{(push_back(std::move(values)), 0)...};
-    }
-    template<typename ... Value>
-    explicit Config(const std::pair<std::string, Value>& ... pairs) {
+
+    __ONLY_ALLOWED_TYPES__(T)
+    explicit Config(const std::vector<std::pair<std::string, T>>& pairs_key_config) {
         m_value = dynamic_cast<IElement*>(new ElementJson());
-        (void)std::initializer_list<int>{(push_at(pairs.first, pairs.second), 0)...};
+        for(const auto& pair : pairs_key_config)
+            push_at(pair.first, pair.second);
     }
-    template<typename ... Value>
-    explicit Config(std::pair<std::string, Value>&& ... pairs) {
+    __ONLY_ALLOWED_TYPES__(T)
+    explicit Config(std::vector<std::pair<std::string, T>>&& pairs_key_config) {
         m_value = dynamic_cast<IElement*>(new ElementJson());
-        (void)std::initializer_list<int>{(push_at(std::move(pairs.first), std::move(pairs.second)), 0)...};
+        for(auto& pair : pairs_key_config)
+            push_at(std::move(pair.first), std::move(pair.second));
     }
+
 
     ~Config()                                               noexcept            { release(); }
 
@@ -54,6 +102,22 @@ private:
     //создание ПУСТОГО(NULL) элемента
     void init()                                                     noexcept    { setValue(); }
     void release()                                                  noexcept    { if(m_value != nullptr) delete m_value; }
+
+    __ONLY_ALLOWED_TYPES_VARIADIC__(T)
+    void variadicKVInputter(const std::string& key, const Config& config, const T& ... others) {
+        static_assert(sizeof...(others) % 2 == 0, "Even number of arguments required");
+        push_at(key, config);
+        if(sizeof...(others) == 0) return;
+        variadicKVInputter(others...);
+    }
+    __ONLY_ALLOWED_TYPES_VARIADIC__(T)
+    void variadicKVInputter(const std::string& key, Config&& config, T&& ... others) {
+        static_assert(sizeof...(others) % 2 == 0, "Even number of arguments required");
+        push_at(key, std::move(config));
+        if(sizeof...(others) == 0) return;
+        variadicKVInputter(std::move(others)...);
+    }
+    static void variadicKVInputter() {} //NOTE: нужна только для "пустых" вызовов variadic-функции
 
 public:
     //NOTE: API_ - приписка для обозначения интерфейсных функций при использовании через класс Config
@@ -334,8 +398,11 @@ public:
 
     size_t          size()                                  const noexcept          { return m_value->size(); }                 API_ALL
     bool            isEmpty()                               const noexcept          { return size() == 0; }                     API_CONTAINER
-    bool            contains(const Config& config)          const noexcept;                                                     API_CONTAINER
-    bool            contains(const std::string& key)        const noexcept;                                                     API_MAP_CONTAINER
+    bool            valueContains(const Config& config)     const noexcept;                                                     API_CONTAINER
+    bool            keyContains(const std::string& key)     const noexcept;                                                     API_MAP_CONTAINER
+
+    __ONLY_ALLOWED_TYPES__(T)
+    bool            valueContains(const T& other)                                   { return valueContains((Config(other))); }  API_CONTAINER
     // ============================================================================================================ Info
 
     // Operators =======================================================================================================
@@ -461,10 +528,12 @@ public:
     // Parser ==========================================================================================================
     Config&         parse(const std::string& content, const ConfigFormat format,
                       const bool with_comments = false, std::string* error_log = nullptr);                                      API_ALL
+    Config&         parseArray(const std::string& content, const bool with_comments = 0,
+                      const int8_t tabulation_level = 0, std::string* error_log = nullptr);                                     API_ALL
     Config&         parseJson(const std::string& content, const bool with_comments = 0,
-                      std::string* error_log = nullptr);                                                                        API_ALL
+                      const int8_t tabulation_level = 0, std::string* error_log = nullptr);                                     API_ALL
     Config&         parseIni(const std::string& content, const bool with_comments = 0,
-                     std::string* error_log = nullptr);                                                                         API_ALL
+                      const int8_t tabulation_level = 0, std::string* error_log = nullptr);                                     API_ALL
     // ========================================================================================================== Parser
 
     //STATIC
@@ -493,10 +562,12 @@ bool    WriteFileIni(const Config& config, const std::string& file_path,
 
 Config  Parse(const std::string& content, const ConfigFormat format,
             const bool with_comments = false, std::string* error_log = nullptr);
+Config  ParseArray(const std::string& content, const bool with_comments = 0,
+            const int8_t tabulation_level = 0, std::string* error_log = nullptr);
 Config  ParseJson(const std::string& content, const bool with_comments = 0,
-            std::string* error_log = nullptr);
+            const int8_t tabulation_level = 0, std::string* error_log = nullptr);
 Config  ParseIni(const std::string& content, const bool with_comments = 0,
-            std::string* error_log = nullptr);
+            const int8_t tabulation_level = 0, std::string* error_log = nullptr);
 //STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC
 
 

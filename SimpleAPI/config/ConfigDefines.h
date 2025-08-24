@@ -1,27 +1,32 @@
 #ifndef CONFIG_DEFINES_H
 #define CONFIG_DEFINES_H
 
-#include "stdexcept"
+#include <stdexcept>
 
 //TYPES===========================================================================
 #define __ONLY_ALLOWED_TYPES__(ARG) \
     template<typename ARG, \
         typename std::enable_if< \
-            std::is_same<ARG, ElementJson>::value \
-            || std::is_same<ARG, ElementArray>::value \
-            || std::is_convertible<ARG, std::string>::value \
-            || std::is_arithmetic<ARG>::value \
-            || std::is_same<ARG, bool>::value \
+            std::is_same<           typename std::remove_cv<typename std::remove_reference<ARG>::type>::type, ElementJson>::value \
+            || std::is_same<        typename std::remove_cv<typename std::remove_reference<ARG>::type>::type, ElementArray>::value \
+            || std::is_convertible< typename std::remove_cv<typename std::remove_reference<ARG>::type>::type, std::string>::value \
+            || std::is_arithmetic<  typename std::remove_cv<typename std::remove_reference<ARG>::type>::type>::value \
+            || std::is_same<        typename std::remove_cv<typename std::remove_reference<ARG>::type>::type, bool>::value \
+            || std::is_same<        typename std::remove_cv<typename std::remove_reference<ARG>::type>::type, Config>::value \
         >::type* = nullptr>
+
 #define __ONLY_STRING_TYPES__(ARG) \
     template<typename ARG, \
-        typename std::enable_if<std::is_convertible<ARG, std::string>::value, int \
+        typename std::enable_if< \
+            std::is_convertible<    typename std::decay<ARG>::type, std::string>::value, \
+            int \
         >::type* = nullptr>
+
 #define __ONLY_NUMBER_TYPES__(ARG) \
     template<typename ARG, \
         typename std::enable_if< \
-            std::is_arithmetic<ARG>::value \
-            && !std::is_same<ARG, bool>::value \
+            std::is_arithmetic<     typename std::decay<ARG>::type>::value \
+            && !std::is_same<       typename std::decay<ARG>::type, bool>::value \
         >::type* = nullptr>
 //===========================================================================TYPES
 

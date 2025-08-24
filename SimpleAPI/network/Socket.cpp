@@ -615,7 +615,7 @@ void UDPSocket::checkConnections() noexcept {
 
     Config jPing;
     //FIXME: Config(string) -> string
-    jPing.push_at("ping", Config(this->getLocalIpPort().to_string()));
+    jPing.push_at("ping", getLocalIpPort().to_string());
 
     //перепосылка недоставленных глобальных пакетов ==================================
     struct prepPacket {
@@ -825,7 +825,7 @@ Config UDPSocket::recvAutoMsg(int timeout) noexcept {
                 + " " + pm.m_ip_port.to_string(),
             "Send initial ping for message sn=" + std::to_string(pm.m_sn.get())
                 + " " + logs::to_color_string(logs::eRED_BG, pm.m_ip_port.to_string()));
-        outputJson.push_at("ping", this->getLocalIpPort().to_string());
+        outputJson.push_at("ping", getLocalIpPort().to_string());
     }
 
     if(pm.m_header.type != eControlType)
@@ -852,7 +852,7 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
 
         //обработка собранного пакета (1 за проход)
         if(pm.m_header.type == eControlType) {
-            if(jm.m_json.contains("ack_sn")) {
+            if(jm.m_json.keyContains("ack_sn")) {
                 uint8_t sn = jm.m_json["ack_sn"].getNumber();
                 for(auto it = m_map_auto_sent_packets.begin(); it != m_map_auto_sent_packets.end(); it++) {
                     if(it->second.m_sn.get() == sn) {
@@ -861,7 +861,7 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                     }
                 }
             }
-            if(jm.m_json.contains("ack_all_packet")) {
+            if(jm.m_json.keyContains("ack_all_packet")) {
                 uint8_t first_sn = jm.m_json["ack_all_packet"].getNumber(); //номер первого фрагмента сообщения
 
                 m_output_threads_mutex.lock();
@@ -888,7 +888,7 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                 }
                 m_output_threads_mutex.unlock();
             }
-            if(jm.m_json.contains("packet_error_last_sn")) {
+            if(jm.m_json.keyContains("packet_error_last_sn")) {
                 uint8_t last_err_sn = jm.m_json["packet_error_last_sn"].getNumber(); //номер первого фрагмента сообщения
 
                 //удалить все упоминания фрагментов пакета из очереди переотправок
@@ -921,7 +921,7 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                     sendFragments(ipPort, type, packet); //переотправка
                 }
             }
-            if(jm.m_json.contains("get")) {
+            if(jm.m_json.keyContains("get")) {
                 //get = element of Config-Array
                 Config requests = jm.m_json["get"];
                 for(const auto& it_req : requests.getNamedRange()) {
@@ -930,7 +930,7 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                         if(it_req.second->getString() == "chip_key") {
                             log(logs::eDEBUG, "append chiphering key");
                             Config jChipKey;
-                            jChipKey.push_back("key", "abcdefgjiklmnopqrstuvwxyz0123456789");
+                            jChipKey.push_at("key", "abcdefgjiklmnopqrstuvwxyz0123456789");
                             sendFragments(pm.m_ip_port, eControlType, convert_to_packet(jChipKey.toString()));
                         }
                         break;
@@ -944,7 +944,7 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                     }
                 }
             }
-            if(jm.m_json.contains("key")) {
+            if(jm.m_json.keyContains("key")) {
                 auto connection_it = findOrCreateConnection(pm.m_ip_port);
                 connection_it->second.m_chip_key.key = jm.m_json["key"].getString();
             }
@@ -1120,7 +1120,7 @@ void UDPSocket::sendMsg(const IpPort& remote_ip_port, const Packet& packet) {
 
         //отправить запрос ключа
         Config jRequest;
-        jRequest.push_at("get", Config("chip_key"));
+        jRequest.push_at("get", "chip_key");
         sendFragments(remote_ip_port, eControlType, convert_to_packet(jRequest.toString()));
 
         //положить текущее сообщение в очередь шифрованных сообщений на отправку

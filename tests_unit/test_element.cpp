@@ -14,10 +14,10 @@ int main(int argc, char **argv)
 //========================================================================================
 
 TEST(ELEMENT, create_num) {
-    IElement el_int(1);
-    IElement el_double(1.1);
-    IElement el_uint(11);
-    IElement el_float(11.f);
+    Config el_int(1);
+    Config el_double(1.1);
+    Config el_uint(11);
+    Config el_float(11.f);
 
     EXPECT_EQ(ValueType::eNumber,  el_int.getType());
     EXPECT_EQ(ValueType::eNumber,  el_double.getType());
@@ -26,10 +26,10 @@ TEST(ELEMENT, create_num) {
 }
 
 TEST(ELEMENT, create_srting) {
-    IElement el_string(std::string("asd"));
-    IElement el_char_arr("asd");
+    Config el_string(std::string("asd"));
+    Config el_char_arr("asd");
     const char* chr = "asd";
-    IElement el_char_star(chr);
+    Config el_char_star(chr);
 
     EXPECT_EQ(ValueType::eString, el_string.getType());
     EXPECT_EQ(ValueType::eString, el_char_arr.getType());
@@ -37,29 +37,29 @@ TEST(ELEMENT, create_srting) {
 }
 
 TEST(ELEMENT, create_bool) {
-    IElement el_bool(true);
+    Config el_bool(true);
 
     EXPECT_EQ(ValueType::eBool, el_bool.getType());
 }
 
 TEST(ELEMENT, create_null) {
-    IElement el_null;
+    Config el_null;
 
     EXPECT_EQ(ValueType::eNull,    el_null.getType());
 }
 
-//TEST(ELEMENT, create_json) {
-//    Json js;
-//    Element el_json(js);
+TEST(ELEMENT, create_json) {
+    Config js(ValueType::eJson);
+    Config el_json(js);
 
-//    EXPECT_EQ(ValueType::eJson, el_json.first);
-//}
+    EXPECT_EQ(ValueType::eJson, el_json.get_front().getType());
+}
 
 TEST(ELEMENT, create_array) {
-    ElementArray ar;
-    IElement el_array(ar);
+    Config ar(ValueType::eArray);
+    Config el_array(ar);
 
-    EXPECT_EQ(ValueType::eArray, el_array.getType());
+    EXPECT_EQ(ValueType::eArray, el_array.get_front().getType());
 }
 
 //TEST(ELEMENT, compare_all_types) {

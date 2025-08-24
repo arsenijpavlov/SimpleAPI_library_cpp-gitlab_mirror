@@ -13,11 +13,21 @@ int main(int argc, char **argv)
 }
 
 //========================================================================================
-Json json_example({{"key_0", "first"},
-                   {"key_1", 2},
-                   {"key_2", 3.1},
-                   {"key_3", true}
-});
+Config json_example(ValueType::eJson,
+                    "key_0", Config("first"), //NOTE: ручной каст к Config обязателен, из-за рекурсивной передачи variadic
+                    "key_1", Config(2),
+                    "key_2", Config(3.1),
+                    "key_3", Config(true)
+                    );
+Config json2_example(
+    std::vector<std::pair<std::string, Config>>{
+        std::make_pair("key_0", Config("first")),
+        std::make_pair("key_1", Config(2)),
+        std::make_pair("key_2", Config(3.1)),
+        std::make_pair("key_3", Config(true))
+    }
+);
+
 std::string json_string_example = std::string(
     "{"
     //пробелы и табуляции
@@ -52,9 +62,11 @@ std::string json_string_example = std::string(
 
 
 //TEST(JSON, copy) {
-//    Json j1("asd", "123");
-//    j1.put("asa", "asdd");
-//    Json j2 = j1;
+//    Config j1(std::vector<std::pair<std::string, Config>>{
+//               std::make_pair("asd", Config("123"))
+//    });
+//    j1.push_at("asa", "asdd");
+//    Config j2 = j1;
 
 //    EXPECT_EQ(j1.size(), j2.size());
 //}
