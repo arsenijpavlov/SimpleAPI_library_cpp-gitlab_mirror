@@ -944,22 +944,22 @@ shared_VElement::const_iterator Config::array_cend() const {
     return dynamic_cast<const ElementArray*>(m_value)->cend();
 }
 
-shared_VPairElement::iterator Config::json_begin() {
+shared_VPairElement::iterator Config::named_begin() {
     __CHECK_TYPE_IS_JSON__((*this))
     return dynamic_cast<ElementJson*>(m_value)->begin();
 }
 
-shared_VPairElement::const_iterator Config::json_cbegin() const {
+shared_VPairElement::const_iterator Config::named_cbegin() const {
     __CHECK_TYPE_IS_JSON__((*this))
     return dynamic_cast<const ElementJson*>(m_value)->cbegin();
 }
 
-shared_VPairElement::iterator Config::json_end() {
+shared_VPairElement::iterator Config::named_end() {
     __CHECK_TYPE_IS_JSON__((*this))
     return dynamic_cast<ElementJson*>(m_value)->end();
 }
 
-shared_VPairElement::const_iterator Config::json_cend() const {
+shared_VPairElement::const_iterator Config::named_cend() const {
     __CHECK_TYPE_IS_JSON__((*this))
     return dynamic_cast<const ElementJson*>(m_value)->cend();
 }

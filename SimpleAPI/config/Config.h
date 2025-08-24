@@ -393,10 +393,10 @@ public:
         explicit NamedRange(Config& config) : m_config(&config), m_const_config(nullptr)        {};
         explicit NamedRange(const Config& config) : m_config(nullptr), m_const_config(&config)  {};
 
-        shared_VPairElement::iterator       begin()             { return m_config->json_begin(); }
-        shared_VPairElement::iterator       end()               { return m_config->json_end(); }
-        shared_VPairElement::const_iterator cbegin()    const   { return m_const_config->json_cbegin(); }
-        shared_VPairElement::const_iterator cend()      const   { return m_const_config->json_cend(); }
+        shared_VPairElement::iterator       begin()             { return m_config->named_begin(); }
+        shared_VPairElement::iterator       end()               { return m_config->named_end(); }
+        shared_VPairElement::const_iterator cbegin()    const   { return m_const_config->named_cbegin(); }
+        shared_VPairElement::const_iterator cend()      const   { return m_const_config->named_cend(); }
     };
     NamedRange getNamedRange() {
         return NamedRange(*this);
@@ -404,10 +404,10 @@ public:
     NamedRange getNamedRange() const {
         return NamedRange(*this);
     }
-    shared_VPairElement::iterator       json_begin();
-    shared_VPairElement::const_iterator json_cbegin()                                           const;
-    shared_VPairElement::iterator       json_end();
-    shared_VPairElement::const_iterator json_cend()                                             const;
+    shared_VPairElement::iterator       named_begin();
+    shared_VPairElement::const_iterator named_cbegin()                                           const;
+    shared_VPairElement::iterator       named_end();
+    shared_VPairElement::const_iterator named_cend()                                             const;
     // ======================================================================================================= Iterators
 
     // String ==========================================================================================================
