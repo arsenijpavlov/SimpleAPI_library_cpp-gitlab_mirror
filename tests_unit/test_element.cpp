@@ -62,25 +62,25 @@ TEST(ELEMENT, create_array) {
     EXPECT_EQ(ValueType::eArray, el_array.get_front().getType());
 }
 
-//TEST(ELEMENT, compare_all_types) {
-//    Element el_num(15.0);
-//    Element el_bool(true);
-//    Element el_string("true");
-//    Element el_json(Json{});
-//    Element el_array(ElementArray{});
+TEST(ELEMENT, compare_all_types) {
+    Config el_num(15.0);
+    Config el_bool(true);
+    Config el_string("true");
+    Config el_json(ValueType::eJson);
+    Config el_array(ValueType::eArray);
 
-//    EXPECT_EQ(el_num.first,     ValueType::eNumber);
-//    EXPECT_EQ(el_bool.first,    ValueType::eBool);
-//    EXPECT_EQ(el_string.first,  ValueType::eString);
-//    EXPECT_EQ(el_json.first,    ValueType::eJson);
-//    EXPECT_EQ(el_array.first,   ValueType::eArray);
+    EXPECT_EQ(el_num.getType(),     ValueType::eNumber);
+    EXPECT_EQ(el_bool.getType(),    ValueType::eBool);
+    EXPECT_EQ(el_string.getType(),  ValueType::eString);
+    EXPECT_EQ(el_json.getType(),    ValueType::eJson);
+    EXPECT_EQ(el_array.getType(),   ValueType::eArray);
 
-//    EXPECT_EQ(el_num,   Element(15.0));
-//    EXPECT_EQ(el_bool,  Element(true));
-//    EXPECT_EQ(el_string,Element("true"));
-//    EXPECT_EQ(el_json,  Element(Json{}));
-//    EXPECT_EQ(el_array, Element(ElementArray{}));
-//}
+    EXPECT_EQ(el_num,   15.0);
+    EXPECT_EQ(el_bool,  true);
+    EXPECT_EQ(el_string,"true");
+    EXPECT_EQ(el_json,  Config(ValueType::eJson));
+    EXPECT_EQ(el_array, Config(ValueType::eArray));
+}
 
 //TEST(ELEMENT, not_compare_all_types) {
 //    Element el_num(15.0);
