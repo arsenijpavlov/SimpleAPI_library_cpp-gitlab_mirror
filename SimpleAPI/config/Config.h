@@ -50,11 +50,14 @@ public:
 
     //контейнеры
     __ONLY_ALLOWED_TYPES_VARIADIC__(T)
-    explicit Config(const ValueType config_type, const T& ... values) {
-        init();
+    explicit Config(const ValueType config_type, const T& ... values) : m_value(nullptr) {
+        release();
         switch(config_type) {
         default:
-        case ValueType::eNull:      return;
+        case ValueType::eNull: {
+            init();
+            break;
+        }
         case ValueType::eBool: {
             m_value = dynamic_cast<IElement*>(new ElementBool());
             break;
@@ -83,20 +86,20 @@ public:
     }
 
     __ONLY_ALLOWED_TYPES__(T)
-    explicit Config(const std::vector<std::pair<std::string, T>>& pairs_key_config) {
+    explicit Config(const std::vector<std::pair<std::string, T>>& pairs_key_config) : m_value(nullptr) {
         m_value = dynamic_cast<IElement*>(new ElementJson());
         for(const auto& pair : pairs_key_config)
             push_at(pair.first, pair.second);
     }
     __ONLY_ALLOWED_TYPES__(T)
-    explicit Config(std::vector<std::pair<std::string, T>>&& pairs_key_config) {
+    explicit Config(std::vector<std::pair<std::string, T>>&& pairs_key_config) : m_value(nullptr) {
         m_value = dynamic_cast<IElement*>(new ElementJson());
         for(auto& pair : pairs_key_config)
             push_at(std::move(pair.first), std::move(pair.second));
     }
 
 
-    ~Config()                                               noexcept            { release(); }
+    ~Config()                                                       noexcept    { release(); }
 
 private:
     //создание ПУСТОГО(NULL) элемента
@@ -422,8 +425,10 @@ public:
     bool            operator==(const Config& other)         const                   { return isEqual(other); }                  API_ALL
     bool            operator==(const IElement& other)       const                   { return isEqual(other); }                  API_ALL
     bool            operator==(const bool other)            const                   { return isEqual(other); }                  API_ALL
-    bool            operator==(const long double& other)    const                   { return isEqual(other); }                  API_ALL
-    bool            operator==(const std::string& other)    const                   { return isEqual(other); }                  API_ALL
+    __ONLY_NUMBER_TYPES__(T)
+    bool            operator==(const T& other)              const                   { return isEqual(static_cast<const long double&>(other)); }                  API_ALL
+    __ONLY_STRING_TYPES__(T)
+    bool            operator==(const T& other)              const                   { return isEqual(std::string(other)); }                  API_ALL
 
     bool            operator!=(const Config& other)         const                   { return !isEqual(other); }                 API_ALL
     bool            operator!=(const IElement& other)       const                   { return !isEqual(other); }                 API_ALL

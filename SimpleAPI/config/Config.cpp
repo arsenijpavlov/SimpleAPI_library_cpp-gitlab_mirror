@@ -171,33 +171,39 @@ Config &Config::setValue() noexcept {
 }
 
 Config &Config::setValue(const Config &other) noexcept {
-    release();
-    switch(other.getType()) {
-    case ValueType::eNull:      { return setValue();                                                                }
-    case ValueType::eBool:      { return setValue(dynamic_cast<const ElementBool*>(other.m_value)->getValue());     }
-    case ValueType::eNumber:    { return setValue(dynamic_cast<const ElementNumber*>(other.m_value)->getValue());   }
-    case ValueType::eString:    { return setValue(dynamic_cast<const ElementString*>(other.m_value)->getValue());   }
-    case ValueType::eArray:     { return setValue(dynamic_cast<const ElementArray&>(*other.m_value));               }
-    case ValueType::eJson:      { return setValue(dynamic_cast<const ElementJson&>(*other.m_value));                }
-    default: break;
+    if(this != &other)
+    {
+        release();
+        switch(other.getType()) {
+        case ValueType::eNull:      { return setValue();                                                                }
+        case ValueType::eBool:      { return setValue(dynamic_cast<const ElementBool*>(other.m_value)->getValue());     }
+        case ValueType::eNumber:    { return setValue(dynamic_cast<const ElementNumber*>(other.m_value)->getValue());   }
+        case ValueType::eString:    { return setValue(dynamic_cast<const ElementString*>(other.m_value)->getValue());   }
+        case ValueType::eArray:     { return setValue(dynamic_cast<const ElementArray&>(*other.m_value));                }
+        case ValueType::eJson:      { return setValue(dynamic_cast<const ElementJson&>(*other.m_value));                 }
+        default: break;
+        }
     }
 
     return *this;
 }
 
 Config &Config::setValue(Config &&other) noexcept {
-    release();
-    switch(other.getType()) {
-    case ValueType::eNull:      { return setValue();                                                                            }
-    case ValueType::eBool:      { return setValue(dynamic_cast<const ElementBool*>(other.m_value)->getValue());                 }
-    case ValueType::eNumber:    { return setValue(std::move(dynamic_cast<const ElementNumber*>(other.m_value)->getValue()));    }
-    case ValueType::eString:    { return setValue(std::move(dynamic_cast<const ElementString*>(other.m_value)->getValue()));    }
-    case ValueType::eArray:     { return setValue(std::move(dynamic_cast<const ElementArray&>(*other.m_value)));                }
-    case ValueType::eJson:      { return setValue(std::move(dynamic_cast<const ElementJson&>(*other.m_value)));                 }
-    default:                    break;
-    }
+    if(this != &other)
+    {
+        release();
+        switch(other.getType()) {
+        case ValueType::eNull:      { return setValue();                                                                            }
+        case ValueType::eBool:      { return setValue(dynamic_cast<const ElementBool*>(other.m_value)->getValue());                 }
+        case ValueType::eNumber:    { return setValue(std::move(dynamic_cast<const ElementNumber*>(other.m_value)->getValue()));    }
+        case ValueType::eString:    { return setValue(std::move(dynamic_cast<const ElementString*>(other.m_value)->getValue()));    }
+        case ValueType::eArray:     { return setValue(std::move(dynamic_cast<const ElementArray&>(*other.m_value)));                }
+        case ValueType::eJson:      { return setValue(std::move(dynamic_cast<const ElementJson&>(*other.m_value)));                 }
+        default:                    break;
+        }
 
-    other.release(); //обнулить значение
+        other.release(); //обнулить значение
+    }
     return *this;
 }
 

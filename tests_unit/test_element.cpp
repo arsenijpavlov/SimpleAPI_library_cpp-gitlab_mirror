@@ -25,7 +25,7 @@ TEST(ELEMENT, create_num) {
     EXPECT_EQ(ValueType::eNumber,  el_float.getType());
 }
 
-TEST(ELEMENT, create_srting) {
+TEST(ELEMENT, create_string) {
     Config el_string(std::string("asd"));
     Config el_char_arr("asd");
     const char* chr = "asd";
@@ -50,7 +50,7 @@ TEST(ELEMENT, create_null) {
 
 TEST(ELEMENT, create_json) {
     Config js(ValueType::eJson);
-    Config el_json(js);
+    Config el_json(ValueType::eJson, "json", js);
 
     EXPECT_EQ(ValueType::eJson, el_json.get_front().getType());
 }

@@ -73,7 +73,7 @@ public:
 
     // Setters =========================================================================================================
 private:
-    void    init()                                                              noexcept        { m_type = ValueType::eArray; }
+    void    init()                                                              noexcept        { m_type = ValueType::eJson; }
 public:
     void    set(const std::string& key, const Config& new_value,
              bool update = true)                                                noexcept;
