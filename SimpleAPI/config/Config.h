@@ -77,9 +77,8 @@ public:
         }
         case ValueType::eJson: {
             m_value = dynamic_cast<IElement*>(new ElementJson());
-            if(sizeof...(values) == 0)
-                break;
-            variadicKVInputter(values...);
+            if(sizeof...(values) != 0)
+                variadicKVInputter(values...);
             break;
         }
         }
@@ -294,20 +293,20 @@ public:
     // ========================================================================================================== Modify
 
     // Adding ==========================================================================================================
-    Config& insert_front(const Config& other)                           { /*TODO*/ return *this; }  API_CONTAINER
-    Config& insert_front(Config&& other)                                { /*TODO*/ return *this; }  API_CONTAINER
-    Config& insert_front(const std::string& key, const Config& other)   { /*TODO*/ return *this; }  API_MAP_CONTAINER
-    Config& insert_front(const std::string& key, Config&& other)        { /*TODO*/ return *this; }  API_MAP_CONTAINER
-    Config& insert_at(const size_t index, const Config& other)          { /*TODO*/ return *this; }  API_CONTAINER
-    Config& insert_at(const size_t index, Config&& other)               { /*TODO*/ return *this; }  API_CONTAINER
-    Config& insert_at(const std::string& key, const Config& other)      { /*TODO*/ return *this; }  API_MAP_CONTAINER
-    Config& insert_at(const std::string& key, Config&& other)           { /*TODO*/ return *this; }  API_MAP_CONTAINER
-    Config& insert_back(const Config& other)                            { /*TODO*/ return *this; }  API_CONTAINER
-    Config& insert_back(Config&& other)                                 { /*TODO*/ return *this; }  API_CONTAINER
-    Config& insert_back(const std::string& key, const Config& other)    { /*TODO*/ return *this; }  API_MAP_CONTAINER
-    Config& insert_back(const std::string& key, Config&& other)         { /*TODO*/ return *this; }  API_MAP_CONTAINER
-    Config& insert_after(const std::string& key, const Config& other)   { /*TODO*/ return *this; }  API_MAP_CONTAINER
-    Config& insert_after(const std::string& key, Config&& other)        { /*TODO*/ return *this; }  API_MAP_CONTAINER
+    Config& insert_front(const Config& other);                                                                              API_CONTAINER
+    Config& insert_front(Config&& other);                                                                                   API_CONTAINER
+    Config& insert_front(const std::string& key, const Config& other);                                                      API_MAP_CONTAINER
+    Config& insert_front(const std::string& key, Config&& other);                                                           API_MAP_CONTAINER
+    Config& insert_at(const size_t index, const Config& other);                                                             API_CONTAINER
+    Config& insert_at(const size_t index, Config&& other);                                                                  API_CONTAINER
+    Config& insert_at(const std::string& key, const Config& other);                                                         API_MAP_CONTAINER
+    Config& insert_at(const std::string& key, Config&& other);                                                              API_MAP_CONTAINER
+    Config& insert_back(const Config& other);                                                                               API_CONTAINER
+    Config& insert_back(Config&& other);                                                                                    API_CONTAINER
+    Config& insert_back(const std::string& key, const Config& other);                                                       API_MAP_CONTAINER
+    Config& insert_back(const std::string& key, Config&& other);                                                            API_MAP_CONTAINER
+    Config& insert_after(const std::string& key, const Config& other);                                                      API_MAP_CONTAINER
+    Config& insert_after(const std::string& key, Config&& other);                                                           API_MAP_CONTAINER
 
     //NOTE: в использовании итераторов здесь мало смысла видится
     //NOTE: функции с произвольным количеством аргументов пока не кажутся необходимыми пользователю API
@@ -363,20 +362,20 @@ public:
     // ========================================================================================================== Adding
 
     // Removing ========================================================================================================
-    Config& erase_front()                                               { /*TODO*/ return *this; }  API_CONTAINER
-    Config& erase_at(const size_t index)                                { /*TODO*/ return *this; }  API_CONTAINER
-    Config& erase_at(const std::string& key)                            { /*TODO*/ return *this; }  API_MAP_CONTAINER
-    Config& erase_back()                                                { /*TODO*/ return *this; }  API_CONTAINER
+    Config& erase_front();                                                                                                      API_CONTAINER
+    Config& erase_at(const size_t index);                                                                                       API_CONTAINER
+    Config& erase_at(const std::string& key);                                                                                   API_MAP_CONTAINER
+    Config& erase_back();                                                                                                       API_CONTAINER
 
-    Config& pop_front()                                                 { /*TODO*/ return *this; }  API_CONTAINER
-    Config& pop_at(const size_t index)                                  { /*TODO*/ return *this; }  API_CONTAINER
-    Config& pop_at(const std::string& key)                              { /*TODO*/ return *this; }  API_MAP_CONTAINER
-    Config& pop_back()                                                  { /*TODO*/ return *this; }  API_CONTAINER
+    Config& pop_front();                                                                                                        API_CONTAINER
+    Config& pop_at(const size_t index);                                                                                         API_CONTAINER
+    Config& pop_at(const std::string& key);                                                                                     API_MAP_CONTAINER
+    Config& pop_back();                                                                                                         API_CONTAINER
 
-    Config& get_and_pop_front()                                         { /*TODO*/ return *this; }  API_CONTAINER
-    Config& get_and_pop_at(const size_t index)                          { /*TODO*/ return *this; }  API_CONTAINER
-    Config& get_and_pop_at(const std::string& key)                      { /*TODO*/ return *this; }  API_MAP_CONTAINER
-    Config& get_and_pop_back()                                          { /*TODO*/ return *this; }  API_CONTAINER
+    Config& get_and_pop_front();                                                                                                API_CONTAINER
+    Config& get_and_pop_at(const size_t index);                                                                                 API_CONTAINER
+    Config& get_and_pop_at(const std::string& key);                                                                             API_MAP_CONTAINER
+    Config& get_and_pop_back();                                                                                                 API_CONTAINER
     // ======================================================================================================== Removing
 
     // Info ============================================================================================================
@@ -401,8 +400,8 @@ public:
 
     size_t          size()                                  const noexcept          { return m_value->size(); }                 API_ALL
     bool            isEmpty()                               const noexcept          { return size() == 0; }                     API_CONTAINER
-    bool            valueContains(const Config& config)     const noexcept;                                                     API_CONTAINER
-    bool            keyContains(const std::string& key)     const noexcept;                                                     API_MAP_CONTAINER
+    bool            containsValue(const Config& config)     const noexcept;                                                     API_CONTAINER
+    bool            containsKey(const std::string& key)     const noexcept;                                                     API_MAP_CONTAINER
 
     __ONLY_ALLOWED_TYPES__(T)
     bool            valueContains(const T& other)                                   { return valueContains((Config(other))); }  API_CONTAINER
@@ -461,20 +460,16 @@ public:
         Config*         m_config;
         const Config*   m_const_config;
     public:
-        explicit Range(Config& config) : m_config(&config), m_const_config(nullptr)         {};
-        explicit Range(const Config& config) : m_config(nullptr), m_const_config(&config)   {};
+        explicit Range(Config& config) : m_config(&config), m_const_config(nullptr)             {}
+        explicit Range(const Config& config) : m_config(nullptr), m_const_config(&config)       {}
 
-        shared_VElement::iterator       begin()             { return m_config->array_begin(); }
-        shared_VElement::iterator       end()               { return m_config->array_end(); }
-        shared_VElement::const_iterator cbegin()    const   { return m_const_config->array_cbegin(); }
-        shared_VElement::const_iterator cend()      const   { return m_const_config->array_cend(); }
+        shared_VElement::iterator       begin()                 { return m_config->array_begin(); }
+        shared_VElement::iterator       end()                   { return m_config->array_end(); }
+        shared_VElement::const_iterator cbegin()        const   { return m_const_config->array_cbegin(); }
+        shared_VElement::const_iterator cend()          const   { return m_const_config->array_cend(); }
     };
-    Range getRange() {
-        return Range(*this);
-    }
-    Range getRange() const {
-        return Range(*this);
-    }
+    Range getRange()                                            { return Range(*this); }
+    Range getRange()                                    const   { return Range(*this); }
     shared_VElement::iterator           array_begin();
     shared_VElement::const_iterator     array_cbegin()                                          const;
     shared_VElement::iterator           array_end();
@@ -486,20 +481,16 @@ public:
         Config*         m_config;
         const Config*   m_const_config;
     public:
-        explicit NamedRange(Config& config) : m_config(&config), m_const_config(nullptr)        {};
-        explicit NamedRange(const Config& config) : m_config(nullptr), m_const_config(&config)  {};
+        explicit NamedRange(Config& config) : m_config(&config), m_const_config(nullptr)        {}
+        explicit NamedRange(const Config& config) : m_config(nullptr), m_const_config(&config)  {}
 
         shared_VPairElement::iterator       begin()             { return m_config->named_begin(); }
         shared_VPairElement::iterator       end()               { return m_config->named_end(); }
         shared_VPairElement::const_iterator cbegin()    const   { return m_const_config->named_cbegin(); }
         shared_VPairElement::const_iterator cend()      const   { return m_const_config->named_cend(); }
     };
-    NamedRange getNamedRange() {
-        return NamedRange(*this);
-    }
-    NamedRange getNamedRange() const {
-        return NamedRange(*this);
-    }
+    NamedRange getNamedRange()                                  { return NamedRange(*this); }
+    NamedRange getNamedRange()                          const   { return NamedRange(*this); }
     shared_VPairElement::iterator       named_begin();
     shared_VPairElement::const_iterator named_cbegin()                                           const;
     shared_VPairElement::iterator       named_end();

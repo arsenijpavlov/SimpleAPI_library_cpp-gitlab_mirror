@@ -804,6 +804,62 @@ std::string Config::get_string_back() const {
     return dynamic_cast<const ElementString*>(config.m_value)->getValue();
 }
 
+Config& Config::insert_front(const Config& other) {
+    /*TODO*/ return *this;
+}
+
+Config& Config::insert_front(Config&& other) {
+    /*TODO*/ return *this;
+}
+
+Config& Config::insert_front(const std::string& key, const Config& other) {
+    /*TODO*/ return *this;
+}
+
+Config& Config::insert_front(const std::string& key, Config&& other) {
+    /*TODO*/ return *this;
+}
+
+Config& Config::insert_at(const size_t index, const Config& other) {
+    /*TODO*/ return *this;
+}
+
+Config& Config::insert_at(const size_t index, Config&& other) {
+    /*TODO*/ return *this;
+}
+
+Config& Config::insert_at(const std::string& key, const Config& other) {
+    /*TODO*/ return *this;
+}
+
+Config& Config::insert_at(const std::string& key, Config&& other) {
+    /*TODO*/ return *this;
+}
+
+Config& Config::insert_back(const Config& other) {
+    /*TODO*/ return *this;
+}
+
+Config& Config::insert_back(Config&& other) {
+    /*TODO*/ return *this;
+}
+
+Config& Config::insert_back(const std::string& key, const Config& other) {
+    /*TODO*/ return *this;
+}
+
+Config& Config::insert_back(const std::string& key, Config&& other) {
+    /*TODO*/ return *this;
+}
+
+Config& Config::insert_after(const std::string& key, const Config& other) {
+    /*TODO*/ return *this;
+}
+
+Config& Config::insert_after(const std::string& key, Config&& other) {
+    /*TODO*/ return *this;
+}
+
 bool Config::isEqual(const IElement &other, const bool compare_comments) const {
     __CHECK_TYPES_IS_EQUAL__((*this), other)
     return m_value->isEqual(other, compare_comments);
@@ -824,7 +880,55 @@ bool Config::isEqual(const std::string &other) const {
     return dynamic_cast<const ElementString*>(m_value)->getValue() == other;
 }
 
-bool Config::valueContains(const Config &config) const noexcept {
+Config& Config::erase_front() {
+    /*TODO*/ return *this;
+}
+
+Config& Config::erase_at(const size_t index) {
+    /*TODO*/ return *this;
+}
+
+Config& Config::erase_at(const std::string& key) {
+    /*TODO*/ return *this;
+}
+
+Config& Config::erase_back() {
+    /*TODO*/ return *this;
+}
+
+Config& Config::pop_front() {
+    /*TODO*/ return *this;
+}
+
+Config& Config::pop_at(const size_t index) {
+    /*TODO*/ return *this;
+}
+
+Config& Config::pop_at(const std::string& key) {
+    /*TODO*/ return *this;
+}
+
+Config& Config::pop_back() {
+    /*TODO*/ return *this;
+}
+
+Config& Config::get_and_pop_front() {
+    /*TODO*/ return *this;
+}
+
+Config& Config::get_and_pop_at(const size_t index) {
+    /*TODO*/ return *this;
+}
+
+Config& Config::get_and_pop_at(const std::string& key) {
+    /*TODO*/ return *this;
+}
+
+Config& Config::get_and_pop_back() {
+    /*TODO*/ return *this;
+}
+
+bool Config::containsValue(const Config &config) const noexcept {
     if(!isContainer()) return false;
 
     //FIXME: warning предлагает сделать всё через std::any_of, но там муть одна. Непонятно.
@@ -853,7 +957,7 @@ bool Config::valueContains(const Config &config) const noexcept {
     return false;
 }
 
-bool Config::keyContains(const std::string &key) const noexcept {
+bool Config::containsKey(const std::string &key) const noexcept {
     if(!isMapContainer()) return false;
 
     for(const auto& pair : getNamedRange()) {
