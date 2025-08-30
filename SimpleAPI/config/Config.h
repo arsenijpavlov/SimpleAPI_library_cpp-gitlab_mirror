@@ -367,15 +367,15 @@ public:
     Config& erase_at(const std::string& key);                                                                                   API_MAP_CONTAINER
     Config& erase_back();                                                                                                       API_CONTAINER
 
-    Config& pop_front();                                                                                                        API_CONTAINER
-    Config& pop_at(const size_t index);                                                                                         API_CONTAINER
-    Config& pop_at(const std::string& key);                                                                                     API_MAP_CONTAINER
-    Config& pop_back();                                                                                                         API_CONTAINER
+    Config& pop_front()                                                 { return erase_front(); }                               API_CONTAINER
+    Config& pop_at(const std::string& key)                              { return erase_at(key); }                               API_MAP_CONTAINER
+    Config& pop_at(const size_t index)                                  { return erase_at(index); }                             API_CONTAINER
+    Config& pop_back()                                                  { return erase_back(); }                                API_CONTAINER
 
-    Config& get_and_pop_front();                                                                                                API_CONTAINER
-    Config& get_and_pop_at(const size_t index);                                                                                 API_CONTAINER
-    Config& get_and_pop_at(const std::string& key);                                                                             API_MAP_CONTAINER
-    Config& get_and_pop_back();                                                                                                 API_CONTAINER
+    Config  get_and_pop_front();                                                                                                API_CONTAINER
+    Config  get_and_pop_at(const size_t index);                                                                                 API_CONTAINER
+    Config  get_and_pop_at(const std::string& key);                                                                             API_MAP_CONTAINER
+    Config  get_and_pop_back();                                                                                                 API_CONTAINER
     // ======================================================================================================== Removing
 
     // Info ============================================================================================================

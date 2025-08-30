@@ -881,51 +881,68 @@ bool Config::isEqual(const std::string &other) const {
 }
 
 Config& Config::erase_front() {
-    /*TODO*/ return *this;
+    erase_at(0);
+    return *this;
 }
 
+//если элемента не существует - проигнорировать
 Config& Config::erase_at(const size_t index) {
-    /*TODO*/ return *this;
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    if(!isEmpty()) {
+        switch(getType()){
+        case ValueType::eArray: {
+            dynamic_cast<ElementArray*>(m_value)->erase_at(index);
+            break;
+        }
+        case ValueType::eJson: {
+            dynamic_cast<ElementJson*>(m_value)->erase_at(index);
+            break;
+        }
+        default: throw std::invalid_argument("unknown type for remove");
+        }
+    }
+
+    return *this;
 }
 
 Config& Config::erase_at(const std::string& key) {
-    /*TODO*/ return *this;
+    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+    dynamic_cast<ElementJson*>(m_value)->erase_at(key);
+
+    return *this;
 }
 
 Config& Config::erase_back() {
-    /*TODO*/ return *this;
+    erase_at(size() - 1); //даже если индекса не существует - exception не будет, только если тип неверный
+    return *this;
 }
 
-Config& Config::pop_front() {
-    /*TODO*/ return *this;
+Config Config::get_and_pop_front() {
+    Config config = get_front();
+    erase_front();
+
+    return config;
 }
 
-Config& Config::pop_at(const size_t index) {
-    /*TODO*/ return *this;
+Config Config::get_and_pop_at(const size_t index) {
+    Config config = get_at(index);
+    erase_at(index);
+
+    return config;
 }
 
-Config& Config::pop_at(const std::string& key) {
-    /*TODO*/ return *this;
+Config Config::get_and_pop_at(const std::string& key) {
+    Config config = get_at(key);
+    erase_at(key);
+
+    return config;
 }
 
-Config& Config::pop_back() {
-    /*TODO*/ return *this;
-}
+Config Config::get_and_pop_back() {
+    Config config = get_back();
+    erase_back();
 
-Config& Config::get_and_pop_front() {
-    /*TODO*/ return *this;
-}
-
-Config& Config::get_and_pop_at(const size_t index) {
-    /*TODO*/ return *this;
-}
-
-Config& Config::get_and_pop_at(const std::string& key) {
-    /*TODO*/ return *this;
-}
-
-Config& Config::get_and_pop_back() {
-    /*TODO*/ return *this;
+    return config;
 }
 
 bool Config::containsValue(const Config &config) const noexcept {
