@@ -72,7 +72,7 @@ public:
     // Info ============================================================================================================
     ValueType       getType()                                   const noexcept      { return m_type; }
     virtual bool    isContainer()                               const noexcept      { return false; }
-    virtual bool    isIndexOnlyContainer()                      const noexcept      { return false; }
+    virtual bool    isIndexContainer()                          const noexcept      { return false; }
     virtual bool    isMapContainer()                            const noexcept      { return false; }
 
     virtual bool    isEqual(const IElement& other, const bool compare_comments = false) const { return false; };

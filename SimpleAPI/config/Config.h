@@ -121,6 +121,12 @@ private:
     }
     static void variadicKVInputter() {} //NOTE: нужна только для "пустых" вызовов variadic-функции
 
+    // WARNING: в идеале, методы ниже никогда не должны быть использованы
+    __ONLY_ALLOWED_TYPES__(T)
+    static void variadicKVInputter(const T& others)    {} //NOTE: нужна только для компиляции работы с массивами
+    __ONLY_ALLOWED_TYPES__(T)
+    static void variadicKVInputter(T&& others)         {} //NOTE: нужна только для компиляции работы с массивами
+
 public:
     //NOTE: API_ - приписка для обозначения интерфейсных функций при использовании через класс Config
     #define API_ALL
@@ -293,6 +299,7 @@ public:
     // ========================================================================================================== Modify
 
     // Adding ==========================================================================================================
+    //TODO: insert_at(index, key, other)
     Config& insert_front(const Config& other);                                                                              API_CONTAINER
     Config& insert_front(Config&& other);                                                                                   API_CONTAINER
     Config& insert_front(const std::string& key, const Config& other);                                                      API_MAP_CONTAINER
@@ -305,8 +312,8 @@ public:
     Config& insert_back(Config&& other);                                                                                    API_CONTAINER
     Config& insert_back(const std::string& key, const Config& other);                                                       API_MAP_CONTAINER
     Config& insert_back(const std::string& key, Config&& other);                                                            API_MAP_CONTAINER
-    Config& insert_after(const std::string& key, const Config& other);                                                      API_MAP_CONTAINER
-    Config& insert_after(const std::string& key, Config&& other);                                                           API_MAP_CONTAINER
+    Config& insert_after(const std::string& after_key, const std::string& key, const Config& other);                        API_MAP_CONTAINER
+    Config& insert_after(const std::string& after_key, const std::string& key, Config&& other);                             API_MAP_CONTAINER
 
     //NOTE: в использовании итераторов здесь мало смысла видится
     //NOTE: функции с произвольным количеством аргументов пока не кажутся необходимыми пользователю API
@@ -326,8 +333,10 @@ public:
     Config& push_back(const std::string& key, const Config& other)      { return insert_back(key, other); }                 API_MAP_CONTAINER
     Config& push_back(const std::string& key, Config&& other)           { return insert_back(key, std::move(other)); }      API_MAP_CONTAINER
 
-    Config& push_after(const std::string& key, const Config& other)     { return insert_after(key, other); }                API_MAP_CONTAINER
-    Config& push_after(const std::string& key, Config&& other)          { return insert_after(key, std::move(other)); }     API_MAP_CONTAINER
+    Config& push_after(const std::string& after_key, const std::string& key,
+                       const Config& other)                             { return insert_after(after_key, key, other); }             API_MAP_CONTAINER
+    Config& push_after(const std::string& after_key, const std::string& key,
+                       Config&& other)                                  { return insert_after(after_key, key, std::move(other)); }  API_MAP_CONTAINER
 
     //обход explicit
     __ONLY_ALLOWED_TYPES__(T)
@@ -356,9 +365,11 @@ public:
     Config& push_back(const std::string& key, T&& other)                { return insert_back(key, std::move(Config(other))); }  API_MAP_CONTAINER
 
     __ONLY_ALLOWED_TYPES__(T)
-    Config& push_after(const std::string& key, const T& other)          { return insert_after(key, Config(other)); }            API_MAP_CONTAINER
+    Config& push_after(const std::string& after_key, const std::string& key,
+                       const T& other)                                  { return insert_after(after_key, key, Config(other)); }             API_MAP_CONTAINER
     __ONLY_ALLOWED_TYPES__(T)
-    Config& push_after(const std::string& key, T&& other)               { return insert_after(key, std::move(Config(other))); } API_MAP_CONTAINER
+    Config& push_after(const std::string& after_key, const std::string& key,
+                       T&& other)                                       { return insert_after(after_key, key, std::move(Config(other))); }  API_MAP_CONTAINER
     // ========================================================================================================== Adding
 
     // Removing ========================================================================================================
@@ -380,15 +391,22 @@ public:
 
     // Info ============================================================================================================
     ValueType       getType()                               const noexcept          { return m_value->getType(); }              API_ALL
+                    // @TEST(ELEMENT, create_empty)
     bool            isNull()                                const noexcept          { return getType() == ValueType::eNull; }   API_ALL
+                    // @TEST(ELEMENT, create_bool)
     bool            isBool()                                const noexcept          { return getType() == ValueType::eBool; }   API_ALL
+                    // @TEST(ELEMENT, create_number)
     bool            isNumber()                              const noexcept          { return getType() == ValueType::eNumber; } API_ALL
+                    // @TEST(ELEMENT, create_string)
     bool            isString()                              const noexcept          { return getType() == ValueType::eString; } API_ALL
+                    // @TEST(ELEMENT, create_array)
     bool            isArray()                               const noexcept          { return getType() == ValueType::eArray; }  API_ALL
+                    // @TEST(ELEMENT, create_json)
     bool            isJson()                                const noexcept          { return getType() == ValueType::eJson; }   API_ALL
 //    bool            isYaml()                                const noexcept          { return getType() == ValueType::eYaml; }
 //    bool            isXml()                                 const noexcept          { return getType() == ValueType::eXml; }
     bool            isContainer()                           const noexcept          { return m_value->isContainer(); }          API_ALL
+    bool            isIndexContainer()                      const noexcept          { return m_value->isIndexContainer(); }          API_ALL
     bool            isMapContainer()                        const noexcept          { return m_value->isMapContainer(); }       API_ALL
 
     bool            isEqual(const Config& other, const bool compare_comments = false)   const

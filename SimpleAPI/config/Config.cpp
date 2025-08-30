@@ -805,63 +805,91 @@ std::string Config::get_string_back() const {
 }
 
 Config& Config::insert_front(const Config& other) {
-    /*TODO*/ return *this;
+    Config config(other);
+    return insert_front(std::move(config));
 }
 
 Config& Config::insert_front(Config&& other) {
-    /*TODO*/ return *this;
+    __CHECK_TYPE_IS_INDEX_CONTAINER__((*this))
+    dynamic_cast<ElementArray*>(m_value)->insert_front(std::move(other));
+
+    return *this;
 }
 
 Config& Config::insert_front(const std::string& key, const Config& other) {
-    /*TODO*/ return *this;
+    Config config(other);
+    return insert_front(key, std::move(config));
 }
 
 Config& Config::insert_front(const std::string& key, Config&& other) {
-    /*TODO*/ return *this;
+    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+    dynamic_cast<ElementJson*>(m_value)->insert_front(key, std::move(other));
+
+    return *this;
 }
 
 Config& Config::insert_at(const size_t index, const Config& other) {
-    /*TODO*/ return *this;
+    Config config(other);
+    return insert_at(index, std::move(config));
 }
 
 Config& Config::insert_at(const size_t index, Config&& other) {
-    /*TODO*/ return *this;
+    __CHECK_TYPE_IS_INDEX_CONTAINER__((*this))
+    dynamic_cast<ElementArray*>(m_value)->insert_at(index, std::move(other));
+
+    return *this;
 }
 
 Config& Config::insert_at(const std::string& key, const Config& other) {
-    /*TODO*/ return *this;
+    Config config(other);
+    return insert_at(key, std::move(config));
 }
 
 Config& Config::insert_at(const std::string& key, Config&& other) {
-    /*TODO*/ return *this;
+    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+    dynamic_cast<ElementJson*>(m_value)->insert_at(key, std::move(other));
+
+    return *this;
 }
 
 Config& Config::insert_back(const Config& other) {
-    /*TODO*/ return *this;
+    Config config(other);
+    return insert_back(std::move(config));
 }
 
 Config& Config::insert_back(Config&& other) {
-    /*TODO*/ return *this;
+    __CHECK_TYPE_IS_INDEX_CONTAINER__((*this))
+    dynamic_cast<ElementArray*>(m_value)->insert_back(std::move(other));
+
+    return *this;
 }
 
 Config& Config::insert_back(const std::string& key, const Config& other) {
-    /*TODO*/ return *this;
+    Config config(other);
+    return insert_back(key, std::move(config));
 }
 
 Config& Config::insert_back(const std::string& key, Config&& other) {
-    /*TODO*/ return *this;
+    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+    dynamic_cast<ElementJson*>(m_value)->insert_back(key, std::move(other));
+
+    return *this;
 }
 
-Config& Config::insert_after(const std::string& key, const Config& other) {
-    /*TODO*/ return *this;
+Config& Config::insert_after(const std::string& after_key, const std::string& key, const Config& other) {
+    Config config(other);
+    return insert_after(after_key, key, std::move(config));
 }
 
-Config& Config::insert_after(const std::string& key, Config&& other) {
-    /*TODO*/ return *this;
+Config& Config::insert_after(const std::string& after_key, const std::string& key, Config&& other) {
+    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+    dynamic_cast<ElementJson*>(m_value)->insert_after(after_key, key, std::move(other));
+
+    return *this;
 }
 
 bool Config::isEqual(const IElement &other, const bool compare_comments) const {
-    __CHECK_TYPES_IS_EQUAL__((*this), other)
+    __CHECK_TYPES_IS_EQUAL__((*m_value), other)
     return m_value->isEqual(other, compare_comments);
 }
 

@@ -852,7 +852,7 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
 
         //обработка собранного пакета (1 за проход)
         if(pm.m_header.type == eControlType) {
-            if(jm.m_json.keyContains("ack_sn")) {
+            if(jm.m_json.containsKey("ack_sn")) {
                 uint8_t sn = jm.m_json["ack_sn"].getNumber();
                 for(auto it = m_map_auto_sent_packets.begin(); it != m_map_auto_sent_packets.end(); it++) {
                     if(it->second.m_sn.get() == sn) {
@@ -861,7 +861,7 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                     }
                 }
             }
-            if(jm.m_json.keyContains("ack_all_packet")) {
+            if(jm.m_json.containsKey("ack_all_packet")) {
                 uint8_t first_sn = jm.m_json["ack_all_packet"].getNumber(); //номер первого фрагмента сообщения
 
                 m_output_threads_mutex.lock();
@@ -888,7 +888,7 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                 }
                 m_output_threads_mutex.unlock();
             }
-            if(jm.m_json.keyContains("packet_error_last_sn")) {
+            if(jm.m_json.containsKey("packet_error_last_sn")) {
                 uint8_t last_err_sn = jm.m_json["packet_error_last_sn"].getNumber(); //номер первого фрагмента сообщения
 
                 //удалить все упоминания фрагментов пакета из очереди переотправок
@@ -921,7 +921,7 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                     sendFragments(ipPort, type, packet); //переотправка
                 }
             }
-            if(jm.m_json.keyContains("get")) {
+            if(jm.m_json.containsKey("get")) {
                 //get = element of Config-Array
                 Config requests = jm.m_json["get"];
                 for(const auto& it_req : requests.getNamedRange()) {
@@ -944,7 +944,7 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                     }
                 }
             }
-            if(jm.m_json.keyContains("key")) {
+            if(jm.m_json.containsKey("key")) {
                 auto connection_it = findOrCreateConnection(pm.m_ip_port);
                 connection_it->second.m_chip_key.key = jm.m_json["key"].getString();
             }

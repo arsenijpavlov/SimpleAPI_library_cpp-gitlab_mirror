@@ -13,40 +13,79 @@ int main(int argc, char **argv)
 
 //========================================================================================
 
-TEST(ELEMENT, create_num) {
-    Config el_int(1);
-    EXPECT_EQ(ValueType::eNumber,  el_int.getType());
+TEST(ELEMENT, create_empty) {
+    Config el_null;
+    EXPECT_EQ(el_null.getType(), ValueType::eNull);
+    EXPECT_TRUE(el_null.isNull());
 
-    Config el_double(1.1);
-    EXPECT_EQ(ValueType::eNumber,  el_double.getType());
+    Config el_null_2(ValueType::eNull);
+    EXPECT_EQ(el_null_2.getType(), ValueType::eNull);
+    EXPECT_TRUE(el_null_2.isNull());
+}
+
+TEST(ELEMENT, create_bool) {
+    Config el_bool_1(ValueType::eBool);
+    EXPECT_EQ(el_bool_1.getType(), ValueType::eBool);
+    EXPECT_TRUE(el_bool_1.isBool());
+    EXPECT_EQ(el_bool_1.getBool(), false);
+
+    Config el_bool_2(false);
+    EXPECT_EQ(el_bool_2.getType(), ValueType::eBool);
+    EXPECT_TRUE(el_bool_2.isBool());
+    EXPECT_EQ(el_bool_2.getBool(), false);
+
+    Config el_bool_3(true);
+    EXPECT_EQ(el_bool_3.getType(), ValueType::eBool);
+    EXPECT_TRUE(el_bool_3.isBool());
+    EXPECT_EQ(el_bool_3.getBool(), true);
+}
+
+TEST(ELEMENT, create_number) {
+    Config el_int(1);
+    EXPECT_EQ(el_int.getType(), ValueType::eNumber);
+    EXPECT_TRUE(el_int.isNumber());
 
     Config el_uint(11);
-    EXPECT_EQ(ValueType::eNumber,  el_uint.getType());
+    EXPECT_TRUE(el_uint.isNumber());
+    EXPECT_EQ(el_uint.getType(), ValueType::eNumber);
+
+    Config el_double(1.1);
+    EXPECT_TRUE(el_double.isNumber());
+    EXPECT_EQ(el_double.getType(), ValueType::eNumber);
 
     Config el_float(11.f);
-    EXPECT_EQ(ValueType::eNumber,  el_float.getType());
+    EXPECT_TRUE(el_float.isNumber());
+    EXPECT_EQ(el_float.getType(), ValueType::eNumber);
 }
 
 TEST(ELEMENT, create_string) {
     Config el_string(std::string("asd"));
-    EXPECT_EQ(ValueType::eString, el_string.getType());
+    EXPECT_EQ(el_string.getType(), ValueType::eString);
+    EXPECT_TRUE(el_string.isString());
 
-    Config el_char_arr("asd");
-    EXPECT_EQ(ValueType::eString, el_char_arr.getType());
+    Config el_string_2(ValueType::eString);
+    EXPECT_EQ(el_string_2.getType(), ValueType::eString);
+    EXPECT_TRUE(el_string_2.isString());
+
+    Config el_string_3("asd");
+    EXPECT_EQ(el_string_3.getType(), ValueType::eString);
+    EXPECT_TRUE(el_string_3.isString());
 
     const char* chr = "asd";
-    Config el_char_star(chr);
-    EXPECT_EQ(ValueType::eString, el_char_star.getType());
+    Config el_string_4(chr);
+    EXPECT_EQ(el_string_4.getType(), ValueType::eString);
+    EXPECT_TRUE(el_string_4.isString());
 }
 
-TEST(ELEMENT, create_bool) {
-    Config el_bool(true);
-    EXPECT_EQ(ValueType::eBool, el_bool.getType());
-}
+TEST(ELEMENT, create_array) {
+    Config ar(ValueType::eArray);
+    EXPECT_EQ(ar.getType(), ValueType::eArray);
 
-TEST(ELEMENT, create_null) {
-    Config el_null;
-    EXPECT_EQ(ValueType::eNull,    el_null.getType());
+    Config el_array(ValueType::eArray, ar);
+    ASSERT_TRUE(el_array.isArray());
+    ASSERT_FALSE(el_array.isEmpty());
+
+    EXPECT_EQ(ValueType::eArray, el_array.get_front().getType());
 }
 
 TEST(ELEMENT, create_json) {
@@ -54,42 +93,38 @@ TEST(ELEMENT, create_json) {
     EXPECT_EQ(js.getType(), ValueType::eJson);
 
     Config el_json(ValueType::eJson, "json", js);
-    ASSERT_EQ(el_json.getType(), ValueType::eJson);
+    ASSERT_TRUE(el_json.isJson());
+    ASSERT_FALSE(el_json.isEmpty());
 
     ASSERT_FALSE(el_json.isEmpty());
     EXPECT_EQ(ValueType::eJson, el_json.get_front().getType());
 }
 
-TEST(ELEMENT, create_array) {
-    Config ar(ValueType::eArray);
-    EXPECT_EQ(ar.getType(), ValueType::eArray);
-
-    Config el_array(ar);
-    ASSERT_EQ(el_array.getType(), ValueType::eArray);
-
-    EXPECT_EQ(ValueType::eArray, el_array.get_front().getType());
-}
-
 TEST(ELEMENT, compare_all_types) {
     Config el_num(15.0);
-    EXPECT_EQ(el_num.getType(),     ValueType::eNumber);
-    EXPECT_EQ(el_num,               15.0);
+    ASSERT_EQ(el_num.getType(), ValueType::eNumber);
+    ASSERT_TRUE(el_num.isNumber());
+    EXPECT_EQ(el_num, 15.0);
 
     Config el_bool(true);
-    EXPECT_EQ(el_bool.getType(),    ValueType::eBool);
-    EXPECT_EQ(el_bool,              true);
+    ASSERT_EQ(el_bool.getType(), ValueType::eBool);
+    ASSERT_TRUE(el_bool.isBool());
+    EXPECT_EQ(el_bool, true);
 
     Config el_string("true");
-    EXPECT_EQ(el_string.getType(),  ValueType::eString);
-    EXPECT_EQ(el_string,            "true");
-
-    Config el_json(ValueType::eJson);
-    EXPECT_EQ(el_json.getType(),    ValueType::eJson);
-    EXPECT_EQ(el_json,              Config(ValueType::eJson));
+    ASSERT_EQ(el_string.getType(), ValueType::eString);
+    ASSERT_TRUE(el_string.isString());
+    EXPECT_EQ(el_string, "true");
 
     Config el_array(ValueType::eArray);
-    EXPECT_EQ(el_array.getType(),   ValueType::eArray);
-    EXPECT_EQ(el_array,             Config(ValueType::eArray));
+    ASSERT_EQ(el_array.getType(), ValueType::eArray);
+    ASSERT_TRUE(el_array.isArray());
+    EXPECT_EQ(el_array, Config(ValueType::eArray));
+
+    Config el_json(ValueType::eJson);
+    ASSERT_EQ(el_json.getType(), ValueType::eJson);
+    ASSERT_TRUE(el_json.isJson());
+    EXPECT_EQ(el_json, Config(ValueType::eJson));
 }
 
 //TEST(ELEMENT, not_compare_all_types) {

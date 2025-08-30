@@ -52,13 +52,15 @@
 #define __CHECK_TYPE_IS_JSON__(object)      if(!object.isJson())    __INCORRECT_TYPE_EXCEPTION__("JSON")
 
 #define __CHECK_TYPE_IS_CONTAINER__(object) if(!object.isContainer())       __INCORRECT_TYPE_EXCEPTION__("container")
+#define __CHECK_TYPE_IS_INDEX_CONTAINER__(object) \
+                                            if(!object.isIndexContainer())  __INCORRECT_TYPE_EXCEPTION__("index container")
 #define __CHECK_TYPE_IS_MAP_CONTAINER__(object) \
                                             if(!object.isMapContainer())    __INCORRECT_TYPE_EXCEPTION__("map<key,value>")
 
 #define __CHECK_TYPE_IS_NOT_NULL__(object)  if(object.isNull()) \
                                                 throw std::invalid_argument("This element is a NULL type");
 #define __CHECK_TYPES_IS_EQUAL__(object1, object2) \
-                                            if(object1.getType() == object2.getType()) \
+                                            if(object1.getType() != object2.getType()) \
                                                 throw std::invalid_argument("Types is not equal");
 
 #define __INCORRECT_INDEX_EXCEPTION__(index) throw std::invalid_argument(std::string("Index ") + #index + " not contain an object");

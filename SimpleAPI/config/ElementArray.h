@@ -133,7 +133,7 @@ public:
 
     // Info ============================================================================================================
     bool    isContainer()                                               const noexcept  override    { return true; }
-    bool    isIndexOnlyContainer()                                      const noexcept  override    { return true; }
+    bool    isIndexContainer()                                          const noexcept  override    { return true; }
     size_t  size()                                                      const noexcept  override    { return m_values.size(); }
     bool    empty()                                                     const noexcept  override    { return m_values.empty(); }
     bool    contains(const Config& config)                              const noexcept;
