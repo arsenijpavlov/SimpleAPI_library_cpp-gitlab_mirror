@@ -533,7 +533,7 @@ Config ElementJson::get_and_pop_at(const std::string &key) noexcept {
 }
 
 void ElementJson::erase_at(const std::string &key) noexcept {
-    erase_at(key);
+    erase_at(key); //FIXME: ссылка на самого себя
 }
 
 bool ElementJson::contains(const std::string &key) const noexcept {
