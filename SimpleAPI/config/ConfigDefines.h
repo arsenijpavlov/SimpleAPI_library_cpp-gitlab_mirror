@@ -10,6 +10,7 @@
             std::is_same<           typename std::remove_cv<typename std::remove_reference<ARG>::type>::type, ElementJson>::value \
             || std::is_same<        typename std::remove_cv<typename std::remove_reference<ARG>::type>::type, ElementArray>::value \
             || std::is_convertible< typename std::remove_cv<typename std::remove_reference<ARG>::type>::type, std::string>::value \
+            || std::is_same<        typename std::decay<ARG>::type, const char*>::value \
             || std::is_arithmetic<  typename std::remove_cv<typename std::remove_reference<ARG>::type>::type>::value \
             || std::is_same<        typename std::remove_cv<typename std::remove_reference<ARG>::type>::type, bool>::value \
             || std::is_same<        typename std::remove_cv<typename std::remove_reference<ARG>::type>::type, Config>::value \
@@ -18,7 +19,8 @@
 #define __ONLY_STRING_TYPES__(ARG) \
     template<typename ARG, \
         typename std::enable_if< \
-            std::is_convertible<    typename std::decay<ARG>::type, std::string>::value, \
+            std::is_convertible<    typename std::decay<ARG>::type, std::string>::value || \
+            std::is_same<           typename std::decay<ARG>::type, const char*>::value , \
             int \
         >::type* = nullptr>
 

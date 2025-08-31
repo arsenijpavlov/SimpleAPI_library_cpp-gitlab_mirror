@@ -127,25 +127,40 @@ TEST(ELEMENT, compare_all_types) {
     EXPECT_EQ(el_json, Config(ValueType::eJson));
 }
 
-//TEST(ELEMENT, not_compare_all_types) {
-//    Element el_num(15.0);
-//    Element el_bool(true);
-//    Element el_string("true");
-//    Element el_json(Json{});
-//    Element el_array(ElementArray{});
+TEST(ELEMENT, not_compare_all_types) {
+    Config el_num(15.0);
+    ASSERT_EQ(el_num.getType(), ValueType::eNumber);
+    ASSERT_TRUE(el_num.isNumber());
+    EXPECT_EQ(el_num, Config(ValueType::eNumber));
 
-//    EXPECT_EQ(el_num.first,     ValueType::eNumber);
-//    EXPECT_EQ(el_bool.first,    ValueType::eBool);
-//    EXPECT_EQ(el_string.first,  ValueType::eString);
-//    EXPECT_EQ(el_json.first,    ValueType::eJson);
-//    EXPECT_EQ(el_array.first,   ValueType::eArray);
+    Config el_bool(true);
+    ASSERT_EQ(el_bool.getType(), ValueType::eBool);
+    ASSERT_TRUE(el_bool.isBool());
+    EXPECT_EQ(el_bool, Config(ValueType::eBool));
 
-//    EXPECT_NE(el_num,   Element(1.0));
-//    EXPECT_NE(el_bool,  Element(false));
-//    EXPECT_NE(el_string,Element("asd"));
-//    EXPECT_NE(el_json,  Element(Json().put("asd", "asd")));
-//    EXPECT_NE(el_array, Element(ElementArray().push_front("asd")));
-//}
+    Config el_string("true");
+    ASSERT_EQ(el_string.getType(), ValueType::eString);
+    ASSERT_TRUE(el_string.isString());
+    EXPECT_EQ(el_string, Config(ValueType::eString));
+
+    Config el_json(ValueType::eJson);
+    ASSERT_EQ(el_json.getType(), ValueType::eJson);
+    ASSERT_TRUE(el_json.isJson());
+    EXPECT_EQ(el_json, Config(ValueType::eJson));
+
+    Config el_array(ValueType::eArray);
+    ASSERT_EQ(el_array.getType(), ValueType::eArray);
+    ASSERT_TRUE(el_array.isArray());
+    EXPECT_EQ(el_array, Config(ValueType::eArray));
+
+    EXPECT_NE(el_num,       1.0);
+    EXPECT_NE(el_bool,      false);
+    EXPECT_NE(el_string,    "asd");
+    EXPECT_NE(el_json,      Config(ValueType::eJson, "asd", "asd"));            // вариант без обёртки
+    EXPECT_NE(el_json,      Config(ValueType::eJson, "asd", Config("asd")));    // вариант с обёрткой
+    EXPECT_NE(el_array,     Config(ValueType::eArray, "asd"));          // вариант без обёртки
+    EXPECT_NE(el_array,     Config(ValueType::eArray, Config("asd")));  // вариант с обёрткой
+}
 
 //TODO: TEST(ELEMENT, read_file) {
 //    Element el;

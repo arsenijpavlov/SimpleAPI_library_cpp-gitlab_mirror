@@ -18,7 +18,9 @@ struct is_valid_config_type {
         std::is_convertible<typename std::decay<T>::type, std::string>::value ||
         std::is_arithmetic< typename std::decay<T>::type>::value ||
         std::is_same<       typename std::decay<T>::type, bool>::value ||
-        std::is_same<       typename std::decay<T>::type, Config>::value;
+        std::is_same<       typename std::decay<T>::type, Config>::value
+//                                  || std::is_same<       typename std::decay<T>::type, const char*>::value
+        ;
 };
 template<bool...> struct bool_pack;
 template<bool... bs>
@@ -45,8 +47,43 @@ public:
     explicit Config(const bool other)       noexcept : m_value(nullptr)         { setValue(other); }
     __ONLY_NUMBER_TYPES__(T)
     explicit Config(T&& other)              noexcept : m_value(nullptr)         { setValue(static_cast<long double>(other)); }
+
+    // NOTE: с explicit Config(const char*) не работает
     __ONLY_STRING_TYPES__(T)
-    explicit Config(T&& other)              noexcept : m_value(nullptr)         { setValue(std::string(other)); }
+    /*explicit*/ Config(const T& other)         noexcept : m_value(nullptr)         { setValue(std::string(other)); }
+    __ONLY_STRING_TYPES__(T)
+    /*explicit*/ Config(T&& other)              noexcept : m_value(nullptr)         { setValue(std::string(std::move(other))); }
+
+    explicit Config(const ValueType config_type) : m_value(nullptr) {
+        release();
+        switch(config_type) {
+        default:
+        case ValueType::eNull: {
+            init();
+            break;
+        }
+        case ValueType::eBool: {
+            m_value = dynamic_cast<IElement*>(new ElementBool());
+            break;
+        }
+        case ValueType::eNumber: {
+            m_value = dynamic_cast<IElement*>(new ElementNumber());
+            break;
+        }
+        case ValueType::eString: {
+            m_value = dynamic_cast<IElement*>(new ElementString());
+            break;
+        }
+        case ValueType::eArray: {
+            m_value = dynamic_cast<IElement*>(new ElementArray());
+            break;
+        }
+        case ValueType::eJson: {
+            m_value = dynamic_cast<IElement*>(new ElementJson());
+            break;
+        }
+        }
+    }
 
     //контейнеры
     __ONLY_ALLOWED_TYPES_VARIADIC__(T)
@@ -79,6 +116,41 @@ public:
             m_value = dynamic_cast<IElement*>(new ElementJson());
             if(sizeof...(values) != 0)
                 variadicKVInputter(values...);
+            break;
+        }
+        }
+    }
+
+    __ONLY_ALLOWED_TYPES_VARIADIC__(T)
+    explicit Config(const ValueType config_type, T&& ... values) : m_value(nullptr) {
+        release();
+        switch(config_type) {
+        default:
+        case ValueType::eNull: {
+            init();
+            break;
+        }
+        case ValueType::eBool: {
+            m_value = dynamic_cast<IElement*>(new ElementBool());
+            break;
+        }
+        case ValueType::eNumber: {
+            m_value = dynamic_cast<IElement*>(new ElementNumber());
+            break;
+        }
+        case ValueType::eString: {
+            m_value = dynamic_cast<IElement*>(new ElementString());
+            break;
+        }
+        case ValueType::eArray: {
+            m_value = dynamic_cast<IElement*>(new ElementArray());
+            (void)std::initializer_list<int>{(push_back(std::move(values)), 0)...};
+            break;
+        }
+        case ValueType::eJson: {
+            m_value = dynamic_cast<IElement*>(new ElementJson());
+            if(sizeof...(values) != 0)
+                variadicKVInputter(std::move(values)...);
             break;
         }
         }
@@ -432,7 +504,8 @@ public:
     Config&         operator=(const IElement& other)        noexcept                { return setValue(other); }                 API_ALL
     Config&         operator=(IElement&& other)             noexcept                { return setValue(std::move(other)); }      API_ALL
     Config&         operator=(const bool other)             noexcept                { return setValue(other); }                 API_ALL
-    Config&         operator=(const long double& other)     noexcept                { return setValue(other); }                 API_ALL
+    __ONLY_NUMBER_TYPES__(T)
+    Config&         operator=(const T& other)               noexcept                { return setValue(static_cast<const long double&>(other)); }                 API_ALL
     Config&         operator=(long double&& other)          noexcept                { return setValue(std::move(other)); }      API_ALL
     Config&         operator=(const std::string& other)     noexcept                { return setValue(other); }                 API_ALL
     Config&         operator=(std::string&& other)          noexcept                { return setValue(std::move(other)); }      API_ALL
@@ -451,7 +524,8 @@ public:
     bool            operator!=(const Config& other)         const                   { return !isEqual(other); }                 API_ALL
     bool            operator!=(const IElement& other)       const                   { return !isEqual(other); }                 API_ALL
     bool            operator!=(const bool other)            const                   { return !isEqual(other); }                 API_ALL
-    bool            operator!=(const long double& other)    const                   { return !isEqual(other); }                 API_ALL
+    __ONLY_NUMBER_TYPES__(T)
+    bool            operator!=(const T& other)              const                   { return !isEqual(static_cast<const long double&>(other)); }                 API_ALL
     bool            operator!=(const std::string& other)    const                   { return !isEqual(other); }                 API_ALL
 
     //числа, контейнеры(размер), строки(длина в видимых символах)
