@@ -75,7 +75,9 @@ public:
     virtual bool    isIndexContainer()                          const noexcept      { return false; }
     virtual bool    isMapContainer()                            const noexcept      { return false; }
 
-    virtual bool    isEqual(const IElement& other, const bool compare_comments = false) const { return false; };
+    bool            isCommentsEqual(const IElement& other)      const noexcept      { return m_comment == other.m_comment; }
+    virtual bool    isEqual(const IElement& other, const bool compare_comments = false,
+                         const bool map_sort_important = false) const noexcept      { return false; }
 
     //числа, контейнеры(размер), строки(длина в видимых символах)
     virtual size_t  size()                                      const noexcept      { return 0; }

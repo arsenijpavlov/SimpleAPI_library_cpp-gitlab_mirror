@@ -9,6 +9,15 @@ void ElementNumber::clear() noexcept {
     m_value = 0;
 }
 
+bool ElementNumber::isEqual(const IElement &other, const bool compare_comments,
+                            const bool map_sort_important) const noexcept
+{
+    bool b1 = !compare_comments || isCommentsEqual(other);
+    bool b2 = m_value == reinterpret_cast<const ElementNumber&>(other).getValue();
+
+    return b1 && b2;
+}
+
 std::string ElementNumber::toString(const ConfigFormat format, const int8_t tabulation_level,
                                     const CommentDesign &design) const noexcept
 {

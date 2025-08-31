@@ -44,12 +44,19 @@
 //EXEPTIONS=======================================================================
 #define __INCORRECT_TYPE_EXCEPTION__(str)   throw std::invalid_argument(std::string("This Element is not a ") + #str + " type");
 
-#define __CHECK_TYPE_IS_NULL__(object)      if(!object.isNull())    __INCORRECT_TYPE_EXCEPTION__("NULL")
-#define __CHECK_TYPE_IS_BOOL__(object)      if(!object.isBool())    __INCORRECT_TYPE_EXCEPTION__("BOOL")
-#define __CHECK_TYPE_IS_NUMBER__(object)    if(!object.isNumber())  __INCORRECT_TYPE_EXCEPTION__("NUMBER")
-#define __CHECK_TYPE_IS_STRING__(object)    if(!object.isString())  __INCORRECT_TYPE_EXCEPTION__("STRING")
-#define __CHECK_TYPE_IS_ARRAY__(object)     if(!object.isArray())   __INCORRECT_TYPE_EXCEPTION__("ARRAY")
-#define __CHECK_TYPE_IS_JSON__(object)      if(!object.isJson())    __INCORRECT_TYPE_EXCEPTION__("JSON")
+#define __CHECK_TYPE_NOT_NULL_ACTION__(object)      if(!object.isNull())
+#define __CHECK_TYPE_NOT_BOOL_ACTION__(object)      if(!object.isBool())
+#define __CHECK_TYPE_NOT_NUMBER_ACTION__(object)    if(!object.isNumber())
+#define __CHECK_TYPE_NOT_STRING_ACTION__(object)    if(!object.isString())
+#define __CHECK_TYPE_NOT_ARRAY_ACTION__(object)     if(!object.isArray())
+#define __CHECK_TYPE_NOT_JSON_ACTION__(object)      if(!object.isJson())
+
+#define __CHECK_TYPE_IS_NULL__(object)      __CHECK_TYPE_NOT_NULL_ACTION__(object)      __INCORRECT_TYPE_EXCEPTION__("NULL")
+#define __CHECK_TYPE_IS_BOOL__(object)      __CHECK_TYPE_NOT_BOOL_ACTION__(object)      __INCORRECT_TYPE_EXCEPTION__("BOOL")
+#define __CHECK_TYPE_IS_NUMBER__(object)    __CHECK_TYPE_NOT_NUMBER_ACTION__(object)    __INCORRECT_TYPE_EXCEPTION__("NUMBER")
+#define __CHECK_TYPE_IS_STRING__(object)    __CHECK_TYPE_NOT_STRING_ACTION__(object)    __INCORRECT_TYPE_EXCEPTION__("STRING")
+#define __CHECK_TYPE_IS_ARRAY__(object)     __CHECK_TYPE_NOT_ARRAY_ACTION__(object)     __INCORRECT_TYPE_EXCEPTION__("ARRAY")
+#define __CHECK_TYPE_IS_JSON__(object)      __CHECK_TYPE_NOT_JSON_ACTION__(object)      __INCORRECT_TYPE_EXCEPTION__("JSON")
 
 #define __CHECK_TYPE_IS_CONTAINER__(object) if(!object.isContainer())       __INCORRECT_TYPE_EXCEPTION__("container")
 #define __CHECK_TYPE_IS_INDEX_CONTAINER__(object) \
@@ -59,8 +66,10 @@
 
 #define __CHECK_TYPE_IS_NOT_NULL__(object)  if(object.isNull()) \
                                                 throw std::invalid_argument("This element is a NULL type");
+
+#define __CHECK_TYPES_NOT_EQUAL_ACTION__(object1, object2)  if(object1.getType() != object2.getType())
 #define __CHECK_TYPES_IS_EQUAL__(object1, object2) \
-                                            if(object1.getType() != object2.getType()) \
+                                            __CHECK_TYPES_NOT_EQUAL_ACTION__(object1, object2) \
                                                 throw std::invalid_argument("Types is not equal");
 
 #define __INCORRECT_INDEX_EXCEPTION__(index) throw std::invalid_argument(std::string("Index ") + #index + " not contain an object");

@@ -186,6 +186,8 @@ public:
     // Info ============================================================================================================
     bool    isContainer()                                                       const noexcept  override    { return true; }
     bool    isMapContainer()                                                    const noexcept  override    { return true; }
+    bool    isEqual(const IElement &other, const bool compare_comments,
+                    const bool map_sort_important)                              const noexcept  override;
     size_t  size()                                                              const noexcept  override    { return m_values.size(); }
     bool    empty()                                                             const noexcept  override    { return m_values.empty(); }
     bool    contains(const std::string& key)                                    const noexcept;

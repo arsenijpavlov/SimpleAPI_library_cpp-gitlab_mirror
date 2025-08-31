@@ -307,6 +307,27 @@ void ElementArray::erase_back() {
     m_values.pop_back();
 }
 
+bool ElementArray::isEqual(const IElement &other, const bool compare_comments,
+                           const bool map_sort_important) const noexcept
+{
+    bool b1 = true;
+    if(compare_comments)
+        b1 = isCommentsEqual(other);
+
+    bool b2 = size() == other.size();
+    if(b2) {
+        const ElementArray& other_array = reinterpret_cast<const ElementArray&>(other);
+        for(size_t i = 0; i < size(); i++) {
+            if(m_values[i]->isEqual(*other_array.m_values[i], compare_comments, map_sort_important)) {
+                b2 = false;
+                break;
+            }
+        }
+    }
+
+    return b1 && b2;
+}
+
 //комментарии при поиске не учитываются
 bool ElementArray::contains(const Config &config) const noexcept {
     return std::any_of(cbegin(), cend(), [&config](const std::shared_ptr<Config> &value){ return value->isEqual(config); });

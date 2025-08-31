@@ -409,12 +409,13 @@ public:
     bool            isIndexContainer()                      const noexcept          { return m_value->isIndexContainer(); }          API_ALL
     bool            isMapContainer()                        const noexcept          { return m_value->isMapContainer(); }       API_ALL
 
-    bool            isEqual(const Config& other, const bool compare_comments = false)   const
-                                                                                    { return isEqual(*other.m_value, compare_comments); }
-    bool            isEqual(const IElement& other, const bool compare_comments = false) const;                                  API_ALL
-    bool            isEqual(const bool other)                                           const;                                  API_ALL
-    bool            isEqual(const long double& other)                                   const;                                  API_ALL
-    bool            isEqual(const std::string& other)                                   const;                                  API_ALL
+    bool            isEqual(const Config& other, const bool compare_comments = false,
+                            const bool map_sort_important = false) const noexcept   { return isEqual(*other.m_value, compare_comments, map_sort_important); }
+    bool            isEqual(const IElement& other, const bool compare_comments = false,
+                            const bool map_sort_important = false) const noexcept;                                              API_ALL
+    bool            isEqual(const bool other)                                           const noexcept;                         API_ALL
+    bool            isEqual(const long double& other)                                   const noexcept;                         API_ALL
+    bool            isEqual(const std::string& other)                                   const noexcept;                         API_ALL
 
     size_t          size()                                  const noexcept          { return m_value->size(); }                 API_ALL
     bool            isEmpty()                               const noexcept          { return size() == 0; }                     API_CONTAINER

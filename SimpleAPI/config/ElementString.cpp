@@ -12,6 +12,15 @@ void ElementString::clear() noexcept {
     m_value.clear();
 }
 
+bool ElementString::isEqual(const IElement &other, const bool compare_comments,
+                            const bool map_sort_important) const noexcept
+{
+    bool b1 = !compare_comments || isCommentsEqual(other);
+    bool b2 = m_value == reinterpret_cast<const ElementString&>(other).getValue();
+
+    return b1 && b2;
+}
+
 std::string ElementString::toString(const ConfigFormat format, const int8_t tabulation_level,
                                     const CommentDesign &design) const noexcept
 {

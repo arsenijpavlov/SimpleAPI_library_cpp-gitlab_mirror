@@ -536,6 +536,48 @@ void ElementJson::erase_at(const std::string &key) noexcept {
     erase_at(key); //FIXME: ссылка на самого себя
 }
 
+// NOTE: точно знаю, что можно ускорить, а не запрашивать каждый раз поиск по key
+bool ElementJson::isEqual(const IElement &other, const bool compare_comments,
+                          const bool map_sort_important) const noexcept
+{
+    bool b1 = true;
+    if(compare_comments)
+        b1 = isCommentsEqual(other);
+
+    bool b2 = size() == other.size();
+    if(b2) {
+        const ElementJson& other_json = reinterpret_cast<const ElementJson&>(other);
+        if(map_sort_important) {
+            for(size_t i = 0; i < size(); i++) {
+                const shared_JPair& p1 = m_values[i];
+                const shared_JPair& p2 = other_json.m_values[i];
+                if(p1.first == p2.first) {
+                    if(!p1.second->isEqual(*p2.second, compare_comments, map_sort_important)) {
+                        b2 = false;
+                        break;
+                    }
+                }
+            }
+        } else {
+            for(size_t i = 0; i < size(); i++) {
+                const shared_JPair& our = m_values[i];
+                if(other_json.contains(our.first)) {
+                    const Config& other_config = other_json.get_at(our.first);
+                    if(!our.second->isEqual(other_config, compare_comments, map_sort_important)) {
+                        b2 = false;
+                        break;
+                    }
+                } else {
+                    b2 = false;
+                    break;
+                }
+            }
+        }
+    }
+
+    return b1 && b2;
+}
+
 bool ElementJson::contains(const std::string &key) const noexcept {
     return std::any_of(cbegin(), cend(),
                        [&key](const shared_JPair &pair){ return pair.first == key; });

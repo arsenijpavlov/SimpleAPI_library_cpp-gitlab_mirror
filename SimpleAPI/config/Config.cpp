@@ -888,23 +888,29 @@ Config& Config::insert_after(const std::string& after_key, const std::string& ke
     return *this;
 }
 
-bool Config::isEqual(const IElement &other, const bool compare_comments) const {
-    __CHECK_TYPES_IS_EQUAL__((*m_value), other)
-    return m_value->isEqual(other, compare_comments);
+bool Config::isEqual(const IElement &other, const bool compare_comments,
+                     const bool map_sort_important) const noexcept
+{
+    __CHECK_TYPES_NOT_EQUAL_ACTION__((*m_value), other)
+        return false;
+    return m_value->isEqual(other, compare_comments, map_sort_important);
 }
 
-bool Config::isEqual(const bool other) const {
-    __CHECK_TYPE_IS_BOOL__((*this))
+bool Config::isEqual(const bool other) const noexcept {
+    __CHECK_TYPE_NOT_BOOL_ACTION__((*this))
+        return false;
     return dynamic_cast<const ElementBool*>(m_value)->getValue() == other;
 }
 
-bool Config::isEqual(const long double &other) const {
-    __CHECK_TYPE_IS_NUMBER__((*this))
+bool Config::isEqual(const long double &other) const noexcept {
+    __CHECK_TYPE_NOT_NUMBER_ACTION__((*this))
+        return false;
     return dynamic_cast<const ElementNumber*>(m_value)->getValue() == other;
 }
 
-bool Config::isEqual(const std::string &other) const {
-    __CHECK_TYPE_IS_STRING__((*this))
+bool Config::isEqual(const std::string &other) const noexcept {
+    __CHECK_TYPE_NOT_STRING_ACTION__((*this))
+        return false;
     return dynamic_cast<const ElementString*>(m_value)->getValue() == other;
 }
 

@@ -32,6 +32,8 @@ public:
 
     // Info ============================================================================================================
     //длина в видимых символах
+    bool            isEqual(const IElement &other, const bool compare_comments,
+                            const bool map_sort_important)  const noexcept  override;
     size_t          size()                                  const noexcept  override    { return utils::GetStringCharCount(m_value); }
     // ============================================================================================================ Info
 
