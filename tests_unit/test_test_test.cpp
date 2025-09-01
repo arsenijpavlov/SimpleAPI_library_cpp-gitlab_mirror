@@ -16,11 +16,11 @@ int main(int argc, char **argv)
 
 //========================================================================================
 
-//TEST(COMMENT, default_wrappers) {
-//    EXPECT_EQ("//", GetOnelineCommentStr(CommentDesign()));
-//    EXPECT_EQ("/*", GetMultilineCommentStartStr(CommentDesign()));
-//    EXPECT_EQ("*/", GetMultilineCommentStopStr(CommentDesign()));
-//}
+TEST(COMMENT, default_wrappers) {
+    EXPECT_EQ("//", GetOnelineCommentStr(CommentDesign()));
+    EXPECT_EQ("/*", GetMultilineCommentStartStr(CommentDesign()));
+    EXPECT_EQ("*/", GetMultilineCommentStopStr(CommentDesign()));
+}
 
 TEST(COMMENT, tabulation_level) {
     EXPECT_EQ("\t// asd", ToComment("asd", CommentDesign(), 1));

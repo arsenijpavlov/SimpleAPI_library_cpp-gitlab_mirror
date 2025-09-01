@@ -185,7 +185,7 @@ Comment& Comment::operator=(const std::string&& prefix_comment) noexcept {
 }
 
 //только для to_string(design)
-//FIXME: @TEST(COMMENT, default_wrappers)
+// @TEST(COMMENT, default_wrappers)
 std::string GetOnelineCommentStr(const CommentDesign& design) noexcept {
     if(design.oneline_comment_variants.empty())
         return "";
@@ -193,7 +193,7 @@ std::string GetOnelineCommentStr(const CommentDesign& design) noexcept {
 }
 
 //только для to_string(design)
-//FIXME: @TEST(COMMENT, default_wrappers)
+// @TEST(COMMENT, default_wrappers)
 std::string GetMultilineCommentStartStr(const CommentDesign& design) noexcept {
     if(design.multiline_comment_variants.empty())
         return "";
@@ -201,11 +201,11 @@ std::string GetMultilineCommentStartStr(const CommentDesign& design) noexcept {
         return std::to_string(design.multiline_comment_variants.front()[0]);
     }
     return std::string(design.multiline_comment_variants.front().cbegin(),
-                       design.oneline_comment_variants.front().cbegin() + 2);
+                       design.multiline_comment_variants.front().cbegin() + 2);
 }
 
 //только для to_string(design)
-//FIXME: @TEST(COMMENT, default_wrappers)
+// @TEST(COMMENT, default_wrappers)
 std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept {
     if(design.multiline_comment_variants.front()[1] == 0) {
         uint8_t index = design.multiline_comment_variants.front()[2] == 0 ? 0 : 2;
