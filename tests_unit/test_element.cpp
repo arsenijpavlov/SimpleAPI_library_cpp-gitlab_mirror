@@ -131,17 +131,18 @@ TEST(ELEMENT, not_compare_all_types) {
     Config el_num(15.0);
     ASSERT_EQ(el_num.getType(), ValueType::eNumber);
     ASSERT_TRUE(el_num.isNumber());
-    EXPECT_EQ(el_num, Config(ValueType::eNumber));
+    EXPECT_EQ(el_num, 15.0);
 
     Config el_bool(true);
     ASSERT_EQ(el_bool.getType(), ValueType::eBool);
     ASSERT_TRUE(el_bool.isBool());
-    EXPECT_EQ(el_bool, Config(ValueType::eBool));
+    EXPECT_EQ(el_bool, true);
 
     Config el_string("true");
     ASSERT_EQ(el_string.getType(), ValueType::eString);
     ASSERT_TRUE(el_string.isString());
-    EXPECT_EQ(el_string, Config(ValueType::eString));
+    EXPECT_EQ(el_string, "true");
+    EXPECT_EQ(el_string, std::string("true"));
 
     Config el_json(ValueType::eJson);
     ASSERT_EQ(el_json.getType(), ValueType::eJson);
