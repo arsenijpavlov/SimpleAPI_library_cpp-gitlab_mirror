@@ -190,9 +190,11 @@ std::string GetOnelineCommentStr(const CommentDesign& design) noexcept {
     if(design.oneline_comment_variants.empty())
         return "";
     if(design.oneline_comment_variants.front()[1] == 0)
-        return std::string(design.oneline_comment_variants.front().data(), 1);
+        return std::string(design.oneline_comment_variants.front().cbegin(),
+                           design.oneline_comment_variants.front().cbegin() + 1);
     else
-        return std::string(design.oneline_comment_variants.front().cbegin(), design.oneline_comment_variants.front().cend());
+        return std::string(design.oneline_comment_variants.front().cbegin(),
+                           design.oneline_comment_variants.front().cend());
 }
 
 //только для to_string(design)
@@ -213,13 +215,13 @@ std::string GetMultilineCommentStartStr(const CommentDesign& design) noexcept {
 std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept {
     if(design.multiline_comment_variants.front()[1] == 0) {
         uint8_t index = design.multiline_comment_variants.front()[2] == 0 ? 0 : 2;
-        return std::to_string(design.multiline_comment_variants.front()[index]);
+        return std::string((char*)&design.multiline_comment_variants.front().at(index));
     }
 
     uint8_t index = design.multiline_comment_variants.front()[2] == 0 ? 0 : 2;
     std::stringstream ss;
-    ss << design.multiline_comment_variants.front()[1];
-    ss << design.multiline_comment_variants.front()[index];
+    ss << (char)design.multiline_comment_variants.front()[1];
+    ss << (char)design.multiline_comment_variants.front()[index];
 
     return ss.str();
 }
@@ -342,11 +344,15 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
 
             // выставить знаки горизонтальных границ
             std::string multiline_comment_symbols = GetMultilineCommentStartStr(design);
-            temp = multiline_comment_symbols + RepeatSymToStr(design.opt_multiline_border, max);
+            temp = multiline_comment_symbols
+                   + RepeatSymToStr(design.opt_multiline_border,
+                                    max + (multiline_comment_symbols.size() == 2 ? 0 : 1));
             result_lines.insert(result_lines.cbegin(), temp);
 
             multiline_comment_symbols = GetMultilineCommentStopStr(design);
-            temp = RepeatSymToStr(design.opt_multiline_border, max) + multiline_comment_symbols;
+            temp = RepeatSymToStr(design.opt_multiline_border,
+                                  max + (multiline_comment_symbols.size() == 2 ? 0 : 1))
+                   + multiline_comment_symbols;
             result_lines.push_back(temp);
         } else {
             std::transform(result_lines.begin(), result_lines.end(),
