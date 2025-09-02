@@ -896,6 +896,18 @@ Config& Config::insert_after(const std::string& after_key, const std::string& ke
     return *this;
 }
 
+Config &Config::append(const Config &config) {
+    //TODO: Config::append()
+
+    return *this;
+}
+
+Config &Config::append(Config &&config) {
+    //TODO: Config::append()
+
+    return *this;
+}
+
 bool Config::isEqual(const IElement &other, const bool compare_comments,
                      const bool map_sort_important) const noexcept
 {

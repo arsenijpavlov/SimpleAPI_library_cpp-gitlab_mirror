@@ -71,19 +71,19 @@ TEST(JSON, copy) {
     EXPECT_EQ(j1.size(), j2.size());
 }
 
-//TEST(JSON, append_json) {
-//    Config j1(ValueType::eJson, "asd", "asd");
-//    uint8_t pre_size = j1.size();
+TEST(JSON, append_json) {
+    Config j1(ValueType::eJson, "asd", "asd");
+    uint8_t pre_size = j1.size();
 
-//    Config j2(ValueType::eJson);
-//    j2.push_at("num1", 15);
-//    j2.push_at("num2", 1.5);
-//    j2.push_at("bool", true);
+    Config j2(ValueType::eJson);
+    j2.push_at("num1", 15);
+    j2.push_at("num2", 1.5);
+    j2.push_at("bool", true);
 
-//    j1.append(j2);
+    j1.append(j2);
 
-//    EXPECT_EQ(pre_size + j2.size(), j1.size());
-//}
+    EXPECT_EQ(pre_size + j2.size(), j1.size());
+}
 
 TEST(JSON, parse) {
     std::string string_json = json_string_example;
