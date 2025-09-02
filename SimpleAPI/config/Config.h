@@ -175,7 +175,7 @@ public:
 private:
     //создание ПУСТОГО(NULL) элемента
     void init()                                                     noexcept    { setValue(); }
-    void release()                                                  noexcept    { if(m_value != nullptr) delete m_value; }
+    void release()                                                  noexcept;
 
     __ONLY_ALLOWED_TYPES_VARIADIC__(T)
     void variadicKVInputter(const std::string& key, const Config& config, const T& ... others) {

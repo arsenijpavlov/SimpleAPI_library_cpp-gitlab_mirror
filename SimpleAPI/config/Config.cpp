@@ -12,6 +12,14 @@
 #include <regex>
 
 
+void Config::release() noexcept {
+    if(m_value != nullptr)
+    {
+        delete m_value;
+        m_value = nullptr;
+    }
+}
+
 Config &Config::addComment(const Comment &content) noexcept {
     m_value->addComment(content);
     return *this;

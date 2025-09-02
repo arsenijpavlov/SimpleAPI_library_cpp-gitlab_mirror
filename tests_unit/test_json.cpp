@@ -61,53 +61,53 @@ std::string json_string_example = std::string(
     );
 
 
-//TEST(JSON, copy) {
-//    Config j1(std::vector<std::pair<std::string, Config>>{
-//               std::make_pair("asd", Config("123"))
-//    });
-//    j1.push_at("asa", "asdd");
-//    Config j2 = j1;
+TEST(JSON, copy) {
+    Config j1(std::vector<std::pair<std::string, Config>>{
+               std::make_pair("asd", Config("123"))
+    });
+    j1.push_at("asa", "asdd");
+    Config j2 = j1;
 
-//    EXPECT_EQ(j1.size(), j2.size());
-//}
+    EXPECT_EQ(j1.size(), j2.size());
+}
 
 //TEST(JSON, append_json) {
-//    Json j1("asd", "asd");
+//    Config j1(ValueType::eJson, "asd", "asd");
 //    uint8_t pre_size = j1.size();
 
-//    Json j2;
-//    j2.put("num1", 15);
-//    j2.put("num2", 1.5);
-//    j2.put("bool", true);
+//    Config j2(ValueType::eJson);
+//    j2.push_at("num1", 15);
+//    j2.push_at("num2", 1.5);
+//    j2.push_at("bool", true);
 
 //    j1.append(j2);
 
 //    EXPECT_EQ(pre_size + j2.size(), j1.size());
 //}
 
-//TEST(JSON, parse) {
-//    std::string string_json = json_string_example;
-//    Json json;
-//    json.parseJSON(string_json);
+TEST(JSON, parse) {
+    std::string string_json = json_string_example;
+    Config json;
+    json.parseJson(string_json);
 
-//    EXPECT_EQ(7, json.size());
-//    EXPECT_EQ(182, json["number"].getNum());
-//    EXPECT_EQ(true, json["bool"].getBool());
-//    EXPECT_EQ(ValueType::eNull, json["null"].first);
-//    EXPECT_EQ(ValueType::eNull, json["null2"].first);
-//    EXPECT_EQ("string_value", json["string"].getString());
+    EXPECT_EQ(7, json.size());
+    EXPECT_EQ(182, json["number"].getNumber());
+    EXPECT_EQ(true, json["bool"].getBool());
+    EXPECT_EQ(ValueType::eNull, json["null"].getType());
+    EXPECT_EQ(ValueType::eNull, json["null2"].getType());
+    EXPECT_EQ("string_value", json["string"].getString());
 
-//    EXPECT_EQ(2, json["json"].getJson().size());
-//    EXPECT_EQ("inner_string_value", json["json"].getJson()["string"].getString());
+    EXPECT_EQ(2, json["json"].size());
+    EXPECT_EQ("inner_string_value", json["json"]["string"].getString());
 
-//    EXPECT_EQ(2, json["array"].getArray().size());
-//    EXPECT_EQ("string_value", json["array"].getArray()[0].getString());
-//    EXPECT_EQ(true, json["array"].getArray()[1].getBool());
+    EXPECT_EQ(2, json["array"].size());
+    EXPECT_EQ("string_value", json["array"][0].getString());
+    EXPECT_EQ(true, json["array"][1].getBool());
 
-//    //повторная обработка (очистка, новое заполнение)
-//    json.parseJSON(string_json);
-//    EXPECT_EQ(7, json.size());
-//}
+    //повторная обработка (очистка, новое заполнение)
+    json.parseJson(string_json);
+    EXPECT_EQ(7, json.size());
+}
 
 //TEST(JSON, parse2) {
 //    std::string string_json = R"({"get":["chip_key"]})";
