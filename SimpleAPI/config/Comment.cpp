@@ -189,7 +189,10 @@ Comment& Comment::operator=(const std::string&& prefix_comment) noexcept {
 std::string GetOnelineCommentStr(const CommentDesign& design) noexcept {
     if(design.oneline_comment_variants.empty())
         return "";
-    return std::string(design.oneline_comment_variants.front().cbegin());
+    if(design.oneline_comment_variants.front()[1] == 0)
+        return std::string(design.oneline_comment_variants.front().data(), 1);
+    else
+        return std::string(design.oneline_comment_variants.front().cbegin(), design.oneline_comment_variants.front().cend());
 }
 
 //только для to_string(design)
@@ -198,7 +201,8 @@ std::string GetMultilineCommentStartStr(const CommentDesign& design) noexcept {
     if(design.multiline_comment_variants.empty())
         return "";
     if(design.multiline_comment_variants.front()[1] == 0) {
-        return std::to_string(design.multiline_comment_variants.front()[0]);
+        return std::string(design.multiline_comment_variants.front().cbegin(),
+                           design.multiline_comment_variants.front().cbegin() + 1);
     }
     return std::string(design.multiline_comment_variants.front().cbegin(),
                        design.multiline_comment_variants.front().cbegin() + 2);
@@ -220,6 +224,7 @@ std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept {
     return ss.str();
 }
 
+// @TEST(COMMENT, tabulation_level)
 std::string ToComment(const std::string &comment, const CommentDesign& design,
                       const int8_t tabulation_level) noexcept
 {
@@ -310,13 +315,17 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
 
     switch(result_lines.size()) {
     case 0: return "";
-    case 1: return RepeatSymToStr('\t', tabulation_level) + GetOnelineCommentStr(design) + " " + result_lines[0];
+    case 1: {
+        return RepeatSymToStr('\t', tabulation_level)
+               + GetOnelineCommentStr(design) + " " + result_lines[0];
+    }
     default: {
         size_t max = 0;
         for(std::string& s : result_lines) {
             size_t size = GetStringCharCount(s);
             if(max < size) max = size;
         }
+        max = design.opt_multiline_column_size > max ? design.opt_multiline_column_size : max;
 
         // (м, если BORDER не 0) ============================
         if(design.opt_multiline_border) {
@@ -324,25 +333,24 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
             for(std::string& s : result_lines) {
                 std::stringstream ss;
                 // учесть: B_COMMENTSTRING_B
-                ss << design.opt_multiline_border << " "
-                   << logs::columned(s, max)
-                   << " " << design.opt_multiline_border;
+                ss << design.opt_multiline_border
+                   << " "
+                   << logs::columned(s, max - 1) //-1 засчёт пробела в начале
+                   << design.opt_multiline_border;
                 s = ss.str();
             }
 
             // выставить знаки горизонтальных границ
-            temp = RepeatSymToStr(design.opt_multiline_border, max + 4);
+            std::string multiline_comment_symbols = GetMultilineCommentStartStr(design);
+            temp = multiline_comment_symbols + RepeatSymToStr(design.opt_multiline_border, max);
             result_lines.insert(result_lines.cbegin(), temp);
-            result_lines.front()[0] = GetMultilineCommentStartStr(design)[0];
-            result_lines.front()[1] = GetMultilineCommentStartStr(design)[1];
 
+            multiline_comment_symbols = GetMultilineCommentStopStr(design);
+            temp = RepeatSymToStr(design.opt_multiline_border, max) + multiline_comment_symbols;
             result_lines.push_back(temp);
-            result_lines.back()[result_lines.back().size() - 2] = GetMultilineCommentStopStr(design)[0];
-            result_lines.back()[result_lines.back().size() - 1] = GetMultilineCommentStopStr(design)[1];
         } else {
-            std::transform(result_lines.begin(), result_lines.end(), result_lines.begin(), [&max](const std::string& s){
-                return logs::columned(s, max);
-            });
+            std::transform(result_lines.begin(), result_lines.end(),
+                           result_lines.begin(), [&max](const std::string& s) { return logs::columned(s, max); });
             result_lines.front() = GetMultilineCommentStartStr(design) + " " + result_lines.front();
             for(size_t i = 1; i < result_lines.size(); i++)
                 result_lines[i] = " " + result_lines[i];
