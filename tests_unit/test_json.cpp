@@ -87,8 +87,10 @@ TEST(JSON, append_json) {
 
 TEST(JSON, parse) {
     std::string string_json = json_string_example;
+    std::string string_json2 = json_string_example;
     Config json;
-    json.parseJson(string_json);
+//    json.parseJson(string_json);
+    json = Config::CreateElementFromString(std::move(string_json), ConfigFormat::eJSON);
 
     EXPECT_EQ(7, json.size());
     EXPECT_EQ(182, json["number"].getNumber());
@@ -105,7 +107,7 @@ TEST(JSON, parse) {
     EXPECT_EQ(true, json["array"][1].getBool());
 
     //повторная обработка (очистка, новое заполнение)
-    json.parseJson(string_json);
+    json.parseJson(string_json2);
     EXPECT_EQ(7, json.size());
 }
 

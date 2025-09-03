@@ -1115,6 +1115,7 @@ bool Config::writeFileIni(const std::string &file_path, const bool with_comments
 Config &Config::parse(const std::string &content, const ConfigFormat format,
                       const bool with_comments, std::string *error_log)
 {
+//FIXME: Config::parse()
     release();
     *this = Parse(content, format, with_comments, error_log);
     return *this;
@@ -1123,6 +1124,7 @@ Config &Config::parse(const std::string &content, const ConfigFormat format,
 Config &Config::parseArray(const std::string &content, const bool with_comments,
                            const int8_t tabulation_level, std::string* error_log)
 {
+//FIXME: Config::parseArray()
     release();
     *this = ParseArray(content, with_comments, tabulation_level, error_log);
     return *this;
@@ -1131,14 +1133,17 @@ Config &Config::parseArray(const std::string &content, const bool with_comments,
 Config &Config::parseJson(const std::string &content, const bool with_comments,
                           const int8_t tabulation_level, std::string* error_log)
 {
+    //FIXME: Config::parseJson()
     release();
-    *this = ParseJson(content, with_comments, tabulation_level, error_log);
+    m_value = new ElementJson(content, ConfigFormat::eJSON, with_comments);
+//        ParseJson(content, with_comments, tabulation_level, error_log);
     return *this;
 }
 
 Config &Config::parseIni(const std::string &content, const bool with_comments,
                          const int8_t tabulation_level, std::string* error_log)
 {
+//FIXME: Config::parseIni()
     release();
     *this = ParseIni(content, with_comments, tabulation_level, error_log);
     return *this;
@@ -1339,8 +1344,10 @@ Config ParseArray(const std::string &content, const bool with_comments,
 Config ParseJson(const std::string &content, const bool with_comments,
                  const int8_t tabulation_level, std::string* error_log)
 {
-    //TODO: ParseJson
-    return {};
+    Config ret(ValueType::eJson);
+    ret.parseJson(content, with_comments, tabulation_level, error_log);
+
+    return ret;
 }
 
 Config ParseIni(const std::string &content, const bool with_comments,

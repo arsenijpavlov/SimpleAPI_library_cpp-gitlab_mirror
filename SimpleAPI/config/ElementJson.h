@@ -19,7 +19,8 @@ public:
     explicit ElementJson(const std::string& input_string, const ConfigFormat config_format = ConfigFormat::eJSON,
                 const bool enable_comment = false) noexcept {
         init();
-        IElementContainer::parse(input_string, config_format, enable_comment);
+        //FIXME: call to virtual method during construction
+        parse(input_string, config_format, enable_comment);
     }
     __ONLY_ALLOWED_TYPES__(T)
     explicit ElementJson(const std::string& key, const T& value) noexcept {
