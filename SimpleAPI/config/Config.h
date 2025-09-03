@@ -444,7 +444,7 @@ public:
                        T&& other)                                       { return insert_after(after_key, key, std::move(Config(other))); }  API_MAP_CONTAINER
 
     //добавить существующий список к другому списку (только при совместимости списков)
-    Config& append(const Config& config);                                                                                       API_CONTAINER
+    Config& append(const Config& config);                   API_CONTAINER
     Config& append(Config&& config);                                                                                            API_CONTAINER
     // ========================================================================================================== Adding
 

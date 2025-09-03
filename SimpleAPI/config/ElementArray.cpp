@@ -254,6 +254,16 @@ void ElementArray::insert_back(VElement &&elements) noexcept {
                    });
 }
 
+void ElementArray::append(const ElementArray &other) noexcept {
+    ElementArray array_copy(other);
+    append(std::move(array_copy));
+}
+
+void ElementArray::append(ElementArray &&other) noexcept {
+    for(auto& o : other)
+        insert_back(std::move(o));
+}
+
 void ElementArray::append_null(size_t size) noexcept {
     for(size_t i = size; i > 0; --i)
         m_values.push_back(std::make_shared<Config>());

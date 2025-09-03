@@ -104,6 +104,9 @@ public:
                 (void)std::initializer_list<int>{(insert_back(std::forward<Args>(args)), 0)...};
             }
 
+    void    append(const ElementArray& other)                           noexcept;
+    void    append(ElementArray&& other)                                noexcept;
+
     //другое имя для тех же действий
     void    push_front(const Config& value)                             noexcept                    { insert_front(value); }
     void    push_front(Config&& value)                                  noexcept                    { insert_front(std::move(value)); }

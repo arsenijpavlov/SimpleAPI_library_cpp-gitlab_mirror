@@ -897,13 +897,27 @@ Config& Config::insert_after(const std::string& after_key, const std::string& ke
 }
 
 Config &Config::append(const Config &config) {
-    //TODO: Config::append()
-
-    return *this;
+    Config cfg_copy(config);
+    return append(std::move(cfg_copy));
 }
 
 Config &Config::append(Config &&config) {
-    //TODO: Config::append()
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    __CHECK_TYPES_IS_EQUAL__((*this), config)
+
+    switch(getType()) {
+    case ValueType::eArray: {
+        dynamic_cast<ElementArray*>(m_value)->append(std::move(dynamic_cast<ElementArray&&>(std::move(*config.m_value))));
+        break;
+    }
+    case ValueType::eJson: {
+        dynamic_cast<ElementJson*>(m_value)->append(std::move(dynamic_cast<ElementJson&&>(std::move(*config.m_value))));
+        break;
+    }
+    default: throw std::invalid_argument("Config::append(): unexpected type of config: " + ToString(config.getType()));
+    }
+
+    return *this;
 
     return *this;
 }

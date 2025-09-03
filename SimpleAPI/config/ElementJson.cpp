@@ -474,6 +474,16 @@ void ElementJson::insert_back(VPairElement &&elements) noexcept {
                    });
 }
 
+void ElementJson::append(const ElementJson &other) noexcept {
+    ElementJson json_copy(other);
+    append(std::move(json_copy));
+}
+
+void ElementJson::append(ElementJson &&other) noexcept {
+    for(auto& o : other)
+        insert_at(o.first, *o.second);
+}
+
 void ElementJson::pop_front() {
     m_values.erase(cbegin());
 }

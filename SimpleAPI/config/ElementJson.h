@@ -160,6 +160,9 @@ public:
                 (void)std::initializer_list<int>{(insert_back(std::forward<std::pair<std::string, Value>>(pairs)), 0)...};
             }
 
+    void    append(const ElementJson& other)                                    noexcept;
+    void    append(ElementJson&& other)                                         noexcept;
+
     //другое имя для тех же действий
     void    push_front(const std::string& key, const Config& value)             noexcept        { insert_front(key, value); }
     void    push_front(const std::string& key, Config&& value)                  noexcept        { insert_front(key, std::move(value)); }
