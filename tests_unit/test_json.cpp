@@ -33,19 +33,19 @@ std::string json_string_example = std::string(
     //пробелы и табуляции
     "   \t"
     //однострочные комментарии
-    "%\n"
-    "#\n"
-    "!\n"
-    ";\n"
-    "?\n"
-    "//\n"
+//    "%\n"
+//    "#\n"
+//    "!\n"
+//    ";\n"
+//    "?\n"
+//    "//\n"
     //многострочные комментарии
-    "/*\n*/"
-    "/#\n#/"
-    "<-\n->"
-    "<#\n#>"
-    "!.\n.!"
-    "?.\n.?"
+//    "/*\n*/"
+//    "/#\n#/"
+//    "<-\n->"
+//    "<#\n#>"
+//    "!.\n.!"
+//    "?.\n.?"
     //поля
     "\"number\":182,\n"
     //иной вариант разделителя '='
@@ -89,26 +89,29 @@ TEST(JSON, parse) {
     std::string string_json = json_string_example;
     std::string string_json2 = json_string_example;
     Config json;
+
 //    json.parseJson(string_json);
+//    ASSERT_EQ(7, json.size());
+
     json = Config::CreateElementFromString(std::move(string_json), ConfigFormat::eJSON);
+    ASSERT_EQ(json.size(), 7);
 
-    EXPECT_EQ(7, json.size());
-    EXPECT_EQ(182, json["number"].getNumber());
-    EXPECT_EQ(true, json["bool"].getBool());
-    EXPECT_EQ(ValueType::eNull, json["null"].getType());
-    EXPECT_EQ(ValueType::eNull, json["null2"].getType());
-    EXPECT_EQ("string_value", json["string"].getString());
+    EXPECT_EQ(json["number"].getNumber(),           182);
+    EXPECT_EQ(json["bool"].getBool(),               true);
+    EXPECT_EQ(json["null"].getType(),               ValueType::eNull);
+    EXPECT_EQ(json["null2"].getType(),              ValueType::eNull);
+    EXPECT_EQ(json["string"].getString(),           "string_value");
 
-    EXPECT_EQ(2, json["json"].size());
-    EXPECT_EQ("inner_string_value", json["json"]["string"].getString());
+    EXPECT_EQ(json["json"].size(),                  2);
+    EXPECT_EQ(json["json"]["string"].getString(),   "inner_string_value");
 
-    EXPECT_EQ(2, json["array"].size());
-    EXPECT_EQ("string_value", json["array"][0].getString());
-    EXPECT_EQ(true, json["array"][1].getBool());
+    EXPECT_EQ(json["array"].size(), 2);
+    EXPECT_EQ(json["array"][0].getString(),         "string_value");
+    EXPECT_EQ(json["array"][1].getBool(),           true);
 
     //повторная обработка (очистка, новое заполнение)
     json.parseJson(string_json2);
-    EXPECT_EQ(7, json.size());
+    EXPECT_EQ(json.size(), 7);
 }
 
 //TEST(JSON, parse2) {

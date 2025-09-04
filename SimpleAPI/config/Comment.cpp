@@ -36,10 +36,7 @@ Comment::Comment(const std::string &comment_before, const std::string &comment_a
 }
 
 Comment::~Comment() noexcept {
-    if(m_prefix) delete m_prefix;
-    if(m_suffix) delete m_suffix;
-
-    if(m_comment_design) delete m_comment_design;
+    del();
 }
 
 bool Comment::isEmpty() const noexcept {
@@ -93,30 +90,46 @@ void Comment::setSuffix(const std::string &comment) noexcept {
 }
 
 void Comment::clear() noexcept {
-    m_prefix->clear();
-    m_suffix->clear();
+    clearPrefix();
+    clearSuffix();
+    clearDesign();
 }
 
 void Comment::clearPrefix() noexcept {
-    m_prefix->clear();
+    if(m_prefix)
+        m_prefix->clear();
 }
 
 void Comment::clearSuffix() noexcept {
-    m_suffix->clear();
+    if(m_suffix)
+        m_suffix->clear();
 }
 
 void Comment::del() noexcept {
-    if(m_prefix) delete m_prefix;
-    if(m_suffix) delete m_suffix;
-    if(m_comment_design) delete m_comment_design;
+    delPrefix();
+    delSuffix();
+    delCommentDesign();
 }
 
 void Comment::delPrefix() noexcept {
-    if(m_prefix) delete m_prefix;
+    if(m_prefix) {
+        delete m_prefix;
+        m_prefix = nullptr;
+    }
 }
 
 void Comment::delSuffix() noexcept {
-    if(m_suffix) delete m_suffix;
+    if(m_suffix) {
+        delete m_suffix;
+        m_suffix = nullptr;
+    }
+}
+
+void Comment::delCommentDesign() noexcept {
+    if(m_comment_design) {
+        delete m_comment_design;
+        m_comment_design = nullptr;
+    }
 }
 
 CommentDesign &Comment::commentDesign() noexcept {
@@ -138,7 +151,7 @@ void Comment::setDesign(const CommentDesign &design) noexcept {
 }
 
 void Comment::clearDesign() noexcept {
-    if(m_comment_design) delete m_comment_design;
+    delCommentDesign();
 }
 
 //TODO: исправить. Не работает.

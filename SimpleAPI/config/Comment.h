@@ -113,6 +113,7 @@ public:
     void del()                                                                                  noexcept;
     void delPrefix()                                                                            noexcept;
     void delSuffix()                                                                            noexcept;
+    void delCommentDesign()                                                                     noexcept;
 
     //Оформление комментариев при выводе в файл -----------------------------------
     //NOTE: выделит память, если nullptr

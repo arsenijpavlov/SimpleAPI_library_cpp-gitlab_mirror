@@ -3,6 +3,7 @@
 
 #include "ConfigDefines.h"
 #include "ElementArray.h"
+#include <iostream>
 
 
 class ElementJson : public IElementContainer {
@@ -18,9 +19,15 @@ public:
     explicit ElementJson(const JPair& pair)                                     noexcept;
     explicit ElementJson(const std::string& input_string, const ConfigFormat config_format = ConfigFormat::eJSON,
                 const bool enable_comment = false) noexcept {
-        init();
-        //FIXME: call to virtual method during construction
-        parse(input_string, config_format, enable_comment);
+        ElementJson temp;
+        temp.init();
+        try {
+            temp.parse(input_string, config_format, enable_comment);
+        } catch (std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+
+        *this = std::move(temp);
     }
     __ONLY_ALLOWED_TYPES__(T)
     explicit ElementJson(const std::string& key, const T& value) noexcept {
