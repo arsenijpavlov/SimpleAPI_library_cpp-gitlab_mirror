@@ -7,28 +7,33 @@
 #include <algorithm>
 
 
-Comment::Comment() noexcept {
-    m_prefix = nullptr;
-    m_suffix = nullptr;
 
-    m_comment_design = nullptr;
-}
 
-Comment::Comment(const Comment &other) noexcept {
+Comment::Comment() noexcept
+    : m_prefix(nullptr), m_suffix(nullptr), m_comment_design(nullptr)
+{}
+
+Comment::Comment(const Comment &other) noexcept
+    : m_prefix(nullptr), m_suffix(nullptr), m_comment_design(nullptr)
+{
     if(this != &other) {
         set(other.prefix(), other.suffix());
         setDesign(other.commentDesign());
     }
 }
 
-Comment::Comment(const Comment &&other) noexcept {
+Comment::Comment(const Comment &&other) noexcept
+    : m_prefix(nullptr), m_suffix(nullptr), m_comment_design(nullptr)
+{
     if(this != &other) {
         set(other.prefix(), other.suffix());
         setDesign(other.commentDesign());
     }
 }
 
-Comment::Comment(const std::string &comment_before, const std::string &comment_after) noexcept {
+Comment::Comment(const std::string &comment_before, const std::string &comment_after) noexcept
+    : m_prefix(nullptr), m_suffix(nullptr), m_comment_design(nullptr)
+{
     m_prefix = (comment_before.empty()) ? nullptr : new std::string(comment_before);
     m_suffix = (comment_after.empty()) ? nullptr : new std::string(comment_after);
 

@@ -81,7 +81,7 @@ public:
     CommentDesign(const CommentDesign& other)
     {
         if(this != &other) {
-            opt_multiline_border        = other.opt_multiline_border;
+            opt_multiline_border        = (uint8_t)other.opt_multiline_border;
             opt_multiline_column_size   = other.opt_multiline_column_size;
             temp_type                   = other.temp_type;
             temp_multiline_schema       = other.temp_multiline_schema;
@@ -93,7 +93,7 @@ public:
     CommentDesign(CommentDesign&& other)
     {
         if(this != &other) {
-            opt_multiline_border        = std::move(other.opt_multiline_border);
+            opt_multiline_border        = std::move((uint8_t)other.opt_multiline_border);
             opt_multiline_column_size   = std::move(other.opt_multiline_column_size);
             temp_type                   = std::move(other.temp_type);
             temp_multiline_schema       = std::move(other.temp_multiline_schema);
@@ -104,7 +104,7 @@ public:
 
     CommentDesign operator=(const CommentDesign& other) {
         if(this != &other) {
-            opt_multiline_border        = other.opt_multiline_border;
+            opt_multiline_border        = (uint8_t)other.opt_multiline_border;
             opt_multiline_column_size   = other.opt_multiline_column_size;
             temp_type                   = other.temp_type;
             temp_multiline_schema       = other.temp_multiline_schema;
@@ -116,7 +116,7 @@ public:
 
     CommentDesign operator=(CommentDesign&& other) {
         if(this != &other) {
-            opt_multiline_border        = std::move(other.opt_multiline_border);
+            opt_multiline_border        = std::move((uint8_t)other.opt_multiline_border);
             opt_multiline_column_size   = std::move(other.opt_multiline_column_size);
             temp_type                   = std::move(other.temp_type);
             temp_multiline_schema       = std::move(other.temp_multiline_schema);
