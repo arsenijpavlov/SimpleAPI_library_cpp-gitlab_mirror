@@ -35,7 +35,8 @@ enum class CommentType : uint8_t {
 };
 //#define DEFAULT_COMMENT_COLUMN_SIZE 50
 
-struct CommentDesign {
+class CommentDesign {
+public:
     // применяется ТОЛЬКО для многострочных комментариев, по умолчанию не используются
     char    opt_multiline_border;
     uint8_t opt_multiline_column_size;
@@ -69,10 +70,60 @@ struct CommentDesign {
         opt_multiline_border(0),
         opt_multiline_column_size(0),
         temp_type(CommentType::eNotComment),
-        temp_multiline_schema{}
+        temp_multiline_schema{},
+        oneline_comment_variants{},
+        multiline_comment_variants{}
     {
         oneline_comment_variants.push_back({'/', '/'});         // {#,0} - второй символ 0 -> один символ уже комментирует
         multiline_comment_variants.push_back({'/', '*', 0});    // 0 - завершающий символ повторяет первый
+    }
+
+    CommentDesign(const CommentDesign& other)
+    {
+        if(this != &other) {
+            opt_multiline_border        = other.opt_multiline_border;
+            opt_multiline_column_size   = other.opt_multiline_column_size;
+            temp_type                   = other.temp_type;
+            temp_multiline_schema       = other.temp_multiline_schema;
+            oneline_comment_variants    = other.oneline_comment_variants;
+            multiline_comment_variants  = other.multiline_comment_variants;
+        }
+    }
+
+    CommentDesign(CommentDesign&& other)
+    {
+        if(this != &other) {
+            opt_multiline_border        = std::move(other.opt_multiline_border);
+            opt_multiline_column_size   = std::move(other.opt_multiline_column_size);
+            temp_type                   = std::move(other.temp_type);
+            temp_multiline_schema       = std::move(other.temp_multiline_schema);
+            oneline_comment_variants    = std::move(other.oneline_comment_variants);
+            multiline_comment_variants  = std::move(other.multiline_comment_variants);
+        }
+    }
+
+    CommentDesign operator=(const CommentDesign& other) {
+        if(this != &other) {
+            opt_multiline_border        = other.opt_multiline_border;
+            opt_multiline_column_size   = other.opt_multiline_column_size;
+            temp_type                   = other.temp_type;
+            temp_multiline_schema       = other.temp_multiline_schema;
+            oneline_comment_variants    = other.oneline_comment_variants;
+            multiline_comment_variants  = other.multiline_comment_variants;
+        }
+        return *this;
+    }
+
+    CommentDesign operator=(CommentDesign&& other) {
+        if(this != &other) {
+            opt_multiline_border        = std::move(other.opt_multiline_border);
+            opt_multiline_column_size   = std::move(other.opt_multiline_column_size);
+            temp_type                   = std::move(other.temp_type);
+            temp_multiline_schema       = std::move(other.temp_multiline_schema);
+            oneline_comment_variants    = std::move(other.oneline_comment_variants);
+            multiline_comment_variants  = std::move(other.multiline_comment_variants);
+        }
+        return *this;
     }
 };
 

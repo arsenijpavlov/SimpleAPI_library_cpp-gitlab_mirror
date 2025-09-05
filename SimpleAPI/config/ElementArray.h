@@ -2,7 +2,7 @@
 #define ELEMENT_ARRAY_H
 
 #include "interface/IElementContainer.h"
-
+#include <iostream>
 
 class ElementArray : public IElementContainer {
 protected:
@@ -15,10 +15,16 @@ public:
         init();
         (void)std::initializer_list<int>{(push_back(std::forward<Types>(args)), 0)...};
     }
-    ElementArray(const std::string& string, const ConfigFormat format,
+    ElementArray(const std::string& input_string, const ConfigFormat config_format,
                  const bool enable_comments = false)                    noexcept {
         init();
-        IElementContainer::parse(string, format, enable_comments);
+        ElementArray temp;
+        try {
+            temp.parse(input_string, config_format, enable_comments);
+        } catch (std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+        *this = temp;
     }
     ~ElementArray()                                                     noexcept                    {}
 

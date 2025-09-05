@@ -1124,19 +1124,16 @@ Config &Config::parse(const std::string &content, const ConfigFormat format,
 Config &Config::parseArray(const std::string &content, const bool with_comments,
                            const int8_t tabulation_level, std::string* error_log)
 {
-//FIXME: Config::parseArray()
     release();
-    *this = ParseArray(content, with_comments, tabulation_level, error_log);
+    m_value = new ElementArray(content, ConfigFormat::eJSON, with_comments);
     return *this;
 }
 
 Config &Config::parseJson(const std::string &content, const bool with_comments,
                           const int8_t tabulation_level, std::string* error_log)
 {
-    //FIXME: Config::parseJson()
     release();
     m_value = new ElementJson(content, ConfigFormat::eJSON, with_comments);
-//        ParseJson(content, with_comments, tabulation_level, error_log);
     return *this;
 }
 
@@ -1249,7 +1246,7 @@ Config Config::CreateElementFromString(std::string &&value_string, const ConfigF
                 Config array;
                 array.setCommentDesign(design);
                 array.parseArray(value_string, enable_comments, new_tab_lvl);
-                return Config(array);
+                return array;
             } catch(...) {}
         }
     }

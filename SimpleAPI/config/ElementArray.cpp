@@ -549,8 +549,21 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
             }
             value += current_ch;
 
+            //если значение пустое, есть только разделитель - запятая
+            if(!is_quotes
+                && inner_json_counter + inner_array_counter == 0
+                && current_ch == ',')
+            {
+                value.clear();
+                i--;
+            }
+
             //значение прочитано полностью?
-            if(!is_quotes && CharInString(next_ch, __SEPARATORS__ " ")) {
+            if(!is_quotes
+                && inner_json_counter + inner_array_counter == 0
+                && (CharInString(next_ch, __SEPARATORS__ " ]")
+                    || CharInString(current_ch, __SEPARATORS__ "]")))
+            {
                 DEBUG_LOG("ElementArray: current value done: \"" << value << "\"");
                 try {
                     Config element = Config::CreateElementFromString(std::move(value), ConfigFormat::eJSON, parse_comments, design, tabulation_level);
@@ -622,10 +635,14 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
     }
 
     //конечный комментарий ...
-    if(!comment.empty()) {
-        addSuffixComment(FromComment(comment, design));
-        DEBUG_LOG("ElementArray: SuffixComment: " << "\"" << comment << "\"");
-        comment.clear();
+    if(state == ParseState::eARRAY_COMMENT)
+    {
+        if(!comment.empty()) {
+            addSuffixComment(FromComment(comment, design));
+            DEBUG_LOG("ElementArray: SuffixComment: " << "\"" << comment << "\"");
+            comment.clear();
+        }
+        UpdateState(state, state_comment);
     }
 
     if(state != ParseState::eARRAY_FINISH) {

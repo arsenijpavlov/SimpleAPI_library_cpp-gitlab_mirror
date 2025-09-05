@@ -826,13 +826,14 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
 
             //ключ прочитан полностью?
             if(!is_quotes && CharInString(next_ch, __SPACES__ ":=")) {
-                DEBUG_LOG("ElementJson: current key done: \"" << key << "\"");
                 if(!RemoveQuotes(key)) {
                     error_string = "incorrect json key \"" + key + "\"";
                     UpdateState(state, ParseState::eJSON_ERROR_STATE);
                     break;
                 }
+                DEBUG_LOG("ElementJson: current key done: \"" << key << "\"");
                 UpdateState(state, ParseState::eJSON_KEY_VALUE_SEPARATOR);
+                value.clear();
             }
 
             break;
@@ -872,13 +873,25 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
                 case '}':   { --inner_json_counter;     break; }
                 case '[':   { ++inner_array_counter;    break; }
                 case ']':   { --inner_array_counter;    break; }
-                default: break;
+                default:    { break; }
                 }
             }
             value += current_ch;
 
+            //если значение пустое, есть только разделитель - запятая
+            if(!is_quotes
+                && inner_json_counter + inner_array_counter == 0
+                && current_ch == ',')
+            {
+                value.clear();
+                i--;
+            }
+
             //значение прочитано полностью?
-            if(!is_quotes && CharInString(next_ch, __SEPARATORS__ " ")) {
+            if(!is_quotes && inner_json_counter + inner_array_counter == 0
+                    && (CharInString(next_ch, __SEPARATORS__ " ")
+                    || CharInString(current_ch, __SEPARATORS__)))
+            {
                 DEBUG_LOG("ElementJson: current value done: \"" << value << "\"");
                 try {
                     Config element = Config::CreateElementFromString(std::move(value), ConfigFormat::eJSON, parse_comments, design, tabulation_level);
@@ -888,6 +901,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
                     UpdateState(state, ParseState::eJSON_ERROR_STATE);
                     break;
                 }
+                key.clear();
 
                 if(!comment.empty() && design.temp_type == CommentType::eCommentEnd) {
                     get_back().addPrefixComment(FromComment(comment, design, tabulation_level));
@@ -933,6 +947,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
                     comment.clear();
                 }
                 UpdateState(state, state_comment);
+                i--;
             }
             break;
         }
@@ -949,10 +964,14 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
     }
 
     //конечный комментарий ...
-    if(!comment.empty() && design.temp_type == CommentType::eCommentEnd) {
-        addSuffixComment(FromComment(comment, design, tabulation_level));
-        DEBUG_LOG("ElementJson: SuffixComment: " << "\"" << comment << "\"");
-        comment.clear();
+    if(state == ParseState::eJSON_COMMENT)
+    {
+        if(!comment.empty() && design.temp_type == CommentType::eCommentEnd) {
+            addSuffixComment(FromComment(comment, design, tabulation_level));
+            DEBUG_LOG("ElementJson: SuffixComment: " << "\"" << comment << "\"");
+            comment.clear();
+        }
+        UpdateState(state, state_comment);
     }
 
     if(state != ParseState::eJSON_FINISH) {

@@ -77,7 +77,7 @@
 #define __INCORRECT_INDEX_EXCEPTION__(index) throw std::invalid_argument(std::string("Index ") + #index + " not contain an object");
 
 #define __CHECK_CONTAINER_INDEX_CORRECT__(object, index) \
-                                            if(index + 1 >= object.size())  __INCORRECT_INDEX_EXCEPTION__(#index)
+                                            if(index > object.size() - 1)   __INCORRECT_INDEX_EXCEPTION__(#index)
 
 //--------------------
 
