@@ -6,6 +6,14 @@
 #include <algorithm>
 
 
+bool ElementNull::isEqual(const IElement &other, const bool compare_comments,
+                          const bool map_sort_important) const noexcept
+{
+    if(compare_comments)
+        return isCommentsEqual(other);
+    return true;
+}
+
 std::string ElementNull::toString(const ConfigFormat format, const int8_t tabulation_level,
                                   const CommentDesign &design) const noexcept
 {

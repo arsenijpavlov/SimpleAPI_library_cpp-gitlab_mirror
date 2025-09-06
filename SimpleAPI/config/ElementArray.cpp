@@ -442,6 +442,7 @@ void ElementArray::parseJson(const std::string &input_string, const bool parse_c
     parseXml(input_string, design, parse_comments);
 }
 
+// @TEST(JSON, parse)
 void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
                              const bool parse_comments, const int8_t tabulation_level)
 {

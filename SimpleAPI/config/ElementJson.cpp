@@ -715,6 +715,7 @@ void ElementJson::parseJson(const std::string &input_string, const bool parse_co
 }
 
 // MAIN
+// @TEST(JSON, parse)
 void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
                             const bool parse_comments, const int8_t tabulation_level)
 {
@@ -889,8 +890,8 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
 
             //значение прочитано полностью?
             if(!is_quotes && inner_json_counter + inner_array_counter == 0
-                    && (CharInString(next_ch, __SEPARATORS__ " ")
-                    || CharInString(current_ch, __SEPARATORS__)))
+                && (CharInString(next_ch, __SEPARATORS__ " }")
+                    || CharInString(current_ch, __SEPARATORS__ " }")))
             {
                 DEBUG_LOG("ElementJson: current value done: \"" << value << "\"");
                 try {
@@ -924,6 +925,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
 
             if(CharInString(current_ch, __SEPARATORS__)) {
                 is_separator_comma = current_ch == ',';
+                if(current_ch == '\n') i--;
                 UpdateState(state_comment, ParseState::eJSON_KEY);
                 UpdateState(state, ParseState::eJSON_COMMENT);
                 break;
@@ -946,8 +948,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
                     DEBUG_LOG("ElementJson: inner Element add SuffixComment: " << "\"" << comment << "\"");
                     comment.clear();
                 }
-                UpdateState(state, state_comment);
-                i--;
+                UpdateState(state, (next_ch == 0 && current_ch == '}') ? ParseState::eJSON_FINISH : state_comment);
             }
             break;
         }
@@ -975,7 +976,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
     }
 
     if(state != ParseState::eJSON_FINISH) {
-        clear();
+//        clear();
         throw std::invalid_argument("JSON parse error, end of JSON structure not found");
     }
 }

@@ -38,23 +38,24 @@ std::string json_string_example = std::string(
 //    "!\n"
 //    ";\n"
 //    "?\n"
-//    "//\n"
+    "//\n"
     //многострочные комментарии
-//    "/*\n*/"
+    "/*\n*/"
 //    "/#\n#/"
 //    "<-\n->"
 //    "<#\n#>"
 //    "!.\n.!"
 //    "?.\n.?"
     //поля
-//    "\"number\":182,\n"
+    "\"number\":182,\n"
     //иной вариант разделителя '='
-//    "\"bool\"=true,\n"
-//    "\"null\"=NuLL,\n"
-//    "\"null2\"=,\n"
+    "\"bool\"=true,\n"
+    "\"null\"=NuLL,\n"
+    "\"null2\"=,\n"
     //перенос строки равнозначен разделителю ','
-//    "\"string\":\"string_value\"\n"
-//    "\"json\" : {\"string\":\"inner_string_value\",\n \"string2\" : 150 },\n"
+    "\"string\":\"string_value\"\n"
+    "\"json\" : {\"string\":\"inner_string_value\",\n \"string2\" : 150}"
+    ",\n"
     //перенос строки равнозначен разделителю ',' (массивы)
     "\"array\":[\"string_value\"\n true]\n"
     "}"
@@ -106,10 +107,7 @@ TEST(JSON, parse) {
     EXPECT_TRUE(inner_array[1].isBool());
 
     json.parseJson(string_json);
-    ASSERT_EQ(json.size(), 7);
-
-//    json = Config::CreateElementFromString(std::move(string_json), ConfigFormat::eJSON);
-//    ASSERT_EQ(json.size(), 7);
+    EXPECT_EQ(json.size(), 7);
 
     EXPECT_TRUE(json["number"].isNumber());
     EXPECT_EQ(json["number"].getNumber(),           182);
@@ -131,6 +129,7 @@ TEST(JSON, parse) {
     EXPECT_EQ(json["string"].getString(),           "string_value");
     EXPECT_EQ(json["string"],                       "string_value");
 
+    EXPECT_FALSE(json["json"].isNull());
     EXPECT_TRUE(json["json"].isJson());
     ASSERT_EQ(json["json"].size(),                  2);
     EXPECT_EQ(json["json"]["string"].getString(),   "inner_string_value");
@@ -141,8 +140,11 @@ TEST(JSON, parse) {
     EXPECT_EQ(json["array"][1].getBool(),           true);
 
     //повторная обработка (очистка, новое заполнение)
-//    json.parseJson(string_json2);
-//    EXPECT_EQ(json.size(), 7);
+    json.parseJson(string_json2);
+    EXPECT_EQ(json.size(), 7);
+
+    json = Config::CreateElementFromString(std::move(string_json), ConfigFormat::eJSON);
+    ASSERT_EQ(json.size(), 7);
 }
 
 //TEST(JSON, parse2) {
