@@ -24,6 +24,9 @@ bool ElementString::isEqual(const IElement &other, const bool compare_comments,
 std::string ElementString::toString(const ConfigFormat format, const int8_t tabulation_level,
                                     const CommentDesign &design) const noexcept
 {
+    if(format == ConfigFormat::eONLY_VALUE)
+        return m_value;
+
     //TODO: ElementString::toString()
     return "";
 }

@@ -925,7 +925,8 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
 
             if(CharInString(current_ch, __SEPARATORS__)) {
                 is_separator_comma = current_ch == ',';
-                if(current_ch == '\n') i--;
+                if(CharInString(current_ch, __SPACES__ ","))
+                    i--;
                 UpdateState(state_comment, ParseState::eJSON_KEY);
                 UpdateState(state, ParseState::eJSON_COMMENT);
                 break;
@@ -941,15 +942,21 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
             break;
         }
         case ParseState::eJSON_COMMENT: {
+            //пропуск пробелов
+            if(CharInString(current_ch, __SPACES_WITHOUT_SEPARATORS__))
+                break;
+
             //(комментарий после значения, на строке значения после запятой)
-            if(!is_separator_comma || current_ch == '\n') {
+            if(!is_separator_comma || current_ch == '\n')
+            {
                 if(!comment.empty() && design.temp_type == CommentType::eCommentEnd) {
                     get_back().addSuffixComment(FromComment(comment, design, tabulation_level));
                     DEBUG_LOG("ElementJson: inner Element add SuffixComment: " << "\"" << comment << "\"");
                     comment.clear();
                 }
-                UpdateState(state, (next_ch == 0 && current_ch == '}') ? ParseState::eJSON_FINISH : state_comment);
             }
+            UpdateState(state, (next_ch == 0 && current_ch == '}') ? ParseState::eJSON_FINISH : state_comment);
+
             break;
         }
         case ParseState::eJSON_ERROR_STATE: {

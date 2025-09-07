@@ -147,37 +147,53 @@ TEST(JSON, parse) {
     ASSERT_EQ(json.size(), 7);
 }
 
-//TEST(JSON, parse2) {
-//    std::string string_json = R"({"get":["chip_key"]})";
-//    Json json;
-//    json.parseJSON(string_json);
+TEST(JSON, parse2) {
+    std::string string_json = R"({"get":["chip_key"]})";
+    Config json;
+    json.parseJson(string_json);
 
-//    EXPECT_EQ(1, json.size());
-//}
+    EXPECT_EQ(json.size(), 1);
+}
 
-//TEST(JSON, parse3) {
-//    std::string string_json = R"({"Hello":"WORLD!"})";
-//    Json json;
-//    json.parseJSON(string_json);
+TEST(JSON, parse3) {
+    std::string string_json = R"({"Hello":"WORLD!"})";
+    Config json;
+    json.parseJson(string_json);
 
-//    EXPECT_EQ(1, json.size());
-//}
+    EXPECT_EQ(json.size(), 1);
+}
 
-//TEST(JSON, parse_custom_string_elements) {
-//    //ВСЕ экранированные символы должны попасть в значение без изменений
-//    std::string temp_string = "\"asd\\\"\\b\\f\\n\\r\\tdsa\"";
-//    std::string jarray_string = "[" + temp_string + "]";
-//    std::string json_string = "{ string:" + temp_string + ", array:[" + temp_string + "]" + "}";
+TEST(JSON, parse_custom_string_elements) {
+    //ВСЕ экранированные символы должны попасть в значение без изменений
+    std::string temp_string = "\"asd\\\"\\b\\f\\n\\r\\tdsa\"";
+    std::string json_string = std::string("{ ")
+                              + "string:" + temp_string
+                              + ", array:[" + temp_string + "]"
+                              + "}";
 
-//    //исходная строка без кавычек по бокам
-//    temp_string = temp_string.substr(1, temp_string.length() - 2);
+    //исходная строка без кавычек по бокам
+    std::string temp_string_without_quotes = temp_string.substr(1, temp_string.length() - 2);
 
-//    Json json(json_string);
-//    ASSERT_EQ(2, json.size());
-//    EXPECT_EQ(temp_string, json["string"].to_string());
-//    ASSERT_EQ(1, json["array"].getArray().size());
-//    EXPECT_EQ(temp_string, json["array"].getArray()[0].to_string());
-//}
+    Config inner_array;
+    std::string inner_array_str = "[" + temp_string + "]";
+    inner_array.parseArray(inner_array_str);
+    ASSERT_EQ(inner_array.size(),           1);
+
+    Config json;
+    json.parseJson(json_string);
+
+    ASSERT_TRUE(json.isJson());
+    EXPECT_EQ(json.size(),                  2);
+
+    EXPECT_TRUE(json["string"].isString());
+    EXPECT_EQ(json["string"],               temp_string_without_quotes);
+    EXPECT_EQ(json["string"].toString(),    temp_string_without_quotes);
+
+    ASSERT_TRUE(json["array"].isArray());
+    ASSERT_EQ(json["array"].size(),         1);
+    EXPECT_EQ(json["array"][0],             temp_string_without_quotes);
+    EXPECT_EQ(json["array"][0].toString(),  temp_string_without_quotes);
+}
 
 //TEST(JSON, parse_error) {
 //    std::string string_json;
