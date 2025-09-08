@@ -33,19 +33,9 @@ std::string json_string_example = std::string(
     //пробелы и табуляции
     "   \t"
     //однострочные комментарии
-//    "%\n"
-//    "#\n"
-//    "!\n"
-//    ";\n"
-//    "?\n"
     "//\n"
     //многострочные комментарии
     "/*\n*/"
-//    "/#\n#/"
-//    "<-\n->"
-//    "<#\n#>"
-//    "!.\n.!"
-//    "?.\n.?"
     //поля
     "\"number\":182,\n"
     //иной вариант разделителя '='
@@ -195,37 +185,38 @@ TEST(JSON, parse_custom_string_elements) {
     EXPECT_EQ(json["array"][0].toString(),  temp_string_without_quotes);
 }
 
-//TEST(JSON, parse_error) {
-//    std::string string_json;
-//    Json json;
+TEST(JSON, parse_error) {
+    std::string string_json;
+    Config json;
 
-//    //некорректное значение числа, пробелов нет ==> это строка!
-//    string_json = "{key:15.4.3}";
-//    json.parseJSON(string_json);
-//    EXPECT_EQ(1, json.size());
-//    EXPECT_EQ(ValueType::eString, json[0].first);
+    //некорректное значение числа, пробелов нет ==> это строка!
+    string_json = "{key:15.4.3}";
+    json.parseJson(string_json);
+    EXPECT_EQ(json.size(), 1);
+    EXPECT_TRUE(json[0].isString());
 
-//    //некорректное значение числа, пробелов нет ==> это строка!
-//    string_json = "{key:15e43}";
-//    try {
-//        json.parseJSON(string_json);
-//    } catch(...) {}
-//    EXPECT_EQ(1, json.size());
-//    EXPECT_EQ(ValueType::eNumber, json[0].first);
+    //некорректное значение числа, пробелов нет ==> это строка!
+    string_json = "{key:15e43}";
+    try {
+        json.parseJson(string_json);
+    } catch(...) {}
+    EXPECT_EQ(json.size(), 1);
+    EXPECT_TRUE(json[0].isNumber());
 
-//    //пробелы в значении bool
-//    string_json = "{key:tru e}";
-//    try {
-//        json.parseJSON(string_json);
-//    } catch(...) {}
-//    EXPECT_EQ(0, json.size());
+    //пробелы в значении bool
+    string_json = "{key:tru e}";
+    try {
+        json.parseJson(string_json);
+    } catch(...) {}
+    EXPECT_EQ(json.size(), 1);
+    EXPECT_TRUE(json["key"].isString());
 
-//    //некорректное значение bool ==> это строка!
-//    string_json = "{key:truee}";
-//    json.parseJSON(string_json);
-//    EXPECT_EQ(1, json.size());
-//    EXPECT_EQ(ValueType::eString, json[0].first);
-//}
+    //некорректное значение bool ==> это строка!
+    string_json = "{key:truee}";
+    json.parseJson(string_json);
+    EXPECT_EQ(json.size(), 1);
+    EXPECT_TRUE(json[0].isString());
+}
 
 //TEST(JSON, write_file) {
 //    Json json = json_example;

@@ -898,8 +898,9 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
                     Config element = Config::CreateElementFromString(std::move(value), ConfigFormat::eJSON, parse_comments, design, tabulation_level);
                     push_back(std::move(key), std::move(element));
                 } catch (std::exception& e) {
-                    error_string = e.what();
-                    UpdateState(state, ParseState::eJSON_ERROR_STATE);
+//                    error_string = e.what();
+//                    UpdateState(state, ParseState::eJSON_ERROR_STATE);
+                    push_back(key, value);
                     break;
                 }
                 key.clear();

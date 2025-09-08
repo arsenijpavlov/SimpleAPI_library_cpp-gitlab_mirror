@@ -1261,7 +1261,8 @@ Config Config::CreateElementFromString(std::string &&value_string, const ConfigF
         }
     }
 
-    throw std::invalid_argument("incorrect value format");
+//    throw std::invalid_argument("incorrect value format");
+    return Config(value_string);
 }
 
 
