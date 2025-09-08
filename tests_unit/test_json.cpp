@@ -194,6 +194,7 @@ TEST(JSON, parse_error) {
     json.parseJson(string_json);
     EXPECT_EQ(json.size(), 1);
     EXPECT_TRUE(json[0].isString());
+    EXPECT_EQ(json["key"], "15.4.3");
 
     //некорректное значение числа, пробелов нет ==> это строка!
     string_json = "{key:15e43}";
