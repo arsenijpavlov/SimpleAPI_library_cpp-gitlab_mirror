@@ -219,12 +219,12 @@ TEST(JSON, parse_error) {
     EXPECT_TRUE(json[0].isString());
 }
 
-//TEST(JSON, write_file) {
-//    Json json = json_example;
+TEST(JSON, write_file) {
+    Config json = json_example;
 
-//    json.writeFile("../tests/test_writer_with_spaces.json");
-//    json.writeFile("../tests/test_writer.json", -1);
-//}
+    json.writeFile("../tests/test_writer_with_spaces.json");
+    json.writeFile("../tests/test_writer.json", -1);
+}
 
 //TEST(JSON, write_and_read_file_comment) {
 //    Json json(json_string_example);
