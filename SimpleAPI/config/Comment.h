@@ -53,6 +53,7 @@ public:
     // (2) {x,y} - комментарий от последовательностит символов 'x' и 'y' до конца строки
     std::vector<std::array<char, 2>> oneline_comment_variants;
 
+    // NOTE:
     // (1) {x, 0, 0} - один символ открывает и завершает многострочный комментарий
     // (2) {x, 0, y} - один символ открывает многострочный комментарий, другой - завершает
     // (3) {x, y, 0}
@@ -66,13 +67,16 @@ public:
     //NOTE: попытка чтения по всем вариантам вектора
     //NOTE: запись строго по первому элементу
 
+    bool with_comments;
+
     CommentDesign() :
         opt_multiline_border(0),
         opt_multiline_column_size(0),
         temp_type(CommentType::eNotComment),
         temp_multiline_schema{},
         oneline_comment_variants{},
-        multiline_comment_variants{}
+        multiline_comment_variants{},
+        with_comments{false}
     {
         oneline_comment_variants.push_back({'/', '/'});         // {#,0} - второй символ 0 -> один символ уже комментирует
         multiline_comment_variants.push_back({'/', '*', 0});    // 0 - завершающий символ повторяет первый
@@ -87,6 +91,7 @@ public:
             temp_multiline_schema       = other.temp_multiline_schema;
             oneline_comment_variants    = other.oneline_comment_variants;
             multiline_comment_variants  = other.multiline_comment_variants;
+            with_comments               = other.with_comments;
         }
     }
 
@@ -99,6 +104,7 @@ public:
             temp_multiline_schema       = std::move(other.temp_multiline_schema);
             oneline_comment_variants    = std::move(other.oneline_comment_variants);
             multiline_comment_variants  = std::move(other.multiline_comment_variants);
+            with_comments               = std::move(other.with_comments);
         }
     }
 
@@ -110,6 +116,7 @@ public:
             temp_multiline_schema       = other.temp_multiline_schema;
             oneline_comment_variants    = other.oneline_comment_variants;
             multiline_comment_variants  = other.multiline_comment_variants;
+            with_comments               = other.with_comments;
         }
         return *this;
     }
@@ -122,6 +129,7 @@ public:
             temp_multiline_schema       = std::move(other.temp_multiline_schema);
             oneline_comment_variants    = std::move(other.oneline_comment_variants);
             multiline_comment_variants  = std::move(other.multiline_comment_variants);
+            with_comments               = std::move(other.with_comments);
         }
         return *this;
     }

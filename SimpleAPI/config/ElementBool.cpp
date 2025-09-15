@@ -18,32 +18,32 @@ bool ElementBool::isEqual(const IElement &other, const bool compare_comments,
     return b1 && b2;
 }
 
-std::string ElementBool::toString(const ConfigFormat format, const int8_t tabulation_level,
-                                  const CommentDesign &design) const noexcept
+std::string ElementBool::toString(const ConfigFormat format, const CommentDesign &design,
+                                  const int8_t custom_tabulation_level) const noexcept
 {
     //TODO: ElementBool::toString()
     return "";
 }
 
-std::string ElementBool::toJsonString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
+std::string ElementBool::toJsonString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     //TODO: std::string ElementBool::toJsonString()
     return "";
 }
 
-std::string ElementBool::toIniString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
+std::string ElementBool::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     //TODO: std::string ElementBool::toIniString()
     return "";
 }
 
-std::string ElementBool::toYamlString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
+std::string ElementBool::toYamlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     //TODO: std::string ElementBool::toYamlString()
     return "";
 }
 
-std::string ElementBool::toXmlString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
+std::string ElementBool::toXmlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     //TODO: std::string ElementBool::toXmlString()
     return "";

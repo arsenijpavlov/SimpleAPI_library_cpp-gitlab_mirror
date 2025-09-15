@@ -625,7 +625,8 @@ public:
     // String ==========================================================================================================
     //вывод без комментариев, "tabulation_level == -1" => запись в одну строку
     std::string     toString(const ConfigFormat format = ConfigFormat::eONLY_VALUE,
-                         const int8_t tabulation_level = 0, const CommentDesign &design = {})   const noexcept;                 API_ALL
+                         const CommentDesign &design = {},
+                         const int8_t tabulation_level = 0)                                     const noexcept;                 API_ALL
     friend std::ostream& operator<<(std::ostream& os, const Config& config)                     noexcept;                       API_ALL
     friend std::ostream& operator<<(std::ostream& os, const IElement& config)                   noexcept;                       API_ALL
     // ========================================================================================================== String
@@ -634,27 +635,30 @@ public:
     //return - получившийся распаршенный корневой элемент, ElementNull если не удалось чтение
     Config&         readFile(const std::string& file_path, const ConfigFormat format,
                      const bool with_comments = false, std::string* error_log = nullptr);                                       API_ALL
-    Config&         readFileJson(const std::string& file_path, const bool with_comments = 0,
+    Config&         readFileJson(const std::string& file_path, const bool with_comments = false,
                      std::string* error_log = nullptr);                                                                         API_ALL
-    Config&         readFileIni(const std::string& file_path, const bool with_comments = 0,
+    Config&         readFileIni(const std::string& file_path, const bool with_comments = false,
                      std::string* error_log = nullptr);                                                                         API_ALL
 
     //return - удалось записать файл или нет
     bool            writeFile(const std::string& file_path, const ConfigFormat format,
-                     const bool with_comments = 0)                                              noexcept;                       API_ALL
-    bool            writeFileJson(const std::string& file_path, const bool with_comments = 0)   noexcept;                       API_ALL
-    bool            writeFileIni(const std::string& file_path, const bool with_comments = 0)    noexcept;                       API_ALL
+                     const CommentDesign &design = {},
+                     const int8_t custom_tabulation_level = 0)                                      noexcept;                   API_ALL
+    bool            writeFileJson(const std::string& file_path, const CommentDesign &design = {},
+                     const int8_t custom_tabulation_level = 0)                                      noexcept;                   API_ALL
+    bool            writeFileIni(const std::string& file_path, const CommentDesign &design = {},
+                     const int8_t custom_tabulation_level = 0)                                      noexcept;                   API_ALL
     // ============================================================================================================ File
 
     // Parser ==========================================================================================================
     Config&         parse(const std::string& content, const ConfigFormat format,
-                      const bool with_comments = false, std::string* error_log = nullptr);                                      API_ALL
-    Config&         parseArray(const std::string& content, const bool with_comments = 0,
-                      const int8_t tabulation_level = 0, std::string* error_log = nullptr);                                     API_ALL
-    Config&         parseJson(const std::string& content, const bool with_comments = 0,
-                      const int8_t tabulation_level = 0, std::string* error_log = nullptr);                                     API_ALL
-    Config&         parseIni(const std::string& content, const bool with_comments = 0,
-                      const int8_t tabulation_level = 0, std::string* error_log = nullptr);                                     API_ALL
+                     const bool with_comments = false, std::string* error_log = nullptr);                                       API_ALL
+    Config&         parseArray(const std::string& content, const bool with_comments = false,
+                     const int8_t tabulation_level = 0, std::string* error_log = nullptr);                                      API_ALL
+    Config&         parseJson(const std::string& content, const bool with_comments = false,
+                     const int8_t tabulation_level = 0, std::string* error_log = nullptr);                                      API_ALL
+    Config&         parseIni(const std::string& content, const bool with_comments = false,
+                     const int8_t tabulation_level = 0, std::string* error_log = nullptr);                                      API_ALL
     // ========================================================================================================== Parser
 
     //STATIC
@@ -668,27 +672,28 @@ public:
 //return - получившийся распаршенный корневой элемент, ElementNull если не удалось чтение
 Config  ReadFile(const std::string& file_path, const ConfigFormat format,
             const bool with_comments = false, std::string* error_log = nullptr);
-Config  ReadFileJson(const std::string& file_path, const bool with_comments = 0,
+Config  ReadFileJson(const std::string& file_path, const bool with_comments = false,
             std::string* error_log = nullptr);
-Config  ReadFileIni(const std::string& file_path, const bool with_comments = 0,
+Config  ReadFileIni(const std::string& file_path, const bool with_comments = false,
             std::string* error_log = nullptr);
 
 //return - удалось записать файл или нет
 bool    WriteFile(const Config& config, const std::string& file_path,
-            const ConfigFormat format, const bool with_comments = 0,
-            uint8_t custom_tabulation_level = 0)                                noexcept;
+            const ConfigFormat format, const CommentDesign &design = {},
+            const uint8_t custom_tabulation_level = 0)                                      noexcept;
 bool    WriteFileJson(const Config& config, const std::string& file_path,
-            const bool with_comments = 0, uint8_t custom_tabulation_level = 0)  noexcept;
+            const CommentDesign &design = {}, const uint8_t custom_tabulation_level = 0)    noexcept;
 bool    WriteFileIni(const Config& config, const std::string& file_path,
-            const bool with_comments = 0, uint8_t custom_tabulation_level = 0)  noexcept;
+            const CommentDesign &design = {}, const uint8_t custom_tabulation_level = 0)    noexcept;
+bool    WriteStringToFile(const std::string& file_path, std::string&& content)              noexcept;
 
 Config  Parse(const std::string& content, const ConfigFormat format,
             const bool with_comments = false, std::string* error_log = nullptr);
-Config  ParseArray(const std::string& content, const bool with_comments = 0,
+Config  ParseArray(const std::string& content, const bool with_comments = false,
             const int8_t tabulation_level = 0, std::string* error_log = nullptr);
-Config  ParseJson(const std::string& content, const bool with_comments = 0,
+Config  ParseJson(const std::string& content, const bool with_comments = false,
             const int8_t tabulation_level = 0, std::string* error_log = nullptr);
-Config  ParseIni(const std::string& content, const bool with_comments = 0,
+Config  ParseIni(const std::string& content, const bool with_comments = false,
             const int8_t tabulation_level = 0, std::string* error_log = nullptr);
 //STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC
 

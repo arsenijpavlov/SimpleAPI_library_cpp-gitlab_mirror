@@ -221,16 +221,17 @@ public:
 
     // String ==========================================================================================================
     //вывод без комментариев, "tabulation_level == -1" => запись в одну строку
-    std::string toString(const ConfigFormat format = ConfigFormat::eJSON,
-                         const int8_t tabulation_level = -1,
-                         const CommentDesign &design = {})                      const noexcept  override;
-    std::string toJsonString(const int8_t tabulation_level = -1, const CommentDesign &design = {})
+    //вывод без комментариев, ConfigFormat::eONLY_VALUE => запись в одну строку без комментариев
+    std::string toString(const ConfigFormat format = ConfigFormat::eONLY_VALUE,
+                         const CommentDesign &design = {},
+                         const int8_t custom_tabulation_level = -1)             const noexcept  override;
+    std::string toJsonString(const CommentDesign &design = {}, const int8_t custom_tabulation_level = -1)
                                                                                 const noexcept  override;
-    std::string toIniString(const int8_t tabulation_level = -1, const CommentDesign &design = {})
+    std::string toIniString(const CommentDesign &design = {}, const int8_t custom_tabulation_level = -1)
                                                                                 const noexcept  override;
-    std::string toYamlString(const int8_t tabulation_level = -1, const CommentDesign &design = {})
+    std::string toYamlString(const CommentDesign &design = {}, const int8_t custom_tabulation_level = -1)
                                                                                 const noexcept  override;
-    std::string toXmlString(const int8_t tabulation_level = -1, const CommentDesign &design = {})
+    std::string toXmlString(const CommentDesign &design = {}, const int8_t custom_tabulation_level = -1)
                                                                                 const noexcept  override;
     // ========================================================================================================== String
 
@@ -255,15 +256,15 @@ private:
 public:
     void    parse(const std::string& input_string, CommentDesign& design,
                const ConfigFormat format = ConfigFormat::eJSON,
-               const bool parse_comments = true, const int8_t tabulation_level = 0)             override;
+               const bool with_comments = true, const int8_t tabulation_level = 0)              override;
     void    parse(const std::string& input_string, const ConfigFormat format = ConfigFormat::eJSON,
-               const bool parse_comments = true, const int8_t tabulation_level = 0)             override;
+               const bool with_comments = true, const int8_t tabulation_level = 0)              override;
 
     void    parse(std::string&& input_string, CommentDesign& design,
                const ConfigFormat format = ConfigFormat::eJSON,
-               const bool parse_comments = true, const int8_t tabulation_level = 0)             override;
+               const bool with_comments = true, const int8_t tabulation_level = 0)              override;
     void    parse(std::string&& input_string, const ConfigFormat format = ConfigFormat::eJSON,
-               const bool parse_comments = true, const int8_t tabulation_level = 0)             override;
+               const bool with_comments = true, const int8_t tabulation_level = 0)              override;
 
     void    parseJson(const std::string& input_string, CommentDesign& design,
                    const bool parse_comments = true, const int8_t tabulation_level = 0)         override;

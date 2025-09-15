@@ -10,7 +10,7 @@
 //#include "ElementXml.h"
 
 #include <regex>
-
+#include <fstream>
 
 void Config::release() noexcept {
     if(m_value != nullptr)
@@ -1141,10 +1141,10 @@ bool Config::containsKey(const std::string &key) const noexcept {
     return false;
 }
 
-std::string Config::toString(const ConfigFormat format, const int8_t tabulation_level,
-                             const CommentDesign &design) const noexcept
+std::string Config::toString(const ConfigFormat format, const CommentDesign &design,
+                             const int8_t tabulation_level) const noexcept
 {
-    return m_value->toString(format, tabulation_level, design);
+    return m_value->toString(format, design, tabulation_level);
 }
 
 std::ostream &operator<<(std::ostream &os, const Config &config) noexcept {
@@ -1178,20 +1178,23 @@ Config &Config::readFileIni(const std::string &file_path, const bool with_commen
     return *this;
 }
 
-bool Config::writeFile(const std::string &file_path, const ConfigFormat format,
-                       const bool with_comments) noexcept
+bool Config::writeFile(const std::string &file_path,  const ConfigFormat format,
+                       const CommentDesign &design,
+                       const int8_t custom_tabulation_level) noexcept
 {
-    return WriteFile(*this, file_path, format, with_comments);
+    return WriteFile(*this, file_path, format, design, custom_tabulation_level);
 }
 
-bool Config::writeFileJson(const std::string &file_path, const bool with_comments) noexcept
+bool Config::writeFileJson(const std::string &file_path, const CommentDesign &design,
+                           const int8_t custom_tabulation_level) noexcept
 {
-    return WriteFileJson(*this, file_path, with_comments);
+    return WriteFileJson(*this, file_path, design, custom_tabulation_level);
 }
 
-bool Config::writeFileIni(const std::string &file_path, const bool with_comments) noexcept
+bool Config::writeFileIni(const std::string &file_path, const CommentDesign &design,
+                          const int8_t custom_tabulation_level) noexcept
 {
-    return WriteFileIni(*this, file_path, with_comments);
+    return WriteFileIni(*this, file_path, design, custom_tabulation_level);
 }
 
 Config &Config::parse(const std::string &content, const ConfigFormat format,
@@ -1314,7 +1317,7 @@ Config Config::CreateElementFromString(std::string &&value_string, const ConfigF
                 return Config(std::stold(value_string));
         } catch (...) {}
     }
-    /*STRING*/ {
+    /*STRING*/ { //TODO: в теории, всё, что не распарсилось в другие значения, - должно считаться строкой
         if(first == '"' && last == '"') {
             value_string.erase(0, 1);
             value_string.pop_back();
@@ -1375,13 +1378,13 @@ Config ReadFileIni(const std::string &file_path, const bool with_comments,
     return Config{};
 }
 
-bool WriteFile(const Config &config, const std::string &file_path,
-               const ConfigFormat format, const bool with_comments,
-               uint8_t custom_tabulation_level) noexcept
+bool WriteFile(const Config& config, const std::string& file_path,
+               const ConfigFormat format, const CommentDesign &design,
+               const uint8_t custom_tabulation_level) noexcept
 {
     switch(format) {
-    case ConfigFormat::eJSON:   WriteFileJson(config, file_path, with_comments, custom_tabulation_level);
-    case ConfigFormat::eINI:    WriteFileIni(config, file_path, with_comments, custom_tabulation_level);
+    case ConfigFormat::eJSON:   WriteFileJson(config, file_path, design, custom_tabulation_level);
+    case ConfigFormat::eINI:    WriteFileIni(config, file_path, design, custom_tabulation_level);
 //    case ConfigFormat::eYAML:
 //    case ConfigFormat::eXML:
     default:                    return false;
@@ -1389,18 +1392,38 @@ bool WriteFile(const Config &config, const std::string &file_path,
 }
 
 //TODO: WriteFileJson
-bool WriteFileJson(const Config &config, const std::string &file_path,
-                   const bool with_comments, uint8_t custom_tabulation_level) noexcept
+bool WriteFileJson(const Config& config, const std::string& file_path,
+                   const CommentDesign &design, const uint8_t custom_tabulation_level) noexcept
 {
+    return WriteStringToFile(file_path, config.toString(ConfigFormat::eJSON, design, custom_tabulation_level));
+}
 
+//TODO: WriteFileIni
+bool WriteFileIni(const Config& config, const std::string& file_path,
+                  const CommentDesign &design, const uint8_t custom_tabulation_level) noexcept
+{
     return false;
 }
 
-bool WriteFileIni(const Config &config, const std::string &file_path,
-                   const bool with_comments, uint8_t custom_tabulation_level) noexcept
+bool WriteStringToFile(const std::string& file_path, std::string&& content) noexcept
 {
-    //TODO: WriteFileIni
-    return false;
+    std::ofstream file;
+    file.open(file_path, std::ios::out);
+    if(!file.is_open()) {
+        std::cerr << "cannot create file: \"" << file_path << "\"" << std::endl;
+        return false;
+    }
+
+    try {
+        file.write(content.c_str(), content.length());
+    } catch(std::exception& e) {
+        std::cerr << "exception while \"" << file_path << "\" writing: " << strerror(errno) << std::endl;
+        file.close();
+        return false;
+    }
+
+    file.close();
+    return true;
 }
 
 //TODO: запретить пользователю считывать массивы?

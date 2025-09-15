@@ -21,8 +21,8 @@ bool ElementString::isEqual(const IElement &other, const bool compare_comments,
     return b1 && b2;
 }
 
-std::string ElementString::toString(const ConfigFormat format, const int8_t tabulation_level,
-                                    const CommentDesign &design) const noexcept
+std::string ElementString::toString(const ConfigFormat format, const CommentDesign &design,
+                                    const int8_t custom_tabulation_level) const noexcept
 {
     if(format == ConfigFormat::eONLY_VALUE)
         return m_value;
@@ -31,25 +31,25 @@ std::string ElementString::toString(const ConfigFormat format, const int8_t tabu
     return "";
 }
 
-std::string ElementString::toJsonString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
+std::string ElementString::toJsonString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     //TODO: std::string ElementString::toJsonString()
     return "";
 }
 
-std::string ElementString::toIniString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
+std::string ElementString::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     //TODO: std::string ElementString::toIniString()
     return "";
 }
 
-std::string ElementString::toYamlString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
+std::string ElementString::toYamlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     //TODO: std::string ElementString::toYamlString()
     return "";
 }
 
-std::string ElementString::toXmlString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
+std::string ElementString::toXmlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     //TODO: std::string ElementString::toXmlString()
     return "";

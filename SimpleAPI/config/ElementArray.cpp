@@ -351,32 +351,32 @@ Config ElementArray::operator[](const size_t index) const {
     return *m_values[index];
 }
 
-std::string ElementArray::toString(const ConfigFormat format, const int8_t tabulation_level,
-                                   const CommentDesign &design) const noexcept
+std::string ElementArray::toString(const ConfigFormat format, const CommentDesign &design,
+                                   const int8_t custom_tabulation_level) const noexcept
 {
     //TODO: std::string ElementArray::toString()
     return "";
 }
 
-std::string ElementArray::toJsonString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
+std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     //TODO: std::string ElementArray::toJsonString()
     return "";
 }
 
-std::string ElementArray::toIniString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
+std::string ElementArray::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     //TODO: std::string ElementArray::toIniString()
     return "";
 }
 
-std::string ElementArray::toYamlString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
+std::string ElementArray::toYamlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     //TODO: std::string ElementArray::toYamlString()
     return "";
 }
 
-std::string ElementArray::toXmlString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
+std::string ElementArray::toXmlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     //TODO: std::string ElementArray::toXmlString()
     return "";

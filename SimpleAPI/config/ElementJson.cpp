@@ -621,32 +621,32 @@ Config ElementJson::operator[](const std::string &key) const noexcept {
     return get_at(key);
 }
 
-std::string ElementJson::toString(const ConfigFormat format, const int8_t tabulation_level,
-                                  const CommentDesign &design) const noexcept
+std::string ElementJson::toString(const ConfigFormat format, const CommentDesign &design,
+                                  const int8_t custom_tabulation_level) const noexcept
 {
     //TODO: std::string ElementJson::toString()
     return "";
 }
 
-std::string ElementJson::toJsonString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
+std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     //TODO: std::string ElementJson::toJsonString()
     return "";
 }
 
-std::string ElementJson::toIniString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
+std::string ElementJson::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     //TODO: std::string ElementJson::toIniString()
     return "";
 }
 
-std::string ElementJson::toYamlString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
+std::string ElementJson::toYamlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     //TODO: std::string ElementJson::toYamlString()
     return "";
 }
 
-std::string ElementJson::toXmlString(const int8_t tabulation_level, const CommentDesign &design) const noexcept
+std::string ElementJson::toXmlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     //TODO: std::string ElementJson::toXmlString()
     return "";
