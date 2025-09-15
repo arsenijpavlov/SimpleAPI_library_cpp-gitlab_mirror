@@ -235,24 +235,52 @@ public:
 
     // вложенные контейнеры
     Config&         add_comment(const size_t index, const Comment &content);                                                API_CONTAINER
+    Config&         add_comment(const std::string& key, const Comment &content);                                            API_MAP_CONTAINER
+
     Config&         add_comment(const size_t index, const std::string &content_before,
                      const std::string &content_after);                                                                     API_CONTAINER
+    Config&         add_comment(const std::string& key, const std::string &content_before,
+                     const std::string &content_after);                                                                     API_MAP_CONTAINER
+
     Config&         add_prefix_comment(const size_t index, const std::string &content);                                     API_CONTAINER
+    Config&         add_prefix_comment(const std::string& key, const std::string &content);                                 API_MAP_CONTAINER
+
     Config&         add_suffix_comment(const size_t index, const std::string &content);                                     API_CONTAINER
+    Config&         add_suffix_comment(const std::string& key, const std::string &content);                                 API_MAP_CONTAINER
 
     Comment&        get_comment(const size_t index);                                                                        API_CONTAINER
+    Comment&        get_comment(const std::string& key);                                                                    API_MAP_CONTAINER
+
     Comment         get_comment(const size_t index)                 const;                                                  API_CONTAINER
+    Comment         get_comment(const std::string& key)             const;                                                  API_MAP_CONTAINER
+
     std::string&    get_prefix_comment(const size_t index);                                                                 API_CONTAINER
     std::string     get_prefix_comment(const size_t index)          const;                                                  API_CONTAINER
+    std::string&    get_prefix_comment(const std::string& key);                                                             API_MAP_CONTAINER
+    std::string     get_prefix_comment(const std::string& key)      const;                                                  API_MAP_CONTAINER
+
     std::string&    get_suffix_comment(const size_t index);                                                                 API_CONTAINER
     std::string     get_suffix_comment(const size_t index)          const;                                                  API_CONTAINER
+    std::string&    get_suffix_comment(const std::string& key);                                                             API_MAP_CONTAINER
+    std::string     get_suffix_comment(const std::string& key)      const;                                                  API_MAP_CONTAINER
 
     Config&         clear_comment(const size_t index);                                                                      API_CONTAINER
+    Config&         clear_comment(const std::string& key);                                                                  API_MAP_CONTAINER
+
     Config&         clear_prefix_comment(const size_t index);                                                               API_CONTAINER
+    Config&         clear_prefix_comment(const std::string& key);                                                           API_MAP_CONTAINER
+
     Config&         clear_suffix_comment(const size_t index);                                                               API_CONTAINER
+    Config&         clear_suffix_comment(const std::string& key);                                                           API_MAP_CONTAINER
+
     Config&         delete_comment(const size_t index);                                                                     API_CONTAINER
+    Config&         delete_comment(const std::string& key);                                                                 API_MAP_CONTAINER
+
     Config&         delete_prefix_comment(const size_t index);                                                              API_CONTAINER
+    Config&         delete_prefix_comment(const std::string& key);                                                          API_MAP_CONTAINER
+
     Config&         delete_suffix_comment(const size_t index);                                                              API_CONTAINER
+    Config&         delete_suffix_comment(const std::string& key);                                                          API_MAP_CONTAINER
     // ========================================================================================================= Comment
 
     // Setters =========================================================================================================
@@ -647,11 +675,12 @@ Config  ReadFileIni(const std::string& file_path, const bool with_comments = 0,
 
 //return - удалось записать файл или нет
 bool    WriteFile(const Config& config, const std::string& file_path,
-            const ConfigFormat format, const bool with_comments = 0)            noexcept;
+            const ConfigFormat format, const bool with_comments = 0,
+            uint8_t custom_tabulation_level = 0)                                noexcept;
 bool    WriteFileJson(const Config& config, const std::string& file_path,
-            const bool with_comments = 0)                                       noexcept;
+            const bool with_comments = 0, uint8_t custom_tabulation_level = 0)  noexcept;
 bool    WriteFileIni(const Config& config, const std::string& file_path,
-            const bool with_comments = 0)                                       noexcept;
+            const bool with_comments = 0, uint8_t custom_tabulation_level = 0)  noexcept;
 
 Config  Parse(const std::string& content, const ConfigFormat format,
             const bool with_comments = false, std::string* error_log = nullptr);

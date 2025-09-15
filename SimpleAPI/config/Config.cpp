@@ -86,11 +86,25 @@ Config &Config::add_comment(const size_t index, const Comment &content) {
     return *this;
 }
 
+Config &Config::add_comment(const std::string &key, const Comment &content) {
+    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+    reinterpret_cast<ElementJson*>(m_value)->add_comment(key, content);
+    return *this;
+}
+
 Config &Config::add_comment(const size_t index, const std::string &content_before,
                             const std::string &content_after)
 {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     reinterpret_cast<IElementContainer*>(m_value)->add_comment(index, content_before, content_after);
+    return *this;
+}
+
+Config &Config::add_comment(const std::string &key, const std::string &content_before,
+                            const std::string &content_after)
+{
+    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+    reinterpret_cast<ElementJson*>(m_value)->add_comment(key, content_before, content_after);
     return *this;
 }
 
@@ -100,9 +114,21 @@ Config &Config::add_prefix_comment(const size_t index, const std::string &conten
     return *this;
 }
 
+Config &Config::add_prefix_comment(const std::string &key, const std::string &content) {
+    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+    reinterpret_cast<ElementJson*>(m_value)->add_prefix_comment(key, content);
+    return *this;
+}
+
 Config &Config::add_suffix_comment(const size_t index, const std::string &content) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     reinterpret_cast<IElementContainer*>(m_value)->add_suffix_comment(index, content);
+    return *this;
+}
+
+Config &Config::add_suffix_comment(const std::string &key, const std::string &content) {
+    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+    reinterpret_cast<ElementJson*>(m_value)->add_suffix_comment(key, content);
     return *this;
 }
 
@@ -126,6 +152,16 @@ std::string Config::get_prefix_comment(const size_t index) const {
     return reinterpret_cast<IElementContainer*>(m_value)->get_prefix_comment(index);
 }
 
+std::string &Config::get_prefix_comment(const std::string &key) {
+    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+    return reinterpret_cast<ElementJson*>(m_value)->get_prefix_comment(key);
+}
+
+std::string Config::get_prefix_comment(const std::string &key) const {
+    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+    return reinterpret_cast<ElementJson*>(m_value)->get_prefix_comment(key);
+}
+
 std::string &Config::get_suffix_comment(const size_t index){
     __CHECK_TYPE_IS_CONTAINER__((*this))
     return reinterpret_cast<IElementContainer*>(m_value)->get_suffix_comment(index);
@@ -136,9 +172,25 @@ std::string Config::get_suffix_comment(const size_t index) const {
     return reinterpret_cast<IElementContainer*>(m_value)->get_suffix_comment(index);
 }
 
+std::string &Config::get_suffix_comment(const std::string &key) {
+    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+    return reinterpret_cast<ElementJson*>(m_value)->get_suffix_comment(key);
+}
+
+std::string Config::get_suffix_comment(const std::string &key) const {
+    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+    return reinterpret_cast<ElementJson*>(m_value)->get_suffix_comment(key);
+}
+
 Config &Config::clear_comment(const size_t index) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     reinterpret_cast<IElementContainer*>(m_value)->clear_comment(index);
+    return *this;
+}
+
+Config &Config::clear_comment(const std::string &key) {
+    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+    reinterpret_cast<ElementJson*>(m_value)->clear_comment(key);
     return *this;
 }
 
@@ -148,9 +200,21 @@ Config &Config::clear_prefix_comment(const size_t index) {
     return *this;
 }
 
+Config &Config::clear_prefix_comment(const std::string &key) {
+    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+    reinterpret_cast<ElementJson*>(m_value)->clear_prefix_comment(key);
+    return *this;
+}
+
 Config &Config::clear_suffix_comment(const size_t index) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     reinterpret_cast<IElementContainer*>(m_value)->clear_suffix_comment(index);
+    return *this;
+}
+
+Config &Config::clear_suffix_comment(const std::string &key) {
+    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+    reinterpret_cast<ElementJson*>(m_value)->clear_suffix_comment(key);
     return *this;
 }
 
@@ -160,15 +224,33 @@ Config &Config::delete_comment(const size_t index) {
     return *this;
 }
 
+Config &Config::delete_comment(const std::string &key) {
+    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+    reinterpret_cast<ElementJson*>(m_value)->delete_comment(key);
+    return *this;
+}
+
 Config &Config::delete_prefix_comment(const size_t index) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     reinterpret_cast<IElementContainer*>(m_value)->delete_prefix_comment(index);
     return *this;
 }
 
+Config &Config::delete_prefix_comment(const std::string &key) {
+    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+    reinterpret_cast<ElementJson*>(m_value)->delete_prefix_comment(key);
+    return *this;
+}
+
 Config &Config::delete_suffix_comment(const size_t index) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     reinterpret_cast<IElementContainer*>(m_value)->delete_suffix_comment(index);
+    return *this;
+}
+
+Config &Config::delete_suffix_comment(const std::string &key) {
+    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+    reinterpret_cast<ElementJson*>(m_value)->delete_suffix_comment(key);
     return *this;
 }
 
@@ -1294,26 +1376,28 @@ Config ReadFileIni(const std::string &file_path, const bool with_comments,
 }
 
 bool WriteFile(const Config &config, const std::string &file_path,
-               const ConfigFormat format, const bool with_comments) noexcept
+               const ConfigFormat format, const bool with_comments,
+               uint8_t custom_tabulation_level) noexcept
 {
     switch(format) {
-    case ConfigFormat::eJSON:   WriteFileJson(config, file_path, with_comments);
-    case ConfigFormat::eINI:    WriteFileIni(config, file_path, with_comments);
+    case ConfigFormat::eJSON:   WriteFileJson(config, file_path, with_comments, custom_tabulation_level);
+    case ConfigFormat::eINI:    WriteFileIni(config, file_path, with_comments, custom_tabulation_level);
 //    case ConfigFormat::eYAML:
 //    case ConfigFormat::eXML:
     default:                    return false;
     }
 }
 
+//TODO: WriteFileJson
 bool WriteFileJson(const Config &config, const std::string &file_path,
-                   const bool with_comments) noexcept
+                   const bool with_comments, uint8_t custom_tabulation_level) noexcept
 {
-    //TODO: WriteFileJson
+
     return false;
 }
 
 bool WriteFileIni(const Config &config, const std::string &file_path,
-                   const bool with_comments) noexcept
+                   const bool with_comments, uint8_t custom_tabulation_level) noexcept
 {
     //TODO: WriteFileIni
     return false;
