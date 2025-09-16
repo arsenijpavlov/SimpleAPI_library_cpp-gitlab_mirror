@@ -1127,16 +1127,16 @@ bool Config::containsValue(const Config &config) const noexcept {
 bool Config::containsKey(const std::string &key) const noexcept {
     if(!isMapContainer()) return false;
 
-    for(const auto& pair : getNamedRange()) {
-        if(pair.first == key)
-            return true;
-    }
+//    for(const auto& pair : getNamedRange()) {
+//        if(pair.first == key)
+//            return true;
+//    }
 
     //FIXME: warning предлагает сделать всё через std::any_of, но там муть одна. Непонятно.
-//    std::any_of(getNamedRange().cbegin(), getNamedRange().cend(),
-//                [&key](const std::pair<std::string, std::shared_ptr<Config>>& pair) {
-//                    return pair.first == key;
-//                });
+    std::any_of(getNamedRange().cbegin(), getNamedRange().cend(),
+                [&key](const std::pair<std::string, std::shared_ptr<Config>>& pair) {
+                    return pair.first == key;
+                });
 
     return false;
 }
@@ -1317,7 +1317,7 @@ Config Config::CreateElementFromString(std::string &&value_string, const ConfigF
                 return Config(std::stold(value_string));
         } catch (...) {}
     }
-    /*STRING*/ { //TODO: в теории, всё, что не распарсилось в другие значения, - должно считаться строкой
+    /*STRING*/ {
         if(first == '"' && last == '"') {
             value_string.erase(0, 1);
             value_string.pop_back();
@@ -1346,7 +1346,7 @@ Config Config::CreateElementFromString(std::string &&value_string, const ConfigF
         }
     }
 
-//    throw std::invalid_argument("incorrect value format");
+    // в теории, всё, что не распарсилось в другие значения, - должно считаться строкой
     return Config(value_string);
 }
 
