@@ -625,7 +625,18 @@ std::string ElementJson::toString(const ConfigFormat format, const CommentDesign
                                   const int8_t custom_tabulation_level) const noexcept
 {
     //TODO: std::string ElementJson::toString()
-    return "";
+
+    std::string ret;
+
+    for(const auto& it : m_values) {
+        ret += "\"" + it.first + "\"";
+        ret += ":";
+        ret += it.second->toString(format, design, custom_tabulation_level + 1);
+        ret += ",";
+        ret += "\n";
+    }
+
+    return ret;
 }
 
 std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
