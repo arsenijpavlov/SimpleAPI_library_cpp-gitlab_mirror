@@ -1200,7 +1200,6 @@ bool Config::writeFileIni(const std::string &file_path, const CommentDesign &des
 Config &Config::parse(const std::string &content, const ConfigFormat format,
                       const bool with_comments, std::string *error_log)
 {
-//FIXME: Config::parse()
     release();
     *this = Parse(content, format, with_comments, error_log);
     return *this;
@@ -1225,7 +1224,6 @@ Config &Config::parseJson(const std::string &content, const bool with_comments,
 Config &Config::parseIni(const std::string &content, const bool with_comments,
                          const int8_t tabulation_level, std::string* error_log)
 {
-//FIXME: Config::parseIni()
     release();
     *this = ParseIni(content, with_comments, tabulation_level, error_log);
     return *this;
