@@ -18,10 +18,10 @@ bool        IsNumber(const char ch, bool use_point = true)                      
 
 size_t      CountSymInStr(const std::string& str, const char ch)                        noexcept;
 bool        CharInString(const char ch, std::string symbols)                            noexcept;
-std::string ToString(double d)                                                          noexcept; //исключить лишние знаки при выводе чисел
-bool        IsBool(std::string& str)                                                    noexcept;
-bool        ToBool(std::string& str)                                                    noexcept;
-std::string ToString(bool b)                                                            noexcept;
+std::string ToString(const long double& d)                                                          noexcept; //исключить лишние знаки при выводе чисел
+bool        IsBool(const std::string& str)                                                    noexcept;
+bool        ToBool(const std::string& str)                                                    noexcept;
+std::string ToString(const bool b)                                                            noexcept;
 bool        OnlySpaces(const std::string& str)                                          noexcept;
 std::string PrintVector(const std::vector<std::string>& strings)                        noexcept;
 
@@ -46,6 +46,8 @@ std::string ToStringWithEsc(const std::string& str, const bool use_backslash = f
 bool        IsStringOfFloatNumber(const std::string& str, long double& result)          noexcept;
 bool        IsStringOfIntNumber(const std::string& str, long int& result)               noexcept;
 bool        IsStringOfUIntNumber(const std::string& str, uint64_t& result)              noexcept;
+
+std::string AddQuotes(const std::string& str) noexcept;
 
 }
 

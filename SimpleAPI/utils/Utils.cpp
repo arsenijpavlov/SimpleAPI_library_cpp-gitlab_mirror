@@ -31,7 +31,7 @@ bool CharInString(const char ch, std::string symbols) noexcept {
     return false;
 }
 
-std::string ToString(double d) noexcept {
+std::string ToString(const long double& d) noexcept {
     std::ostringstream str;
     str << d;
     return str.str();
@@ -42,12 +42,12 @@ bool IsBool(std::string& str) noexcept {
     else                                return false;
 }
 
-bool ToBool(std::string& str) noexcept {
+bool ToBool(const std::string& str) noexcept {
     if(str == "true")   return true;
     else                return false;
 }
 
-std::string ToString(bool b) noexcept {
+std::string ToString(const bool b) noexcept {
     if(b) return "true";
     else  return "false";
 }
@@ -459,6 +459,11 @@ bool IsStringOfUIntNumber(const std::string& str, uint64_t& result) noexcept {
     }
 
     return false;
+}
+
+std::string AddQuotes(const std::string &str) noexcept
+{
+    return "\"" + str + "\"";
 }
 
 

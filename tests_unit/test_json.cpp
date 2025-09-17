@@ -226,6 +226,7 @@ TEST(JSON, write_file) {
 
     bool ret = json.writeFile("../tests/test_writer_with_spaces.json", ConfigFormat::eJSON);
     EXPECT_TRUE(ret);
+
     ret = json.writeFile("../tests/test_writer.json", ConfigFormat::eONLY_VALUE);
     EXPECT_TRUE(ret);
 }

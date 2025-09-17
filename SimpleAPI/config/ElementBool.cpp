@@ -18,35 +18,34 @@ bool ElementBool::isEqual(const IElement &other, const bool compare_comments,
     return b1 && b2;
 }
 
+std::string ElementBool::toString(bool value) noexcept {
+    return (value ? "true" : "false");
+}
+
 std::string ElementBool::toString(const ConfigFormat format, const CommentDesign &design,
                                   const int8_t custom_tabulation_level) const noexcept
 {
-    //TODO: ElementBool::toString()
-    return "";
+    return toString(m_value);
 }
 
 std::string ElementBool::toJsonString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
-    //TODO: std::string ElementBool::toJsonString()
-    return "";
+    return toString(m_value);
 }
 
 std::string ElementBool::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
-    //TODO: std::string ElementBool::toIniString()
-    return "";
+    return toString(m_value);
 }
 
 std::string ElementBool::toYamlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
-    //TODO: std::string ElementBool::toYamlString()
-    return "";
+    return toString(m_value);
 }
 
 std::string ElementBool::toXmlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
-    //TODO: std::string ElementBool::toXmlString()
-    return "";
+    return toString(m_value);
 }
 
 

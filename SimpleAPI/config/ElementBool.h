@@ -38,6 +38,7 @@ public:
 
     // String ==========================================================================================================
     //вывод без комментариев, "tabulation_level == -1" => запись в одну строку
+    static std::string toString(bool value)                             noexcept;
     std::string toString(const ConfigFormat format = ConfigFormat::eONLY_VALUE,
                          const CommentDesign &design = {},
                          const int8_t custom_tabulation_level = -1)     const noexcept  override;

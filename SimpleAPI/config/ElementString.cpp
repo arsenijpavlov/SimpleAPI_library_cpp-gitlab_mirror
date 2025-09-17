@@ -24,35 +24,27 @@ bool ElementString::isEqual(const IElement &other, const bool compare_comments,
 std::string ElementString::toString(const ConfigFormat format, const CommentDesign &design,
                                     const int8_t custom_tabulation_level) const noexcept
 {
-    if(format == ConfigFormat::eONLY_VALUE)
-        return m_value;
-
-    //TODO: ElementString::toString()
-    return "";
+    return utils::AddQuotes(m_value);
 }
 
 std::string ElementString::toJsonString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
-    //TODO: std::string ElementString::toJsonString()
-    return "";
+    return utils::AddQuotes(m_value);
 }
 
 std::string ElementString::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
-    //TODO: std::string ElementString::toIniString()
-    return "";
+    return utils::AddQuotes(m_value);
 }
 
 std::string ElementString::toYamlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
-    //TODO: std::string ElementString::toYamlString()
-    return "";
+    return utils::AddQuotes(m_value);
 }
 
 std::string ElementString::toXmlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
-    //TODO: std::string ElementString::toXmlString()
-    return "";
+    return utils::AddQuotes(m_value);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

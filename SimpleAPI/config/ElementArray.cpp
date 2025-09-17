@@ -355,31 +355,31 @@ std::string ElementArray::toString(const ConfigFormat format, const CommentDesig
                                    const int8_t custom_tabulation_level) const noexcept
 {
     //TODO: std::string ElementArray::toString()
-    return "";
+    return "[TODO]";
 }
 
 std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     //TODO: std::string ElementArray::toJsonString()
-    return "";
+    return "[TODO]";
 }
 
 std::string ElementArray::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     //TODO: std::string ElementArray::toIniString()
-    return "";
+    return "[TODO]";
 }
 
 std::string ElementArray::toYamlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     //TODO: std::string ElementArray::toYamlString()
-    return "";
+    return "[TODO]";
 }
 
 std::string ElementArray::toXmlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     //TODO: std::string ElementArray::toXmlString()
-    return "";
+    return "[TODO]";
 }
 
 std::string ElementArray::to_string(const ParseState state) const noexcept {

@@ -1376,31 +1376,24 @@ Config ReadFileIni(const std::string &file_path, const bool with_comments,
     return Config{};
 }
 
+//NOTE: eONLY_VALUE выводит переменную в формате JSON без пробелов и комментариев
 bool WriteFile(const Config& config, const std::string& file_path,
                const ConfigFormat format, const CommentDesign &design,
                const uint8_t custom_tabulation_level) noexcept
 {
-    switch(format) {
-    case ConfigFormat::eJSON:   WriteFileJson(config, file_path, design, custom_tabulation_level);
-    case ConfigFormat::eINI:    WriteFileIni(config, file_path, design, custom_tabulation_level);
-//    case ConfigFormat::eYAML:
-//    case ConfigFormat::eXML:
-    default:                    return false;
-    }
+    return WriteStringToFile(file_path, config.toString(format, design, custom_tabulation_level));
 }
 
-//TODO: WriteFileJson
 bool WriteFileJson(const Config& config, const std::string& file_path,
                    const CommentDesign &design, const uint8_t custom_tabulation_level) noexcept
 {
     return WriteStringToFile(file_path, config.toString(ConfigFormat::eJSON, design, custom_tabulation_level));
 }
 
-//TODO: WriteFileIni
 bool WriteFileIni(const Config& config, const std::string& file_path,
                   const CommentDesign &design, const uint8_t custom_tabulation_level) noexcept
 {
-    return false;
+    return WriteStringToFile(file_path, config.toString(ConfigFormat::eINI, design, custom_tabulation_level));
 }
 
 bool WriteStringToFile(const std::string& file_path, std::string&& content) noexcept

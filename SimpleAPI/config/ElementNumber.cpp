@@ -21,32 +21,27 @@ bool ElementNumber::isEqual(const IElement &other, const bool compare_comments,
 std::string ElementNumber::toString(const ConfigFormat format, const CommentDesign &design,
                                     const int8_t custom_tabulation_level) const noexcept
 {
-    //TODO: ElementNumber::toString()
-    return "";
+    return utils::ToString(m_value);
 }
 
 std::string ElementNumber::toJsonString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
-    //TODO: std::string ElementNumber::toJsonString()
-    return "";
+    return utils::ToString(m_value);
 }
 
 std::string ElementNumber::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
-    //TODO: std::string ElementNumber::toIniString()
-    return "";
+    return utils::ToString(m_value);
 }
 
 std::string ElementNumber::toYamlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
-    //TODO: std::string ElementNumber::toYamlString()
-    return "";
+    return utils::ToString(m_value);
 }
 
 std::string ElementNumber::toXmlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
-    //TODO: std::string ElementNumber::toXmlString()
-    return "";
+    return utils::ToString(m_value);
 }
 
 
