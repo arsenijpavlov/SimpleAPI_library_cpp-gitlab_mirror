@@ -122,7 +122,9 @@ std::vector<uint8_t> FromHexString(std::string str) noexcept {
 }
 
 
-std::string RepeatSymToStr(const char ch, const uint16_t size) noexcept {
+std::string RepeatSymToStr(const char ch, const int16_t size) noexcept {
+    if(size < 0) return "";
+
     std::string ret;
     for(uint16_t i = 0; i < size; i++)
         ret += ch;
@@ -464,6 +466,15 @@ bool IsStringOfUIntNumber(const std::string& str, uint64_t& result) noexcept {
 std::string AddQuotes(const std::string &str) noexcept
 {
     return "\"" + str + "\"";
+}
+
+std::string RemoveStartTabulations(const std::string &str) noexcept
+{
+    std::string ret = str;
+    while(ret.front() == '\t')
+        ret.erase(ret.begin(), ret.begin() + 1);
+
+    return ret;
 }
 
 

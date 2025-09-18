@@ -628,14 +628,19 @@ std::string ElementJson::toString(const ConfigFormat format, const CommentDesign
     std::string ret;
     const std::string tablulation_str   = utils::RepeatSymToStr('\t', custom_tabulation_level);
     const std::string tablulation_str_1 = utils::RepeatSymToStr('\t', custom_tabulation_level + 1);
-    ret += "custom_tabulation_level:" + std::to_string(custom_tabulation_level) + "\n";
 
-    bool with_spaces = format == ConfigFormat::eONLY_VALUE || custom_tabulation_level == -1;
+    bool with_spaces = format == ConfigFormat::eONLY_VALUE || custom_tabulation_level != -1;
 
     switch(format){
     case ConfigFormat::eONLY_VALUE:
     case ConfigFormat::eJSON:
     {
+        //вывод комментария с рамкой
+        if(design.with_comments && !getPrefixComment().empty()) {
+            ret += ToComment(getPrefixComment(), design, custom_tabulation_level);
+            ret += "\n";
+        }
+
         if(with_spaces)
             ret += tablulation_str;
         ret += "{";
@@ -644,7 +649,10 @@ std::string ElementJson::toString(const ConfigFormat format, const CommentDesign
 
         for(size_t i = 0; i < size(); i++) {
             //вывод комментария с рамкой
-            //TODO: вывод комментария с рамкой
+            if(design.with_comments && !m_values[i].second->getPrefixComment().empty()) {
+                ret += ToComment(m_values[i].second->getPrefixComment(), design, custom_tabulation_level + 1);
+                ret += "\n";
+            }
 
             //вывод ключа
             if(with_spaces)
@@ -657,12 +665,22 @@ std::string ElementJson::toString(const ConfigFormat format, const CommentDesign
             //вывод значения
             if(with_spaces)
                 ret += " ";
-            ret += m_values[i].second->toString(format, design, custom_tabulation_level + 1);
+
+            std::string temp = m_values[i].second->toString(format, design, custom_tabulation_level + 1);
+            if(m_values[i].second->isContainer()) {
+                temp = utils::RemoveStartTabulations(temp);
+            }
+
+            ret += temp;
             if(i < size() - 1)
                 ret += ",";
 
             //вывод комментария без рамки
             //TODO: вывод комментария без рамки
+            if(design.with_comments && !m_values[i].second->getSuffixComment().empty()) {
+                ret += " " + ToComment(m_values[i].second->getSuffixComment(), design, -1);
+                ret += "\n";
+            }
 
             if(with_spaces)
                 ret += "\n";

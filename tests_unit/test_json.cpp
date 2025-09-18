@@ -238,6 +238,7 @@ TEST(JSON, write_and_read_file_comment) {
     CommentDesign cd;
     cd.opt_multiline_column_size = 20;
     cd.opt_multiline_border = '#';
+    cd.with_comments = true;
 
     json.addPrefixComment("1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...");
     json.add_prefix_comment("bool", "some \nwords...");
@@ -248,7 +249,7 @@ TEST(JSON, write_and_read_file_comment) {
     json["array"].add_prefix_comment(0, "array element\n comment_");
 
     std::string path = "../tests/test_writer_with_comments.json";
-    json.writeFile(path, ConfigFormat::eJSON, {}, true);
+    json.writeFile(path, ConfigFormat::eJSON, cd, 0);
 
     Config json2;
     json2.readFileJson(path, true);

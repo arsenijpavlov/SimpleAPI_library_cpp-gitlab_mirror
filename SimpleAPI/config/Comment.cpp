@@ -82,14 +82,14 @@ void Comment::set(const Comment &other) noexcept {
 
 void Comment::setPrefix(const std::string &comment) noexcept {
     if(m_prefix == nullptr)
-        m_prefix = new std::string();
+        m_prefix = new std::string(comment);
     if(!comment.empty())
         *m_prefix = comment;
 }
 
 void Comment::setSuffix(const std::string &comment) noexcept {
     if(m_suffix == nullptr)
-        m_suffix = new std::string();
+        m_suffix = new std::string(comment);
     if(!comment.empty())
         *m_suffix = comment;
 }
@@ -245,6 +245,7 @@ std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept {
 }
 
 // @TEST(COMMENT, tabulation_level)
+//FIXME: в тесте write_and_read_file_comment неправильное разделение на строки
 std::string ToComment(const std::string &comment, const CommentDesign& design,
                       const int8_t tabulation_level) noexcept
 {
@@ -355,7 +356,7 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
                 // учесть: B_COMMENTSTRING_B
                 ss << design.opt_multiline_border
                    << " "
-                   << logs::columned(s, max - 1) //-1 засчёт пробела в начале
+                   << logs::columned(s, max +1 /*- 1*/) //-1 засчёт пробела в начале
                    << design.opt_multiline_border;
                 s = ss.str();
             }
@@ -364,12 +365,12 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
             std::string multiline_comment_symbols = GetMultilineCommentStartStr(design);
             temp = multiline_comment_symbols
                    + RepeatSymToStr(design.opt_multiline_border,
-                                    max + (multiline_comment_symbols.size() == 2 ? 0 : 1));
+                                    max + /*пробелы*/2 + (multiline_comment_symbols.size() == 2 ? 0 : 1));
             result_lines.insert(result_lines.cbegin(), temp);
 
             multiline_comment_symbols = GetMultilineCommentStopStr(design);
             temp = RepeatSymToStr(design.opt_multiline_border,
-                                  max + (multiline_comment_symbols.size() == 2 ? 0 : 1))
+                                  max + /*пробелы*/2 + (multiline_comment_symbols.size() == 2 ? 0 : 1))
                    + multiline_comment_symbols;
             result_lines.push_back(temp);
         } else {

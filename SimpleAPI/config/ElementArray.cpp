@@ -351,11 +351,64 @@ Config ElementArray::operator[](const size_t index) const {
     return *m_values[index];
 }
 
+//TODO: std::string ElementArray::toString()
 std::string ElementArray::toString(const ConfigFormat format, const CommentDesign &design,
                                    const int8_t custom_tabulation_level) const noexcept
 {
-    //TODO: std::string ElementArray::toString()
-    return "[TODO]";
+    std::string ret;
+    const std::string tablulation_str   = utils::RepeatSymToStr('\t', custom_tabulation_level);
+    const std::string tablulation_str_1 = utils::RepeatSymToStr('\t', custom_tabulation_level + 1);
+    //    ret += "custom_tabulation_level:" + std::to_string(custom_tabulation_level) + "\n";
+
+    bool with_spaces = format == ConfigFormat::eONLY_VALUE || custom_tabulation_level != -1;
+
+    switch(format){
+    case ConfigFormat::eONLY_VALUE:
+    case ConfigFormat::eJSON:
+    {
+        if(with_spaces)
+            ret += tablulation_str;
+        ret += "[";
+        if(with_spaces)
+            ret += "\n";
+
+        for(size_t i = 0; i < size(); i++) {
+            //вывод комментария с рамкой
+            //TODO: вывод комментария с рамкой
+
+            //вывод значения
+            if(with_spaces)
+                ret += tablulation_str_1;
+
+            std::string temp = m_values[i]->toString(format, design, custom_tabulation_level + 1);
+            if(m_values[i]->isContainer()) {
+                temp = utils::RemoveStartTabulations(temp);
+            }
+
+            ret += temp;
+            if(i < size() - 1)
+                ret += ",";
+
+            //вывод комментария без рамки
+            //TODO: вывод комментария без рамки
+
+            if(with_spaces)
+                ret += "\n";
+        }
+
+        if(with_spaces)
+            ret += tablulation_str;
+        ret += "]";
+
+        break;
+    }
+    case ConfigFormat::eINI:
+    case ConfigFormat::eYAML:
+    case ConfigFormat::eXML:
+        break;
+    }
+
+    return ret;
 }
 
 std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
