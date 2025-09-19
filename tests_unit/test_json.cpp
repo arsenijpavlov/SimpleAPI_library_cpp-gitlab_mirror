@@ -241,7 +241,9 @@ TEST(JSON, write_and_read_file_comment) {
     cd.with_comments = true;
 
     json.addPrefixComment("1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...");
+    json.addSuffixComment("1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...");
     json.add_prefix_comment("bool", "some \nwords...");
+    json.add_suffix_comment("bool", "some \nwords...");
     json.add_prefix_comment("string", "some many words1...");
     json.add_suffix_comment("array", "some many words2...");
 

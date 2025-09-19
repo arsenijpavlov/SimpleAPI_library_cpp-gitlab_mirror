@@ -353,33 +353,42 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
             // выставить знаки вертикальной границы
             for(std::string& s : result_lines) {
                 std::stringstream ss;
-                // учесть: B_COMMENTSTRING_B
-                ss << design.opt_multiline_border
-                   << " "
-                   << logs::columned(s, max +1 /*- 1*/) //-1 засчёт пробела в начале
-                   << design.opt_multiline_border;
+                if(tabulation_level != -1) {
+                    // учесть: B_COMMENTSTRING_B
+                    ss << design.opt_multiline_border
+                       << " "
+                       << logs::columned(s, max +1 /*- 1*/) //-1 засчёт пробела в начале
+                       << design.opt_multiline_border;
+                } else {
+                    ss << " " << logs::columned(s, max +1 /*- 1*/); //-1 засчёт пробела в начале
+                }
                 s = ss.str();
             }
 
             // выставить знаки горизонтальных границ
             std::string multiline_comment_symbols = GetMultilineCommentStartStr(design);
-            temp = multiline_comment_symbols
-                   + RepeatSymToStr(design.opt_multiline_border,
-                                    max + /*пробелы*/2 + (multiline_comment_symbols.size() == 2 ? 0 : 1));
+            temp = multiline_comment_symbols;
+            if(tabulation_level != -1)
+                temp += RepeatSymToStr(design.opt_multiline_border,
+                                       max + /*пробелы*/2 + (multiline_comment_symbols.size() == 2 ? 0 : 1));
             result_lines.insert(result_lines.cbegin(), temp);
 
             multiline_comment_symbols = GetMultilineCommentStopStr(design);
-            temp = RepeatSymToStr(design.opt_multiline_border,
-                                  max + /*пробелы*/2 + (multiline_comment_symbols.size() == 2 ? 0 : 1))
-                   + multiline_comment_symbols;
+            temp = "";
+            if(tabulation_level != -1)
+                temp += RepeatSymToStr(design.opt_multiline_border,
+                                  max + /*пробелы*/2 + (multiline_comment_symbols.size() == 2 ? 0 : 1));
+            temp += multiline_comment_symbols;
             result_lines.push_back(temp);
         } else {
             std::transform(result_lines.begin(), result_lines.end(),
-                           result_lines.begin(), [&max](const std::string& s) { return logs::columned(s, max); });
+                           result_lines.begin(), [&max](const std::string& s)
+                           { return logs::columned(s, max); });
             result_lines.front() = GetMultilineCommentStartStr(design) + " " + result_lines.front();
             for(size_t i = 1; i < result_lines.size(); i++)
                 result_lines[i] = " " + result_lines[i];
-            result_lines.back() = result_lines.back() + " " + GetMultilineCommentStopStr(design);
+            RemoveIllegalSpaces(result_lines.back());
+            result_lines.back() = " " + result_lines.back() + " " + GetMultilineCommentStopStr(design);
         }
         // ==================================================
 

@@ -676,9 +676,10 @@ std::string ElementJson::toString(const ConfigFormat format, const CommentDesign
                 ret += ",";
 
             //вывод комментария без рамки
-            //TODO: вывод комментария без рамки
             if(design.with_comments && !m_values[i].second->getSuffixComment().empty()) {
-                ret += " " + ToComment(m_values[i].second->getSuffixComment(), design, -1);
+                std::string temp = ToComment(m_values[i].second->getSuffixComment(), design, -1);
+                utils::AddTabsForFromLine(temp, 2, custom_tabulation_level + 1);
+                ret += " " + temp;
                 ret += "\n";
             }
 
@@ -689,6 +690,14 @@ std::string ElementJson::toString(const ConfigFormat format, const CommentDesign
         if(with_spaces)
             ret += tablulation_str;
         ret += "}";
+
+        //вывод комментария без рамки
+        if(design.with_comments && !getSuffixComment().empty()) {
+            std::string temp = ToComment(getSuffixComment(), design, -1);
+            utils::AddTabsForFromLine(temp, 2, custom_tabulation_level + 1);
+            ret += " " + temp;
+            ret += "\n";
+        }
 
         break;
     }

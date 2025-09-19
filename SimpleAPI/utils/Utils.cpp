@@ -477,5 +477,11 @@ std::string RemoveStartTabulations(const std::string &str) noexcept
     return ret;
 }
 
+void AddTabsForFromLine(std::string &str, const size_t from_line_number,
+                        const int8_t tabulation_size) noexcept
+{
+    //TODO: AddTabsForFromLine()
+}
+
 
 }
