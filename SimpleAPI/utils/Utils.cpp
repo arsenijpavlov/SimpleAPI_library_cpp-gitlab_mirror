@@ -480,7 +480,43 @@ std::string RemoveStartTabulations(const std::string &str) noexcept
 void AddTabsForFromLine(std::string &str, const size_t from_line_number,
                         const int8_t tabulation_size) noexcept
 {
-    //TODO: AddTabsForFromLine()
+    std::string output_string = "";
+    size_t line_counter = 0;
+    for(size_t i = 0; i < str.size(); i++) {
+        output_string += str[i];
+        if(str[i] == '\n') {
+            ++line_counter;
+            if(line_counter + 1 >= from_line_number) {
+                output_string += RepeatSymToStr('\t', tabulation_size);
+            }
+        }
+    }
+    str = output_string;
+}
+
+void AddStringForFromLine(std::string &str, const size_t from_line_number,
+                          const std::string &added_line) noexcept
+{
+    std::string output_string = "";
+    size_t line_counter = 0;
+    for(size_t i = 0; i < str.size(); i++) {
+        output_string += str[i];
+        if(str[i] == '\n') {
+            ++line_counter;
+            if(line_counter + 1 >= from_line_number) {
+                output_string += added_line;
+            }
+        }
+    }
+    str = output_string;
+}
+
+void SetStringAsOnlySpaces(std::string& str) noexcept {
+    for(size_t i = 0; i < str.size(); i++) {
+        if(!CharInString(str[i], "\n\t ")) {
+            str[i] = ' ';
+        }
+    }
 }
 
 

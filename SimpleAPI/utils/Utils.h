@@ -50,6 +50,9 @@ bool        IsStringOfUIntNumber(const std::string& str, uint64_t& result)      
 std::string AddQuotes(const std::string& str)                                           noexcept;
 std::string RemoveStartTabulations(const std::string& str)                              noexcept;
 void        AddTabsForFromLine(std::string& str, const size_t from_line_number, const int8_t tabulation_size) noexcept;
+void        AddStringForFromLine(std::string& str, const size_t from_line_number,
+                          const std::string& added_line)                                noexcept;
+void        SetStringAsOnlySpaces(std::string& str)                                     noexcept;
 
 }
 

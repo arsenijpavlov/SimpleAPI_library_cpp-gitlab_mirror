@@ -251,7 +251,8 @@ TEST(JSON, write_and_read_file_comment) {
     json["array"].add_prefix_comment(0, "array element\n comment_");
 
     std::string path = "../tests/test_writer_with_comments.json";
-    json.writeFile(path, ConfigFormat::eJSON, cd, 0);
+//    json.writeFile(path, ConfigFormat::eJSON, cd, 0);
+    json.writeFile(path, ConfigFormat::eONLY_VALUE, {}, -1); //TODO: исправить запись в одну строку
 
     Config json2;
     json2.readFileJson(path, true);

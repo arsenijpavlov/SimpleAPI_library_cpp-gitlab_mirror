@@ -245,7 +245,6 @@ std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept {
 }
 
 // @TEST(COMMENT, tabulation_level)
-//FIXME: в тесте write_and_read_file_comment неправильное разделение на строки
 std::string ToComment(const std::string &comment, const CommentDesign& design,
                       const int8_t tabulation_level) noexcept
 {

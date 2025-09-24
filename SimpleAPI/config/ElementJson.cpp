@@ -693,8 +693,12 @@ std::string ElementJson::toString(const ConfigFormat format, const CommentDesign
 
         //вывод комментария без рамки
         if(design.with_comments && !getSuffixComment().empty()) {
-            std::string temp = ToComment(getSuffixComment(), design, -1);
-            utils::AddTabsForFromLine(temp, 2, custom_tabulation_level + 1);
+            std::string temp = ToComment(getSuffixComment(), design);
+            const size_t pos = ret.rfind('\n');
+            std::string temp__ = ret.size() > pos +1 ? (ret.substr(pos + 1, ret.size())) : "";
+            utils::SetStringAsOnlySpaces(temp__);
+            temp__ = " " + temp__; // ToComment() добавляет пробел перед каждой строкой комментария
+            utils::AddStringForFromLine(temp, 2, temp__);
             ret += " " + temp;
             ret += "\n";
         }
