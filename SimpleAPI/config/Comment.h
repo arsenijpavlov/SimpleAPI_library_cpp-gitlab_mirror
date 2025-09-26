@@ -68,6 +68,7 @@ public:
     //NOTE: запись строго по первому элементу
 
     bool with_comments;
+    bool is_in_container;
 
     CommentDesign() :
         opt_multiline_border(0),
@@ -76,7 +77,8 @@ public:
         temp_multiline_schema{},
         oneline_comment_variants{},
         multiline_comment_variants{},
-        with_comments{false}
+        with_comments{false},
+        is_in_container{false}
     {
         oneline_comment_variants.push_back({'/', '/'});         // {#,0} - второй символ 0 -> один символ уже комментирует
         multiline_comment_variants.push_back({'/', '*', 0});    // 0 - завершающий символ повторяет первый
@@ -92,6 +94,7 @@ public:
             oneline_comment_variants    = other.oneline_comment_variants;
             multiline_comment_variants  = other.multiline_comment_variants;
             with_comments               = other.with_comments;
+            is_in_container             = other.is_in_container;
         }
     }
 
@@ -105,6 +108,7 @@ public:
             oneline_comment_variants    = std::move(other.oneline_comment_variants);
             multiline_comment_variants  = std::move(other.multiline_comment_variants);
             with_comments               = std::move(other.with_comments);
+            is_in_container             = std::move(other.is_in_container);
         }
     }
 
@@ -117,6 +121,7 @@ public:
             oneline_comment_variants    = other.oneline_comment_variants;
             multiline_comment_variants  = other.multiline_comment_variants;
             with_comments               = other.with_comments;
+            is_in_container             = other.is_in_container;
         }
         return *this;
     }
@@ -130,6 +135,7 @@ public:
             oneline_comment_variants    = std::move(other.oneline_comment_variants);
             multiline_comment_variants  = std::move(other.multiline_comment_variants);
             with_comments               = std::move(other.with_comments);
+            is_in_container             = std::move(other.is_in_container);
         }
         return *this;
     }

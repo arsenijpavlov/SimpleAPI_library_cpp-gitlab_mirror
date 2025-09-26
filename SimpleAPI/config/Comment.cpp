@@ -250,6 +250,11 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
 {
     if(comment.empty()) return "";
 
+    if(comment == "<string> prefix comment") {
+        //FIXME: некорректно работает разбивка на строки
+        std::cout << "Hello world!" << std::endl;
+    }
+
     using namespace utils;
     VString             result_lines;
     std::string         temp = "";

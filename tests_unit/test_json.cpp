@@ -244,15 +244,17 @@ TEST(JSON, write_and_read_file_comment) {
     json.addSuffixComment("1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...");
     json.add_prefix_comment("bool", "some \nwords...");
     json.add_suffix_comment("bool", "some \nwords...");
-    json.add_prefix_comment("string", "some many words1...");
-    json.add_suffix_comment("array", "some many words2...");
+    json.add_prefix_comment("string", "<string> prefix comment");
+    json.add_prefix_comment("array", "<array> prefix comment");
+    json.add_suffix_comment("array", "<array> suffix comment");
+    json.add_prefix_comment("json", "<json> prefix comment");
+    json.add_suffix_comment("json", "<json> suffix comment");
 
-    json["json"].add_prefix_comment(0, "json element\n comment");
-    json["array"].add_prefix_comment(0, "array element\n comment_");
+    json["json"].add_prefix_comment(0, "json first element\n comment");
+    json["array"].add_prefix_comment(0, "array second element\n comment_");
 
     std::string path = "../tests/test_writer_with_comments.json";
-//    json.writeFile(path, ConfigFormat::eJSON, cd, 0);
-    json.writeFile(path, ConfigFormat::eONLY_VALUE, {}, -1); //TODO: исправить запись в одну строку
+    json.writeFile(path, ConfigFormat::eJSON, cd, 0);
 
     Config json2;
     json2.readFileJson(path, true);

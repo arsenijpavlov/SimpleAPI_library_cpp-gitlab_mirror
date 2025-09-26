@@ -360,7 +360,9 @@ std::string ElementArray::toString(const ConfigFormat format, const CommentDesig
     const std::string tablulation_str_1 = utils::RepeatSymToStr('\t', custom_tabulation_level + 1);
     //    ret += "custom_tabulation_level:" + std::to_string(custom_tabulation_level) + "\n";
 
-    bool with_spaces = format == ConfigFormat::eONLY_VALUE || custom_tabulation_level != -1;
+    bool with_spaces = format != ConfigFormat::eONLY_VALUE && custom_tabulation_level != -1;
+    CommentDesign inner_design = design;
+    inner_design.is_in_container = true;
 
     switch(format){
     case ConfigFormat::eONLY_VALUE:
@@ -374,15 +376,21 @@ std::string ElementArray::toString(const ConfigFormat format, const CommentDesig
 
         for(size_t i = 0; i < size(); i++) {
             //вывод комментария с рамкой
-            //TODO: вывод комментария с рамкой
+            if(design.with_comments && !design.is_in_container && !m_values[i]->getPrefixComment().empty()) {
+                ret += ToComment(m_values[i]->getPrefixComment(), inner_design, custom_tabulation_level + 1);
+                ret += "\n";
+            }
 
             //вывод значения
             if(with_spaces)
                 ret += tablulation_str_1;
 
-            std::string temp = m_values[i]->toString(format, design, custom_tabulation_level + 1);
+            std::string temp = m_values[i]->toString(format, inner_design, (custom_tabulation_level == -1 ? -1 : custom_tabulation_level + 1));
             if(m_values[i]->isContainer()) {
                 temp = utils::RemoveStartTabulations(temp);
+            }
+            if(m_values[i]->isString() && format == ConfigFormat::eONLY_VALUE) {
+                temp = "\"" + temp + "\"";
             }
 
             ret += temp;
@@ -390,7 +398,16 @@ std::string ElementArray::toString(const ConfigFormat format, const CommentDesig
                 ret += ",";
 
             //вывод комментария без рамки
-            //TODO: вывод комментария без рамки
+            if(!m_values[i]->isContainer()) { //NOTE: контейнеры сами себя описывают
+                if(inner_design.with_comments && !m_values[i]->getSuffixComment().empty()) {
+                    std::string temp = ToComment(m_values[i]->getSuffixComment(), inner_design, -1);
+                    const size_t pos = ret.rfind('\n');
+                    std::string temp__ = (ret.size() > pos +1 ? (ret.substr(pos + 1, ret.size())) : "") + " ";
+                    utils::SetStringAsOnlySpaces(temp__);
+                    utils::AddStringForFromLine(temp, 2, temp__);
+                    ret += " " + temp;
+                }
+            }
 
             if(with_spaces)
                 ret += "\n";
@@ -399,6 +416,16 @@ std::string ElementArray::toString(const ConfigFormat format, const CommentDesig
         if(with_spaces)
             ret += tablulation_str;
         ret += "]";
+
+        //вывод комментария без рамки
+        if(design.with_comments && !design.is_in_container && !getSuffixComment().empty()) {
+            std::string temp = ToComment(getSuffixComment(), design);
+            const size_t pos = ret.rfind('\n');
+            std::string temp__ = (ret.size() > pos +1 ? (ret.substr(pos + 1, ret.size())) : "") + " ";
+            utils::SetStringAsOnlySpaces(temp__);
+            utils::AddStringForFromLine(temp, 2, temp__);
+            ret += " " + temp;
+        }
 
         break;
     }

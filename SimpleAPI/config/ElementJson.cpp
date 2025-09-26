@@ -629,15 +629,17 @@ std::string ElementJson::toString(const ConfigFormat format, const CommentDesign
     const std::string tablulation_str   = utils::RepeatSymToStr('\t', custom_tabulation_level);
     const std::string tablulation_str_1 = utils::RepeatSymToStr('\t', custom_tabulation_level + 1);
 
-    bool with_spaces = format == ConfigFormat::eONLY_VALUE || custom_tabulation_level != -1;
+    bool with_spaces = format != ConfigFormat::eONLY_VALUE && custom_tabulation_level != -1;
+    CommentDesign inner_design = design;
+    inner_design.is_in_container = true;
 
     switch(format){
     case ConfigFormat::eONLY_VALUE:
     case ConfigFormat::eJSON:
     {
         //вывод комментария с рамкой
-        if(design.with_comments && !getPrefixComment().empty()) {
-            ret += ToComment(getPrefixComment(), design, custom_tabulation_level);
+        if(design.with_comments && !design.is_in_container && !getPrefixComment().empty()) {
+            ret += ToComment(getPrefixComment(), inner_design, custom_tabulation_level);
             ret += "\n";
         }
 
@@ -649,8 +651,8 @@ std::string ElementJson::toString(const ConfigFormat format, const CommentDesign
 
         for(size_t i = 0; i < size(); i++) {
             //вывод комментария с рамкой
-            if(design.with_comments && !m_values[i].second->getPrefixComment().empty()) {
-                ret += ToComment(m_values[i].second->getPrefixComment(), design, custom_tabulation_level + 1);
+            if(inner_design.with_comments && !m_values[i].second->getPrefixComment().empty()) {
+                ret += ToComment(m_values[i].second->getPrefixComment(), inner_design, custom_tabulation_level + 1);
                 ret += "\n";
             }
 
@@ -666,9 +668,12 @@ std::string ElementJson::toString(const ConfigFormat format, const CommentDesign
             if(with_spaces)
                 ret += " ";
 
-            std::string temp = m_values[i].second->toString(format, design, custom_tabulation_level + 1);
+            std::string temp = m_values[i].second->toString(format, inner_design, (custom_tabulation_level == -1 ? -1 : custom_tabulation_level + 1));
             if(m_values[i].second->isContainer()) {
                 temp = utils::RemoveStartTabulations(temp);
+            }
+            if(m_values[i].second->isString() && format == ConfigFormat::eONLY_VALUE) {
+                temp = "\"" + temp + "\"";
             }
 
             ret += temp;
@@ -676,11 +681,13 @@ std::string ElementJson::toString(const ConfigFormat format, const CommentDesign
                 ret += ",";
 
             //вывод комментария без рамки
-            if(design.with_comments && !m_values[i].second->getSuffixComment().empty()) {
-                std::string temp = ToComment(m_values[i].second->getSuffixComment(), design, -1);
-                utils::AddTabsForFromLine(temp, 2, custom_tabulation_level + 1);
+            if(inner_design.with_comments && !m_values[i].second->getSuffixComment().empty()) {
+                std::string temp = ToComment(m_values[i].second->getSuffixComment(), inner_design, -1);
+                const size_t pos = ret.rfind('\n');
+                std::string temp__ = (ret.size() > pos +1 ? (ret.substr(pos + 1, ret.size())) : "") + " ";
+                utils::SetStringAsOnlySpaces(temp__);
+                utils::AddStringForFromLine(temp, 2, temp__);
                 ret += " " + temp;
-                ret += "\n";
             }
 
             if(with_spaces)
@@ -692,15 +699,13 @@ std::string ElementJson::toString(const ConfigFormat format, const CommentDesign
         ret += "}";
 
         //вывод комментария без рамки
-        if(design.with_comments && !getSuffixComment().empty()) {
+        if(design.with_comments && !design.is_in_container && !getSuffixComment().empty()) {
             std::string temp = ToComment(getSuffixComment(), design);
             const size_t pos = ret.rfind('\n');
-            std::string temp__ = ret.size() > pos +1 ? (ret.substr(pos + 1, ret.size())) : "";
+            std::string temp__ = (ret.size() > pos +1 ? (ret.substr(pos + 1, ret.size())) : "") + " ";
             utils::SetStringAsOnlySpaces(temp__);
-            temp__ = " " + temp__; // ToComment() добавляет пробел перед каждой строкой комментария
             utils::AddStringForFromLine(temp, 2, temp__);
             ret += " " + temp;
-            ret += "\n";
         }
 
         break;
