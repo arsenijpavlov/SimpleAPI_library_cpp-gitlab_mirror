@@ -237,7 +237,7 @@ TEST(JSON, write_and_read_file_comment) {
 
     CommentDesign cd;
     cd.opt_multiline_column_size = 20;
-    cd.opt_multiline_border = '#';
+//    cd.opt_multiline_border = '#';
     cd.with_comments = true;
 
     json.addPrefixComment("1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...");
