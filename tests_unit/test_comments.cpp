@@ -40,7 +40,7 @@ TEST(COMMENT, tabulation_level) {
                                   "***********/";
     CommentDesign design_1;
     design_1.opt_multiline_border = '*';
-    design_1.opt_multiline_column_size = 10;
+    design_1.opt_multiline_column_size = 8; // пробелы по бокам от строки комментария не учитываются в размере "колонки"
     EXPECT_EQ(expect_string_1, ToComment("asd\naaa\nasd", design_1, 0));
 
     std::string expect_string_2 = "/***********\n"
@@ -51,7 +51,7 @@ TEST(COMMENT, tabulation_level) {
     CommentDesign design_2;
     design_2.multiline_comment_variants = {{'/', 0, 0}};
     design_2.opt_multiline_border = '*';
-    design_2.opt_multiline_column_size = 10;
+    design_2.opt_multiline_column_size = 8;
     EXPECT_EQ(expect_string_2, ToComment("asd\naaa\nasd", design_2, 0));
 
     std::string expect_string_3 = "\t\t\t\t/* asd\n"
