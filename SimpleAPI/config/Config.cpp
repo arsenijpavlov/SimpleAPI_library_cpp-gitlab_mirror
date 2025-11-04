@@ -137,9 +137,21 @@ Comment &Config::get_comment(const size_t index) {
     return reinterpret_cast<IElementContainer*>(m_value)->get_comment(index);
 }
 
+Comment &Config::get_comment(const std::string &key)
+{
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    return reinterpret_cast<ElementJson*>(m_value)->get_comment(key);
+}
+
 Comment Config::get_comment(const size_t index) const {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     return reinterpret_cast<IElementContainer*>(m_value)->get_comment(index);
+}
+
+Comment Config::get_comment(const std::string &key) const
+{
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    return reinterpret_cast<ElementJson*>(m_value)->get_comment(key);
 }
 
 std::string &Config::get_prefix_comment(const size_t index) {
