@@ -290,6 +290,7 @@ Config &Config::setValue(const Config &other) noexcept {
     return *this;
 }
 
+//TODO: комментарии всё ещё не учитываются
 Config &Config::setValue(Config &&other) noexcept {
     if(this != &other)
     {
@@ -1282,8 +1283,7 @@ shared_VPairElement::const_iterator Config::named_cend() const {
 }
 
 Config Config::CreateElementFromString(std::string &&value_string, const ConfigFormat format,
-                                       const bool enable_comments, const CommentDesign& design,
-                                       const int8_t tabulation_level)
+                                       const CommentDesign& design, const int8_t tabulation_level)
 {
     using namespace utils;
     //удаление незначащих пробелов
@@ -1340,7 +1340,7 @@ Config Config::CreateElementFromString(std::string &&value_string, const ConfigF
             try {
                 Config array;
                 array.setCommentDesign(design);
-                array.parseArray(value_string, enable_comments, new_tab_lvl);
+                array.parseArray(value_string, design.with_comments, new_tab_lvl);
                 return array;
             } catch(...) {}
         }
@@ -1350,7 +1350,7 @@ Config Config::CreateElementFromString(std::string &&value_string, const ConfigF
             try {
                 Config json;
                 json.setCommentDesign(design);
-                json.parseJson(value_string, enable_comments, new_tab_lvl);
+                json.parseJson(value_string, design.with_comments, new_tab_lvl);
                 return Config(json);
             } catch(...) {}
         }
@@ -1377,14 +1377,23 @@ Config ReadFile(const std::string &file_path, const ConfigFormat format,
 Config ReadFileJson(const std::string &file_path, const bool with_comments,
                     std::string *error_log)
 {
-    //TODO: ReadFileJson
+    std::string input_str;
+    if(GetAllStringsFromFile(file_path, input_str)) {
+        Config ret = ParseJson(input_str, with_comments, 0, error_log);
+        return ret;
+    }
+
     return Config{};
 }
 
 Config ReadFileIni(const std::string &file_path, const bool with_comments,
                     std::string *error_log)
 {
-    //TODO: ReadFileIni
+    std::string input_str;
+    if(GetAllStringsFromFile(file_path, input_str)) {
+        return ParseIni(input_str, with_comments, 0, error_log);
+    }
+
     return Config{};
 }
 
@@ -1461,6 +1470,8 @@ Config ParseJson(const std::string &content, const bool with_comments,
 Config ParseIni(const std::string &content, const bool with_comments,
                 const int8_t tabulation_level, std::string* error_log)
 {
-    //TODO: ParseIni
+    Config ret(ValueType::eJson);
+    ret.parseIni(content, with_comments, tabulation_level, error_log);
+
     return {};
 }

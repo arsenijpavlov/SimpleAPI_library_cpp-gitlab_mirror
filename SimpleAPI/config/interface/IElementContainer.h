@@ -81,69 +81,59 @@ public:
     // ============================================================================================================ File
 
     // Parser ==========================================================================================================
-    virtual void    parse(const std::string& input_string,
-                        CommentDesign& design,
+    virtual void    parse(const std::string& input_string, CommentDesign& design,
                         const ConfigFormat format = ConfigFormat::eJSON,
-                        const bool parse_comments = true, const int8_t tabulation_level = 0)                                   = 0;
+                        const int8_t tabulation_level = 0)                                      = 0;
     virtual void    parse(const std::string& input_string,
                         const ConfigFormat format = ConfigFormat::eJSON,
-                        const bool parse_comments = true, const int8_t tabulation_level = 0)                                   = 0;
+                        const bool parse_comments = true, const int8_t tabulation_level = 0)    = 0;
 
-    virtual void    parse(std::string&& input_string,
-                        CommentDesign& design,
+    virtual void    parse(std::string&& input_string, CommentDesign& design,
                         const ConfigFormat format = ConfigFormat::eJSON,
-                        const bool parse_comments = true, const int8_t tabulation_level = 0)                                   = 0;
+                        const int8_t tabulation_level = 0)                                      = 0;
     virtual void    parse(std::string&& input_string,
                         const ConfigFormat format = ConfigFormat::eJSON,
-                        const bool parse_comments = true, const int8_t tabulation_level = 0)                                   = 0;
+                        const bool parse_comments = true, const int8_t tabulation_level = 0)    = 0;
 
+    virtual void    parseJson(const std::string& input_string, CommentDesign& design,
+                        const int8_t tabulation_level = 0)                                      = 0;
     virtual void    parseJson(const std::string& input_string,
-                        CommentDesign& design,
-                        const bool parse_comments = true, const int8_t tabulation_level = 0)                                   = 0;
-    virtual void    parseJson(const std::string& input_string,
-                        const bool parse_comments = true, const int8_t tabulation_level = 0)                                   = 0;
+                        const bool parse_comments = true, const int8_t tabulation_level = 0)    = 0;
 
+    virtual void    parseJson(std::string&& input_string, CommentDesign& design,
+                        const int8_t tabulation_level = 0)                                      = 0;
     virtual void    parseJson(std::string&& input_string,
-                        CommentDesign& design,
-                        const bool parse_comments = true, const int8_t tabulation_level = 0)                                   = 0;
-    virtual void    parseJson(std::string&& input_string,
-                        const bool parse_comments = true, const int8_t tabulation_level = 0)                                   = 0;
+                        const bool parse_comments = true, const int8_t tabulation_level = 0)    = 0;
 
+    virtual void    parseIni(const std::string& input_string, CommentDesign& design,
+                        const int8_t tabulation_level = 0)                                      = 0;
     virtual void    parseIni(const std::string& input_string,
-                        CommentDesign& design,
-                        const bool parse_comments = true, const int8_t tabulation_level = 0)                                   = 0;
-    virtual void    parseIni(const std::string& input_string,
-                        const bool parse_comments = true, const int8_t tabulation_level = 0)                                   = 0;
+                        const bool parse_comments = true, const int8_t tabulation_level = 0)    = 0;
 
+    virtual void    parseIni(std::string&& input_string, CommentDesign& design,
+                        const int8_t tabulation_level = 0)                                      = 0;
     virtual void    parseIni(std::string&& input_string,
-                        CommentDesign& design,
-                        const bool parse_comments = true, const int8_t tabulation_level = 0)                                   = 0;
-    virtual void    parseIni(std::string&& input_string,
-                        const bool parse_comments = true, const int8_t tabulation_level = 0)                                   = 0;
+                        const bool parse_comments = true, const int8_t tabulation_level = 0)    = 0;
 
+    virtual void    parseYaml(const std::string& input_string, CommentDesign& design,
+                        const int8_t tabulation_level = 0)                                      = 0;
     virtual void    parseYaml(const std::string& input_string,
-                        CommentDesign& design,
-                        const bool parse_comments = true, const int8_t tabulation_level = 0)                                   = 0;
-    virtual void    parseYaml(const std::string& input_string,
-                        const bool parse_comments = true, const int8_t tabulation_level = 0)                                   = 0;
+                        const bool parse_comments = true, const int8_t tabulation_level = 0)    = 0;
 
+    virtual void    parseYaml(std::string&& input_string, CommentDesign& design,
+                        const int8_t tabulation_level = 0)                                      = 0;
     virtual void    parseYaml(std::string&& input_string,
-                        CommentDesign& design,
-                        const bool parse_comments = true, const int8_t tabulation_level = 0)                                   = 0;
-    virtual void    parseYaml(std::string&& input_string,
-                        const bool parse_comments = true, const int8_t tabulation_level = 0)                                   = 0;
+                        const bool parse_comments = true, const int8_t tabulation_level = 0)    = 0;
 
+    virtual void    parseXml(const std::string& input_string, CommentDesign& design,
+                        const int8_t tabulation_level = 0)                                      = 0;
     virtual void    parseXml(const std::string& input_string,
-                        CommentDesign& design,
-                        const bool parse_comments = true, const int8_t tabulation_level = 0)                                   = 0;
-    virtual void    parseXml(const std::string& input_string,
-                        const bool parse_comments = true, const int8_t tabulation_level = 0)                                   = 0;
+                        const bool parse_comments = true, const int8_t tabulation_level = 0)    = 0;
 
+    virtual void    parseXml(std::string&& input_string, CommentDesign& design,
+                        const int8_t tabulation_level = 0)                                      = 0;
     virtual void    parseXml(std::string&& input_string,
-                        CommentDesign& design,
-                        const bool parse_comments = true, const int8_t tabulation_level = 0)                                   = 0;
-    virtual void    parseXml(std::string&& input_string,
-                        const bool parse_comments = true, const int8_t tabulation_level = 0)                                   = 0;
+                        const bool parse_comments = true, const int8_t tabulation_level = 0)    = 0;
 
     // ========================================================================================================== Parser
 };
