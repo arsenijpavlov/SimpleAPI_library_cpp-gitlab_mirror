@@ -121,3 +121,24 @@ TEST(COMMENT, multiline_chopper_reader) {
 
     EXPECT_TRUE(false) << res;
 }
+
+TEST(COMMENT, ToComment_FromComment_Oneline) {
+    CommentDesign cd;
+    std::string input = "1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...";
+
+    std::string str_to = ToComment(input, cd);
+    std::string str_from = FromComment(input, cd);
+
+    EXPECT_EQ(input, str_from);
+}
+
+TEST(COMMENT, ToComment_FromComment_Multiline) {
+    CommentDesign cd;
+    cd.opt_multiline_column_size = 20;
+    std::string input = "1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...";
+
+    std::string str_to = ToComment(input, cd);
+    std::string str_from = FromComment(input, cd);
+
+    EXPECT_EQ(input, str_from);
+}

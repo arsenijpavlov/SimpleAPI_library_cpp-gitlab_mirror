@@ -487,6 +487,8 @@ std::string FromComment(const std::string &comment_string, CommentDesign& design
     //          + "\n";
 
     std::for_each(lines.begin(), lines.end(), [&ret](const std::string& s) { ret += s + "\n"; });
+    //убрать перенос строки в последней строке
+    ret.pop_back();
     return ret;
 }
 

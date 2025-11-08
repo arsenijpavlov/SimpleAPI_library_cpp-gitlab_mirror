@@ -1217,19 +1217,31 @@ bool Config::writeFile(const std::string &file_path,  const ConfigFormat format,
                        const CommentDesign &design,
                        const int8_t custom_tabulation_level) noexcept
 {
-    return WriteFile(*this, file_path, format, design, custom_tabulation_level);
+    CommentDesign n_design;
+    if(design == CommentDesign{}) { // если переменная не заполнена, используется собственная
+        n_design = m_value->getCommentDesign();
+    }
+    return WriteFile(*this, file_path, format, n_design, custom_tabulation_level);
 }
 
 bool Config::writeFileJson(const std::string &file_path, const CommentDesign &design,
                            const int8_t custom_tabulation_level) noexcept
 {
-    return WriteFileJson(*this, file_path, design, custom_tabulation_level);
+    CommentDesign n_design;
+    if(design == CommentDesign{}) { // если переменная не заполнена, используется соб
+        n_design = m_value->getCommentDesign();
+    }
+    return WriteFileJson(*this, file_path, n_design, custom_tabulation_level);
 }
 
 bool Config::writeFileIni(const std::string &file_path, const CommentDesign &design,
                           const int8_t custom_tabulation_level) noexcept
 {
-    return WriteFileIni(*this, file_path, design, custom_tabulation_level);
+    CommentDesign n_design;
+    if(design == CommentDesign{}) { // если переменная не заполнена, используется собственная
+        n_design = m_value->getCommentDesign();
+    }
+    return WriteFileIni(*this, file_path, n_design, custom_tabulation_level);
 }
 
 Config &Config::parse(const std::string &content, const ConfigFormat format,

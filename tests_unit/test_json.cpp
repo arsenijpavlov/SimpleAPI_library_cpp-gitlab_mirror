@@ -269,7 +269,8 @@ TEST(JSON, write_and_read_file_comment) {
 
     //FIXME: проверка комментариев должна учитывать переносы строк (преобразование комментариев при чтении/записи)
 
-    main_comment = FromComment(ToComment(main_comment, json.getCommentDesign()), json.getCommentDesign());
+//    main_comment = FromComment(ToComment(main_comment, json.getCommentDesign()), json2.getCommentDesign());
+    main_comment = FromComment(ToComment(main_comment, cd), json2.getCommentDesign());
 //    EXPECT_EQ(json2.getComment(), json.getComment());
 //    EXPECT_EQ(json2.getPrefixComment(), json.getPrefixComment());
 //    EXPECT_EQ(json2.getSuffixComment(), json.getSuffixComment());

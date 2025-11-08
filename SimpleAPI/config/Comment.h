@@ -70,7 +70,7 @@ public:
     bool with_comments;
     bool is_in_container;
 
-    CommentDesign() :
+    CommentDesign() noexcept :
         opt_multiline_border(0),
         opt_multiline_column_size(0),
         temp_type(CommentType::eNotComment),
@@ -84,8 +84,7 @@ public:
         multiline_comment_variants.push_back({'/', '*', 0});    // 0 - завершающий символ повторяет первый
     }
 
-    CommentDesign(const CommentDesign& other)
-    {
+    CommentDesign(const CommentDesign& other) noexcept {
         if(this != &other) {
             opt_multiline_border        = (uint8_t)other.opt_multiline_border;
             opt_multiline_column_size   = other.opt_multiline_column_size;
@@ -98,8 +97,7 @@ public:
         }
     }
 
-    CommentDesign(CommentDesign&& other)
-    {
+    CommentDesign(CommentDesign&& other) noexcept {
         if(this != &other) {
             opt_multiline_border        = std::move((uint8_t)other.opt_multiline_border);
             opt_multiline_column_size   = std::move(other.opt_multiline_column_size);
@@ -112,7 +110,7 @@ public:
         }
     }
 
-    CommentDesign operator=(const CommentDesign& other) {
+    CommentDesign operator=(const CommentDesign& other) noexcept {
         if(this != &other) {
             opt_multiline_border        = (uint8_t)other.opt_multiline_border;
             opt_multiline_column_size   = other.opt_multiline_column_size;
@@ -126,7 +124,7 @@ public:
         return *this;
     }
 
-    CommentDesign operator=(CommentDesign&& other) {
+    CommentDesign operator=(CommentDesign&& other) noexcept {
         if(this != &other) {
             opt_multiline_border        = std::move((uint8_t)other.opt_multiline_border);
             opt_multiline_column_size   = std::move(other.opt_multiline_column_size);
@@ -138,6 +136,19 @@ public:
             is_in_container             = std::move(other.is_in_container);
         }
         return *this;
+    }
+
+    bool operator==(const CommentDesign& other) const noexcept {
+        if(this != &other) {
+            bool ret = opt_multiline_border == other.opt_multiline_border;
+            if(ret) ret = opt_multiline_column_size == other.opt_multiline_column_size;
+            if(ret) ret = oneline_comment_variants == other.oneline_comment_variants;
+            if(ret) ret = multiline_comment_variants == other.multiline_comment_variants;
+            if(ret) ret = with_comments == other.with_comments;
+            return ret;
+        }
+
+        return false;
     }
 };
 
