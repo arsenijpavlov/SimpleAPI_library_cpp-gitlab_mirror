@@ -13,7 +13,7 @@
 #include <fstream>
 
 void Config::release() noexcept {
-    if(m_value != nullptr)
+    if(!m_value)
     {
         delete m_value;
         m_value = nullptr;
@@ -21,62 +21,74 @@ void Config::release() noexcept {
 }
 
 Config &Config::addComment(const Comment &content) noexcept {
-    m_value->addComment(content);
+    if(m_value)
+        m_value->addComment(content);
     return *this;
 }
 
 Config &Config::addComment(const std::string &content_before, const std::string &content_after) noexcept {
-    m_value->addComment(content_before, content_after);
+    if(m_value)
+        m_value->addComment(content_before, content_after);
     return *this;
 }
 
 Config &Config::addPrefixComment(const std::string &content) noexcept {
-    m_value->addPrefixComment(content);
+    if(m_value)
+        m_value->addPrefixComment(content);
     return *this;
 }
 
 Config &Config::addSuffixComment(const std::string &content) noexcept {
-    m_value->addSuffixComment(content);
+    if(m_value)
+        m_value->addSuffixComment(content);
     return *this;
 }
 
 Config &Config::clearComment() noexcept {
-    m_value->clearComment();
+    if(m_value)
+        m_value->clearComment();
     return *this;
 }
 
 Config &Config::clearPrefixComment() noexcept {
-    m_value->clearPrefixComment();
+    if(m_value)
+        m_value->clearPrefixComment();
     return *this;
 }
 
 Config &Config::clearSuffixComment() noexcept {
-    m_value->clearSuffixComment();
+    if(m_value)
+        m_value->clearSuffixComment();
     return *this;
 }
 
 Config &Config::deleteComment() noexcept {
-    m_value->deleteComment();
+    if(m_value)
+        m_value->deleteComment();
     return *this;
 }
 
 Config &Config::deletePrefixComment() noexcept {
-    m_value->deletePrefixComment();
+    if(m_value)
+        m_value->deletePrefixComment();
     return *this;
 }
 
 Config &Config::deleteSuffixComment() noexcept {
-    m_value->deleteSuffixComment();
+    if(m_value)
+        m_value->deleteSuffixComment();
     return *this;
 }
 
 Config &Config::setCommentDesign(const CommentDesign &design) noexcept {
-    m_value->setCommentDesign(design);
+    if(m_value)
+        m_value->setCommentDesign(design);
     return *this;
 }
 
 Config &Config::clearCommentDesign() noexcept {
-    m_value->clearCommentDesign();
+    if(m_value)
+        m_value->clearCommentDesign();
     return *this;
 }
 
@@ -277,14 +289,16 @@ Config &Config::setValue(const Config &other) noexcept {
     {
         release();
         switch(other.getType()) {
-        case ValueType::eNull:      { return setValue();                                                                }
-        case ValueType::eBool:      { return setValue(dynamic_cast<const ElementBool*>(other.m_value)->getValue());     }
-        case ValueType::eNumber:    { return setValue(dynamic_cast<const ElementNumber*>(other.m_value)->getValue());   }
-        case ValueType::eString:    { return setValue(dynamic_cast<const ElementString*>(other.m_value)->getValue());   }
-        case ValueType::eArray:     { return setValue(dynamic_cast<const ElementArray&>(*other.m_value));                }
-        case ValueType::eJson:      { return setValue(dynamic_cast<const ElementJson&>(*other.m_value));                 }
+        case ValueType::eNull:      { setValue();                                                               break;  }
+        case ValueType::eBool:      { setValue(dynamic_cast<const ElementBool*>(other.m_value)->getValue());    break;  }
+        case ValueType::eNumber:    { setValue(dynamic_cast<const ElementNumber*>(other.m_value)->getValue());  break;  }
+        case ValueType::eString:    { setValue(dynamic_cast<const ElementString*>(other.m_value)->getValue());  break;  }
+        case ValueType::eArray:     { setValue(dynamic_cast<const ElementArray&>(*other.m_value));              break;  }
+        case ValueType::eJson:      { setValue(dynamic_cast<const ElementJson&>(*other.m_value));               break;  }
         default: break;
         }
+
+        addComment(other.getComment());
     }
 
     return *this;
@@ -295,47 +309,55 @@ Config &Config::setValue(Config &&other) noexcept {
     if(this != &other)
     {
         release();
+
         switch(other.getType()) {
-        case ValueType::eNull:      { return setValue();                                                                            }
-        case ValueType::eBool:      { return setValue(dynamic_cast<const ElementBool*>(other.m_value)->getValue());                 }
-        case ValueType::eNumber:    { return setValue(std::move(dynamic_cast<const ElementNumber*>(other.m_value)->getValue()));    }
-        case ValueType::eString:    { return setValue(std::move(dynamic_cast<const ElementString*>(other.m_value)->getValue()));    }
-        case ValueType::eArray:     { return setValue(std::move(dynamic_cast<const ElementArray&>(*other.m_value)));                }
-        case ValueType::eJson:      { return setValue(std::move(dynamic_cast<const ElementJson&>(*other.m_value)));                 }
+        case ValueType::eNull:      { setValue();                                                                           break;  }
+        case ValueType::eBool:      { setValue(dynamic_cast<const ElementBool*>(other.m_value)->getValue());                break;  }
+        case ValueType::eNumber:    { setValue(std::move(dynamic_cast<const ElementNumber*>(other.m_value)->getValue()));   break;  }
+        case ValueType::eString:    { setValue(std::move(dynamic_cast<const ElementString*>(other.m_value)->getValue()));   break;  }
+        case ValueType::eArray:     { setValue(std::move(dynamic_cast<const ElementArray&>(*other.m_value)));               break;  }
+        case ValueType::eJson:      { setValue(std::move(dynamic_cast<const ElementJson&>(*other.m_value)));                break;  }
         default:                    break;
         }
 
+        addComment(other.getComment());
         other.release(); //обнулить значение
     }
     return *this;
 }
 
+//TODO: сделать проверку на this != other
 Config &Config::setValue(const IElement &other) noexcept {
     release();
     switch(other.getType()) {
-    case ValueType::eNull:      { return setValue();                                                        }
-    case ValueType::eBool:      { return setValue(dynamic_cast<const ElementBool*>(&other)->getValue());    }
-    case ValueType::eNumber:    { return setValue(dynamic_cast<const ElementNumber*>(&other)->getValue());  }
-    case ValueType::eString:    { return setValue(dynamic_cast<const ElementString*>(&other)->getValue());  }
-    case ValueType::eArray:     { return setValue(dynamic_cast<const ElementArray&>(other));                }
-    case ValueType::eJson:      { return setValue(dynamic_cast<const ElementJson&>(other));                 }
+    case ValueType::eNull:      { setValue();                                                       break;  }
+    case ValueType::eBool:      { setValue(dynamic_cast<const ElementBool*>(&other)->getValue());   break;  }
+    case ValueType::eNumber:    { setValue(dynamic_cast<const ElementNumber*>(&other)->getValue()); break;  }
+    case ValueType::eString:    { setValue(dynamic_cast<const ElementString*>(&other)->getValue()); break;  }
+    case ValueType::eArray:     { setValue(dynamic_cast<const ElementArray&>(other));               break;  }
+    case ValueType::eJson:      { setValue(dynamic_cast<const ElementJson&>(other));                break;  }
     default:                    break;
     }
+
+    addComment(other.getComment());
 
     return *this;
 }
 
+//TODO: сделать проверку на this != other
 Config &Config::setValue(IElement &&other) noexcept {
     release();
     switch(other.getType()) {
-    case ValueType::eNull:      { return setValue();                                                                    }
-    case ValueType::eBool:      { return setValue(dynamic_cast<const ElementBool*>(&other)->getValue());                }
-    case ValueType::eNumber:    { return setValue(std::move(dynamic_cast<const ElementNumber*>(&other)->getValue()));   }
-    case ValueType::eString:    { return setValue(std::move(dynamic_cast<const ElementString*>(&other)->getValue()));   }
-    case ValueType::eArray:     { return setValue(std::move(dynamic_cast<ElementArray&&>(other)));                      }
-    case ValueType::eJson:      { return setValue(std::move(dynamic_cast<ElementJson&&>(other)));                       }
+    case ValueType::eNull:      { setValue();                                                                   break;  }
+    case ValueType::eBool:      { setValue(dynamic_cast<const ElementBool*>(&other)->getValue());               break;  }
+    case ValueType::eNumber:    { setValue(std::move(dynamic_cast<const ElementNumber*>(&other)->getValue()));  break;  }
+    case ValueType::eString:    { setValue(std::move(dynamic_cast<const ElementString*>(&other)->getValue()));  break;  }
+    case ValueType::eArray:     { setValue(std::move(dynamic_cast<ElementArray&&>(other)));                     break;  }
+    case ValueType::eJson:      { setValue(std::move(dynamic_cast<ElementJson&&>(other)));                      break;  }
     default:                    break;
     }
+
+    addComment(other.getComment());
 
     return *this;
 }

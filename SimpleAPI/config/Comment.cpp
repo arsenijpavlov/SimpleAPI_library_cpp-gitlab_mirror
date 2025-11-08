@@ -81,7 +81,7 @@ void Comment::set(const Comment &other) noexcept {
 }
 
 void Comment::setPrefix(const std::string &comment) noexcept {
-    if(m_prefix == nullptr)
+    if(!m_prefix)
         m_prefix = new std::string(comment);
     if(!comment.empty())
         *m_prefix = comment;
