@@ -240,8 +240,9 @@ TEST(JSON, write_and_read_file_comment) {
 //    cd.opt_multiline_border = '#';
     cd.with_comments = true;
 
-    json.addPrefixComment("1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...");
-    json.addSuffixComment("1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...");
+    std::string main_comment = "1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...";
+    json.addPrefixComment(main_comment);
+    json.addSuffixComment(main_comment);
     json.add_prefix_comment("bool", "some \nwords...");
     json.add_suffix_comment("bool", "some \nwords...");
 //    json.add_prefix_comment("string", "<string> prefix comment");
@@ -258,16 +259,22 @@ TEST(JSON, write_and_read_file_comment) {
 
     Config json2;
     try {
+        //FIXME: не создаётся CommentDesign
         json2.readFileJson(path, true);
     } catch (const std::exception& e) {
         FAIL() << e.what();
     }
     EXPECT_EQ(json2.size(), json.size());
+    EXPECT_EQ(json2.getCommentDesign(), json.getCommentDesign());
 
-    //TODO: проверка комментариев должна учитывать переносы строк (преобразование комментариев при чтении/записи)
-    EXPECT_EQ(json2.getComment(), json.getComment());
-    EXPECT_EQ(json2.getPrefixComment(), json.getPrefixComment());
-    EXPECT_EQ(json2.getSuffixComment(), json.getSuffixComment());
+    //FIXME: проверка комментариев должна учитывать переносы строк (преобразование комментариев при чтении/записи)
+
+    main_comment = FromComment(ToComment(main_comment, json.getCommentDesign()), json.getCommentDesign());
+//    EXPECT_EQ(json2.getComment(), json.getComment());
+//    EXPECT_EQ(json2.getPrefixComment(), json.getPrefixComment());
+//    EXPECT_EQ(json2.getSuffixComment(), json.getSuffixComment());
+    EXPECT_EQ(json2.getPrefixComment(), main_comment);
+    EXPECT_EQ(json2.getSuffixComment(), main_comment);
 
     EXPECT_EQ(json2.get_comment("bool"), json.get_comment("bool"));
     EXPECT_EQ(json2.get_prefix_comment("bool"), json.get_prefix_comment("bool"));

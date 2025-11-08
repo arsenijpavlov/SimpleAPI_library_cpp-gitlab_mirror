@@ -81,17 +81,24 @@ void Comment::set(const Comment &other) noexcept {
 }
 
 void Comment::setPrefix(const std::string &comment) noexcept {
-    if(!m_prefix)
-        m_prefix = new std::string(comment);
+    std::string new_comment = comment;
+    RemoveIllegalSpaces(new_comment);
+
+    if(!m_prefix) {
+        m_prefix = new std::string(new_comment);
+    }
     if(!comment.empty())
-        *m_prefix = comment;
+        *m_prefix = new_comment;
 }
 
 void Comment::setSuffix(const std::string &comment) noexcept {
+    std::string new_comment = comment;
+    RemoveIllegalSpaces(new_comment);
+
     if(m_suffix == nullptr)
-        m_suffix = new std::string(comment);
+        m_suffix = new std::string(new_comment);
     if(!comment.empty())
-        *m_suffix = comment;
+        *m_suffix = new_comment;
 }
 
 void Comment::clear() noexcept {
@@ -617,21 +624,22 @@ void CheckComments(const char current_sym, const char next_sym,
             //v1: {X,0} - #...
             //v2: {X,Y} - #!...
             bool b2 = format[1] == 0;
-            bool b3 = format[2] == 0;
             if(current_sym == format[0] && (b2 || next_sym == format[1])) {
                 design.temp_multiline_schema = format;
                 design.temp_type = CommentType::eMultiLineComment;
+                if(!b2) iter_counter++;
                 return;
             }
+
         }
         //поиск однострочных комментариев
         for(const auto& format : design.oneline_comment_variants) {
             //v1: {X,0} - #...
             //v2: {X,Y} - #!...
             bool b2 = format[1] == 0;
-            bool b3 = format[2] == 0;
             if(current_sym == format[0] && (b2 || next_sym == format[1])) {
                 design.temp_type = CommentType::eOneLineComment;
+                if(!b2) iter_counter++;
                 return;
             }
         }
