@@ -122,12 +122,26 @@ TEST(COMMENT, multiline_chopper_reader) {
     EXPECT_TRUE(false) << res;
 }
 
+TEST(COMMENT, SeparateToColumn) {
+    CommentDesign cd;
+    cd.opt_multiline_column_size = 20;
+    std::string input = ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,";
+
+    std::string result = VStringToString(SeparateToColumns(input, cd.opt_multiline_column_size));
+    input = ",,,,,,,,,,,,,,,,,,,,\n"
+            ",,,,,,,,,,,,,,,,,,,,\n"
+            ",,,,,,,,,,,,,,,,,,,,\n"
+            ",,,,,,,,,,,,,,,,,,,,";
+
+    EXPECT_EQ(input, result);
+}
+
 TEST(COMMENT, ToComment_FromComment_Oneline) {
     CommentDesign cd;
     std::string input = "1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...";
 
     std::string str_to = ToComment(input, cd);
-    std::string str_from = FromComment(input, cd);
+    std::string str_from = FromComment(str_to, cd);
 
     EXPECT_EQ(input, str_from);
 }
@@ -135,10 +149,24 @@ TEST(COMMENT, ToComment_FromComment_Oneline) {
 TEST(COMMENT, ToComment_FromComment_Multiline) {
     CommentDesign cd;
     cd.opt_multiline_column_size = 20;
-    std::string input = "1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...";
+    std::string input = ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,";
+//    std::string input = "1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...";
 
     std::string str_to = ToComment(input, cd);
-    std::string str_from = FromComment(input, cd);
+    std::string str_from = FromComment(str_to, cd);
+
+           //12345678901234567890
+//    input = "1;losdihfg2;\n"
+//            "slopighsd3;pogihvd4;\n"
+//            "pfgvibhdfns5;\n"
+//            "ipnbedf6 7;\n"
+//            "voihnaern8 som9 \n"
+//            "word1...";
+           //12345678901234567890
+    input = ",,,,,,,,,,,,,,,,,,,,\n"
+            ",,,,,,,,,,,,,,,,,,,,\n"
+            ",,,,,,,,,,,,,,,,,,,,\n"
+            ",,,,,,,,,,,,,,,,,,,,";
 
     EXPECT_EQ(input, str_from);
 }

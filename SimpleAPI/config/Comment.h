@@ -1,6 +1,7 @@
 #ifndef COMMENT_H
 #define COMMENT_H
 
+#include "ConfigCommon.h"
 #include <string>
 #include <vector>
 #include <bits/shared_ptr.h>
@@ -33,6 +34,7 @@ enum class CommentType : uint8_t {
     eMultiLineComment,
     eCommentEnd       //последний требует continue!
 };
+std::string to_string(const CommentType& type);
 //#define DEFAULT_COMMENT_COLUMN_SIZE 50
 
 class CommentDesign {
@@ -43,7 +45,7 @@ public:
 
     //следующие два поля нужны только для парсинга
     CommentType         temp_type;
-    std::array<char, 3> temp_multiline_schema; //используется только во время парсинга
+    std::array<char, 3> temp_schema;  //используется во время парсинга и в функции FromComment
 
     // многострочность комментария пользователь задаёт сам
     //  либо самостоятельно ставя '\n'
@@ -74,7 +76,7 @@ public:
         opt_multiline_border(0),
         opt_multiline_column_size(0),
         temp_type(CommentType::eNotComment),
-        temp_multiline_schema{},
+        temp_schema{},
         oneline_comment_variants{},
         multiline_comment_variants{},
         with_comments{false},
@@ -89,7 +91,7 @@ public:
             opt_multiline_border        = (uint8_t)other.opt_multiline_border;
             opt_multiline_column_size   = other.opt_multiline_column_size;
             temp_type                   = other.temp_type;
-            temp_multiline_schema       = other.temp_multiline_schema;
+            temp_schema                 = other.temp_schema;
             oneline_comment_variants    = other.oneline_comment_variants;
             multiline_comment_variants  = other.multiline_comment_variants;
             with_comments               = other.with_comments;
@@ -102,7 +104,7 @@ public:
             opt_multiline_border        = std::move((uint8_t)other.opt_multiline_border);
             opt_multiline_column_size   = std::move(other.opt_multiline_column_size);
             temp_type                   = std::move(other.temp_type);
-            temp_multiline_schema       = std::move(other.temp_multiline_schema);
+            temp_schema                 = std::move(other.temp_schema);
             oneline_comment_variants    = std::move(other.oneline_comment_variants);
             multiline_comment_variants  = std::move(other.multiline_comment_variants);
             with_comments               = std::move(other.with_comments);
@@ -115,7 +117,7 @@ public:
             opt_multiline_border        = (uint8_t)other.opt_multiline_border;
             opt_multiline_column_size   = other.opt_multiline_column_size;
             temp_type                   = other.temp_type;
-            temp_multiline_schema       = other.temp_multiline_schema;
+            temp_schema                 = other.temp_schema;
             oneline_comment_variants    = other.oneline_comment_variants;
             multiline_comment_variants  = other.multiline_comment_variants;
             with_comments               = other.with_comments;
@@ -129,7 +131,7 @@ public:
             opt_multiline_border        = std::move((uint8_t)other.opt_multiline_border);
             opt_multiline_column_size   = std::move(other.opt_multiline_column_size);
             temp_type                   = std::move(other.temp_type);
-            temp_multiline_schema       = std::move(other.temp_multiline_schema);
+            temp_schema                 = std::move(other.temp_schema);
             oneline_comment_variants    = std::move(other.oneline_comment_variants);
             multiline_comment_variants  = std::move(other.multiline_comment_variants);
             with_comments               = std::move(other.with_comments);
@@ -214,10 +216,14 @@ std::string GetOnelineCommentStr(const CommentDesign& design)                   
 std::string GetMultilineCommentStartStr(const CommentDesign& design)                            noexcept;
 std::string GetMultilineCommentStopStr(const CommentDesign& design)                             noexcept;
 
+VString     SeparateToColumns(const std::string& input_string, const uint8_t column_size)       noexcept;
+std::string VStringToString(const VString& input_vec)                                           noexcept;
 std::string ToComment(const std::string &comment, const CommentDesign& design,
-                      const int8_t tabulation_level = 0)                                       noexcept;
-std::string FromComment(const std::string &comment_string, CommentDesign& design,
-                        const int8_t tabulation_level = 0)                                     noexcept;
+                const int8_t tabulation_level = 0)                                              noexcept;
+bool        DefineCommentSymbols(const char first_sym, const char second_sym,
+                CommentDesign& cd)                                                              noexcept;
+std::string FromComment(std::string comment_string, CommentDesign& design,
+                const int8_t tabulation_level = 0)                                              noexcept;
 
 
 void RemoveComments(std::string& str, bool& startComment, char& quote,
