@@ -39,7 +39,7 @@ std::string GetEscChar2(const std::string& str)                                 
 char        GetFromEscChar(const char ch)                                               noexcept;
 std::string GetFromEscChar2(const std::string& str)                                     noexcept;
 void        UpdEscSymbols(std::string& string)                                          noexcept;
-size_t      GetStringCharCount(const std::string& str);
+size_t      GetStringCharCount(const std::string &str, bool only_visible = false);
 std::string SeparateString(std::string& str, const size_t length)                       noexcept;
 bool        IsMultiLine(const std::string& str, const size_t column_size = 0)           noexcept;
 std::string ToStringWithEsc(const std::string& str, const bool use_backslash = false)   noexcept;

@@ -339,28 +339,41 @@ void UpdEscSymbols(std::string& string) noexcept {
     string = temp_string;
 }
 
-size_t GetStringCharCount(const std::string &str) {
-    size_t size = 0;
-
+size_t GetStringCharCount(const std::string &str, bool only_visible) {
     //1 => 0xxx xxxx
     //2 => 110x xxxx 10xx xxxx
     //3 => 1110 xxxx 10xx xxxx 10xx xxxx
     //4 => 1111 0xxx 10xx xxxx 10xx xxxx 10xx xxxx
+    size_t size = 0;
     for(size_t i = 0; i < str.size(); ) {
         if((uint8_t)str[i] < 0b10000000) {
-            size++;
-            i++;
+                if(only_visible) {
+                    if(str[i] == '\033') {
+                        ++i;
+                        while(i < str.size() && (str[i] != 'm' && str[i] != 'M'))
+                            i++;
+                        i++;
+                        continue;
+                    }
+                    if(CharInString(str[i], "\n\r\0")) {
+                        i++;
+                        continue;
+                    }
+                }
+
+                size++;
+                i++;
         } else if((uint8_t)str[i] < 0b11000000) {
-            throw std::invalid_argument("incorrect symbol header");
+                throw std::invalid_argument("incorrect symbol header");
         } else if((uint8_t)str[i] < 0b11100000) {
-            size++;
-            i += 2;
+                size++;
+                i += 2;
         } else if((uint8_t)str[i] < 0b11110000) {
-            size++;
-            i += 3;
+                size++;
+                i += 3;
         } else {
-            size++;
-            i += 4;
+                size++;
+                i += 4;
         }
     }
 
