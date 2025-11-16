@@ -216,7 +216,7 @@ std::string GetOnelineCommentStr(const CommentDesign& design)                   
 std::string GetMultilineCommentStartStr(const CommentDesign& design)                            noexcept;
 std::string GetMultilineCommentStopStr(const CommentDesign& design)                             noexcept;
 
-VString     SeparateToColumns(const std::string& input_string, const uint8_t column_size)       noexcept;
+VString     SeparateToColumns(const std::string& input_string, const size_t column_size)        noexcept;
 std::string VStringToString(const VString& input_vec)                                           noexcept;
 std::string ToComment(const std::string &comment, const CommentDesign& design,
                 const int8_t tabulation_level = 0)                                              noexcept;

@@ -264,10 +264,86 @@ std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept {
  *  то остальные строки должны быть выровнены по новому пределу
  * - многоточие считается частью слова, не переносится на другую строку
 */
-VString SeparateToColumns(const std::string& input_string, const uint8_t column_size) noexcept {
+//INFO: можно оптимизировать
+VString SeparateToColumns(const std::string& input_string, const size_t column_size) noexcept {
+    VString words;
+    std::string temp;
+
+    // разбиение на самостоятельные слова/объекты
+    //    uint8_t save_next_symbols = 0;
+    bool need_add = false;
+    for(size_t i = 0; i < input_string.size(); i++) {
+        if(need_add || input_string[i] == '\n') {
+            if(!temp.empty()) {
+                words.push_back(temp);
+                temp.clear();
+            }
+            need_add = false;
+        }
+
+        // пользовательские переносы строк сохраняются
+        temp += input_string[i];
+
+        if(utils::CharInString(input_string[i], __COMMENT_SEPARATOR_SYMBOLS__ " ")) {
+            need_add = true;
+
+            // два пробела подряд должны быть заменены на один
+            if(input_string[i] == ' ') {
+                temp.pop_back();
+
+                while(i + 1 < input_string.size() && input_string[i+1] == ' ') {
+                    ++i;
+                }
+            }
+            // пропуск многоточия как единого знака
+            else if(input_string[i] == '.'
+                     && i + 2 < input_string.size()
+                     && input_string[i+1] == '.'
+                     && input_string[i+2] == '.')
+            {
+                i += 2;
+                temp += "..";
+            }
+        }
+    }
+    // завершающее присвоение
+    if(!temp.empty()) {
+        words.push_back(temp);
+    }
+
+    // упоаковка по столбцам (если не влезает, то переработать по минимальной)
+    size_t max_len = column_size;
+    for(const auto& word : words) {
+        if(max_len < word.size())
+            max_len = word.size();
+    }
     VString res;
-
-
+    temp.clear();
+    size_t current_line_size = 0;
+    for(const auto& word : words) {
+        if(current_line_size + utils::GetStringCharCount(word, true) + /*space*/1 > max_len
+            || word == "\n")
+        {
+            if(!temp.empty()) {
+                res.push_back(temp);
+                temp.clear();
+            }
+            current_line_size = 0;
+            if (word == "\n") {
+                res.push_back("");
+                continue;
+            }
+        } else {
+            temp += temp.empty() ? "" : " ";
+            current_line_size += /*space*/1;
+        }
+        temp += word;
+        current_line_size += utils::GetStringCharCount(word, true);
+    }
+    // завершающее присвоение
+    if(!temp.empty()) {
+        res.push_back(temp);
+    }
 
     return res;
 }
