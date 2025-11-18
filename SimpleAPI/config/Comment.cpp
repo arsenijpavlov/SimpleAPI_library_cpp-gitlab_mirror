@@ -265,7 +265,7 @@ std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept {
  * - многоточие считается частью слова, не переносится на другую строку
 */
 //INFO: можно оптимизировать
-VString SeparateToColumns(const std::string& input_string, const size_t column_size) noexcept {
+SeparatedLines SeparateToColumns(const std::string& input_string, const size_t column_size) noexcept {
     VString words;
     std::string temp;
 
@@ -345,7 +345,7 @@ VString SeparateToColumns(const std::string& input_string, const size_t column_s
         res.push_back(temp);
     }
 
-    return res;
+    return {res, max_len};
 }
 
 std::string VStringToString(const VString& input_vec) noexcept {
@@ -365,7 +365,7 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
     if(comment.empty()) return "";
 
     using namespace utils;
-    VString             result_lines;
+//    VString             result_lines;
     std::string         temp = "";
     std::vector<size_t> separators;
 
@@ -373,97 +373,33 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
     std::string current_string = comment;
     RemoveIllegalSpaces(current_string);
 
-    // наметить значение комментария ====================
-    if(false) {
-        for(size_t i = 0; i < current_string.length(); i++) {
-            char ch = current_string[i];
-            //если встретили разделитель
-            if(CharInString(ch, __COMMENT_SEPARATOR_SYMBOLS__))
-                separators.push_back(temp.length());
-
-            if(ch == '\n') {
-                //вывести если не пустое
-                if(!temp.empty()) {
-                    //удалить пробелы в начале и конце строки
-                    RemoveIllegalSpaces(temp);
-
-                    result_lines.push_back(temp);
-                    temp.clear();
-                    separators.clear();
-                }
-                continue;
-            }
-
-            // (м, если COLUMN_SIZE не 0) разделить комментарий на строки
-            if(design.opt_multiline_column_size && !temp.empty()) {
-                if(GetStringCharCount(temp) >= design.opt_multiline_column_size
-                    && (CharInString(ch, __COMMENT_SEPARATOR_SYMBOLS__) || (i == current_string.length() - 1)) )
-                {
-                    //если превышен максимальный размер строки
-                    if(GetStringCharCount(temp) > design.opt_multiline_column_size && !separators.empty()) {
-                        uint8_t separate_size;
-                        switch(separators.size()) {
-                        case 0:
-                        case 1:
-                            separate_size = 0;
-                            break;
-                        default:
-                            separate_size = separators.size() - 2;
-                        }
-                        if(temp.size() > separators[separate_size])
-                            separate_size = separators[separate_size] + 1;
-                        else
-                            separate_size = separators[separate_size];
-
-                        //найти границу, левая часть которой даст строку внутри колонки
-                        std::string left = SeparateString(temp, separate_size);
-                        RemoveIllegalSpaces(left);
-
-                        if(!CharInString(temp.back(), __COMMENT_SEPARATOR_SYMBOLS__))
-                            temp += ' ';
-                        result_lines.push_back(left);
-
-                        //снова найти индексы разделителей
-                        separators.clear();
-                        for(size_t j = 0; j < temp.length(); j++) {
-                            if(CharInString(temp[j], __COMMENT_SEPARATOR_SYMBOLS__))
-                                separators.push_back(j);
-                        }
-                    } else {
-                        //удалить пробелы в начале и конце строки
-                        RemoveIllegalSpaces(temp);
-
-                        result_lines.push_back(temp);
-                        temp.clear();
-                        separators.clear();
-                    }
-                }
-            }
-            temp += ch;
-        }
-        // завершающий штрих
-        if(!temp.empty()) {
-            result_lines.push_back(temp);
-            temp.clear();
-        }
-    }
-    // ==================================================
-
-    result_lines = SeparateToColumns(comment, design.opt_multiline_column_size);
+    //разделить на строки необходимой длины
+    SeparatedLines sl = SeparateToColumns(comment, design.opt_multiline_column_size);
+    VString& result_lines = sl.lines;
 
     switch(result_lines.size()) {
     case 0: return "";
-    case 1: {
+    case 1 /*oneline comments*/: {
         return RepeatSymToStr('\t', tabulation_level)
                + GetOnelineCommentStr(design) + " " + result_lines[0];
     }
-    default: {
-        size_t max = 0;
-        for(std::string& s : result_lines) {
-            size_t size = GetStringCharCount(s);
-            if(max < size) max = size;
+    default /*multiline comments*/: {
+        if(design.opt_multiline_border) {
+            // если нужно обрамление, то строки нужно выровнять по одной длине (дополнить пробелами)
+            for(auto& line : result_lines) {
+                line = " " + line;
+                SetVisibleColumn(line, sl.max_length + /*left space*/1);
+
+                //добавить знаки обрамления
+                line = design.opt_multiline_border + line + design.opt_multiline_border;
+            }
+
+            //TODO: начало и конец комментария
+            //добавить обрамление сверху
+            result_lines.insert(result_lines.begin(), RepeatSymToStr(design.opt_multiline_border, sl.max_length + 2));
+            //добавить обрамление снизу
+            result_lines.push_back(RepeatSymToStr(design.opt_multiline_border, sl.max_length + 2));
         }
-        max = design.opt_multiline_column_size > max ? design.opt_multiline_column_size : max;
 
         // (м, если BORDER не 0) ============================
         if(design.opt_multiline_border) {
