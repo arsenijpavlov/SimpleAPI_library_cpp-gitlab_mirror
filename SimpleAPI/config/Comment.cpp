@@ -358,6 +358,9 @@ std::string VStringToString(const VString& input_vec) noexcept {
     return res;
 }
 
+//TODO: при парсинге многострочных комментариев с окантовкой надо учитывать совпадение по закрывающей части
+//TODO: должен ли быть пробел между знаками начала/конца м.комментария и окантовкой?
+
 // @TEST(COMMENT, tabulation_level)
 std::string ToComment(const std::string &comment, const CommentDesign& design,
                       const int8_t tabulation_level) noexcept
