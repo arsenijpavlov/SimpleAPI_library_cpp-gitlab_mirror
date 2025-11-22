@@ -220,6 +220,7 @@ Comment& Comment::operator=(const std::string&& prefix_comment) noexcept {
 //только для to_string(design)
 // @TEST(COMMENT, default_wrappers)
 std::string GetOnelineCommentStr(const CommentDesign& design) noexcept {
+    //FIXME: для пустого списка использовать стиль комментариев C/C++
     if(design.oneline_comment_variants.empty())
         return "";
     if(design.oneline_comment_variants.front()[1] == 0)
@@ -233,6 +234,7 @@ std::string GetOnelineCommentStr(const CommentDesign& design) noexcept {
 //только для to_string(design)
 // @TEST(COMMENT, default_wrappers)
 std::string GetMultilineCommentStartStr(const CommentDesign& design) noexcept {
+    //FIXME: для пустого списка использовать стиль комментариев C/C++
     if(design.multiline_comment_variants.empty())
         return "";
     if(design.multiline_comment_variants.front()[1] == 0) {
@@ -246,6 +248,9 @@ std::string GetMultilineCommentStartStr(const CommentDesign& design) noexcept {
 //только для to_string(design)
 // @TEST(COMMENT, default_wrappers)
 std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept {
+    //FIXME: для пустого списка использовать стиль комментариев C/C++
+    if(design.multiline_comment_variants.empty())
+        return "";
     if(design.multiline_comment_variants.front()[1] == 0) {
         uint8_t index = design.multiline_comment_variants.front()[2] == 0 ? 0 : 2;
         return std::string((char*)&design.multiline_comment_variants.front().at(index));
@@ -269,8 +274,12 @@ SeparatedLines SeparateToColumns(const std::string& input_string, const size_t c
     VString words;
     std::string temp;
 
+    const size_t input_visible_len = utils::GetStringCharCount(input_string, true);
+    if(input_string.find('\n') == std::string::npos && (column_size == 0
+                                                         || input_visible_len <= column_size))
+        return SeparatedLines{{input_string}, input_visible_len};
+
     // разбиение на самостоятельные слова/объекты
-    //    uint8_t save_next_symbols = 0;
     bool need_add = false;
     for(size_t i = 0; i < input_string.size(); i++) {
         if(need_add || input_string[i] == '\n') {
@@ -311,11 +320,11 @@ SeparatedLines SeparateToColumns(const std::string& input_string, const size_t c
         words.push_back(temp);
     }
 
-    // упоаковка по столбцам (если не влезает, то переработать по минимальной)
+    // упаковка по столбцам (если не влезает, то переработать по минимальной)
     size_t max_len = column_size;
     for(const auto& word : words) {
-        if(max_len < word.size())
-            max_len = word.size();
+        if(max_len < utils::GetStringCharCount(word, true))
+            max_len = utils::GetStringCharCount(word, true);
     }
     VString res;
     temp.clear();
@@ -324,20 +333,18 @@ SeparatedLines SeparateToColumns(const std::string& input_string, const size_t c
         if(current_line_size + utils::GetStringCharCount(word, true) + /*space*/1 > max_len
             || word == "\n")
         {
-            if(!temp.empty()) {
+            if(!temp.empty() && temp != "\n") {
                 res.push_back(temp);
                 temp.clear();
             }
             current_line_size = 0;
-            if (word == "\n") {
-                res.push_back("");
-                continue;
-            }
         } else {
             temp += temp.empty() ? "" : " ";
             current_line_size += /*space*/1;
         }
-        temp += word;
+
+        if(word != "\n")
+            temp += word;
         current_line_size += utils::GetStringCharCount(word, true);
     }
     // завершающее присвоение
@@ -348,27 +355,36 @@ SeparatedLines SeparateToColumns(const std::string& input_string, const size_t c
     return {res, max_len};
 }
 
-std::string VStringToString(const VString& input_vec) noexcept {
+std::string VStringToString(const VString& input_vec, const bool need_quotes) noexcept {
     std::string res;
 
     for(const auto& s : input_vec) {
-        res += s + "\n";
+        if(need_quotes)
+            res += "\"";
+        res += s;
+        if(need_quotes)
+            res += "\"";
+        res += "\n";
     }
 
     return res;
 }
 
 //TODO: при парсинге многострочных комментариев с окантовкой надо учитывать совпадение по закрывающей части
-//TODO: должен ли быть пробел между знаками начала/конца м.комментария и окантовкой?
+/*TODO: должен ли быть пробел между знаками начала/конца м.комментария и окантовкой?
+ *      - при записи пробел не ставится
+ *      - при чтении всегда пытается считать два символа начала комментария (в зависимости от заполненности вариантов)
+ *      - если второй символ начала комментария пробел - многострочный комментарий начинается с одного символа
+*/
 
 // @TEST(COMMENT, tabulation_level)
 std::string ToComment(const std::string &comment, const CommentDesign& design,
                       const int8_t tabulation_level) noexcept
 {
+    using namespace utils;
+
     if(comment.empty()) return "";
 
-    using namespace utils;
-//    VString             result_lines;
     std::string         temp = "";
     std::vector<size_t> separators;
 
@@ -379,6 +395,8 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
     //разделить на строки необходимой длины
     SeparatedLines sl = SeparateToColumns(comment, design.opt_multiline_column_size);
     VString& result_lines = sl.lines;
+//    std::cout << "sl.max_length: " << sl.max_length << std::endl;
+//    std::cout << "sl.lines:" << std::endl << VStringToString(sl.lines, true) << std::endl;
 
     switch(result_lines.size()) {
     case 0: return "";
@@ -387,67 +405,31 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
                + GetOnelineCommentStr(design) + " " + result_lines[0];
     }
     default /*multiline comments*/: {
-        if(design.opt_multiline_border) {
+        if(design.opt_multiline_border != 0) {
             // если нужно обрамление, то строки нужно выровнять по одной длине (дополнить пробелами)
             for(auto& line : result_lines) {
                 line = " " + line;
-                SetVisibleColumn(line, sl.max_length + /*left space*/1);
+                SetVisibleColumn(line, sl.max_length + /*left space*/2);
 
                 //добавить знаки обрамления
                 line = design.opt_multiline_border + line + design.opt_multiline_border;
             }
-
-            //TODO: начало и конец комментария
-            //добавить обрамление сверху
-            result_lines.insert(result_lines.begin(), RepeatSymToStr(design.opt_multiline_border, sl.max_length + 2));
-            //добавить обрамление снизу
-            result_lines.push_back(RepeatSymToStr(design.opt_multiline_border, sl.max_length + 2));
         }
 
-        // (м, если BORDER не 0) ============================
-        if(design.opt_multiline_border) {
-            // выставить знаки вертикальной границы
-            for(std::string& s : result_lines) {
-                std::stringstream ss;
-                if(tabulation_level != -1) {
-                    // учесть: B_COMMENTSTRING_B
-                    ss << design.opt_multiline_border
-                       << " "
-                       << logs::columned(s, max +1 /*- 1*/) //-1 засчёт пробела в начале
-                       << design.opt_multiline_border;
-                } else {
-                    ss << " " << logs::columned(s, max +1 /*- 1*/); //-1 засчёт пробела в начале
-                }
-                s = ss.str();
-            }
+        //обозначить комментарии
+        result_lines.insert(result_lines.begin(), GetMultilineCommentStartStr(design));
+        result_lines.push_back(GetMultilineCommentStopStr(design));
 
-            // выставить знаки горизонтальных границ
-            std::string multiline_comment_symbols = GetMultilineCommentStartStr(design);
-            temp = multiline_comment_symbols;
-            if(tabulation_level != -1)
-                temp += RepeatSymToStr(design.opt_multiline_border,
-                                       max + /*пробелы*/2 + (multiline_comment_symbols.size() == 2 ? 0 : 1));
-            result_lines.insert(result_lines.cbegin(), temp);
+        //дополнить рамку при необходимости
+        if(design.opt_multiline_border != 0) {
+            // заполняется в стиле (начало комментария "/*"):       /*#######
+            //  альтернативный вариант (начало комментария "/"):    /########
 
-            multiline_comment_symbols = GetMultilineCommentStopStr(design);
-            temp = "";
-            if(tabulation_level != -1)
-                temp += RepeatSymToStr(design.opt_multiline_border,
-                                  max + /*пробелы*/2 + (multiline_comment_symbols.size() == 2 ? 0 : 1));
-            temp += multiline_comment_symbols;
-            result_lines.push_back(temp);
-        } else {
-            std::transform(result_lines.begin(), result_lines.end(),
-                           result_lines.begin(), [&max](const std::string& s)
-                           { return logs::columned(s, max); });
-            result_lines.front() = GetMultilineCommentStartStr(design) + " " + result_lines.front();
-            for(size_t i = 1; i < result_lines.size(); i++)
-                result_lines[i] = " " + result_lines[i];
-            RemoveIllegalSpaces(result_lines.back());
-            result_lines.back() = " " + result_lines.back() + " " + GetMultilineCommentStopStr(design);
+            // длина актуальна для обеих строк
+            size_t needed_spaces = sl.max_length + 4 - result_lines.front().size();
+            result_lines.front() += RepeatSymToStr(design.opt_multiline_border, needed_spaces);
+            result_lines.back() = RepeatSymToStr(design.opt_multiline_border, needed_spaces) + result_lines.back();
         }
-        // ==================================================
-
         break;
     }
     }

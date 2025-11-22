@@ -535,12 +535,16 @@ void SetStringAsOnlySpaces(std::string& str) noexcept {
 void SetVisibleColumn(std::string &input_str, const size_t &column_size) noexcept
 {
     //вычислить видимую длину
-    size_t visible_len = GetStringCharCount(input_str, true);
+    const size_t visible_len = GetStringCharCount(input_str, true);
     //определить необходимое количество пробелов
-    size_t need_spaces = visible_len < column_size ? visible_len - column_size : 0;
+    const size_t need_spaces = visible_len < column_size ? column_size - visible_len: 0;
 
     //выдать результатs
     input_str += RepeatSymToStr(' ', need_spaces);
+//    std::cout << "v.size: " << visible_len
+//              << " c.size: " << column_size
+//              << " n.spaces: " << need_spaces
+//              << " \"" << input_str << "\"" << std::endl;
 }
 
 

@@ -29,8 +29,9 @@ TEST(COMMENT, default_wrappers) {
 
 TEST(COMMENT, tabulation_level) {
     //oneline
-    EXPECT_EQ("\t// asd", ToComment("asd", CommentDesign(), 1));
-    EXPECT_EQ("\t\t\t\t// asd", ToComment("asd", CommentDesign(), 4));
+    CommentDesign cd;
+    EXPECT_EQ("\t// asd", ToComment("asd", cd, 1));
+    EXPECT_EQ("\t\t\t\t// asd", ToComment("asd", cd, 4));
 
     //multiline
     std::string expect_string_1 = "/***********\n"
@@ -41,7 +42,9 @@ TEST(COMMENT, tabulation_level) {
     CommentDesign design_1;
     design_1.opt_multiline_border = '*';
     design_1.opt_multiline_column_size = 8; // пробелы по бокам от строки комментария не учитываются в размере "колонки"
-    EXPECT_EQ(expect_string_1, ToComment("asd\naaa\nasd", design_1, 0));
+    EXPECT_EQ(expect_string_1, ToComment("asd\n"
+                                         "aaa\n"
+                                         "asd", design_1, 0));
 
     std::string expect_string_2 = "/***********\n"
                                   "* asd      *\n"
@@ -52,12 +55,18 @@ TEST(COMMENT, tabulation_level) {
     design_2.multiline_comment_variants = {{'/', 0, 0}};
     design_2.opt_multiline_border = '*';
     design_2.opt_multiline_column_size = 8;
-    EXPECT_EQ(expect_string_2, ToComment("asd\naaa\nasd", design_2, 0));
+    EXPECT_EQ(expect_string_2, ToComment("asd\n"
+                                         "aaa\n"
+                                         "asd", design_2, 0));
 
-    std::string expect_string_3 = "\t\t\t\t/* asd\n"
-                                  "\t\t\t\t aaa\n"
-                                  "\t\t\t\t asd */";
-    EXPECT_EQ(expect_string_3, ToComment("asd\naaa\nasd", CommentDesign(), 4));
+    std::string expect_string_3 = "\t\t\t\t/*\n"
+                                  "\t\t\t\tasd\n"
+                                  "\t\t\t\taaa\n"
+                                  "\t\t\t\tasd\n"
+                                  "\t\t\t\t*/";
+    EXPECT_EQ(expect_string_3, ToComment("asd\n"
+                                         "aaa\n"
+                                         "asd", cd, 4));
 }
 
 TEST(COMMENT, multiline_chopper) {
@@ -127,7 +136,7 @@ TEST(COMMENT, SeparateToColumn) {
     cd.opt_multiline_column_size = 20;
     std::string input = ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,";
 
-    std::string result = VStringToString(SeparateToColumns(input, cd.opt_multiline_column_size));
+    std::string result = VStringToString(SeparateToColumns(input, cd.opt_multiline_column_size).lines);
     input = ",,,,,,,,,,,,,,,,,,,,\n"
             ",,,,,,,,,,,,,,,,,,,,\n"
             ",,,,,,,,,,,,,,,,,,,,\n"

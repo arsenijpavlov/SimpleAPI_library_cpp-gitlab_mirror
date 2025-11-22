@@ -7,6 +7,7 @@
 #include <bits/shared_ptr.h>
 
 
+//TODO: это лишь примеры, не использовать при записи и парсинге
 //первый символ в случае многострочного комментария может быть другим
 constexpr uint8_t SIZE_comment_multi_line = 6;
 constexpr char comment_multi_line[SIZE_comment_multi_line][3] {
@@ -20,12 +21,12 @@ constexpr char comment_multi_line[SIZE_comment_multi_line][3] {
 };
 constexpr uint8_t SIZE_comment_one_line = 6;
 constexpr char comment_one_line[SIZE_comment_one_line][2] {
+    {'/', '/'},
     {'%', 0},
     {'#', 0},
     {'!', 0},
     {';', 0},
-    {'?', 0},
-    {'/', '/'}
+    {'?', 0}
 };
 
 enum class CommentType : uint8_t {
@@ -37,6 +38,9 @@ enum class CommentType : uint8_t {
 std::string to_string(const CommentType& type);
 //#define DEFAULT_COMMENT_COLUMN_SIZE 50
 
+//NOTE: пробел в качестве символа начала комментария использовать крайне не советуется, хотя и возможно, в теории
+//NOTE: если пользователь не заполнил варианты обрамления комментариев,
+//      то должны быть использованы пресеты "comment_multi_line" и "comment_one_line"
 class CommentDesign {
 public:
     // применяется ТОЛЬКО для многострочных комментариев, по умолчанию не используются
@@ -82,6 +86,9 @@ public:
         with_comments{false},
         is_in_container{false}
     {
+        /*TODO: вынести из класса в статику для оптимизации
+         * при парсинге и записи проверить варианты на пустоту и использвать статику
+        */
         oneline_comment_variants.push_back({'/', '/'});         // {#,0} - второй символ 0 -> один символ уже комментирует
         multiline_comment_variants.push_back({'/', '*', 0});    // 0 - завершающий символ повторяет первый
     }
@@ -221,7 +228,7 @@ struct SeparatedLines {
     size_t max_length;
 };
 SeparatedLines SeparateToColumns(const std::string& input_string, const size_t column_size)     noexcept;
-std::string VStringToString(const VString& input_vec)                                           noexcept;
+std::string VStringToString(const VString& input_vec, const bool need_quotes = false)           noexcept;
 std::string ToComment(const std::string &comment, const CommentDesign& design,
                 const int8_t tabulation_level = 0)                                              noexcept;
 bool        DefineCommentSymbols(const char first_sym, const char second_sym,

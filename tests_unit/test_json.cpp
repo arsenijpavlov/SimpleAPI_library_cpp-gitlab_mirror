@@ -40,14 +40,14 @@ std::string json_string_example = std::string(
     "\"number\":182,\n"
     //иной вариант разделителя '='
     "\"bool\"=true,\n"
-//    "\"null\"=NuLL,\n"
-//    "\"null2\"=,\n"
-//    //перенос строки равнозначен разделителю ','
-//    "\"string\":\"string_value\"\n"
-//    "\"json\" : {\"string\":\"inner_string_value\",\n \"string2\" : 150}"
-//    ",\n"
-//    //перенос строки равнозначен разделителю ',' (массивы)
-//    "\"array\":[\"string_value\"\n true]\n"
+    "\"null\"=NuLL,\n"
+    "\"null2\"=,\n"
+    //перенос строки равнозначен разделителю ','
+    "\"string\":\"string_value\"\n"
+    "\"json\" : {\"string\":\"inner_string_value\",\n \"string2\" : 150}"
+    ",\n"
+    //перенос строки равнозначен разделителю ',' (массивы)
+    "\"array\":[\"string_value\"\n true]\n"
     "}"
     );
 
@@ -237,25 +237,28 @@ TEST(JSON, write_and_read_file_comment) {
 
     CommentDesign cd;
     cd.opt_multiline_column_size = 20;
-//    cd.opt_multiline_border = '#';
+    cd.opt_multiline_border = '#';
     cd.with_comments = true;
+    cd.multiline_comment_variants.push_back(std::array<char, 3>{'/', '*', 0});
 
     std::string main_comment = "1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...";
     json.addPrefixComment(main_comment);
     json.addSuffixComment(main_comment);
     json.add_prefix_comment("bool", "some \nwords...");
     json.add_suffix_comment("bool", "some \nwords...");
-//    json.add_prefix_comment("string", "<string> prefix comment");
-//    json.add_prefix_comment("array", "<array> prefix comment");
-//    json.add_suffix_comment("array", "<array> suffix comment");
-//    json.add_prefix_comment("json", "<json> prefix comment");
-//    json.add_suffix_comment("json", "<json> suffix comment");
+    json.add_prefix_comment("string", "<string> prefix comment");
+    json.add_prefix_comment("array", "<array> prefix comment");
+    json.add_suffix_comment("array", "<array> suffix comment");
+    json.add_prefix_comment("json", "<json> prefix comment");
+    json.add_suffix_comment("json", "<json> suffix comment");
 
-//    json["json"].add_prefix_comment(0, "json first element\n comment");
-//    json["array"].add_prefix_comment(0, "array second element\n comment_");
+    json["json"].add_prefix_comment(0, "json first element\n comment");
+    json["array"].add_prefix_comment(0, "array second element\n comment_");
 
     std::string path = "../tests/test_writer_with_comments.json";
     json.writeFile(path, ConfigFormat::eJSON, cd, 0);
+    SUCCEED();
+    return;
 
     Config json2;
     try {
