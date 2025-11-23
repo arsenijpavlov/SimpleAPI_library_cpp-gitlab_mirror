@@ -59,7 +59,7 @@ public:
     // (2) {x,y} - комментарий от последовательностит символов 'x' и 'y' до конца строки
     std::vector<std::array<char, 2>> oneline_comment_variants;
 
-    // NOTE:
+    // NOTE: Варианты заполнения
     // (1) {x, 0, 0} - один символ открывает и завершает многострочный комментарий
     // (2) {x, 0, y} - один символ открывает многострочный комментарий, другой - завершает
     // (3) {x, y, 0}
@@ -70,8 +70,8 @@ public:
     // 4) {* ... *}
     std::vector<std::array<char, 3>> multiline_comment_variants;
 
-    //NOTE: попытка чтения по всем вариантам вектора
-    //NOTE: запись строго по первому элементу
+    //NOTE: чтение по всем вариантам вектора + дефолтный
+    //NOTE: запись строго по первому элементу + дефолтный при необходимости
 
     bool with_comments;
     bool is_in_container;
@@ -85,13 +85,7 @@ public:
         multiline_comment_variants{},
         with_comments{false},
         is_in_container{false}
-    {
-        /*TODO: вынести из класса в статику для оптимизации
-         * при парсинге и записи проверить варианты на пустоту и использвать статику
-        */
-        oneline_comment_variants.push_back({'/', '/'});         // {#,0} - второй символ 0 -> один символ уже комментирует
-        multiline_comment_variants.push_back({'/', '*', 0});    // 0 - завершающий символ повторяет первый
-    }
+    {}
 
     CommentDesign(const CommentDesign& other) noexcept {
         if(this != &other) {
@@ -159,6 +153,12 @@ public:
 
         return false;
     }
+
+    // {#,0} - второй символ 0 -> один символ уже комментирует
+    static std::array<char, 2> GetDefaultOnelineCommentVariant()    noexcept { return {'/', '/'}; }
+
+    // 0 - завершающий символ повторяет первый
+    static std::array<char, 3> GetDefaultMultilineCommentVariant()  noexcept { return {'/', '*', 0}; }
 };
 
 class Comment {
