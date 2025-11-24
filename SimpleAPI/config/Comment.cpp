@@ -220,46 +220,33 @@ Comment& Comment::operator=(const std::string&& prefix_comment) noexcept {
 //только для to_string(design)
 // @TEST(COMMENT, default_wrappers)
 std::string GetOnelineCommentStr(const CommentDesign& design) noexcept {
-    //FIXME: для пустого списка использовать стиль комментариев C/C++
-    if(design.oneline_comment_variants.empty())
-        return "";
-    if(design.oneline_comment_variants.front()[1] == 0)
-        return std::string(design.oneline_comment_variants.front().cbegin(),
-                           design.oneline_comment_variants.front().cbegin() + 1);
-    else
-        return std::string(design.oneline_comment_variants.front().cbegin(),
-                           design.oneline_comment_variants.front().cend());
+    const auto variant = design.oneline_comment_variants.empty() ? CommentDesign::GetDefaultOnelineCommentVariant()
+                                                                 : design.oneline_comment_variants[0];
+    return std::string(&variant[0], variant[1] == 0 ? 1 : 2);
 }
 
 //только для to_string(design)
 // @TEST(COMMENT, default_wrappers)
 std::string GetMultilineCommentStartStr(const CommentDesign& design) noexcept {
-    //FIXME: для пустого списка использовать стиль комментариев C/C++
-    if(design.multiline_comment_variants.empty())
-        return "";
-    if(design.multiline_comment_variants.front()[1] == 0) {
-        return std::string(design.multiline_comment_variants.front().cbegin(),
-                           design.multiline_comment_variants.front().cbegin() + 1);
-    }
-    return std::string(design.multiline_comment_variants.front().cbegin(),
-                       design.multiline_comment_variants.front().cbegin() + 2);
+    const auto variant = design.multiline_comment_variants.empty() ? CommentDesign::GetDefaultMultilineCommentVariant()
+                                                                   : design.multiline_comment_variants[0];
+
+    return std::string(&variant[0], variant[1] == 0 ? 1 : 2);
 }
 
 //только для to_string(design)
 // @TEST(COMMENT, default_wrappers)
 std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept {
-    //FIXME: для пустого списка использовать стиль комментариев C/C++
-    if(design.multiline_comment_variants.empty())
-        return "";
-    if(design.multiline_comment_variants.front()[1] == 0) {
-        uint8_t index = design.multiline_comment_variants.front()[2] == 0 ? 0 : 2;
-        return std::string((char*)&design.multiline_comment_variants.front().at(index));
-    }
+    const auto variant = design.multiline_comment_variants.empty() ? CommentDesign::GetDefaultMultilineCommentVariant()
+                                                                   : design.multiline_comment_variants[0];
 
-    uint8_t index = design.multiline_comment_variants.front()[2] == 0 ? 0 : 2;
+    if(variant[1] == 0)
+        return std::string(&variant[variant[2] == 0 ? 0 : 2], 1);
+
+    uint8_t index = variant[2] == 0 ? 0 : 2;
     std::stringstream ss;
-    ss << (char)design.multiline_comment_variants.front()[1];
-    ss << (char)design.multiline_comment_variants.front()[index];
+    ss << (char)variant[1];
+    ss << (char)variant[index];
 
     return ss.str();
 }
