@@ -7,27 +7,27 @@
 #include <bits/shared_ptr.h>
 
 
-//TODO: это лишь примеры, не использовать при записи и парсинге
+//NOTE: это лишь примеры, не использовать при записи и парсинге
 //первый символ в случае многострочного комментария может быть другим
-constexpr uint8_t SIZE_comment_multi_line = 6;
-constexpr char comment_multi_line[SIZE_comment_multi_line][3] {
-    {'/', '*', 0},
-    {'/', '#', 0},
-    {'<', '#', '>'},
-    {'<', '-', '>'},
-    {'!', '.', 0},
-    {'?', '.', 0}
-    //нельзя использовать двойной символ из второй таблицы как границу многострочного комментария
-};
-constexpr uint8_t SIZE_comment_one_line = 6;
-constexpr char comment_one_line[SIZE_comment_one_line][2] {
-    {'/', '/'},
-    {'%', 0},
-    {'#', 0},
-    {'!', 0},
-    {';', 0},
-    {'?', 0}
-};
+//constexpr uint8_t SIZE_comment_multi_line = 6;
+//constexpr char comment_multi_line[SIZE_comment_multi_line][3] {
+//    {'/', '*', 0},
+//    {'/', '#', 0},
+//    {'<', '#', '>'},
+//    {'<', '-', '>'},
+//    {'!', '.', 0},
+//    {'?', '.', 0}
+//    //нельзя использовать двойной символ из второй таблицы как границу многострочного комментария
+//};
+//constexpr uint8_t SIZE_comment_one_line = 6;
+//constexpr char comment_one_line[SIZE_comment_one_line][2] {
+//    {'/', '/'},
+//    {'%', 0},
+//    {'#', 0},
+//    {'!', 0},
+//    {';', 0},
+//    {'?', 0}
+//};
 
 enum class CommentType : uint8_t {
     eNotComment,
