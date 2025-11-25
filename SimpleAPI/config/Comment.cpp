@@ -551,84 +551,31 @@ std::string FromComment(std::string comment_string, CommentDesign& design,
     return ret;
 }
 
-//TODO: исправить на использование CheckComments()
-void RemoveComments(std::string &str, bool &startComment,
-                    char &quote, char &start_comment_sym,
-                    char &stop_comment_sym)
+void RemoveComments(std::string &input_string, CommentDesign design)
 {
-    std::string tempString;
-    bool isOneLineComment = false;
-    bool IsMultiLineComment = startComment;
-    for(size_t i = 0; i < str.length(); i++) {
-        char previous = (i > 0) ? str[i - 1] : 0;
-        char current = str[i];
-        char next = (str.length() > i + 1 ? str[i + 1] : 0);
+    std::string temp;
+    bool is_quotes = false;
+    std::string comment_string; //скорее всего не будет использован в этой функции
+    for(size_t i = 0; i < input_string.size(); i++) {
+        char previous_ch    = i == 0 ? 0 : input_string[i - 1];
+        char current_ch     = input_string[i];
+        char next_ch        = i < input_string.size() ? input_string[i + 1] : 0;
 
-        if(quote == 0) { //если не часть строкового значения
-            //поиск комментариев ===========================================================
-            if(!isOneLineComment && !IsMultiLineComment) {
-                //сперва искать многострочные комментарии!
-                for(uint8_t j = 0; j < SIZE_comment_multi_line; j++) {
-                    if(current == comment_multi_line[j][0] && next == comment_multi_line[j][1]) {
-                        start_comment_sym = current;
-                        stop_comment_sym = next;
-                        //изменение завершающего символа
-                        if(current == '<') start_comment_sym = '>';
-                        i++; //проскакиваем следующий символ при парсинге
-                        IsMultiLineComment = true;
-                        break;
-                    }
-                }
-                if(IsMultiLineComment) continue;
-                //поиск однострочных комментариев
-                for(uint8_t j = 0; j < SIZE_comment_one_line; j++) {
-                    if(current == comment_one_line[j][0]) {
-                        if((comment_one_line[j][1] != 0) && (next == comment_one_line[j][1]))
-                            i++;
-                        isOneLineComment = true;
-                        break;
-                    }
-                }
-                if(isOneLineComment) continue;
-            }
-            //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-            //обработка комментариев
-            if(isOneLineComment) {
-                //если следующий символ должен обрабатываться другим кодом
-                if((current == '\n') || ((str.length() > i + 1) && (str[i + 1] == '\n'))) {
-                    isOneLineComment = false;
-                    i++;
-                }
-                continue;
-            }
-            if(IsMultiLineComment) {
-                //нужен следующий символ, если нет - исключение
-                if(str.length() <= i + 1)
-                    throw std::invalid_argument("invalid length of input JSON string");
+        //поиск комментариев ===================================================
+        const bool ext_flag = !is_quotes;
+        // вернёт комментарий без обрамления
+        CheckComments(current_ch, next_ch, i, design, comment_string, ext_flag); //TODO: подумать, стоит ли передавать nullptr вместо ссылки на comment_string
+        if(!design.with_comments)
+            comment_string.clear();
+        //сюда зайдёт, если внутри комментария либо если встречен конец комментария
+        if(design.temp_type != CommentType::eNotComment)
+            continue;
+        //=================================================== поиск комментариев
 
-                if((current == stop_comment_sym) && (next == start_comment_sym)) {
-                    IsMultiLineComment = false;
-                    i++; //многострочные комментарии всегда обособляются двумя символами
-                }
-                continue;
-            }
-            //==============================================================================
-        }
-
-        if(!IsMultiLineComment && !isOneLineComment) {
-            //пропускать \"
-            if(current == '"' && previous != '\\'){
-                if(current == quote)
-                    quote = 0;
-                else
-                    quote = current;
-            }
-            tempString += current;
-        }
+        temp += current_ch;
     }
 
-    str = tempString;
-    startComment = IsMultiLineComment;
+    input_string = temp;
 }
 
 

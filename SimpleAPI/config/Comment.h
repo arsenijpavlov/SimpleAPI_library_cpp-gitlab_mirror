@@ -237,8 +237,7 @@ std::string FromComment(std::string comment_string, CommentDesign& design,
                 const int8_t tabulation_level = 0)                                              noexcept;
 
 
-void RemoveComments(std::string& str, bool& startComment, char& quote,
-                    char& start_comment_sym, char& stop_comment_sym);
+void RemoveComments(std::string& input_string, CommentDesign design = {});
 
 void CheckComments(const char current_sym, const char next_sym,
                    size_t &iter_counter, CommentDesign& design,
