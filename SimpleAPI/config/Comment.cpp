@@ -342,6 +342,7 @@ SeparatedLines SeparateToColumns(const std::string& input_string, const size_t c
     return {res, max_len};
 }
 
+// Вспомогательная функция для вывода массива строк в лог
 std::string VStringToString(const VString& input_vec, const bool need_quotes) noexcept {
     std::string res;
 
@@ -464,7 +465,6 @@ std::string FromComment(std::string comment_string, CommentDesign& design,
 {
     using namespace utils;
 
-    VString     lines;
     // определить синтаксические знаки комментария и удалить из входной строки
     {
         char first_ch   = comment_string.empty() ? 0 : comment_string[0];
@@ -484,6 +484,7 @@ std::string FromComment(std::string comment_string, CommentDesign& design,
         }
     }
 
+    VString lines;
     std::string temp_string = "";
     for(size_t i = 0; i < comment_string.size(); i++) {
         if(comment_string[i] == '\n') {
