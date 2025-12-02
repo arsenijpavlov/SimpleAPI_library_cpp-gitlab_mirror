@@ -459,7 +459,8 @@ bool DefineCommentSymbols(const char first_sym, const char second_sym,
     return false;
 };
 
-//NOTE: для всего файла конфига подменяется символ границы только если не задан (первый комментарий с границей)
+// NOTE: для всего файла конфига подменяется символ границы только если не задан (первый комментарий с границей)
+// Предполагается, что пользователь сам укажет символы для поиска комментариев, при парсинге будет обновлён CommentDesign
 std::string FromComment(std::string comment_string, CommentDesign& design,
                         const int8_t tabulation_level) noexcept
 {
@@ -505,7 +506,7 @@ std::string FromComment(std::string comment_string, CommentDesign& design,
         RemoveEndIllegalSpaces(s); // пробелы в конце ничего не значат
     }
 
-    bool is_border_exists   = false;
+    bool is_border_exists = false;
     if(lines.size() > 1) {
         if(!lines.front().empty()) {
             //NOTE: если символ в списке и в первой строке комментария повторяется минимум 3 раза - это граница, иначе - часть комментария
@@ -530,25 +531,17 @@ std::string FromComment(std::string comment_string, CommentDesign& design,
             if(s.back() == design.opt_multiline_border)
                 s.pop_back();       //удалить границу
         }
-    } else {
-        for(std::string& s : lines)
-            RemoveIllegalSpaces(s); //удалить лишние пробелы в начале и конце строки
     }
 
-    std::string ret;
-    //TEST
-    //    ret = "is_multiline:" + utils::to_string(is_multiline)
-    //          + " is_border_exists:" + utils::to_string(is_border_exists)
-    //          + (is_border_exists ? std::string(" border_sym:") + design.opt_multiline_border
-    //                              : "")
-    //          + (design.opt_multiline_column_size ? " column_size:" + std::to_string(design.opt_multiline_column_size)
-    //                                              : "")
-    //          + "\n---------------------------------------"
-    //          + "\n";
+    for(std::string& s : lines)
+        RemoveIllegalSpaces(s); //удалить лишние пробелы в начале и конце строки
 
-    std::for_each(lines.begin(), lines.end(), [&ret, &lines](const std::string& s) { ret += s + (s != lines.back() ? "\n" : ""); });
-    //убрать перенос строки в последней строке
-//    ret.pop_back();
+    std::string ret;
+
+    std::for_each(lines.begin(), lines.end(), [&ret, &lines](const std::string& s) {
+        ret += s + (s != lines.back() ? "\n" : "");
+    });
+
     return ret;
 }
 
@@ -558,7 +551,6 @@ void RemoveComments(std::string &input_string, CommentDesign design)
     bool is_quotes = false;
     std::string comment_string; //скорее всего не будет использован в этой функции
     for(size_t i = 0; i < input_string.size(); i++) {
-        char previous_ch    = i == 0 ? 0 : input_string[i - 1];
         char current_ch     = input_string[i];
         char next_ch        = i < input_string.size() ? input_string[i + 1] : 0;
 
