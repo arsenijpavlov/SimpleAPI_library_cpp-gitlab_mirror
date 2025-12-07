@@ -582,7 +582,6 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
             continue;
         //=================================================== поиск комментариев
 
-
         switch(state) {
         case ParseState::eARRAY_START: {
             //пропуск пробелов =====================================================
@@ -609,7 +608,7 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
             //игнор пробелов и разделителей пока значение пустое
             if(!is_quotes
                 && value.empty()
-                && CharInString(ch_current, __SPACES__ ","))
+                && CharInString(ch_current, __SPACES__ ",")) // пустое значение между запятыми - не ошибка
             {
                 break;
             }
@@ -740,7 +739,7 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
     }
 
     if(state != ParseState::eARRAY_FINISH && state != ParseState::eARRAY_VALUE) {
-        clear();
+//        clear();
         throw std::invalid_argument("ARRAY parse error, end of JSON array structure not found");
     }
 }

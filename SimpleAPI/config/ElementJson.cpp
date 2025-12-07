@@ -896,7 +896,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
             //игнор пробелов и разделителей пока ключ пустой
             if(!is_quotes
                 && key.empty()
-                && CharInString(ch_current, __SPACES__))
+                && CharInString(ch_current, __SPACES__ ",")) //сама по себе запятая не считается ошибкой
             {
                 break;
             }
@@ -1072,10 +1072,8 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
         }
     }
 
-    std::cout << "asd" << std::endl;
-
     //конечный комментарий ...
-//    if(state == ParseState::eJSON_COMMENT)
+    if(state == ParseState::eJSON_COMMENT) // предполагается, что заполнен state_comment
     {
         if(!comment.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
             addSuffixComment(FromComment(comment, design, tabulation_level));

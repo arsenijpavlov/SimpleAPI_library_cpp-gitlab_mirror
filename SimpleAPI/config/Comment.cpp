@@ -586,7 +586,7 @@ void CheckComments(const char ch_current, const char ch_next,
     switch(design.temp_type) {
     case CommentType::eOneLineComment: {
         //считывается строго до переноса строки
-        if(ch_next == '\n') {
+        if(ch_current == '\n') {
             design.temp_type = CommentType::eCommentEnd;
             return;
         }
@@ -603,6 +603,7 @@ void CheckComments(const char ch_current, const char ch_next,
             //коммент закрывает последовательность [finish_ch]
             if(ch_current == finish_ch) {
                 design.temp_type = CommentType::eCommentEnd;
+                iter_counter++;
                 return;
             }
         } else {
@@ -612,7 +613,7 @@ void CheckComments(const char ch_current, const char ch_next,
 
             //коммент закрывает последовательность [1][finish_ch]
             if(ch_current == design.temp_schema[1] && ch_next == finish_ch) {
-                iter_counter++;
+                iter_counter += b2 ? 1 : 2;
                 design.temp_type = CommentType::eCommentEnd;
                 return;
             }
@@ -621,6 +622,7 @@ void CheckComments(const char ch_current, const char ch_next,
         current_comment += ch_current;
         return;
     }
+    case CommentType::eCommentEnd:
     case CommentType::eNotComment: {
         //поиск многострочных комментариев
         for(const auto& format : design.multiline_comment_variants) {
