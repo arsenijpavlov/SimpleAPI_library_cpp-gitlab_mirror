@@ -566,15 +566,15 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
     uint16_t inner_array_counter    = 0;
 
     for(size_t i = 0; i < input_string.size(); i++) {
-        char previous_ch    = i == 0 ? 0 : input_string[i - 1];
-        char current_ch     = input_string[i];
-        char next_ch        = i < input_string.size() ? input_string[i + 1] : 0;
-        SymbolCounter(current_ch, line_counter, symbol_counter);
+        char ch_previous    = i == 0 ? 0 : input_string[i - 1];
+        char ch_current     = input_string[i];
+        char ch_next        = i < input_string.size() ? input_string[i + 1] : 0;
+        SymbolCounter(ch_current, line_counter, symbol_counter);
 
         //поиск комментариев ===================================================
         const bool ext_flag = !is_quotes;
         // вернёт комментарий без обрамления
-        CheckComments(current_ch, next_ch, i, design, comment, ext_flag);
+        CheckComments(ch_current, ch_next, i, design, comment, ext_flag);
         if(!design.with_comments)
             comment.clear();
         //сюда зайдёт, если внутри комментария либо если встречен конец комментария
@@ -586,10 +586,10 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
         switch(state) {
         case ParseState::eARRAY_START: {
             //пропуск пробелов =====================================================
-            if(CharInString(current_ch, __SPACES__)) break;
+            if(CharInString(ch_current, __SPACES__)) break;
             //===================================================== пропуск пробелов
 
-            if(current_ch == '[') {
+            if(ch_current == '[') {
                 //работа с комментариями (до разбора массива) ==========================
                 if(!comment.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
                     addPrefixComment(FromComment(comment, design, tabulation_level));
@@ -609,17 +609,17 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
             //игнор пробелов и разделителей пока значение пустое
             if(!is_quotes
                 && value.empty()
-                && CharInString(current_ch, __SPACES__ ","))
+                && CharInString(ch_current, __SPACES__ ","))
             {
                 break;
             }
-            if(current_ch == ']') {
+            if(ch_current == ']') {
                 UpdateState(state, ParseState::eARRAY_FINISH);
                 break;
             }
 
-            if(current_ch == '\"'
-                && previous_ch != '\\'
+            if(ch_current == '\"'
+                && ch_previous != '\\'
                 && inner_json_counter + inner_array_counter == 0)
             {
                 is_quotes = !is_quotes;
@@ -627,7 +627,7 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
 
             //кавычки, именованные списки, массивы
             if(!is_quotes) {
-                switch(current_ch) {
+                switch(ch_current) {
                 case '{':   { ++inner_json_counter;     break; }
                 case '}':   { --inner_json_counter;     break; }
                 case '[':   { ++inner_array_counter;    break; }
@@ -635,12 +635,12 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
                 default: break;
                 }
             }
-            value += current_ch;
+            value += ch_current;
 
             //если значение пустое, есть только разделитель - запятая
             if(!is_quotes
                 && inner_json_counter + inner_array_counter == 0
-                && current_ch == ',')
+                && ch_current == ',')
             {
                 value.clear();
                 i--;
@@ -649,8 +649,8 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
             //значение прочитано полностью?
             if(!is_quotes
                 && inner_json_counter + inner_array_counter == 0
-                && (CharInString(next_ch, __SEPARATORS__ " ]")
-                    || CharInString(current_ch, __SEPARATORS__ "]")))
+                && (CharInString(ch_next, __SEPARATORS__ " ]")
+                    || CharInString(ch_current, __SEPARATORS__ "]")))
             {
                 DEBUG_LOG("ElementArray: current value done: \"" << value << "\"");
                 try {
@@ -674,7 +674,7 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
         }
         case ParseState::eARRAY_SEPARATOR: {
             //пропуск пробелов =====================================================
-            if(CharInString(current_ch, __SPACES_WITHOUT_SEPARATORS__)) break;
+            if(CharInString(ch_current, __SPACES_WITHOUT_SEPARATORS__)) break;
             //===================================================== пропуск пробелов
 
             //может встретиться разделитель или знак завершения массива
@@ -682,15 +682,15 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
             //  разделитель может быть как ДО, так и ПОСЛЕ комментария
             //  если комментарий расписан после переноса строки, но до знака ], то комментарий попадёт в суффикс основы
 
-            if(CharInString(current_ch, __SEPARATORS__)) {
-                is_separator_comma = current_ch == ',';
-                if(CharInString(current_ch, __SPACES__ ","))
+            if(CharInString(ch_current, __SEPARATORS__)) {
+                is_separator_comma = ch_current == ',';
+                if(CharInString(ch_current, __SPACES__ ","))
                     i--;
                 UpdateState(state_comment, ParseState::eARRAY_VALUE);
                 UpdateState(state, ParseState::eARRAY_COMMENT);
                 break;
             }
-            if(CharInString(current_ch, "]")) {
+            if(CharInString(ch_current, "]")) {
                 UpdateState(state_comment, ParseState::eARRAY_FINISH);
                 UpdateState(state, ParseState::eARRAY_COMMENT);
                 break;
@@ -702,11 +702,11 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
         }
         case ParseState::eARRAY_COMMENT: {
             //пропуск пробелов
-            if(CharInString(current_ch, __SPACES_WITHOUT_SEPARATORS__))
+            if(CharInString(ch_current, __SPACES_WITHOUT_SEPARATORS__))
                 break;
 
             //(комментарий после значения, на строке значения после запятой)
-            if(!is_separator_comma || current_ch == '\n') {
+            if(!is_separator_comma || ch_current == '\n') {
                 if(!comment.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
                     get_back().addSuffixComment(FromComment(comment, design, tabulation_level));
                     DEBUG_LOG("ElementArray: inner Element add SuffixComment: " << "\"" << comment << "\"");
