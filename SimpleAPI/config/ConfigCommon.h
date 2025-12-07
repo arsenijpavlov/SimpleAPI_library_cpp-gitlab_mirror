@@ -58,7 +58,7 @@ bool CreateEmptyFile(const std::string& file_path, const std::string& start_comm
 /*static*/ bool         CheckJson(std::string& value)                                                       noexcept;
 /*static*/ bool         CheckArray(std::string& value, const ConfigFormat& format = ConfigFormat::eJSON)    noexcept;
 
-void SymbolCounter(const char current_ch, size_t &line_counter,
+void SymbolCounter(const char ch_current, size_t &line_counter,
                                 size_t &symbol_counter)                                                     noexcept;
 
 #endif // JSON_COMMON_H
