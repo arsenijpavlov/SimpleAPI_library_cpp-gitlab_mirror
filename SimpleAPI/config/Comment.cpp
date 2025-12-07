@@ -1,7 +1,7 @@
 #include "Comment.h"
 
 #include "../utils/Utils.h"
-#include "../utils/Logger.h"
+//#include "../utils/Logger.h"
 #include "ConfigDefines.h"
 #include <algorithm>
 
@@ -551,13 +551,13 @@ void RemoveComments(std::string &input_string, CommentDesign design)
     bool is_quotes = false;
     std::string comment_string; //скорее всего не будет использован в этой функции
     for(size_t i = 0; i < input_string.size(); i++) {
-        char current_ch     = input_string[i];
-        char next_ch        = i < input_string.size() ? input_string[i + 1] : 0;
+        char ch_current     = input_string[i];
+        char ch_next        = i < input_string.size() ? input_string[i + 1] : 0;
 
         //поиск комментариев ===================================================
         const bool ext_flag = !is_quotes;
         // вернёт комментарий без обрамления
-        CheckComments(current_ch, next_ch, i, design, comment_string, ext_flag); //TODO: подумать, стоит ли передавать nullptr вместо ссылки на comment_string
+        CheckComments(ch_current, ch_next, i, design, comment_string, ext_flag); //TODO: подумать, стоит ли передавать nullptr вместо ссылки на comment_string
         if(!design.with_comments)
             comment_string.clear();
         //сюда зайдёт, если внутри комментария либо если встречен конец комментария
@@ -565,7 +565,7 @@ void RemoveComments(std::string &input_string, CommentDesign design)
             continue;
         //=================================================== поиск комментариев
 
-        temp += current_ch;
+        temp += ch_current;
     }
 
     input_string = temp;
@@ -574,7 +574,7 @@ void RemoveComments(std::string &input_string, CommentDesign design)
 
 
 //предполагается использовать только для парсинга
-void CheckComments(const char current_sym, const char next_sym,
+void CheckComments(const char ch_current, const char ch_next,
                    size_t &iter_counter, CommentDesign& design,
                    std::string &current_comment, const bool external_flag)
 {
@@ -586,12 +586,12 @@ void CheckComments(const char current_sym, const char next_sym,
     switch(design.temp_type) {
     case CommentType::eOneLineComment: {
         //считывается строго до переноса строки
-        if(next_sym == '\n') {
+        if(ch_next == '\n') {
             design.temp_type = CommentType::eCommentEnd;
             return;
         }
 
-        current_comment += current_sym;
+        current_comment += ch_current;
         return;
     }
     case CommentType::eMultiLineComment: {
@@ -601,24 +601,24 @@ void CheckComments(const char current_sym, const char next_sym,
         if(b2) {
             //второй символ не участвует
             //коммент закрывает последовательность [finish_ch]
-            if(current_sym == finish_ch) {
+            if(ch_current == finish_ch) {
                 design.temp_type = CommentType::eCommentEnd;
                 return;
             }
         } else {
             //второй символ участвует
-            if(next_sym == 0)
+            if(ch_next == 0)
                 throw std::invalid_argument("invalid length of input string, multiline comment not closed");
 
             //коммент закрывает последовательность [1][finish_ch]
-            if(current_sym == design.temp_schema[1] && next_sym == finish_ch) {
+            if(ch_current == design.temp_schema[1] && ch_next == finish_ch) {
                 iter_counter++;
                 design.temp_type = CommentType::eCommentEnd;
                 return;
             }
         }
 
-        current_comment += current_sym;
+        current_comment += ch_current;
         return;
     }
     case CommentType::eNotComment: {
@@ -627,24 +627,41 @@ void CheckComments(const char current_sym, const char next_sym,
             //v1: {X,0} - #...
             //v2: {X,Y} - #!...
             bool b2 = format[1] == 0;
-            if(current_sym == format[0] && (b2 || next_sym == format[1])) {
+            if(ch_current == format[0] && (b2 || ch_next == format[1])) {
                 design.temp_schema = format;
                 design.temp_type = CommentType::eMultiLineComment;
                 if(!b2) iter_counter++;
                 return;
             }
-
         }
         //поиск однострочных комментариев
         for(const auto& format : design.oneline_comment_variants) {
             //v1: {X,0} - #...
             //v2: {X,Y} - #!...
             bool b2 = format[1] == 0;
-            if(current_sym == format[0] && (b2 || next_sym == format[1])) {
+            if(ch_current == format[0] && (b2 || ch_next == format[1])) {
                 design.temp_type = CommentType::eOneLineComment;
                 if(!b2) iter_counter++;
                 return;
             }
+        }
+
+        // поиск многострочных комментариев, если не заполнены варианты
+        const auto temp_v_m = CommentDesign::GetDefaultMultilineCommentVariant();
+        bool b2 = temp_v_m[1] == 0;
+        if(temp_v_m[0] == ch_current && (b2 || temp_v_m[1] == ch_next)) {
+            design.temp_schema = temp_v_m;
+            design.temp_type = CommentType::eMultiLineComment;
+            if(!b2) iter_counter++;
+            return;
+        }
+        // поиск одноострочных комментариев, если не заполнены варианты
+        const auto temp_v_o = CommentDesign::GetDefaultOnelineCommentVariant();
+        b2 = temp_v_o[1] == 0;
+        if(temp_v_o[0] == ch_current && (b2 || temp_v_o[1] == ch_next)) {
+            design.temp_type = CommentType::eOneLineComment;
+            if(!b2) iter_counter++;
+            return;
         }
         break;
     }

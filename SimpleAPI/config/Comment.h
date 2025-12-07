@@ -239,7 +239,7 @@ std::string FromComment(std::string comment_string, CommentDesign& design,
 
 void RemoveComments(std::string& input_string, CommentDesign design = {});
 
-void CheckComments(const char current_sym, const char next_sym,
+void CheckComments(const char ch_current, const char ch_next,
                    size_t &iter_counter, CommentDesign& design,
                    std::string &current_comment, const bool external_flag = true);
 
