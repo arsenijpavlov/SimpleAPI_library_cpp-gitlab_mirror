@@ -259,8 +259,8 @@ TEST(JSON, write_and_read_file_comment) {
 
     std::string path = "../tests/test_writer_with_comments.json";
     json.writeFile(path, ConfigFormat::eJSON, cd, 0);
-    SUCCEED();
-    return;
+//    SUCCEED();
+//    return;
 
     Config json2;
     try {

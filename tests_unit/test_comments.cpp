@@ -110,6 +110,8 @@ TEST(COMMENT, multiline_chopper_reader) {
     file << res
          << std::endl;
 
+    cd.temp_schema = std::array<char, 3>{'/', '*', 0};
+    cd.temp_type = CommentType::eMultiLineComment;
     res = FromComment("/* very large strings..\n"
                       " . String very         \n"
                       " long driv e         */", cd);
@@ -117,11 +119,13 @@ TEST(COMMENT, multiline_chopper_reader) {
          << res
          << std::endl;
 
+    cd.temp_type = CommentType::eOneLineComment;
     res = FromComment("// small comment string", cd);
     file << std::endl
          << res
          << std::endl;
 
+    cd.temp_type = CommentType::eOneLineComment;
     res = FromComment("//small comment string", cd);
     file << std::endl
          << res
