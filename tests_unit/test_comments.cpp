@@ -95,44 +95,68 @@ TEST(COMMENT, multiline_chopper) {
 
 //TODO: нужно исправить на проверку ожидаемого
 TEST(COMMENT, multiline_chopper_reader) {
-    //TODO: test multiline_chopper
     CommentDesign cd;
 
+    cd.temp_schema = std::array<char, 3>{'/', '*', 0};
+    cd.temp_type = CommentType::eMultiLineComment;
     std::string res = FromComment("/*######################\n"
                                   "# very large strings.. #\n"
                                   "# . String very        #\n"
                                   "# long driv e          #\n"
                                   "######################*/", cd);
+    std::string correct_result = "very large strings..\n"
+                                 ". String very\n"
+                                 "long driv e";
+    EXPECT_EQ(res, correct_result);
 
+//#define NEED_PRINT_TO_FILE
+#ifdef NEED_PRINT_TO_FILE
     std::ofstream file("./test_chopper_reader.txt");
     if (!file.is_open())
         FAIL();
     file << res
          << std::endl;
+#endif
 
     cd.temp_schema = std::array<char, 3>{'/', '*', 0};
     cd.temp_type = CommentType::eMultiLineComment;
     res = FromComment("/* very large strings..\n"
                       " . String very         \n"
                       " long driv e         */", cd);
+    correct_result = "very large strings..\n"
+                     ". String very\n"
+                     "long driv e";
+    EXPECT_EQ(res, correct_result);
+#ifdef NEED_PRINT_TO_FILE
     file << std::endl
          << res
          << std::endl;
+#endif
 
     cd.temp_type = CommentType::eOneLineComment;
     res = FromComment("// small comment string", cd);
+    correct_result = "small comment string";
+    EXPECT_EQ(res, correct_result);
+#ifdef NEED_PRINT_TO_FILE
     file << std::endl
          << res
          << std::endl;
+#endif
 
     cd.temp_type = CommentType::eOneLineComment;
     res = FromComment("//small comment string", cd);
+    correct_result = "small comment string";
+    EXPECT_EQ(res, correct_result);
+#ifdef NEED_PRINT_TO_FILE
     file << std::endl
          << res
          << std::endl;
-    file.close();
+#endif
 
-    EXPECT_TRUE(false) << res;
+#ifdef NEED_PRINT_TO_FILE
+    file.close();
+#endif
+#undef NEED_PRINT_TO_FILE
 }
 
 TEST(COMMENT, SeparateToColumn) {
