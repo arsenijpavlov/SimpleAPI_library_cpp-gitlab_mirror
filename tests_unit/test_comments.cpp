@@ -70,27 +70,45 @@ TEST(COMMENT, tabulation_level) {
 }
 
 TEST(COMMENT, multiline_chopper) {
-    //TODO: test multiline_chopper
     CommentDesign cd;
     cd.opt_multiline_border = '#';
     cd.opt_multiline_column_size = 20;
 
     std::string res = ToComment("very large strings... String very long drive", cd, 0);
+    std::string correct_result = "/*######################\n"
+                                 "# very large           #\n"
+                                 "# strings... String    #\n"
+                                 "# very long drive      #\n"
+                                 "######################*/";
+    EXPECT_EQ(res, correct_result);
 
+//#define NEED_PRINT_TO_FILE
+#ifdef NEED_PRINT_TO_FILE
     std::ofstream file("./test_chopper.txt");
     if (!file.is_open())
         FAIL();
     file << res
          << std::endl;
+#endif
 
     cd.opt_multiline_border = 0;
     res = ToComment("very large strings... String very long drive", cd, 0);
+    correct_result = "/*\n"
+                     "very large\n"
+                     "strings... String\n"
+                     "very long drive\n"
+                     "*/";
+    EXPECT_EQ(res, correct_result);
+#ifdef NEED_PRINT_TO_FILE
     file << std::endl
          << res
          << std::endl;
-    file.close();
+#endif
 
-    EXPECT_TRUE(false) << res;
+#ifdef NEED_PRINT_TO_FILE
+    file.close();
+#endif
+#undef NEED_PRINT_TO_FILE
 }
 
 //TODO: нужно исправить на проверку ожидаемого
