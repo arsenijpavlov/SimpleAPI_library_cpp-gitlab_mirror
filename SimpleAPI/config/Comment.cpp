@@ -603,7 +603,6 @@ void CheckComments(const char ch_current, const char ch_next,
             //коммент закрывает последовательность [finish_ch]
             if(ch_current == finish_ch) {
                 design.temp_type = CommentType::eCommentEnd;
-                iter_counter++;
                 return;
             }
         } else {
@@ -613,7 +612,7 @@ void CheckComments(const char ch_current, const char ch_next,
 
             //коммент закрывает последовательность [1][finish_ch]
             if(ch_current == design.temp_schema[1] && ch_next == finish_ch) {
-                iter_counter += b2 ? 1 : 2;
+                iter_counter += b2 ? 0 : 1;
                 design.temp_type = CommentType::eCommentEnd;
                 return;
             }
