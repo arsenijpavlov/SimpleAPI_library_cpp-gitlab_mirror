@@ -195,6 +195,15 @@ TEST(COMMENT, SeparateToColumn_1) {
 
 TEST(COMMENT, SeparateToColumn_2) {
     //TODO: переносы строк для разных пользовательских вводах
+
+    /* ex1:
+     * "abc,,,, 15,,, .. @@.2."
+    */
+
+    /* ex2:
+     * пробелы до и после цифр должны быть сохранены в авторском стиле
+     * нужно проверять при разбиении на слова
+    */
 }
 
 TEST(COMMENT, ToComment_FromComment_Oneline) {
