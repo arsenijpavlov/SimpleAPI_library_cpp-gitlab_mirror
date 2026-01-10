@@ -255,6 +255,7 @@ std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept {
  * - если хотя бы одна строка неделима и превышеает предел,
  *  то остальные строки должны быть выровнены по новому пределу
  * - многоточие считается частью слова, не переносится на другую строку
+ * - TODO: пользовательские переносы строк должны быть сохранены
 */
 //INFO: можно оптимизировать
 SeparatedLines SeparateToColumns(const std::string& input_string, const size_t column_size) noexcept {
@@ -317,7 +318,9 @@ SeparatedLines SeparateToColumns(const std::string& input_string, const size_t c
     temp.clear();
     size_t current_line_size = 0;
     for(const auto& word : words) {
-        if(current_line_size + utils::GetStringCharCount(word, true) + /*space*/1 > max_len
+        if(current_line_size + utils::GetStringCharCount(word, true)
+//                    + /*space*/1
+                > max_len
             || word == "\n")
         {
             if(!temp.empty() && temp != "\n") {
@@ -326,8 +329,14 @@ SeparatedLines SeparateToColumns(const std::string& input_string, const size_t c
             }
             current_line_size = 0;
         } else {
-            temp += temp.empty() ? "" : " ";
-            current_line_size += /*space*/1;
+            if(temp.empty() || utils::CharInString(temp.front(), __COMMENT_SEPARATOR_SYMBOLS__))
+            {
+                temp += "";
+            } else
+            {
+                temp += " ";
+                current_line_size += /*space*/1;
+            }
         }
 
         if(word != "\n")
@@ -354,6 +363,8 @@ std::string VStringToString(const VString& input_vec, const bool need_quotes) no
             res += "\"";
         res += "\n";
     }
+    //последний перенос лишний
+    res.pop_back();
 
     return res;
 }

@@ -177,18 +177,24 @@ TEST(COMMENT, multiline_chopper_reader) {
 #undef NEED_PRINT_TO_FILE
 }
 
-TEST(COMMENT, SeparateToColumn) {
+TEST(COMMENT, SeparateToColumn_1) {
     CommentDesign cd;
     cd.opt_multiline_column_size = 20;
     std::string input = ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,";
 
-    std::string result = VStringToString(SeparateToColumns(input, cd.opt_multiline_column_size).lines);
+    VString vs = SeparateToColumns(input, cd.opt_multiline_column_size).lines;
+
+    std::string result = VStringToString(vs);
     input = ",,,,,,,,,,,,,,,,,,,,\n"
             ",,,,,,,,,,,,,,,,,,,,\n"
             ",,,,,,,,,,,,,,,,,,,,\n"
             ",,,,,,,,,,,,,,,,,,,,";
 
     EXPECT_EQ(input, result);
+}
+
+TEST(COMMENT, SeparateToColumn_2) {
+    //TODO: переносы строк для разных пользовательских вводах
 }
 
 TEST(COMMENT, ToComment_FromComment_Oneline) {
