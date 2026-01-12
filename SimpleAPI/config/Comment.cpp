@@ -466,18 +466,21 @@ bool DefineCommentSymbols(const char first_sym, const char second_sym,
         }
     }
 
-    //поиск многострочных комментариев по умолчанию
+    //поиск многострочных комментариев (знаки по умолчанию)
     auto default_m = CommentDesign::GetDefaultMultilineCommentVariant();
-    if () {
-
+    if (first_sym == default_m[0] && second_sym == default_m[1]) {
+        cd.temp_schema = default_m;
+        cd.temp_type = CommentType::eMultiLineComment;
+        return true;
     }
 
-    //поиск однострочных комментариев по умолчанию
+    //поиск однострочных комментариев (знаки по умолчанию)
     auto default_o = CommentDesign::GetDefaultOnelineCommentVariant();
-    if () {
-
+    if (first_sym == default_o[0] && second_sym == default_o[1]) {
+        cd.temp_schema = std::array<char, 3>{default_o[0], default_o[1], 0};
+        cd.temp_type = CommentType::eOneLineComment;
+        return true;
     }
-
 
     return false;
 };
