@@ -318,9 +318,7 @@ SeparatedLines SeparateToColumns(const std::string& input_string, const size_t c
     temp.clear();
     size_t current_line_size = 0;
     for(const auto& word : words) {
-        if(current_line_size + utils::GetStringCharCount(word, true)
-//                    + /*space*/1
-                > max_len
+        if(current_line_size + utils::GetStringCharCount(word, true) > max_len
             || word == "\n")
         {
             if(!temp.empty() && temp != "\n") {
@@ -392,7 +390,7 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
     RemoveIllegalSpaces(current_string);
 
     //разделить на строки необходимой длины
-    SeparatedLines sl = SeparateToColumns(comment, design.opt_multiline_column_size);
+    SeparatedLines sl = SeparateToColumns(current_string, design.opt_multiline_column_size);
     VString& result_lines = sl.lines;
 //    std::cout << "sl.max_length: " << sl.max_length << std::endl;
 //    std::cout << "sl.lines:" << std::endl << VStringToString(sl.lines, true) << std::endl;
@@ -467,6 +465,20 @@ bool DefineCommentSymbols(const char first_sym, const char second_sym,
             return true;
         }
     }
+
+    //поиск многострочных комментариев по умолчанию
+    auto default_m = CommentDesign::GetDefaultMultilineCommentVariant();
+    if () {
+
+    }
+
+    //поиск однострочных комментариев по умолчанию
+    auto default_o = CommentDesign::GetDefaultOnelineCommentVariant();
+    if () {
+
+    }
+
+
     return false;
 };
 
