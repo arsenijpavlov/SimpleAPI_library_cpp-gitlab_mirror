@@ -255,7 +255,7 @@ std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept {
  * - если хотя бы одна строка неделима и превышеает предел,
  *  то остальные строки должны быть выровнены по новому пределу
  * - многоточие считается частью слова, не переносится на другую строку
- * - TODO: пользовательские переносы строк должны быть сохранены
+ * - пользовательские переносы строк должны быть сохранены
 */
 //INFO: можно оптимизировать
 SeparatedLines SeparateToColumns(const std::string& input_string, const size_t column_size) noexcept {
@@ -270,7 +270,7 @@ SeparatedLines SeparateToColumns(const std::string& input_string, const size_t c
     // разбиение на самостоятельные слова/объекты
     bool need_add = false;
     for(size_t i = 0; i < input_string.size(); i++) {
-        if(need_add || input_string[i] == '\n') {
+        if(need_add) {
             if(!temp.empty()) {
                 words.push_back(temp);
                 temp.clear();
@@ -317,29 +317,28 @@ SeparatedLines SeparateToColumns(const std::string& input_string, const size_t c
     VString res;
     temp.clear();
     size_t current_line_size = 0;
-    for(const auto& word : words) {
-        if(current_line_size + utils::GetStringCharCount(word, true) > max_len
-            || word == "\n")
+    for(/*const*/ auto& word : words) {
+        const size_t append_word_size = word.empty() ? 0
+                                                     : utils::GetStringCharCount(" " + word, true);
+
+        // отсечь строку, если добавление следующего слова превысит максимальную длину
+        //  первая строка списка не может быть пустой!
+        if( (!res.empty() || !temp.empty())
+            && ( (!temp.empty() && temp.back() == '\n')
+                || current_line_size + append_word_size > max_len
+                || word == "\n") )
         {
-            if(!temp.empty() && temp != "\n") {
-                res.push_back(temp);
-                temp.clear();
-            }
+            if(temp.back() == '\n')
+                temp.pop_back();
+            res.push_back(temp);
+            temp.clear();
             current_line_size = 0;
-        } else {
-            if(temp.empty() || utils::CharInString(temp.front(), __COMMENT_SEPARATOR_SYMBOLS__))
-            {
-                temp += "";
-            } else
-            {
-                temp += " ";
-                current_line_size += /*space*/1;
-            }
         }
 
-        if(word != "\n")
-            temp += word;
-        current_line_size += utils::GetStringCharCount(word, true);
+        if(word != "\n") {
+            temp += (!temp.empty() ? " " : "") + word;
+        }
+        current_line_size += append_word_size;
     }
     // завершающее присвоение
     if(!temp.empty()) {

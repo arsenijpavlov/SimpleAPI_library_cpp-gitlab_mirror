@@ -42,9 +42,11 @@ TEST(COMMENT, tabulation_level) {
     CommentDesign design_1;
     design_1.opt_multiline_border = '*';
     design_1.opt_multiline_column_size = 8; // пробелы по бокам от строки комментария не учитываются в размере "колонки"
-    EXPECT_EQ(expect_string_1, ToComment("asd\n"
-                                         "aaa\n"
-                                         "asd", design_1, 0));
+
+    std::string res = ToComment("asd\n"
+                                "aaa\n"
+                                "asd", design_1, 0);
+    EXPECT_EQ(expect_string_1, res);
 
     std::string expect_string_2 = "/***********\n"
                                   "* asd      *\n"
@@ -55,24 +57,31 @@ TEST(COMMENT, tabulation_level) {
     design_2.multiline_comment_variants = {{'/', 0, 0}};
     design_2.opt_multiline_border = '*';
     design_2.opt_multiline_column_size = 8;
-    EXPECT_EQ(expect_string_2, ToComment("asd\n"
-                                         "aaa\n"
-                                         "asd", design_2, 0));
+    res = ToComment("asd\n"
+                    "aaa\n"
+                    "asd", design_2, 0);
+    EXPECT_EQ(expect_string_2, res);
 
     std::string expect_string_3 = "\t\t\t\t/*\n"
                                   "\t\t\t\tasd\n"
                                   "\t\t\t\taaa\n"
                                   "\t\t\t\tasd\n"
                                   "\t\t\t\t*/";
-    EXPECT_EQ(expect_string_3, ToComment("asd\n"
-                                         "aaa\n"
-                                         "asd", cd, 4));
+    res = ToComment("asd\n"
+                    "aaa\n"
+                    "asd", cd, 4);
+    EXPECT_EQ(expect_string_3, res);
 }
 
 TEST(COMMENT, multiline_chopper) {
     CommentDesign cd;
     cd.opt_multiline_border = '#';
     cd.opt_multiline_column_size = 20;
+
+    const SeparatedLines sl = SeparateToColumns("very large strings... String very long drive", cd.opt_multiline_column_size);
+    EXPECT_EQ(sl.lines[0], "very large");
+    EXPECT_EQ(sl.lines[1], "strings... String");
+    EXPECT_EQ(sl.lines[2], "very long drive");
 
     std::string res = ToComment("very large strings... String very long drive", cd, 0);
     std::string correct_result = "/*######################\n"
