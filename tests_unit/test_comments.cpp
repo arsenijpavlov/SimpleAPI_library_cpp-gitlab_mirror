@@ -189,32 +189,57 @@ TEST(COMMENT, multiline_chopper_reader) {
 TEST(COMMENT, SeparateToColumn_1) {
     CommentDesign cd;
     cd.opt_multiline_column_size = 20;
-    std::string input = ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,";
+
+    // между специальными знаками алгоритм всё равно выставит пробелы
+    std::string input = "a, , , , , , , , , ,"
+                        "a, , , , , , , , , ,"
+                        "a, , , , , , , , , ,"
+                        "a, , , , , , , , , ,"; // (без переносов строк)
 
     VString vs = SeparateToColumns(input, cd.opt_multiline_column_size).lines;
 
     std::string result = VStringToString(vs);
-    input = ",,,,,,,,,,,,,,,,,,,,\n"
-            ",,,,,,,,,,,,,,,,,,,,\n"
-            ",,,,,,,,,,,,,,,,,,,,\n"
-            ",,,,,,,,,,,,,,,,,,,,";
+    input = "a, , , , , , , , , ,\n"
+            "a, , , , , , , , , ,\n"
+            "a, , , , , , , , , ,\n"
+            "a, , , , , , , , , ,";
 
     EXPECT_EQ(input, result);
 }
 
 TEST(COMMENT, SeparateToColumn_2) {
+    CommentDesign cd;
+    cd.opt_multiline_column_size = 8;
+
     //TODO: переносы строк для разных пользовательских вводов
+    //ex1
+    std::string input = "abc123, ab.cdef@hijk";
+    VString vs = SeparateToColumns(input, cd.opt_multiline_column_size).lines;
+    std::string result = VStringToString(vs);
+    input = "abc123,\n"
+            "ab.cdef@\n"
+            "hijk";
 
-    /* ex1:
-     * "abc,,,, 15,,, .. @@.2."
-    */
+    EXPECT_EQ(input, result);
 
+    // NOTE: длинные числа не должны переносится на другую строку
+    // по разделителю в дробной части!
+    // ex2
     /* ex2:
+    cd.opt_multiline_column_size = 5;
      * пробелы до и после цифр должны быть сохранены в авторском стиле
      * нужно проверять при разбиении на слова
+     * Вторая точка(запятая) в слове с числом уже может являться разделителем
     */
+    input = "1234.5678 1234.5678 123.456.78";
+    vs = SeparateToColumns(input, cd.opt_multiline_column_size).lines;
+    result = VStringToString(vs);
+    input = "1234.5678\n"
+            "1234.5678\n"
+            "123.456.\n"
+            "78";
 
-    FAIL();
+    EXPECT_EQ(input, result);
 }
 
 TEST(COMMENT, ToComment_FromComment_Oneline) {

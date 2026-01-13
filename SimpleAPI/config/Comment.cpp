@@ -253,7 +253,7 @@ std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept {
 
 /* Обрезать строку на подстроки с заданной шириной
  * - если хотя бы одна строка неделима и превышеает предел,
- *  то остальные строки должны быть выровнены по новому пределу
+ *   то остальные строки должны быть выровнены по новому пределу
  * - многоточие считается частью слова, не переносится на другую строку
  * - пользовательские переносы строк должны быть сохранены
 */
@@ -281,17 +281,24 @@ SeparatedLines SeparateToColumns(const std::string& input_string, const size_t c
         // пользовательские переносы строк сохраняются
         temp += input_string[i];
 
-        if(utils::CharInString(input_string[i], __COMMENT_SEPARATOR_SYMBOLS__ " ")) {
+        if(utils::CharInString(input_string[i], __COMMENT_SEPARATOR_SYMBOLS__
+                                                __COMMENT_OTHERS_SPEC_SYMBOLS__
+                                                __SPACES__))
+        {
             need_add = true;
 
-            // два пробела подряд должны быть заменены на один
-            if(input_string[i] == ' ') {
-                temp.pop_back();
-
+            // если следующий символ пробел - сохранить его в этом же слове
+            if(i + 1 < input_string.size() && utils::CharInString(input_string[i+1], " \t")) {
+                temp += input_string[i+1];
+                i++;
+            }
+            // два пробела подряд должны быть заменены на один (табуляции не учитываются)
+            if(input_string[i] == ' ' && temp.back() == ' ') {
                 while(i + 1 < input_string.size() && input_string[i+1] == ' ') {
                     ++i;
                 }
             }
+
             // пропуск многоточия как единого знака
             else if(input_string[i] == '.'
                      && i + 2 < input_string.size()
@@ -319,13 +326,15 @@ SeparatedLines SeparateToColumns(const std::string& input_string, const size_t c
     size_t current_line_size = 0;
     for(/*const*/ auto& word : words) {
         const size_t append_word_size = word.empty() ? 0
-                                                     : utils::GetStringCharCount(" " + word, true);
+                                                     : utils::GetStringCharCount(word, true);
+        // пробел в конце не должен учитываться в длине добавляемого слова
+        bool space_at_back_of_word = word.back() == ' ';
 
         // отсечь строку, если добавление следующего слова превысит максимальную длину
         //  первая строка списка не может быть пустой!
         if( (!res.empty() || !temp.empty())
             && ( (!temp.empty() && temp.back() == '\n')
-                || current_line_size + append_word_size > max_len
+                || current_line_size + (append_word_size - space_at_back_of_word) > max_len
                 || word == "\n") )
         {
             if(temp.back() == '\n')
@@ -336,7 +345,9 @@ SeparatedLines SeparateToColumns(const std::string& input_string, const size_t c
         }
 
         if(word != "\n") {
-            temp += (!temp.empty() ? " " : "") + word;
+            // если пробел был нужен (пользователь указал в тексте комментария),
+            // то он уже есть вслед за словом
+            temp += word;
         }
         current_line_size += append_word_size;
     }
@@ -344,6 +355,10 @@ SeparatedLines SeparateToColumns(const std::string& input_string, const size_t c
     if(!temp.empty()) {
         res.push_back(temp);
     }
+
+    // по завершении, все лишние пробелы в конце каждой строки удаляются
+    for(auto &s : res)
+        RemoveIllegalSpaces(s);
 
     return {res, max_len};
 }

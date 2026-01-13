@@ -39,7 +39,8 @@
 #define __SPACES_WITHOUT_SEPARATORS__   " \t"
 #define __POSIBLE_COLON__               ":="
 #define __BORDER_SYMBOLS__              "@#*-=@"
-#define __COMMENT_SEPARATOR_SYMBOLS__   " \t.,;:->+?!/\\*$#@&()[]\n"
+#define __COMMENT_SEPARATOR_SYMBOLS__   ".,;:?!)]"      // перенос есть, пробел после знака
+#define __COMMENT_OTHERS_SPEC_SYMBOLS__ "->+/\\*$#@&([" // перенос есть, пробел не нужен
 #define __POSSIBLE_KEY_SYMBOLS__        "^[a-zA-Z0-9._ #@!*&\"'/\\\\]+$"
 //==========================================================================VALUES
 
