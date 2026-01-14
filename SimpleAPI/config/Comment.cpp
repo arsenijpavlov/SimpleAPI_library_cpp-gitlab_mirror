@@ -272,6 +272,13 @@ SeparatedLines SeparateToColumns(const std::string& input_string, const size_t c
     for(size_t i = 0; i < input_string.size(); i++) {
         if(need_add) {
             if(!temp.empty()) {
+                // пробелы выставляются только в этом блоке
+                if(utils::CharInString(temp.back(), __COMMENT_SEPARATOR_SYMBOLS__))
+                    temp += " ";
+                // если последний знак тире, и предпоследний знак пробел, то пробел в конце нужен
+                if(temp.size() > 2 && temp[temp.size()-1] == '-' && temp[temp.size()-2] == ' ')
+                    temp += " ";
+
                 words.push_back(temp);
                 temp.clear();
             }
@@ -280,6 +287,18 @@ SeparatedLines SeparateToColumns(const std::string& input_string, const size_t c
 
         // пользовательские переносы строк сохраняются
         temp += input_string[i];
+        if(temp == " ") temp.clear();
+
+        // работа с числами и точками; значения вида "1.2.a" тоже попадают в эту категорию
+        if(utils::CharInString(input_string[i], "0123456789")) {
+            // добавляем числа, буквы, точки, дефисы и двоеточия пока не встретится любой другой
+            while(i + 1 < input_string.size()
+                   && !utils::CharInString(input_string[i+1], __SPACES__ __COMMENT_SEPARATOR_SYMBOLS_FOR_NUMBER__))
+            {
+                ++i;
+                temp += input_string[i];
+            }
+        }
 
         if(utils::CharInString(input_string[i], __COMMENT_SEPARATOR_SYMBOLS__
                                                 __COMMENT_OTHERS_SPEC_SYMBOLS__
@@ -299,14 +318,37 @@ SeparatedLines SeparateToColumns(const std::string& input_string, const size_t c
                 }
             }
 
-            // пропуск многоточия как единого знака
-            else if(input_string[i] == '.'
+            // пропуск многоточий (... !!! ??? ?!) как единого знака
+            if(input_string[i] == '.'
                      && i + 2 < input_string.size()
                      && input_string[i+1] == '.'
                      && input_string[i+2] == '.')
             {
                 i += 2;
                 temp += "..";
+            }
+            else if(input_string[i] == '!'
+                     && i + 2 < input_string.size()
+                     && input_string[i+1] == '!'
+                     && input_string[i+2] == '!')
+            {
+                i += 2;
+                temp += "!!";
+            }
+            else if(input_string[i] == '?'
+                     && i + 2 < input_string.size()
+                     && input_string[i+1] == '?'
+                     && input_string[i+2] == '?')
+            {
+                i += 2;
+                temp += "??";
+            }
+            else if(input_string[i] == '?'
+                       && i + 1 < input_string.size()
+                       && input_string[i+1] == '!')
+            {
+                ++i;
+                temp += "!";
             }
         }
     }
@@ -522,6 +564,12 @@ std::string FromComment(std::string comment_string, CommentDesign& design,
             comment_string.pop_back();
             if(design.temp_schema[1] != 0)
                 comment_string.pop_back(); // второй замыкающий символ для М
+
+            // удалить лишние переносы строк в начале и конце многострочного комментария
+            while(!comment_string.empty() && comment_string.front() == '\n')
+                comment_string.erase(0, 1);
+            while(!comment_string.empty() && comment_string.back() == '\n')
+                comment_string.pop_back();
         }
     }
 

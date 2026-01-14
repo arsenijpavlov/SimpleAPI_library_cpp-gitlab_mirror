@@ -211,33 +211,60 @@ TEST(COMMENT, SeparateToColumn_2) {
     CommentDesign cd;
     cd.opt_multiline_column_size = 8;
 
-    //TODO: переносы строк для разных пользовательских вводов
-    //ex1
     std::string input = "abc123, ab.cdef@hijk";
     VString vs = SeparateToColumns(input, cd.opt_multiline_column_size).lines;
     std::string result = VStringToString(vs);
     input = "abc123,\n"
-            "ab.cdef@\n"
+            "ab.\n"
+            "cdef@\n"
             "hijk";
 
     EXPECT_EQ(input, result);
+}
 
-    // NOTE: длинные числа не должны переносится на другую строку
-    // по разделителю в дробной части!
-    // ex2
-    /* ex2:
-    cd.opt_multiline_column_size = 5;
-     * пробелы до и после цифр должны быть сохранены в авторском стиле
-     * нужно проверять при разбиении на слова
-     * Вторая точка(запятая) в слове с числом уже может являться разделителем
-    */
-    input = "1234.5678 1234.5678 123.456.78";
-    vs = SeparateToColumns(input, cd.opt_multiline_column_size).lines;
-    result = VStringToString(vs);
+TEST(COMMENT, SeparateToColumn_3) {
+    CommentDesign cd;
+    cd.opt_multiline_column_size = 5; // преобразуется по максимальной длине слова
+
+    // NOTE: длинные числа не должны переноситься на другую строку по разделителю в дробной части!
+    // пробелы до и после цифр должны быть сохранены в авторском стиле
+    // цифры, разделённые точками должны считаться частью одного слова
+
+    std::string input = "1234.5678 "
+                        "1234,5678 "
+                        "1234, 567 "
+                        "192.168.0.1 "
+                        "11.1.a.b.c "
+                        "192.168:0.1";
+    VString vs = SeparateToColumns(input, cd.opt_multiline_column_size).lines;
+    std::string result = VStringToString(vs);
     input = "1234.5678\n"
-            "1234.5678\n"
-            "123.456.\n"
-            "78";
+            "1234, 5678\n"
+            "1234, 567\n"
+            "192.168.0.1\n"
+            "11.1.a.b.c\n"
+            "192.168:0.1";
+
+    EXPECT_EQ(input, result);
+}
+
+// обработка дефисов и тире
+TEST(COMMENT, SeparateToColumn_4) {
+    CommentDesign cd;
+    cd.opt_multiline_column_size = 4; // преобразуется по максимальной длине слова
+
+    // NOTE: длинные числа не должны переноситься на другую строку по разделителю в дробной части!
+    // пробелы до и после цифр должны быть сохранены в авторском стиле
+    // цифры, разделённые точками должны считаться частью одного слова
+
+    std::string input = "abc-cd "
+                        "abc - cd";
+    VString vs = SeparateToColumns(input, cd.opt_multiline_column_size).lines;
+    std::string result = VStringToString(vs);
+    input = "abc-\n"
+            "cd\n"
+            "abc\n"
+            "- cd";
 
     EXPECT_EQ(input, result);
 }
@@ -255,24 +282,19 @@ TEST(COMMENT, ToComment_FromComment_Oneline) {
 TEST(COMMENT, ToComment_FromComment_Multiline) {
     CommentDesign cd;
     cd.opt_multiline_column_size = 20;
-    std::string input = ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,";
-//    std::string input = "1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...";
+    std::string input = "1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...";
 
     std::string str_to = ToComment(input, cd);
     std::string str_from = FromComment(str_to, cd);
 
            //12345678901234567890
-//    input = "1;losdihfg2;\n"
-//            "slopighsd3;pogihvd4;\n"
-//            "pfgvibhdfns5;\n"
-//            "ipnbedf6 7;\n"
-//            "voihnaern8 som9 \n"
-//            "word1...";
-           //12345678901234567890
-    input = ",,,,,,,,,,,,,,,,,,,,\n"
-            ",,,,,,,,,,,,,,,,,,,,\n"
-            ",,,,,,,,,,,,,,,,,,,,\n"
-            ",,,,,,,,,,,,,,,,,,,,";
+    input = "1; losdihfg2;\n"
+            "slopighsd3;\n"
+            "pogihvd4;\n"
+            "pfgvibhdfns5;\n"
+            "ipnbedf6 7;\n"
+            "voihnaern8 som9\n"
+            "word1...";
 
     EXPECT_EQ(input, str_from);
 }

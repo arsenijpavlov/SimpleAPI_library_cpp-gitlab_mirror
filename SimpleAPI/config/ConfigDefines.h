@@ -33,15 +33,18 @@
 //===========================================================================TYPES
 
 //VALUES==========================================================================
-#define __SPACES__                      " \n\t"
-#define __KEY_VALUE_SEPARATOR__         ":="
-#define __SEPARATORS__                  ",\n"
-#define __SPACES_WITHOUT_SEPARATORS__   " \t"
-#define __POSIBLE_COLON__               ":="
-#define __BORDER_SYMBOLS__              "@#*-=@"
-#define __COMMENT_SEPARATOR_SYMBOLS__   ".,;:?!)]"      // перенос есть, пробел после знака
-#define __COMMENT_OTHERS_SPEC_SYMBOLS__ "->+/\\*$#@&([" // перенос есть, пробел не нужен
-#define __POSSIBLE_KEY_SYMBOLS__        "^[a-zA-Z0-9._ #@!*&\"'/\\\\]+$"
+#define __SPACES__                                  " \n\t"
+#define __KEY_VALUE_SEPARATOR__                     ":="
+#define __SEPARATORS__                              ",\n"
+#define __SPACES_WITHOUT_SEPARATORS__               " \t"
+#define __POSIBLE_COLON__                           ":="
+#define __BORDER_SYMBOLS__                          "@#*-=@"
+                                                    // перенос есть, пробел после знака
+#define __COMMENT_SEPARATOR_SYMBOLS__               ".,;:?!)]"
+                                                    // перенос есть, пробел не нужен
+#define __COMMENT_OTHERS_SPEC_SYMBOLS__             "-<>+/\\*$#@&([~"
+#define __COMMENT_SEPARATOR_SYMBOLS_FOR_NUMBER__    ",;?!)]<>~+/\\*$#@&([" //без .:-
+#define __POSSIBLE_KEY_SYMBOLS__                    "^[a-zA-Z0-9._ #@!*&\"'/\\\\]+$"
 //==========================================================================VALUES
 
 //EXEPTIONS=======================================================================
