@@ -269,6 +269,22 @@ TEST(COMMENT, SeparateToColumn_4) {
     EXPECT_EQ(input, result);
 }
 
+TEST(COMMENT, SeparateToColumn_5) {
+    CommentDesign cd;
+    cd.opt_multiline_column_size = 20;
+
+    // NOTE: если длина строки не превышает лимит и при этом есть пользовательский перенос -
+    //  два переноса строки подряд быть не должно
+
+    std::string input = "json first element\n comment";
+    VString vs = SeparateToColumns(input, cd.opt_multiline_column_size).lines;
+    std::string result = VStringToString(vs);
+    input = "json first element\n"
+            "comment";
+
+    EXPECT_EQ(input, result);
+}
+
 TEST(COMMENT, ToComment_FromComment_Oneline) {
     CommentDesign cd;
     std::string input = "1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...";

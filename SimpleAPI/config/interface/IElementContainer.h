@@ -8,7 +8,7 @@
 class IElementContainer : public IElement {
     // Comment =========================================================================================================
 protected:
-    CommentDesign m_comment_design;
+//    CommentDesign m_comment_design;
 public:
     virtual void    add_comment(const size_t index, const Comment &content)                 = 0;
     virtual void    add_comment(const size_t index, const std::string &content_before,

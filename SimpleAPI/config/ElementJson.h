@@ -22,7 +22,8 @@ public:
         ElementJson temp;
         temp.init();
         try {
-            temp.parse(input_string, config_format, enable_comment);
+            m_comment.commentDesign().with_comments = enable_comment;
+            temp.parse(input_string, m_comment.commentDesign(), config_format);
         } catch (std::exception& e) {
             std::cerr << e.what() << std::endl;
         }

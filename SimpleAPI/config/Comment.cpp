@@ -167,7 +167,6 @@ void Comment::setDesign(const CommentDesign &design) noexcept {
         m_comment_design = new CommentDesign(design);
         return;
     }
-    *m_comment_design = design;
 }
 
 void Comment::clearDesign() noexcept {
@@ -379,6 +378,7 @@ SeparatedLines SeparateToColumns(const std::string& input_string, const size_t c
                 || current_line_size + (append_word_size - space_at_back_of_word) > max_len
                 || word == "\n") )
         {
+            RemoveIllegalSpaces(temp); // пробел в конце здесь уже ничего не значит
             if(temp.back() == '\n')
                 temp.pop_back();
             res.push_back(temp);

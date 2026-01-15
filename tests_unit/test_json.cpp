@@ -255,7 +255,7 @@ TEST(JSON, write_and_read_file_comment) {
     json.add_suffix_comment("json", "<json> suffix comment");
 
     json["json"].add_prefix_comment(0, "json first element\n comment");
-    json["array"].add_prefix_comment(0, "array second element\n comment_");
+    json["array"].add_prefix_comment(1, "array second element\n comment_");
 
     std::string path = "../tests/test_writer_with_comments.json";
     json.writeFile(path, ConfigFormat::eJSON, cd, 0);
@@ -276,9 +276,9 @@ TEST(JSON, write_and_read_file_comment) {
 
 //    main_comment = FromComment(ToComment(main_comment, json.getCommentDesign()), json2.getCommentDesign());
     main_comment = FromComment(ToComment(main_comment, cd), json2.getCommentDesign());
-//    EXPECT_EQ(json2.getComment(), json.getComment());
-//    EXPECT_EQ(json2.getPrefixComment(), json.getPrefixComment());
-//    EXPECT_EQ(json2.getSuffixComment(), json.getSuffixComment());
+    EXPECT_EQ(json2.getComment(), json.getComment());
+    EXPECT_EQ(json2.getPrefixComment(), json.getPrefixComment());
+    EXPECT_EQ(json2.getSuffixComment(), json.getSuffixComment());
     EXPECT_EQ(json2.getPrefixComment(), main_comment);
     EXPECT_EQ(json2.getSuffixComment(), main_comment);
 

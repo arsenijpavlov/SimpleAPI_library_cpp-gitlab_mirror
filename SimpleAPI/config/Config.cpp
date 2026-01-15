@@ -298,6 +298,7 @@ Config &Config::setValue(const Config &other) noexcept {
         default: break;
         }
 
+        setCommentDesign(other.getCommentDesign());
         addComment(other.getComment());
     }
 
@@ -320,6 +321,7 @@ Config &Config::setValue(Config &&other) noexcept {
         default:                    break;
         }
 
+        setCommentDesign(other.getCommentDesign());
         addComment(other.getComment());
         other.release(); //обнулить значение
     }
@@ -1220,6 +1222,8 @@ bool Config::writeFile(const std::string &file_path,  const ConfigFormat format,
     CommentDesign n_design;
     if(design == CommentDesign{}) { // если переменная не заполнена, используется собственная
         n_design = m_value->getCommentDesign();
+    } else {
+        n_design = design;
     }
     return WriteFile(*this, file_path, format, n_design, custom_tabulation_level);
 }

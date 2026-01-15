@@ -1087,6 +1087,8 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
 //        clear();
         throw std::invalid_argument("JSON parse error, end of JSON structure not found");
     }
+
+    setCommentDesign(design);
 }
 
 void ElementJson::parseJson(std::string &&input_string, const bool parse_comments, const int8_t tabulation_level) {

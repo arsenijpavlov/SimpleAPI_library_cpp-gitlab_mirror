@@ -87,7 +87,8 @@ public:
         is_in_container{false}
     {}
 
-    CommentDesign(const CommentDesign& other) noexcept {
+private:
+    void copy_from(const CommentDesign& other) noexcept {
         if(this != &other) {
             opt_multiline_border        = (uint8_t)other.opt_multiline_border;
             opt_multiline_column_size   = other.opt_multiline_column_size;
@@ -99,8 +100,7 @@ public:
             is_in_container             = other.is_in_container;
         }
     }
-
-    CommentDesign(CommentDesign&& other) noexcept {
+    void move_from(CommentDesign&& other) noexcept {
         if(this != &other) {
             opt_multiline_border        = std::move((uint8_t)other.opt_multiline_border);
             opt_multiline_column_size   = std::move(other.opt_multiline_column_size);
@@ -113,31 +113,22 @@ public:
         }
     }
 
+public:
+    CommentDesign(const CommentDesign& other) noexcept {
+        copy_from(other);
+    }
+
+    CommentDesign(CommentDesign&& other) noexcept {
+        move_from(std::move(other));
+    }
+
     CommentDesign operator=(const CommentDesign& other) noexcept {
-        if(this != &other) {
-            opt_multiline_border        = (uint8_t)other.opt_multiline_border;
-            opt_multiline_column_size   = other.opt_multiline_column_size;
-            temp_type                   = other.temp_type;
-            temp_schema                 = other.temp_schema;
-            oneline_comment_variants    = other.oneline_comment_variants;
-            multiline_comment_variants  = other.multiline_comment_variants;
-            with_comments               = other.with_comments;
-            is_in_container             = other.is_in_container;
-        }
+        copy_from(other);
         return *this;
     }
 
     CommentDesign operator=(CommentDesign&& other) noexcept {
-        if(this != &other) {
-            opt_multiline_border        = std::move((uint8_t)other.opt_multiline_border);
-            opt_multiline_column_size   = std::move(other.opt_multiline_column_size);
-            temp_type                   = std::move(other.temp_type);
-            temp_schema                 = std::move(other.temp_schema);
-            oneline_comment_variants    = std::move(other.oneline_comment_variants);
-            multiline_comment_variants  = std::move(other.multiline_comment_variants);
-            with_comments               = std::move(other.with_comments);
-            is_in_container             = std::move(other.is_in_container);
-        }
+        move_from(std::move(other));
         return *this;
     }
 
