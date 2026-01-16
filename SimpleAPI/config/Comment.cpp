@@ -590,7 +590,7 @@ std::string FromComment(std::string comment_string, CommentDesign& design,
 
     //NOTE: в начале каждой строки удаляются табуляции согласно аргументу функции
     for(std::string& s : lines) {
-        RemoveFrontTabsIllegalSpaces(s, tabulation_level);
+        RemoveFrontTabsIllegalSpaces(s, tabulation_level + 1);
         RemoveEndIllegalSpaces(s); // пробелы в конце ничего не значат
     }
 

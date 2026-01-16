@@ -314,3 +314,14 @@ TEST(COMMENT, ToComment_FromComment_Multiline) {
 
     EXPECT_EQ(input, str_from);
 }
+
+TEST(COMMENT, FromComment_Extractor_FromTABs) {
+    std::string input = "/*######################\n"
+                        "\t# some                 #\n"
+                        "\t# words...             #\n"
+                        "\t######################*/";
+    CommentDesign cd;
+    std::string str_from = FromComment(input, cd);
+    input = "some\nwords...";
+    EXPECT_EQ(input, str_from);
+}
