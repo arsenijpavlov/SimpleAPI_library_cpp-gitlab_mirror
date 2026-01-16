@@ -590,8 +590,9 @@ std::string FromComment(std::string comment_string, CommentDesign& design,
 
     //NOTE: в начале каждой строки удаляются табуляции согласно аргументу функции
     for(std::string& s : lines) {
-        RemoveFrontTabsIllegalSpaces(s, tabulation_level + 1);
-        RemoveEndIllegalSpaces(s); // пробелы в конце ничего не значат
+//        RemoveFrontTabsIllegalSpaces(s, tabulation_level + 1);
+//        RemoveEndIllegalSpaces(s); // пробелы в конце ничего не значат
+        RemoveIllegalSpaces(s);
     }
 
     bool is_border_exists = false;
@@ -619,6 +620,15 @@ std::string FromComment(std::string comment_string, CommentDesign& design,
             if(s.back() == design.opt_multiline_border)
                 s.pop_back();       //удалить границу
         }
+
+        for(std::string& s : lines) {
+            // если вся строка состоит из одного символа-рамки, то обнулить строку
+            if(design.opt_multiline_border == utils::LineOfOneSymbol(s))
+                s.clear();
+        }
+
+        //TODO: если пустых строк больше двух подряд, то их нужно заменить на одну пустую
+        { }
     }
 
     for(std::string& s : lines)

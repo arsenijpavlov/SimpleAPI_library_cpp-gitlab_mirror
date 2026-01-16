@@ -56,7 +56,8 @@ void        AddTabsForFromLine(std::string& str, const size_t from_line_number,
 void        AddStringForFromLine(std::string& str, const size_t from_line_number,
                           const std::string& added_line)                                noexcept;
 void        SetStringAsOnlySpaces(std::string& str)                                     noexcept;
-void        SetVisibleColumn(std::string& input_str, const size_t& column_size)          noexcept;
+void        SetVisibleColumn(std::string& input_str, const size_t& column_size)         noexcept;
+uint8_t     LineOfOneSymbol(std::string& input_str)                                     noexcept;
 
 }
 

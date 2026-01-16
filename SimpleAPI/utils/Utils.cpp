@@ -544,7 +544,21 @@ void SetVisibleColumn(std::string &input_str, const size_t &column_size) noexcep
 //    std::cout << "v.size: " << visible_len
 //              << " c.size: " << column_size
 //              << " n.spaces: " << need_spaces
-//              << " \"" << input_str << "\"" << std::endl;
+    //              << " \"" << input_str << "\"" << std::endl;
+}
+
+/*если строка пустая или не является строгим повторением одного и того же символа, вернёт 0
+ * в остальных случаях вернёт символ, который повторяется
+ */
+uint8_t LineOfOneSymbol(std::string &input_str) noexcept
+{
+    if(input_str.empty()) return 0;
+
+    char ex = input_str.front();
+    for(auto c : input_str) {
+        if(ex != c) return 0;
+    }
+    return ex;
 }
 
 
