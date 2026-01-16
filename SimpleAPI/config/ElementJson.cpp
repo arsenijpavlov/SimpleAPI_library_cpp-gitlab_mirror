@@ -1073,7 +1073,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
     }
 
     //конечный комментарий ...
-    if(state == ParseState::eJSON_COMMENT) // предполагается, что заполнен state_comment
+    if(state == ParseState::eJSON_COMMENT || state == ParseState::eJSON_FINISH) // предполагается, что заполнен state_comment
     {
         if(!comment.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
             addSuffixComment(FromComment(comment, design, tabulation_level));
