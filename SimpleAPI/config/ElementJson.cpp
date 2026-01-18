@@ -901,6 +901,11 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
                 break;
             }
             if(ch_current == '}') {
+                if(!comment.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
+                    get_back().addSuffixComment(FromComment(comment, design, tabulation_level));
+                    DEBUG_LOG("ElementJson: inner Element add SuffixComment: " << "\"" << comment << "\"");
+                    comment.clear();
+                }
                 UpdateState(state, ParseState::eJSON_FINISH);
                 break;
             }
