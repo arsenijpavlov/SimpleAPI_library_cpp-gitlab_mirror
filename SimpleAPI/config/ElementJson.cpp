@@ -853,6 +853,36 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
     uint16_t inner_json_counter     = 0;
     uint16_t inner_array_counter    = 0;
 
+    auto AppendMainPreviewComment = [&]() {
+        if(!comment.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
+            addPrefixComment(FromComment(comment, design, tabulation_level));
+            DEBUG_LOG("ElementJson: PreviewComment: " << "\"" << comment << "\"");
+            comment.clear();
+        }
+    };
+    auto AppendMainSuffixComment = [&]() {
+        if(!comment.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
+            addSuffixComment(FromComment(comment, design, tabulation_level));
+            DEBUG_LOG("ElementJson: SuffixComment: " << "\"" << comment << "\"");
+            comment.clear();
+        }
+    };
+
+    auto AppendElementPrefixComment = [&](){
+        if(!comment.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
+            get_back().addPrefixComment(FromComment(comment, design, tabulation_level));
+            DEBUG_LOG("ElementJson: inner Element add PreviewComment: " << "\"" << comment << "\"");
+            comment.clear();
+        }
+    };
+    auto AppendElementSuffixComment = [&](){
+        if(!comment.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
+            get_back().addSuffixComment(FromComment(comment, design, tabulation_level));
+            DEBUG_LOG("ElementJson: inner Element add SuffixComment: " << "\"" << comment << "\"");
+            comment.clear();
+        }
+    };
+
     for(size_t i = 0; i < input_string.size(); i++) {
         char ch_previous    = i == 0 ? 0 : input_string[i - 1];
         char ch_current     = input_string[i];
@@ -877,13 +907,9 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
             //===================================================== пропуск пробелов
 
             if(ch_current == '{') {
-                //работа с комментариями (до разбора json) =============================
-                if(!comment.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
-                    addPrefixComment(FromComment(comment, design, tabulation_level));
-                    DEBUG_LOG("ElementJson: PreviewComment: " << "\"" << comment << "\"");
-                    comment.clear();
-                }
-                //============================= работа с комментариями (до разбора json)
+                // работа с комментариями (до разбора json)
+                AppendMainPreviewComment();
+
                 UpdateState(state, ParseState::eJSON_KEY);
                 break;
             }
@@ -901,11 +927,9 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
                 break;
             }
             if(ch_current == '}') {
-                if(!comment.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
-                    get_back().addSuffixComment(FromComment(comment, design, tabulation_level));
-                    DEBUG_LOG("ElementJson: inner Element add SuffixComment: " << "\"" << comment << "\"");
-                    comment.clear();
-                }
+                // работа с комментарием после элемента
+                AppendElementSuffixComment();
+
                 UpdateState(state, ParseState::eJSON_FINISH);
                 break;
             }
@@ -1010,11 +1034,9 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
                 }
                 key.clear();
 
-                if(!comment.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
-                    get_back().addPrefixComment(FromComment(comment, design, tabulation_level));
-                    DEBUG_LOG("ElementJson: inner Element add PreviewComment: " << "\"" << comment << "\"");
-                    comment.clear();
-                }
+                // работа с комментарием перед элементом
+                AppendElementPrefixComment();
+
                 UpdateState(state, ParseState::eJSON_SEPARATOR);
             }
             break;
@@ -1055,14 +1077,10 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
             //(комментарий после значения, на строке значения после запятой)
             if(!is_separator_comma || ch_current == '\n')
             {
-                if(!comment.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
-                    get_back().addSuffixComment(FromComment(comment, design, tabulation_level));
-                    DEBUG_LOG("ElementJson: inner Element add SuffixComment: " << "\"" << comment << "\"");
-                    comment.clear();
-                }
+                AppendElementSuffixComment();
             }
-            UpdateState(state, (ch_next == 0 && ch_current == '}') ? ParseState::eJSON_FINISH : state_comment);
 
+            UpdateState(state, (ch_next == 0 && ch_current == '}') ? ParseState::eJSON_FINISH : state_comment);
             break;
         }
         case ParseState::eJSON_ERROR_STATE: {
@@ -1080,11 +1098,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
     //конечный комментарий ...
     if(state == ParseState::eJSON_COMMENT || state == ParseState::eJSON_FINISH) // предполагается, что заполнен state_comment
     {
-        if(!comment.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
-            addSuffixComment(FromComment(comment, design, tabulation_level));
-            DEBUG_LOG("ElementJson: SuffixComment: " << "\"" << comment << "\"");
-            comment.clear();
-        }
+        AppendMainSuffixComment();
         UpdateState(state, state_comment);
     }
 
