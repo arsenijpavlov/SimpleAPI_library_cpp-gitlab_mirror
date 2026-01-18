@@ -844,7 +844,6 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
 
     ParseState state                = ParseState::eJSON_START;
     ParseState state_comment        = ParseState::eJSON_ERROR_STATE;
-    std::string comment             = "";
     std::string key                 = "";
     std::string value               = "";
     std::string error_string        = "";
@@ -853,33 +852,36 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
     uint16_t inner_json_counter     = 0;
     uint16_t inner_array_counter    = 0;
 
+    std::string current_comment     = ""; // текущее значение при парсинге
+    VString comments;                     // обработанные комментарии
+
     auto AppendMainPreviewComment = [&]() {
-        if(!comment.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
-            addPrefixComment(FromComment(comment, design, tabulation_level));
-            DEBUG_LOG("ElementJson: PreviewComment: " << "\"" << comment << "\"");
-            comment.clear();
+        if(!comments.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
+            addPrefixComment(VStringToString(comments));
+            DEBUG_LOG("ElementJson: PreviewComment: " << "\"" << getPrefixComment() << "\"");
+            comments.clear();
         }
     };
     auto AppendMainSuffixComment = [&]() {
-        if(!comment.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
-            addSuffixComment(FromComment(comment, design, tabulation_level));
-            DEBUG_LOG("ElementJson: SuffixComment: " << "\"" << comment << "\"");
-            comment.clear();
+        if(!comments.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
+            addSuffixComment(VStringToString(comments));
+            DEBUG_LOG("ElementJson: SuffixComment: " << "\"" << getSuffixComment() << "\"");
+            comments.clear();
         }
     };
 
     auto AppendElementPrefixComment = [&](){
-        if(!comment.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
-            get_back().addPrefixComment(FromComment(comment, design, tabulation_level));
-            DEBUG_LOG("ElementJson: inner Element add PreviewComment: " << "\"" << comment << "\"");
-            comment.clear();
+        if(!comments.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
+            get_back().addPrefixComment(VStringToString(comments));
+            DEBUG_LOG("ElementJson: inner Element add PreviewComment: " << "\"" << get_back().getPrefixComment() << "\"");
+            comments.erase(comments.cbegin());
         }
     };
     auto AppendElementSuffixComment = [&](){
-        if(!comment.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
-            get_back().addSuffixComment(FromComment(comment, design, tabulation_level));
-            DEBUG_LOG("ElementJson: inner Element add SuffixComment: " << "\"" << comment << "\"");
-            comment.clear();
+        if(!comments.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
+            get_back().addSuffixComment(FromComment(current_comment, design, tabulation_level));
+            DEBUG_LOG("ElementJson: inner Element add SuffixComment: " << "\"" << get_back().getSuffixComment() << "\"");
+            comments.clear();
         }
     };
 
@@ -892,12 +894,14 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
         //поиск комментариев ===================================================
         const bool ext_flag = !is_quotes;
         //вернёт комментарий без обрамления
-        CheckComments(ch_current, ch_next, i, design, comment, ext_flag);
+        CheckComments(ch_current, ch_next, i, design, current_comment, ext_flag);
         if(!design.with_comments)
-            comment.clear();
+            current_comment.clear();
         //сюда зайдёт, если внутри комментария либо если встречен конец комментария
         if(design.temp_type != CommentType::eNotComment)
             continue;
+        comments.push_back(FromComment(current_comment, design, tabulation_level));
+        current_comment.clear();
         //=================================================== поиск комментариев
 
         switch (state) {

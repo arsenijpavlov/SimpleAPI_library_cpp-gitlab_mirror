@@ -233,6 +233,16 @@ TEST(JSON, write_file) {
     EXPECT_TRUE(ret);
 }
 
+TEST(JSON, parse_with_comments) {
+    std::string test_input = "{a:15,/*s_comment*//*p1_comment*//*p2_comment*/b:120}";
+    Config json;
+    json.parseJson(test_input, true);
+
+    EXPECT_EQ(json.get_suffix_comment("a"), "s_comment");
+    EXPECT_EQ(json.get_prefix_comment("b"), "p1_comment\n"
+                                            "p2_comment");
+}
+
 TEST(JSON, write_and_read_file_comment) {
     Config json(ValueType::eJson);
     json.parseJson(json_string_example);
