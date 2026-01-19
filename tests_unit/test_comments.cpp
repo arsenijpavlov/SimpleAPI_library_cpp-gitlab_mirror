@@ -315,6 +315,36 @@ TEST(COMMENT, ToComment_FromComment_Multiline) {
     EXPECT_EQ(input, str_from);
 }
 
+TEST(COMMENT, CheckComments_Multiline) {
+    std::string     input = "A/*comment1*/B/*comment2*/C/*comment3*/D";
+    CommentDesign   cd;
+    std::string     current_comment;
+    VString         comments;
+    std::string     another; // весь пример без комментариев будет лежать там
+    for(size_t i = 0; i < input.size(); i++) {
+        char current = input[i];
+        char next    = i+1 < input.size() ? input[i+1] : 0;
+
+        CheckComments(current, next, i, cd, current_comment);
+        current_comment = current_comment;
+        if(cd.temp_type == CommentType::eCommentEnd) {
+            comments.push_back(FromComment(current_comment, cd));
+            current_comment.clear();
+            cd.temp_type = CommentType::eNotComment;
+            continue;
+        }
+        if(cd.temp_type != CommentType::eNotComment)
+            continue;
+        another += current;
+    }
+
+    ASSERT_EQ(comments.size(), 3);
+    EXPECT_EQ(comments[0], "comment1");
+    EXPECT_EQ(comments[1], "comment2");
+    EXPECT_EQ(comments[2], "comment3");
+    EXPECT_EQ(another, "ABCD");
+}
+
 TEST(COMMENT, FromComment_Extractor_FromTABs) {
     std::string input = "/*######################\n"
                         "\t# some                 #\n"

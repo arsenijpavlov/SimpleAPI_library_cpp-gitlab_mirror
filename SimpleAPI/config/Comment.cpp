@@ -696,21 +696,22 @@ void CheckComments(const char ch_current, const char ch_next,
         bool b2 = design.temp_schema[1] == 0;
         bool b3 = design.temp_schema[2] == 0;
         char finish_ch = design.temp_schema[(b3 ? 0 : 2)];
-        if(b2) {
-            //второй символ не участвует
+        if(b2) { //второй символ не участвует
             //коммент закрывает последовательность [finish_ch]
             if(ch_current == finish_ch) {
+                current_comment += ch_current;
                 design.temp_type = CommentType::eCommentEnd;
                 return;
             }
-        } else {
-            //второй символ участвует
+        } else { //второй символ участвует
             if(ch_next == 0)
                 throw std::invalid_argument("invalid length of input string, multiline comment not closed");
 
             //коммент закрывает последовательность [1][finish_ch]
             if(ch_current == design.temp_schema[1] && ch_next == finish_ch) {
-                iter_counter += b2 ? 0 : 1;
+                current_comment += ch_current;
+                current_comment += ch_next;
+                ++iter_counter;
                 design.temp_type = CommentType::eCommentEnd;
                 return;
             }
@@ -721,15 +722,27 @@ void CheckComments(const char ch_current, const char ch_next,
     }
     case CommentType::eCommentEnd:
     case CommentType::eNotComment: {
+        auto SetMultiline = [&](bool b2, std::array<char, 3> format){
+            design.temp_schema = format;
+            design.temp_type = CommentType::eMultiLineComment;
+            current_comment += format[0];
+            if(!b2) {
+                ++iter_counter;
+                current_comment += format[1];
+            }
+        };
+        auto SetOneline = [&](bool b2, std::array<char, 2> format){
+            design.temp_type = CommentType::eOneLineComment;
+            if(!b2) ++iter_counter;
+        };
+
         //поиск многострочных комментариев
         for(const auto& format : design.multiline_comment_variants) {
             //v1: {X,0} - #...
             //v2: {X,Y} - #!...
             bool b2 = format[1] == 0;
             if(ch_current == format[0] && (b2 || ch_next == format[1])) {
-                design.temp_schema = format;
-                design.temp_type = CommentType::eMultiLineComment;
-                if(!b2) iter_counter++;
+                SetMultiline(b2, format);
                 return;
             }
         }
@@ -739,8 +752,7 @@ void CheckComments(const char ch_current, const char ch_next,
             //v2: {X,Y} - #!...
             bool b2 = format[1] == 0;
             if(ch_current == format[0] && (b2 || ch_next == format[1])) {
-                design.temp_type = CommentType::eOneLineComment;
-                if(!b2) iter_counter++;
+                SetOneline(b2, format);
                 return;
             }
         }
@@ -749,17 +761,14 @@ void CheckComments(const char ch_current, const char ch_next,
         const auto temp_v_m = CommentDesign::GetDefaultMultilineCommentVariant();
         bool b2 = temp_v_m[1] == 0;
         if(temp_v_m[0] == ch_current && (b2 || temp_v_m[1] == ch_next)) {
-            design.temp_schema = temp_v_m;
-            design.temp_type = CommentType::eMultiLineComment;
-            if(!b2) iter_counter++;
+            SetMultiline(b2, temp_v_m);
             return;
         }
         // поиск одноострочных комментариев, если не заполнены варианты
         const auto temp_v_o = CommentDesign::GetDefaultOnelineCommentVariant();
         b2 = temp_v_o[1] == 0;
         if(temp_v_o[0] == ch_current && (b2 || temp_v_o[1] == ch_next)) {
-            design.temp_type = CommentType::eOneLineComment;
-            if(!b2) iter_counter++;
+            SetOneline(b2, temp_v_o);
             return;
         }
         break;

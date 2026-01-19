@@ -874,14 +874,14 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
         if(!comments.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
             get_back().addPrefixComment(VStringToString(comments));
             DEBUG_LOG("ElementJson: inner Element add PreviewComment: " << "\"" << get_back().getPrefixComment() << "\"");
-            comments.erase(comments.cbegin());
+            comments.clear();
         }
     };
     auto AppendElementSuffixComment = [&](){
         if(!comments.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
-            get_back().addSuffixComment(FromComment(current_comment, design, tabulation_level));
+            get_back().addSuffixComment(comments[0]);
             DEBUG_LOG("ElementJson: inner Element add SuffixComment: " << "\"" << get_back().getSuffixComment() << "\"");
-            comments.clear();
+            comments.erase(comments.cbegin());
         }
     };
 
@@ -897,11 +897,15 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
         CheckComments(ch_current, ch_next, i, design, current_comment, ext_flag);
         if(!design.with_comments)
             current_comment.clear();
-        //сюда зайдёт, если внутри комментария либо если встречен конец комментария
+        if(design.temp_type == CommentType::eCommentEnd)
+        {
+            comments.push_back(FromComment(current_comment, design, tabulation_level));
+            current_comment.clear();
+            design.temp_type = CommentType::eNotComment;
+            continue;
+        }
         if(design.temp_type != CommentType::eNotComment)
             continue;
-        comments.push_back(FromComment(current_comment, design, tabulation_level));
-        current_comment.clear();
         //=================================================== поиск комментариев
 
         switch (state) {
@@ -932,12 +936,12 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
             }
             if(ch_current == '}') {
                 // работа с комментарием после элемента
-                AppendElementSuffixComment();
+                if(get_back().getSuffixComment().empty())
+                    AppendElementSuffixComment();
 
                 UpdateState(state, ParseState::eJSON_FINISH);
                 break;
             }
-
 
             //если ключ в кавычках, то ждём кавычки, иначе любой __SPACES__
             if(ch_current == '\"'
@@ -1026,6 +1030,12 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
                 && (CharInString(ch_next, __SEPARATORS__ " }")
                     || CharInString(ch_current, __SEPARATORS__ " }")))
             {
+                //замыкающий комментарий предыдущего элемента
+                if(is_separator_comma) {
+                    AppendElementSuffixComment();
+                    is_separator_comma = false;
+                }
+
                 DEBUG_LOG("ElementJson: current value done: \"" << value << "\"");
                 try {
                     Config element = Config::CreateElementFromString(std::move(value), ConfigFormat::eJSON, design, tabulation_level);
