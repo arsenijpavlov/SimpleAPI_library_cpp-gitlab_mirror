@@ -897,7 +897,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
         CheckComments(ch_current, ch_next, i, design, current_comment, ext_flag);
         if(!design.with_comments)
             current_comment.clear();
-        if(design.temp_type == CommentType::eCommentEnd)
+        if(design.with_comments && design.temp_type == CommentType::eCommentEnd)
         {
             comments.push_back(FromComment(current_comment, design, tabulation_level));
             current_comment.clear();

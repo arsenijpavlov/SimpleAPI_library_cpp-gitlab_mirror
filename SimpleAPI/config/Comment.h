@@ -143,7 +143,7 @@ public:
             return ret;
         }
 
-        return false;
+        return true;
     }
 
     // {#,0} - второй символ 0 -> один символ уже комментирует

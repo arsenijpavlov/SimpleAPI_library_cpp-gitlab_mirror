@@ -247,8 +247,8 @@ TEST(JSON, write_and_read_file_comment) {
     Config json(ValueType::eJson);
     json.parseJson(json_string_example);
 
-    CommentDesign cd;
-    cd.opt_multiline_column_size = 20;
+    CommentDesign& cd = json.getCommentDesign();
+    cd.opt_multiline_column_size = /*20*/0;
     cd.opt_multiline_border = '#';
     cd.with_comments = true;
     cd.multiline_comment_variants.push_back(std::array<char, 3>{'/', '*', 0});
@@ -274,7 +274,6 @@ TEST(JSON, write_and_read_file_comment) {
 
     Config json2;
     try {
-        //FIXME: не создаётся CommentDesign
         json2.readFileJson(path, true);
     } catch (const std::exception& e) {
         FAIL() << e.what();

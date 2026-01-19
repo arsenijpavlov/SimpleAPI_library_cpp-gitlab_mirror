@@ -345,6 +345,34 @@ TEST(COMMENT, CheckComments_Multiline) {
     EXPECT_EQ(another, "ABCD");
 }
 
+TEST(COMMENT, CheckComments_Oneline) {
+    std::string     input = "A//comment\nB";
+    CommentDesign   cd;
+    std::string     current_comment;
+    VString         comments;
+    std::string     another; // весь пример без комментариев будет лежать там
+    for(size_t i = 0; i < input.size(); i++) {
+        char current = input[i];
+        char next    = i+1 < input.size() ? input[i+1] : 0;
+
+        CheckComments(current, next, i, cd, current_comment);
+        current_comment = current_comment;
+        if(cd.temp_type == CommentType::eCommentEnd) {
+            comments.push_back(FromComment(current_comment, cd));
+            current_comment.clear();
+            cd.temp_type = CommentType::eNotComment;
+            continue;
+        }
+        if(cd.temp_type != CommentType::eNotComment)
+            continue;
+        another += current;
+    }
+
+    ASSERT_EQ(comments.size(), 1);
+    EXPECT_EQ(comments[0], "comment");
+    EXPECT_EQ(another, "AB");
+}
+
 TEST(COMMENT, FromComment_Extractor_FromTABs) {
     std::string input = "/*######################\n"
                         "\t# some                 #\n"

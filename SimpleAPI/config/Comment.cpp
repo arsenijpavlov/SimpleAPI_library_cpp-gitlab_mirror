@@ -733,7 +733,11 @@ void CheckComments(const char ch_current, const char ch_next,
         };
         auto SetOneline = [&](bool b2, std::array<char, 2> format){
             design.temp_type = CommentType::eOneLineComment;
-            if(!b2) ++iter_counter;
+            current_comment += format[0];
+            if(!b2) {
+                ++iter_counter;
+                current_comment += format[1];
+            }
         };
 
         //поиск многострочных комментариев
