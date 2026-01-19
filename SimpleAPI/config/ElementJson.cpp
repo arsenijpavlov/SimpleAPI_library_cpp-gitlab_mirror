@@ -964,11 +964,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
 
             //ключ прочитан полностью?
             if(!is_quotes && CharInString(ch_next, __SPACES__ ":=")) {
-                if(!RemoveQuotes(key)) {
-                    error_string = "incorrect json key \"" + key + "\"";
-                    UpdateState(state, ParseState::eJSON_ERROR_STATE);
-                    break;
-                }
+                RemoveQuotes(key);
                 DEBUG_LOG("ElementJson: current key done: \"" << key << "\"");
                 UpdateState(state, ParseState::eJSON_KEY_VALUE_SEPARATOR);
                 value.clear();
