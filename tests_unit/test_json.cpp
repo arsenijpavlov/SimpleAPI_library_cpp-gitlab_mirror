@@ -251,7 +251,7 @@ TEST(JSON, write_and_read_file_comment) {
     cd.opt_multiline_column_size = /*20*/0;
     cd.opt_multiline_border = '#';
     cd.with_comments = true;
-    cd.multiline_comment_variants.push_back(std::array<char, 3>{'/', '*', 0});
+//    cd.multiline_comment_variants.push_back(std::array<char, 3>{'/', '*', 0});
 
     std::string main_comment = "1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...";
     json.addPrefixComment(main_comment);

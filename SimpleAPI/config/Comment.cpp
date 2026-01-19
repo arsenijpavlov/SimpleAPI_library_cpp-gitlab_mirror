@@ -609,7 +609,9 @@ std::string FromComment(std::string comment_string, CommentDesign& design,
             is_border_exists = found;
         }
     }
-    design.opt_multiline_border = is_border_exists ? lines.front()[0] : 0;
+    // NOTE: знак границы определяется по первому комментарию с границей
+    if(is_border_exists && design.opt_multiline_border == 0)
+        design.opt_multiline_border = lines.front()[0];
 
     if(is_border_exists) {
         lines.erase(lines.cbegin());
