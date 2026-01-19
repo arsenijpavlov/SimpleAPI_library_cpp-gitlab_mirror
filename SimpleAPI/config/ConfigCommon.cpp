@@ -47,17 +47,16 @@ void RemoveIllegalSpaces(std::string &string) noexcept {
     RemoveEndIllegalSpaces(string);
 }
 
+//TODO: пересмотреть возвращаемое значение функции
 bool RemoveQuotes(std::string &string) noexcept {
-    bool b_not_eq = string.front() != string.back();
-    if(string.front() == '"') {
-        if(!b_not_eq) {
-            string.erase(0, 1);
-            string.pop_back();
-            return !string.empty();
-        }
-        return false;
+    bool b_is_eq = !string.empty()
+                   && (string.front() == '"' || string.front() == '\'')
+                   && string.front() == string.back();
+    if(b_is_eq) {
+        string.erase(0, 1);
+        string.pop_back();
     }
-    return b_not_eq && !string.empty();
+    return true;
 }
 
 bool GetAllStringsFromFile(const std::string& path, std::string& dest_string,
