@@ -950,6 +950,8 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
             {
                 is_quotes = !is_quotes;
             }
+
+            //FIXME: в имени переменной не может быть этих знаков!
             //защита от дурака: кавычки, именованные списки, массивы
             if(!is_quotes) {
                 switch(ch_current) {
@@ -1027,10 +1029,10 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
                     || CharInString(ch_current, __SEPARATORS__ " }")))
             {
                 //замыкающий комментарий предыдущего элемента
-                if(is_separator_comma) {
-                    AppendElementSuffixComment();
-                    is_separator_comma = false;
-                }
+//                if(is_separator_comma) {
+//                    AppendElementSuffixComment();
+//                    is_separator_comma = false;
+//                }
 
                 DEBUG_LOG("ElementJson: current value done: \"" << value << "\"");
                 try {
@@ -1085,12 +1087,12 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
                 break;
 
             //(комментарий после значения, на строке значения после запятой)
-            if(!is_separator_comma || ch_current == '\n')
-            {
+//            if(!is_separator_comma || ch_current == '\n')
+//            {
                 AppendElementSuffixComment();
-            }
+//            }
 
-            UpdateState(state, (ch_next == 0 && ch_current == '}') ? ParseState::eJSON_FINISH : state_comment);
+            UpdateState(state, /*(ch_next == 0 && ch_current == '}') ? ParseState::eJSON_FINISH :*/ state_comment);
             break;
         }
         case ParseState::eJSON_ERROR_STATE: {
