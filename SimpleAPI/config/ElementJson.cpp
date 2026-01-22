@@ -1072,6 +1072,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
                 break;
             }
             if(CharInString(ch_current, "}")) {
+                i--;
                 UpdateState(state_comment, ParseState::eJSON_FINISH);
                 UpdateState(state, ParseState::eJSON_COMMENT);
                 break;
