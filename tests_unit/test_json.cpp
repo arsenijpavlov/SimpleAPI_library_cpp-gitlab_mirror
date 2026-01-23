@@ -241,6 +241,17 @@ TEST(JSON, parse_with_comments) {
     EXPECT_EQ(json.get_suffix_comment("a"), "s_comment");
     EXPECT_EQ(json.get_prefix_comment("b"), "p1_comment\n"
                                             "p2_comment");
+
+    test_input = "{a:15, //s1_comment\n"
+                 "//p2_comment\n"
+                 "b:20 //s2_comment\n"
+                 "} //sf_comment\n";
+    json.parseJson(test_input, true);
+
+    EXPECT_EQ(json.get_suffix_comment("a"), "s1_comment");
+    EXPECT_EQ(json.get_prefix_comment("b"), "p2_comment");
+    EXPECT_EQ(json.get_suffix_comment("b"), "s2_comment");
+    EXPECT_EQ(json.getSuffixComment(), "sf_comment");
 }
 
 TEST(JSON, write_and_read_file_comment) {

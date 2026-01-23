@@ -1029,10 +1029,10 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
                     || CharInString(ch_current, __SEPARATORS__ " }")))
             {
                 //замыкающий комментарий предыдущего элемента
-//                if(is_separator_comma) {
-//                    AppendElementSuffixComment();
-//                    is_separator_comma = false;
-//                }
+                if(is_separator_comma) {
+                    AppendElementSuffixComment();
+                    is_separator_comma = false;
+                }
 
                 DEBUG_LOG("ElementJson: current value done: \"" << value << "\"");
                 try {
