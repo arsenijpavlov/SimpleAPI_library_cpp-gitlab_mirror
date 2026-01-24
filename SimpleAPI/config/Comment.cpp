@@ -188,19 +188,21 @@ void Comment::clearDesign() noexcept {
     delCommentDesign();
 }
 
+#define ComparePointers(arg)                            \
+    if(arg == nullptr) {                                \
+        if(other.arg != nullptr)                        \
+            return false;                               \
+    } else {                                            \
+        if(other.arg != nullptr && *arg != *other.arg)  \
+            return false;                               \
+    }
 bool Comment::operator==(const Comment& other) const noexcept {
     if(this == &other)
         return true;
-    bool p_is_null = m_prefix == nullptr && other.m_prefix == nullptr;
-    bool s_is_null = m_suffix == nullptr && other.m_suffix == nullptr;
-    bool cd_is_null = m_comment_design == nullptr && other.m_comment_design == nullptr;
 
-    if(!p_is_null && *m_prefix != *other.m_prefix)
-        return false;
-    if(!s_is_null && *m_suffix != *other.m_suffix)
-        return false;
-    if(!cd_is_null && *m_comment_design != *other.m_comment_design)
-        return false;
+    ComparePointers(m_prefix)
+    ComparePointers(m_suffix)
+    ComparePointers(m_comment_design)
 
     return true;
 }
