@@ -383,3 +383,9 @@ TEST(COMMENT, FromComment_Extractor_FromTABs) {
     input = "some\nwords...";
     EXPECT_EQ(input, str_from);
 }
+
+TEST(COMMENT, Compare) {
+    Comment cmt1;
+    Comment cmt2 = cmt1;
+    EXPECT_EQ(cmt1, cmt2);
+}

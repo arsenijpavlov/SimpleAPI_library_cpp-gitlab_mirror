@@ -25,8 +25,14 @@ Comment::Comment(const Comment &other) noexcept
     : m_prefix(nullptr), m_suffix(nullptr), m_comment_design(nullptr)
 {
     if(this != &other) {
-        set(other.prefix(), other.suffix());
-        setDesign(other.commentDesign());
+        if(!other.m_prefix) delPrefix();
+        else                setPrefix(other.prefix());
+
+        if(!other.m_suffix) delSuffix();
+        else                setSuffix(other.suffix());
+
+        if(!other.m_comment_design) delCommentDesign();
+        else                setDesign(other.commentDesign());
     }
 }
 
@@ -34,8 +40,14 @@ Comment::Comment(const Comment &&other) noexcept
     : m_prefix(nullptr), m_suffix(nullptr), m_comment_design(nullptr)
 {
     if(this != &other) {
-        set(other.prefix(), other.suffix());
-        setDesign(other.commentDesign());
+        if(!other.m_prefix) delPrefix();
+        else                setPrefix(other.prefix());
+
+        if(!other.m_suffix) delSuffix();
+        else                setSuffix(other.suffix());
+
+        if(!other.m_comment_design) delCommentDesign();
+        else                setDesign(other.commentDesign());
     }
 }
 
@@ -84,18 +96,20 @@ void Comment::set(const std::string &prefix_comment, const std::string &suffix_c
 }
 
 void Comment::set(const Comment &other) noexcept {
-    setPrefix(other.prefix());
-    setSuffix(other.suffix());
+    if(!other.m_prefix) delPrefix();
+    else                setPrefix(other.prefix());
+
+    if(!other.m_suffix) delSuffix();
+    else                setSuffix(other.suffix());
 }
 
 void Comment::setPrefix(const std::string &comment) noexcept {
     std::string new_comment = comment;
     RemoveIllegalSpaces(new_comment);
 
-    if(!m_prefix) {
+    if(!m_prefix)
         m_prefix = new std::string(new_comment);
-    }
-    if(!comment.empty())
+    else
         *m_prefix = new_comment;
 }
 
@@ -105,7 +119,7 @@ void Comment::setSuffix(const std::string &comment) noexcept {
 
     if(m_suffix == nullptr)
         m_suffix = new std::string(new_comment);
-    if(!comment.empty())
+    else
         *m_suffix = new_comment;
 }
 
@@ -166,26 +180,29 @@ void Comment::setDesign(const CommentDesign &design) noexcept {
     if(!m_comment_design) {
         m_comment_design = new CommentDesign(design);
         return;
-    }
+    } else
+        *m_comment_design = design;
 }
 
 void Comment::clearDesign() noexcept {
     delCommentDesign();
 }
 
-//TODO: исправить. Не работает.
 bool Comment::operator==(const Comment& other) const noexcept {
     if(this == &other)
         return true;
-//    if(m_prefix == nullptr && other.m_prefix == nullptr)
-//        return true;
-//    if(m_prefix != nullptr && other.m_prefix != nullptr) {
-//        if(m_prefix->empty() && other.m_prefix->empty())
-//            return true;
-//        return *m_prefix == *other.m_prefix;
-//    }
+    bool p_is_null = m_prefix == nullptr && other.m_prefix == nullptr;
+    bool s_is_null = m_suffix == nullptr && other.m_suffix == nullptr;
+    bool cd_is_null = m_comment_design == nullptr && other.m_comment_design == nullptr;
 
-    return false;
+    if(!p_is_null && *m_prefix != *other.m_prefix)
+        return false;
+    if(!s_is_null && *m_suffix != *other.m_suffix)
+        return false;
+    if(!cd_is_null && *m_comment_design != *other.m_comment_design)
+        return false;
+
+    return true;
 }
 
 Comment& Comment::operator=(const Comment& other) noexcept {

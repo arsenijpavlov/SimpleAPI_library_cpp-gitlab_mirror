@@ -145,6 +145,7 @@ public:
 
         return true;
     }
+    bool operator!=(const CommentDesign& other)             const   noexcept { return !(*this == other); }
 
     // {#,0} - второй символ 0 -> один символ уже комментирует
     static std::array<char, 2> GetDefaultOnelineCommentVariant()    noexcept { return {'/', '/'}; }
