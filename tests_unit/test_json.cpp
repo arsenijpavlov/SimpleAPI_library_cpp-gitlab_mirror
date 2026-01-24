@@ -45,7 +45,8 @@ std::string json_string_example = std::string(
     //перенос строки равнозначен разделителю ','
     "\"string\":\"string_value\"\n"
     "\"json\" : {"
-    "\"string\":\"inner_string_value\",\n \"string2\" : 150"
+    "   \"string\":\"inner_string_value\",\n"
+    "   \"string2\" : 150"
     "}"
     ",\n"
     //перенос строки равнозначен разделителю ',' (массивы)
@@ -252,6 +253,29 @@ TEST(JSON, parse_with_comments) {
     EXPECT_EQ(json.get_prefix_comment("b"), "p2_comment");
     EXPECT_EQ(json.get_suffix_comment("b"), "s2_comment");
     EXPECT_EQ(json.getSuffixComment(), "sf_comment");
+}
+
+TEST(JSON, parse_with_comments2) {
+    std::string test_input = "{\n"
+                             "a:15,\n"
+                             "/*p1_comment*/\n"
+                             "b:120\n"
+                             "}";
+    Config json;
+    json.parseJson(test_input, true);
+
+    EXPECT_EQ(json.get_suffix_comment("a"), "");
+    EXPECT_EQ(json.get_prefix_comment("b"), "p1_comment");
+
+    test_input = "{\n"
+                 "a:15,\n"
+                 "//p2_comment\n"
+                 "b:20\n"
+                 "}\n";
+    json.parseJson(test_input, true);
+
+    EXPECT_EQ(json.get_suffix_comment("a"), "");
+    EXPECT_EQ(json.get_prefix_comment("b"), "p2_comment");
 }
 
 TEST(JSON, write_and_read_file_comment) {

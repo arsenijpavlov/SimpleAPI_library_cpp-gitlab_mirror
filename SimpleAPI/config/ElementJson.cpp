@@ -814,8 +814,6 @@ void ElementJson::parseJson(const std::string &input_string, const bool parse_co
 void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
                             const int8_t tabulation_level)
 {
-    //TODO: void ElementJson::parseJson()
-
     using namespace utils;
 
     /* NOTE: для документации
@@ -892,7 +890,8 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
         SymbolCounter(ch_current, line_counter, symbol_counter);
 
         //поиск комментариев ===================================================
-        const bool ext_flag = !is_quotes;
+        const bool ext_flag = !is_quotes
+                              && inner_array_counter + inner_json_counter == 0;
         //вернёт комментарий без обрамления
         CheckComments(ch_current, ch_next, i, design, current_comment, ext_flag);
         if(!design.with_comments)
@@ -1064,9 +1063,6 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
             //  если комментарий расписан после переноса строки, но до знака }, то комментарий попадёт в суффикс основы
 
             if(CharInString(ch_current, __SEPARATORS__)) {
-                is_separator_comma = ch_current == ',';
-                if(CharInString(ch_current, __SPACES__ ","))
-                    i--;
                 UpdateState(state_comment, ParseState::eJSON_KEY);
                 UpdateState(state, ParseState::eJSON_COMMENT);
                 break;
@@ -1083,17 +1079,21 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
             break;
         }
         case ParseState::eJSON_COMMENT: {
-            //пропуск пробелов
-            if(CharInString(ch_current, __SPACES_WITHOUT_SEPARATORS__))
+            //пропуск пробелов и запятых (только перенос строки является разделителем комментария)
+            if(CharInString(ch_current, __SPACES_WITHOUT_SEPARATORS__ ","))
                 break;
 
-            //(комментарий после значения, на строке значения после запятой)
-//            if(!is_separator_comma || ch_current == '\n')
-//            {
-                AppendElementSuffixComment();
-//            }
+            if(ch_current == '\n')
+                is_separator_comma = false;
 
-            UpdateState(state, /*(ch_next == 0 && ch_current == '}') ? ParseState::eJSON_FINISH :*/ state_comment);
+            //(комментарий после значения, на строке значения после запятой)
+            if(is_separator_comma || !utils::CharInString(ch_current, __SEPARATORS__))
+            {
+                AppendElementSuffixComment();
+                i--; //нашли знак, относящийся к другой части парсера
+            }
+
+            UpdateState(state, state_comment);
             break;
         }
         case ParseState::eJSON_ERROR_STATE: {
@@ -1116,7 +1116,8 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
     }
 
     if(state != ParseState::eJSON_FINISH && state != ParseState::eJSON_KEY) {
-//        clear();
+        //NOTE: в случае ошибки парсинга корректно прочитанные значения сохраняются
+        //clear();
         throw std::invalid_argument("JSON parse error, end of JSON structure not found");
     }
 
