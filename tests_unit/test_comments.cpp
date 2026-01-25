@@ -370,7 +370,8 @@ TEST(COMMENT, CheckComments_Oneline) {
 
     ASSERT_EQ(comments.size(), 1);
     EXPECT_EQ(comments[0], "comment");
-    EXPECT_EQ(another, "AB");
+    //перенос строки после однострочного комментария является и завершением комментария, и частью исходного документа
+    EXPECT_EQ(another, "A\nB");
 }
 
 TEST(COMMENT, FromComment_Extractor_FromTABs) {

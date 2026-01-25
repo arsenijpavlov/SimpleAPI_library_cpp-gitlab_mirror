@@ -291,8 +291,8 @@ TEST(JSON, write_and_read_file_comment) {
     std::string main_comment = "1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...";
     json.addPrefixComment(main_comment);
     json.addSuffixComment(main_comment);
-    json.add_prefix_comment("bool", "some \nwords...");
-    json.add_suffix_comment("bool", "some \nwords...");
+    json.add_prefix_comment("bool", "bool some \nwords...");
+    json.add_suffix_comment("bool", "bool some \nwords...");
     json.add_prefix_comment("string", "<string> prefix comment");
     json.add_prefix_comment("array", "<array> prefix comment");
     json.add_suffix_comment("array", "<array> suffix comment");

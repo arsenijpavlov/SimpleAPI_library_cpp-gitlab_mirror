@@ -707,6 +707,7 @@ void CheckComments(const char ch_current, const char ch_next,
         //считывается строго до переноса строки
         if(ch_current == '\n') {
             design.temp_type = CommentType::eCommentEnd;
+            --iter_counter;
             return;
         }
 

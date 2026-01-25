@@ -847,6 +847,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
     std::string error_string        = "";
     bool is_quotes                  = false;
     bool is_separator_comma         = false;
+    char last_separator_symbol      = '\n';
     uint16_t inner_json_counter     = 0;
     uint16_t inner_array_counter    = 0;
 
@@ -906,6 +907,9 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
         if(design.temp_type != CommentType::eNotComment)
             continue;
         //=================================================== поиск комментариев
+
+        if(utils::CharInString(ch_current, __SEPARATORS__))
+            last_separator_symbol = ch_current;
 
         switch (state) {
         case ParseState::eJSON_START: {
@@ -1028,10 +1032,10 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
                     || CharInString(ch_current, __SEPARATORS__ " }")))
             {
                 //замыкающий комментарий предыдущего элемента
-                if(is_separator_comma) {
-                    AppendElementSuffixComment();
-                    is_separator_comma = false;
-                }
+//                if(is_separator_comma) {
+//                    AppendElementSuffixComment();
+//                    is_separator_comma = false;
+//                }
 
                 DEBUG_LOG("ElementJson: current value done: \"" << value << "\"");
                 try {
@@ -1079,19 +1083,23 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
             break;
         }
         case ParseState::eJSON_COMMENT: {
+            //сюда должны зайти сразу после прочтения (возможного) комментария
+
             //пропуск пробелов и запятых (только перенос строки является разделителем комментария)
             if(CharInString(ch_current, __SPACES_WITHOUT_SEPARATORS__ ","))
                 break;
 
-            if(ch_current == '\n')
-                is_separator_comma = false;
+//            if(ch_current == '\n')
+//                is_separator_comma = false;
 
             //(комментарий после значения, на строке значения после запятой)
-            if(is_separator_comma || !utils::CharInString(ch_current, __SEPARATORS__))
+            if(last_separator_symbol == '\n')
             {
                 AppendElementSuffixComment();
-                i--; //нашли знак, относящийся к другой части парсера
             }
+
+            if(!utils::CharInString(ch_current, __SPACES__))
+                i--; //нашли знак, относящийся к другой части парсера
 
             UpdateState(state, state_comment);
             break;
