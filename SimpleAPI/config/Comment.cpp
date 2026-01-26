@@ -281,9 +281,28 @@ SeparatedLines SeparateToColumns(const std::string& input_string, const size_t c
     std::string temp;
 
     const size_t input_visible_len = utils::GetStringCharCount(input_string, true);
-    if(input_string.find('\n') == std::string::npos && (column_size == 0
-                                                         || input_visible_len <= column_size))
+    bool is_oneline = input_string.find('\n') == std::string::npos;
+
+    if(is_oneline && (column_size == 0 || input_visible_len <= column_size))
+    {
         return SeparatedLines{{input_string}, input_visible_len};
+    }
+//    if(!is_oneline && column_size == 0)
+//    {
+//        //разделить на строки и вернуть
+//        SeparatedLines sl;
+//        for(char c : input_string) {
+//            if(c == '\n') {
+//                sl.lines.push_back(temp);
+//                temp.clear();
+//            }
+//            temp.push_back(c);
+//        }
+//        for(auto& s : sl.lines)
+//            RemoveIllegalSpaces(s);
+//        sl.max_length = 0;
+//        return sl;
+//    }
 
     // разбиение на самостоятельные слова/объекты
     bool need_add = false;
@@ -652,8 +671,12 @@ std::string FromComment(std::string comment_string, CommentDesign& design,
         { }
     }
 
-    for(std::string& s : lines)
+    for(std::string& s : lines) {
         RemoveIllegalSpaces(s); //удалить лишние пробелы в начале и конце строки
+        // определить максимальную ширину колонки комментариев
+//        if(design.opt_multiline_column_size < s.size())
+//            design.opt_multiline_column_size = s.size();
+    }
 
     std::string ret;
 

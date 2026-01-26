@@ -291,8 +291,8 @@ TEST(JSON, write_and_read_file_comment) {
     std::string main_comment = "1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...";
     json.addPrefixComment(main_comment);
     json.addSuffixComment(main_comment);
-    json.add_prefix_comment("bool", "bool some \nwords...");
-    json.add_suffix_comment("bool", "bool some \nwords...");
+    json.add_prefix_comment("bool", "bool some\nwords...");
+    json.add_suffix_comment("bool", "bool some\nwords...");
     json.add_prefix_comment("string", "<string> prefix comment");
     json.add_prefix_comment("array", "<array> prefix comment");
     json.add_suffix_comment("array", "<array> suffix comment");
@@ -330,25 +330,25 @@ TEST(JSON, write_and_read_file_comment) {
     EXPECT_EQ(json2.get_prefix_comment("bool"), json.get_prefix_comment("bool"));
     EXPECT_EQ(json2.get_suffix_comment("bool"), json.get_suffix_comment("bool"));
 
-//    EXPECT_EQ(json2.get_comment("string"), json.get_comment("string"));
-//    EXPECT_EQ(json2.get_prefix_comment("string"), json.get_prefix_comment("string"));
-//    EXPECT_EQ(json2.get_suffix_comment("string"), json.get_suffix_comment("string"));
+    EXPECT_EQ(json2.get_comment("string"), json.get_comment("string"));
+    EXPECT_EQ(json2.get_prefix_comment("string"), json.get_prefix_comment("string"));
+    EXPECT_EQ(json2.get_suffix_comment("string"), json.get_suffix_comment("string"));
 
-//    EXPECT_EQ(json2.get_comment("array"), json.get_comment("array"));
-//    EXPECT_EQ(json2.get_prefix_comment("array"), json.get_prefix_comment("array"));
-//    EXPECT_EQ(json2.get_suffix_comment("array"), json.get_suffix_comment("array"));
+    EXPECT_EQ(json2.get_comment("array"), json.get_comment("array"));
+    EXPECT_EQ(json2.get_prefix_comment("array"), json.get_prefix_comment("array"));
+    EXPECT_EQ(json2.get_suffix_comment("array"), json.get_suffix_comment("array"));
 
-//    EXPECT_EQ(json2["json"].get_comment(0), json["json"].get_comment(0));
-//    EXPECT_EQ(json2["json"].get_prefix_comment(0),
-//              json["json"].get_prefix_comment(0));
-//    EXPECT_EQ(json2["json"].get_suffix_comment(0),
-//              json["json"].get_suffix_comment(0));
+    EXPECT_EQ(json2["json"].get_comment(0), json["json"].get_comment(0));
+    EXPECT_EQ(json2["json"].get_prefix_comment(0),
+              json["json"].get_prefix_comment(0));
+    EXPECT_EQ(json2["json"].get_suffix_comment(0),
+              json["json"].get_suffix_comment(0));
 
-//    EXPECT_EQ(json2["array"].get_comment(0), json["array"].get_comment(0));
-//    EXPECT_EQ(json2["array"].get_prefix_comment(0),
-//              json["array"].get_prefix_comment(0));
-//    EXPECT_EQ(json2["array"].get_suffix_comment(0),
-//              json["array"].get_suffix_comment(0));
+    EXPECT_EQ(json2["array"].get_comment(0), json["array"].get_comment(0));
+    EXPECT_EQ(json2["array"].get_prefix_comment(0),
+              json["array"].get_prefix_comment(0));
+    EXPECT_EQ(json2["array"].get_suffix_comment(0),
+              json["array"].get_suffix_comment(0));
 }
 
 //TEST(JSON, read_file) {
