@@ -248,7 +248,6 @@ private:
         eJSON_KEY_VALUE_SEPARATOR,
         eJSON_VALUE,
         eJSON_SEPARATOR,
-        eJSON_COMMENT,
         eJSON_FINISH,
         eJSON_ERROR_STATE
     };
