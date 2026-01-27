@@ -104,6 +104,11 @@ void Comment::set(const Comment &other) noexcept {
 }
 
 void Comment::setPrefix(const std::string &comment) noexcept {
+    if(comment.empty() && m_prefix) {
+        delPrefix();
+        return;
+    }
+
     std::string new_comment = comment;
     RemoveIllegalSpaces(new_comment);
 
@@ -114,6 +119,11 @@ void Comment::setPrefix(const std::string &comment) noexcept {
 }
 
 void Comment::setSuffix(const std::string &comment) noexcept {
+    if(comment.empty() && m_suffix) {
+        delPrefix();
+        return;
+    }
+
     std::string new_comment = comment;
     RemoveIllegalSpaces(new_comment);
 
