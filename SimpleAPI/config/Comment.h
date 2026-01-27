@@ -220,6 +220,7 @@ struct SeparatedLines {
     VString lines;
     size_t max_length;
 };
+SeparatedLines SeparateWithoutColumned(const std::string& input_string)                         noexcept;
 SeparatedLines SeparateToColumns(const std::string& input_string, const size_t column_size)     noexcept;
 std::string VStringToString(const VString& input_vec, const bool need_quotes = false)           noexcept;
 std::string ToComment(const std::string &comment, const CommentDesign& design,

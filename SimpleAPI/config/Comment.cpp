@@ -269,6 +269,27 @@ std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept {
     return ss.str();
 }
 
+// Обрежет входную строку на список строк. Учитываются только пользовательские переносы строк
+SeparatedLines SeparateWithoutColumned(const std::string& input_string) noexcept {
+    SeparatedLines sl;
+    std::string temp;
+    for(char c : input_string) {
+        if(c == '\n') {
+            sl.lines.push_back(temp);
+            temp.clear();
+            continue;
+        }
+        temp.push_back(c);
+    }
+    if(!temp.empty())
+        sl.lines.push_back(temp);
+
+    for(auto& s : sl.lines)
+        RemoveIllegalSpaces(s);
+    sl.max_length = 0;
+    return sl;
+}
+
 /* Обрезать строку на подстроки с заданной шириной
  * - если хотя бы одна строка неделима и превышеает предел,
  *   то остальные строки должны быть выровнены по новому пределу
@@ -287,22 +308,6 @@ SeparatedLines SeparateToColumns(const std::string& input_string, const size_t c
     {
         return SeparatedLines{{input_string}, input_visible_len};
     }
-//    if(!is_oneline && column_size == 0)
-//    {
-//        //разделить на строки и вернуть
-//        SeparatedLines sl;
-//        for(char c : input_string) {
-//            if(c == '\n') {
-//                sl.lines.push_back(temp);
-//                temp.clear();
-//            }
-//            temp.push_back(c);
-//        }
-//        for(auto& s : sl.lines)
-//            RemoveIllegalSpaces(s);
-//        sl.max_length = 0;
-//        return sl;
-//    }
 
     // разбиение на самостоятельные слова/объекты
     bool need_add = false;
@@ -484,7 +489,8 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
     RemoveIllegalSpaces(current_string);
 
     //разделить на строки необходимой длины
-    SeparatedLines sl = SeparateToColumns(current_string, design.opt_multiline_column_size);
+    SeparatedLines sl = design.opt_multiline_column_size == 0 ? SeparateWithoutColumned(current_string)
+                                                              : SeparateToColumns(current_string, design.opt_multiline_column_size);
     VString& result_lines = sl.lines;
 //    std::cout << "sl.max_length: " << sl.max_length << std::endl;
 //    std::cout << "sl.lines:" << std::endl << VStringToString(sl.lines, true) << std::endl;

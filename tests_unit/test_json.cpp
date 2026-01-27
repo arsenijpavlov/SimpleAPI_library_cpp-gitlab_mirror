@@ -299,7 +299,7 @@ TEST(JSON, write_and_read_file_comment) {
     json.add_prefix_comment("json", "<json> prefix comment");
     json.add_suffix_comment("json", "<json> suffix comment");
 
-    json["json"].add_prefix_comment(0, "json first element\n comment");
+    json["json"].add_prefix_comment(0, "json first element\ncomment");
     json["array"].add_prefix_comment(1, "array second element\n comment_");
 
     std::string path = "../tests/test_writer_with_comments.json";
