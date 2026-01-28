@@ -34,12 +34,12 @@ void RecvData(PacketMessage pm) {
               << logs::columned(MAIN_COLOR, "[SERVER]",
                                 NAME_COLUMN_SIZE,
                                 NAME_COLUMN_RIGHT_ALIGN) << " "
-              << "recv data: 0x" << utils::to_hex_string(pm.m_packet)
+              << "recv data: 0x" << utils::ToHexString(pm.m_packet)
               << std::endl;
 }
 bool isBigPacketSent = false;
 bool isNeedAck = false;
-Json jsonAck;
+Config jsonAck;
 IpPort ipPortAck;
 void RecvJson(JsonMessage jm) {
     std::cout << logs::get_time_string() << " "
@@ -52,8 +52,7 @@ void RecvJson(JsonMessage jm) {
 
     if(!isBigPacketSent) {
         isNeedAck = true;
-        jsonAck.clear();
-        jsonAck.put("Chapter #1", "SERVER: Some test text... Some test text... Some test text... Some test text... Some test text...");
+        jsonAck = Config(ValueType::eJson, "Chapter #1", "SERVER: Some test text... Some test text... Some test text... Some test text... Some test text...");
         ipPortAck = jm.m_ip_port;
 
         isBigPacketSent = true;

@@ -48,3 +48,9 @@
 
 # parse JSON Array
 - пустое значение между разделителями не создаёт null-элементы
+
+---
+
+# findPkg
+
+sudo apt-get install pkg-config

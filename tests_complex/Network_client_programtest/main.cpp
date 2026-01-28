@@ -34,7 +34,7 @@ void RecvData(PacketMessage pm) {
               << logs::columned(MAIN_COLOR, "[CLIENT]",
                                 NAME_COLUMN_SIZE,
                                 NAME_COLUMN_RIGHT_ALIGN) << " "
-              << "recv data: 0x" << utils::to_hex_string(pm.m_packet)
+              << "recv data: 0x" << utils::ToHexString(pm.m_packet)
               << std::endl;
 }
 void RecvJson(JsonMessage jm) {
@@ -83,7 +83,7 @@ int main(int argc, char** argv) {
     st.startThread();
 
     Packet packet = convert_to_packet("Hello world!");
-    Json json("Hello", std::string("WORLD!"));
+    Config json(ValueType::eJson, "Hello", std::string("WORLD!"));
 
 //    st.findSocket(server)->m_settings.enableChiphering(true);
 //    st.send(server, {"127.0.0.15", 31115}, packet);
