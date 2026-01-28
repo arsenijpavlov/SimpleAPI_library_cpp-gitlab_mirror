@@ -304,8 +304,6 @@ TEST(JSON, write_and_read_file_comment) {
 
     std::string path = "../tests/test_writer_with_comments.json";
     json.writeFile(path, ConfigFormat::eJSON, cd, 0);
-//    SUCCEED();
-//    return;
 
     Config json2;
     try {
@@ -318,7 +316,7 @@ TEST(JSON, write_and_read_file_comment) {
 
     //FIXME: проверка комментариев должна учитывать переносы строк (преобразование комментариев при чтении/записи)
 
-//    main_comment = FromComment(ToComment(main_comment, json.getCommentDesign()), json2.getCommentDesign());
+    main_comment = FromComment(ToComment(main_comment, json.getCommentDesign()), json2.getCommentDesign());
     main_comment = FromComment(ToComment(main_comment, cd), json2.getCommentDesign());
     EXPECT_EQ(json2.getComment(), json.getComment());
     EXPECT_EQ(json2.getPrefixComment(), json.getPrefixComment());
@@ -417,13 +415,13 @@ TEST(JSON, write_and_read_file_comment) {
 //    EXPECT_EQ(json2["array"].getArray().getComment(0).prefix(), comment5);
 //}
 
-//TEST(JSON, read_file_error) {
-//    //файла не существует
-//    Json json;
-//    json.readFile("json_file_not_found.json");
+TEST(JSON, read_file_error) {
+    //файла не существует
+    Config json;
+    json.readFile("json_file_not_found.json", ConfigFormat::eJSON);
 
-//    EXPECT_EQ(json.size(), 0);
-//}
+    EXPECT_EQ(json.size(), 0);
+}
 
 //TEST(JSON, put_and_get_elements) {
 //    std::string test_str    = "abc";
@@ -473,26 +471,26 @@ TEST(JSON, write_and_read_file_comment) {
 //    EXPECT_EQ(json["key"].getBool(), true);
 //}
 
-//TEST(JSON, get_index) {
-//    Json json = json_example;
+TEST(JSON, get_index) {
+    Config json = json_example;
 
-//    EXPECT_EQ(json.getValue(0).getString(), "first");
-//    EXPECT_EQ(json.getValue(1).getNum(), 2);
-//    EXPECT_EQ(json.getValue(2).getNum(), 3.1);
-//    EXPECT_EQ(json.getValue(3).getBool(), true);
-//}
+    EXPECT_EQ(json[0].getString(), "first");
+    EXPECT_EQ(json[1].getNumber(), 2);
+    EXPECT_EQ(json[2].getNumber(), 3.1);
+    EXPECT_EQ(json[3].getBool(), true);
+}
 
-//TEST(JSON, get_index_error) {
-//    Json json = json_example;
+TEST(JSON, get_index_error) {
+    Config json = json_example;
 
-//    try {
-//        json[5];
-//    } catch (std::out_of_range& e) {
-//        return SUCCEED();
-//    }
+    try {
+        json[5];
+    } catch (std::exception& e) {
+        return SUCCEED();
+    }
 
-//    FAIL();
-//}
+    FAIL();
+}
 
 //TEST(JSON, get_complex_name) {
 //    Json j("json_num", 15);
@@ -505,27 +503,14 @@ TEST(JSON, write_and_read_file_comment) {
 //    EXPECT_EQ(15, d);
 //}
 
-//TEST(JSON, get_key) {
-//    Json json = json_example;
+TEST(JSON, get_key) {
+    Config json = json_example;
 
-//    EXPECT_EQ(json.getValue("key_0").getString(), "first");
-//    EXPECT_EQ(json.getValue("key_1").getNum(), 2);
-//    EXPECT_EQ(json.getValue("key_2").getNum(), 3.1);
-//    EXPECT_EQ(json.getValue("key_3").getBool(), true);
-//}
-
-////больше не актуален, т.к. переменные добавляются автоматически
-////TEST(JSON, get_key_error) {
-////    Json json = json_example;
-
-////    try {
-////        Element el = json.getValue("azaza");
-////    } catch (std::invalid_argument& e) {
-////        return SUCCEED();
-////    }
-
-////    FAIL();
-////}
+    EXPECT_EQ(json.get_at("key_0").getString(), "first");
+    EXPECT_EQ(json.get_at("key_1").getNumber(), 2);
+    EXPECT_EQ(json.get_at("key_2").getNumber(), 3.1);
+    EXPECT_EQ(json.get_at("key_3").getBool(), true);
+}
 
 //TEST(JSON, insert) {
 //    Json json = json_example;
@@ -579,35 +564,38 @@ TEST(JSON, write_and_read_file_comment) {
 //    EXPECT_EQ(json[0].first, ValueType::eBool);
 //}
 
-//TEST(JSON, check_numbers) {
-//    std::map<std::string, bool> map_numbers;
-//    map_numbers.insert(std::make_pair("1",          true));
-//    map_numbers.insert(std::make_pair("1.1",        true));
-//    map_numbers.insert(std::make_pair("1e1",        true));
-//    map_numbers.insert(std::make_pair("1.1e1",      true));
-//    map_numbers.insert(std::make_pair("1.1.1",      false));
-//    map_numbers.insert(std::make_pair("e1",         false));
-//    map_numbers.insert(std::make_pair("f1",         false));
-//    map_numbers.insert(std::make_pair(".1",         true));
-//    map_numbers.insert(std::make_pair("a1e2",       false));
-//    map_numbers.insert(std::make_pair("145o",       false));
-//    map_numbers.insert(std::make_pair("1eu2",       false));
-//    map_numbers.insert(std::make_pair("1E5",        true));
-//    map_numbers.insert(std::make_pair("1f",         true));
-//    map_numbers.insert(std::make_pair("1e",         false));
-//    map_numbers.insert(std::make_pair("1ef",        false));
-//    map_numbers.insert(std::make_pair("1e1.1",      false));
-//    map_numbers.insert(std::make_pair("1.1e-1",     true));
-//    map_numbers.insert(std::make_pair("-1.1e-1",    true));
-//    map_numbers.insert(std::make_pair("-1.1e+1",    true));
-//    map_numbers.insert(std::make_pair("-1.1e+1e",   false));
-//    map_numbers.insert(std::make_pair("f",          false));
+TEST(JSON, check_numbers) {
+    std::map<std::string, bool> map_numbers;
+    map_numbers.insert(std::make_pair("1",          true));
+    map_numbers.insert(std::make_pair("1.1",        true));
+    map_numbers.insert(std::make_pair("1e1",        true));
+    map_numbers.insert(std::make_pair("1.1e1",      true));
+    map_numbers.insert(std::make_pair("1.1.1",      false));
+    map_numbers.insert(std::make_pair("e1",         false));
+    map_numbers.insert(std::make_pair("f1",         false));
+    map_numbers.insert(std::make_pair(".1",         true));
+    map_numbers.insert(std::make_pair("a1e2",       false));
+    map_numbers.insert(std::make_pair("145o",       false));
+    map_numbers.insert(std::make_pair("1eu2",       false));
+    map_numbers.insert(std::make_pair("1E5",        true));
+    map_numbers.insert(std::make_pair("1f",         true));
+    map_numbers.insert(std::make_pair("1e",         true));
+    map_numbers.insert(std::make_pair("1ef",        true));
+    map_numbers.insert(std::make_pair("1e1.1",      false));
+    map_numbers.insert(std::make_pair("1.1e-1",     true));
+    map_numbers.insert(std::make_pair("-1.1e-1",    true));
+    map_numbers.insert(std::make_pair("-1.1e+1",    true));
+    map_numbers.insert(std::make_pair("-1.1e+1e",   false));
+    map_numbers.insert(std::make_pair("f",          false));
 
-//    for(auto it = map_numbers.cbegin(); it != map_numbers.cend(); it++) {
-//        Json json("{number:" + it->first + "}");
-//        EXPECT_EQ((json[0].first == ValueType::eNumber), it->second);
-//    }
-//}
+    for(auto it = map_numbers.cbegin(); it != map_numbers.cend(); it++) {
+        Config json;
+        json.parseJson("{number:" + it->first + "}");
+        EXPECT_TRUE(json.isJson());
+        EXPECT_EQ(json.size(), 1);
+        EXPECT_EQ(json[0].isNumber(), it->second);
+    }
+}
 
 //TEST(JSON, parse_simple_element) {
 //    std::string test_file_string = "k = 1";
