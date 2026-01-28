@@ -188,7 +188,6 @@ private:
         eARRAY_START,
         eARRAY_VALUE,
         eARRAY_SEPARATOR,
-        eARRAY_COMMENT,
         eARRAY_FINISH,
         eARRAY_ERROR_STATE
     };

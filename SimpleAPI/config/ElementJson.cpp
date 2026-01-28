@@ -845,7 +845,6 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
     std::string value               = "";
     std::string error_string        = "";
     bool is_quotes                  = false;
-//    bool is_separator_comma         = false; //???
     char last_separator_symbol      = '\n';
     uint16_t inner_json_counter     = 0;
     uint16_t inner_array_counter    = 0;
@@ -984,7 +983,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
                 is_quotes = !is_quotes;
             }
 
-            //FIXME: в имени переменной не может быть этих знаков!
+            //FIXME: в имени переменной не может быть этих знаков! (?)
             //защита от дурака: кавычки, именованные списки, массивы
             if(!is_quotes) {
                 switch(ch_current) {
@@ -1135,7 +1134,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
     }
 
     //конечный комментарий ...
-    if(state == ParseState::eJSON_FINISH) // предполагается, что заполнен state_comment
+    if(state == ParseState::eJSON_FINISH)
     {
         AppendMainSuffixComment();
     }
