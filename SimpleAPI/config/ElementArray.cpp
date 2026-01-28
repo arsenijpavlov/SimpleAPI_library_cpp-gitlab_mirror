@@ -79,25 +79,25 @@ Comment ElementArray::get_comment(const size_t index) const {
     return m_values.at(index)->getComment();
 }
 
-std::string &ElementArray::get_prefix_comment(const size_t index) {
-    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
-    return m_values.at(index)->getPrefixComment();
-}
-
 std::string ElementArray::get_prefix_comment(const size_t index) const {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     return m_values.at(index)->getPrefixComment();
-}
-
-std::string &ElementArray::get_suffix_comment(const size_t index) {
-    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
-    return m_values.at(index)->getSuffixComment();
 }
 
 std::string ElementArray::get_suffix_comment(const size_t index) const {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     return m_values.at(index)->getSuffixComment();
 }
+
+//std::string &ElementArray::get_prefix_comment(const size_t index) {
+//    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
+//    return m_values.at(index)->getPrefixComment();
+//}
+
+//std::string &ElementArray::get_suffix_comment(const size_t index) {
+//    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
+//    return m_values.at(index)->getSuffixComment();
+//}
 
 void ElementArray::clear_comment(const size_t index) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)

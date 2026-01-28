@@ -166,19 +166,10 @@ Comment Config::get_comment(const std::string &key) const
     return reinterpret_cast<ElementJson*>(m_value)->get_comment(key);
 }
 
-std::string &Config::get_prefix_comment(const size_t index) {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-    return reinterpret_cast<IElementContainer*>(m_value)->get_prefix_comment(index);
-}
 
 std::string Config::get_prefix_comment(const size_t index) const {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     return reinterpret_cast<IElementContainer*>(m_value)->get_prefix_comment(index);
-}
-
-std::string &Config::get_prefix_comment(const std::string &key) {
-    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
-    return reinterpret_cast<ElementJson*>(m_value)->get_prefix_comment(key);
 }
 
 std::string Config::get_prefix_comment(const std::string &key) const {
@@ -186,25 +177,35 @@ std::string Config::get_prefix_comment(const std::string &key) const {
     return reinterpret_cast<ElementJson*>(m_value)->get_prefix_comment(key);
 }
 
-std::string &Config::get_suffix_comment(const size_t index){
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-    return reinterpret_cast<IElementContainer*>(m_value)->get_suffix_comment(index);
-}
+//std::string &Config::get_prefix_comment(const size_t index) {
+//    __CHECK_TYPE_IS_CONTAINER__((*this))
+//    return reinterpret_cast<IElementContainer*>(m_value)->get_prefix_comment(index);
+//}
+
+//std::string &Config::get_prefix_comment(const std::string &key) {
+//    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+//    return reinterpret_cast<ElementJson*>(m_value)->get_prefix_comment(key);
+//}
 
 std::string Config::get_suffix_comment(const size_t index) const {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     return reinterpret_cast<IElementContainer*>(m_value)->get_suffix_comment(index);
 }
 
-std::string &Config::get_suffix_comment(const std::string &key) {
-    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
-    return reinterpret_cast<ElementJson*>(m_value)->get_suffix_comment(key);
-}
-
 std::string Config::get_suffix_comment(const std::string &key) const {
     __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
     return reinterpret_cast<ElementJson*>(m_value)->get_suffix_comment(key);
 }
+
+//std::string &Config::get_suffix_comment(const size_t index){
+//    __CHECK_TYPE_IS_CONTAINER__((*this))
+//    return reinterpret_cast<IElementContainer*>(m_value)->get_suffix_comment(index);
+//}
+
+//std::string &Config::get_suffix_comment(const std::string &key) {
+//    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+//    return reinterpret_cast<ElementJson*>(m_value)->get_suffix_comment(key);
+//}
 
 Config &Config::clear_comment(const size_t index) {
     __CHECK_TYPE_IS_CONTAINER__((*this))

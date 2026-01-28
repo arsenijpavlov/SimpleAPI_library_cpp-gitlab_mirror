@@ -19,10 +19,12 @@ public:
 
     Comment&        getComment()                                noexcept            { return m_comment; }
     Comment         getComment()                                const noexcept      { return m_comment; }
-    std::string&    getPrefixComment()                          noexcept            { return m_comment.prefix(); }
     std::string     getPrefixComment()                          const noexcept      { return m_comment.prefix(); }
-    std::string&    getSuffixComment()                          noexcept            { return m_comment.suffix(); }
     std::string     getSuffixComment()                          const noexcept      { return m_comment.suffix(); }
+
+    //NOTE: доступы к внутренним значениям строго по set() и get() запросам
+//    std::string&    getPrefixComment()                          noexcept            { return m_comment.prefix(); }
+//    std::string&    getSuffixComment()                          noexcept            { return m_comment.suffix(); }
 
     void            clearComment()                              noexcept            { m_comment.clear(); }
     void            clearPrefixComment()                        noexcept            { m_comment.clearPrefix(); }

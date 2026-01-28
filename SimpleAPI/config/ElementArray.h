@@ -36,10 +36,11 @@ public:
     void    add_suffix_comment(const size_t index, const std::string &content)          override;
     Comment&        get_comment(const size_t index)                                     override;
     Comment         get_comment(const size_t index)                     const           override;
-    std::string&    get_prefix_comment(const size_t index)                              override;
     std::string     get_prefix_comment(const size_t index)              const           override;
-    std::string&    get_suffix_comment(const size_t index)                              override;
     std::string     get_suffix_comment(const size_t index)              const           override;
+    //NOTE: доступы к внутренним значениям строго по set() и get() запросам
+//    std::string&    get_prefix_comment(const size_t index)                              override;
+//    std::string&    get_suffix_comment(const size_t index)                              override;
     void    clear_comment(const size_t index)                                           override;
     void    clear_prefix_comment(const size_t index)                                    override;
     void    clear_suffix_comment(const size_t index)                                    override;

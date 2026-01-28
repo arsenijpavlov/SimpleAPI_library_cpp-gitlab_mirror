@@ -42,25 +42,26 @@ Comment ElementJson::get_comment(const size_t index) const {
     return m_values.at(index).second->getComment();
 }
 
-std::string &ElementJson::get_prefix_comment(const size_t index) {
-    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
-    return m_values.at(index).second->getPrefixComment();
-}
-
 std::string ElementJson::get_prefix_comment(const size_t index) const {
+
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     return m_values.at(index).second->getPrefixComment();
-}
-
-std::string &ElementJson::get_suffix_comment(const size_t index) {
-    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
-    return m_values.at(index).second->getSuffixComment();
 }
 
 std::string ElementJson::get_suffix_comment(const size_t index) const {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     return m_values.at(index).second->getSuffixComment();
 }
+
+//std::string &ElementJson::get_prefix_comment(const size_t index) {
+//    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
+//    return m_values.at(index).second->getPrefixComment();
+//}
+
+//std::string &ElementJson::get_suffix_comment(const size_t index) {
+//    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
+//    return m_values.at(index).second->getSuffixComment();
+//}
 
 void ElementJson::clear_comment(const size_t index) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
@@ -118,21 +119,21 @@ Comment ElementJson::get_comment(const std::string& key) const {
     return get_comment(get_index_from(key));
 }
 
-std::string &ElementJson::get_prefix_comment(const std::string& key) {
-    return get_prefix_comment(get_index_from(key));
-}
-
 std::string ElementJson::get_prefix_comment(const std::string& key) const {
     return get_prefix_comment(get_index_from(key));
-}
-
-std::string &ElementJson::get_suffix_comment(const std::string& key) {
-    return get_suffix_comment(get_index_from(key));
 }
 
 std::string ElementJson::get_suffix_comment(const std::string& key) const {
     return get_suffix_comment(get_index_from(key));
 }
+
+//std::string &ElementJson::get_prefix_comment(const std::string& key) {
+//    return get_prefix_comment(get_index_from(key));
+//}
+
+//std::string &ElementJson::get_suffix_comment(const std::string& key) {
+//    return get_suffix_comment(get_index_from(key));
+//}
 
 void ElementJson::clear_comment(const std::string& key) {
     clear_comment(get_index_from(key));

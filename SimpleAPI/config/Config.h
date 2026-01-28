@@ -216,10 +216,12 @@ public:
 
     Comment&        getComment()                                    noexcept        { return m_value->getComment(); }       API_ALL
     Comment         getComment()                                    const noexcept  { return m_value->getComment(); }       API_ALL
-    std::string&    getPrefixComment()                              noexcept        { return m_value->getPrefixComment(); } API_ALL
     std::string     getPrefixComment()                              const noexcept  { return m_value->getPrefixComment(); } API_ALL
-    std::string&    getSuffixComment()                              noexcept        { return m_value->getSuffixComment(); } API_ALL
     std::string     getSuffixComment()                              const noexcept  { return m_value->getSuffixComment(); } API_ALL
+
+    //NOTE: доступы к внутренним значениям строго по set() и get() запросам
+//    std::string&    getPrefixComment()                              noexcept        { return m_value->getPrefixComment(); } API_ALL
+//    std::string&    getSuffixComment()                              noexcept        { return m_value->getSuffixComment(); } API_ALL
 
     Config&         clearComment()                                  noexcept;                                               API_ALL
     Config&         clearPrefixComment()                            noexcept;                                               API_ALL
@@ -254,15 +256,19 @@ public:
     Comment         get_comment(const size_t index)                 const;                                                  API_CONTAINER
     Comment         get_comment(const std::string& key)             const;                                                  API_MAP_CONTAINER
 
-    std::string&    get_prefix_comment(const size_t index);                                                                 API_CONTAINER
     std::string     get_prefix_comment(const size_t index)          const;                                                  API_CONTAINER
-    std::string&    get_prefix_comment(const std::string& key);                                                             API_MAP_CONTAINER
     std::string     get_prefix_comment(const std::string& key)      const;                                                  API_MAP_CONTAINER
 
-    std::string&    get_suffix_comment(const size_t index);                                                                 API_CONTAINER
+    //NOTE: доступы к внутренним значениям строго по set() и get() запросам
+//    std::string&    get_prefix_comment(const size_t index);                                                                 API_CONTAINER
+//    std::string&    get_prefix_comment(const std::string& key);                                                             API_MAP_CONTAINER
+
     std::string     get_suffix_comment(const size_t index)          const;                                                  API_CONTAINER
-    std::string&    get_suffix_comment(const std::string& key);                                                             API_MAP_CONTAINER
     std::string     get_suffix_comment(const std::string& key)      const;                                                  API_MAP_CONTAINER
+
+    //NOTE: доступы к внутренним значениям строго по set() и get() запросам
+//    std::string&    get_suffix_comment(const size_t index);                                                                 API_CONTAINER
+//    std::string&    get_suffix_comment(const std::string& key);                                                             API_MAP_CONTAINER
 
     Config&         clear_comment(const size_t index);                                                                      API_CONTAINER
     Config&         clear_comment(const std::string& key);                                                                  API_MAP_CONTAINER

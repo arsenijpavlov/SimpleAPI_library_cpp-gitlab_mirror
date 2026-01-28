@@ -17,10 +17,11 @@ public:
     virtual void    add_suffix_comment(const size_t index, const std::string &content)      = 0;
     virtual Comment&        get_comment(const size_t index)                                 = 0;
     virtual Comment         get_comment(const size_t index)                 const           = 0;
-    virtual std::string&    get_prefix_comment(const size_t index)                          = 0;
     virtual std::string     get_prefix_comment(const size_t index)          const           = 0;
-    virtual std::string&    get_suffix_comment(const size_t index)                          = 0;
     virtual std::string     get_suffix_comment(const size_t index)          const           = 0;
+    //NOTE: доступы к внутренним значениям строго по set() и get() запросам
+//    virtual std::string&    get_prefix_comment(const size_t index)                          = 0;
+//    virtual std::string&    get_suffix_comment(const size_t index)                          = 0;
     virtual void    clear_comment(const size_t index)                                       = 0;
     virtual void    clear_prefix_comment(const size_t index)                                = 0;
     virtual void    clear_suffix_comment(const size_t index)                                = 0;
