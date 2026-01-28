@@ -536,32 +536,25 @@ TEST(JSON, get_key) {
 //    EXPECT_EQ(json[2].first, ValueType::eJson);
 //}
 
-//TEST(JSON, erase_it) {
-//    Json json = json_example;
-//    json.erase(json.begin() + 2);
-//    EXPECT_EQ(json[2].first, ValueType::eBool);
+TEST(JSON, erase_at) {
+    Config json = json_example;
+    json.erase_at(2);
+    EXPECT_TRUE(json[2].isBool());
+}
 
-//    json = json_example;
-//    json.erase(2);
-//    EXPECT_EQ(json[2].first, ValueType::eBool);
+TEST(JSON, erase_key) {
+    Config json = json_example;
 
-//    json = json_example;
-//    json.erase(json.begin(), json.begin() + 3);
-//    EXPECT_EQ(json[0].first, ValueType::eBool);
-//}
+    json.erase_at("key_0");
+    EXPECT_TRUE(json[0].isNumber());
+}
 
-//TEST(JSON, erase_key) {
-//    Json json = json_example;
-
-//    json.erase("key_0");
-//    EXPECT_EQ(json[0].first, ValueType::eNumber);
-//}
-
+//FIXME: TEST(JSON, erase_keys)
 //TEST(JSON, erase_keys) {
-//    Json json = json_example;
+//    Config json = json_example;
 
-//    json.erase({"key_0", "key_1", "key_2"});
-//    EXPECT_EQ(json[0].first, ValueType::eBool);
+//    json.erase_at({"key_0", "key_1", "key_2"});
+//    EXPECT_TRUE(json[0].first, ValueType::eBool);
 //}
 
 TEST(JSON, check_numbers) {
@@ -597,37 +590,37 @@ TEST(JSON, check_numbers) {
     }
 }
 
-//TEST(JSON, parse_simple_element) {
-//    std::string test_file_string = "k = 1";
-//    Json json;
-//    json.parseJSON(test_file_string);
-//    EXPECT_EQ(json.size(), 1);
+TEST(JSON, parse_simple_element) {
+    std::string test_file_string = "k = 1";
+    Config json;
+    json.parseJson(test_file_string);
+    EXPECT_EQ(json.size(), 1);
 
-//    test_file_string = "k = \"string line\"";
-//    json.parseJSON(test_file_string);
-//    EXPECT_EQ(json.size(), 1);
+    test_file_string = "k = \"string line\"";
+    json.parseJson(test_file_string);
+    EXPECT_EQ(json.size(), 1);
 
-//    test_file_string = "k = true";
-//    json.parseJSON(test_file_string);
-//    EXPECT_EQ(json.size(), 1);
+    test_file_string = "k = true";
+    json.parseJson(test_file_string);
+    EXPECT_EQ(json.size(), 1);
 
-//    test_file_string = "k = ";
-//    json.parseJSON(test_file_string);
-//    EXPECT_EQ(json.size(), 1);
+    test_file_string = "k = ";
+    json.parseJson(test_file_string);
+    EXPECT_EQ(json.size(), 1);
 
-//    test_file_string = "k = null";
-//    json.parseJSON(test_file_string);
-//    EXPECT_EQ(json.size(), 1);
+    test_file_string = "k = null";
+    json.parseJson(test_file_string);
+    EXPECT_EQ(json.size(), 1);
 
-//    test_file_string = "k = word";
-//    json.parseJSON(test_file_string);
-//    EXPECT_EQ(json.size(), 1);
+    test_file_string = "k = word";
+    json.parseJson(test_file_string);
+    EXPECT_EQ(json.size(), 1);
 
-//    test_file_string = "k = {a=b}";
-//    json.parseJSON(test_file_string);
-//    EXPECT_EQ(json.size(), 1);
+    test_file_string = "k = {a=b}";
+    json.parseJson(test_file_string);
+    EXPECT_EQ(json.size(), 1);
 
-//    test_file_string = "k = [a,b]";
-//    json.parseJSON(test_file_string);
-//    EXPECT_EQ(json.size(), 1);
-//}
+    test_file_string = "k = [a,b]";
+    json.parseJson(test_file_string);
+    EXPECT_EQ(json.size(), 1);
+}
