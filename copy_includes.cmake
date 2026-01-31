@@ -18,22 +18,21 @@ message("output: \"${CMAKE_ARGV4}\"")
 
 make_directory(${CMAKE_ARGV4})
 
-file(GLOB_RECURSE headers_list "${CMAKE_ARGV3}/**/*.h" )
+file(GLOB_RECURSE headers_list "${CMAKE_ARGV3}/*.h" )
 foreach(header ${headers_list})
     string(APPEND all_headers " '${header}'")
 
-    message("preview: ${header}")
+#    message("preview: ${header}")
     string(REPLACE ${CMAKE_ARGV3}/ "" header ${header})
-    message("current: ${header}")
+#    message("current: ${header}")
 
-    string(REGEX REPLACE "/.*\.h" "" header_dir ${header})
+    string(REGEX REPLACE "\/[^\/]*\.h" "" header_dir ${header})
     if(NOT ${header_dir} MATCHES "\.h")
         message("dir: [${header_dir}]")
         make_directory("${CMAKE_ARGV4}/${header_dir}")
     endif()
 
 #    message("\"${CMAKE_ARGV3}/${header}\" -> \"${CMAKE_ARGV4}/${header}\"")
-
     execute_process(
         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_ARGV3}/${header}" "${CMAKE_ARGV4}/${header_dir}"
     )

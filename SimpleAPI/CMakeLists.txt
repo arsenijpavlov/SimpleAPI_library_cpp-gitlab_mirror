@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 set(SIMPLE_API_MAIN_DIR ${CMAKE_CURRENT_LIST_DIR}/..)
 include(${SIMPLE_API_MAIN_DIR}/utils.cmake)
 
-#message("CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
+message("CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     project(SimpleAPI LANGUAGES CXX)
 else()

@@ -16,7 +16,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../SimpleAPI ${CMAKE_CURRENT_
 add_executable(${PROJECT_NAME})
 target_sources(${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_sources})
 
-if(CMAKE_BUILD_TYPE STREQUAL "RELEASE")
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
     set(SimpleAPI_lib_name SimpleAPI)
 else()
     set(SimpleAPI_lib_name SimpleAPId)
