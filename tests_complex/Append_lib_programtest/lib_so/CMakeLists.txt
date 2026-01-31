@@ -19,7 +19,7 @@ endif()
 
 # Предварительная сборка библиотеки, чтобы было, куда обращаться
 # Предполагаем, что если есть файл библиотеки, то есть и заголовочные файлы рядом
-if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/lib/${BUILD_STATE_NAME})
+if(NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/lib/${BUILD_STATE_NAME}")
     set(BUILD_DIR "${CMAKE_CURRENT_LIST_DIR}/SimpleAPI_for_test/build")
     make_directory(${BUILD_DIR})
     make_directory(${CMAKE_CURRENT_LIST_DIR}/lib)
@@ -29,6 +29,7 @@ if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/lib/${BUILD_STATE_NAME})
     execute_process(
         WORKING_DIRECTORY ${BUILD_DIR}
         COMMAND "${CMAKE_COMMAND}"
+                -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                 -DSIMPLE_API_MAIN_DIR=${SIMPLE_API_MAIN_DIR}
                 -DSIMPLE_API_OUTPUT_LIB_DIR=${CMAKE_CURRENT_LIST_DIR}/lib
                 -DSIMPLE_API_OUTPUT_INCLUDE_DIR=${CMAKE_CURRENT_LIST_DIR}/lib/include

@@ -55,7 +55,7 @@ if(NOT SimpleAPI_FOUND)
         # обязательно в два раздельных вызова, иначе не работает
         execute_process(
             WORKING_DIRECTORY ${BUILD_DIR}
-            COMMAND "${CMAKE_COMMAND}" -DCMAKE_BUILD_TYPE=RELEASE -DSIMPLE_API_STATIC_BUILD="on" ${CMAKE_CURRENT_LIST_DIR}
+            COMMAND "${CMAKE_COMMAND}" -DCMAKE_BUILD_TYPE=Release -DSIMPLE_API_STATIC_BUILD="on" ${CMAKE_CURRENT_LIST_DIR}
         )
         execute_process(
             WORKING_DIRECTORY ${BUILD_DIR}

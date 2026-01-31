@@ -7,7 +7,7 @@ set(SIMPLE_API_OUTPUT_INCLUDE_DIR "${CMAKE_CURRENT_LIST_DIR}/include")
 # Обязательно, т.к. CMakeLists.txt корневой для данной сборки
 project(SimpleAPI_library_builder)
 
-if(CMAKE_BUILD_TYPE STREQUAL "RELEASE")
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
     add_subdirectory(
         "${CMAKE_CURRENT_LIST_DIR}/../../SimpleAPI"
         "${CMAKE_CURRENT_LIST_DIR}/build/SimpleAPI"
