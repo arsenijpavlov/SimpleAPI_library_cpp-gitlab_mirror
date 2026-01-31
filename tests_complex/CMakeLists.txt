@@ -6,15 +6,15 @@ project(SimpleAPI_complex_tests)
 
 option(ENABLE_TEST_LIBRARY_APP  "Base lib testing app enabled"  on)
 option(ENABLE_TEST_JSON_APP     "Json testing app enabled"      off)
-option(ENABLE_TEST_SOCKETS_APP  "Sockets testing app enabled"   on)
-option(ENABLE_TEST_COLORS_APP   "Color choiser app enabled"     on)
+option(ENABLE_TEST_SOCKETS_APP  "Sockets testing app enabled"   off)
+option(ENABLE_TEST_COLORS_APP   "Color choiser app enabled"     off)
 option(ENABLE_TEST_SECURITY_APP "(De)Chiphering app enabled"    off)
 
 
 #test append library
 if(ENABLE_TEST_LIBRARY_APP)
-    option(ENABLE_TEST_LIBRARY_AS_ADD_SUBDIRECTORY  "TEST add_subdirectory()"   off)
-    option(ENABLE_TEST_LIBRARY_AS_FIND_PACKAGE      "TEST find_package()"       off)
+    option(ENABLE_TEST_LIBRARY_AS_ADD_SUBDIRECTORY  "TEST add_subdirectory()"   on)
+    option(ENABLE_TEST_LIBRARY_AS_FIND_PACKAGE      "TEST find_package()"       on)
     option(ENABLE_TEST_LIBRARY_AS_SO                "TEST add as .so"           on)
 
     add_subdirectory(Append_lib_programtest)

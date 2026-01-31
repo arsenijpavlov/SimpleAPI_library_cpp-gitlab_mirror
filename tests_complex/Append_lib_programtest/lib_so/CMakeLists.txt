@@ -11,9 +11,15 @@ file(GLOB ${PROJECT_NAME}_sources
     "*.h"
 )
 
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(BUILD_STATE_NAME "libSimpleAPI.so")
+else()
+    set(BUILD_STATE_NAME "libSimpleAPId.so")
+endif()
+
 # Предварительная сборка библиотеки, чтобы было, куда обращаться
 # Предполагаем, что если есть файл библиотеки, то есть и заголовочные файлы рядом
-if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/lib/libSimpleAPI.so)
+if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/lib/${BUILD_STATE_NAME})
     set(BUILD_DIR "${CMAKE_CURRENT_LIST_DIR}/SimpleAPI_for_test/build")
     make_directory(${BUILD_DIR})
     make_directory(${CMAKE_CURRENT_LIST_DIR}/lib)
@@ -37,5 +43,5 @@ endif()
 add_executable(${PROJECT_NAME})
 target_sources(${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_sources})
 
-target_link_libraries(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR}/lib/libSimpleAPI.so)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR}/lib/${BUILD_STATE_NAME})
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR}/lib/include/)
