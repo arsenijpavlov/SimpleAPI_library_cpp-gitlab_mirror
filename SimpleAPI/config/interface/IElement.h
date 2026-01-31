@@ -4,7 +4,7 @@
 #include "../Comment.h"
 #include "../ConfigCommon.h"
 
-#include "IComment.cpp"
+#include "IComment.h"
 
 #include <map>
 #include <vector>
