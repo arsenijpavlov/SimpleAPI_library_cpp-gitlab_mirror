@@ -4,7 +4,7 @@ include(${SIMPLE_API_MAIN_DIR}/utils.cmake)
 project(Append_library_lib_so_Test LANGUAGES CXX)
 print_project_name(${PROJECT_NAME})
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/../bin")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/../../bin")
 
 file(GLOB ${PROJECT_NAME}_sources
     "*.cpp"

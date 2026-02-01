@@ -4,10 +4,18 @@ include(${SIMPLE_API_MAIN_DIR}/utils.cmake)
 
 message("CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    project(SimpleAPI LANGUAGES CXX)
+    set(COMPLEX_PROJECT_NAME SimpleAPI)
 else()
-    project(SimpleAPId LANGUAGES CXX)
+    set(COMPLEX_PROJECT_NAME SimpleAPId)
 endif()
+set(OUTPUT_NAME ${COMPLEX_PROJECT_NAME})
+if(SIMPLE_API_STATIC_BUILD)
+    set(COMPLEX_PROJECT_NAME ${COMPLEX_PROJECT_NAME}_static)
+else()
+    set(COMPLEX_PROJECT_NAME ${COMPLEX_PROJECT_NAME}_shared)
+endif()
+
+project(${COMPLEX_PROJECT_NAME} LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 11)
 print_project_name(${PROJECT_NAME})
@@ -25,23 +33,23 @@ else()
 endif()
 message("SimpleAPI output directory: ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
 
-
 if(SIMPLE_API_STATIC_BUILD)
-    add_library(${PROJECT_NAME} STATIC)
+    add_library(${OUTPUT_NAME} STATIC)
 else()
-    add_library(${PROJECT_NAME} SHARED)
+    add_library(${OUTPUT_NAME} SHARED)
 endif()
-unset(SIMPLE_API_STATIC_BUILD)
 
-target_sources(${PROJECT_NAME} PRIVATE
+target_sources(${OUTPUT_NAME} PRIVATE
     ${${PROJECT_NAME}_sources}
     ${${PROJECT_NAME}_headers}
 )
-target_link_libraries(${PROJECT_NAME} PUBLIC -pthread)
+target_link_libraries(${OUTPUT_NAME} PUBLIC -pthread)
+message("creating ${Yellow}${Bold}${PROJECT_NAME}${Reset}")
 
-if(SIMPLE_API_OUTPUT_INCLUDE_DIR)
+message("SIMPLE_API_STATIC_BUILD: ${SIMPLE_API_STATIC_BUILD}")
+if(SIMPLE_API_OUTPUT_INCLUDE_DIR AND NOT SIMPLE_API_STATIC_BUILD)
     # упаковка готовой библиотеки в конечную директорию
-    add_custom_command(TARGET ${PROJECT_NAME}
+    add_custom_command(TARGET ${OUTPUT_NAME}
         PRE_LINK
         COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_LIST_DIR}/../copy_includes.cmake"
                     "${CMAKE_CURRENT_LIST_DIR}" "${SIMPLE_API_OUTPUT_INCLUDE_DIR}"
@@ -49,7 +57,7 @@ if(SIMPLE_API_OUTPUT_INCLUDE_DIR)
     message("SimpleAPI output include directory: ${SIMPLE_API_OUTPUT_INCLUDE_DIR}")
 else()
     # упаковка готовой библиотеки в конечную директорию
-    add_custom_command(TARGET ${PROJECT_NAME}
+    add_custom_command(TARGET ${OUTPUT_NAME}
         PRE_LINK
         COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_LIST_DIR}/../copy_includes.cmake"
                     "${CMAKE_CURRENT_LIST_DIR}" "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include"
@@ -57,12 +65,15 @@ else()
     message("SimpleAPI output include directory: ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
 endif()
 
+# если собирали статику, сбросить флаг
+set(SIMPLE_API_STATIC_BUILD off)
+
 #----------------------------
 #TODO: ВРЕМЕННОЕ ХРАНЕНИЕ
-target_sources(${PROJECT_NAME} PRIVATE pre_WIKI.md)
+target_sources(${OUTPUT_NAME} PRIVATE pre_WIKI.md)
 #----------------------------
 
-install(TARGETS ${PROJECT_NAME}
+install(TARGETS ${OUTPUT_NAME}
     DESTINATION /opt/SimpleAPI
 )
 install(DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include"

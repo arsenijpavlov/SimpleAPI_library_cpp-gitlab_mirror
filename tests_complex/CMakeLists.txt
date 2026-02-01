@@ -13,9 +13,9 @@ option(ENABLE_TEST_SECURITY_APP "(De)Chiphering app enabled"    off)
 
 #test append library
 if(ENABLE_TEST_LIBRARY_APP)
-    option(ENABLE_TEST_LIBRARY_AS_ADD_SUBDIRECTORY  "TEST add_subdirectory()"   on)
+    option(ENABLE_TEST_LIBRARY_AS_ADD_SUBDIRECTORY  "TEST add_subdirectory()"   off)
     option(ENABLE_TEST_LIBRARY_AS_FIND_PACKAGE      "TEST find_package()"       on)
-    option(ENABLE_TEST_LIBRARY_AS_SO                "TEST add as .so"           on)
+    option(ENABLE_TEST_LIBRARY_AS_SO                "TEST add as .so"           off)
 
     add_subdirectory(Append_lib_programtest)
 endif()
