@@ -55,14 +55,21 @@ if(NOT SimpleAPI_FOUND)
         # обязательно в два раздельных вызова, иначе не работает
         execute_process(
             WORKING_DIRECTORY ${BUILD_DIR}
-            COMMAND "${CMAKE_COMMAND}" -DCMAKE_BUILD_TYPE=Release -DSIMPLE_API_STATIC_BUILD="on" ${CMAKE_CURRENT_LIST_DIR}
+            COMMAND "${CMAKE_COMMAND}" -DCMAKE_BUILD_TYPE=Release ${CMAKE_CURRENT_LIST_DIR}
         )
         execute_process(
-            WORKING_DIRECTORY ${BUILD_DIR}
-            COMMAND "${CMAKE_COMMAND}" --build ${BUILD_DIR}
+            COMMAND nproc
+            OUTPUT_VARIABLE N_CORES
+            OUTPUT_STRIP_TRAILING_WHITESPACE
         )
-        if(EXISTS ${BUILD_DIR}/SimpleAPI/libSimpleAPI.a)
-            file(COPY ${BUILD_DIR}/SimpleAPI/libSimpleAPI.a
+        #message("N_CORES: \"${N_CORES}\"")
+        execute_process(
+            WORKING_DIRECTORY ${BUILD_DIR}
+            COMMAND "${CMAKE_COMMAND}" --build ${BUILD_DIR} -- "-j${N_CORES}" # -j подаётся не в CMake, а уже непосредственно утилите сборки
+        )
+
+        if(EXISTS ${BUILD_DIR}/SimpleAPI/libSimpleAPI.so)
+            file(COPY ${BUILD_DIR}/SimpleAPI/libSimpleAPI.so
                 DESTINATION ${CMAKE_CURRENT_LIST_DIR}/lib
             )
         endif()
