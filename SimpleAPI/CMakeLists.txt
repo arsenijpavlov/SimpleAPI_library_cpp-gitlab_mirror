@@ -50,12 +50,24 @@ message("SIMPLE_API_STATIC_BUILD: ${SIMPLE_API_STATIC_BUILD}")
 if(NOT SIMPLE_API_OUTPUT_INCLUDE_DIR)
     set(SIMPLE_API_OUTPUT_INCLUDE_DIR "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include")
 endif()
-# упаковка готовой библиотеки в конечную директорию
+
+# упаковка готовой библиотеки(shared) в конечную директорию
 add_custom_command(TARGET ${PROJECT_NAME}
     PRE_LINK
     COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_LIST_DIR}/../copy_includes.cmake"
                 "${CMAKE_CURRENT_LIST_DIR}" "${SIMPLE_API_OUTPUT_INCLUDE_DIR}"
 )
+
+if(SIMPLE_API_STATIC_BUILD)
+    # упаковка готовой библиотеки(static) в конечную директорию
+    add_custom_command(TARGET ${PROJECT_NAME}
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}.a"
+                "${SIMPLE_API_OUTPUT_LIB_DIR}"
+    )
+endif()
+
 message("SimpleAPI output include directory: ${SIMPLE_API_OUTPUT_INCLUDE_DIR}")
 
 # если собирали статику, сбросить флаг
