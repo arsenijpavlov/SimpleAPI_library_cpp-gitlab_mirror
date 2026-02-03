@@ -5,11 +5,16 @@ set(SIMPLE_API_CMAKE_GENERATED_DIR ${CMAKE_CURRENT_LIST_DIR}/build-cmake-cache)
 
 include(${SIMPLE_API_MAIN_DIR}/utils.cmake)
 
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release")
+endif()
+
 if(CMAKE_BUILD_TYPE STREQUAL Debug )
     message("${Yellow}DEBUG mode enabled${Reset}")
     add_compile_definitions(__DEBUG__)
 endif()
 
+message("CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 project(SimpleAPI_main LANGUAGES CXX)
 print_project_name(${PROJECT_NAME})
 

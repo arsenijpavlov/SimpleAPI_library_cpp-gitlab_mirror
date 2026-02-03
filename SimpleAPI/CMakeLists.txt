@@ -33,64 +33,65 @@ else()
 endif()
 message("SimpleAPI output directory: ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
 
-if(SIMPLE_API_STATIC_BUILD)
-    add_library(${PROJECT_NAME} STATIC)
-else()
-    add_library(${PROJECT_NAME} SHARED)
-endif()
+if(NOT TARGET ${PROJECT_NAME})
+    if(SIMPLE_API_STATIC_BUILD)
+        add_library(${PROJECT_NAME} STATIC)
+    else()
+        add_library(${PROJECT_NAME} SHARED)
+    endif()
 
-target_sources(${PROJECT_NAME} PRIVATE
-    ${${PROJECT_NAME}_sources}
-    ${${PROJECT_NAME}_headers}
-)
-target_link_libraries(${PROJECT_NAME} PUBLIC -pthread)
-message("creating ${Yellow}${Bold}${PROJECT_NAME}${Reset}")
-
-message("SIMPLE_API_STATIC_BUILD: ${SIMPLE_API_STATIC_BUILD}")
-if(NOT SIMPLE_API_OUTPUT_INCLUDE_DIR)
-    set(SIMPLE_API_OUTPUT_INCLUDE_DIR "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include")
-endif()
-
-# упаковка готовой библиотеки(shared) в конечную директорию
-add_custom_command(TARGET ${PROJECT_NAME}
-    PRE_LINK
-    COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_LIST_DIR}/../copy_includes.cmake"
-                "${CMAKE_CURRENT_LIST_DIR}" "${SIMPLE_API_OUTPUT_INCLUDE_DIR}"
-)
-
-if(SIMPLE_API_STATIC_BUILD)
-    # упаковка готовой библиотеки(static) в конечную директорию
-    add_custom_command(TARGET ${PROJECT_NAME}
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}.a"
-                "${SIMPLE_API_OUTPUT_LIB_DIR}"
+    target_sources(${PROJECT_NAME} PRIVATE
+        ${${PROJECT_NAME}_sources}
+        ${${PROJECT_NAME}_headers}
     )
+    target_link_libraries(${PROJECT_NAME} PUBLIC -pthread)
+    message("creating ${Yellow}${Bold}${PROJECT_NAME}${Reset}")
+
+    message("SIMPLE_API_STATIC_BUILD: ${SIMPLE_API_STATIC_BUILD}")
+    if(NOT SIMPLE_API_OUTPUT_INCLUDE_DIR)
+        set(SIMPLE_API_OUTPUT_INCLUDE_DIR "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include")
+    endif()
+
+    # упаковка готовой библиотеки(shared) в конечную директорию
+    add_custom_command(TARGET ${PROJECT_NAME}
+        PRE_LINK
+        COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_LIST_DIR}/../copy_includes.cmake"
+                    "${CMAKE_CURRENT_LIST_DIR}" "${SIMPLE_API_OUTPUT_INCLUDE_DIR}"
+    )
+
+    if(SIMPLE_API_STATIC_BUILD)
+        # упаковка готовой библиотеки(static) в конечную директорию
+        add_custom_command(TARGET ${PROJECT_NAME}
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    "${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}.a"
+                    "${SIMPLE_API_OUTPUT_LIB_DIR}"
+        )
+    endif()
+
+    #----------------------------
+    #TODO: ВРЕМЕННОЕ ХРАНЕНИЕ
+    target_sources(${PROJECT_NAME} PRIVATE pre_WIKI.md)
+    #----------------------------
+
+    install(TARGETS ${PROJECT_NAME}
+        DESTINATION /opt/SimpleAPI
+    )
+    install(DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include"
+        DESTINATION /opt/SimpleAPI
+    )
+
+    string(TOLOWER ${PROJECT_NAME} PACKAGE_NAME)
+    set(CPACK_GENERATOR                 "DEB")
+    set(CPACK_DEBIAN_FILE_NAME          DEB-DEFAULT)
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS    "")
+    set(CPACK_DEBIAN_PACKAGE_NAME       ${PACKAGE_NAME})
+    set(CPACK_DEBIAN_PACKAGE_VERSION    "0.0.2")
+    set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Riddick")
+    set(CPACK_PACKAGE_VENDOR            "Riddick")
+    include(CPack)
 endif()
 
 message("SimpleAPI output include directory: ${SIMPLE_API_OUTPUT_INCLUDE_DIR}")
-
 # если собирали статику, сбросить флаг
 set(SIMPLE_API_STATIC_BUILD off)
-
-#----------------------------
-#TODO: ВРЕМЕННОЕ ХРАНЕНИЕ
-target_sources(${PROJECT_NAME} PRIVATE pre_WIKI.md)
-#----------------------------
-
-install(TARGETS ${OUTPUT_NAME}
-    DESTINATION /opt/SimpleAPI
-)
-install(DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/include"
-    DESTINATION /opt/SimpleAPI
-)
-
-string(TOLOWER ${PROJECT_NAME} PACKAGE_NAME)
-set(CPACK_GENERATOR                 "DEB")
-set(CPACK_DEBIAN_FILE_NAME          DEB-DEFAULT)
-set(CPACK_DEBIAN_PACKAGE_DEPENDS    "")
-set(CPACK_DEBIAN_PACKAGE_NAME       ${PACKAGE_NAME})
-set(CPACK_DEBIAN_PACKAGE_VERSION    "0.0.2")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Riddick")
-set(CPACK_PACKAGE_VENDOR            "Riddick")
-include(CPack)
