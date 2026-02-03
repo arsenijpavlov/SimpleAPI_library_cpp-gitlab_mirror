@@ -27,9 +27,18 @@ function(find_SimpleAPI)
         NO_CMAKE_ENVIRONMENT_PATH
     )
 
+    # shared
     find_library(SimpleAPI_LIBRARIES
         NAMES SimpleAPI
-                SimpleAPI_static
+        PATHS ${CMAKE_CURRENT_LIST_DIR}/lib
+
+        NO_DEFAULT_PATH
+        NO_CMAKE_ENVIRONMENT_PATH
+        NO_CMAKE_PATH
+    )
+    # static
+    find_library(SimpleAPI_STATIC_LIBRARIES
+        NAMES SimpleAPI_static
         PATHS ${CMAKE_CURRENT_LIST_DIR}/lib
 
         NO_DEFAULT_PATH
@@ -45,9 +54,9 @@ unset(SimpleAPI_FOUND)
 find_package(PkgConfig REQUIRED)
 
 if(NOT SimpleAPI_FOUND)
-    find_SimpleAPI()
+    find_SimpleAPI() # первичный поиск (библиотека уже собрана)
 
-    if(NOT SimpleAPI_FOUND)
+    if(NOT SimpleAPI_FOUND) # если библиотека не собрана - собрать
         set(BUILD_DIR "${CMAKE_CURRENT_LIST_DIR}/build")
         set(BUILD_DIR_STATIC "${CMAKE_CURRENT_LIST_DIR}/build_static")
         make_directory(${BUILD_DIR})
@@ -57,15 +66,15 @@ if(NOT SimpleAPI_FOUND)
         execute_process(
             COMMAND nproc
             OUTPUT_VARIABLE N_CORES
-            OUTPUT_STRIP_TRAILING_WHITESPACE
+            OUTPUT_STRIP_TRAILING_WHITESPACE # удалит лишний перенос строки
         )
         #message("N_CORES: \"${N_CORES}\"")
 
-        # обязательно в два раздельных вызова, иначе не работает
+        # (динамика) обязательно в два раздельных вызова, иначе не работает --------------------------
         execute_process(
             WORKING_DIRECTORY ${BUILD_DIR}
             COMMAND "${CMAKE_COMMAND}"
-                    -DCMAKE_BUILD_TYPE=Release
+                    -DCMAKE_BUILD_TYPE=Debug
                     ${CMAKE_CURRENT_LIST_DIR}
         )
         execute_process(
@@ -74,11 +83,13 @@ if(NOT SimpleAPI_FOUND)
                     --build ${BUILD_DIR}
                     -- "-j${N_CORES}" # -j подаётся не в CMake, а уже непосредственно утилите сборки
         )
+        # --------------------------------------------------------------------------------------------
 
+        # (статика) обязательно в два раздельных вызова, иначе не работает ---------------------------
         execute_process(
             WORKING_DIRECTORY ${BUILD_DIR_STATIC}
             COMMAND "${CMAKE_COMMAND}"
-                    -DCMAKE_BUILD_TYPE=Release
+                    -DCMAKE_BUILD_TYPE=Debug
                     -DSIMPLE_API_STATIC_BUILD=on
                     ${CMAKE_CURRENT_LIST_DIR}
         )
@@ -88,17 +99,42 @@ if(NOT SimpleAPI_FOUND)
                     --build ${BUILD_DIR_STATIC}
                     -- "-j${N_CORES}" # -j подаётся не в CMake, а уже непосредственно утилите сборки
         )
-
         if(EXISTS ${BUILD_DIR_STATIC}/SimpleAPI/libSimpleAPI_static.a)
             file(COPY ${BUILD_DIR_STATIC}/SimpleAPI/libSimpleAPI_static.a
                 DESTINATION ${CMAKE_CURRENT_LIST_DIR}/lib
             )
         endif()
+        # --------------------------------------------------------------------------------------------
 
-        find_SimpleAPI()
+        find_SimpleAPI() # вторичный поиск, если не было найдено до этого
 
-        include(FindPackageHandleStandardArgs)
-        find_package_handle_standard_args(SimpleAPI DEFAULT_MSG SimpleAPI_LIBRARIES SimpleAPI_INCLUDE_DIRS)
-        mark_as_advanced(SimpleAPI_LIBRARIES SimpleAPI_INCLUDE_DIRS)
     endif(NOT SimpleAPI_FOUND)
 endif(NOT SimpleAPI_FOUND)
+
+set(SHARED_LIB_NAME SimpleAPI)
+if(SimpleAPI_LIBRARIES AND NOT TARGET ${SHARED_LIB_NAME})
+    add_library(${SHARED_LIB_NAME} SHARED IMPORTED)
+    set_target_properties(${SHARED_LIB_NAME} PROPERTIES
+        IMPORTED_LOCATION "${SimpleAPI_LIBRARIES}"
+        INTERFACE_INCLUDE_DIRECTORIES "${SimpleAPI_INCLUDE_DIRS}"
+    )
+endif()
+
+set(STATIC_LIB_NAME SimpleAPI_static)
+if(SimpleAPI_STATIC_LIBRARIES AND NOT TARGET ${STATIC_LIB_NAME})
+    add_library(${STATIC_LIB_NAME} STATIC IMPORTED)
+    set_target_properties(${STATIC_LIB_NAME} PROPERTIES
+        IMPORTED_LOCATION "${SimpleAPI_STATIC_LIBRARIES}"
+        INTERFACE_INCLUDE_DIRECTORIES "${SimpleAPI_INCLUDE_DIRS}"
+    )
+endif()
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(
+    SimpleAPI
+    DEFAULT_MSG
+    SimpleAPI_LIBRARIES SimpleAPI_INCLUDE_DIRS
+)
+if(SimpleAPI_FOUND)
+    mark_as_advanced(SimpleAPI_LIBRARIES SimpleAPI_INCLUDE_DIRS)
+endif()

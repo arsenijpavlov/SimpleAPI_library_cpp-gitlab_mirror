@@ -27,9 +27,18 @@ function(find_SimpleAPId)
         NO_CMAKE_ENVIRONMENT_PATH
     )
 
+    # shared
     find_library(SimpleAPId_LIBRARIES
         NAMES SimpleAPId
-                SimpleAPId_static
+        PATHS ${CMAKE_CURRENT_LIST_DIR}/lib
+
+        NO_DEFAULT_PATH
+        NO_CMAKE_ENVIRONMENT_PATH
+        NO_CMAKE_PATH
+    )
+    # static
+    find_library(SimpleAPId_STATIC_LIBRARIES
+        NAMES SimpleAPId_static
         PATHS ${CMAKE_CURRENT_LIST_DIR}/lib
 
         NO_DEFAULT_PATH
@@ -45,9 +54,9 @@ unset(SimpleAPId_FOUND)
 find_package(PkgConfig REQUIRED)
 
 if(NOT SimpleAPId_FOUND)
-    find_SimpleAPId()
+    find_SimpleAPId() # первичный поиск (библиотека уже собрана)
 
-    if(NOT SimpleAPId_FOUND)
+    if(NOT SimpleAPId_FOUND) # если библиотека не собрана - собрать
         set(BUILD_DIR "${CMAKE_CURRENT_LIST_DIR}/build")
         set(BUILD_DIR_STATIC "${CMAKE_CURRENT_LIST_DIR}/build_static")
         make_directory(${BUILD_DIR})
@@ -57,11 +66,11 @@ if(NOT SimpleAPId_FOUND)
         execute_process(
             COMMAND nproc
             OUTPUT_VARIABLE N_CORES
-            OUTPUT_STRIP_TRAILING_WHITESPACE
+            OUTPUT_STRIP_TRAILING_WHITESPACE # удалит лишний перенос строки
         )
         #message("N_CORES: \"${N_CORES}\"")
 
-        # обязательно в два раздельных вызова, иначе не работает
+        # (динамика) обязательно в два раздельных вызова, иначе не работает --------------------------
         execute_process(
             WORKING_DIRECTORY ${BUILD_DIR}
             COMMAND "${CMAKE_COMMAND}"
@@ -74,7 +83,9 @@ if(NOT SimpleAPId_FOUND)
                     --build ${BUILD_DIR}
                     -- "-j${N_CORES}" # -j подаётся не в CMake, а уже непосредственно утилите сборки
         )
+        # --------------------------------------------------------------------------------------------
 
+        # (статика) обязательно в два раздельных вызова, иначе не работает ---------------------------
         execute_process(
             WORKING_DIRECTORY ${BUILD_DIR_STATIC}
             COMMAND "${CMAKE_COMMAND}"
@@ -88,17 +99,42 @@ if(NOT SimpleAPId_FOUND)
                     --build ${BUILD_DIR_STATIC}
                     -- "-j${N_CORES}" # -j подаётся не в CMake, а уже непосредственно утилите сборки
         )
-
         if(EXISTS ${BUILD_DIR_STATIC}/SimpleAPI/libSimpleAPId_static.a)
             file(COPY ${BUILD_DIR_STATIC}/SimpleAPI/libSimpleAPId_static.a
                 DESTINATION ${CMAKE_CURRENT_LIST_DIR}/lib
             )
         endif()
+        # --------------------------------------------------------------------------------------------
 
-        find_SimpleAPId()
+        find_SimpleAPId() # вторичный поиск, если не было найдено до этого
 
-        include(FindPackageHandleStandardArgs)
-        find_package_handle_standard_args(SimpleAPId DEFAULT_MSG SimpleAPId_LIBRARIES SimpleAPId_INCLUDE_DIRS)
-        mark_as_advanced(SimpleAPId_LIBRARIES SimpleAPId_INCLUDE_DIRS)
     endif(NOT SimpleAPId_FOUND)
 endif(NOT SimpleAPId_FOUND)
+
+set(SHARED_LIB_NAME SimpleAPId)
+if(SimpleAPId_LIBRARIES AND NOT TARGET ${SHARED_LIB_NAME})
+    add_library(${SHARED_LIB_NAME} SHARED IMPORTED)
+    set_target_properties(${SHARED_LIB_NAME} PROPERTIES
+        IMPORTED_LOCATION "${SimpleAPId_LIBRARIES}"
+        INTERFACE_INCLUDE_DIRECTORIES "${SimpleAPId_INCLUDE_DIRS}"
+    )
+endif()
+
+set(STATIC_LIB_NAME SimpleAPId_static)
+if(SimpleAPId_STATIC_LIBRARIES AND NOT TARGET ${STATIC_LIB_NAME})
+    add_library(${STATIC_LIB_NAME} STATIC IMPORTED)
+    set_target_properties(${STATIC_LIB_NAME} PROPERTIES
+        IMPORTED_LOCATION "${SimpleAPId_STATIC_LIBRARIES}"
+        INTERFACE_INCLUDE_DIRECTORIES "${SimpleAPId_INCLUDE_DIRS}"
+    )
+endif()
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(
+    SimpleAPId
+    DEFAULT_MSG
+    SimpleAPId_LIBRARIES SimpleAPId_INCLUDE_DIRS
+)
+if(SimpleAPId_FOUND)
+    mark_as_advanced(SimpleAPId_LIBRARIES SimpleAPId_INCLUDE_DIRS)
+endif()
