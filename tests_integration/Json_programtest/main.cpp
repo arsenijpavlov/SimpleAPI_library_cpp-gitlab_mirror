@@ -60,7 +60,7 @@ void ParseParameter(std::string parameter) {
 
 int main(int argc, char **argv) {
 //    using namespace json;
-    system("tabs 4");
+//    system("tabs 4");
 
     std::cout << "args: ";
     for(int i = 0; i < argc; i++)
@@ -76,67 +76,66 @@ int main(int argc, char **argv) {
     }
 
     bool ret;
-    Json json;
+    Config json;
     if(!readFilePath.empty()) {
-        ret = json.readFile(readFilePath);
-        std::cout << "File is read: " << (ret ? "true" : "false") << std::endl;
+        json.readFile(readFilePath, ConfigFormat::eJSON);
+        std::cout << "File is read: " << (!json.isEmpty() ? "true" : "false") << std::endl;
         std::cout << std::endl;
         std::cout << "Json \"" << readFilePath << "\":" << std::endl;
-        std::cout << json.to_string(tabLvl) << std::endl;
+        std::cout << json.toString(ConfigFormat::eJSON) << std::endl;
     }
 
     if(test) {
-        Json j;
-        j.put("a", (double)156);
-        j.put("b", true);
-        std::cout << j.to_string(tabLvl) << std::endl;
+        Config j;
+        j.push_back("a", (double)156);
+        j.push_back("b", true);
+        std::cout << j.toString(ConfigFormat::eJSON) << std::endl;
 //        double* dd = j.value<double>(0);
 
-        JArray ja;
+        Config ja(ValueType::eArray);
         ja.push_back(j);
-        j.put("ja", ja);
+        j.push_back("ja", ja);
 
-        JArray a;
+        Config a(ValueType::eArray);
         a.push_back(true);
         a.push_back(15.0);
         a.push_back(ja);
-//        std::cout << a.to_string(tabLvl) << std::endl;
-//        *a.value<double>(0) = 21;
+        std::cout << a.toString(ConfigFormat::eJSON) << std::endl;
+        a[0] = 21;
 
-
-        JArray aa;
+        Config aa(ValueType::eArray);
         aa.push_back(j);
         aa.push_back(a);
         aa.push_front((double)15.0f);
-        std::cout << aa.to_string(tabLvl) << std::endl;
+        std::cout << aa.toString(ConfigFormat::eJSON) << std::endl;
 
-        Element el = aa[1]; //обращение к Json "j"
+        Config el = aa[1]; //обращение к Json "j"
 
-        double d = el.getJson()["a"].getNum();
+        double d = el["a"].getNumber();
         std::cout << "aa.j.a: (double)" << d << std::endl;
 
-        Json jj;
-        jj.put("aa", aa);
-        jj.put("jjInt", (double)42);
-        jj.put("jjString", "asde");
-        std::cout << jj.to_string(tabLvl) << std::endl;
+        Config jj;
+        jj.push_back("aa", aa);
+        jj.push_back("jjInt", (double)42);
+        jj.push_back("jjString", "asde");
+        std::cout << jj.toString(ConfigFormat::eJSON) << std::endl;
 
         //тест для каскада вложенных значений с одним get'тером
         std::vector<std::string> index_1;
         index_1.push_back("aa");  //array
         index_1.push_back("0");   //json
         index_1.push_back("a");   //array
-        Element ee;
+        Config ee;
         ee = jj[index_1];
         std::array<std::string, 3> index_2({"aa", "1", "a"});
-        ee = jj[index_2];
-        double dddd = ee.getNum();
+//        ee = jj[index_2]; //TODO: исправить наличие метода
+        double dddd = ee.getNumber();
         std::cout << std::endl << "d: " << dddd << std::endl;
     }
 
     if(!writeFilePath.empty()) {
         std::cout << "File for write: " << writeFilePath << std::endl;
-        ret = json.writeFile(writeFilePath, tabLvl);
+        ret = json.writeFile(writeFilePath, ConfigFormat::eJSON);
         std::cout << "File is written: " << (ret ? "true" : "false") << std::endl;
     }
 
