@@ -57,8 +57,9 @@ if(NOT SimpleAPId_FOUND)
     find_SimpleAPId() # первичный поиск (библиотека уже собрана)
 
     if(NOT SimpleAPId_FOUND) # если библиотека не собрана - собрать
+        message("SimpleAPId not found, need build it")
+
         set(BUILD_DIR "${CMAKE_CURRENT_LIST_DIR}/build")
-        set(BUILD_DIR_STATIC "${CMAKE_CURRENT_LIST_DIR}/build_static")
         make_directory(${BUILD_DIR})
         make_directory(${CMAKE_CURRENT_LIST_DIR}/lib)
         make_directory(${CMAKE_CURRENT_LIST_DIR}/lib/include)
@@ -70,7 +71,7 @@ if(NOT SimpleAPId_FOUND)
         )
         #message("N_CORES: \"${N_CORES}\"")
 
-        # (динамика) обязательно в два раздельных вызова, иначе не работает --------------------------
+        # обязательно в два раздельных вызова, иначе не работает --------------------------
         execute_process(
             WORKING_DIRECTORY ${BUILD_DIR}
             COMMAND "${CMAKE_COMMAND}"
@@ -85,22 +86,8 @@ if(NOT SimpleAPId_FOUND)
         )
         # --------------------------------------------------------------------------------------------
 
-        # (статика) обязательно в два раздельных вызова, иначе не работает ---------------------------
-        execute_process(
-            WORKING_DIRECTORY ${BUILD_DIR_STATIC}
-            COMMAND "${CMAKE_COMMAND}"
-                    -DCMAKE_BUILD_TYPE=Debug
-                    -DSIMPLE_API_STATIC_BUILD=on
-                    ${CMAKE_CURRENT_LIST_DIR}
-        )
-        execute_process(
-            WORKING_DIRECTORY ${BUILD_DIR_STATIC}
-            COMMAND "${CMAKE_COMMAND}"
-                    --build ${BUILD_DIR_STATIC}
-                    -- "-j${N_CORES}" # -j подаётся не в CMake, а уже непосредственно утилите сборки
-        )
-        if(EXISTS ${BUILD_DIR_STATIC}/SimpleAPI/libSimpleAPId_static.a)
-            file(COPY ${BUILD_DIR_STATIC}/SimpleAPI/libSimpleAPId_static.a
+        if(EXISTS ${BUILD_DIR}/SimpleAPI_static/libSimpleAPId_static.a)
+            file(COPY ${BUILD_DIR}/SimpleAPI_static/libSimpleAPId_static.a
                 DESTINATION ${CMAKE_CURRENT_LIST_DIR}/lib
             )
         endif()
