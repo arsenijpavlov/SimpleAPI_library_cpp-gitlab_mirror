@@ -9,6 +9,8 @@ else()
     set(COMPLEX_PROJECT_NAME SimpleAPId)
 endif()
 #set(OUTPUT_NAME ${COMPLEX_PROJECT_NAME})
+
+message("SIMPLE_API_STATIC_BUILD: \"${SIMPLE_API_STATIC_BUILD}\"")
 if(SIMPLE_API_STATIC_BUILD)
     set(COMPLEX_PROJECT_NAME ${COMPLEX_PROJECT_NAME}_static)
 endif()
@@ -59,16 +61,6 @@ if(NOT TARGET ${PROJECT_NAME})
                     "${CMAKE_CURRENT_LIST_DIR}" "${SIMPLE_API_OUTPUT_INCLUDE_DIR}"
     )
 
-    if(SIMPLE_API_STATIC_BUILD)
-        # упаковка готовой библиотеки(static) в конечную директорию
-        add_custom_command(TARGET ${PROJECT_NAME}
-            POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                    "${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}.a"
-                    "${SIMPLE_API_OUTPUT_LIB_DIR}"
-        )
-    endif()
-
     #----------------------------
     #TODO: ВРЕМЕННОЕ ХРАНЕНИЕ
     target_sources(${PROJECT_NAME} PRIVATE pre_WIKI.md)
@@ -94,4 +86,4 @@ endif()
 
 message("SimpleAPI output include directory: ${SIMPLE_API_OUTPUT_INCLUDE_DIR}")
 # если собирали статику, сбросить флаг
-set(SIMPLE_API_STATIC_BUILD off)
+unset(SIMPLE_API_STATIC_BUILD)
