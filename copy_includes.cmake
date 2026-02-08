@@ -28,7 +28,7 @@ foreach(header ${headers_list})
 
     string(REGEX REPLACE "\/[^\/]*\.h" "" header_dir ${header})
     if(NOT ${header_dir} MATCHES "\.h")
-        message("dir: [${header_dir}]")
+#        message("dir: [${header_dir}]")
         make_directory("${CMAKE_ARGV4}/${header_dir}")
     endif()
 
