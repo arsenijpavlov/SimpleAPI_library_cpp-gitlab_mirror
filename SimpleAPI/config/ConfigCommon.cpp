@@ -225,9 +225,9 @@ bool CheckNull(std::string &value) noexcept {
         if(CharInString(c, __SPACES__)) {
             if(flag) break;
         } else {
-            //TODO: зачем?
-            if(!flag)   flag = true;
-            if(flag)    temp += std::tolower(c);
+            flag = true;
+            if(flag)
+                temp += std::tolower(c);
         }
     }
 

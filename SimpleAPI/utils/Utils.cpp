@@ -236,45 +236,6 @@ std::string GetEscChar(const std::string &str) noexcept {
     }
 }
 
-//TODO: переместить??
-//uint8_t hex_string_to_uint8(const std::string str) {
-//    auto func = [](char ch) {
-//        switch(ch) {
-//        case '0':   return 0x00;
-//        case '1':   return 0x01;
-//        case '2':   return 0x02;
-//        case '3':   return 0x03;
-//        case '4':   return 0x04;
-//        case '5':   return 0x05;
-//        case '6':   return 0x06;
-//        case '7':   return 0x07;
-//        case '8':   return 0x08;
-//        case '9':   return 0x09;
-//        case 'a':
-//        case 'A':   return 0x0A;
-//        case 'b':
-//        case 'B':   return 0x0B;
-//        case 'c':
-//        case 'C':   return 0x0C;
-//        case 'd':
-//        case 'D':   return 0x0D;
-//        case 'e':
-//        case 'E':   return 0x0E;
-//        case 'f':
-//        case 'F':   return 0x0F;
-//        default:    return 0x00;
-//        }
-//    };
-//    if(str.size() == 2) {
-//        uint8_t a = func(str[0]);
-//        uint8_t b = func(str[1]);
-//        uint8_t ret = (a << 4) + b;
-//        return ret;
-//    }
-
-//    return 0;
-//}
-
 std::string GetEscChar2(const std::string &str) noexcept {
     if(str[0] == '\\') {
         if(str.size() == 1) return "\\";
@@ -559,6 +520,45 @@ uint8_t LineOfOneSymbol(std::string &input_str) noexcept
         if(ex != c) return 0;
     }
     return ex;
+}
+
+std::vector<uint8_t> FromHexStringToHex(const std::string &str) noexcept {
+    auto func = [](char ch) {
+        switch(ch) {
+        case '0':   return 0x00;
+        case '1':   return 0x01;
+        case '2':   return 0x02;
+        case '3':   return 0x03;
+        case '4':   return 0x04;
+        case '5':   return 0x05;
+        case '6':   return 0x06;
+        case '7':   return 0x07;
+        case '8':   return 0x08;
+        case '9':   return 0x09;
+        case 'a':
+        case 'A':   return 0x0A;
+        case 'b':
+        case 'B':   return 0x0B;
+        case 'c':
+        case 'C':   return 0x0C;
+        case 'd':
+        case 'D':   return 0x0D;
+        case 'e':
+        case 'E':   return 0x0E;
+        case 'f':
+        case 'F':   return 0x0F;
+        default:    return 0x00;
+        }
+    };
+
+    std::vector<uint8_t> vec;
+
+    for(size_t i = 0; i < str.size(); i += 2) {
+        uint8_t a = func(str[0]);
+        uint8_t b = (i+1 < str.size()) ? func(str[1]) : 0; // проверка на чётное количество символов в строке
+        vec.push_back((a << 4) + b);
+    }
+    return vec;
 }
 
 

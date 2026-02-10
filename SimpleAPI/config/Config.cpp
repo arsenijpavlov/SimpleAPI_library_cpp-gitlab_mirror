@@ -329,8 +329,10 @@ Config &Config::setValue(Config &&other) noexcept {
     return *this;
 }
 
-//TODO: сделать проверку на this != other
 Config &Config::setValue(const IElement &other) noexcept {
+    if(this->m_value == &other)
+        return *this;
+
     release();
     switch(other.getType()) {
     case ValueType::eNull:      { setValue();                                                       break;  }
@@ -347,8 +349,10 @@ Config &Config::setValue(const IElement &other) noexcept {
     return *this;
 }
 
-//TODO: сделать проверку на this != other
 Config &Config::setValue(IElement &&other) noexcept {
+    if(this->m_value == &other)
+        return *this;
+
     release();
     switch(other.getType()) {
     case ValueType::eNull:      { setValue();                                                                   break;  }
