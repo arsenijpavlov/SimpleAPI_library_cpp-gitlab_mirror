@@ -15,7 +15,7 @@ void SocketThread::run() noexcept {
             sock->tick(); //вся магия там
         }
 
-        usleep(1);
+        usleep(100);
     }
 }
 

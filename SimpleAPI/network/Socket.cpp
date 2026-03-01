@@ -613,7 +613,7 @@ void UDPSocket::tick() noexcept {
 void UDPSocket::checkConnections() noexcept {
     log(logs::eDEBUG2, "checkConnections()");
 
-    Config jPing;
+    Config jPing(ValueType::eJson);
     //FIXME: Config(string) -> string
     jPing.push_at("ping", getLocalIpPort().to_string());
 
