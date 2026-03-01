@@ -630,3 +630,40 @@ TEST(JSON, parse_simple_element) {
     json.parseJson(test_file_string);
     EXPECT_EQ(json.size(), 1);
 }
+
+TEST(JSON, get_deep_inner_element_1) {
+    Config json_main(ValueType::eJson);
+    Config json_inner_1(ValueType::eJson);
+    Config json_inner_2(ValueType::eJson);
+    Config json_inner_3(ValueType::eJson);
+
+    json_inner_3.push_back(15);
+    json_inner_2.push_back(json_inner_3);
+    json_inner_1.push_back(json_inner_2);
+    json_main.push_back(json_inner_1);
+
+//    Config json_result = json_main[{0,0,0}];
+
+//    EXPECT_EQ(json_result.getNumber(), 15);
+}
+
+TEST(JSON, get_deep_inner_element_2) {
+    Config json_main(ValueType::eJson);
+    Config json_inner_1(ValueType::eJson);
+    Config json_inner_2(ValueType::eJson);
+    Config json_inner_3(ValueType::eJson);
+
+    json_inner_3.push_back(15);
+    json_inner_2.push_back(json_inner_3);
+    json_inner_1.push_back(json_inner_2);
+    json_main.push_back(json_inner_1);
+
+//    Config json_result = json_main[std::vector<size_t>{0,0,0}];
+
+//    EXPECT_EQ(json_result.getNumber(), 15);
+}
+
+/*
+ * TODO: если в Config есть один элемент - функции push_back() должны преобразовать элемент в Json/Array
+ * положить можно только 1 элемент за раз
+*/
