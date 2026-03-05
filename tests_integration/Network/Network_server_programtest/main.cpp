@@ -9,7 +9,7 @@
 #define NAME_COLUMN_SIZE 16
 #define NAME_COLUMN_RIGHT_ALIGN true
 
-logs::LEVEL common_log_level = logs::eDEBUG3;
+logs::LEVEL common_log_level = logs::eDEBUG;
 void ParseParameters(int argc, char** argv) {
     for(int i = 1; i < argc; i++) {
         std::string str = argv[i];

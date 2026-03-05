@@ -389,7 +389,6 @@ void Socket::close() noexcept {
     }
 }
 
-//FIXME: logs
 void UDPSocket::sendFragments(const IpPort &remote_ip_port, const PacketType type,
                               const Packet &packet, const bool need_ack) noexcept {
     Config json;
@@ -397,16 +396,16 @@ void UDPSocket::sendFragments(const IpPort &remote_ip_port, const PacketType typ
 
     log(type != eControlType ? logs::eINFO : logs::eDEBUG,
         "Send: " + to_string(type) + " "
-//            + (json.isEmpty() ? "[Data:0x" + utils::ToHexString(packet) + "]"
-//                              : "[Json:" + json.to_string(-1) + "]"
-//                                    + " / [Data:" + "0x" + utils::ToHexString(packet) + "]"
-//               ) + " "
+            + (json.isEmpty() ? "[Data:0x" + utils::ToHexString(packet) + "]"
+                              : "[Json:" + json.toString() + "]"
+                                    + " / [Data:" + "0x" + utils::ToHexString(packet) + "]"
+               ) + " "
             + remote_ip_port.to_string("to"),
         "Send: " + to_string(type) + " "
-//            + (json.isEmpty() ? "[Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::ToHexString(packet)) + "]"
-//                              : "[Json:" + logs::to_color_string(FULL_MSG_COLOR, json.to_string(-1)) + "]"
-//                                    + " / [Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::ToHexString(packet)) + "]"
-//               ) + " "
+            + (json.isEmpty() ? "[Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::ToHexString(packet)) + "]"
+                              : "[Json:" + logs::to_color_string(FULL_MSG_COLOR, json.toString()) + "]"
+                                    + " / [Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::ToHexString(packet)) + "]"
+               ) + " "
             + remote_ip_port.to_string("to"));
 
     uint8_t techInformationSize = 1;//1B: заголовок
@@ -560,20 +559,19 @@ void UDPSocket::sendFragments(const IpPort &remote_ip_port, const PacketType typ
         JsonMessage jm = pm;
         std::string appendString = "";
         appendString = "to map_global_packets, size: " + std::to_string(m_sent_global_packets.size());
-//        log(logs::eDEBUG,
-//            "append ["
-//                + (jm.m_json.isEmpty() ? "Data:0x" + utils::ToHexString(pm.m_packet)
-//                                     : "Json:" + jm.m_json.to_string(-1))
-//                + "] " + appendString);//,
-//            logs::to_color_string(GLOBAL_APPEND_MSG_COLOR, "append ["
-//                + (jm.m_json.isEmpty() ? "Data:0x" + utils::ToHexString(pm.m_packet)
-//                                     : "Json:" + jm.m_json.to_string(-1))
-//                + "] " + appendString));
+        log(logs::eDEBUG,
+            "append ["
+                + (jm.m_json.isEmpty() ? "Data:0x" + utils::ToHexString(pm.m_packet)
+                                     : "Json:" + jm.m_json.toString())
+                + "] " + appendString);//,
+            logs::to_color_string(GLOBAL_APPEND_MSG_COLOR, "append ["
+                + (jm.m_json.isEmpty() ? "Data:0x" + utils::ToHexString(pm.m_packet)
+                                     : "Json:" + jm.m_json.toString())
+                + "] " + appendString);
     }
     m_output_threads_mutex.unlock();
 }
 
-//FIXME
 void UDPSocket::tick() noexcept {
     std::map<IpPort, Config> acknowledgeMap;
     checkConnections();
@@ -589,15 +587,15 @@ void UDPSocket::tick() noexcept {
         PacketMessage b_pm = buildPacket(it);
 
         Config jProc = processingBuiltPacket(b_pm);
-        jProc.push_back(jRecv);
+        jProc.append(jRecv);
 
         auto it_json = acknowledgeMap.find(it->first);
         if(it_json != acknowledgeMap.end())
-            jProc.push_back(it_json->second);
+            jProc.append(it_json->second);
 
         if(!jProc.isEmpty()) {
-//            log(logs::eDEBUG2, "send ack: " + jProc.to_string(-1) + b_pm.m_ip_port.to_string("to"));
-//            sendFragments(it->first, eControlType, convert_to_packet(jProc.to_string(-1)), false);
+            log(logs::eDEBUG2, "send ack: " + jProc.toString() + b_pm.m_ip_port.to_string("to"));
+            sendFragments(it->first, eControlType, convert_to_packet(jProc.toString()), false);
         }
     }
 
@@ -613,9 +611,7 @@ void UDPSocket::tick() noexcept {
 void UDPSocket::checkConnections() noexcept {
     log(logs::eDEBUG2, "checkConnections()");
 
-    Config jPing(ValueType::eJson);
-    //FIXME: Config(string) -> string
-    jPing.push_at("ping", getLocalIpPort().to_string());
+    Config jPing(ValueType::eJson, "ping", getLocalIpPort().to_string());
 
     //перепосылка недоставленных глобальных пакетов ==================================
     struct prepPacket {
@@ -638,7 +634,7 @@ void UDPSocket::checkConnections() noexcept {
             ) {
             log(logs::eDEBUG2, "Send ping to " + it->first.to_string());
             log(logs::eDEBUG3, "Expected time: " + logs::get_time_string(it->second.m_last_output_activity + _halfInactivity));
-//            sendFragments(it->first, eControlType, convert_to_packet(jPing.to_string(-1)), false);
+            sendFragments(it->first, eControlType, convert_to_packet(jPing.toString()), false);
             it->second.m_last_output_activity = std::chrono::system_clock::now();
             continue;
         }
@@ -788,15 +784,17 @@ void UDPSocket::sendAutoMsg() noexcept {
 
 }
 
+// WARNING: функция обязана вернуть проинициализированный элемент Config(ValueType::eJSON)
 Config UDPSocket::recvAutoMsg(int timeout) noexcept {
     log(logs::eDEBUG2, "recvAutoMsg()");
 
+    Config outputJson(ValueType::eJson); //обязательно явное указание как eJSON
     PacketMessage pm = recvRawMsg(1);
-    if(pm.m_packet.empty()) return {};
+    if(pm.m_packet.empty()) return outputJson;
 
     pm.m_header = unpackHeader(pm.m_packet[0]);
 
-    if(pm.m_packet.size() < 3) return {};
+    if(pm.m_packet.size() < 3) return outputJson;
     uint8_t glob_sn = pm.m_packet[1];
     uint8_t sn      = pm.m_packet[2];
     pm.m_sn = EECounter(255);
@@ -815,8 +813,7 @@ Config UDPSocket::recvAutoMsg(int timeout) noexcept {
             + ", data:[0x"
             + utils::ToHexString(pm.m_packet) + "] " + pm.m_ip_port.to_string("from"));
 
-    if(pm.m_packet.empty()) return {};
-    Config outputJson;
+    if(pm.m_packet.empty()) return outputJson;
     auto it = m_map_connections.find(pm.m_ip_port);
     if(it == m_map_connections.end() && pm.m_header.type == eControlType) {
         //если первый пакет от адресата является контрольным и НЕ требует отчёта о доставке
@@ -836,6 +833,7 @@ Config UDPSocket::recvAutoMsg(int timeout) noexcept {
     return outputJson;
 }
 
+// WARNING: функция обязана вернуть проинициализированный элемент Config(ValueType::eJSON)
 Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
     JsonMessage jm = pm;
 
@@ -966,7 +964,7 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
     }
 
     //=========================================================================================
-    Config controlAcknowledgement;
+    Config controlAcknowledgement(ValueType::eJson); //обязательно явное указание как eJSON
     if(pm.m_header.type != eControlType) {
         if(pm.m_is_built_complete)
             controlAcknowledgement.push_at("ack_all_packet", pm.m_sn.get());
@@ -1134,9 +1132,8 @@ void UDPSocket::sendMsg(const IpPort& remote_ip_port, const Packet& packet) {
     }
 }
 
-//FIXME
 void UDPSocket::sendMsg(const IpPort& remote_ip_port, const Config& json) {
-//    sendMsg(remote_ip_port, convert_to_packet(json.to_string(-1)));
+    sendMsg(remote_ip_port, convert_to_packet(json.toString()));
 }
 
 PacketMessage UDPSocket::getOutPacket() noexcept {
