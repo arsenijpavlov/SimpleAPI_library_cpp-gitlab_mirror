@@ -1199,18 +1199,9 @@ bool Config::containsValue(const Config &config) const noexcept {
 bool Config::containsKey(const std::string &key) const noexcept {
     if(!isMapContainer()) return false;
 
-//    for(const auto& pair : getNamedRange()) {
-//        if(pair.first == key)
-//            return true;
-//    }
-
-    //FIXME: warning предлагает сделать всё через std::any_of, но там муть одна. Непонятно.
-    std::any_of(getNamedRange().cbegin(), getNamedRange().cend(),
-                [&key](const std::pair<std::string, std::shared_ptr<Config>>& pair) {
-                    return pair.first == key;
-                });
-
-    return false;
+    return std::any_of(getNamedRange().cbegin(), getNamedRange().cend(),
+                       [&key](const std::pair<std::string, std::shared_ptr<Config>>& pair)
+                       { return pair.first == key; });
 }
 
 std::string Config::toString(const ConfigFormat format, const CommentDesign &design,

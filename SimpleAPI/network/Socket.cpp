@@ -762,10 +762,10 @@ void UDPSocket::sendAutoMsg() noexcept {
         PacketMessage pm = m_send_packets_buffer.front();
         m_send_packets_buffer.pop_front();
         log(logs::eDEBUG,
-            "Sending [" + std::to_string(pm.m_sn.get()) + "] sn fragment, data:[0x"
+            "Sending sn[" + std::to_string(pm.m_sn.get()) + "] fragment, data:[0x"
                 + utils::ToHexString(pm.m_packet) + "] " + pm.m_ip_port.to_string("to"),
             logs::to_color_string(OUTPUT_MSG_COLOR,"Sending")
-                + " [" + std::to_string(pm.m_sn.get()) + "] sn fragment, data:[0x"
+                + " sn[" + std::to_string(pm.m_sn.get()) + "] fragment, data:[0x"
                 + utils::ToHexString(pm.m_packet) + "] " + pm.m_ip_port.to_string("to"));
 
         Socket::sendRawMsg(pm); //отправили
@@ -849,9 +849,14 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                 + "] " + pm.m_ip_port.to_string("from"));
 
         //обработка собранного пакета (1 за проход)
+        log(logs::eDEBUG, "pm.m_header.type: " + to_string(pm.m_header.type));
         if(pm.m_header.type == eControlType) {
             if(jm.m_json.containsKey("ack_sn")) {
                 uint8_t sn = jm.m_json["ack_sn"].getNumber();
+                log(logs::eDEBUG,
+                    "erasing sn[" + jm.m_json["ack_sn"].toString() + "]",
+                    logs::to_color_string(logs::COLOR::eBRIGHT_MAGENTA_BG,
+                                          "erasing sn[" + jm.m_json["ack_sn"].toString() + "]"));
                 for(auto it = m_map_auto_sent_packets.begin(); it != m_map_auto_sent_packets.end(); it++) {
                     if(it->second.m_sn.get() == sn) {
                         m_map_auto_sent_packets.erase(it->first);
