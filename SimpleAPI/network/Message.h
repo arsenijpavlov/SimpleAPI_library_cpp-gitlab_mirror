@@ -117,8 +117,8 @@ public:
     Config      m_json;
 
     JsonMessage()                                   noexcept : m_ip_port{}, m_json{}    {};
-    JsonMessage(const JsonMessage& jm)     noexcept                            { *this = jm; }
-    JsonMessage(const PacketMessage& pm)   noexcept;
+    JsonMessage(const JsonMessage& jm)              noexcept                            { *this = jm; }
+    JsonMessage(const PacketMessage& pm)            noexcept;
 
     void clear()                                    noexcept;
     std::string to_string(int arg = -1)             noexcept;
