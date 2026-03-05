@@ -936,12 +936,30 @@ std::string Config::get_string_back() const {
     return dynamic_cast<const ElementString*>(config.m_value)->getValue();
 }
 
+void Config::try_convert_null_to_json() noexcept
+{
+    if(isNull()) {
+        release();
+        m_value = dynamic_cast<IElement*>(new ElementJson());
+    }
+}
+
+void Config::try_convert_null_to_json_array() noexcept
+{
+    if(isNull()){
+        release();
+        m_value = dynamic_cast<IElement*>(new ElementArray());
+    }
+}
+
 Config& Config::insert_front(const Config& other) {
     Config config(other);
     return insert_front(std::move(config));
 }
 
 Config& Config::insert_front(Config&& other) {
+    try_convert_null_to_json_array();
+
     __CHECK_TYPE_IS_INDEX_CONTAINER__((*this))
     dynamic_cast<ElementArray*>(m_value)->insert_front(std::move(other));
 
@@ -954,6 +972,8 @@ Config& Config::insert_front(const std::string& key, const Config& other) {
 }
 
 Config& Config::insert_front(const std::string& key, Config&& other) {
+    try_convert_null_to_json();
+
     __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
     dynamic_cast<ElementJson*>(m_value)->insert_front(key, std::move(other));
 
@@ -966,6 +986,8 @@ Config& Config::insert_at(const size_t index, const Config& other) {
 }
 
 Config& Config::insert_at(const size_t index, Config&& other) {
+    try_convert_null_to_json_array();
+
     __CHECK_TYPE_IS_INDEX_CONTAINER__((*this))
     dynamic_cast<ElementArray*>(m_value)->insert_at(index, std::move(other));
 
@@ -978,6 +1000,8 @@ Config& Config::insert_at(const std::string& key, const Config& other) {
 }
 
 Config& Config::insert_at(const std::string& key, Config&& other) {
+    try_convert_null_to_json();
+
     __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
     dynamic_cast<ElementJson*>(m_value)->insert_at(key, std::move(other));
 
@@ -990,6 +1014,8 @@ Config& Config::insert_back(const Config& other) {
 }
 
 Config& Config::insert_back(Config&& other) {
+    try_convert_null_to_json_array();
+
     __CHECK_TYPE_IS_INDEX_CONTAINER__((*this))
     dynamic_cast<ElementArray*>(m_value)->insert_back(std::move(other));
 
@@ -1002,6 +1028,8 @@ Config& Config::insert_back(const std::string& key, const Config& other) {
 }
 
 Config& Config::insert_back(const std::string& key, Config&& other) {
+    try_convert_null_to_json();
+
     __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
     dynamic_cast<ElementJson*>(m_value)->insert_back(key, std::move(other));
 
@@ -1013,7 +1041,9 @@ Config& Config::insert_after(const std::string& after_key, const std::string& ke
     return insert_after(after_key, key, std::move(config));
 }
 
-Config& Config::insert_after(const std::string& after_key, const std::string& key, Config&& other) {
+Config& Config::insert_after(const std::string& after_key, const std::string& key, Config&& other) {    
+    try_convert_null_to_json();
+
     __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
     dynamic_cast<ElementJson*>(m_value)->insert_after(after_key, key, std::move(other));
 

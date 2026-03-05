@@ -405,7 +405,11 @@ public:
     // ========================================================================================================== Modify
 
     // Adding ==========================================================================================================
-    //TODO: функции insert_* должны преобразовывать элемент в указанный формат (Json/Array) перед добавлением в элемент ещё данных
+private:
+    // если элемент был не null, шаг будет пропущен
+    inline void try_convert_null_to_json()                      noexcept;
+    inline void try_convert_null_to_json_array()                noexcept;
+public:
     //TODO: insert_at(index, key, other)
     Config& insert_front(const Config& other);                                                                              API_CONTAINER
     Config& insert_front(Config&& other);                                                                                   API_CONTAINER
@@ -425,7 +429,7 @@ public:
     //NOTE: в использовании итераторов здесь мало смысла видится
     //NOTE: функции с произвольным количеством аргументов пока не кажутся необходимыми пользователю API
 
-    //TODO: update
+    //TODO: update ???
 
     Config& push_front(const Config& other)                             { return insert_front(other); }                     API_CONTAINER
     Config& push_front(Config&& other)                                  { return insert_front(std::move(other)); }          API_CONTAINER
@@ -479,7 +483,7 @@ public:
                        T&& other)                                       { return insert_after(after_key, key, std::move(Config(other))); }  API_MAP_CONTAINER
 
     //добавить существующий список к другому списку (только при совместимости списков)
-    Config& append(const Config& config);                   API_CONTAINER
+    Config& append(const Config& config);                                                                                       API_CONTAINER
     Config& append(Config&& config);                                                                                            API_CONTAINER
     // ========================================================================================================== Adding
 
