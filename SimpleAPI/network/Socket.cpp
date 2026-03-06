@@ -784,11 +784,10 @@ void UDPSocket::sendAutoMsg() noexcept {
 
 }
 
-// WARNING: функция обязана вернуть проинициализированный элемент Config(ValueType::eJSON)
 Config UDPSocket::recvAutoMsg(int timeout) noexcept {
     log(logs::eDEBUG2, "recvAutoMsg()");
 
-    Config outputJson(ValueType::eJson); //обязательно явное указание как eJSON
+    Config outputJson;
     PacketMessage pm = recvRawMsg(1);
     if(pm.m_packet.empty()) return outputJson;
 
@@ -833,7 +832,6 @@ Config UDPSocket::recvAutoMsg(int timeout) noexcept {
     return outputJson;
 }
 
-// WARNING: функция обязана вернуть проинициализированный элемент Config(ValueType::eJSON)
 Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
     JsonMessage jm = pm;
 
@@ -969,7 +967,7 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
     }
 
     //=========================================================================================
-    Config controlAcknowledgement(ValueType::eJson); //обязательно явное указание как eJSON
+    Config controlAcknowledgement;
     if(pm.m_header.type != eControlType) {
         if(pm.m_is_built_complete)
             controlAcknowledgement.push_at("ack_all_packet", pm.m_sn.get());

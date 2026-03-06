@@ -1056,22 +1056,28 @@ Config &Config::append(const Config &config) {
 }
 
 Config &Config::append(Config &&config) {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-    __CHECK_TYPES_IS_EQUAL__((*this), config)
+    if(config.isNull())
+        return *this;
 
-    switch(getType()) {
-    case ValueType::eArray: {
-        dynamic_cast<ElementArray*>(m_value)->append(std::move(dynamic_cast<ElementArray&&>(std::move(*config.m_value))));
-        break;
-    }
-    case ValueType::eJson: {
-        dynamic_cast<ElementJson*>(m_value)->append(std::move(dynamic_cast<ElementJson&&>(std::move(*config.m_value))));
-        break;
-    }
-    default: throw std::invalid_argument("Config::append(): unexpected type of config: " + ToString(config.getType()));
-    }
+    if(!isNull())
+    {
+        __CHECK_TYPE_IS_CONTAINER__((*this))
+        __CHECK_TYPES_IS_EQUAL__((*this), config)
 
-    return *this;
+        switch(getType()) {
+        case ValueType::eArray: {
+            dynamic_cast<ElementArray*>(m_value)->append(std::move(dynamic_cast<ElementArray&&>(std::move(*config.m_value))));
+            break;
+        }
+        case ValueType::eJson: {
+            dynamic_cast<ElementJson*>(m_value)->append(std::move(dynamic_cast<ElementJson&&>(std::move(*config.m_value))));
+            break;
+        }
+        default: throw std::invalid_argument("Config::append(): unexpected type of config: " + ToString(config.getType()));
+        }
+    } else {
+        setValue(config);
+    }
 
     return *this;
 }
