@@ -174,44 +174,24 @@ void ElementArray::clear() noexcept {
     m_values.clear();
 }
 
-void ElementArray::insert_front(const Config &value) noexcept {
-    m_values.insert(cbegin(), std::make_shared<Config>(value));
-}
-
-void ElementArray::insert_front(Config &&value) noexcept {
-    m_values.insert(cbegin(), std::make_shared<Config>(std::move(value)));
-}
-
-void ElementArray::insert_at(const size_t index, const Config &value) noexcept {
-    if(size() < index - 1) {
-        m_values.push_back(std::make_shared<Config>(value));
-    } else {
-        m_values.insert(cbegin() + (index - 1), std::make_shared<Config>(value));
-    }
-}
-
-void ElementArray::insert_at(const size_t index, Config &&value) noexcept {
-    if(size() < index - 1) {
-        m_values.push_back(std::make_shared<Config>(std::move(value)));
-    } else {
-        m_values.insert(cbegin() + (index - 1), std::make_shared<Config>(std::move(value)));
-    }
-}
-
+//FIXME:
 void ElementArray::insert_at(shared_VElement::iterator iterator, const Config &value) {
+    //    if(size() < index - 1) {
+    //        m_values.push_back(std::make_shared<Config>(value));
+    //    } else {
+    //        m_values.insert(cbegin() + (index - 1), std::make_shared<Config>(value));
+    //    }
     m_values.insert(iterator, std::make_shared<Config>(value));
 }
 
+//FIXME:
 void ElementArray::insert_at(shared_VElement::iterator iterator, Config &&value) {
+    //    if(size() < index - 1) {
+    //        m_values.push_back(std::make_shared<Config>(std::move(value)));
+    //    } else {
+    //        m_values.insert(cbegin() + (index - 1), std::make_shared<Config>(std::move(value)));
+    //    }
     m_values.insert(iterator, std::make_shared<Config>(std::move(value)));
-}
-
-void ElementArray::insert_back(const Config &value) noexcept {
-    m_values.push_back(std::make_shared<Config>(value));
-}
-
-void ElementArray::insert_back(Config &&value) noexcept {
-    m_values.push_back(std::make_shared<Config>(std::move(value)));
 }
 
 void ElementArray::insert_front(const VElement &elements) noexcept {
@@ -224,6 +204,8 @@ void ElementArray::insert_front(VElement &&elements) noexcept {
         m_values.insert(cbegin() + i, std::make_shared<Config>(std::move(elements[i])));
 }
 
+//FIXME: нужна проверка на некорректный индекс
+//FIXME: использовать m_values напрямую!
 void ElementArray::insert_at(const size_t index, const VElement &elements) noexcept {
     size_t counter = 0;
     for(const auto &element : elements) {
@@ -232,6 +214,8 @@ void ElementArray::insert_at(const size_t index, const VElement &elements) noexc
     }
 }
 
+//FIXME: нужна проверка на некорректный индекс
+//FIXME: использовать m_values напрямую!
 void ElementArray::insert_at(const size_t index, VElement &&elements) noexcept {
     size_t counter = 0;
     for(auto &element : elements) {
@@ -260,8 +244,8 @@ void ElementArray::append(const ElementArray &other) noexcept {
 }
 
 void ElementArray::append(ElementArray &&other) noexcept {
-    for(auto& o : other)
-        insert_back(std::move(o));
+    for(auto& o : other.m_values)
+        insert_back(std::move(*o.get()));
 }
 
 void ElementArray::append_null(size_t size) noexcept {

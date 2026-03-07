@@ -71,15 +71,25 @@ public:
     // ========================================================================================================== Modify
 
     // Adding ==========================================================================================================
-    //одиночные элементы
-    void    insert_front(const Config& value)                           noexcept;
-    void    insert_front(Config&& value)                                noexcept;
-    void    insert_at(const size_t index, const Config& value)          noexcept;
-    void    insert_at(const size_t index, Config&& value)               noexcept;
     void    insert_at(shared_VElement::iterator iterator, const Config& value);
     void    insert_at(shared_VElement::iterator iterator, Config&& value);
-    void    insert_back(const Config& value)                            noexcept;
-    void    insert_back(Config&& value)                                 noexcept;
+
+            template<typename ... Args>
+    void    insert_front(Args&& ... args) noexcept {
+        (void)std::initializer_list<int>{(m_values.insert(cbegin(), std::make_shared<Config>(std::move(args))), 0)...};
+    }
+            template<typename ... Args>
+    void    insert_at(const size_t index, Args&& ... args) noexcept {
+        VElement ve;
+        if(ve.capacity() < sizeof...(args))
+            ve.reserve(sizeof...(args));
+        (void)std::initializer_list<int>{(ve.push_back(std::forward<Args>(args)), 0)...};
+        insert_at(index, std::move(ve));
+    }
+            template<typename ... Args>
+    void    insert_back(Args&& ... args) noexcept {
+        (void)std::initializer_list<int>{(m_values.insert(cend(), std::make_shared<Config>(std::forward<Args>(args))), 0)...};
+    }
 
     //группы элементов
     void    insert_front(const VElement& elements)                      noexcept;
@@ -88,28 +98,6 @@ public:
     void    insert_at(const size_t index, VElement&& elements)          noexcept;
     void    insert_back(const VElement& elements)                       noexcept;
     void    insert_back(VElement&& elements)                            noexcept;
-
-    //неизвестное количество элементов
-            template<typename ... Args>
-    void    insert_front(Args&& ... args) noexcept {
-                VElement ve;
-                if(ve.capacity() < sizeof...(args))
-                    ve.reserve(sizeof...(args));
-                (void)std::initializer_list<int>{(ve.push_back(std::forward<Args>(args)), 0)...};
-                insert_front(std::move(ve));
-            }
-            template<typename ... Args>
-    void    insert_at(const size_t index, Args&& ... args) noexcept {
-                VElement ve;
-                if(ve.capacity() < sizeof...(args))
-                    ve.reserve(sizeof...(args));
-                (void)std::initializer_list<int>{(ve.push_back(std::forward<Args>(args)), 0)...};
-                insert_at(index, std::move(ve));
-            }
-            template<typename ... Args>
-    void    insert_back(Args&& ... args) noexcept {
-                (void)std::initializer_list<int>{(insert_back(std::forward<Args>(args)), 0)...};
-            }
 
     void    append(const ElementArray& other)                           noexcept;
     void    append(ElementArray&& other)                                noexcept;
