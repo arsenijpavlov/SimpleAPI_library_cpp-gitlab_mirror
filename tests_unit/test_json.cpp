@@ -428,13 +428,13 @@ TEST(JSON, read_file_error) {
 }
 
 TEST(JSON, put_and_get_elements) {
-    std::string test_str    = "abc";
-    double test_num         = 15;
-    bool test_bool          = true;
+    //без const значения перместятся в Json и их нельзя будет проверить через EXPECT_EQ
+    const std::string test_str    = "abc";
+    const double test_num         = 15;
+    const bool test_bool          = true;
 
-    Config json;
-    //TODO: если элемент не был контейнером, но при этом туда добавляется значение -> переделать в контейнер
-    json.push_back("string", test_str);
+    Config json; //пустой == null
+    json.push_back("string", test_str); //json преобразован в тип Json
     json.push_back("number", test_num);
     json.push_back("bool", test_bool);
     EXPECT_EQ(json.size(), 3);
@@ -643,7 +643,6 @@ TEST(JSON, get_deep_inner_element_1) {
     json_main.push_back(json_inner_1);
 
 //    Config json_result = json_main[{0,0,0}];
-
 //    EXPECT_EQ(json_result.getNumber(), 15);
 }
 
@@ -659,11 +658,22 @@ TEST(JSON, get_deep_inner_element_2) {
     json_main.push_back(json_inner_1);
 
 //    Config json_result = json_main[std::vector<size_t>{0,0,0}];
-
 //    EXPECT_EQ(json_result.getNumber(), 15);
 }
 
-/*
- * TODO: если в Config есть один элемент - функции push_back() должны преобразовать элемент в Json/Array
- * положить можно только 1 элемент за раз
-*/
+TEST(JSON, contains) {
+    Config json(ValueType::eJson, "k1", "v1");
+
+    EXPECT_TRUE(json.containsKey("k1"));
+    EXPECT_FALSE(json.containsKey("k2"));
+    EXPECT_TRUE(json.containsValue("v1"));
+    EXPECT_FALSE(json.containsValue("v2"));
+
+    Config json2(ValueType::eJson);
+    Config json3(ValueType::eJson);
+    json.push_back("k2", json2);
+    EXPECT_TRUE(json.containsValue(json2));
+    EXPECT_TRUE(json.containsValue(json3));
+    json3.push_back("kk1", "vv1");
+    EXPECT_FALSE(json.containsValue(json3));
+}

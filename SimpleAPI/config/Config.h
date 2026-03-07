@@ -482,6 +482,9 @@ public:
     Config& push_after(const std::string& after_key, const std::string& key,
                        T&& other)                                       { return insert_after(after_key, key, std::move(Config(other))); }  API_MAP_CONTAINER
 
+    //TODO: set(key, value) для установки значения переменной Json
+    //TODO: set(index, value) для установки значения переменной JsonArray
+
     //добавить существующий список к другому списку (только при совместимости списков)
     Config& append(const Config& config);                                                                                       API_CONTAINER
     Config& append(Config&& config);                                                                                            API_CONTAINER
@@ -535,10 +538,9 @@ public:
     size_t          size()                                  const noexcept          { return m_value->size(); }                 API_ALL
     bool            isEmpty()                               const noexcept          { return size() == 0; }                     API_CONTAINER
     bool            containsValue(const Config& config)     const noexcept;                                                     API_CONTAINER
+                    __ONLY_ALLOWED_TYPES__(T)
+    bool            containsValue(const T& other)                                   { return containsValue((Config(other))); }  API_CONTAINER
     bool            containsKey(const std::string& key)     const noexcept;                                                     API_MAP_CONTAINER
-
-    __ONLY_ALLOWED_TYPES__(T)
-    bool            valueContains(const T& other)                                   { return valueContains((Config(other))); }  API_CONTAINER
     // ============================================================================================================ Info
 
     // Operators =======================================================================================================
