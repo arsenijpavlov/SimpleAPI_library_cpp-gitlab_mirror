@@ -683,7 +683,7 @@ std::string FromComment(std::string comment_string, CommentDesign& design,
                 s.clear();
         }
 
-        //TODO: если пустых строк больше двух подряд, то их нужно заменить на одну пустую
+        //TODO: если пустых строк подряд больше одной, то их нужно заменить на одну пустую
         { }
     }
 
@@ -707,7 +707,7 @@ void RemoveComments(std::string &input_string, CommentDesign design)
 {
     std::string temp;
     bool is_quotes = false;
-    std::string comment_string; //скорее всего не будет использован в этой функции
+    std::string comment_string;
     for(size_t i = 0; i < input_string.size(); i++) {
         char ch_current     = input_string[i];
         char ch_next        = i < input_string.size() ? input_string[i + 1] : 0;
@@ -715,7 +715,7 @@ void RemoveComments(std::string &input_string, CommentDesign design)
         //поиск комментариев ===================================================
         const bool ext_flag = !is_quotes;
         // вернёт комментарий без обрамления
-        CheckComments(ch_current, ch_next, i, design, comment_string, ext_flag); //TODO: подумать, стоит ли передавать nullptr вместо ссылки на comment_string
+        CheckComments(ch_current, ch_next, i, design, comment_string, ext_flag);
         if(!design.with_comments)
             comment_string.clear();
         //сюда зайдёт, если внутри комментария либо если встречен конец комментария

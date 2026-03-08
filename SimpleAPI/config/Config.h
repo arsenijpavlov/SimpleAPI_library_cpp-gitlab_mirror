@@ -9,6 +9,7 @@
 #include "ElementJson.h"
 #include "ElementNumber.h"
 #include "ElementString.h"
+#include "OnlySizetOrString.h"
 
 template<typename T>
 struct is_valid_config_type {
@@ -323,18 +324,15 @@ public:
     std::string     getString()                                                 const;                                      API_STRING
 
     // вложенные контейнеры
-    // @complex_key - список индексов(в текстовом виде)/ключей
+    // @complex_key - список индексов/ключей: {1, "k1", 2} -> el[1]["k1"][2]
     Config&         get_front();                                                                                            API_CONTAINER
     Config          get_front()                                                 const;                                      API_CONTAINER
     Config&         get_at(const size_t index);                                                                             API_CONTAINER
     Config          get_at(const size_t index)                                  const;                                      API_CONTAINER
     Config&         get_at(const std::vector<size_t>& indexes);                                                             API_CONTAINER
     Config          get_at(const std::vector<size_t>& indexes)                  const;                                      API_CONTAINER
-    //TODO: сделать кастомный класс для хранения строк и чисел для обращения ко вложенным элементам
-    //TODO:                    template<std::size_t SIZE>
-    //TODO:    Config&         get_at(const std::array<size_t, SIZE>& indexes);
-    //TODO:                    template<std::size_t SIZE>
-    //TODO:    Config          get_at(const std::array<size_t, SIZE>& indexes)             const;
+    Config&         get_at(const std::initializer_list<OnlySizetOrString>& complex_key);
+    Config          get_at(const std::initializer_list<OnlySizetOrString>& complex_key)         const;
     Config&         get_at(const std::string& key);                                                                         API_MAP_CONTAINER
     Config          get_at(const std::string& key)                              const;                                      API_MAP_CONTAINER
     Config&         get_at(const VString& complex_key);                                                                     API_CONTAINER
@@ -353,26 +351,20 @@ public:
     bool            get_bool_at(const size_t index)                             const;                                      API_CONTAINER
     bool&           get_bool_at(const std::vector<size_t>& indexes);                                                        API_CONTAINER
     bool            get_bool_at(const std::vector<size_t>& indexes)             const;                                      API_CONTAINER
-    //TODO:                    template<std::size_t SIZE>
-    //TODO:    bool&           get_bool_at(const std::array<size_t, SIZE>& indexes);
-    //TODO:                    template<std::size_t SIZE>
-    //TODO:    bool            get_bool_at(const std::array<size_t, SIZE>& indexes)             const;
+    bool&           get_bool_at(const std::initializer_list<OnlySizetOrString>& complex_key);
+    bool            get_bool_at(const std::initializer_list<OnlySizetOrString>& complex_key)    const;
     long double&    get_number_at(const size_t index);                                                                      API_CONTAINER
     long double     get_number_at(const size_t index)                           const;                                      API_CONTAINER
     long double&    get_number_at(const std::vector<size_t>& indexes);                                                      API_CONTAINER
     long double     get_number_at(const std::vector<size_t>& indexes)           const;                                      API_CONTAINER
-    //TODO:                    template<std::size_t SIZE>
-    //TODO:    long double&    get_number_at(const std::array<size_t, SIZE>& indexes);
-    //TODO:                    template<std::size_t SIZE>
-    //TODO:    long double     get_number_at(const std::array<size_t, SIZE>& indexes)             const;
+    long double&    get_number_at(const std::initializer_list<OnlySizetOrString>& complex_key);
+    long double     get_number_at(const std::initializer_list<OnlySizetOrString>& complex_key)  const;
     std::string&    get_string_at(const size_t index);                                                                      API_CONTAINER
     std::string     get_string_at(const size_t index)                           const;                                      API_CONTAINER
     std::string&    get_string_at(const std::vector<size_t>& indexes);                                                      API_CONTAINER
     std::string     get_string_at(const std::vector<size_t>& indexes)           const;                                      API_CONTAINER
-    //TODO:                    template<std::size_t SIZE>
-    //TODO:    std::string&    get_string_at(const std::array<size_t, SIZE>& indexes);
-    //TODO:                    template<std::size_t SIZE>
-    //TODO:    std::string     get_string_at(const std::array<size_t, SIZE>& indexes)             const;
+    std::string&    get_string_at(const std::initializer_list<OnlySizetOrString>& complex_key);
+    std::string     get_string_at(const std::initializer_list<OnlySizetOrString>& complex_key)  const;
 
     bool&           get_bool_at(const std::string& key);                                                                    API_MAP_CONTAINER
     bool            get_bool_at(const std::string& key)                         const;                                      API_MAP_CONTAINER
@@ -413,7 +405,6 @@ private:
     inline void try_convert_null_to_json()                      noexcept;
     inline void try_convert_null_to_json_array()                noexcept;
 public:
-    //TODO: insert_at(index, key, other)
     Config& insert_front(const Config& other);                                                                              API_CONTAINER
     Config& insert_front(Config&& other);                                                                                   API_CONTAINER
     Config& insert_front(const std::string& key, const Config& other);                                                      API_MAP_CONTAINER
@@ -422,6 +413,8 @@ public:
     Config& insert_at(const size_t index, Config&& other);                                                                  API_CONTAINER
     Config& insert_at(const std::string& key, const Config& other);                                                         API_MAP_CONTAINER
     Config& insert_at(const std::string& key, Config&& other);                                                              API_MAP_CONTAINER
+    Config& insert_at(const size_t index, const std::string& key, const Config& other);                                     API_MAP_CONTAINER
+    Config& insert_at(const size_t index, const std::string& key, Config&& other);                                          API_MAP_CONTAINER
     Config& insert_back(const Config& other);                                                                               API_CONTAINER
     Config& insert_back(Config&& other);                                                                                    API_CONTAINER
     Config& insert_back(const std::string& key, const Config& other);                                                       API_MAP_CONTAINER
@@ -584,6 +577,8 @@ public:
     Config          operator[](const std::vector<size_t>& indexes)  const           { return get_at(indexes); }                 API_CONTAINER
     Config&         operator[](const std::string& key)                              { return get_at(key); }                     API_CONTAINER
     Config          operator[](const std::string& key)              const           { return get_at(key); }                     API_CONTAINER
+
+    //FIXME: complex_key должен быть OnlySizetOrString
     Config&         operator[](const VString& complex_key)                          { return get_at(complex_key); }             API_CONTAINER
     Config          operator[](const VString& complex_key)          const           { return get_at(complex_key); }             API_CONTAINER
     // ======================================================================================================= Operators

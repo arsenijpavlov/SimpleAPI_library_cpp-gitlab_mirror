@@ -12,7 +12,6 @@ public:
     ElementNumber()                                 noexcept : m_value(0)               { init(); }
     explicit ElementNumber(const long double& num)  noexcept : m_value(num)             { init(); }
     explicit ElementNumber(long double&& num)       noexcept : m_value(std::move(num))  { init(); }
-//TODO: фича под вопросом    ElementNumber(const std::string& num) noexcept
     ~ElementNumber()                                noexcept                            {}
 
     // Setters =========================================================================================================

@@ -562,6 +562,18 @@ Config Config::get_at(const std::vector<size_t> &indexes) const {
     return *this;
 }
 
+Config &Config::get_at(const std::initializer_list<OnlySizetOrString> &complex_key)
+{
+    // TODO: Config::get_at(complex_key)
+    return *this;
+}
+
+Config Config::get_at(const std::initializer_list<OnlySizetOrString> &complex_key) const
+{
+    // TODO: Config::get_at(complex_key)
+    return *this;
+}
+
 Config &Config::get_at(const std::string& key) {
     __CHECK_TYPE_IS_JSON__((*this))
     return dynamic_cast<ElementJson*>(m_value)->get_at(key);
@@ -754,6 +766,16 @@ bool Config::get_bool_at(const std::vector<size_t> &indexes) const {
     return dynamic_cast<ElementBool*>(cfg.m_value)->getValue();
 }
 
+// TODO: Config::get_bool_at(complex_key)
+//bool &Config::get_bool_at(const std::initializer_list<OnlySizetOrString> &complex_key)
+//{}
+
+bool Config::get_bool_at(const std::initializer_list<OnlySizetOrString> &complex_key) const
+{
+// TODO: Config::get_bool_at(complex_key)
+    return false;
+}
+
 long double &Config::get_number_at(const size_t index) {
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_NUMBER__(config)
@@ -782,6 +804,14 @@ long double Config::get_number_at(const std::vector<size_t> &indexes) const {
     return dynamic_cast<ElementNumber*>(cfg.m_value)->getValue();
 }
 
+//TODO: Config::get_number_at()
+//long double &Config::get_number_at(const std::initializer_list<OnlySizetOrString> &complex_key)
+//{}
+
+//TODO: Config::get_number_at()
+//long double Config::get_number_at(const std::initializer_list<OnlySizetOrString> &complex_key) const
+//{}
+
 std::string &Config::get_string_at(const size_t index) {
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_STRING__(config)
@@ -809,6 +839,14 @@ std::string Config::get_string_at(const std::vector<size_t> &indexes) const {
 
     return dynamic_cast<ElementString*>(cfg.m_value)->getValue();
 }
+
+//TODO: Config::get_string_at()
+//std::string &Config::get_string_at(const std::initializer_list<OnlySizetOrString> &complex_key)
+//{}
+
+//TODO: Config::get_string_at()
+//std::string Config::get_string_at(const std::initializer_list<OnlySizetOrString> &complex_key) const
+//{}
 
 bool &Config::get_bool_at(const std::string& key) {
     const Config& config = get_at(key);
@@ -1005,6 +1043,18 @@ Config& Config::insert_at(const std::string& key, Config&& other) {
     __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
     dynamic_cast<ElementJson*>(m_value)->insert_at(key, std::move(other));
 
+    return *this;
+}
+
+Config &Config::insert_at(const size_t index, const std::string &key, const Config &other)
+{
+    // TODO: Config::insert_at(index, key, other)
+    return *this;
+}
+
+Config &Config::insert_at(const size_t index, const std::string &key, Config &&other)
+{
+    // TODO: Config::insert_at(index, key, other)
     return *this;
 }
 
@@ -1508,7 +1558,9 @@ bool WriteStringToFile(const std::string& file_path, std::string&& content) noex
     return true;
 }
 
-//TODO: запретить пользователю считывать массивы?
+/*TODO: запретить пользователю считывать массивы?
+ * может имеет смысл вынести парсинг массивов вовне? разделители везде одни и те же, обрамление только нужно учитывать
+*/
 Config Parse(const std::string &content, const ConfigFormat format,
              const bool with_comments, std::string *error_log)
 {

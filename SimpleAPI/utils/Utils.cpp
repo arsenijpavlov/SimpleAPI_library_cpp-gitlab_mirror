@@ -280,7 +280,7 @@ std::string GetFromEscChar2(const std::string& str) noexcept {
     return str;
 }
 
-//TODO: ???
+//TODO: void UpdEscSymbols() - ???
 void UpdEscSymbols(std::string& string) noexcept {
     std::string temp_string;
     temp_string.reserve(string.capacity());

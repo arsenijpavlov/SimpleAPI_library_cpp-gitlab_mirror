@@ -48,7 +48,7 @@ std::string ElementNumber::toXmlString(const CommentDesign &design, const int8_t
 //----------------------------------------------------------------------------------------------------------------------
 
 
-//FIXME: сейчас дублируется код из папки utils
+//NOTE: сейчас дублируется код из папки utils (в utils:: выполнит stod() во второй аргумент)
 bool IsElementNumber(const std::string &str) noexcept {
     if(str.empty()) return false;
     if(str[0] == 'e' || str[0] == 'E' || str[0] == 'f' || str[0] == 'F')

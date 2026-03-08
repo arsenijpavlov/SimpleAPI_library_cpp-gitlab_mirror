@@ -416,7 +416,8 @@ std::string ElementArray::toString(const ConfigFormat format, const CommentDesig
     case ConfigFormat::eINI:
     case ConfigFormat::eYAML:
     case ConfigFormat::eXML:
-        break;
+    default:
+        return "[TODO]";
     }
 
     return ret;
