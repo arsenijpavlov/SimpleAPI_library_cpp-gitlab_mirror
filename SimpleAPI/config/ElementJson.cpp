@@ -544,7 +544,14 @@ Config ElementJson::get_and_pop_at(const std::string &key) noexcept {
 }
 
 void ElementJson::erase_at(const std::string &key) noexcept {
-    erase_at(key); //FIXME: ссылка на самого себя
+    auto it = m_values.cbegin();
+
+    while(it != m_values.cend()) {
+        if(it->first == key) {
+            m_values.erase(it);
+            break;
+        }
+    }
 }
 
 // NOTE: точно знаю, что можно ускорить, а не запрашивать каждый раз поиск по key
