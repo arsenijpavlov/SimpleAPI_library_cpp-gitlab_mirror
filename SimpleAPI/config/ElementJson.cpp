@@ -485,16 +485,19 @@ void ElementJson::append(ElementJson &&other) noexcept {
         insert_at(o.first, *o.second);
 }
 
-void ElementJson::pop_front() {
-    m_values.erase(cbegin());
+void ElementJson::pop_front() noexcept {
+    if(!m_values.empty())
+        m_values.erase(cbegin());
 }
 
-void ElementJson::pop_at(const size_t index) {
-    m_values.erase(cbegin() + index);
+void ElementJson::pop_at(const size_t index) noexcept {
+    if(m_values.size() > index)
+        m_values.erase(cbegin() + index);
 }
 
-void ElementJson::pop_back() {
-    m_values.erase(cend());
+void ElementJson::pop_back() noexcept {
+    if(!m_values.empty())
+        m_values.erase(cend());
 }
 
 Config ElementJson::get_and_pop_front() {
@@ -513,21 +516,6 @@ Config ElementJson::get_and_pop_back() {
     Config cfg = get_back();
     pop_back();
     return cfg;
-}
-
-void ElementJson::erase_front() {
-    __CHECK_JSON_EMPTY_EXCEPTION__((*this))
-    m_values.erase(m_values.cbegin());
-}
-
-void ElementJson::erase_at(const size_t index) {
-    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
-    m_values.erase(m_values.cbegin() + index);
-}
-
-void ElementJson::erase_back() {
-    __CHECK_JSON_EMPTY_EXCEPTION__((*this))
-    m_values.erase(m_values.cend());
 }
 
 void ElementJson::pop_at(const std::string &key) noexcept {

@@ -253,19 +253,19 @@ void ElementArray::append_null(size_t size) noexcept {
         m_values.push_back(std::make_shared<Config>());
 }
 
-void ElementArray::pop_front() {
-    __CHECK_ARRAY_EMPTY_EXCEPTION__((*this))
-    m_values.erase(cbegin());
+void ElementArray::pop_front() noexcept {
+    if(!m_values.empty())
+        m_values.erase(cbegin());
 }
 
-void ElementArray::pop_at(const size_t index) {
-    __CHECK_INDEX_BOUND__((*this), index)
-    m_values.erase(cbegin() + index);
+void ElementArray::pop_at(const size_t index) noexcept {
+    if(m_values.size() > index)
+        m_values.erase(cbegin() + index);
 }
 
-void ElementArray::pop_back() {
-    __CHECK_ARRAY_EMPTY_EXCEPTION__((*this))
-    m_values.pop_back();
+void ElementArray::pop_back() noexcept {
+    if(!m_values.empty())
+        m_values.pop_back();
 }
 
 Config ElementArray::get_and_pop_front() {
@@ -284,21 +284,6 @@ Config ElementArray::get_and_pop_back() {
     Config cfg = get_back();
     pop_back();
     return cfg;
-}
-
-void ElementArray::erase_front() {
-    __CHECK_ARRAY_EMPTY_EXCEPTION__((*this))
-    m_values.erase(cbegin());
-}
-
-void ElementArray::erase_at(const size_t index) {
-    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
-    m_values.erase(cbegin() + index);
-}
-
-void ElementArray::erase_back() {
-    __CHECK_ARRAY_EMPTY_EXCEPTION__((*this))
-    m_values.pop_back();
 }
 
 bool ElementArray::isEqual(const IElement &other, const bool compare_comments,

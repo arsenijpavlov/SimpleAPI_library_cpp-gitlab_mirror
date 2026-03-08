@@ -49,15 +49,18 @@ public:
     // ========================================================================================================== Adding
 
     // Removing ========================================================================================================
-    virtual void    pop_front()                                                             = 0;
-    virtual void    pop_at(const size_t index)                                              = 0;
-    virtual void    pop_back()                                                              = 0;
+    virtual void    pop_front()                                             noexcept        = 0;
+    virtual void    pop_at(const size_t index)                              noexcept        = 0;
+    virtual void    pop_back()                                              noexcept        = 0;
+
     virtual Config  get_and_pop_front()                                                     = 0;
     virtual Config  get_and_pop_at(const size_t index)                                      = 0;
     virtual Config  get_and_pop_back()                                                      = 0;
-    virtual void    erase_front()                                                           = 0;
-    virtual void    erase_at(const size_t index)                                            = 0;
-    virtual void    erase_back()                                                            = 0;
+
+    //WARNING: в наследуемых классах нужно явно указать using объявление имён методов
+    void            erase_front()                                           noexcept        { erase_front(); };
+    void            erase_at(const size_t index)                            noexcept        { erase_at(index); };
+    void            erase_back()                                            noexcept        { erase_back(); };
 
     void            remove_front()                                                          { erase_front(); }
     void            remove_at(const size_t index)                                           { erase_at(index); }

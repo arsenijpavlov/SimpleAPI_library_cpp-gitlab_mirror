@@ -118,15 +118,22 @@ public:
     // ========================================================================================================== Adding
 
     // Removing ========================================================================================================
-    void    pop_front()                                                                 override;
-    void    pop_at(const size_t index)                                                  override;
-    void    pop_back()                                                                  override;
+    // если индекса не существовало - проигнорировать
+    void    pop_front()                                                 noexcept        override;
+    void    pop_at(const size_t index)                                  noexcept        override;
+    void    pop_back()                                                  noexcept        override;
+    
     Config  get_and_pop_front()                                                         override;
     Config  get_and_pop_at(const size_t index)                                          override;
     Config  get_and_pop_back()                                                          override;
-    void    erase_front()                                                               override;
-    void    erase_at(const size_t index)                                                override;
-    void    erase_back()                                                                override;
+
+    //WARNING: обязательно для области видимости из Config::
+    using IElementContainer::erase_front;
+    using IElementContainer::erase_at;
+    using IElementContainer::erase_back;
+    using IElementContainer::remove_front;
+    using IElementContainer::remove_at;
+    using IElementContainer::remove_back;
     // ======================================================================================================== Removing
 
     // Info ============================================================================================================

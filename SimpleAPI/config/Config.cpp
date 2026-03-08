@@ -306,7 +306,6 @@ Config &Config::setValue(const Config &other) noexcept {
     return *this;
 }
 
-//TODO: комментарии всё ещё не учитываются
 Config &Config::setValue(Config &&other) noexcept {
     if(this != &other)
     {
@@ -420,6 +419,42 @@ Config &Config::setValue(const ElementJson &other) noexcept {
 Config &Config::setValue(ElementJson &&other) noexcept {
     release();
     m_value = dynamic_cast<IElement*>(new ElementJson(std::move(other)));
+    return *this;
+}
+
+Config &Config::set(const std::string &key, const Config &value)
+{
+    insert_at(key, value);
+    return *this;
+}
+
+Config &Config::set(const std::string &key, Config &&value)
+{
+    insert_at(key, std::move(value));
+    return *this;
+}
+
+Config &Config::set(const size_t index, const Config &value)
+{
+    insert_at(index, value);
+    return *this;
+}
+
+Config &Config::set(const size_t index, Config &&value)
+{
+    insert_at(index, std::move(value));
+    return *this;
+}
+
+Config &Config::set(const size_t index, const std::string &key, const Config &value)
+{
+    insert_at(index, key, value);
+    return *this;
+}
+
+Config &Config::set(const size_t index, const std::string &key, Config &&value)
+{
+    insert_at(index, key, std::move(value));
     return *this;
 }
 
@@ -979,13 +1014,17 @@ Config& Config::insert_at(const std::string& key, Config&& other) {
 
 Config &Config::insert_at(const size_t index, const std::string &key, const Config &other)
 {
-    // TODO: Config::insert_at(index, key, other)
-    return *this;
+    Config config(other);
+    return insert_at(index, key, std::move(config));
 }
 
 Config &Config::insert_at(const size_t index, const std::string &key, Config &&other)
 {
-    // TODO: Config::insert_at(index, key, other)
+    try_convert_null_to_json();
+
+    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+    dynamic_cast<ElementJson*>(m_value)->insert_at(index, key, std::move(other));
+
     return *this;
 }
 
@@ -1063,32 +1102,6 @@ Config &Config::append(Config &&config) {
     return *this;
 }
 
-bool Config::isEqual(const IElement &other, const bool compare_comments,
-                     const bool map_sort_important) const noexcept
-{
-    __CHECK_TYPES_NOT_EQUAL_ACTION__((*m_value), other)
-        return false;
-    return m_value->isEqual(other, compare_comments, map_sort_important);
-}
-
-bool Config::isEqual(const bool other) const noexcept {
-    __CHECK_TYPE_NOT_BOOL_ACTION__((*this))
-        return false;
-    return dynamic_cast<const ElementBool*>(m_value)->getValue() == other;
-}
-
-bool Config::isEqual(const long double &other) const noexcept {
-    __CHECK_TYPE_NOT_NUMBER_ACTION__((*this))
-        return false;
-    return dynamic_cast<const ElementNumber*>(m_value)->getValue() == other;
-}
-
-bool Config::isEqual(const std::string &other) const noexcept {
-    __CHECK_TYPE_NOT_STRING_ACTION__((*this))
-        return false;
-    return dynamic_cast<const ElementString*>(m_value)->getValue() == other;
-}
-
 Config& Config::erase_front() {
     erase_at(0);
     return *this;
@@ -1097,19 +1110,7 @@ Config& Config::erase_front() {
 //если элемента не существует - проигнорировать
 Config& Config::erase_at(const size_t index) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
-    if(!isEmpty()) {
-        switch(getType()){
-        case ValueType::eArray: {
-            dynamic_cast<ElementArray*>(m_value)->erase_at(index);
-            break;
-        }
-        case ValueType::eJson: {
-            dynamic_cast<ElementJson*>(m_value)->erase_at(index);
-            break;
-        }
-        default: throw std::invalid_argument("unknown type for remove");
-        }
-    }
+    dynamic_cast<IElementContainer*>(m_value)->erase_at(index);
 
     return *this;
 }
@@ -1122,7 +1123,9 @@ Config& Config::erase_at(const std::string& key) {
 }
 
 Config& Config::erase_back() {
-    erase_at(size() - 1); //даже если индекса не существует - exception не будет, только если тип неверный
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    dynamic_cast<IElementContainer*>(m_value)->erase_back();
+
     return *this;
 }
 
@@ -1152,6 +1155,36 @@ Config Config::get_and_pop_back() {
     erase_back();
 
     return config;
+}
+
+bool Config::isEqual(const IElement &other, const bool compare_comments,
+                     const bool map_sort_important) const noexcept
+{
+    __CHECK_TYPES_NOT_EQUAL_ACTION__((*m_value), other)
+        return false;
+
+    return m_value->isEqual(other, compare_comments, map_sort_important);
+}
+
+bool Config::isEqual(const bool other) const noexcept {
+    __CHECK_TYPE_NOT_BOOL_ACTION__((*this))
+        return false;
+
+    return dynamic_cast<const ElementBool*>(m_value)->getValue() == other;
+}
+
+bool Config::isEqual(const long double &other) const noexcept {
+    __CHECK_TYPE_NOT_NUMBER_ACTION__((*this))
+        return false;
+
+    return dynamic_cast<const ElementNumber*>(m_value)->getValue() == other;
+}
+
+bool Config::isEqual(const std::string &other) const noexcept {
+    __CHECK_TYPE_NOT_STRING_ACTION__((*this))
+        return false;
+
+    return dynamic_cast<const ElementString*>(m_value)->getValue() == other;
 }
 
 bool Config::containsValue(const Config &config) const noexcept {

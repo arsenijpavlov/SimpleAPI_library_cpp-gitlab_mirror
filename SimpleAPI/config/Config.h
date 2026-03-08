@@ -192,13 +192,13 @@ private:
         if(sizeof...(others) == 0) return;
         variadicKVInputter(std::move(others)...);
     }
-    static void variadicKVInputter() {} //NOTE: нужна только для "пустых" вызовов variadic-функции
+    static void variadicKVInputter()                    {} //NOTE: нужна только для "пустых" вызовов variadic-функции
 
     // WARNING: в идеале, методы ниже никогда не должны быть использованы
     __ONLY_ALLOWED_TYPES__(T)
-    static void variadicKVInputter(const T& others)    {} //NOTE: нужна только для компиляции работы с массивами
+    static void variadicKVInputter(const T& others)     {} //NOTE: нужна только для компиляции работы с массивами
     __ONLY_ALLOWED_TYPES__(T)
-    static void variadicKVInputter(T&& others)         {} //NOTE: нужна только для компиляции работы с массивами
+    static void variadicKVInputter(T&& others)          {} //NOTE: нужна только для компиляции работы с массивами
 
 public:
     //NOTE: API_ - приписка для обозначения интерфейсных функций при использовании через класс Config
@@ -311,8 +311,13 @@ public:
     //TODO:    Config&         setValue(const ElementXml& other)       noexcept;
     //TODO:    Config&         setValue(ElementXml&& other)            noexcept;
 
-    //TODO: set(key, value) для установки значения переменной Json
-    //TODO: set(index, value) для установки значения переменной JsonArray
+    // вложенные контейнеры (используют insert_*() ниже, но возвращают этот же базовый элемент)
+    Config&         set(const std::string& key, const Config& value);                                                       API_MAP_CONTAINER
+    Config&         set(const std::string& key, Config&& value);                                                            API_MAP_CONTAINER
+    Config&         set(const size_t index, const Config& value);                                                           API_CONTAINER
+    Config&         set(const size_t index, Config&& value);                                                                API_CONTAINER
+    Config&         set(const size_t index, const std::string& key, const Config& value);                                   API_MAP_CONTAINER
+    Config&         set(const size_t index, const std::string& key, Config&& value);                                        API_MAP_CONTAINER
     // ========================================================================================================= Setters
 
     // Getters =========================================================================================================
@@ -436,35 +441,35 @@ public:
                        Config&& other)                                  { return insert_after(after_key, key, std::move(other)); }  API_MAP_CONTAINER
 
     //обход explicit
-    __ONLY_ALLOWED_TYPES__(T)
+            __ONLY_ALLOWED_TYPES__(T)
     Config& push_front(const T& other)                                  { return insert_front(Config(other)); }                 API_CONTAINER
-    __ONLY_ALLOWED_TYPES__(T)
+            __ONLY_ALLOWED_TYPES__(T)
     Config& push_front(T&& other)                                       { return insert_front(std::move(Config(other))); }      API_CONTAINER
-    __ONLY_ALLOWED_TYPES__(T)
+            __ONLY_ALLOWED_TYPES__(T)
     Config& push_front(const std::string& key, const T& other)          { return insert_front(key, Config(other)); }            API_MAP_CONTAINER
-    __ONLY_ALLOWED_TYPES__(T)
+            __ONLY_ALLOWED_TYPES__(T)
     Config& push_front(const std::string& key, T&& other)               { return insert_front(key, std::move(Config(other))); } API_MAP_CONTAINER
-    __ONLY_ALLOWED_TYPES__(T)
+            __ONLY_ALLOWED_TYPES__(T)
     Config& push_at(const size_t index, const T& other)                 { return insert_at(index, Config(other)); }             API_CONTAINER
-    __ONLY_ALLOWED_TYPES__(T)
+            __ONLY_ALLOWED_TYPES__(T)
     Config& push_at(const size_t index, T&& other)                      { return insert_at(index, std::move(Config(other))); }  API_CONTAINER
-    __ONLY_ALLOWED_TYPES__(T)
+            __ONLY_ALLOWED_TYPES__(T)
     Config& push_at(const std::string& key, const T& other)             { return insert_at(key, Config(other)); }               API_MAP_CONTAINER
-    __ONLY_ALLOWED_TYPES__(T)
+            __ONLY_ALLOWED_TYPES__(T)
     Config& push_at(const std::string& key, T&& other)                  { return insert_at(key, std::move(Config(other))); }    API_MAP_CONTAINER
-    __ONLY_ALLOWED_TYPES__(T)
+            __ONLY_ALLOWED_TYPES__(T)
     Config& push_back(const T& other)                                   { return insert_back(Config(other)); }                  API_CONTAINER
-    __ONLY_ALLOWED_TYPES__(T)
+            __ONLY_ALLOWED_TYPES__(T)
     Config& push_back(T&& other)                                        { return insert_back(std::move(Config(other))); }       API_CONTAINER
-    __ONLY_ALLOWED_TYPES__(T)
+            __ONLY_ALLOWED_TYPES__(T)
     Config& push_back(const std::string& key, const T& other)           { return insert_back(key, Config(other)); }             API_MAP_CONTAINER
-    __ONLY_ALLOWED_TYPES__(T)
+            __ONLY_ALLOWED_TYPES__(T)
     Config& push_back(const std::string& key, T&& other)                { return insert_back(key, std::move(Config(other))); }  API_MAP_CONTAINER
 
-    __ONLY_ALLOWED_TYPES__(T)
+            __ONLY_ALLOWED_TYPES__(T)
     Config& push_after(const std::string& after_key, const std::string& key,
                        const T& other)                                  { return insert_after(after_key, key, Config(other)); }             API_MAP_CONTAINER
-    __ONLY_ALLOWED_TYPES__(T)
+            __ONLY_ALLOWED_TYPES__(T)
     Config& push_after(const std::string& after_key, const std::string& key,
                        T&& other)                                       { return insert_after(after_key, key, std::move(Config(other))); }  API_MAP_CONTAINER
 
@@ -624,6 +629,7 @@ public:
                          const int8_t tabulation_level = 0)                                     const noexcept;                 API_ALL
     friend std::ostream& operator<<(std::ostream& os, const Config& config)                     noexcept;                       API_ALL
     friend std::ostream& operator<<(std::ostream& os, const IElement& config)                   noexcept;                       API_ALL
+    //TODO: дать доступ к toJsonString/toIniString/toYamlString/toXmlString
     // ========================================================================================================== String
 
     // File ============================================================================================================
