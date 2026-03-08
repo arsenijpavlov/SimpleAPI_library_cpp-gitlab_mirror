@@ -50,6 +50,7 @@ bool CreateEmptyFile(const std::string& file_path, const std::string& start_comm
                      const std::string& finish_comment, std::string* error_log = nullptr)                   noexcept;
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= WRITING
 
+//TODO: может имеет смысл всё это перенести в классы Element*?
 /*static*/ ValueType    CheckValue(std::string& value, const ConfigFormat& format = ConfigFormat::eJSON)    noexcept;
 /*static*/ bool         CheckNumber(const std::string& value)                                               noexcept;
 /*static*/ bool         CheckBool(std::string& value)                                                       noexcept;

@@ -237,6 +237,7 @@ bool CheckNull(std::string &value) noexcept {
 }
 
 //TODO: debug log in args
+//TODO: перепроверить CheckString()
 bool CheckString(std::string &value, const ConfigFormat &format) noexcept {
 //    std::cout << "CheckString(): \"" << value << "\"" << std::endl;
 
@@ -314,6 +315,7 @@ bool CheckString(std::string &value, const ConfigFormat &format) noexcept {
 }
 
 //TODO: debug log in args
+//TODO: перепроверить CheckJson()
 bool CheckJson(std::string &value) noexcept {
 //    std::cout << "CheckJson(): \"" << value << "\"" << std::endl;
     using namespace utils;
@@ -366,7 +368,9 @@ bool CheckJson(std::string &value) noexcept {
 }
 
 //TODO: debug log in args
-bool CheckArray(std::string &value) noexcept {
+//TODO: перепроверить CheckArray()
+bool CheckArray(std::string &value, const ConfigFormat &format) noexcept
+{
 //    std::cout << "CheckArray(): \"" << value << "\"" << std::endl;
     using namespace utils;
     char ch = 0;
@@ -437,3 +441,4 @@ void SymbolCounter(const char ch_current, size_t &line_counter,
         symbol_counter = 0; //должен перескочить строго на следующей строке
     } else symbol_counter++;
 }
+
