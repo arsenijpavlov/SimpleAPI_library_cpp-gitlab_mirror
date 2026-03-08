@@ -10,26 +10,26 @@ ElementJson::ElementJson(const JPair &pair) noexcept {
     insert_back(pair.first, pair.second);
 }
 
-void ElementJson::add_comment(const size_t index, const Comment &content) {
+void ElementJson::set_comment(const size_t index, const Comment &content) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
-    m_values.at(index).second->addComment(content);
+    m_values.at(index).second->setComment(content);
 }
 
-void ElementJson::add_comment(const size_t index, const std::string &content_before,
+void ElementJson::set_comment(const size_t index, const std::string &content_before,
                               const std::string &content_after)
 {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
-    m_values.at(index).second->addComment(content_before, content_after);
+    m_values.at(index).second->setComment(content_before, content_after);
 }
 
-void ElementJson::add_prefix_comment(const size_t index, const std::string &content) {
+void ElementJson::set_prefix_comment(const size_t index, const std::string &content) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
-    m_values.at(index).second->addPrefixComment(content);
+    m_values.at(index).second->setPrefixComment(content);
 }
 
-void ElementJson::add_suffix_comment(const size_t index, const std::string &content) {
+void ElementJson::set_suffix_comment(const size_t index, const std::string &content) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
-    m_values.at(index).second->addSuffixComment(content);
+    m_values.at(index).second->setSuffixComment(content);
 }
 
 Comment &ElementJson::get_comment(const size_t index) {
@@ -93,22 +93,22 @@ void ElementJson::delete_suffix_comment(const size_t index) {
     m_values.at(index).second->deleteSuffixComment();
 }
 
-void ElementJson::add_comment(const std::string& key, const Comment &content) {
-    add_comment(get_index_from(key), content);
+void ElementJson::set_comment(const std::string& key, const Comment &content) {
+    set_comment(get_index_from(key), content);
 }
 
-void ElementJson::add_comment(const std::string& key, const std::string &content_before,
+void ElementJson::set_comment(const std::string& key, const std::string &content_before,
                               const std::string &content_after)
 {
-    add_comment(get_index_from(key), content_before, content_after);
+    set_comment(get_index_from(key), content_before, content_after);
 }
 
-void ElementJson::add_prefix_comment(const std::string& key, const std::string &content) {
-    add_prefix_comment(get_index_from(key), content);
+void ElementJson::set_prefix_comment(const std::string& key, const std::string &content) {
+    set_prefix_comment(get_index_from(key), content);
 }
 
-void ElementJson::add_suffix_comment(const std::string& key, const std::string &content) {
-    add_suffix_comment(get_index_from(key), content);
+void ElementJson::set_suffix_comment(const std::string& key, const std::string &content) {
+    set_suffix_comment(get_index_from(key), content);
 }
 
 Comment &ElementJson::get_comment(const std::string& key) {
@@ -862,14 +862,14 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
 
     auto AppendMainPreviewComment = [&]() {
         if(!comments.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
-            addPrefixComment(VStringToString(comments));
+            setPrefixComment(VStringToString(comments));
             DEBUG_LOG("ElementJson: PreviewComment: " << "\"" << getPrefixComment() << "\"");
             comments.clear();
         }
     };
     auto AppendMainSuffixComment = [&]() {
         if(!comments.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
-            addSuffixComment(VStringToString(comments));
+            setSuffixComment(VStringToString(comments));
             DEBUG_LOG("ElementJson: SuffixComment: " << "\"" << getSuffixComment() << "\"");
             comments.clear();
         }
@@ -885,7 +885,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
             && !empty()
             && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment))
         {
-            get_back().addPrefixComment(VStringToString(comments));
+            get_back().setPrefixComment(VStringToString(comments));
             DEBUG_LOG("ElementJson: inner Element add PreviewComment: " << "\"" << get_back().getPrefixComment() << "\"");
             comments.clear();
         }
@@ -896,7 +896,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
             && get_back().getSuffixComment().empty()
             && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment))
         {
-            get_back().addSuffixComment(comments[0]);
+            get_back().setSuffixComment(comments[0]);
             DEBUG_LOG("ElementJson: inner Element add SuffixComment: " << "\"" << get_back().getSuffixComment() << "\"");
             comments.erase(comments.cbegin());
         }
@@ -1087,7 +1087,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
                         && get_at(size() - 2).getSuffixComment().empty()
                         && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment))
                     {
-                        get_at(size() - 2).addSuffixComment(comments[0]);
+                        get_at(size() - 2).setSuffixComment(comments[0]);
                         DEBUG_LOG("ElementJson: inner Element add SuffixComment: " << "\"" << get_at(size() - 2).getSuffixComment() << "\"");
                         comments.erase(comments.cbegin());
                     }

@@ -11,11 +11,11 @@ public:
     virtual ~IComment() {}
 
     //COMMENTS =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-    void            addComment(const Comment& content)          noexcept            { m_comment = content; }
-    void            addComment(const std::string &content_before, const std::string &content_after)
+    void            setComment(const Comment& content)          noexcept            { m_comment = content; }
+    void            setComment(const std::string &content_before, const std::string &content_after)
                                                                 noexcept            { m_comment = Comment(content_before, content_after); }
-    void            addPrefixComment(const std::string& content)noexcept            { m_comment.setPrefix(content); }
-    void            addSuffixComment(const std::string& content)noexcept            { m_comment.setSuffix(content); }
+    void            setPrefixComment(const std::string& content)noexcept            { m_comment.setPrefix(content); }
+    void            setSuffixComment(const std::string& content)noexcept            { m_comment.setSuffix(content); }
 
     Comment&        getComment()                                noexcept            { return m_comment; }
     Comment         getComment()                                const noexcept      { return m_comment; }

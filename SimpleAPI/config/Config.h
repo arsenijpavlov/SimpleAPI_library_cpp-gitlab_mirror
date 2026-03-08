@@ -209,10 +209,10 @@ public:
     #define API_MAP_CONTAINER
 
     // Comment =========================================================================================================
-    Config&         addComment(const Comment& content)              noexcept;                                               API_ALL
-    Config&         addComment(const std::string &content_before, const std::string &content_after) noexcept;               API_ALL
-    Config&         addPrefixComment(const std::string& content)    noexcept;                                               API_ALL
-    Config&         addSuffixComment(const std::string& content)    noexcept;                                               API_ALL
+    Config&         setComment(const Comment& content)              noexcept;                                               API_ALL
+    Config&         setComment(const std::string &content_before, const std::string &content_after) noexcept;               API_ALL
+    Config&         setPrefixComment(const std::string& content)    noexcept;                                               API_ALL
+    Config&         setSuffixComment(const std::string& content)    noexcept;                                               API_ALL
 
     Comment&        getComment()                                    noexcept        { return m_value->getComment(); }       API_ALL
     Comment         getComment()                                    const noexcept  { return m_value->getComment(); }       API_ALL
@@ -236,19 +236,19 @@ public:
     Config&         clearCommentDesign()                            noexcept;                                               API_ALL
 
     // вложенные контейнеры
-    Config&         add_comment(const size_t index, const Comment &content);                                                API_CONTAINER
-    Config&         add_comment(const std::string& key, const Comment &content);                                            API_MAP_CONTAINER
+    Config&         set_comment(const size_t index, const Comment &content);                                                API_CONTAINER
+    Config&         set_comment(const std::string& key, const Comment &content);                                            API_MAP_CONTAINER
 
-    Config&         add_comment(const size_t index, const std::string &content_before,
+    Config&         set_comment(const size_t index, const std::string &content_before,
                      const std::string &content_after);                                                                     API_CONTAINER
-    Config&         add_comment(const std::string& key, const std::string &content_before,
+    Config&         set_comment(const std::string& key, const std::string &content_before,
                      const std::string &content_after);                                                                     API_MAP_CONTAINER
 
-    Config&         add_prefix_comment(const size_t index, const std::string &content);                                     API_CONTAINER
-    Config&         add_prefix_comment(const std::string& key, const std::string &content);                                 API_MAP_CONTAINER
+    Config&         set_prefix_comment(const size_t index, const std::string &content);                                     API_CONTAINER
+    Config&         set_prefix_comment(const std::string& key, const std::string &content);                                 API_MAP_CONTAINER
 
-    Config&         add_suffix_comment(const size_t index, const std::string &content);                                     API_CONTAINER
-    Config&         add_suffix_comment(const std::string& key, const std::string &content);                                 API_MAP_CONTAINER
+    Config&         set_suffix_comment(const size_t index, const std::string &content);                                     API_CONTAINER
+    Config&         set_suffix_comment(const std::string& key, const std::string &content);                                 API_MAP_CONTAINER
 
     Comment&        get_comment(const size_t index);                                                                        API_CONTAINER
     Comment&        get_comment(const std::string& key);                                                                    API_MAP_CONTAINER
@@ -309,6 +309,9 @@ public:
     //TODO:    Config&         setValue(ElementYaml&& other)           noexcept;
     //TODO:    Config&         setValue(const ElementXml& other)       noexcept;
     //TODO:    Config&         setValue(ElementXml&& other)            noexcept;
+
+    //TODO: set(key, value) для установки значения переменной Json
+    //TODO: set(index, value) для установки значения переменной JsonArray
     // ========================================================================================================= Setters
 
     // Getters =========================================================================================================
@@ -429,8 +432,6 @@ public:
     //NOTE: в использовании итераторов здесь мало смысла видится
     //NOTE: функции с произвольным количеством аргументов пока не кажутся необходимыми пользователю API
 
-    //TODO: update ???
-
     Config& push_front(const Config& other)                             { return insert_front(other); }                     API_CONTAINER
     Config& push_front(Config&& other)                                  { return insert_front(std::move(other)); }          API_CONTAINER
     Config& push_front(const std::string& key, const Config& other)     { return insert_front(key, other); }                API_MAP_CONTAINER
@@ -481,9 +482,6 @@ public:
     __ONLY_ALLOWED_TYPES__(T)
     Config& push_after(const std::string& after_key, const std::string& key,
                        T&& other)                                       { return insert_after(after_key, key, std::move(Config(other))); }  API_MAP_CONTAINER
-
-    //TODO: set(key, value) для установки значения переменной Json
-    //TODO: set(index, value) для установки значения переменной JsonArray
 
     //добавить существующий список к другому списку (только при совместимости списков)
     Config& append(const Config& config);                                                                                       API_CONTAINER
@@ -614,25 +612,25 @@ public:
     shared_VElement::const_iterator     array_cend()                                            const;
 
     //Json
-    class NamedRange {
+    class MapRange {
     private:
         Config*         m_config;
         const Config*   m_const_config;
     public:
-        explicit NamedRange(Config& config) : m_config(&config), m_const_config(nullptr)        {}
-        explicit NamedRange(const Config& config) : m_config(nullptr), m_const_config(&config)  {}
+        explicit MapRange(Config& config) : m_config(&config), m_const_config(nullptr)        {}
+        explicit MapRange(const Config& config) : m_config(nullptr), m_const_config(&config)  {}
 
-        shared_VPairElement::iterator       begin()             { return m_config->named_begin(); }
-        shared_VPairElement::iterator       end()               { return m_config->named_end(); }
-        shared_VPairElement::const_iterator cbegin()    const   { return m_const_config->named_cbegin(); }
-        shared_VPairElement::const_iterator cend()      const   { return m_const_config->named_cend(); }
+        shared_VPairElement::iterator       begin()             { return m_config->map_begin(); }
+        shared_VPairElement::iterator       end()               { return m_config->map_end(); }
+        shared_VPairElement::const_iterator cbegin()    const   { return m_const_config->map_cbegin(); }
+        shared_VPairElement::const_iterator cend()      const   { return m_const_config->map_cend(); }
     };
-    NamedRange getNamedRange()                                  { return NamedRange(*this); }
-    NamedRange getNamedRange()                          const   { return NamedRange(*this); }
-    shared_VPairElement::iterator       named_begin();
-    shared_VPairElement::const_iterator named_cbegin()                                           const;
-    shared_VPairElement::iterator       named_end();
-    shared_VPairElement::const_iterator named_cend()                                             const;
+    MapRange getNamedRange()                                    { return MapRange(*this); }
+    MapRange getNamedRange()                            const   { return MapRange(*this); }
+    shared_VPairElement::iterator       map_begin();
+    shared_VPairElement::const_iterator map_cbegin()                                            const;
+    shared_VPairElement::iterator       map_end();
+    shared_VPairElement::const_iterator map_cend()                                              const;
     // ======================================================================================================= Iterators
 
     // String ==========================================================================================================

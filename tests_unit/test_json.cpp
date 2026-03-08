@@ -289,18 +289,18 @@ TEST(JSON, parse_with_comments2) {
 ////    cd.multiline_comment_variants.push_back(std::array<char, 3>{'/', '*', 0});
 
 //    std::string main_comment = "1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...";
-//    json.addPrefixComment(main_comment);
-//    json.addSuffixComment(main_comment);
-//    json.add_prefix_comment("bool", "bool some\nwords...");
-//    json.add_suffix_comment("bool", "bool some\nwords...");
-//    json.add_prefix_comment("string", "<string> prefix comment");
-//    json.add_prefix_comment("array", "<array> prefix comment");
-//    json.add_suffix_comment("array", "<array> suffix comment");
-//    json.add_prefix_comment("json", "<json> prefix comment");
-//    json.add_suffix_comment("json", "<json> suffix comment");
+//    json.setPrefixComment(main_comment);
+//    json.setSuffixComment(main_comment);
+//    json.set_prefix_comment("bool", "bool some\nwords...");
+//    json.set_suffix_comment("bool", "bool some\nwords...");
+//    json.set_prefix_comment("string", "<string> prefix comment");
+//    json.set_prefix_comment("array", "<array> prefix comment");
+//    json.set_suffix_comment("array", "<array> suffix comment");
+//    json.set_prefix_comment("json", "<json> prefix comment");
+//    json.set_suffix_comment("json", "<json> suffix comment");
 
-//    json["json"].add_prefix_comment(0, "json first element\ncomment");
-//    json["array"].add_prefix_comment(1, "array second element\n comment_");
+//    json["json"].set_prefix_comment(0, "json first element\ncomment");
+//    json["array"].set_prefix_comment(1, "array second element\n comment_");
 
 //    std::string path = "../tests/test_writer_with_comments.json";
 //    json.writeFile(path, ConfigFormat::eJSON, cd, 0);
@@ -379,18 +379,18 @@ TEST(JSON, read_file_comment) {
                                          "ipnbedf6 7;\n"
                                          "voihnaern8 som9\n"
                                          "word1...";
-    json.addPrefixComment(preview_comment);
+    json.setPrefixComment(preview_comment);
     std::string comment1 = "some words...";
     std::string comment2 = "some many words1...";
     std::string comment3 = "some many words2...";
     std::string comment4 = "json element comment";
     std::string comment5 = "array element comment_";
-    json.addComment("bool",         comment1);
-    json.addComment("string",       comment2);
-    json.add_suffix_comment("array",  comment3);
-    json["json"].add_prefix_comment(0,    comment4);
-    json["json"].add_prefix_comment(1,    comment4);
-    json["array"].addComment(0,  comment5);
+    json.setComment("bool",         comment1);
+    json.setComment("string",       comment2);
+    json.set_suffix_comment("array",  comment3);
+    json["json"].set_prefix_comment(0,    comment4);
+    json["json"].set_prefix_comment(1,    comment4);
+    json["array"].setComment(0,  comment5);
     std::string path = "../tests/test_writer_with_comments.json";
 
     std::ofstream file(path);
@@ -519,9 +519,9 @@ TEST(JSON, get_key) {
 }
 
 //TEST(JSON, insert) {
-//    Json json = json_example;
+//    Config json = json_example;
 
-//    json.insert(json.begin() + 2, "inner_json1", json_example);
+//    json.insert_at(2, "inner_json1", json_example);
 //    EXPECT_EQ(json[2].first, ValueType::eJson);
 
 //    json.insert(4, "inner_json2", json_example);

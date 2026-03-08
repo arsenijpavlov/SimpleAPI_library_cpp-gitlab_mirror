@@ -20,27 +20,27 @@ void Config::release() noexcept {
     }
 }
 
-Config &Config::addComment(const Comment &content) noexcept {
+Config &Config::setComment(const Comment &content) noexcept {
     if(m_value)
-        m_value->addComment(content);
+        m_value->setComment(content);
     return *this;
 }
 
-Config &Config::addComment(const std::string &content_before, const std::string &content_after) noexcept {
+Config &Config::setComment(const std::string &content_before, const std::string &content_after) noexcept {
     if(m_value)
-        m_value->addComment(content_before, content_after);
+        m_value->setComment(content_before, content_after);
     return *this;
 }
 
-Config &Config::addPrefixComment(const std::string &content) noexcept {
+Config &Config::setPrefixComment(const std::string &content) noexcept {
     if(m_value)
-        m_value->addPrefixComment(content);
+        m_value->setPrefixComment(content);
     return *this;
 }
 
-Config &Config::addSuffixComment(const std::string &content) noexcept {
+Config &Config::setSuffixComment(const std::string &content) noexcept {
     if(m_value)
-        m_value->addSuffixComment(content);
+        m_value->setSuffixComment(content);
     return *this;
 }
 
@@ -92,55 +92,55 @@ Config &Config::clearCommentDesign() noexcept {
     return *this;
 }
 
-Config &Config::add_comment(const size_t index, const Comment &content) {
+Config &Config::set_comment(const size_t index, const Comment &content) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
-    reinterpret_cast<IElementContainer*>(m_value)->add_comment(index, content);
+    reinterpret_cast<IElementContainer*>(m_value)->set_comment(index, content);
     return *this;
 }
 
-Config &Config::add_comment(const std::string &key, const Comment &content) {
+Config &Config::set_comment(const std::string &key, const Comment &content) {
     __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
-    reinterpret_cast<ElementJson*>(m_value)->add_comment(key, content);
+    reinterpret_cast<ElementJson*>(m_value)->set_comment(key, content);
     return *this;
 }
 
-Config &Config::add_comment(const size_t index, const std::string &content_before,
+Config &Config::set_comment(const size_t index, const std::string &content_before,
                             const std::string &content_after)
 {
     __CHECK_TYPE_IS_CONTAINER__((*this))
-    reinterpret_cast<IElementContainer*>(m_value)->add_comment(index, content_before, content_after);
+    reinterpret_cast<IElementContainer*>(m_value)->set_comment(index, content_before, content_after);
     return *this;
 }
 
-Config &Config::add_comment(const std::string &key, const std::string &content_before,
+Config &Config::set_comment(const std::string &key, const std::string &content_before,
                             const std::string &content_after)
 {
     __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
-    reinterpret_cast<ElementJson*>(m_value)->add_comment(key, content_before, content_after);
+    reinterpret_cast<ElementJson*>(m_value)->set_comment(key, content_before, content_after);
     return *this;
 }
 
-Config &Config::add_prefix_comment(const size_t index, const std::string &content) {
+Config &Config::set_prefix_comment(const size_t index, const std::string &content) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
-    reinterpret_cast<IElementContainer*>(m_value)->add_prefix_comment(index, content);
+    reinterpret_cast<IElementContainer*>(m_value)->set_prefix_comment(index, content);
     return *this;
 }
 
-Config &Config::add_prefix_comment(const std::string &key, const std::string &content) {
+Config &Config::set_prefix_comment(const std::string &key, const std::string &content) {
     __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
-    reinterpret_cast<ElementJson*>(m_value)->add_prefix_comment(key, content);
+    reinterpret_cast<ElementJson*>(m_value)->set_prefix_comment(key, content);
     return *this;
 }
 
-Config &Config::add_suffix_comment(const size_t index, const std::string &content) {
+Config &Config::set_suffix_comment(const size_t index, const std::string &content) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
-    reinterpret_cast<IElementContainer*>(m_value)->add_suffix_comment(index, content);
+    reinterpret_cast<IElementContainer*>(m_value)->set_suffix_comment(index, content);
     return *this;
 }
 
-Config &Config::add_suffix_comment(const std::string &key, const std::string &content) {
+Config &Config::set_suffix_comment(const std::string &key, const std::string &content) {
     __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
-    reinterpret_cast<ElementJson*>(m_value)->add_suffix_comment(key, content);
+    reinterpret_cast<ElementJson*>(m_value)->set_suffix_comment(key, content);
     return *this;
 }
 
@@ -300,7 +300,7 @@ Config &Config::setValue(const Config &other) noexcept {
         }
 
         setCommentDesign(other.getCommentDesign());
-        addComment(other.getComment());
+        setComment(other.getComment());
     }
 
     return *this;
@@ -323,7 +323,7 @@ Config &Config::setValue(Config &&other) noexcept {
         }
 
         setCommentDesign(other.getCommentDesign());
-        addComment(other.getComment());
+        setComment(other.getComment());
         other.release(); //обнулить значение
     }
     return *this;
@@ -344,7 +344,7 @@ Config &Config::setValue(const IElement &other) noexcept {
     default:                    break;
     }
 
-    addComment(other.getComment());
+    setComment(other.getComment());
 
     return *this;
 }
@@ -364,7 +364,7 @@ Config &Config::setValue(IElement &&other) noexcept {
     default:                    break;
     }
 
-    addComment(other.getComment());
+    setComment(other.getComment());
 
     return *this;
 }
@@ -1332,22 +1332,22 @@ shared_VElement::const_iterator Config::array_cend() const {
     return dynamic_cast<const ElementArray*>(m_value)->cend();
 }
 
-shared_VPairElement::iterator Config::named_begin() {
+shared_VPairElement::iterator Config::map_begin() {
     __CHECK_TYPE_IS_JSON__((*this))
     return dynamic_cast<ElementJson*>(m_value)->begin();
 }
 
-shared_VPairElement::const_iterator Config::named_cbegin() const {
+shared_VPairElement::const_iterator Config::map_cbegin() const {
     __CHECK_TYPE_IS_JSON__((*this))
     return dynamic_cast<const ElementJson*>(m_value)->cbegin();
 }
 
-shared_VPairElement::iterator Config::named_end() {
+shared_VPairElement::iterator Config::map_end() {
     __CHECK_TYPE_IS_JSON__((*this))
     return dynamic_cast<ElementJson*>(m_value)->end();
 }
 
-shared_VPairElement::const_iterator Config::named_cend() const {
+shared_VPairElement::const_iterator Config::map_cend() const {
     __CHECK_TYPE_IS_JSON__((*this))
     return dynamic_cast<const ElementJson*>(m_value)->cend();
 }

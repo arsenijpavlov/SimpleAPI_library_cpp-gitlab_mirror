@@ -10,11 +10,11 @@ class IElementContainer : public IElement {
 protected:
 //    CommentDesign m_comment_design;
 public:
-    virtual void    add_comment(const size_t index, const Comment &content)                 = 0;
-    virtual void    add_comment(const size_t index, const std::string &content_before,
+    virtual void    set_comment(const size_t index, const Comment &content)                 = 0;
+    virtual void    set_comment(const size_t index, const std::string &content_before,
                              const std::string &content_after)                              = 0;
-    virtual void    add_prefix_comment(const size_t index, const std::string &content)      = 0;
-    virtual void    add_suffix_comment(const size_t index, const std::string &content)      = 0;
+    virtual void    set_prefix_comment(const size_t index, const std::string &content)      = 0;
+    virtual void    set_suffix_comment(const size_t index, const std::string &content)      = 0;
     virtual Comment&        get_comment(const size_t index)                                 = 0;
     virtual Comment         get_comment(const size_t index)                 const           = 0;
     virtual std::string     get_prefix_comment(const size_t index)          const           = 0;

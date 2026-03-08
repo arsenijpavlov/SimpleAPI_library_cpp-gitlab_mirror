@@ -47,26 +47,26 @@ class ElementArray;
 //    return ret;
 //}
 
-void ElementArray::add_comment(const size_t index, const Comment &content) {
+void ElementArray::set_comment(const size_t index, const Comment &content) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
-    m_values.at(index)->addComment(content);
+    m_values.at(index)->setComment(content);
 }
 
-void ElementArray::add_comment(const size_t index, const std::string &content_before,
+void ElementArray::set_comment(const size_t index, const std::string &content_before,
                               const std::string &content_after)
 {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
-    m_values.at(index)->addComment(content_before, content_after);
+    m_values.at(index)->setComment(content_before, content_after);
 }
 
-void ElementArray::add_prefix_comment(const size_t index, const std::string &content) {
+void ElementArray::set_prefix_comment(const size_t index, const std::string &content) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
-    m_values.at(index)->addPrefixComment(content);
+    m_values.at(index)->setPrefixComment(content);
 }
 
-void ElementArray::add_suffix_comment(const size_t index, const std::string &content) {
+void ElementArray::set_suffix_comment(const size_t index, const std::string &content) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
-    m_values.at(index)->addSuffixComment(content);
+    m_values.at(index)->setSuffixComment(content);
 }
 
 Comment &ElementArray::get_comment(const size_t index) {
@@ -553,14 +553,14 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
 
     auto AppendMainPreviewComment = [&]() {
         if(!comments.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
-            addPrefixComment(VStringToString(comments));
+            setPrefixComment(VStringToString(comments));
             DEBUG_LOG("ElementArray: PreviewComment: " << "\"" << getPrefixComment() << "\"");
             comments.clear();
         }
     };
     auto AppendMainSuffixComment = [&]() {
         if(!comments.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
-            addSuffixComment(VStringToString(comments));
+            setSuffixComment(VStringToString(comments));
             DEBUG_LOG("ElementArray: SuffixComment: " << "\"" << getSuffixComment() << "\"");
             comments.clear();
         }
@@ -576,7 +576,7 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
             && !empty()
             && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment))
         {
-            get_back().addPrefixComment(VStringToString(comments));
+            get_back().setPrefixComment(VStringToString(comments));
             DEBUG_LOG("ElementArray: inner Element add PreviewComment: " << "\"" << get_back().getPrefixComment() << "\"");
             comments.clear();
         }
@@ -587,7 +587,7 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
             && get_back().getSuffixComment().empty()
             && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment))
         {
-            get_back().addSuffixComment(comments[0]);
+            get_back().setSuffixComment(comments[0]);
             DEBUG_LOG("ElementArray: inner Element add SuffixComment: " << "\"" << get_back().getSuffixComment() << "\"");
             comments.erase(comments.cbegin());
         }
@@ -730,7 +730,7 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
                         && get_at(size() - 2).getSuffixComment().empty()
                         && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment))
                     {
-                        get_at(size() - 2).addSuffixComment(comments[0]);
+                        get_at(size() - 2).setSuffixComment(comments[0]);
                         DEBUG_LOG("ElementJson: inner Element add SuffixComment: " << "\"" << get_at(size() - 2).getSuffixComment() << "\"");
                         comments.erase(comments.cbegin());
                     }

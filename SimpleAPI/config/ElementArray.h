@@ -29,11 +29,11 @@ public:
     ~ElementArray()                                                     noexcept                    {}
 
     // Comment =========================================================================================================
-    void    add_comment(const size_t index, const Comment &content)                     override;
-    void    add_comment(const size_t index, const std::string &content_before,
+    void    set_comment(const size_t index, const Comment &content)                     override;
+    void    set_comment(const size_t index, const std::string &content_before,
                      const std::string &content_after)                                  override;
-    void    add_prefix_comment(const size_t index, const std::string &content)          override;
-    void    add_suffix_comment(const size_t index, const std::string &content)          override;
+    void    set_prefix_comment(const size_t index, const std::string &content)          override;
+    void    set_suffix_comment(const size_t index, const std::string &content)          override;
     Comment&        get_comment(const size_t index)                                     override;
     Comment         get_comment(const size_t index)                     const           override;
     std::string     get_prefix_comment(const size_t index)              const           override;

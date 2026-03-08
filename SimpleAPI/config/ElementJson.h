@@ -43,11 +43,11 @@ public:
     ~ElementJson()                                                              noexcept        {}
 
     // Comment =========================================================================================================
-    void    add_comment(const size_t index, const Comment &content)                             override;
-    void    add_comment(const size_t index, const std::string &content_before,
+    void    set_comment(const size_t index, const Comment &content)                             override;
+    void    set_comment(const size_t index, const std::string &content_before,
                      const std::string &content_after)                                          override;
-    void    add_prefix_comment(const size_t index, const std::string &content)                  override;
-    void    add_suffix_comment(const size_t index, const std::string &content)                  override;
+    void    set_prefix_comment(const size_t index, const std::string &content)                  override;
+    void    set_suffix_comment(const size_t index, const std::string &content)                  override;
     Comment&        get_comment(const size_t index)                                             override;
     Comment         get_comment(const size_t index)                             const           override;
     std::string     get_prefix_comment(const size_t index)                      const           override;
@@ -62,11 +62,11 @@ public:
     void    delete_prefix_comment(const size_t index)                                           override;
     void    delete_suffix_comment(const size_t index)                                           override;
 
-    void    add_comment(const std::string& key, const Comment &content);
-    void    add_comment(const std::string& key, const std::string &content_before,
+    void    set_comment(const std::string& key, const Comment &content);
+    void    set_comment(const std::string& key, const std::string &content_before,
                      const std::string &content_after);
-    void    add_prefix_comment(const std::string& key, const std::string &content);
-    void    add_suffix_comment(const std::string& key, const std::string &content);
+    void    set_prefix_comment(const std::string& key, const std::string &content);
+    void    set_suffix_comment(const std::string& key, const std::string &content);
     Comment&        get_comment(const std::string& key);
     Comment         get_comment(const std::string& key)                         const;
     std::string     get_prefix_comment(const std::string& key)                  const;
