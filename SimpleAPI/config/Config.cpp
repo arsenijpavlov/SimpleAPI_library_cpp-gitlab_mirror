@@ -497,83 +497,6 @@ Config Config::get_at(const size_t index) const {
     return *this;
 }
 
-Config &Config::get_at(const std::vector<size_t> &indexes) {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-    if(indexes.empty())
-        throw std::invalid_argument("indexes argument cannot be empty");
-
-    Config* cfg = nullptr;
-    __CHECK_INDEX_BOUND__((*this), indexes[0])
-    switch(getType()) {
-    case ValueType::eArray: { cfg = &dynamic_cast<ElementArray*>(m_value)->get_at(indexes[0]);      break;  }
-    case ValueType::eJson:  { cfg = &dynamic_cast<ElementJson*>(m_value)->get_at(indexes[0]);       break;  }
-    default: break;
-    }
-
-    if(cfg) {
-        if(indexes.size() == 1) {
-            return *cfg;
-        } else {
-            std::vector<size_t> new_indexes;
-            new_indexes.assign(indexes.cbegin() + 1, indexes.cend());
-
-            switch(cfg->getType()) {
-            case ValueType::eArray: return cfg->get_at(new_indexes);
-            case ValueType::eJson:  return cfg->get_at(new_indexes);
-            default: break;;
-            }
-        }
-    }
-
-    return *this;
-}
-
-Config Config::get_at(const std::vector<size_t> &indexes) const {
-    __CHECK_TYPE_IS_CONTAINER__((*this))
-
-    if(indexes.empty())
-        throw std::invalid_argument("indexes argument cannot be empty");
-
-    Config cfg = Config();
-    __CHECK_INDEX_BOUND__((*this), indexes[0])
-    switch(getType()) {
-    case ValueType::eArray: { cfg = std::move(dynamic_cast<const ElementArray*>(m_value)->get_at(indexes[0]));  break;  }
-    case ValueType::eJson:  { cfg = std::move(dynamic_cast<const ElementJson*>(m_value)->get_at(indexes[0]));   break;  }
-    default: break;
-    }
-
-    if(!cfg.isNull()) {
-        if(indexes.size() == 1) {
-            return cfg;
-        } else {
-            std::vector<size_t> new_indexes;
-            new_indexes.assign(indexes.cbegin() + 1, indexes.cend());
-
-            switch(cfg.getType()) {
-            case ValueType::eArray: return cfg.get_at(new_indexes);
-            case ValueType::eJson:  return cfg.get_at(new_indexes);
-            default: break;;
-            }
-        }
-    } else {
-        __CHECK_TYPE_IS_CONTAINER__(cfg)
-    }
-
-    return *this;
-}
-
-Config &Config::get_at(const std::initializer_list<OnlySizetOrString> &complex_key)
-{
-    // TODO: Config::get_at(complex_key)
-    return *this;
-}
-
-Config Config::get_at(const std::initializer_list<OnlySizetOrString> &complex_key) const
-{
-    // TODO: Config::get_at(complex_key)
-    return *this;
-}
-
 Config &Config::get_at(const std::string& key) {
     __CHECK_TYPE_IS_JSON__((*this))
     return dynamic_cast<ElementJson*>(m_value)->get_at(key);
@@ -584,96 +507,62 @@ Config Config::get_at(const std::string& key) const {
     return dynamic_cast<const ElementJson*>(m_value)->get_at(key);
 }
 
-Config &Config::get_at(const VString &complex_key) {
+Config &Config::get_at(const std::vector<OnlySizetOrString> &complex_key)
+{
     __CHECK_TYPE_IS_CONTAINER__((*this))
-    if(complex_key.empty())
-        throw std::invalid_argument("complex_key argument cannot be empty");
+    if(complex_key.size() == 0)
+        throw std::invalid_argument("get_at({}) - try a get incorrect index/key (no value)");
 
-    //ключ может быть либо строкой, либо целым числом
-    const std::string& current_key = complex_key.front();
-    size_t current_index;
-    bool index_parsed = utils::IsStringOfUIntNumber(current_key, current_index);
-
-    Config* cfg = nullptr;
-    if(index_parsed) {
-        switch (getType()) {
-        case ValueType::eArray: { cfg = &dynamic_cast<ElementArray*>(m_value)->get_at(current_index);   break;  }
-        case ValueType::eJson:  { cfg = &dynamic_cast<ElementJson*>(m_value)->get_at(current_index);    break;  }
-        default: break;
-        }
-    } else {
-        __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
-        //TODO: switch(getNamedMapType())
-        switch(getType()) {
-        case ValueType::eJson:  { cfg = &dynamic_cast<ElementJson*>(m_value)->get_at(current_key);      break;  }
-        default: break;
-        }
+    //определить тип значения первого индекса/ключа
+    Config* ret;
+    switch (complex_key[0].getType()) {
+    case OnlySizetOrString::Type::type_string:
+        ret = &get_at(complex_key[0].getStringValue());
+        break;
+    case OnlySizetOrString::Type::type_sizet:
+        ret = &get_at(complex_key[0].getIndexValue());
+        break;
+    default:
+        //это значение пользователь библиотеки не увидит
+        throw std::invalid_argument("incorrect complex_key type");
     }
 
-    if(cfg) {
-        if(complex_key.size() == 1) {
-            return *cfg;
-        } else {
-            VString new_complex_key;
-            new_complex_key.assign(complex_key.cbegin() + 1, complex_key.cend());
+    if(complex_key.size() == 1)
+        return *ret;
 
-            switch (cfg->getType()) {
-            case ValueType::eArray: return cfg->get_at(new_complex_key);
-            case ValueType::eJson:  return cfg->get_at(new_complex_key);
-            default: break;
-            }
-        }
-    }
-
-    //NOTE: в идеале, до этого кода доходить не должно никогда - либо свичи выше, либо exception
-    return *this;
+    //создать следующую итерацию списка
+    std::vector<OnlySizetOrString> new_key = complex_key;
+    new_key.erase(new_key.cbegin());
+    return ret->get_at(new_key);
 }
 
-Config Config::get_at(const VString &complex_key) const {
+Config Config::get_at(const std::vector<OnlySizetOrString> &complex_key) const
+{
     __CHECK_TYPE_IS_CONTAINER__((*this))
-    if(complex_key.empty())
-        throw std::invalid_argument("complex_key argument cannot be empty");
+    if(complex_key.size() == 0)
+        throw std::invalid_argument("get_at({}) - try a get incorrect index/key (no value)");
 
-    //ключ может быть либо строкой, либо целым числом
-    const std::string& current_key = complex_key.front();
-    size_t current_index;
-    bool index_parsed = utils::IsStringOfUIntNumber(current_key, current_index);
-
-    Config cfg = Config();
-    if(index_parsed) {
-        switch (getType()) {
-        case ValueType::eArray: { cfg = dynamic_cast<const ElementArray*>(m_value)->get_at(current_index);  break;  }
-        case ValueType::eJson:  { cfg = dynamic_cast<const ElementJson*>(m_value)->get_at(current_index);   break;  }
-        default: break;
-        }
-    } else {
-        __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
-        //TODO: switch(getNamedMapType())
-        switch(getType()) {
-        case ValueType::eJson:  { cfg = dynamic_cast<const ElementJson*>(m_value)->get_at(current_key);     break;  }
-        default: break;
-        }
+    //определить тип значения первого индекса/ключа
+    Config ret;
+    switch (complex_key[0].getType()) {
+    case OnlySizetOrString::Type::type_string:
+        ret = get_at(complex_key[0].getStringValue());
+        break;
+    case OnlySizetOrString::Type::type_sizet:
+        ret = get_at(complex_key[0].getIndexValue());
+        break;
+    default:
+        //это значение пользователь библиотеки не увидит
+        throw std::invalid_argument("incorrect complex_key type");
     }
 
-    if(!cfg.isNull()) {
-        if(complex_key.size() == 1) {
-            return cfg;
-        } else {
-            VString new_complex_key;
-            new_complex_key.assign(complex_key.cbegin() + 1, complex_key.cend());
+    if(complex_key.size() == 1)
+        return ret;
 
-            switch (cfg.getType()) {
-            case ValueType::eArray: return cfg.get_at(new_complex_key);
-            case ValueType::eJson:  return cfg.get_at(new_complex_key);
-            default: break;
-            }
-        }
-    } else {
-        __CHECK_TYPE_IS_CONTAINER__(cfg)
-    }
-
-    //NOTE: в идеале, до этого кода доходить не должно никогда - либо свичи выше, либо exception
-    return *this;
+    //создать следующую итерацию списка
+    std::vector<OnlySizetOrString> new_key = complex_key;
+    new_key.erase(new_key.cbegin());
+    return ret.get_at(new_key);
 }
 
 Config &Config::get_back() {
@@ -754,26 +643,68 @@ bool Config::get_bool_at(const size_t index) const {
     return dynamic_cast<const ElementBool*>(config.m_value)->getValue();
 }
 
-bool &Config::get_bool_at(const std::vector<size_t> &indexes) {
-    Config& cfg = get_at(indexes);
-    __CHECK_TYPE_IS_BOOL__(cfg)
-    return dynamic_cast<ElementBool*>(cfg.m_value)->getValue();
+bool &Config::get_bool_at(const std::string& key) {
+    const Config& config = get_at(key);
+    __CHECK_TYPE_IS_BOOL__(config)
+
+    return dynamic_cast<ElementBool*>(config.m_value)->getValue();
 }
 
-bool Config::get_bool_at(const std::vector<size_t> &indexes) const {
-    const Config& cfg = get_at(indexes);
-    __CHECK_TYPE_IS_BOOL__(cfg)
-    return dynamic_cast<ElementBool*>(cfg.m_value)->getValue();
+bool Config::get_bool_at(const std::string& key) const {
+    const Config& config = get_at(key);
+    __CHECK_TYPE_IS_BOOL__(config)
+
+    return dynamic_cast<const ElementBool*>(config.m_value)->getValue();
 }
 
-// TODO: Config::get_bool_at(complex_key)
-//bool &Config::get_bool_at(const std::initializer_list<OnlySizetOrString> &complex_key)
-//{}
-
-bool Config::get_bool_at(const std::initializer_list<OnlySizetOrString> &complex_key) const
+bool &Config::get_bool_at(const std::vector<OnlySizetOrString> &complex_key)
 {
-// TODO: Config::get_bool_at(complex_key)
-    return false;
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    if(complex_key.size() == 0)
+        throw std::invalid_argument("get_bool_at({}) - try a get incorrect index/key (no value)");
+
+    //определить тип значения первого индекса/ключа
+    Config* ret;
+    switch (complex_key[0].getType()) {
+    case OnlySizetOrString::Type::type_string:  ret = &get_at(complex_key[0].getStringValue());
+    case OnlySizetOrString::Type::type_sizet:   ret = &get_at(complex_key[0].getIndexValue());
+    default:
+        //это значение пользователь библиотеки не увидит
+        throw std::invalid_argument("incorrect complex_key type");
+    }
+
+    if(complex_key.size() == 1)
+        return (*ret).getBool();
+
+    //создать следующую итерацию списка
+    std::vector<OnlySizetOrString> new_key = complex_key;
+    new_key.erase(new_key.cbegin());
+    return ret->get_bool_at(new_key);
+}
+
+bool Config::get_bool_at(const std::vector<OnlySizetOrString> &complex_key) const
+{
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    if(complex_key.size() == 0)
+        throw std::invalid_argument("get_bool_at({}) - try a get incorrect index/key (no value)");
+
+    //определить тип значения первого индекса/ключа
+    Config ret;
+    switch (complex_key[0].getType()) {
+    case OnlySizetOrString::Type::type_string:  ret = get_at(complex_key[0].getStringValue());
+    case OnlySizetOrString::Type::type_sizet:   ret = get_at(complex_key[0].getIndexValue());
+    default:
+        //это значение пользователь библиотеки не увидит
+        throw std::invalid_argument("incorrect complex_key type");
+    }
+
+    if(complex_key.size() == 1)
+        return ret.getBool();
+
+    //создать следующую итерацию списка
+    std::vector<OnlySizetOrString> new_key = complex_key;
+    new_key.erase(new_key.cbegin());
+    return ret.get_bool_at(new_key);
 }
 
 long double &Config::get_number_at(const size_t index) {
@@ -790,92 +721,6 @@ long double Config::get_number_at(const size_t index) const {
     return dynamic_cast<const ElementNumber*>(config.m_value)->getValue();
 }
 
-long double &Config::get_number_at(const std::vector<size_t> &indexes) {
-    Config& cfg = get_at(indexes);
-    __CHECK_TYPE_IS_NUMBER__(cfg)
-
-    return dynamic_cast<ElementNumber*>(cfg.m_value)->getValue();
-}
-
-long double Config::get_number_at(const std::vector<size_t> &indexes) const {
-    const Config& cfg = get_at(indexes);
-
-    __CHECK_TYPE_IS_NUMBER__(cfg)
-    return dynamic_cast<ElementNumber*>(cfg.m_value)->getValue();
-}
-
-//TODO: Config::get_number_at()
-//long double &Config::get_number_at(const std::initializer_list<OnlySizetOrString> &complex_key)
-//{}
-
-//TODO: Config::get_number_at()
-//long double Config::get_number_at(const std::initializer_list<OnlySizetOrString> &complex_key) const
-//{}
-
-std::string &Config::get_string_at(const size_t index) {
-    const Config& config = get_at(index);
-    __CHECK_TYPE_IS_STRING__(config)
-
-    return dynamic_cast<ElementString*>(config.m_value)->getValue();
-}
-
-std::string Config::get_string_at(const size_t index) const {
-    const Config& config = get_at(index);
-    __CHECK_TYPE_IS_STRING__(config)
-
-    return dynamic_cast<const ElementString*>(config.m_value)->getValue();
-}
-
-std::string &Config::get_string_at(const std::vector<size_t> &indexes) {
-    Config& cfg = get_at(indexes);
-    __CHECK_TYPE_IS_STRING__(cfg)
-
-    return dynamic_cast<ElementString*>(cfg.m_value)->getValue();
-}
-
-std::string Config::get_string_at(const std::vector<size_t> &indexes) const {
-    const Config& cfg = get_at(indexes);
-    __CHECK_TYPE_IS_STRING__(cfg)
-
-    return dynamic_cast<ElementString*>(cfg.m_value)->getValue();
-}
-
-//TODO: Config::get_string_at()
-//std::string &Config::get_string_at(const std::initializer_list<OnlySizetOrString> &complex_key)
-//{}
-
-//TODO: Config::get_string_at()
-//std::string Config::get_string_at(const std::initializer_list<OnlySizetOrString> &complex_key) const
-//{}
-
-bool &Config::get_bool_at(const std::string& key) {
-    const Config& config = get_at(key);
-    __CHECK_TYPE_IS_BOOL__(config)
-
-    return dynamic_cast<ElementBool*>(config.m_value)->getValue();
-}
-
-bool Config::get_bool_at(const std::string& key) const {
-    const Config& config = get_at(key);
-    __CHECK_TYPE_IS_BOOL__(config)
-
-    return dynamic_cast<const ElementBool*>(config.m_value)->getValue();
-}
-
-bool &Config::get_bool_at(const VString &complex_key) {
-    Config& cfg = get_at(complex_key);
-    __CHECK_TYPE_IS_BOOL__(cfg)
-
-    return dynamic_cast<ElementBool*>(cfg.m_value)->getValue();
-}
-
-bool Config::get_bool_at(const VString &complex_key) const {
-    const Config& cfg = get_at(complex_key);
-    __CHECK_TYPE_IS_BOOL__(cfg)
-
-    return dynamic_cast<ElementBool*>(cfg.m_value)->getValue();
-}
-
 long double &Config::get_number_at(const std::string& key) {
     const Config& config = get_at(key);
     __CHECK_TYPE_IS_NUMBER__(config)
@@ -890,18 +735,68 @@ long double Config::get_number_at(const std::string& key) const {
     return dynamic_cast<const ElementNumber*>(config.m_value)->getValue();
 }
 
-long double &Config::get_number_at(const VString &complex_key) {
-    Config& cfg = get_at(complex_key);
-    __CHECK_TYPE_IS_NUMBER__(cfg)
+long double &Config::get_number_at(const std::vector<OnlySizetOrString> &complex_key)
+{
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    if(complex_key.size() == 0)
+        throw std::invalid_argument("get_number_at({}) - try a get incorrect index/key (no value)");
 
-    return dynamic_cast<ElementNumber*>(cfg.m_value)->getValue();
+    //определить тип значения первого индекса/ключа
+    Config* ret;
+    switch (complex_key[0].getType()) {
+    case OnlySizetOrString::Type::type_string:  ret = &get_at(complex_key[0].getStringValue());
+    case OnlySizetOrString::Type::type_sizet:   ret = &get_at(complex_key[0].getIndexValue());
+    default:
+        //это значение пользователь библиотеки не увидит
+        throw std::invalid_argument("incorrect complex_key type");
+    }
+
+    if(complex_key.size() == 1)
+        return (*ret).getNumber();
+
+    //создать следующую итерацию списка
+    std::vector<OnlySizetOrString> new_key = complex_key;
+    new_key.erase(new_key.cbegin());
+    return ret->get_number_at(new_key);
 }
 
-long double Config::get_number_at(const VString &complex_key) const {
-    const Config& cfg = get_at(complex_key);
-    __CHECK_TYPE_IS_NUMBER__(cfg)
+long double Config::get_number_at(const std::vector<OnlySizetOrString> &complex_key) const
+{
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    if(complex_key.size() == 0)
+        throw std::invalid_argument("get_number_at({}) - try a get incorrect index/key (no value)");
 
-    return dynamic_cast<ElementNumber*>(cfg.m_value)->getValue();
+    //определить тип значения первого индекса/ключа
+    Config ret;
+    switch (complex_key[0].getType()) {
+    case OnlySizetOrString::Type::type_string:  ret = get_at(complex_key[0].getStringValue());
+    case OnlySizetOrString::Type::type_sizet:   ret = get_at(complex_key[0].getIndexValue());
+    default:
+        //это значение пользователь библиотеки не увидит
+        throw std::invalid_argument("incorrect complex_key type");
+    }
+
+    if(complex_key.size() == 1)
+        return ret.getNumber();
+
+    //создать следующую итерацию списка
+    std::vector<OnlySizetOrString> new_key = complex_key;
+    new_key.erase(new_key.cbegin());
+    return ret.get_number_at(new_key);
+}
+
+std::string &Config::get_string_at(const size_t index) {
+    const Config& config = get_at(index);
+    __CHECK_TYPE_IS_STRING__(config)
+
+    return dynamic_cast<ElementString*>(config.m_value)->getValue();
+}
+
+std::string Config::get_string_at(const size_t index) const {
+    const Config& config = get_at(index);
+    __CHECK_TYPE_IS_STRING__(config)
+
+    return dynamic_cast<const ElementString*>(config.m_value)->getValue();
 }
 
 std::string &Config::get_string_at(const std::string& key) {
@@ -918,18 +813,54 @@ std::string Config::get_string_at(const std::string& key) const {
     return dynamic_cast<const ElementString*>(config.m_value)->getValue();
 }
 
-std::string &Config::get_string_at(const VString &complex_key) {
-    Config& cfg = get_at(complex_key);
-    __CHECK_TYPE_IS_STRING__(cfg)
+std::string &Config::get_string_at(const std::vector<OnlySizetOrString> &complex_key)
+{
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    if(complex_key.size() == 0)
+        throw std::invalid_argument("get_string_at({}) - try a get incorrect index/key (no value)");
 
-    return dynamic_cast<ElementString*>(cfg.m_value)->getValue();
+    //определить тип значения первого индекса/ключа
+    Config* ret;
+    switch (complex_key[0].getType()) {
+    case OnlySizetOrString::Type::type_string:  ret = &get_at(complex_key[0].getStringValue());
+    case OnlySizetOrString::Type::type_sizet:   ret = &get_at(complex_key[0].getIndexValue());
+    default:
+        //это значение пользователь библиотеки не увидит
+        throw std::invalid_argument("incorrect complex_key type");
+    }
+
+    if(complex_key.size() == 1)
+        return (*ret).getString();
+
+    //создать следующую итерацию списка
+    std::vector<OnlySizetOrString> new_key = complex_key;
+    new_key.erase(new_key.cbegin());
+    return ret->get_string_at(new_key);
 }
 
-std::string Config::get_string_at(const VString &complex_key) const {
-    const Config& cfg = get_at(complex_key);
-    __CHECK_TYPE_IS_STRING__(cfg)
+std::string Config::get_string_at(const std::vector<OnlySizetOrString> &complex_key) const
+{
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    if(complex_key.size() == 0)
+        throw std::invalid_argument("get_string_at({}) - try a get incorrect index/key (no value)");
 
-    return dynamic_cast<ElementString*>(cfg.m_value)->getValue();
+    //определить тип значения первого индекса/ключа
+    Config ret;
+    switch (complex_key[0].getType()) {
+    case OnlySizetOrString::Type::type_string:  ret = get_at(complex_key[0].getStringValue());
+    case OnlySizetOrString::Type::type_sizet:   ret = get_at(complex_key[0].getIndexValue());
+    default:
+        //это значение пользователь библиотеки не увидит
+        throw std::invalid_argument("incorrect complex_key type");
+    }
+
+    if(complex_key.size() == 1)
+        return ret.getString();
+
+    //создать следующую итерацию списка
+    std::vector<OnlySizetOrString> new_key = complex_key;
+    new_key.erase(new_key.cbegin());
+    return ret.get_string_at(new_key);
 }
 
 bool &Config::get_bool_back() {

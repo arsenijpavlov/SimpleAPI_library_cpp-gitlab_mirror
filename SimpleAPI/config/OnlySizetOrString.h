@@ -4,15 +4,18 @@
 #include <stdexcept>
 #include <string>
 class OnlySizetOrString {
-private:
-    std::string m_string;
-    size_t      m_sizet;
+public:
     enum class Type {
         type_string,
         type_sizet,
-    } m_type;
+    };
+private:
+    std::string m_string;
+    size_t      m_sizet;
+    Type        m_type;
 
 public:
+    OnlySizetOrString() = delete;
     OnlySizetOrString(std::string str) noexcept
         : m_string{str}, m_type{Type::type_string} {};
     OnlySizetOrString(const char* str) noexcept
@@ -24,6 +27,9 @@ public:
         return m_type == Type::type_string ? "\"" + m_string + "\"" : std::to_string(m_sizet);
     }
 
+    Type getType() const noexcept {
+        return m_type;
+    }
     size_t getIndexValue() const {
         if(m_type != Type::type_sizet)
             throw std::invalid_argument("value is not a size_t");

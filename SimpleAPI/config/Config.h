@@ -327,16 +327,14 @@ public:
     // @complex_key - список индексов/ключей: {1, "k1", 2} -> el[1]["k1"][2]
     Config&         get_front();                                                                                            API_CONTAINER
     Config          get_front()                                                 const;                                      API_CONTAINER
+
     Config&         get_at(const size_t index);                                                                             API_CONTAINER
     Config          get_at(const size_t index)                                  const;                                      API_CONTAINER
-    Config&         get_at(const std::vector<size_t>& indexes);                                                             API_CONTAINER
-    Config          get_at(const std::vector<size_t>& indexes)                  const;                                      API_CONTAINER
-    Config&         get_at(const std::initializer_list<OnlySizetOrString>& complex_key);
-    Config          get_at(const std::initializer_list<OnlySizetOrString>& complex_key)         const;
     Config&         get_at(const std::string& key);                                                                         API_MAP_CONTAINER
     Config          get_at(const std::string& key)                              const;                                      API_MAP_CONTAINER
-    Config&         get_at(const VString& complex_key);                                                                     API_CONTAINER
-    Config          get_at(const VString& complex_key)                          const;                                      API_CONTAINER
+    Config&         get_at(const std::vector<OnlySizetOrString>& complex_key);                                              API_CONTAINER
+    Config          get_at(const std::vector<OnlySizetOrString>& complex_key)   const;                                      API_CONTAINER
+
     Config&         get_back();                                                                                             API_MAP_CONTAINER
     Config          get_back()                                                  const;                                      API_MAP_CONTAINER
 
@@ -349,35 +347,24 @@ public:
 
     bool&           get_bool_at(const size_t index);                                                                        API_CONTAINER
     bool            get_bool_at(const size_t index)                             const;                                      API_CONTAINER
-    bool&           get_bool_at(const std::vector<size_t>& indexes);                                                        API_CONTAINER
-    bool            get_bool_at(const std::vector<size_t>& indexes)             const;                                      API_CONTAINER
-    bool&           get_bool_at(const std::initializer_list<OnlySizetOrString>& complex_key);
-    bool            get_bool_at(const std::initializer_list<OnlySizetOrString>& complex_key)    const;
-    long double&    get_number_at(const size_t index);                                                                      API_CONTAINER
-    long double     get_number_at(const size_t index)                           const;                                      API_CONTAINER
-    long double&    get_number_at(const std::vector<size_t>& indexes);                                                      API_CONTAINER
-    long double     get_number_at(const std::vector<size_t>& indexes)           const;                                      API_CONTAINER
-    long double&    get_number_at(const std::initializer_list<OnlySizetOrString>& complex_key);
-    long double     get_number_at(const std::initializer_list<OnlySizetOrString>& complex_key)  const;
-    std::string&    get_string_at(const size_t index);                                                                      API_CONTAINER
-    std::string     get_string_at(const size_t index)                           const;                                      API_CONTAINER
-    std::string&    get_string_at(const std::vector<size_t>& indexes);                                                      API_CONTAINER
-    std::string     get_string_at(const std::vector<size_t>& indexes)           const;                                      API_CONTAINER
-    std::string&    get_string_at(const std::initializer_list<OnlySizetOrString>& complex_key);
-    std::string     get_string_at(const std::initializer_list<OnlySizetOrString>& complex_key)  const;
-
     bool&           get_bool_at(const std::string& key);                                                                    API_MAP_CONTAINER
     bool            get_bool_at(const std::string& key)                         const;                                      API_MAP_CONTAINER
-    bool&           get_bool_at(const VString& complex_key);                                                                API_CONTAINER
-    bool            get_bool_at(const VString& complex_key)                     const;                                      API_CONTAINER
+    bool&           get_bool_at(const std::vector<OnlySizetOrString>& complex_key);                                         API_CONTAINER
+    bool            get_bool_at(const std::vector<OnlySizetOrString>& complex_key)      const;                              API_CONTAINER
+
+    long double&    get_number_at(const size_t index);                                                                      API_CONTAINER
+    long double     get_number_at(const size_t index)                           const;                                      API_CONTAINER
     long double&    get_number_at(const std::string& key);                                                                  API_MAP_CONTAINER
     long double     get_number_at(const std::string& key)                       const;                                      API_MAP_CONTAINER
-    long double&    get_number_at(const VString& complex_key);                                                              API_CONTAINER
-    long double     get_number_at(const VString& complex_key)                   const;                                      API_CONTAINER
+    long double&    get_number_at(const std::vector<OnlySizetOrString>& complex_key);                                       API_CONTAINER
+    long double     get_number_at(const std::vector<OnlySizetOrString>& complex_key)    const;                              API_CONTAINER
+
+    std::string&    get_string_at(const size_t index);                                                                      API_CONTAINER
+    std::string     get_string_at(const size_t index)                           const;                                      API_CONTAINER
     std::string&    get_string_at(const std::string& key);                                                                  API_MAP_CONTAINER
     std::string     get_string_at(const std::string& key)                       const;                                      API_MAP_CONTAINER
-    std::string&    get_string_at(const VString& complex_key);                                                              API_CONTAINER
-    std::string     get_string_at(const VString& complex_key)                   const;                                      API_CONTAINER
+    std::string&    get_string_at(const std::vector<OnlySizetOrString>& complex_key);                                       API_CONTAINER
+    std::string     get_string_at(const std::vector<OnlySizetOrString>& complex_key)    const;                              API_CONTAINER
 
     bool&           get_bool_back();                                                                                        API_CONTAINER
     bool            get_bool_back()                                             const;                                      API_CONTAINER
@@ -409,16 +396,19 @@ public:
     Config& insert_front(Config&& other);                                                                                   API_CONTAINER
     Config& insert_front(const std::string& key, const Config& other);                                                      API_MAP_CONTAINER
     Config& insert_front(const std::string& key, Config&& other);                                                           API_MAP_CONTAINER
+
     Config& insert_at(const size_t index, const Config& other);                                                             API_CONTAINER
     Config& insert_at(const size_t index, Config&& other);                                                                  API_CONTAINER
     Config& insert_at(const std::string& key, const Config& other);                                                         API_MAP_CONTAINER
     Config& insert_at(const std::string& key, Config&& other);                                                              API_MAP_CONTAINER
     Config& insert_at(const size_t index, const std::string& key, const Config& other);                                     API_MAP_CONTAINER
     Config& insert_at(const size_t index, const std::string& key, Config&& other);                                          API_MAP_CONTAINER
+
     Config& insert_back(const Config& other);                                                                               API_CONTAINER
     Config& insert_back(Config&& other);                                                                                    API_CONTAINER
     Config& insert_back(const std::string& key, const Config& other);                                                       API_MAP_CONTAINER
     Config& insert_back(const std::string& key, Config&& other);                                                            API_MAP_CONTAINER
+
     Config& insert_after(const std::string& after_key, const std::string& key, const Config& other);                        API_MAP_CONTAINER
     Config& insert_after(const std::string& after_key, const std::string& key, Config&& other);                             API_MAP_CONTAINER
 
@@ -429,10 +419,12 @@ public:
     Config& push_front(Config&& other)                                  { return insert_front(std::move(other)); }          API_CONTAINER
     Config& push_front(const std::string& key, const Config& other)     { return insert_front(key, other); }                API_MAP_CONTAINER
     Config& push_front(const std::string& key, Config&& other)          { return insert_front(key, std::move(other)); }     API_MAP_CONTAINER
+
     Config& push_at(const size_t index, const Config& other)            { return insert_at(index, other); }                 API_CONTAINER
     Config& push_at(const size_t index, Config&& other)                 { return insert_at(index, std::move(other)); }      API_CONTAINER
     Config& push_at(const std::string& key, const Config& other)        { return insert_at(key, other); }                   API_MAP_CONTAINER
     Config& push_at(const std::string& key, Config&& other)             { return insert_at(key, std::move(other)); }        API_MAP_CONTAINER
+
     Config& push_back(const Config& other)                              { return insert_back(other); }                      API_CONTAINER
     Config& push_back(Config&& other)                                   { return insert_back(std::move(other)); }           API_CONTAINER
     Config& push_back(const std::string& key, const Config& other)      { return insert_back(key, other); }                 API_MAP_CONTAINER
@@ -515,16 +507,16 @@ public:
 //    bool            isYaml()                                const noexcept          { return getType() == ValueType::eYaml; }
 //    bool            isXml()                                 const noexcept          { return getType() == ValueType::eXml; }
     bool            isContainer()                           const noexcept          { return m_value->isContainer(); }          API_ALL
-    bool            isIndexContainer()                      const noexcept          { return m_value->isIndexContainer(); }          API_ALL
+    bool            isIndexContainer()                      const noexcept          { return m_value->isIndexContainer(); }     API_ALL
     bool            isMapContainer()                        const noexcept          { return m_value->isMapContainer(); }       API_ALL
 
     bool            isEqual(const Config& other, const bool compare_comments = false,
                             const bool map_sort_important = false) const noexcept   { return isEqual(*other.m_value, compare_comments, map_sort_important); }
     bool            isEqual(const IElement& other, const bool compare_comments = false,
                             const bool map_sort_important = false) const noexcept;                                              API_ALL
-    bool            isEqual(const bool other)                                           const noexcept;                         API_ALL
-    bool            isEqual(const long double& other)                                   const noexcept;                         API_ALL
-    bool            isEqual(const std::string& other)                                   const noexcept;                         API_ALL
+    bool            isEqual(const bool other)                                       const noexcept;                             API_ALL
+    bool            isEqual(const long double& other)                               const noexcept;                             API_ALL
+    bool            isEqual(const std::string& other)                               const noexcept;                             API_ALL
 
     size_t          size()                                  const noexcept          { return m_value->size(); }                 API_ALL
     bool            isEmpty()                               const noexcept          { return size() == 0; }                     API_CONTAINER
@@ -540,8 +532,8 @@ public:
     Config&         operator=(const IElement& other)        noexcept                { return setValue(other); }                 API_ALL
     Config&         operator=(IElement&& other)             noexcept                { return setValue(std::move(other)); }      API_ALL
     Config&         operator=(const bool other)             noexcept                { return setValue(other); }                 API_ALL
-    __ONLY_NUMBER_TYPES__(T)
-    Config&         operator=(const T& other)               noexcept                { return setValue(static_cast<const long double&>(other)); }                 API_ALL
+                    __ONLY_NUMBER_TYPES__(T)
+    Config&         operator=(const T& other)               noexcept                { return setValue(static_cast<const long double&>(other)); }    API_ALL
     Config&         operator=(long double&& other)          noexcept                { return setValue(std::move(other)); }      API_ALL
     Config&         operator=(const std::string& other)     noexcept                { return setValue(other); }                 API_ALL
     Config&         operator=(std::string&& other)          noexcept                { return setValue(std::move(other)); }      API_ALL
@@ -552,16 +544,16 @@ public:
     bool            operator==(const Config& other)         const                   { return isEqual(other); }                  API_ALL
     bool            operator==(const IElement& other)       const                   { return isEqual(other); }                  API_ALL
     bool            operator==(const bool other)            const                   { return isEqual(other); }                  API_ALL
-    __ONLY_NUMBER_TYPES__(T)
-    bool            operator==(const T& other)              const                   { return isEqual(static_cast<const long double&>(other)); }                  API_ALL
-    __ONLY_STRING_TYPES__(T)
-    bool            operator==(const T& other)              const                   { return isEqual(std::string(other)); }                  API_ALL
+                    __ONLY_NUMBER_TYPES__(T)
+    bool            operator==(const T& other)              const                   { return isEqual(static_cast<const long double&>(other)); }     API_ALL
+                    __ONLY_STRING_TYPES__(T)
+    bool            operator==(const T& other)              const                   { return isEqual(std::string(other)); }     API_ALL
 
     bool            operator!=(const Config& other)         const                   { return !isEqual(other); }                 API_ALL
     bool            operator!=(const IElement& other)       const                   { return !isEqual(other); }                 API_ALL
     bool            operator!=(const bool other)            const                   { return !isEqual(other); }                 API_ALL
-    __ONLY_NUMBER_TYPES__(T)
-    bool            operator!=(const T& other)              const                   { return !isEqual(static_cast<const long double&>(other)); }                 API_ALL
+                    __ONLY_NUMBER_TYPES__(T)
+    bool            operator!=(const T& other)              const                   { return !isEqual(static_cast<const long double&>(other)); }    API_ALL
     bool            operator!=(const std::string& other)    const                   { return !isEqual(other); }                 API_ALL
 
     //числа, контейнеры(размер), строки(длина в видимых символах)
@@ -572,20 +564,17 @@ public:
 
     //контейнеры
     Config&         operator[](const size_t index)                                  { return get_at(index); }                   API_CONTAINER
-    Config          operator[](const size_t index)                  const           { return get_at(index); }                   API_CONTAINER
-    Config&         operator[](const std::vector<size_t>& indexes)                  { return get_at(indexes); }                 API_CONTAINER
-    Config          operator[](const std::vector<size_t>& indexes)  const           { return get_at(indexes); }                 API_CONTAINER
+    Config          operator[](const size_t index)          const                   { return get_at(index); }                   API_CONTAINER
     Config&         operator[](const std::string& key)                              { return get_at(key); }                     API_CONTAINER
-    Config          operator[](const std::string& key)              const           { return get_at(key); }                     API_CONTAINER
+    Config          operator[](const std::string& key)      const                   { return get_at(key); }                     API_CONTAINER
 
-    //FIXME: complex_key должен быть OnlySizetOrString
-    Config&         operator[](const VString& complex_key)                          { return get_at(complex_key); }             API_CONTAINER
-    Config          operator[](const VString& complex_key)          const           { return get_at(complex_key); }             API_CONTAINER
+    Config&         operator[](const std::vector<OnlySizetOrString>& complex_key)           { return get_at(complex_key); }     API_CONTAINER
+    Config          operator[](const std::vector<OnlySizetOrString>& complex_key)   const   { return get_at(complex_key); }     API_CONTAINER
     // ======================================================================================================= Operators
 
     // Iterators =======================================================================================================
-    // (!) Для foreach необходимо использовать обёртки getRange() и getNamedRange()
-    //Array
+    // WARNING: Для foreach необходимо использовать обёртки getRange() и getNamedRange()
+    // Array
     class Range {
     private:
         Config*         m_config;
@@ -606,7 +595,7 @@ public:
     shared_VElement::iterator           array_end();
     shared_VElement::const_iterator     array_cend()                                            const;
 
-    //Json
+    // Json
     class MapRange {
     private:
         Config*         m_config;
