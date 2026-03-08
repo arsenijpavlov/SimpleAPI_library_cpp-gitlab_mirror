@@ -694,8 +694,7 @@ std::string FromComment(std::string comment_string, CommentDesign& design,
     //если пустых строк подряд больше одной, то дубликаты надо удалить
     {
         size_t counter = 0;
-        auto it = lines.begin();
-        while(it != lines.end()) {
+        for(auto it = lines.begin(); it != lines.end(); it++) {
             if(it->empty())
                 counter++;
             else
@@ -712,9 +711,9 @@ std::string FromComment(std::string comment_string, CommentDesign& design,
     }
     //удалить пустые строки в начале и конце комментария
     {
-        if(lines.begin()->empty())
+        if(lines.front().empty())
             lines.erase(lines.begin());
-        if(lines.end()->empty())
+        if(lines.back().empty())
             lines.erase(lines.end());
     }
 
