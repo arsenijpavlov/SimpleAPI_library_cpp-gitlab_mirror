@@ -555,14 +555,6 @@ TEST(JSON, erase_key) {
     EXPECT_TRUE(json[0].isNumber());
 }
 
-//FIXME: TEST(JSON, erase_keys)
-//TEST(JSON, erase_keys) {
-//    Config json = json_example;
-
-//    json.erase_at({"key_0", "key_1", "key_2"});
-//    EXPECT_TRUE(json[0].first, ValueType::eBool);
-//}
-
 TEST(JSON, check_numbers) {
     std::map<std::string, bool> map_numbers;
     map_numbers.insert(std::make_pair("1",          true));
