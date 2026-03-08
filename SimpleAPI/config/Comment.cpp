@@ -682,9 +682,6 @@ std::string FromComment(std::string comment_string, CommentDesign& design,
             if(design.opt_multiline_border == utils::LineOfOneSymbol(s))
                 s.clear();
         }
-
-        //TODO: если пустых строк подряд больше одной, то их нужно заменить на одну пустую
-        { }
     }
 
     for(std::string& s : lines) {
@@ -692,6 +689,33 @@ std::string FromComment(std::string comment_string, CommentDesign& design,
         // определить максимальную ширину колонки комментариев
 //        if(design.opt_multiline_column_size < s.size())
 //            design.opt_multiline_column_size = s.size();
+    }
+
+    //если пустых строк подряд больше одной, то дубликаты надо удалить
+    {
+        size_t counter = 0;
+        auto it = lines.begin();
+        while(it != lines.end()) {
+            if(it->empty())
+                counter++;
+            else
+                counter = 0;
+
+            if(counter > 1) {
+                counter--;
+                it = lines.erase(it);
+
+                //обязательная проверка при использовании it=erase(it)
+                if(it == lines.end()) break;
+            }
+        }
+    }
+    //удалить пустые строки в начале и конце комментария
+    {
+        if(lines.begin()->empty())
+            lines.erase(lines.begin());
+        if(lines.end()->empty())
+            lines.erase(lines.end());
     }
 
     std::string ret;
