@@ -524,19 +524,41 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
         }
 
         //обозначить комментарии
-        result_lines.insert(result_lines.begin(), GetMultilineCommentStartStr(design));
-        result_lines.push_back(GetMultilineCommentStopStr(design));
+        std::string start_comment_symbols = GetMultilineCommentStartStr(design);
+        std::string stop_comment_symbols = GetMultilineCommentStopStr(design);
+        //(взаимоисключающие параметры)
+        if(design.opt_multiline_border != 0 || !design.opt_multiline_border_at_content_line)
+        {
+            result_lines.insert(result_lines.begin(), start_comment_symbols);
+            result_lines.push_back(stop_comment_symbols);
 
-        //дополнить рамку при необходимости
-        if(design.opt_multiline_border != 0) {
-            // заполняется в стиле (начало комментария "/*"):       /*#######
-            //  альтернативный вариант (начало комментария "/"):    /########
+            //дополнить рамку при необходимости
+            if(design.opt_multiline_border != 0) {
+                // заполняется в стиле (начало комментария "/*"):       /*#######
+                //  альтернативный вариант (начало комментария "/"):    /########
 
-            // длина актуальна для обеих строк
-            size_t needed_spaces = sl.max_length + 4 - result_lines.front().size();
-            result_lines.front() += RepeatSymToStr(design.opt_multiline_border, needed_spaces);
-            result_lines.back() = RepeatSymToStr(design.opt_multiline_border, needed_spaces) + result_lines.back();
+                // длина актуальна для обеих строк
+                size_t needed_spaces = sl.max_length + 4 - result_lines.front().size();
+                result_lines.front() += RepeatSymToStr(design.opt_multiline_border, needed_spaces);
+                result_lines.back() = RepeatSymToStr(design.opt_multiline_border, needed_spaces) + result_lines.back();
+            }
+        } else if(design.opt_multiline_border_at_content_line) {
+            // в первую строку добавить знаки начала комментария
+            // во все остальные строки дополнить пробелами по длине начала комментария "/*" -> 2 пробела
+            bool is_first = true;
+            for(auto& line : result_lines) {
+                if(is_first) {
+                    line = start_comment_symbols + (start_comment_symbols.back() == ' ' ? "" : " ") + line;
+                    is_first = false;
+                } else {
+                    line = RepeatSymToStr(' ', start_comment_symbols.size() + (start_comment_symbols.back() == ' ' ? 0 : 1))
+                           + line;
+                }
+            }
+            // в последнюю строку добавить знаки конца комментария
+            result_lines.back() += (stop_comment_symbols.front() == ' ' ? "" : " ") + stop_comment_symbols;
         }
+
         break;
     }
     }

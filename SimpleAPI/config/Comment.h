@@ -45,8 +45,8 @@ class CommentDesign {
 public:
     // применяется ТОЛЬКО для многострочных комментариев, по умолчанию не используются
     char    opt_multiline_border;
+    bool    opt_multiline_border_at_content_line; //конфликтует с opt_multiline_border
     uint8_t opt_multiline_column_size;
-    //TODO: предусмотреть возможность вставить границу комментария на строке контекста (при отсутсвии рамки)
 
     //следующие два поля нужны только для парсинга
     CommentType         temp_type;
@@ -79,6 +79,7 @@ public:
 
     CommentDesign() noexcept :
         opt_multiline_border(0),
+        opt_multiline_border_at_content_line(false),
         opt_multiline_column_size(0),
         temp_type(CommentType::eNotComment),
         temp_schema{},
@@ -91,26 +92,28 @@ public:
 private:
     void copy_from(const CommentDesign& other) noexcept {
         if(this != &other) {
-            opt_multiline_border        = (uint8_t)other.opt_multiline_border;
-            opt_multiline_column_size   = other.opt_multiline_column_size;
-            temp_type                   = other.temp_type;
-            temp_schema                 = other.temp_schema;
-            oneline_comment_variants    = other.oneline_comment_variants;
-            multiline_comment_variants  = other.multiline_comment_variants;
-            with_comments               = other.with_comments;
-            is_in_container             = other.is_in_container;
+            opt_multiline_border                    = (uint8_t)other.opt_multiline_border;
+            opt_multiline_border_at_content_line    = other.opt_multiline_border_at_content_line;
+            opt_multiline_column_size               = other.opt_multiline_column_size;
+            temp_type                               = other.temp_type;
+            temp_schema                             = other.temp_schema;
+            oneline_comment_variants                = other.oneline_comment_variants;
+            multiline_comment_variants              = other.multiline_comment_variants;
+            with_comments                           = other.with_comments;
+            is_in_container                         = other.is_in_container;
         }
     }
     void move_from(CommentDesign&& other) noexcept {
         if(this != &other) {
-            opt_multiline_border        = std::move((uint8_t)other.opt_multiline_border);
-            opt_multiline_column_size   = std::move(other.opt_multiline_column_size);
-            temp_type                   = std::move(other.temp_type);
-            temp_schema                 = std::move(other.temp_schema);
-            oneline_comment_variants    = std::move(other.oneline_comment_variants);
-            multiline_comment_variants  = std::move(other.multiline_comment_variants);
-            with_comments               = std::move(other.with_comments);
-            is_in_container             = std::move(other.is_in_container);
+            opt_multiline_border                    = std::move((uint8_t)other.opt_multiline_border);
+            opt_multiline_border_at_content_line    = std::move(other.opt_multiline_border_at_content_line);
+            opt_multiline_column_size               = std::move(other.opt_multiline_column_size);
+            temp_type                               = std::move(other.temp_type);
+            temp_schema                             = std::move(other.temp_schema);
+            oneline_comment_variants                = std::move(other.oneline_comment_variants);
+            multiline_comment_variants              = std::move(other.multiline_comment_variants);
+            with_comments                           = std::move(other.with_comments);
+            is_in_container                         = std::move(other.is_in_container);
         }
     }
 
@@ -136,6 +139,7 @@ public:
     bool operator==(const CommentDesign& other) const noexcept {
         if(this != &other) {
             bool ret = opt_multiline_border == other.opt_multiline_border;
+            if(ret) ret = opt_multiline_border_at_content_line == other.opt_multiline_border_at_content_line;
             if(ret) ret = opt_multiline_column_size == other.opt_multiline_column_size;
             if(ret) ret = oneline_comment_variants == other.oneline_comment_variants;
             if(ret) ret = multiline_comment_variants == other.multiline_comment_variants;
