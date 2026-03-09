@@ -12,33 +12,17 @@ protected:
 
 public:
     ElementJson()                                                               noexcept        { init(); }
-    explicit ElementJson(const ElementJson& json) noexcept {
-        init();
-        m_values = json.m_values;
-    }
+    explicit ElementJson(const ElementJson& json)                               noexcept;
     explicit ElementJson(const JPair& pair)                                     noexcept;
     explicit ElementJson(const std::string& input_string, const ConfigFormat config_format = ConfigFormat::eJSON,
-                const bool enable_comment = false) noexcept {
-        ElementJson temp;
-        temp.init();
-        try {
-            m_comment.commentDesign().with_comments = enable_comment;
-            temp.parse(input_string, m_comment.commentDesign(), config_format);
-        } catch (std::exception& e) {
-            std::cerr << e.what() << std::endl;
-        }
-
-        *this = std::move(temp);
-    }
+                const bool enable_comment = false)                              noexcept;
     __ONLY_ALLOWED_TYPES__(T)
     explicit ElementJson(const std::string& key, const T& value) noexcept {
         init();
         put(key, value);
     }
-    explicit ElementJson(const VPairElement& vec) noexcept {
-        init();
-        insert_back(vec);
-    }
+    explicit ElementJson(const VPairElement& vec)                               noexcept;
+    //TODO: исправить конструктор ElementJson(const IElement& element); сейчас просто init()
     explicit ElementJson(const IElement& element)                               noexcept        { init(); }
     ~ElementJson()                                                              noexcept        {}
 
@@ -320,9 +304,10 @@ public:
     // ========================================================================================================== Parser
 };
 
+//здесь нужна детальная проверка синтаксиса Json?
 //TODO: bool IsElementJson(const std::string& str)                                      noexcept;
-//TODO: bool IsElementJson(const IElement& e)                                           noexcept;
-//TODO: bool IsElementJson(const Config& cfg)                                           noexcept;
+bool IsElementJson(const IElement& e)                                           noexcept;
+bool IsElementJson(const Config& cfg)                                           noexcept;
 
 //TODO: ElementJson ParseJson(std::string&& input_string, const ConfigFormat format = ConfigFormat::eJSON, const bool parse_comments = true, const int8_t tabulation_level = 0)
 

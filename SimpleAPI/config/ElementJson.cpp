@@ -5,9 +5,32 @@
 #include "../utils/Utils.h"
 
 
+ElementJson::ElementJson(const ElementJson &json) noexcept {
+    init();
+    m_values = json.m_values;
+}
+
 ElementJson::ElementJson(const JPair &pair) noexcept {
     init();
     insert_back(pair.first, pair.second);
+}
+
+ElementJson::ElementJson(const std::string &input_string, const ConfigFormat config_format, const bool enable_comment) noexcept {
+    ElementJson temp;
+    temp.init();
+    try {
+        m_comment.commentDesign().with_comments = enable_comment;
+        temp.parse(input_string, m_comment.commentDesign(), config_format);
+    } catch (std::exception& e) {
+        std::cerr << e.what() << std::endl;
+    }
+
+    *this = std::move(temp);
+}
+
+ElementJson::ElementJson(const VPairElement &vec) noexcept {
+    init();
+    insert_back(vec);
 }
 
 void ElementJson::set_comment(const size_t index, const Comment &content) {
@@ -1232,3 +1255,13 @@ void ElementJson::parseXml(std::string &&input_string, const bool parse_comments
     parseXml(std::move(input_string), design);
 }
 
+
+bool IsElementJson(const IElement &e) noexcept
+{
+    return e.getType() == ValueType::eJson;
+}
+
+bool IsElementJson(const Config &cfg) noexcept
+{
+    return cfg.isJson();
+}
