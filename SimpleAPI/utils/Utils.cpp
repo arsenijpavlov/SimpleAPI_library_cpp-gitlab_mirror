@@ -221,84 +221,100 @@ bool CheckCrc32(std::vector<uint8_t>& data) noexcept {
     }
 }
 
-//TODO: на замену
-std::string GetEscChar(const std::string &str) noexcept {
-    switch(str[0]) {
-    case '"':   return "\"";    //символ "
-    case '\\':  return "\\";    //символ '\'
-    case 'b':   return "\b";    //возврат на один символ
-    case 'f':   return "\f";    //прогон страницы
-    case 'n':   return "\n";    //перенос строки
-    case 'r':   return "\r";    //возврат каретки
-    case 't':   return "\t";    //табуляция
+//std::string GetEscChar(const std::string &str) noexcept {
+//    switch(str[0]) {
+//    case '"':   return "\"";    //символ "
+//    case '\\':  return "\\";    //символ '\'
+//    case 'b':   return "\b";    //возврат на один символ
+//    case 'f':   return "\f";    //прогон страницы
+//    case 'n':   return "\n";    //перенос строки
+//    case 'r':   return "\r";    //возврат каретки
+//    case 't':   return "\t";    //табуляция
 
-    default:    return {};
-    }
-}
+//    default:    return {};
+//    }
+//}
 
-std::string GetEscChar2(const std::string &str) noexcept {
-    if(str[0] == '\\') {
-        if(str.size() == 1) return "\\";
-        switch(str[1]) {
-        case '"':   return "\""; //символ "
-        case 'b':   return "\b"; //возврат на один символ
-        case 'f':   return "\f"; //прогон страницы
-        case 'n':   return "\n"; //перенос строки
-        case 'r':   return "\r"; //возврат каретки
-        case 't':   return "\t"; //табуляция
-        }
-        //NOTE: UNICODE-символы не допускается экранировать, так как кодировка UTF-8 и так позволяет их вставлять в текст
-    }
-    return str;
-}
+//std::string GetEscChar2(const std::string &str) noexcept {
+//    if(str[0] == '\\') {
+//        if(str.size() == 1) return "\\";
+//        switch(str[1]) {
+//        case '"':   return "\""; //символ "
+//        case 'b':   return "\b"; //возврат на один символ
+//        case 'f':   return "\f"; //прогон страницы
+//        case 'n':   return "\n"; //перенос строки
+//        case 'r':   return "\r"; //возврат каретки
+//        case 't':   return "\t"; //табуляция
+//        }
+//        //NOTE: UNICODE-символы не допускается экранировать, так как кодировка UTF-8 и так позволяет их вставлять в текст
+//    }
+//    return str;
+//}
 
-//TODO: на замену
-char GetFromEscChar(const char ch) noexcept {
-    switch(ch) {
-    case '"':   return '\"';
-    case '\\':  return '\\';
-    case '\b':   return 'b';
-    case '\f':   return 'f';
-    case '\n':   return 'n';
-    case '\r':   return 'r';
-    case '\t':   return 't';
+//char GetFromEscChar(const char ch) noexcept {
+//    switch(ch) {
+//    case '"':   return '\"';
+//    case '\\':  return '\\';
+//    case '\b':   return 'b';
+//    case '\f':   return 'f';
+//    case '\n':   return 'n';
+//    case '\r':   return 'r';
+//    case '\t':   return 't';
 
-    default:    return 0;
-    }
-}
+//    default:    return 0;
+//    }
+//}
 
-std::string GetFromEscChar2(const std::string& str) noexcept {
-    switch(str[0]) {
-    case '\"':   return "\\\""; //символ "
-    case '\b':   return "\\\b"; //возврат на один символ
-    case '\f':   return "\\\f"; //прогон страницы
-    case '\n':   return "\\\n"; //перенос строки
-    case '\r':   return "\\\r"; //возврат каретки
-    case '\t':   return "\\\t"; //табуляция
-    }
-    //NOTE: UNICODE-символы не допускается экранировать, так как кодировка UTF-8 и так позволяет их вставлять в текст
-    return str;
-}
+//std::string GetFromEscChar2(const std::string& str) noexcept {
+//    switch(str[0]) {
+//    case '\"':   return "\\\""; //символ "
+//    case '\b':   return "\\\b"; //возврат на один символ
+//    case '\f':   return "\\\f"; //прогон страницы
+//    case '\n':   return "\\\n"; //перенос строки
+//    case '\r':   return "\\\r"; //возврат каретки
+//    case '\t':   return "\\\t"; //табуляция
+//    }
+//    //NOTE: UNICODE-символы не допускается экранировать, так как кодировка UTF-8 и так позволяет их вставлять в текст
+//    return str;
+//}
 
-//TODO: void UpdEscSymbols() - ???
-void UpdEscSymbols(std::string& string) noexcept {
-    std::string temp_string;
-    temp_string.reserve(string.capacity());
-    for(size_t i = 0; i < string.size(); i++) {
-        char current = string[i];
-        if(current == '\\' && string.length() > i + 1) {
-            std::string e_ch = utils::GetEscChar2(string.substr(i, 2));
-//            if(!e_ch.empty()) {
-//                std::cout << "found escape symbols <"
-//                          << current << string[i+1] << ">" << std::endl;
-                temp_string += e_ch;
-                i++;
-//            }
-        } else temp_string += current;
-    }
+//void UpdEscSymbols(std::string& string) noexcept {
+//    std::string temp_string;
+//    temp_string.reserve(string.capacity());
+//    for(size_t i = 0; i < string.size(); i++) {
+//        char current = string[i];
+//        if(current == '\\' && string.length() > i + 1) {
+//            std::string e_ch = utils::GetEscChar2(string.substr(i, 2));
+////            if(!e_ch.empty()) {
+////                std::cout << "found escape symbols <"
+////                          << current << string[i+1] << ">" << std::endl;
+//                temp_string += e_ch;
+//                i++;
+////            }
+//        } else temp_string += current;
+//    }
 
-    string = temp_string;
-}
+//    string = temp_string;
+//}
+
+//std::string ToStringWithEsc(const std::string &str, const bool use_backslash) noexcept {
+//    std::string ret;
+
+//    for(size_t i = 0; i < str.length(); i++) {
+//        char current    = str[i];
+
+//        char c = GetFromEscChar(current);
+//        if(c != 0) {
+//            if(use_backslash && current == '\n')
+//                ret += " \\\n\t";
+//            else
+//                ret += {'\\', c};
+//        } else
+//            ret += current;
+//    }
+
+//    return ret;
+//}
 
 size_t GetStringCharCount(const std::string &str, bool only_visible) {
     //1 => 0xxx xxxx
@@ -369,25 +385,6 @@ bool IsMultiLine(const std::string &str, const size_t column_size) noexcept {
         return str.find('\n') != -1;
 
     return false;
-}
-
-std::string ToStringWithEsc(const std::string &str, const bool use_backslash) noexcept {
-    std::string ret;
-
-    for(size_t i = 0; i < str.length(); i++) {
-        char current    = str[i];
-
-        char c = GetFromEscChar(current);
-        if(c != 0) {
-            if(use_backslash && current == '\n')
-                ret += " \\\n\t";
-            else
-                ret += {'\\', c};
-        } else
-            ret += current;
-    }
-
-    return ret;
 }
 
 bool IsStringOfFloatNumber(const std::string& str, long double& result) noexcept {

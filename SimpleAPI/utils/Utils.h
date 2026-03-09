@@ -36,15 +36,17 @@ bool        CheckCrc8(std::vector<uint8_t>& data)                               
 bool        CheckCrc16(std::vector<uint8_t>& data)                                      noexcept;
 bool        CheckCrc32(std::vector<uint8_t>& data)                                      noexcept;
 
-std::string GetEscChar(const std::string& str)                                          noexcept;
-std::string GetEscChar2(const std::string& str)                                         noexcept;
-char        GetFromEscChar(const char ch)                                               noexcept;
-std::string GetFromEscChar2(const std::string& str)                                     noexcept;
-void        UpdEscSymbols(std::string& string)                                          noexcept;
+//NOTE: нет сценариев, когда это необходимо
+//std::string GetEscChar(const std::string& str)                                          noexcept;
+//std::string GetEscChar2(const std::string& str)                                         noexcept;
+//char        GetFromEscChar(const char ch)                                               noexcept;
+//std::string GetFromEscChar2(const std::string& str)                                     noexcept;
+//void        UpdEscSymbols(std::string& string)                                          noexcept;
+//std::string ToStringWithEsc(const std::string& str, const bool use_backslash = false)   noexcept;
+
 size_t      GetStringCharCount(const std::string &str, bool only_visible = false);
 std::string SeparateString(std::string& str, const size_t length)                       noexcept;
 bool        IsMultiLine(const std::string& str, const size_t column_size = 0)           noexcept;
-std::string ToStringWithEsc(const std::string& str, const bool use_backslash = false)   noexcept;
 bool        IsStringOfFloatNumber(const std::string& str, long double& result)          noexcept;
 bool        IsStringOfIntNumber(const std::string& str, long int& result)               noexcept;
 bool        IsStringOfUIntNumber(const std::string& str, uint64_t& result)              noexcept;
