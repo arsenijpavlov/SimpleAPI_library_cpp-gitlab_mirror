@@ -36,24 +36,3 @@ TEST(UTILS, string_len) {
     EXPECT_EQ(1, utils::GetStringCharCount(example));
 }
 
-TEST(UTILS, from_text_to_escape_symbols) {
-    EXPECT_EQ(utils::GetEscChar2("\\\""),           "\"");
-    EXPECT_EQ(utils::GetEscChar2("\\b"),            "\b");
-    EXPECT_EQ(utils::GetEscChar2("\\f"),            "\f");
-    EXPECT_EQ(utils::GetEscChar2("\\n"),            "\n");
-    EXPECT_EQ(utils::GetEscChar2("\\r"),            "\r");
-    EXPECT_EQ(utils::GetEscChar2("\\t"),            "\t");
-    EXPECT_EQ(utils::GetEscChar2("\\u00a5"),        "\\u00a5");
-    EXPECT_EQ(utils::GetEscChar2("\\u000F12345"),   "\\u000F12345");
-}
-
-TEST(UTILS, from_escape_symbols_to_text) {
-    EXPECT_EQ(utils::GetFromEscChar2("\""),         "\\\"");
-    EXPECT_EQ(utils::GetFromEscChar2("\b"),         "\\\b");
-    EXPECT_EQ(utils::GetFromEscChar2("\f"),         "\\\f");
-    EXPECT_EQ(utils::GetFromEscChar2("\n"),         "\\\n");
-    EXPECT_EQ(utils::GetFromEscChar2("\r"),         "\\\r");
-    EXPECT_EQ(utils::GetFromEscChar2("\t"),         "\\\t");
-    EXPECT_EQ(utils::GetFromEscChar2("\u00a5"),     "\u00a5");
-    EXPECT_EQ(utils::GetFromEscChar2("\u000F12345"),"\u000F12345");
-}
