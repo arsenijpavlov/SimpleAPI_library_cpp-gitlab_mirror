@@ -100,7 +100,7 @@ bool IsElementString(std::string &str, const ConfigFormat format,
         }
     }
     case ConfigFormat::eINI: {
-        //TODO: подумать, что делать с переносами строк
+        //TODO: подумать, что делать с переносами строк (нужна ли табуляция)
 
         for(size_t i = 0; i < str.length(); i++) {
             //экранированные символы ВСЕГДА заносятся в значение (все)

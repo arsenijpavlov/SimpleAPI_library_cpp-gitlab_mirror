@@ -755,19 +755,19 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
 
 std::string ElementJson::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
-    //TODO: std::string ElementJson::toIniString()
+    //TODO (скоро): std::string ElementJson::toIniString()
     return "";
 }
 
 std::string ElementJson::toYamlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
-    //TODO: std::string ElementJson::toYamlString()
+    //TODO (потом): std::string ElementJson::toYamlString()
     return "";
 }
 
 std::string ElementJson::toXmlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
-    //TODO: std::string ElementJson::toXmlString()
+    //TODO (потом): std::string ElementJson::toXmlString()
     return "";
 }
 
@@ -1197,7 +1197,7 @@ void ElementJson::parseIni(const std::string &input_string, const bool parse_com
 void ElementJson::parseIni(std::string &&input_string, CommentDesign &design,
                            const int8_t tabulation_level)
 {
-    //TODO: void ElementJson::parseIni()
+    //TODO (скоро): void ElementJson::parseIni()
 }
 
 void ElementJson::parseIni(std::string &&input_string, const bool parse_comments,
@@ -1225,7 +1225,7 @@ void ElementJson::parseYaml(const std::string &input_string, const bool parse_co
 void ElementJson::parseYaml(std::string &&input_string, CommentDesign &design,
                             const int8_t tabulation_level)
 {
-    //TODO: void ElementJson::parseYaml()
+    //TODO (потом): void ElementJson::parseYaml()
 }
 
 void ElementJson::parseYaml(std::string &&input_string, const bool parse_comments,
@@ -1253,7 +1253,7 @@ void ElementJson::parseXml(const std::string &input_string, const bool parse_com
 void ElementJson::parseXml(std::string &&input_string, CommentDesign &design,
                            const int8_t tabulation_level)
 {
-    //TODO: void ElementJson::parseXml()
+    //TODO (потом): void ElementJson::parseXml()
 }
 
 void ElementJson::parseXml(std::string &&input_string, const bool parse_comments,

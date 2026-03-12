@@ -43,6 +43,6 @@ std::string yaml_string_example = "{"
                                   "\t-\t\"string_value\"\n true]\n"
                                   "}";
 
-//TODO: написать тесты для YAML
+//TODO (потом): написать тесты для YAML
 //TEST(YAML, copy) {
 //}

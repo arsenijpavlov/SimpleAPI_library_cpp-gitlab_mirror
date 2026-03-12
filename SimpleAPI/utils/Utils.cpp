@@ -357,7 +357,7 @@ size_t GetStringCharCount(const std::string &str, bool only_visible) {
     return size;
 }
 
-//TODO: написать тест для проверки
+//TODO: написать тест для проверки SeparateString()
 std::string SeparateString(std::string &str, const size_t length) noexcept {
     std::string res;
 

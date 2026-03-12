@@ -429,13 +429,13 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
 
 std::string ElementArray::toYamlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
-    //TODO: std::string ElementArray::toYamlString()
+    //TODO (потом): std::string ElementArray::toYamlString()
     return "[TODO]";
 }
 
 std::string ElementArray::toXmlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
-    //TODO: std::string ElementArray::toXmlString()
+    //TODO (потом): std::string ElementArray::toXmlString()
     return "[TODO]";
 }
 
@@ -818,7 +818,7 @@ void ElementArray::parseIni(const std::string &input_string, const bool parse_co
 void ElementArray::parseIni(std::string &&input_string, CommentDesign &design,
                             const int8_t tabulation_level)
 {
-    //TODO: void ElementArray::parseIni()
+    //TODO (скоро): void ElementArray::parseIni()
 }
 
 void ElementArray::parseIni(std::string &&input_string, const bool parse_comments,
@@ -846,7 +846,7 @@ void ElementArray::parseYaml(const std::string &input_string, const bool parse_c
 void ElementArray::parseYaml(std::string &&input_string, CommentDesign &design,
                              const int8_t tabulation_level)
 {
-    //TODO: void ElementArray::parseYaml()
+    //TODO (потом): void ElementArray::parseYaml()
 }
 
 void ElementArray::parseYaml(std::string &&input_string, const bool parse_comments,
@@ -874,7 +874,7 @@ void ElementArray::parseXml(const std::string &input_string, const bool parse_co
 void ElementArray::parseXml(std::string &&input_string, CommentDesign &design,
                             const int8_t tabulation_level)
 {
-    //TODO: void ElementArray::parseXml()
+    //TODO (потом): void ElementArray::parseXml()
 }
 
 void ElementArray::parseXml(std::string &&input_string, const bool parse_comments,

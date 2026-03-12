@@ -304,11 +304,9 @@ public:
     // ========================================================================================================== Parser
 };
 
-//здесь нужна детальная проверка синтаксиса Json?
+//здесь нужна детальная проверка синтаксиса Json? Или только проверка по количеству скобок {{{{[[]]}}}}
 //TODO: bool IsElementJson(const std::string& str)                                      noexcept;
 bool IsElementJson(const IElement& e)                                           noexcept;
 bool IsElementJson(const Config& cfg)                                           noexcept;
-
-//TODO: ElementJson ParseJson(std::string&& input_string, const ConfigFormat format = ConfigFormat::eJSON, const bool parse_comments = true, const int8_t tabulation_level = 0)
 
 #endif // ELEMENT_JSON_H

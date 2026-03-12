@@ -629,7 +629,7 @@ public:
                          const int8_t tabulation_level = 0)                                     const noexcept;                 API_ALL
     friend std::ostream& operator<<(std::ostream& os, const Config& config)                     noexcept;                       API_ALL
     friend std::ostream& operator<<(std::ostream& os, const IElement& config)                   noexcept;                       API_ALL
-    //TODO: дать доступ к toJsonString/toIniString/toYamlString/toXmlString ???
+    //TODO (потом): дать доступ к toJsonString/toIniString/toYamlString/toXmlString ???
     // ========================================================================================================== String
 
     // File ============================================================================================================

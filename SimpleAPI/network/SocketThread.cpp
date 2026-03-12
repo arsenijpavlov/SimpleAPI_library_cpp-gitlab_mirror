@@ -88,7 +88,7 @@ void SocketThread::log(const logs::LEVEL level, const std::string log_message,
 bool SocketThread::addSocket(const SocketType type, const IpPort& local_ip_port,
                              const SocketSettings settings) noexcept {
     if(type == SocketType::eTCP) {
-        return false; //TODO: TCP пока не готов
+        return false; //TODO (потом): TCP пока не готов
     } else if(type == SocketType::eUDP) {
         std::shared_ptr<Socket> sock(new UDPSocket(local_ip_port, settings));
         return m_sockets.insert(std::make_pair(local_ip_port, sock)).second;

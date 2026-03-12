@@ -162,7 +162,3 @@ TEST(ELEMENT, not_compare_all_types) {
     EXPECT_NE(el_array,     Config(ValueType::eArray, "asd"));          // вариант без обёртки
     EXPECT_NE(el_array,     Config(ValueType::eArray, Config("asd")));  // вариант с обёрткой
 }
-
-//TODO: TEST(ELEMENT, read_file) {
-//    Element el;
-//}

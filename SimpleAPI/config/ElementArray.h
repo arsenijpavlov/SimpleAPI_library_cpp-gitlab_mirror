@@ -250,6 +250,4 @@ public:
 //TODO: bool IsElementIniArray(const std::string& str)                          noexcept;
 //TODO: bool IsElementArray(const IElement& e)                                  noexcept;
 
-//TODO: ElementArray ParseArray(std::string&& input_string, const ConfigFormat format = ConfigFormat::eJSON, const bool parse_comments = true, const int8_t tabulation_level = 0)
-
 #endif // ELEMENT_ARRAY_H
