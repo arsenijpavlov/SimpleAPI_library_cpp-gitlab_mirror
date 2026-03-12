@@ -640,86 +640,87 @@ Config ElementJson::operator[](const std::string &key) const noexcept {
     return get_at(key);
 }
 
-//TODO: std::string ElementJson::toString()
 std::string ElementJson::toString(const ConfigFormat format, const CommentDesign &design,
                                   const int8_t custom_tabulation_level) const noexcept
+{
+    switch(format){
+    //предполагается, что eONLY_VALUE - это JSON без пробелов и переносов строки
+    case ConfigFormat::eONLY_VALUE: return toJsonString(design, -1);
+    case ConfigFormat::eJSON:       return toJsonString(design, custom_tabulation_level);
+    case ConfigFormat::eINI:        return toIniString(design, custom_tabulation_level);
+    case ConfigFormat::eYAML:       return toYamlString(design, custom_tabulation_level);
+    case ConfigFormat::eXML:        return toXmlString(design, custom_tabulation_level);
+    default:                        return "[UNKNOWN_CONFIG_FORMAT]";
+    }
+}
+
+std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     std::string ret;
     const std::string tablulation_str   = utils::RepeatSymToStr('\t', custom_tabulation_level);
     const std::string tablulation_str_1 = utils::RepeatSymToStr('\t', custom_tabulation_level + 1);
 
-    bool with_spaces = format != ConfigFormat::eONLY_VALUE && custom_tabulation_level != -1;
+    bool with_spaces = custom_tabulation_level != -1;
     CommentDesign inner_design = design;
     inner_design.is_in_container = true;
 
-    switch(format){
-    case ConfigFormat::eONLY_VALUE:
-    case ConfigFormat::eJSON:
+    //вывод комментария с рамкой
+    if(with_spaces
+        && design.with_comments
+        && !design.is_in_container
+        && !getPrefixComment().empty())
+    {
+        ret += ToComment(getPrefixComment(), inner_design, custom_tabulation_level);
+        ret += "\n";
+    }
+
+    if(with_spaces)
+        ret += tablulation_str;
+    ret += "{";
+    if(with_spaces)
+        ret += "\n";
+
+    for(size_t i = 0; i < size(); i++)
     {
         //вывод комментария с рамкой
-        if(design.with_comments && !design.is_in_container && !getPrefixComment().empty()) {
-            ret += ToComment(getPrefixComment(), inner_design, custom_tabulation_level);
+        if(with_spaces
+            && inner_design.with_comments
+            && !m_values[i].second->getPrefixComment().empty())
+        {
+            ret += ToComment(m_values[i].second->getPrefixComment(), inner_design, custom_tabulation_level + 1);
             ret += "\n";
         }
 
+        //вывод ключа
         if(with_spaces)
-            ret += tablulation_str;
-        ret += "{";
+            ret += tablulation_str_1;
+        ret += "\"" + m_values[i].first + "\"";
+
+        //вывод разделителя
+        ret += ":";
+
+        //вывод значения
         if(with_spaces)
-            ret += "\n";
+            ret += " ";
 
-        for(size_t i = 0; i < size(); i++) {
-            //вывод комментария с рамкой
-            if(inner_design.with_comments && !m_values[i].second->getPrefixComment().empty()) {
-                ret += ToComment(m_values[i].second->getPrefixComment(), inner_design, custom_tabulation_level + 1);
-                ret += "\n";
-            }
-
-            //вывод ключа
-            if(with_spaces)
-                ret += tablulation_str_1;
-            ret += "\"" + m_values[i].first + "\"";
-
-            //вывод разделителя
-            ret += ":";
-
-            //вывод значения
-            if(with_spaces)
-                ret += " ";
-
-            std::string temp = m_values[i].second->toString(format, inner_design, (custom_tabulation_level == -1 ? -1 : custom_tabulation_level + 1));
-            if(m_values[i].second->isContainer()) {
-                temp = utils::RemoveStartTabulations(temp);
-            }
-            if(m_values[i].second->isString() && format == ConfigFormat::eONLY_VALUE) {
-                temp = "\"" + temp + "\"";
-            }
-
-            ret += temp;
-            if(i < size() - 1)
-                ret += ",";
-
-            //вывод комментария без рамки
-            if(inner_design.with_comments && !m_values[i].second->getSuffixComment().empty()) {
-                std::string temp = ToComment(m_values[i].second->getSuffixComment(), inner_design, -1);
-                const size_t pos = ret.rfind('\n');
-                std::string temp__ = (ret.size() > pos +1 ? (ret.substr(pos + 1, ret.size())) : "") + " ";
-                utils::SetStringAsOnlySpaces(temp__);
-                utils::AddStringForFromLine(temp, 2, temp__);
-                ret += " " + temp;
-            }
-
-            if(with_spaces)
-                ret += "\n";
+        std::string temp = m_values[i].second->toString(ConfigFormat::eJSON, inner_design, (custom_tabulation_level == -1 ? -1 : custom_tabulation_level + 1));
+        if(m_values[i].second->isContainer()) {
+            temp = utils::RemoveStartTabulations(temp);
+        }
+        if(m_values[i].second->isString()) {
+            temp = "\"" + temp + "\"";
         }
 
-        if(with_spaces)
-            ret += tablulation_str;
-        ret += "}";
+        ret += temp;
+        if(i < size() - 1)
+            ret += ",";
 
         //вывод комментария без рамки
-        if(design.with_comments && !design.is_in_container && !getSuffixComment().empty()) {
-            std::string temp = ToComment(getSuffixComment(), design);
+        if(with_spaces
+            && inner_design.with_comments
+            && !m_values[i].second->getSuffixComment().empty())
+        {
+            std::string temp = ToComment(m_values[i].second->getSuffixComment(), inner_design, -1);
             const size_t pos = ret.rfind('\n');
             std::string temp__ = (ret.size() > pos +1 ? (ret.substr(pos + 1, ret.size())) : "") + " ";
             utils::SetStringAsOnlySpaces(temp__);
@@ -727,21 +728,29 @@ std::string ElementJson::toString(const ConfigFormat format, const CommentDesign
             ret += " " + temp;
         }
 
-        break;
+        if(with_spaces)
+            ret += "\n";
     }
-    case ConfigFormat::eINI:
-    case ConfigFormat::eYAML:
-    case ConfigFormat::eXML:
-        break;
+
+    if(with_spaces)
+        ret += tablulation_str;
+    ret += "}";
+
+    //вывод комментария без рамки
+    if(with_spaces
+        && design.with_comments
+        && !design.is_in_container
+        && !getSuffixComment().empty())
+    {
+        std::string temp = ToComment(getSuffixComment(), design);
+        const size_t pos = ret.rfind('\n');
+        std::string temp__ = (ret.size() > pos +1 ? (ret.substr(pos + 1, ret.size())) : "") + " ";
+        utils::SetStringAsOnlySpaces(temp__);
+        utils::AddStringForFromLine(temp, 2, temp__);
+        ret += " " + temp;
     }
 
     return ret;
-}
-
-std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
-{
-    //TODO: std::string ElementJson::toJsonString()
-    return "";
 }
 
 std::string ElementJson::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept

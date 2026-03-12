@@ -306,10 +306,10 @@ public:
     Config&         setValue(ElementArray&& other)                  noexcept;                                               API_ALL
     Config&         setValue(const ElementJson& other)              noexcept;                                               API_ALL
     Config&         setValue(ElementJson&& other)                   noexcept;                                               API_ALL
-    //TODO:    Config&         setValue(const ElementYaml& other)      noexcept;
-    //TODO:    Config&         setValue(ElementYaml&& other)           noexcept;
-    //TODO:    Config&         setValue(const ElementXml& other)       noexcept;
-    //TODO:    Config&         setValue(ElementXml&& other)            noexcept;
+    //TODO (потом):    Config&         setValue(const ElementYaml& other)      noexcept;
+    //TODO (потом):    Config&         setValue(ElementYaml&& other)           noexcept;
+    //TODO (потом):    Config&         setValue(const ElementXml& other)       noexcept;
+    //TODO (потом):    Config&         setValue(ElementXml&& other)            noexcept;
 
     // вложенные контейнеры (используют insert_*() ниже, но возвращают этот же базовый элемент)
     Config&         set(const std::string& key, const Config& value);                                                       API_MAP_CONTAINER

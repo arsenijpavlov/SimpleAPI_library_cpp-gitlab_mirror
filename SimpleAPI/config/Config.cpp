@@ -1522,9 +1522,7 @@ bool WriteStringToFile(const std::string& file_path, std::string&& content) noex
     return true;
 }
 
-/*TODO: запретить пользователю считывать массивы?
- * может имеет смысл вынести парсинг массивов вовне? разделители везде одни и те же, обрамление только нужно учитывать
-*/
+//NOTE: массивы отдельно спарсить нельзя - только в составе полного конфига (1 элемент - это тоже конфиг)
 Config Parse(const std::string &content, const ConfigFormat format,
              const bool with_comments, std::string *error_log)
 {
@@ -1535,13 +1533,6 @@ Config Parse(const std::string &content, const ConfigFormat format,
 //    case ConfigFormat::eXML:
     default:                    return Config{};
     }
-}
-
-Config ParseArray(const std::string &content, const bool with_comments,
-                 const int8_t tabulation_level, std::string* error_log)
-{
-    //TODO: ParseArray
-    return {};
 }
 
 Config ParseJson(const std::string &content, const bool with_comments,
