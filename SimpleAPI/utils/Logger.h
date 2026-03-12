@@ -8,6 +8,8 @@
 //NOTE: https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences
 //      гайд по цветовому выводу
 
+//TODO: добавить возможность задать цвет по 256-значному RGB-коду (по ссылке выше)
+
 namespace logs {
 
 // \033 то же самое, что и \e
