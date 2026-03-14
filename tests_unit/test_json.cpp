@@ -469,21 +469,21 @@ TEST(JSON, put_and_get_elements) {
     EXPECT_EQ(array[0].getString(), json2["array"][0].getString());
 }
 
-//TEST(JSON, update_value) {
-//    Config json(ValueType::eJson, "key", 15);
+TEST(JSON, update_value) {
+    Config json(ValueType::eJson, "key", 15);
 
-//    json.push_back("key", 20);
-//    EXPECT_EQ(json["key"].getNumber(), 20);
+    json.push_back("key", 20);
+    EXPECT_EQ(json["key"].getNumber(), 20);
 
-//    json.push_back("key", 30);
-//    EXPECT_EQ(json["key"].getNumber(), 30);
+    json.push_back("key", 30);
+    EXPECT_EQ(json["key"].getNumber(), 30);
 
-//    json.updateValue("key", 40);
-//    EXPECT_EQ(json["key"].getNum(), 40);
+    json.push_back("key", 40);
+    EXPECT_EQ(json["key"].getNumber(), 40);
 
-//    json.updateValue("key", true);
-//    EXPECT_EQ(json["key"].getBool(), true);
-//}
+    json.push_back("key", true);
+    EXPECT_EQ(json["key"].getBool(), true);
+}
 
 TEST(JSON, get_index) {
     Config json = json_example;

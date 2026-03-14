@@ -20,7 +20,7 @@ struct is_valid_config_type {
         std::is_arithmetic< typename std::decay<T>::type>::value ||
         std::is_same<       typename std::decay<T>::type, bool>::value ||
         std::is_same<       typename std::decay<T>::type, Config>::value
-//                                  || std::is_same<       typename std::decay<T>::type, const char*>::value
+        // || std::is_same<       typename std::decay<T>::type, const char*>::value
         ;
 };
 template<bool...> struct bool_pack;
@@ -32,6 +32,12 @@ struct all_true : std::is_same<bool_pack<bs..., true>, bool_pack<true, bs...>> {
              typename std::enable_if< \
                 all_true<is_valid_config_type<ARG>::value...>::value, int \
              >::type* = nullptr>
+//самый лёгкий способ достать первый элемент из variadic и не передать его дальше по рекурсии
+#define __ONLY_ALLOWED_TYPES_VARIADIC_PAIR__(ARG, ARG2) \
+    template<typename ... ARG, \
+             typename std::enable_if< \
+                all_true<is_valid_config_type<ARG>::value...>::value, int \
+             >::type* = nullptr, typename ARG2>
 
 
 class Config {
@@ -178,17 +184,17 @@ private:
     void init()                                                     noexcept    { setValue(); }
     void release()                                                  noexcept;
 
-    __ONLY_ALLOWED_TYPES_VARIADIC__(T)
-    void variadicKVInputter(const std::string& key, const Config& config, const T& ... others) {
+    __ONLY_ALLOWED_TYPES_VARIADIC_PAIR__(T, A)
+    void variadicKVInputter(const std::string& key, const A& value, const T& ... others) {
         static_assert(sizeof...(others) % 2 == 0, "Even number of arguments required");
-        push_at(key, config);
+        push_at(key, value); //здесь value сконвертируется в Config
         if(sizeof...(others) == 0) return;
         variadicKVInputter(others...);
     }
-    __ONLY_ALLOWED_TYPES_VARIADIC__(T)
-    void variadicKVInputter(const std::string& key, Config&& config, T&& ... others) {
+    __ONLY_ALLOWED_TYPES_VARIADIC_PAIR__(T, A)
+    void variadicKVInputter(const std::string& key, A&& value, T&& ... others) {
         static_assert(sizeof...(others) % 2 == 0, "Even number of arguments required");
-        push_at(key, std::move(config));
+        push_at(key, std::move(value)); //здесь value сконвертируется в Config
         if(sizeof...(others) == 0) return;
         variadicKVInputter(std::move(others)...);
     }
