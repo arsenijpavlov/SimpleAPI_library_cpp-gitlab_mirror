@@ -223,6 +223,15 @@ TEST(JSON, parse_error) {
 }
 
 //TODO: writeFile   custom_tabulation_level
+TEST(JSON, writeFile_custom_tabulation_level) {
+    Config json = json_example;
+
+    bool ret = json.writeFile("../tests/test_writer_tabs1.json", ConfigFormat::eJSON, {}, 1);
+    EXPECT_TRUE(ret);
+
+    ret = json.writeFile("../tests/test_writer_tabs3.json", ConfigFormat::eJSON, {}, 3);
+    EXPECT_TRUE(ret);
+}
 
 TEST(JSON, write_file) {
     Config json = json_example;
