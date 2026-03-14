@@ -598,6 +598,7 @@ TEST(JSON, check_numbers) {
     }
 }
 
+//TODO: TEST(JSON, parse_simple_element)
 TEST(JSON, parse_simple_element) {
     std::string test_file_string = "k = 1";
     Config json;
@@ -634,18 +635,21 @@ TEST(JSON, parse_simple_element) {
 }
 
 TEST(JSON, get_deep_inner_element_1) {
-    Config json_main(ValueType::eJson);
-    Config json_inner_1(ValueType::eJson);
-    Config json_inner_2(ValueType::eJson);
-    Config json_inner_3(ValueType::eJson);
+    Config json_main(ValueType::eArray);
+    Config json_inner_1(ValueType::eArray);
+    Config json_inner_2(ValueType::eArray);
+    Config json_inner_3(ValueType::eArray);
 
     json_inner_3.push_back(15);
     json_inner_2.push_back(json_inner_3);
     json_inner_1.push_back(json_inner_2);
     json_main.push_back(json_inner_1);
 
-//    Config json_result = json_main[{0,0,0}];
-//    EXPECT_EQ(json_result.getNumber(), 15);
+    Config json_result = json_main[{0, 0, 0, 0}];
+    EXPECT_EQ(json_result.getNumber(), 15);
+
+    json_result = json_main.get_at({0, 0, 0, 0});
+    EXPECT_EQ(json_result.getNumber(), 15);
 }
 
 TEST(JSON, get_deep_inner_element_2) {
@@ -654,13 +658,13 @@ TEST(JSON, get_deep_inner_element_2) {
     Config json_inner_2(ValueType::eJson);
     Config json_inner_3(ValueType::eJson);
 
-    json_inner_3.push_back(15);
-    json_inner_2.push_back(json_inner_3);
-    json_inner_1.push_back(json_inner_2);
-    json_main.push_back(json_inner_1);
+    json_inner_3.push_back("key", 15);
+    json_inner_2.push_back("key", json_inner_3);
+    json_inner_1.push_back("key", json_inner_2);
+    json_main.push_back("key", json_inner_1);
 
-//    Config json_result = json_main[std::vector<size_t>{0,0,0}];
-//    EXPECT_EQ(json_result.getNumber(), 15);
+    Config json_result = json_main[{0,0,0, "key"}];
+    EXPECT_EQ(json_result.getNumber(), 15);
 }
 
 TEST(JSON, contains) {

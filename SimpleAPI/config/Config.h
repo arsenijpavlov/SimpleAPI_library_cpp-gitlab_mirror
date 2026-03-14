@@ -328,61 +328,81 @@ public:
 
     // Getters =========================================================================================================
     bool&           getBool();                                                                                              API_BOOL
-    bool            getBool()                                                   const;                                      API_BOOL
+    bool            getBool()                                                                   const;                      API_BOOL
     long double&    getNumber();                                                                                            API_NUMBER
-    long double     getNumber()                                                 const;                                      API_NUMBER
+    long double     getNumber()                                                                 const;                      API_NUMBER
     std::string&    getString();                                                                                            API_STRING
-    std::string     getString()                                                 const;                                      API_STRING
+    std::string     getString()                                                                 const;                      API_STRING
 
     // вложенные контейнеры
     // @complex_key - список индексов/ключей: {1, "k1", 2} -> el[1]["k1"][2]
     Config&         get_front();                                                                                            API_CONTAINER
-    Config          get_front()                                                 const;                                      API_CONTAINER
+    Config          get_front()                                                                 const;                      API_CONTAINER
 
     Config&         get_at(const size_t index);                                                                             API_CONTAINER
-    Config          get_at(const size_t index)                                  const;                                      API_CONTAINER
+    Config          get_at(const size_t index)                                                  const;                      API_CONTAINER
     Config&         get_at(const std::string& key);                                                                         API_MAP_CONTAINER
-    Config          get_at(const std::string& key)                              const;                                      API_MAP_CONTAINER
+    Config          get_at(const std::string& key)                                              const;                      API_MAP_CONTAINER
     Config&         get_at(const std::vector<OnlySizetOrString>& complex_key);                                              API_CONTAINER
-    Config          get_at(const std::vector<OnlySizetOrString>& complex_key)   const;                                      API_CONTAINER
+    Config          get_at(const std::vector<OnlySizetOrString>& complex_key)                   const;                      API_CONTAINER
+    //фикс для вызова через {}
+    Config&         get_at(const std::initializer_list<OnlySizetOrString>& complex_key)
+                    { return get_at(std::vector<OnlySizetOrString>(complex_key)); }                                         API_CONTAINER
+    Config          get_at(const std::initializer_list<OnlySizetOrString>& complex_key)         const
+                    { return get_at(std::vector<OnlySizetOrString>(complex_key)); }                                         API_CONTAINER
 
     Config&         get_back();                                                                                             API_MAP_CONTAINER
-    Config          get_back()                                                  const;                                      API_MAP_CONTAINER
+    Config          get_back()                                                                  const;                      API_MAP_CONTAINER
 
     bool&           get_front_bool();                                                                                       API_CONTAINER
-    bool            get_front_bool()                                            const;                                      API_CONTAINER
+    bool            get_front_bool()                                                            const;                      API_CONTAINER
     long double&    get_front_number();                                                                                     API_CONTAINER
-    long double     get_front_number()                                          const;                                      API_CONTAINER
+    long double     get_front_number()                                                          const;                      API_CONTAINER
     std::string&    get_front_string();                                                                                     API_CONTAINER
-    std::string     get_front_string()                                          const;                                      API_CONTAINER
+    std::string     get_front_string()                                                          const;                      API_CONTAINER
 
     bool&           get_bool_at(const size_t index);                                                                        API_CONTAINER
-    bool            get_bool_at(const size_t index)                             const;                                      API_CONTAINER
+    bool            get_bool_at(const size_t index)                                             const;                      API_CONTAINER
     bool&           get_bool_at(const std::string& key);                                                                    API_MAP_CONTAINER
-    bool            get_bool_at(const std::string& key)                         const;                                      API_MAP_CONTAINER
+    bool            get_bool_at(const std::string& key)                                         const;                      API_MAP_CONTAINER
     bool&           get_bool_at(const std::vector<OnlySizetOrString>& complex_key);                                         API_CONTAINER
-    bool            get_bool_at(const std::vector<OnlySizetOrString>& complex_key)      const;                              API_CONTAINER
+    bool            get_bool_at(const std::vector<OnlySizetOrString>& complex_key)              const;                      API_CONTAINER
+    //фикс для вызова через {}
+    bool&           get_bool_at(const std::initializer_list<OnlySizetOrString>& complex_key)
+                    { return get_bool_at(std::vector<OnlySizetOrString>(complex_key)); }                                    API_CONTAINER
+    bool            get_bool_at(const std::initializer_list<OnlySizetOrString>& complex_key)    const
+                    { return get_bool_at(std::vector<OnlySizetOrString>(complex_key)); }                                    API_CONTAINER
 
     long double&    get_number_at(const size_t index);                                                                      API_CONTAINER
-    long double     get_number_at(const size_t index)                           const;                                      API_CONTAINER
+    long double     get_number_at(const size_t index)                                           const;                      API_CONTAINER
     long double&    get_number_at(const std::string& key);                                                                  API_MAP_CONTAINER
-    long double     get_number_at(const std::string& key)                       const;                                      API_MAP_CONTAINER
+    long double     get_number_at(const std::string& key)                                       const;                      API_MAP_CONTAINER
     long double&    get_number_at(const std::vector<OnlySizetOrString>& complex_key);                                       API_CONTAINER
-    long double     get_number_at(const std::vector<OnlySizetOrString>& complex_key)    const;                              API_CONTAINER
+    long double     get_number_at(const std::vector<OnlySizetOrString>& complex_key)            const;                      API_CONTAINER
+    //фикс для вызова через {}
+    long double&    get_number_at(const std::initializer_list<OnlySizetOrString>& complex_key)
+                    { return get_number_at(std::vector<OnlySizetOrString>(complex_key)); }                                  API_CONTAINER
+    long double     get_number_at(const std::initializer_list<OnlySizetOrString>& complex_key)  const
+                    { return get_number_at(std::vector<OnlySizetOrString>(complex_key)); }                                  API_CONTAINER
 
     std::string&    get_string_at(const size_t index);                                                                      API_CONTAINER
-    std::string     get_string_at(const size_t index)                           const;                                      API_CONTAINER
+    std::string     get_string_at(const size_t index)                                           const;                      API_CONTAINER
     std::string&    get_string_at(const std::string& key);                                                                  API_MAP_CONTAINER
-    std::string     get_string_at(const std::string& key)                       const;                                      API_MAP_CONTAINER
+    std::string     get_string_at(const std::string& key)                                       const;                      API_MAP_CONTAINER
     std::string&    get_string_at(const std::vector<OnlySizetOrString>& complex_key);                                       API_CONTAINER
-    std::string     get_string_at(const std::vector<OnlySizetOrString>& complex_key)    const;                              API_CONTAINER
+    std::string     get_string_at(const std::vector<OnlySizetOrString>& complex_key)            const;                      API_CONTAINER
+    //фикс для вызова через {}
+    std::string&    get_string_at(const std::initializer_list<OnlySizetOrString>& complex_key)
+                    { return get_string_at(std::vector<OnlySizetOrString>(complex_key)); }                                  API_CONTAINER
+    std::string     get_string_at(const std::initializer_list<OnlySizetOrString>& complex_key)  const
+                    { return get_string_at(std::vector<OnlySizetOrString>(complex_key)); }                                  API_CONTAINER
 
     bool&           get_bool_back();                                                                                        API_CONTAINER
-    bool            get_bool_back()                                             const;                                      API_CONTAINER
+    bool            get_bool_back()                                                             const;                      API_CONTAINER
     long double&    get_number_back();                                                                                      API_CONTAINER
-    long double     get_number_back()                                           const;                                      API_CONTAINER
+    long double     get_number_back()                                                           const;                      API_CONTAINER
     std::string&    get_string_back();                                                                                      API_CONTAINER
-    std::string     get_string_back()                                           const;                                      API_CONTAINER
+    std::string     get_string_back()                                                           const;                      API_CONTAINER
     // ========================================================================================================= Getters
 
     // Modify ==========================================================================================================
@@ -588,6 +608,11 @@ public:
 
     Config&         operator[](const std::vector<OnlySizetOrString>& complex_key)           { return get_at(complex_key); }     API_CONTAINER
     Config          operator[](const std::vector<OnlySizetOrString>& complex_key)   const   { return get_at(complex_key); }     API_CONTAINER
+    //фикс для вызова через {}
+    Config&         operator[](const std::initializer_list<OnlySizetOrString>& complex_key)
+                    { return get_at(std::vector<OnlySizetOrString>(complex_key)); }                                             API_CONTAINER
+    Config          operator[](const std::initializer_list<OnlySizetOrString>& complex_key) const
+                    { return get_at(std::vector<OnlySizetOrString>(complex_key)); }                                             API_CONTAINER
     // ======================================================================================================= Operators
 
     // Iterators =======================================================================================================
