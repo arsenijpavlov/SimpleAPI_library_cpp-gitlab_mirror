@@ -3,35 +3,6 @@
 
 #include <stdexcept>
 
-//TYPES===========================================================================
-#define __ONLY_ALLOWED_TYPES__(ARG) \
-    template<typename ARG, \
-        typename std::enable_if< \
-            std::is_same<           typename std::remove_cv<typename std::remove_reference<ARG>::type>::type, ElementJson>::value \
-            || std::is_same<        typename std::remove_cv<typename std::remove_reference<ARG>::type>::type, ElementArray>::value \
-            || std::is_convertible< typename std::remove_cv<typename std::remove_reference<ARG>::type>::type, std::string>::value \
-            || std::is_same<        typename std::decay<ARG>::type, const char*>::value \
-            || std::is_arithmetic<  typename std::remove_cv<typename std::remove_reference<ARG>::type>::type>::value \
-            || std::is_same<        typename std::remove_cv<typename std::remove_reference<ARG>::type>::type, bool>::value \
-            || std::is_same<        typename std::remove_cv<typename std::remove_reference<ARG>::type>::type, Config>::value \
-        >::type* = nullptr>
-
-#define __ONLY_STRING_TYPES__(ARG) \
-    template<typename ARG, \
-        typename std::enable_if< \
-            std::is_convertible<    typename std::decay<ARG>::type, std::string>::value || \
-            std::is_same<           typename std::decay<ARG>::type, const char*>::value , \
-            int \
-        >::type* = nullptr>
-
-#define __ONLY_NUMBER_TYPES__(ARG) \
-    template<typename ARG, \
-        typename std::enable_if< \
-            std::is_arithmetic<     typename std::decay<ARG>::type>::value \
-            && !std::is_same<       typename std::decay<ARG>::type, bool>::value \
-        >::type* = nullptr>
-//===========================================================================TYPES
-
 //VALUES==========================================================================
 #define __SPACES__                                  " \n\t"
 #define __KEY_VALUE_SEPARATOR__                     ":="
@@ -78,10 +49,11 @@
                                             __CHECK_TYPES_NOT_EQUAL_ACTION__(object1, object2) \
                                                 throw std::invalid_argument("Types is not equal");
 
-#define __INCORRECT_INDEX_EXCEPTION__(index) throw std::invalid_argument(std::string("Index ") + #index + " not contain an object");
+#define __INCORRECT_INDEX_EXCEPTION__(index) throw std::invalid_argument(std::string("Index ") \
+                                                + std::to_string(index) + " not contain an object");
 
 #define __CHECK_CONTAINER_INDEX_CORRECT__(object, index) \
-                                            if(index > object.size() - 1)   __INCORRECT_INDEX_EXCEPTION__(#index)
+                                            if(index > object.size() - 1)   __INCORRECT_INDEX_EXCEPTION__(index)
 
 //--------------------
 

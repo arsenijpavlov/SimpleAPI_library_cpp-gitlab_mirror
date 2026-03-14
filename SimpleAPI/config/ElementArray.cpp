@@ -6,6 +6,7 @@
 
 //предобъявление
 #include "Config.h"
+#include "ConfigDefines.h"
 #include "ElementArray.h"
 
 class ElementArray;

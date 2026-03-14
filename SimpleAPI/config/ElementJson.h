@@ -1,7 +1,7 @@
 #ifndef ELEMENT_JSON_H
 #define ELEMENT_JSON_H
 
-#include "ConfigDefines.h"
+#include "../utils/TypeDefines.h"
 #include "ElementArray.h"
 #include <iostream>
 

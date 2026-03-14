@@ -1,5 +1,6 @@
 #include "Config.h"
 
+#include "ConfigDefines.h"
 #include "ElementNull.h"
 #include "ElementBool.h"
 #include "ElementNumber.h"

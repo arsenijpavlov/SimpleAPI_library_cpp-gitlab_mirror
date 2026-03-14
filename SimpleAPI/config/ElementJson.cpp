@@ -3,6 +3,7 @@
 #include "Config.h"
 #include <algorithm>
 #include "../utils/Utils.h"
+#include "ConfigDefines.h"
 
 
 ElementJson::ElementJson(const ElementJson &json) noexcept {

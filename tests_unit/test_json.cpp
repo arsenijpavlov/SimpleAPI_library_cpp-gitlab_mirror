@@ -506,16 +506,18 @@ TEST(JSON, get_index_error) {
     FAIL();
 }
 
-//TEST(JSON, get_complex_name) {
-//    Json j("json_num", 15);
-//    ElementArray a;
-//    a.push_back(j);
-//    Json j_main;
-//    j_main.put("array", a);
+TEST(JSON, get_complex_name) {
+    Config j;
+    j.push_back("json_num", 15);
+    Config a;
+    a.push_back(j);
 
-//    double d = j_main[{"array", "0", "json_num"}].getNum();
-//    EXPECT_EQ(15, d);
-//}
+    Config j_main;
+    j_main.push_at("array", a);
+
+    double d = j_main[{"array", 0, "json_num"}].getNumber();
+    EXPECT_EQ(15, d);
+}
 
 TEST(JSON, get_key) {
     Config json = json_example;

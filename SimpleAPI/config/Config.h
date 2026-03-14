@@ -3,13 +3,13 @@
 
 #include "Comment.h"
 #include "ConfigCommon.h"
-#include "ConfigDefines.h"
+#include "../utils/TypeDefines.h"
 #include "ElementArray.h"
 #include "ElementBool.h"
 #include "ElementJson.h"
 #include "ElementNumber.h"
 #include "ElementString.h"
-#include "OnlySizetOrString.h"
+#include "../utils/OnlySizetOrString.h"
 
 template<typename T>
 struct is_valid_config_type {

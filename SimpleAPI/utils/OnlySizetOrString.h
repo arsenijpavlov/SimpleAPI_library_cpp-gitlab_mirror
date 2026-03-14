@@ -3,6 +3,8 @@
 
 #include <stdexcept>
 #include <string>
+#include "TypeDefines.h"
+
 class OnlySizetOrString {
 public:
     enum class Type {
@@ -16,11 +18,13 @@ private:
 
 public:
     OnlySizetOrString() = delete;
-    OnlySizetOrString(std::string str) noexcept
-        : m_string{str}, m_type{Type::type_string} {};
-    OnlySizetOrString(const char* str) noexcept
+
+    __ONLY_STRING_TYPES__(T)
+    OnlySizetOrString(const T& str) noexcept
         : m_string{std::string(str)}, m_type{Type::type_string} {};
-    OnlySizetOrString(size_t index) noexcept
+
+    __ONLY_NUMBER_TYPES__(T)
+    OnlySizetOrString(const T& index) noexcept
         : m_sizet{index}, m_type{Type::type_sizet} {};
 
     std::string toString() const noexcept {
@@ -35,10 +39,10 @@ public:
             throw std::invalid_argument("value is not a size_t");
         return m_sizet;
     }
-    size_t getStringValue() const {
+    std::string getStringValue() const {
         if(m_type != Type::type_string)
             throw std::invalid_argument("value is not a string");
-        return m_sizet;
+        return m_string;
     }
 };
 
