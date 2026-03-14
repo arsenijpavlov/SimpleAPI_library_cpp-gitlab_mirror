@@ -1057,6 +1057,22 @@ Config& Config::insert_back(const std::string& key, Config&& other) {
     return *this;
 }
 
+Config &Config::insert_before(const std::string &before_key, const std::string &key, const Config &other)
+{
+    Config config(other);
+    return insert_before(before_key, key, std::move(config));
+}
+
+Config &Config::insert_before(const std::string &before_key, const std::string &key, Config &&other)
+{
+    try_convert_null_to_json();
+
+    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+    dynamic_cast<ElementJson*>(m_value)->insert_before(before_key, key, std::move(other));
+
+    return *this;
+}
+
 Config& Config::insert_after(const std::string& after_key, const std::string& key, const Config& other) {
     Config config(other);
     return insert_after(after_key, key, std::move(config));

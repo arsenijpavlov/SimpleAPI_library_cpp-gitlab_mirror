@@ -528,29 +528,29 @@ TEST(JSON, get_key) {
     EXPECT_EQ(json.get_at("key_3").getBool(), true);
 }
 
-//TEST(JSON, insert) {
-//    Config json = json_example;
+TEST(JSON, insert) {
+    Config json = json_example;
 
-//    json.insert_at(2, "inner_json1", json_example);
-//    EXPECT_EQ(json[2].first, ValueType::eJson);
+    json.insert_at(2, "inner_json1", json_example);
+    EXPECT_EQ(json[2].getType(), ValueType::eJson);
 
-//    json.insert(4, "inner_json2", json_example);
-//    EXPECT_EQ(json[4].first, ValueType::eJson);
-//}
+    json.insert_at(4, "inner_json2", json_example);
+    EXPECT_EQ(json[4].getType(), ValueType::eJson);
+}
 
-//TEST(JSON, insert_before) {
-//    Json json = json_example;
-//    json.insertBefore("key_1", "inner_json", json_example);
+TEST(JSON, insert_before) {
+    Config json = json_example;
+    json.insert_before("key_1", "inner_json", json_example);
 
-//    EXPECT_EQ(json[1].first, ValueType::eJson);
-//}
+    EXPECT_EQ(json[1].getType(), ValueType::eJson);
+}
 
-//TEST(JSON, insert_after) {
-//    Json json = json_example;
-//    json.insertAfter("key_1", "inner_json", json_example);
+TEST(JSON, insert_after) {
+    Config json = json_example;
+    json.insert_after("key_1", "inner_json", json_example);
 
-//    EXPECT_EQ(json[2].first, ValueType::eJson);
-//}
+    EXPECT_EQ(json[2].getType(), ValueType::eJson);
+}
 
 TEST(JSON, erase_at) {
     Config json = json_example;

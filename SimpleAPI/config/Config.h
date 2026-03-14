@@ -420,6 +420,9 @@ public:
     Config& insert_back(const std::string& key, const Config& other);                                                       API_MAP_CONTAINER
     Config& insert_back(const std::string& key, Config&& other);                                                            API_MAP_CONTAINER
 
+    //TODO: имеет смысл сделать аналог для массивов?
+    Config& insert_before(const std::string& before_key, const std::string& key, const Config& other);                      API_MAP_CONTAINER
+    Config& insert_before(const std::string& before_key, const std::string& key, Config&& other);                           API_MAP_CONTAINER
     Config& insert_after(const std::string& after_key, const std::string& key, const Config& other);                        API_MAP_CONTAINER
     Config& insert_after(const std::string& after_key, const std::string& key, Config&& other);                             API_MAP_CONTAINER
 
@@ -441,10 +444,14 @@ public:
     Config& push_back(const std::string& key, const Config& other)      { return insert_back(key, other); }                 API_MAP_CONTAINER
     Config& push_back(const std::string& key, Config&& other)           { return insert_back(key, std::move(other)); }      API_MAP_CONTAINER
 
+    Config& push_before(const std::string& before_key, const std::string& key,
+                        const Config& other)                            { return insert_before(before_key, key, other); }               API_MAP_CONTAINER
+    Config& push_before(const std::string& before_key, const std::string& key,
+                        Config&& other)                                 { return insert_before(before_key, key, std::move(other)); }    API_MAP_CONTAINER
     Config& push_after(const std::string& after_key, const std::string& key,
-                       const Config& other)                             { return insert_after(after_key, key, other); }             API_MAP_CONTAINER
+                       const Config& other)                             { return insert_after(after_key, key, other); }                 API_MAP_CONTAINER
     Config& push_after(const std::string& after_key, const std::string& key,
-                       Config&& other)                                  { return insert_after(after_key, key, std::move(other)); }  API_MAP_CONTAINER
+                       Config&& other)                                  { return insert_after(after_key, key, std::move(other)); }      API_MAP_CONTAINER
 
     //обход explicit
             __ONLY_ALLOWED_TYPES__(T)
