@@ -222,7 +222,6 @@ TEST(JSON, parse_error) {
     EXPECT_TRUE(json[0].isString());
 }
 
-//TODO: writeFile   custom_tabulation_level
 TEST(JSON, writeFile_custom_tabulation_level) {
     Config json = json_example;
 
