@@ -286,6 +286,7 @@ TEST(JSON, parse_with_comments2) {
     EXPECT_EQ(json.get_prefix_comment("b"), "p2_comment");
 }
 
+//TODO: TEST(JSON, write_and_read_file_comment)
 //TEST(JSON, write_and_read_file_comment) {
 //    Config json(ValueType::eJson);
 //    json.parseJson(json_string_example);
@@ -374,7 +375,7 @@ TEST(JSON, read_file) {
     EXPECT_EQ(json.size(), json2.size());
 }
 
-//FIXME: не работает сравнение массивов
+//FIXME: TEST(JSON, read_file_comment) не работает сравнение массивов
 TEST(JSON, read_file_comment) {
     Config json;
     json.parseJson(json_string_example);
@@ -435,6 +436,7 @@ TEST(JSON, read_file_error) {
     EXPECT_EQ(json.size(), 0);
 }
 
+//TODO: TEST(JSON, put_and_get_elements) compare ElementArray and Config(eArray)
 TEST(JSON, put_and_get_elements) {
     //без const значения перместятся в Json и их нельзя будет проверить через EXPECT_EQ
     const std::string test_str    = "abc";
@@ -598,7 +600,7 @@ TEST(JSON, check_numbers) {
     }
 }
 
-//TODO: TEST(JSON, parse_simple_element)
+//TODO: TEST(JSON, parse_simple_element) парсинг Json без рамки
 TEST(JSON, parse_simple_element) {
     std::string test_file_string = "k = 1";
     Config json;
