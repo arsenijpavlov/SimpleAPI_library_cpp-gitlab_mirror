@@ -559,8 +559,9 @@ public:
     size_t          size()                                  const noexcept          { return m_value->size(); }                 API_ALL
     bool            isEmpty()                               const noexcept          { return size() == 0; }                     API_CONTAINER
     bool            containsValue(const Config& config)     const noexcept;                                                     API_CONTAINER
-                    __ONLY_ALLOWED_TYPES__(T)
-    bool            containsValue(const T& other)                                   { return containsValue((Config(other))); }  API_CONTAINER
+                    __ONLY_ALLOWED_TYPES_WITHOUT_CONFIG__(T)
+    bool            containsValue(const T& other)
+                    { return containsValue(Config(other)); }                                                                    API_CONTAINER
     bool            containsKey(const std::string& key)     const noexcept;                                                     API_MAP_CONTAINER
     // ============================================================================================================ Info
 
@@ -628,8 +629,19 @@ public:
 
         shared_VElement::iterator       begin()                 { return m_config->array_begin(); }
         shared_VElement::iterator       end()                   { return m_config->array_end(); }
+        //в силу приколов C++ константные begin() и end() решают проблему
+        shared_VElement::const_iterator begin()         const   { return m_const_config->array_cbegin(); }
+        shared_VElement::const_iterator end()           const   { return m_const_config->array_cend(); }
         shared_VElement::const_iterator cbegin()        const   { return m_const_config->array_cbegin(); }
         shared_VElement::const_iterator cend()          const   { return m_const_config->array_cend(); }
+
+        //для корректной работы через STL-методы
+        friend shared_VElement::iterator                begin(Range& r)                         { return r.begin(); }
+        friend shared_VElement::iterator                end(Range& r)                           { return r.end(); }
+        friend shared_VElement::const_iterator          begin(const Range& r)                   { return r.cbegin(); }
+        friend shared_VElement::const_iterator          end(const Range& r)                     { return r.cend(); }
+        friend shared_VElement::const_iterator          cbegin(const Range& r)                  { return r.cbegin(); }
+        friend shared_VElement::const_iterator          cend(const Range& r)                    { return r.cend(); }
     };
     Range getRange()                                            { return Range(*this); }
     Range getRange()                                    const   { return Range(*this); }
@@ -649,11 +661,22 @@ public:
 
         shared_VPairElement::iterator       begin()             { return m_config->map_begin(); }
         shared_VPairElement::iterator       end()               { return m_config->map_end(); }
+        //в силу приколов C++ константные begin() и end() решают проблему
+        shared_VPairElement::const_iterator begin()     const   { return m_const_config->map_cbegin(); }
+        shared_VPairElement::const_iterator end()       const   { return m_const_config->map_cend(); }
         shared_VPairElement::const_iterator cbegin()    const   { return m_const_config->map_cbegin(); }
         shared_VPairElement::const_iterator cend()      const   { return m_const_config->map_cend(); }
+
+        //для корректной работы через STL-методы
+        friend shared_VPairElement::iterator            begin(MapRange& mr)                     { return mr.begin(); }
+        friend shared_VPairElement::iterator            end(MapRange& mr)                       { return mr.end(); }
+        friend shared_VPairElement::const_iterator      begin(const MapRange& mr)               { return mr.cbegin(); }
+        friend shared_VPairElement::const_iterator      end(const MapRange& mr)                 { return mr.cend(); }
+        friend shared_VPairElement::const_iterator      cbegin(const MapRange& mr)              { return mr.cbegin(); }
+        friend shared_VPairElement::const_iterator      cend(const MapRange& mr)                { return mr.cend(); }
     };
-    MapRange getNamedRange()                                    { return MapRange(*this); }
-    MapRange getNamedRange()                            const   { return MapRange(*this); }
+    MapRange        getNamedRange()                             { return MapRange(*this); }
+    const MapRange  getNamedRange()                     const   { return MapRange(*this); }
     shared_VPairElement::iterator       map_begin();
     shared_VPairElement::const_iterator map_cbegin()                                            const;
     shared_VPairElement::iterator       map_end();
