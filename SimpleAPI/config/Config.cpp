@@ -167,7 +167,6 @@ Comment Config::get_comment(const std::string &key) const
     return reinterpret_cast<ElementJson*>(m_value)->get_comment(key);
 }
 
-
 std::string Config::get_prefix_comment(const size_t index) const {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     return reinterpret_cast<IElementContainer*>(m_value)->get_prefix_comment(index);
@@ -1244,7 +1243,13 @@ bool Config::containsKey(const std::string &key) const noexcept {
 std::string Config::toString(const ConfigFormat format, const CommentDesign &design,
                              const int8_t tabulation_level) const noexcept
 {
-    return m_value->toString(format, design, tabulation_level);
+    CommentDesign n_design;
+    if(design == CommentDesign{}) { // если переменная не заполнена, используется собственная
+        n_design = m_value->getCommentDesign();
+    } else {
+        n_design = design;
+    }
+    return m_value->toString(format, n_design, tabulation_level);
 }
 
 std::ostream &operator<<(std::ostream &os, const Config &config) noexcept {

@@ -688,6 +688,7 @@ public:
     std::string     toString(const ConfigFormat format = ConfigFormat::eONLY_VALUE,
                          const CommentDesign &design = {},
                          const int8_t tabulation_level = 0)                                     const noexcept;                 API_ALL
+    //для совместимости с STL
     friend std::ostream& operator<<(std::ostream& os, const Config& config)                     noexcept;                       API_ALL
     friend std::ostream& operator<<(std::ostream& os, const IElement& config)                   noexcept;                       API_ALL
     //TODO (потом): дать доступ к toJsonString/toIniString/toYamlString/toXmlString ???
