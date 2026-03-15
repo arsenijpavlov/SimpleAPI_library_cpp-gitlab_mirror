@@ -12,84 +12,84 @@
 class ElementArray;
 
 
-void ElementArray::set_comment(const size_t index, const Comment &content) {
+void ElementArray::set_comment(const size_t& index, const Comment &content) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     m_values.at(index)->setComment(content);
 }
 
-void ElementArray::set_comment(const size_t index, const std::string &content_before,
+void ElementArray::set_comment(const size_t& index, const std::string &content_before,
                               const std::string &content_after)
 {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     m_values.at(index)->setComment(content_before, content_after);
 }
 
-void ElementArray::set_prefix_comment(const size_t index, const std::string &content) {
+void ElementArray::set_prefix_comment(const size_t& index, const std::string &content) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     m_values.at(index)->setPrefixComment(content);
 }
 
-void ElementArray::set_suffix_comment(const size_t index, const std::string &content) {
+void ElementArray::set_suffix_comment(const size_t& index, const std::string &content) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     m_values.at(index)->setSuffixComment(content);
 }
 
-Comment &ElementArray::get_comment(const size_t index) {
+Comment &ElementArray::get_comment(const size_t& index) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     return m_values.at(index)->getComment();
 }
 
-Comment ElementArray::get_comment(const size_t index) const {
+Comment ElementArray::get_comment(const size_t& index) const {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     return m_values.at(index)->getComment();
 }
 
-std::string ElementArray::get_prefix_comment(const size_t index) const {
+std::string ElementArray::get_prefix_comment(const size_t& index) const {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     return m_values.at(index)->getPrefixComment();
 }
 
-std::string ElementArray::get_suffix_comment(const size_t index) const {
+std::string ElementArray::get_suffix_comment(const size_t& index) const {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     return m_values.at(index)->getSuffixComment();
 }
 
-//std::string &ElementArray::get_prefix_comment(const size_t index) {
+//std::string &ElementArray::get_prefix_comment(const size_t& index) {
 //    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
 //    return m_values.at(index)->getPrefixComment();
 //}
 
-//std::string &ElementArray::get_suffix_comment(const size_t index) {
+//std::string &ElementArray::get_suffix_comment(const size_t& index) {
 //    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
 //    return m_values.at(index)->getSuffixComment();
 //}
 
-void ElementArray::clear_comment(const size_t index) {
+void ElementArray::clear_comment(const size_t& index) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     m_values.at(index)->clearComment();
 }
 
-void ElementArray::clear_prefix_comment(const size_t index) {
+void ElementArray::clear_prefix_comment(const size_t& index) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     m_values.at(index)->clearPrefixComment();
 }
 
-void ElementArray::clear_suffix_comment(const size_t index) {
+void ElementArray::clear_suffix_comment(const size_t& index) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     m_values.at(index)->clearSuffixComment();
 }
 
-void ElementArray::delete_comment(const size_t index) {
+void ElementArray::delete_comment(const size_t& index) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     m_values.at(index)->deleteComment();
 }
 
-void ElementArray::delete_prefix_comment(const size_t index) {
+void ElementArray::delete_prefix_comment(const size_t& index) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     m_values.at(index)->deletePrefixComment();
 }
 
-void ElementArray::delete_suffix_comment(const size_t index) {
+void ElementArray::delete_suffix_comment(const size_t& index) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     m_values.at(index)->deleteSuffixComment();
 }
@@ -114,12 +114,12 @@ Config ElementArray::get_front() const {
     return *m_values.front();
 }
 
-Config &ElementArray::get_at(const size_t index) {
+Config &ElementArray::get_at(const size_t& index) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     return *m_values[index];
 }
 
-Config ElementArray::get_at(const size_t index) const {
+Config ElementArray::get_at(const size_t& index) const {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     return *m_values[index];
 }
@@ -139,7 +139,7 @@ void ElementArray::clear() noexcept {
     m_values.clear();
 }
 
-//FIXME:
+//FIXME: ElementArray::insert_at(iterator, const &)
 void ElementArray::insert_at(shared_VElement::iterator iterator, const Config &value) {
     //    if(size() < index - 1) {
     //        m_values.push_back(std::make_shared<Config>(value));
@@ -149,7 +149,7 @@ void ElementArray::insert_at(shared_VElement::iterator iterator, const Config &v
     m_values.insert(iterator, std::make_shared<Config>(value));
 }
 
-//FIXME:
+//FIXME: ElementArray::insert_at(iterator, &&)
 void ElementArray::insert_at(shared_VElement::iterator iterator, Config &&value) {
     //    if(size() < index - 1) {
     //        m_values.push_back(std::make_shared<Config>(std::move(value)));
@@ -171,7 +171,7 @@ void ElementArray::insert_front(VElement &&elements) noexcept {
 
 //FIXME: нужна проверка на некорректный индекс
 //FIXME: использовать m_values напрямую!
-void ElementArray::insert_at(const size_t index, const VElement &elements) noexcept {
+void ElementArray::insert_at(const size_t& index, const VElement &elements) noexcept {
     size_t counter = 0;
     for(const auto &element : elements) {
         insert_at(index + counter, element);
@@ -181,7 +181,7 @@ void ElementArray::insert_at(const size_t index, const VElement &elements) noexc
 
 //FIXME: нужна проверка на некорректный индекс
 //FIXME: использовать m_values напрямую!
-void ElementArray::insert_at(const size_t index, VElement &&elements) noexcept {
+void ElementArray::insert_at(const size_t& index, VElement &&elements) noexcept {
     size_t counter = 0;
     for(auto &element : elements) {
         insert_at(index + counter, std::move(element));
@@ -223,7 +223,7 @@ void ElementArray::pop_front() noexcept {
         m_values.erase(cbegin());
 }
 
-void ElementArray::pop_at(const size_t index) noexcept {
+void ElementArray::pop_at(const size_t& index) noexcept {
     if(m_values.size() > index)
         m_values.erase(cbegin() + index);
 }
@@ -239,7 +239,7 @@ Config ElementArray::get_and_pop_front() {
     return cfg;
 }
 
-Config ElementArray::get_and_pop_at(const size_t index) {
+Config ElementArray::get_and_pop_at(const size_t& index) {
     Config cfg = get_at(index);
     pop_at(index);
     return cfg;
@@ -277,12 +277,8 @@ bool ElementArray::contains(const Config &config) const noexcept {
     return std::any_of(cbegin(), cend(), [&config](const std::shared_ptr<Config> &value){ return value->isEqual(config); });
 }
 
-Config &ElementArray::operator[](const size_t index) {
-    return *m_values[index];
-}
-
-Config ElementArray::operator[](const size_t index) const {
-    return *m_values[index];
+Config ElementArray::operator[](const size_t &index) const    {
+    return get_at(index);
 }
 
 std::string ElementArray::toString(const ConfigFormat format, const CommentDesign &design,
@@ -323,7 +319,6 @@ std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t
         //вывод комментария с рамкой
         if(with_spaces
             && design.with_comments
-            && !design.is_in_container
             && !m_values[i]->getPrefixComment().empty())
         {
             ret += ToComment(m_values[i]->getPrefixComment(), inner_design, custom_tabulation_level + 1);
@@ -335,7 +330,7 @@ std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t
             ret += tablulation_str_1;
 
         std::string temp = m_values[i]->toString(ConfigFormat::eJSON, inner_design,
-                                                 (with_spaces ? -1 : custom_tabulation_level + 1));
+                                                 (with_spaces ? custom_tabulation_level + 1 : -1));
         if(m_values[i]->isContainer()) {
             temp = utils::RemoveStartTabulations(temp);
         }

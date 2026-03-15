@@ -93,7 +93,7 @@ Config &Config::clearCommentDesign() noexcept {
     return *this;
 }
 
-Config &Config::set_comment(const size_t index, const Comment &content) {
+Config &Config::set_comment(const size_t& index, const Comment &content) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     reinterpret_cast<IElementContainer*>(m_value)->set_comment(index, content);
     return *this;
@@ -105,7 +105,7 @@ Config &Config::set_comment(const std::string &key, const Comment &content) {
     return *this;
 }
 
-Config &Config::set_comment(const size_t index, const std::string &content_before,
+Config &Config::set_comment(const size_t& index, const std::string &content_before,
                             const std::string &content_after)
 {
     __CHECK_TYPE_IS_CONTAINER__((*this))
@@ -121,7 +121,7 @@ Config &Config::set_comment(const std::string &key, const std::string &content_b
     return *this;
 }
 
-Config &Config::set_prefix_comment(const size_t index, const std::string &content) {
+Config &Config::set_prefix_comment(const size_t& index, const std::string &content) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     reinterpret_cast<IElementContainer*>(m_value)->set_prefix_comment(index, content);
     return *this;
@@ -133,7 +133,7 @@ Config &Config::set_prefix_comment(const std::string &key, const std::string &co
     return *this;
 }
 
-Config &Config::set_suffix_comment(const size_t index, const std::string &content) {
+Config &Config::set_suffix_comment(const size_t& index, const std::string &content) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     reinterpret_cast<IElementContainer*>(m_value)->set_suffix_comment(index, content);
     return *this;
@@ -145,7 +145,7 @@ Config &Config::set_suffix_comment(const std::string &key, const std::string &co
     return *this;
 }
 
-Comment &Config::get_comment(const size_t index) {
+Comment &Config::get_comment(const size_t& index) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     return reinterpret_cast<IElementContainer*>(m_value)->get_comment(index);
 }
@@ -156,7 +156,7 @@ Comment &Config::get_comment(const std::string &key)
     return reinterpret_cast<ElementJson*>(m_value)->get_comment(key);
 }
 
-Comment Config::get_comment(const size_t index) const {
+Comment Config::get_comment(const size_t& index) const {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     return reinterpret_cast<IElementContainer*>(m_value)->get_comment(index);
 }
@@ -167,7 +167,7 @@ Comment Config::get_comment(const std::string &key) const
     return reinterpret_cast<ElementJson*>(m_value)->get_comment(key);
 }
 
-std::string Config::get_prefix_comment(const size_t index) const {
+std::string Config::get_prefix_comment(const size_t& index) const {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     return reinterpret_cast<IElementContainer*>(m_value)->get_prefix_comment(index);
 }
@@ -177,7 +177,7 @@ std::string Config::get_prefix_comment(const std::string &key) const {
     return reinterpret_cast<ElementJson*>(m_value)->get_prefix_comment(key);
 }
 
-//std::string &Config::get_prefix_comment(const size_t index) {
+//std::string &Config::get_prefix_comment(const size_t& index) {
 //    __CHECK_TYPE_IS_CONTAINER__((*this))
 //    return reinterpret_cast<IElementContainer*>(m_value)->get_prefix_comment(index);
 //}
@@ -187,7 +187,7 @@ std::string Config::get_prefix_comment(const std::string &key) const {
 //    return reinterpret_cast<ElementJson*>(m_value)->get_prefix_comment(key);
 //}
 
-std::string Config::get_suffix_comment(const size_t index) const {
+std::string Config::get_suffix_comment(const size_t& index) const {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     return reinterpret_cast<IElementContainer*>(m_value)->get_suffix_comment(index);
 }
@@ -197,7 +197,7 @@ std::string Config::get_suffix_comment(const std::string &key) const {
     return reinterpret_cast<ElementJson*>(m_value)->get_suffix_comment(key);
 }
 
-//std::string &Config::get_suffix_comment(const size_t index){
+//std::string &Config::get_suffix_comment(const size_t& index){
 //    __CHECK_TYPE_IS_CONTAINER__((*this))
 //    return reinterpret_cast<IElementContainer*>(m_value)->get_suffix_comment(index);
 //}
@@ -207,7 +207,7 @@ std::string Config::get_suffix_comment(const std::string &key) const {
 //    return reinterpret_cast<ElementJson*>(m_value)->get_suffix_comment(key);
 //}
 
-Config &Config::clear_comment(const size_t index) {
+Config &Config::clear_comment(const size_t& index) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     reinterpret_cast<IElementContainer*>(m_value)->clear_comment(index);
     return *this;
@@ -219,7 +219,7 @@ Config &Config::clear_comment(const std::string &key) {
     return *this;
 }
 
-Config &Config::clear_prefix_comment(const size_t index) {
+Config &Config::clear_prefix_comment(const size_t& index) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     reinterpret_cast<IElementContainer*>(m_value)->clear_prefix_comment(index);
     return *this;
@@ -231,7 +231,7 @@ Config &Config::clear_prefix_comment(const std::string &key) {
     return *this;
 }
 
-Config &Config::clear_suffix_comment(const size_t index) {
+Config &Config::clear_suffix_comment(const size_t& index) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     reinterpret_cast<IElementContainer*>(m_value)->clear_suffix_comment(index);
     return *this;
@@ -243,7 +243,7 @@ Config &Config::clear_suffix_comment(const std::string &key) {
     return *this;
 }
 
-Config &Config::delete_comment(const size_t index) {
+Config &Config::delete_comment(const size_t& index) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     reinterpret_cast<IElementContainer*>(m_value)->delete_comment(index);
     return *this;
@@ -255,7 +255,7 @@ Config &Config::delete_comment(const std::string &key) {
     return *this;
 }
 
-Config &Config::delete_prefix_comment(const size_t index) {
+Config &Config::delete_prefix_comment(const size_t& index) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     reinterpret_cast<IElementContainer*>(m_value)->delete_prefix_comment(index);
     return *this;
@@ -267,7 +267,7 @@ Config &Config::delete_prefix_comment(const std::string &key) {
     return *this;
 }
 
-Config &Config::delete_suffix_comment(const size_t index) {
+Config &Config::delete_suffix_comment(const size_t& index) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     reinterpret_cast<IElementContainer*>(m_value)->delete_suffix_comment(index);
     return *this;
@@ -434,25 +434,25 @@ Config &Config::set(const std::string &key, Config &&value)
     return *this;
 }
 
-Config &Config::set(const size_t index, const Config &value)
+Config &Config::set(const size_t& index, const Config &value)
 {
     insert_at(index, value);
     return *this;
 }
 
-Config &Config::set(const size_t index, Config &&value)
+Config &Config::set(const size_t& index, Config &&value)
 {
     insert_at(index, std::move(value));
     return *this;
 }
 
-Config &Config::set(const size_t index, const std::string &key, const Config &value)
+Config &Config::set(const size_t& index, const std::string &key, const Config &value)
 {
     insert_at(index, key, value);
     return *this;
 }
 
-Config &Config::set(const size_t index, const std::string &key, Config &&value)
+Config &Config::set(const size_t& index, const std::string &key, Config &&value)
 {
     insert_at(index, key, std::move(value));
     return *this;
@@ -510,7 +510,7 @@ Config Config::get_front() const {
     return *this;
 }
 
-Config &Config::get_at(const size_t index) {
+Config &Config::get_at(const size_t& index) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     switch(getType()) {
     case ValueType::eArray: return dynamic_cast<ElementArray*>(m_value)->get_at(index);
@@ -521,7 +521,7 @@ Config &Config::get_at(const size_t index) {
     return *this;
 }
 
-Config Config::get_at(const size_t index) const {
+Config Config::get_at(const size_t& index) const {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     switch(getType()) {
     case ValueType::eArray: return dynamic_cast<const ElementArray*>(m_value)->get_at(index);
@@ -664,14 +664,14 @@ std::string Config::get_front_string() const {
     return dynamic_cast<const ElementString*>(config.m_value)->getValue();
 }
 
-bool &Config::get_bool_at(const size_t index) {
+bool &Config::get_bool_at(const size_t& index) {
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_BOOL__(config)
 
     return dynamic_cast<ElementBool*>(config.m_value)->getValue();
 }
 
-bool Config::get_bool_at(const size_t index) const {
+bool Config::get_bool_at(const size_t& index) const {
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_BOOL__(config)
 
@@ -742,14 +742,14 @@ bool Config::get_bool_at(const std::vector<OnlySizetOrString> &complex_key) cons
     return ret.get_bool_at(new_key);
 }
 
-long double &Config::get_number_at(const size_t index) {
+long double &Config::get_number_at(const size_t& index) {
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_NUMBER__(config)
 
     return dynamic_cast<ElementNumber*>(config.m_value)->getValue();
 }
 
-long double Config::get_number_at(const size_t index) const {
+long double Config::get_number_at(const size_t& index) const {
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_NUMBER__(config)
 
@@ -820,14 +820,14 @@ long double Config::get_number_at(const std::vector<OnlySizetOrString> &complex_
     return ret.get_number_at(new_key);
 }
 
-std::string &Config::get_string_at(const size_t index) {
+std::string &Config::get_string_at(const size_t& index) {
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_STRING__(config)
 
     return dynamic_cast<ElementString*>(config.m_value)->getValue();
 }
 
-std::string Config::get_string_at(const size_t index) const {
+std::string Config::get_string_at(const size_t& index) const {
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_STRING__(config)
 
@@ -984,12 +984,12 @@ Config& Config::insert_front(const std::string& key, Config&& other) {
     return *this;
 }
 
-Config& Config::insert_at(const size_t index, const Config& other) {
+Config& Config::insert_at(const size_t& index, const Config& other) {
     Config config(other);
     return insert_at(index, std::move(config));
 }
 
-Config& Config::insert_at(const size_t index, Config&& other) {
+Config& Config::insert_at(const size_t& index, Config&& other) {
     try_convert_null_to_json_array();
 
     __CHECK_TYPE_IS_INDEX_CONTAINER__((*this))
@@ -1012,13 +1012,13 @@ Config& Config::insert_at(const std::string& key, Config&& other) {
     return *this;
 }
 
-Config &Config::insert_at(const size_t index, const std::string &key, const Config &other)
+Config &Config::insert_at(const size_t& index, const std::string &key, const Config &other)
 {
     Config config(other);
     return insert_at(index, key, std::move(config));
 }
 
-Config &Config::insert_at(const size_t index, const std::string &key, Config &&other)
+Config &Config::insert_at(const size_t& index, const std::string &key, Config &&other)
 {
     try_convert_null_to_json();
 
@@ -1124,7 +1124,7 @@ Config& Config::erase_front() {
 }
 
 //если элемента не существует - проигнорировать
-Config& Config::erase_at(const size_t index) {
+Config& Config::erase_at(const size_t& index) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     dynamic_cast<IElementContainer*>(m_value)->erase_at(index);
 
@@ -1152,7 +1152,7 @@ Config Config::get_and_pop_front() {
     return config;
 }
 
-Config Config::get_and_pop_at(const size_t index) {
+Config Config::get_and_pop_at(const size_t& index) {
     Config config = get_at(index);
     erase_at(index);
 

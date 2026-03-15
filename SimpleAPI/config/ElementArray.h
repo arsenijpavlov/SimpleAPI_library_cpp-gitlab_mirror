@@ -29,24 +29,24 @@ public:
     ~ElementArray()                                                     noexcept                    {}
 
     // Comment =========================================================================================================
-    void    set_comment(const size_t index, const Comment &content)                     override;
-    void    set_comment(const size_t index, const std::string &content_before,
-                     const std::string &content_after)                                  override;
-    void    set_prefix_comment(const size_t index, const std::string &content)          override;
-    void    set_suffix_comment(const size_t index, const std::string &content)          override;
-    Comment&        get_comment(const size_t index)                                     override;
-    Comment         get_comment(const size_t index)                     const           override;
-    std::string     get_prefix_comment(const size_t index)              const           override;
-    std::string     get_suffix_comment(const size_t index)              const           override;
+    void    set_comment(const size_t& index, const Comment &content)                    override;
+    void    set_comment(const size_t& index, const std::string &content_before,
+                        const std::string &content_after)                               override;
+    void    set_prefix_comment(const size_t& index, const std::string &content)         override;
+    void    set_suffix_comment(const size_t& index, const std::string &content)         override;
+    Comment&        get_comment(const size_t& index)                                    override;
+    Comment         get_comment(const size_t& index)                    const           override;
+    std::string     get_prefix_comment(const size_t& index)             const           override;
+    std::string     get_suffix_comment(const size_t& index)             const           override;
     //NOTE: доступы к внутренним значениям строго по set() и get() запросам
-//    std::string&    get_prefix_comment(const size_t index)                              override;
-//    std::string&    get_suffix_comment(const size_t index)                              override;
-    void    clear_comment(const size_t index)                                           override;
-    void    clear_prefix_comment(const size_t index)                                    override;
-    void    clear_suffix_comment(const size_t index)                                    override;
-    void    delete_comment(const size_t index)                                          override;
-    void    delete_prefix_comment(const size_t index)                                   override;
-    void    delete_suffix_comment(const size_t index)                                   override;
+//    std::string&    get_prefix_comment(const size_t& index)                              override;
+//    std::string&    get_suffix_comment(const size_t& index)                              override;
+    void    clear_comment(const size_t& index)                                          override;
+    void    clear_prefix_comment(const size_t& index)                                   override;
+    void    clear_suffix_comment(const size_t& index)                                   override;
+    void    delete_comment(const size_t& index)                                         override;
+    void    delete_prefix_comment(const size_t& index)                                  override;
+    void    delete_suffix_comment(const size_t& index)                                  override;
     // ========================================================================================================= Comment
 
     // Setters =========================================================================================================
@@ -60,8 +60,8 @@ public:
     // Getters =========================================================================================================
     Config& get_front()                                                                 override;
     Config  get_front()                                                 const           override;
-    Config& get_at(const size_t index)                                                  override;
-    Config  get_at(const size_t index)                                  const           override;
+    Config& get_at(const size_t& index)                                                 override;
+    Config  get_at(const size_t& index)                                 const           override;
     Config& get_back()                                                                  override;
     Config  get_back()                                                  const           override;
     // ========================================================================================================= Getters
@@ -79,7 +79,7 @@ public:
         (void)std::initializer_list<int>{(m_values.insert(cbegin(), std::make_shared<Config>(std::move(args))), 0)...};
     }
             template<typename ... Args>
-    void    insert_at(const size_t index, Args&& ... args) noexcept {
+    void    insert_at(const size_t& index, Args&& ... args) noexcept {
         VElement ve;
         if(ve.capacity() < sizeof...(args))
             ve.reserve(sizeof...(args));
@@ -94,8 +94,8 @@ public:
     //группы элементов
     void    insert_front(const VElement& elements)                      noexcept;
     void    insert_front(VElement&& elements)                           noexcept;
-    void    insert_at(const size_t index, const VElement& elements)     noexcept;
-    void    insert_at(const size_t index, VElement&& elements)          noexcept;
+    void    insert_at(const size_t& index, const VElement& elements)    noexcept;
+    void    insert_at(const size_t& index, VElement&& elements)         noexcept;
     void    insert_back(const VElement& elements)                       noexcept;
     void    insert_back(VElement&& elements)                            noexcept;
 
@@ -120,11 +120,11 @@ public:
     // Removing ========================================================================================================
     // если индекса не существовало - проигнорировать
     void    pop_front()                                                 noexcept        override;
-    void    pop_at(const size_t index)                                  noexcept        override;
+    void    pop_at(const size_t& index)                                 noexcept        override;
     void    pop_back()                                                  noexcept        override;
     
     Config  get_and_pop_front()                                                         override;
-    Config  get_and_pop_at(const size_t index)                                          override;
+    Config  get_and_pop_at(const size_t& index)                                         override;
     Config  get_and_pop_back()                                                          override;
 
     //WARNING: обязательно для области видимости из Config::
@@ -147,8 +147,8 @@ public:
     // ============================================================================================================ Info
 
     // Operators =======================================================================================================
-    Config& operator[](const size_t index)                                              override;
-    Config  operator[](const size_t index)                              const           override;
+    //NOTE: вроде не обойтись без такого костыля
+    Config  operator[](const size_t& index)                             const           override;
     // ======================================================================================================= Operators
 
     // Iterators =======================================================================================================

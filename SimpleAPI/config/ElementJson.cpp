@@ -34,85 +34,85 @@ ElementJson::ElementJson(const VPairElement &vec) noexcept {
     insert_back(vec);
 }
 
-void ElementJson::set_comment(const size_t index, const Comment &content) {
+void ElementJson::set_comment(const size_t& index, const Comment &content) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     m_values.at(index).second->setComment(content);
 }
 
-void ElementJson::set_comment(const size_t index, const std::string &content_before,
+void ElementJson::set_comment(const size_t& index, const std::string &content_before,
                               const std::string &content_after)
 {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     m_values.at(index).second->setComment(content_before, content_after);
 }
 
-void ElementJson::set_prefix_comment(const size_t index, const std::string &content) {
+void ElementJson::set_prefix_comment(const size_t& index, const std::string &content) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     m_values.at(index).second->setPrefixComment(content);
 }
 
-void ElementJson::set_suffix_comment(const size_t index, const std::string &content) {
+void ElementJson::set_suffix_comment(const size_t& index, const std::string &content) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     m_values.at(index).second->setSuffixComment(content);
 }
 
-Comment &ElementJson::get_comment(const size_t index) {
+Comment &ElementJson::get_comment(const size_t& index) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     return m_values.at(index).second->getComment();
 }
 
-Comment ElementJson::get_comment(const size_t index) const {
+Comment ElementJson::get_comment(const size_t& index) const {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     return m_values.at(index).second->getComment();
 }
 
-std::string ElementJson::get_prefix_comment(const size_t index) const {
+std::string ElementJson::get_prefix_comment(const size_t& index) const {
 
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     return m_values.at(index).second->getPrefixComment();
 }
 
-std::string ElementJson::get_suffix_comment(const size_t index) const {
+std::string ElementJson::get_suffix_comment(const size_t& index) const {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     return m_values.at(index).second->getSuffixComment();
 }
 
-//std::string &ElementJson::get_prefix_comment(const size_t index) {
+//std::string &ElementJson::get_prefix_comment(const size_t& index) {
 //    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
 //    return m_values.at(index).second->getPrefixComment();
 //}
 
-//std::string &ElementJson::get_suffix_comment(const size_t index) {
+//std::string &ElementJson::get_suffix_comment(const size_t& index) {
 //    __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
 //    return m_values.at(index).second->getSuffixComment();
 //}
 
-void ElementJson::clear_comment(const size_t index) {
+void ElementJson::clear_comment(const size_t& index) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     m_values.at(index).second->clearComment();
 }
 
-void ElementJson::clear_prefix_comment(const size_t index) {
+void ElementJson::clear_prefix_comment(const size_t& index) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     m_values.at(index).second->clearPrefixComment();
 }
 
-void ElementJson::clear_suffix_comment(const size_t index) {
+void ElementJson::clear_suffix_comment(const size_t& index) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     m_values.at(index).second->clearSuffixComment();
 }
 
-void ElementJson::delete_comment(const size_t index) {
+void ElementJson::delete_comment(const size_t& index) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     m_values.at(index).second->deleteComment();
 }
 
-void ElementJson::delete_prefix_comment(const size_t index) {
+void ElementJson::delete_prefix_comment(const size_t& index) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     m_values.at(index).second->deletePrefixComment();
 }
 
-void ElementJson::delete_suffix_comment(const size_t index) {
+void ElementJson::delete_suffix_comment(const size_t& index) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     m_values.at(index).second->deleteSuffixComment();
 }
@@ -223,12 +223,12 @@ Config ElementJson::get_front() const {
     return *m_values.front().second;
 }
 
-Config& ElementJson::get_at(const size_t index) {
+Config& ElementJson::get_at(const size_t& index) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     return *m_values.at(index).second;
 }
 
-Config ElementJson::get_at(const size_t index) const {
+Config ElementJson::get_at(const size_t& index) const {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     return *m_values.at(index).second;
 }
@@ -301,7 +301,7 @@ void ElementJson::insert_front(const std::string &key, Config &&value) noexcept 
 }
 
 //@return - был ли изменён индекс вниз при перезаписи ключа
-bool ElementJson::insert_at(const size_t index, const std::string &key, const Config &value) noexcept {
+bool ElementJson::insert_at(const size_t& index, const std::string &key, const Config &value) noexcept {
     size_t _index       = index;
     bool return_flag    = false;
 
@@ -330,7 +330,7 @@ bool ElementJson::insert_at(const size_t index, const std::string &key, const Co
 }
 
 //@return - был ли изменён индекс вниз при перезаписи ключа
-bool ElementJson::insert_at(const size_t index, const std::string &key, Config &&value) noexcept {
+bool ElementJson::insert_at(const size_t& index, const std::string &key, Config &&value) noexcept {
     size_t _index       = index;
     bool return_flag    = false;
 
@@ -468,7 +468,7 @@ void ElementJson::insert_front(VPairElement &&elements) noexcept {
 }
 
 //если индекса не существует - добавится в конец списка
-void ElementJson::insert_at(const size_t index, const VPairElement &elements) noexcept {
+void ElementJson::insert_at(const size_t& index, const VPairElement &elements) noexcept {
     size_t counter = 0;
     for(const JPair &pair : elements) {
         if(!insert_at(index + counter, pair.first, pair.second))
@@ -477,7 +477,7 @@ void ElementJson::insert_at(const size_t index, const VPairElement &elements) no
 }
 
 //если индекса не существует - добавится в конец списка
-void ElementJson::insert_at(const size_t index, VPairElement &&elements) noexcept {
+void ElementJson::insert_at(const size_t& index, VPairElement &&elements) noexcept {
     size_t counter = 0;
     for(JPair &pair : elements) {
         if(!insert_at(index + counter, pair.first, std::move(pair.second)))
@@ -514,7 +514,7 @@ void ElementJson::pop_front() noexcept {
         m_values.erase(cbegin());
 }
 
-void ElementJson::pop_at(const size_t index) noexcept {
+void ElementJson::pop_at(const size_t& index) noexcept {
     if(m_values.size() > index)
         m_values.erase(cbegin() + index);
 }
@@ -530,7 +530,7 @@ Config ElementJson::get_and_pop_front() {
     return cfg;
 }
 
-Config ElementJson::get_and_pop_at(const size_t index) {
+Config ElementJson::get_and_pop_at(const size_t& index) {
     Config cfg = get_at(index);
     pop_at(index);
     return cfg;
@@ -625,11 +625,7 @@ size_t ElementJson::get_index_from(const std::string &key) const {
     return counter - 1;
 }
 
-Config ElementJson::operator[](const size_t index) const {
-    return get_at(index);
-}
-
-Config &ElementJson::operator[](const size_t index) {
+Config ElementJson::operator[](const size_t& index) const {
     return get_at(index);
 }
 
@@ -704,7 +700,8 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
         if(with_spaces)
             ret += " ";
 
-        std::string temp = m_values[i].second->toString(ConfigFormat::eJSON, inner_design, (custom_tabulation_level == -1 ? -1 : custom_tabulation_level + 1));
+        std::string temp = m_values[i].second->toString(ConfigFormat::eJSON, inner_design,
+                                                        (with_spaces ? custom_tabulation_level + 1 : -1));
         if(m_values[i].second->isContainer()) {
             temp = utils::RemoveStartTabulations(temp);
         }

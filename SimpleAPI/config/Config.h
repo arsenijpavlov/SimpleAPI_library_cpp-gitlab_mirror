@@ -243,56 +243,56 @@ public:
     Config&         clearCommentDesign()                            noexcept;                                               API_ALL
 
     // вложенные контейнеры
-    Config&         set_comment(const size_t index, const Comment &content);                                                API_CONTAINER
+    Config&         set_comment(const size_t& index, const Comment &content);                                                API_CONTAINER
     Config&         set_comment(const std::string& key, const Comment &content);                                            API_MAP_CONTAINER
 
-    Config&         set_comment(const size_t index, const std::string &content_before,
+    Config&         set_comment(const size_t& index, const std::string &content_before,
                      const std::string &content_after);                                                                     API_CONTAINER
     Config&         set_comment(const std::string& key, const std::string &content_before,
                      const std::string &content_after);                                                                     API_MAP_CONTAINER
 
-    Config&         set_prefix_comment(const size_t index, const std::string &content);                                     API_CONTAINER
+    Config&         set_prefix_comment(const size_t& index, const std::string &content);                                     API_CONTAINER
     Config&         set_prefix_comment(const std::string& key, const std::string &content);                                 API_MAP_CONTAINER
 
-    Config&         set_suffix_comment(const size_t index, const std::string &content);                                     API_CONTAINER
+    Config&         set_suffix_comment(const size_t& index, const std::string &content);                                     API_CONTAINER
     Config&         set_suffix_comment(const std::string& key, const std::string &content);                                 API_MAP_CONTAINER
 
-    Comment&        get_comment(const size_t index);                                                                        API_CONTAINER
+    Comment&        get_comment(const size_t& index);                                                                        API_CONTAINER
     Comment&        get_comment(const std::string& key);                                                                    API_MAP_CONTAINER
 
-    Comment         get_comment(const size_t index)                 const;                                                  API_CONTAINER
+    Comment         get_comment(const size_t& index)                 const;                                                  API_CONTAINER
     Comment         get_comment(const std::string& key)             const;                                                  API_MAP_CONTAINER
 
-    std::string     get_prefix_comment(const size_t index)          const;                                                  API_CONTAINER
+    std::string     get_prefix_comment(const size_t& index)          const;                                                  API_CONTAINER
     std::string     get_prefix_comment(const std::string& key)      const;                                                  API_MAP_CONTAINER
 
     //NOTE: доступы к внутренним значениям строго по set() и get() запросам
-//    std::string&    get_prefix_comment(const size_t index);                                                                 API_CONTAINER
+//    std::string&    get_prefix_comment(const size_t& index);                                                                 API_CONTAINER
 //    std::string&    get_prefix_comment(const std::string& key);                                                             API_MAP_CONTAINER
 
-    std::string     get_suffix_comment(const size_t index)          const;                                                  API_CONTAINER
+    std::string     get_suffix_comment(const size_t& index)          const;                                                  API_CONTAINER
     std::string     get_suffix_comment(const std::string& key)      const;                                                  API_MAP_CONTAINER
 
     //NOTE: доступы к внутренним значениям строго по set() и get() запросам
-//    std::string&    get_suffix_comment(const size_t index);                                                                 API_CONTAINER
+//    std::string&    get_suffix_comment(const size_t& index);                                                                 API_CONTAINER
 //    std::string&    get_suffix_comment(const std::string& key);                                                             API_MAP_CONTAINER
 
-    Config&         clear_comment(const size_t index);                                                                      API_CONTAINER
+    Config&         clear_comment(const size_t& index);                                                                      API_CONTAINER
     Config&         clear_comment(const std::string& key);                                                                  API_MAP_CONTAINER
 
-    Config&         clear_prefix_comment(const size_t index);                                                               API_CONTAINER
+    Config&         clear_prefix_comment(const size_t& index);                                                               API_CONTAINER
     Config&         clear_prefix_comment(const std::string& key);                                                           API_MAP_CONTAINER
 
-    Config&         clear_suffix_comment(const size_t index);                                                               API_CONTAINER
+    Config&         clear_suffix_comment(const size_t& index);                                                               API_CONTAINER
     Config&         clear_suffix_comment(const std::string& key);                                                           API_MAP_CONTAINER
 
-    Config&         delete_comment(const size_t index);                                                                     API_CONTAINER
+    Config&         delete_comment(const size_t& index);                                                                     API_CONTAINER
     Config&         delete_comment(const std::string& key);                                                                 API_MAP_CONTAINER
 
-    Config&         delete_prefix_comment(const size_t index);                                                              API_CONTAINER
+    Config&         delete_prefix_comment(const size_t& index);                                                              API_CONTAINER
     Config&         delete_prefix_comment(const std::string& key);                                                          API_MAP_CONTAINER
 
-    Config&         delete_suffix_comment(const size_t index);                                                              API_CONTAINER
+    Config&         delete_suffix_comment(const size_t& index);                                                              API_CONTAINER
     Config&         delete_suffix_comment(const std::string& key);                                                          API_MAP_CONTAINER
     // ========================================================================================================= Comment
 
@@ -320,10 +320,10 @@ public:
     // вложенные контейнеры (используют insert_*() ниже, но возвращают этот же базовый элемент)
     Config&         set(const std::string& key, const Config& value);                                                       API_MAP_CONTAINER
     Config&         set(const std::string& key, Config&& value);                                                            API_MAP_CONTAINER
-    Config&         set(const size_t index, const Config& value);                                                           API_CONTAINER
-    Config&         set(const size_t index, Config&& value);                                                                API_CONTAINER
-    Config&         set(const size_t index, const std::string& key, const Config& value);                                   API_MAP_CONTAINER
-    Config&         set(const size_t index, const std::string& key, Config&& value);                                        API_MAP_CONTAINER
+    Config&         set(const size_t& index, const Config& value);                                                           API_CONTAINER
+    Config&         set(const size_t& index, Config&& value);                                                                API_CONTAINER
+    Config&         set(const size_t& index, const std::string& key, const Config& value);                                   API_MAP_CONTAINER
+    Config&         set(const size_t& index, const std::string& key, Config&& value);                                        API_MAP_CONTAINER
     // ========================================================================================================= Setters
 
     // Getters =========================================================================================================
@@ -339,8 +339,8 @@ public:
     Config&         get_front();                                                                                            API_CONTAINER
     Config          get_front()                                                                 const;                      API_CONTAINER
 
-    Config&         get_at(const size_t index);                                                                             API_CONTAINER
-    Config          get_at(const size_t index)                                                  const;                      API_CONTAINER
+    Config&         get_at(const size_t& index);                                                                             API_CONTAINER
+    Config          get_at(const size_t& index)                                                  const;                      API_CONTAINER
     Config&         get_at(const std::string& key);                                                                         API_MAP_CONTAINER
     Config          get_at(const std::string& key)                                              const;                      API_MAP_CONTAINER
     Config&         get_at(const std::vector<OnlySizetOrString>& complex_key);                                              API_CONTAINER
@@ -361,8 +361,8 @@ public:
     std::string&    get_front_string();                                                                                     API_CONTAINER
     std::string     get_front_string()                                                          const;                      API_CONTAINER
 
-    bool&           get_bool_at(const size_t index);                                                                        API_CONTAINER
-    bool            get_bool_at(const size_t index)                                             const;                      API_CONTAINER
+    bool&           get_bool_at(const size_t& index);                                                                        API_CONTAINER
+    bool            get_bool_at(const size_t& index)                                             const;                      API_CONTAINER
     bool&           get_bool_at(const std::string& key);                                                                    API_MAP_CONTAINER
     bool            get_bool_at(const std::string& key)                                         const;                      API_MAP_CONTAINER
     bool&           get_bool_at(const std::vector<OnlySizetOrString>& complex_key);                                         API_CONTAINER
@@ -373,8 +373,8 @@ public:
     bool            get_bool_at(const std::initializer_list<OnlySizetOrString>& complex_key)    const
                     { return get_bool_at(std::vector<OnlySizetOrString>(complex_key)); }                                    API_CONTAINER
 
-    long double&    get_number_at(const size_t index);                                                                      API_CONTAINER
-    long double     get_number_at(const size_t index)                                           const;                      API_CONTAINER
+    long double&    get_number_at(const size_t& index);                                                                      API_CONTAINER
+    long double     get_number_at(const size_t& index)                                           const;                      API_CONTAINER
     long double&    get_number_at(const std::string& key);                                                                  API_MAP_CONTAINER
     long double     get_number_at(const std::string& key)                                       const;                      API_MAP_CONTAINER
     long double&    get_number_at(const std::vector<OnlySizetOrString>& complex_key);                                       API_CONTAINER
@@ -385,8 +385,8 @@ public:
     long double     get_number_at(const std::initializer_list<OnlySizetOrString>& complex_key)  const
                     { return get_number_at(std::vector<OnlySizetOrString>(complex_key)); }                                  API_CONTAINER
 
-    std::string&    get_string_at(const size_t index);                                                                      API_CONTAINER
-    std::string     get_string_at(const size_t index)                                           const;                      API_CONTAINER
+    std::string&    get_string_at(const size_t& index);                                                                      API_CONTAINER
+    std::string     get_string_at(const size_t& index)                                           const;                      API_CONTAINER
     std::string&    get_string_at(const std::string& key);                                                                  API_MAP_CONTAINER
     std::string     get_string_at(const std::string& key)                                       const;                      API_MAP_CONTAINER
     std::string&    get_string_at(const std::vector<OnlySizetOrString>& complex_key);                                       API_CONTAINER
@@ -428,12 +428,12 @@ public:
     Config& insert_front(const std::string& key, const Config& other);                                                      API_MAP_CONTAINER
     Config& insert_front(const std::string& key, Config&& other);                                                           API_MAP_CONTAINER
 
-    Config& insert_at(const size_t index, const Config& other);                                                             API_CONTAINER
-    Config& insert_at(const size_t index, Config&& other);                                                                  API_CONTAINER
+    Config& insert_at(const size_t& index, const Config& other);                                                             API_CONTAINER
+    Config& insert_at(const size_t& index, Config&& other);                                                                  API_CONTAINER
     Config& insert_at(const std::string& key, const Config& other);                                                         API_MAP_CONTAINER
     Config& insert_at(const std::string& key, Config&& other);                                                              API_MAP_CONTAINER
-    Config& insert_at(const size_t index, const std::string& key, const Config& other);                                     API_MAP_CONTAINER
-    Config& insert_at(const size_t index, const std::string& key, Config&& other);                                          API_MAP_CONTAINER
+    Config& insert_at(const size_t& index, const std::string& key, const Config& other);                                     API_MAP_CONTAINER
+    Config& insert_at(const size_t& index, const std::string& key, Config&& other);                                          API_MAP_CONTAINER
 
     Config& insert_back(const Config& other);                                                                               API_CONTAINER
     Config& insert_back(Config&& other);                                                                                    API_CONTAINER
@@ -454,8 +454,8 @@ public:
     Config& push_front(const std::string& key, const Config& other)     { return insert_front(key, other); }                API_MAP_CONTAINER
     Config& push_front(const std::string& key, Config&& other)          { return insert_front(key, std::move(other)); }     API_MAP_CONTAINER
 
-    Config& push_at(const size_t index, const Config& other)            { return insert_at(index, other); }                 API_CONTAINER
-    Config& push_at(const size_t index, Config&& other)                 { return insert_at(index, std::move(other)); }      API_CONTAINER
+    Config& push_at(const size_t& index, const Config& other)            { return insert_at(index, other); }                 API_CONTAINER
+    Config& push_at(const size_t& index, Config&& other)                 { return insert_at(index, std::move(other)); }      API_CONTAINER
     Config& push_at(const std::string& key, const Config& other)        { return insert_at(key, other); }                   API_MAP_CONTAINER
     Config& push_at(const std::string& key, Config&& other)             { return insert_at(key, std::move(other)); }        API_MAP_CONTAINER
 
@@ -483,9 +483,9 @@ public:
             __ONLY_ALLOWED_TYPES__(T)
     Config& push_front(const std::string& key, T&& other)               { return insert_front(key, std::move(Config(other))); } API_MAP_CONTAINER
             __ONLY_ALLOWED_TYPES__(T)
-    Config& push_at(const size_t index, const T& other)                 { return insert_at(index, Config(other)); }             API_CONTAINER
+    Config& push_at(const size_t& index, const T& other)                 { return insert_at(index, Config(other)); }             API_CONTAINER
             __ONLY_ALLOWED_TYPES__(T)
-    Config& push_at(const size_t index, T&& other)                      { return insert_at(index, std::move(Config(other))); }  API_CONTAINER
+    Config& push_at(const size_t& index, T&& other)                      { return insert_at(index, std::move(Config(other))); }  API_CONTAINER
             __ONLY_ALLOWED_TYPES__(T)
     Config& push_at(const std::string& key, const T& other)             { return insert_at(key, Config(other)); }               API_MAP_CONTAINER
             __ONLY_ALLOWED_TYPES__(T)
@@ -513,17 +513,17 @@ public:
 
     // Removing ========================================================================================================
     Config& erase_front();                                                                                                      API_CONTAINER
-    Config& erase_at(const size_t index);                                                                                       API_CONTAINER
+    Config& erase_at(const size_t& index);                                                                                       API_CONTAINER
     Config& erase_at(const std::string& key);                                                                                   API_MAP_CONTAINER
     Config& erase_back();                                                                                                       API_CONTAINER
 
     Config& pop_front()                                                 { return erase_front(); }                               API_CONTAINER
     Config& pop_at(const std::string& key)                              { return erase_at(key); }                               API_MAP_CONTAINER
-    Config& pop_at(const size_t index)                                  { return erase_at(index); }                             API_CONTAINER
+    Config& pop_at(const size_t& index)                                  { return erase_at(index); }                             API_CONTAINER
     Config& pop_back()                                                  { return erase_back(); }                                API_CONTAINER
 
     Config  get_and_pop_front();                                                                                                API_CONTAINER
-    Config  get_and_pop_at(const size_t index);                                                                                 API_CONTAINER
+    Config  get_and_pop_at(const size_t& index);                                                                                 API_CONTAINER
     Config  get_and_pop_at(const std::string& key);                                                                             API_MAP_CONTAINER
     Config  get_and_pop_back();                                                                                                 API_CONTAINER
     // ======================================================================================================== Removing
@@ -602,8 +602,8 @@ public:
     bool            operator<=(const Config& other)         const                   { return size() <= other.size(); }          API_ALL
 
     //контейнеры
-    Config&         operator[](const size_t index)                                  { return get_at(index); }                   API_CONTAINER
-    Config          operator[](const size_t index)          const                   { return get_at(index); }                   API_CONTAINER
+    Config&         operator[](const size_t& index)                                  { return get_at(index); }                   API_CONTAINER
+    Config          operator[](const size_t& index)          const                   { return get_at(index); }                   API_CONTAINER
     Config&         operator[](const std::string& key)                              { return get_at(key); }                     API_CONTAINER
     Config          operator[](const std::string& key)      const                   { return get_at(key); }                     API_CONTAINER
 

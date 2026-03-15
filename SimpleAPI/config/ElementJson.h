@@ -27,24 +27,24 @@ public:
     ~ElementJson()                                                              noexcept        {}
 
     // Comment =========================================================================================================
-    void    set_comment(const size_t index, const Comment &content)                             override;
-    void    set_comment(const size_t index, const std::string &content_before,
-                     const std::string &content_after)                                          override;
-    void    set_prefix_comment(const size_t index, const std::string &content)                  override;
-    void    set_suffix_comment(const size_t index, const std::string &content)                  override;
-    Comment&        get_comment(const size_t index)                                             override;
-    Comment         get_comment(const size_t index)                             const           override;
-    std::string     get_prefix_comment(const size_t index)                      const           override;
-    std::string     get_suffix_comment(const size_t index)                      const           override;
+    void    set_comment(const size_t& index, const Comment &content)                            override;
+    void    set_comment(const size_t& index, const std::string &content_before,
+                        const std::string &content_after)                                       override;
+    void    set_prefix_comment(const size_t& index, const std::string &content)                 override;
+    void    set_suffix_comment(const size_t& index, const std::string &content)                 override;
+    Comment&        get_comment(const size_t& index)                                            override;
+    Comment         get_comment(const size_t& index)                            const           override;
+    std::string     get_prefix_comment(const size_t& index)                     const           override;
+    std::string     get_suffix_comment(const size_t& index)                     const           override;
     //NOTE: доступы к внутренним значениям строго по set() и get() запросам
-//    std::string&    get_prefix_comment(const size_t index)                                      override;
-//    std::string&    get_suffix_comment(const size_t index)                                      override;
-    void    clear_comment(const size_t index)                                                   override;
-    void    clear_prefix_comment(const size_t index)                                            override;
-    void    clear_suffix_comment(const size_t index)                                            override;
-    void    delete_comment(const size_t index)                                                  override;
-    void    delete_prefix_comment(const size_t index)                                           override;
-    void    delete_suffix_comment(const size_t index)                                           override;
+//    std::string&    get_prefix_comment(const size_t& index)                                      override;
+//    std::string&    get_suffix_comment(const size_t& index)                                      override;
+    void    clear_comment(const size_t& index)                                                  override;
+    void    clear_prefix_comment(const size_t& index)                                           override;
+    void    clear_suffix_comment(const size_t& index)                                           override;
+    void    delete_comment(const size_t& index)                                                 override;
+    void    delete_prefix_comment(const size_t& index)                                          override;
+    void    delete_suffix_comment(const size_t& index)                                          override;
 
     void    set_comment(const std::string& key, const Comment &content);
     void    set_comment(const std::string& key, const std::string &content_before,
@@ -82,8 +82,8 @@ public:
     // Getters =========================================================================================================
     Config& get_front()                                                                         override;
     Config  get_front()                                                         const           override;
-    Config& get_at(const size_t index)                                                          override;
-    Config  get_at(const size_t index)                                          const           override;
+    Config& get_at(const size_t& index)                                                         override;
+    Config  get_at(const size_t& index)                                         const           override;
     Config& get_back()                                                                          override;
     Config  get_back()                                                          const           override;
     //если элемента с таким ключом не существует - создать пустой и вернуть его
@@ -102,10 +102,10 @@ public:
     void    insert_front(const std::string& key, const Config& value)           noexcept;
     void    insert_front(const std::string& key, Config&& value)                noexcept;
     //@return - был ли изменён индекс вниз при перезаписи ключа
-    bool    insert_at(const size_t index, const std::string& key,
+    bool    insert_at(const size_t& index, const std::string& key,
                    const Config& value)                                         noexcept;
     //@return - был ли изменён индекс вниз при перезаписи ключа
-    bool    insert_at(const size_t index, const std::string& key,
+    bool    insert_at(const size_t& index, const std::string& key,
                    Config&& value)                                              noexcept;
     void    insert_at(VPairElement::iterator iterator, const std::string& key,
                    const Config& value);
@@ -129,8 +129,8 @@ public:
     //группы элементов
     void    insert_front(const VPairElement& elements)                          noexcept;
     void    insert_front(VPairElement&& elements)                               noexcept;
-    void    insert_at(const size_t index, const VPairElement& elements)         noexcept;
-    void    insert_at(const size_t index, VPairElement&& elements)              noexcept;
+    void    insert_at(const size_t& index, const VPairElement& elements)        noexcept;
+    void    insert_at(const size_t& index, VPairElement&& elements)             noexcept;
     void    insert_back(const VPairElement& elements)                           noexcept;
     void    insert_back(VPairElement&& elements)                                noexcept;
 
@@ -144,7 +144,7 @@ public:
                 insert_front(std::move(vpe));
             }
             template<typename ... Value>
-    void    insert_at(const size_t index, std::pair<std::string, Value>&& ... pairs) noexcept {
+    void    insert_at(const size_t& index, std::pair<std::string, Value>&& ... pairs) noexcept {
                 VPairElement vpe;
                 if(vpe.capacity() < sizeof...(pairs))
                     vpe.reserve(sizeof...(pairs));
@@ -169,11 +169,11 @@ public:
     // Removing ========================================================================================================
     //если индекса/ключа не существовало - проигнорировать
     void    pop_front()                                                         noexcept        override;
-    void    pop_at(const size_t index)                                          noexcept        override;
+    void    pop_at(const size_t& index)                                         noexcept        override;
     void    pop_back()                                                          noexcept        override;
 
     Config  get_and_pop_front()                                                                 override;
-    Config  get_and_pop_at(const size_t index)                                                  override;
+    Config  get_and_pop_at(const size_t& index)                                                 override;
     Config  get_and_pop_back()                                                                  override;
 
     //WARNING: обязательно для области видимости из Config::
@@ -200,9 +200,10 @@ public:
     size_t  get_index_from(const std::string& key)                              const;
     // ============================================================================================================ Info
 
+
     // Operators =======================================================================================================
-    Config& operator[](const size_t index)                                                      override;
-    Config  operator[](const size_t index)                                      const           override;
+    //NOTE: вроде не обойтись без такого костыля
+    Config  operator[](const size_t& index)                                     const           override;
     Config& operator[](const std::string& key)                                  noexcept;
     Config  operator[](const std::string& key)                                  const noexcept;
     // ======================================================================================================= Operators

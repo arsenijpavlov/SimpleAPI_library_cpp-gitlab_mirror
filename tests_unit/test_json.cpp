@@ -375,33 +375,33 @@ TEST(JSON, read_file) {
     EXPECT_EQ(json.size(), json2.size());
 }
 
-//FIXME: TEST(JSON, read_file_comment) не работает сравнение массивов
 TEST(JSON, read_file_comment) {
     Config json;
     json.parseJson(json_string_example);
     json.getCommentDesign().opt_multiline_column_size = 20;
+    json.getCommentDesign().with_comments = true;
 
     std::string preview_comment = "1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...";
-    std::string preview_comment_result = "1;losdihfg2;\n"
-                                         "slopighsd3;pogihvd4;\n"
-                                         "pfgvibhdfns5;\n"
-                                         "ipnbedf6 7;\n"
-                                         "voihnaern8 som9\n"
-                                         "word1...";
     json.setPrefixComment(preview_comment);
     std::string comment1 = "some words...";
     std::string comment2 = "some many words1...";
     std::string comment3 = "some many words2...";
     std::string comment4 = "json element comment";
     std::string comment5 = "array element comment_";
-    json.setComment("bool",         comment1);
-    json.setComment("string",       comment2);
-    json.set_suffix_comment("array",  comment3);
-    json["json"].set_prefix_comment(0,    comment4);
-    json["json"].set_prefix_comment(1,    comment4);
-    json["array"].setComment(0,  comment5);
-    std::string path = "../tests/test_writer_with_comments.json";
+    json.set_comment("bool", comment1);
+    json.set_comment("string", comment2);
+    json.set_suffix_comment("array", comment3);
+    json["json"].set_prefix_comment(0, comment4);
+    json["json"].set_prefix_comment(1, comment4);
+    json["array"].set_comment(0,  comment5);
 
+    //для проверки
+    preview_comment = FromComment(ToComment(preview_comment, json.getCommentDesign()),
+                                  json.getCommentDesign());
+    comment5 = FromComment(ToComment(comment5, json.getCommentDesign()),
+                           json.getCommentDesign());
+
+    std::string path = "../tests/test_writer_with_comments.json";
     std::ofstream file(path);
     if (!file.is_open())
         FAIL();
@@ -413,7 +413,7 @@ TEST(JSON, read_file_comment) {
     json2.readFile(path, ConfigFormat::eJSON, true); //по умолчанию считывается JSON формат
     ASSERT_EQ(false, json2.isEmpty());
 
-    EXPECT_EQ(json2.getPrefixComment(), preview_comment_result);
+    EXPECT_EQ(json2.getPrefixComment(), preview_comment);
     ASSERT_EQ(json2.containsKey("bool"), true);
     EXPECT_EQ(json2.get_comment("bool").prefix(), comment1);
     ASSERT_EQ(json2.containsKey("string"), true);
