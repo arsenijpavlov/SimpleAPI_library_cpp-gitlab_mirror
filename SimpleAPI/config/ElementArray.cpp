@@ -682,6 +682,8 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
                 try {
                     Config element = Config::CreateElementFromString(std::move(value), ConfigFormat::eJSON, design, tabulation_level);
                     push_back(std::move(element));
+                    if(get_back().getCommentDesign().opt_multiline_column_size > design.opt_multiline_column_size)
+                        design.opt_multiline_column_size = get_back().getCommentDesign().opt_multiline_column_size;
                 } catch (std::exception& e) {
                     error_string = e.what();
                     UpdateState(state, ParseState::eARRAY_ERROR_STATE);

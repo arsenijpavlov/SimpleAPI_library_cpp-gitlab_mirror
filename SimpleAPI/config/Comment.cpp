@@ -198,14 +198,20 @@ void Comment::clearDesign() noexcept {
     delCommentDesign();
 }
 
-#define ComparePointers(arg)                            \
-    if(arg == nullptr) {                                \
-        if(other.arg != nullptr)                        \
-            return false;                               \
-    } else {                                            \
-        if(other.arg != nullptr && *arg != *other.arg)  \
-            return false;                               \
-    }
+#define ComparePointers(arg)                                                                            \
+            if(arg == other.arg)                                                                        \
+                return true; /*один и тот же адрес, хотя и невозможно для разных Comment; оба nullptr*/ \
+            else { /*адреса неодинаковые*/                                                              \
+                if(arg == nullptr) {                                                                    \
+                    if(other.arg != nullptr)                                                            \
+                        return false;                                                                   \
+                } else { /*arg != nullptr*/                                                             \
+                    if(other.arg == nullptr)                                                            \
+                        return false;                                                                   \
+                    else if(*arg != *other.arg)                                                         \
+                        return false;                                                                   \
+                }                                                                                       \
+            }
 bool Comment::operator==(const Comment& other) const noexcept {
     if(this == &other)
         return true;
@@ -641,6 +647,11 @@ std::string FromComment(std::string comment_string, CommentDesign& design,
             if(design.temp_schema[1] != 0)
                 comment_string.pop_back(); // второй замыкающий символ для М
 
+            //определить флаг opt_multiline_border_at_content_line
+            if(comment_string[0] != '\n')
+                //потом если встретится opt_multiline_border, то флаг перезапишет (приоритетность)
+                design.opt_multiline_border_at_content_line = true; //включится, если есть хотя бы один такой комментарий
+
             // удалить лишние переносы строк в начале и конце многострочного комментария
             while(!comment_string.empty() && comment_string.front() == '\n')
                 comment_string.erase(0, 1);
@@ -709,8 +720,8 @@ std::string FromComment(std::string comment_string, CommentDesign& design,
     for(std::string& s : lines) {
         RemoveIllegalSpaces(s); //удалить лишние пробелы в начале и конце строки
         // определить максимальную ширину колонки комментариев
-//        if(design.opt_multiline_column_size < s.size())
-//            design.opt_multiline_column_size = s.size();
+        if(design.opt_multiline_column_size < s.size())
+            design.opt_multiline_column_size = s.size();
     }
 
     //если пустых строк подряд больше одной, то дубликаты надо удалить

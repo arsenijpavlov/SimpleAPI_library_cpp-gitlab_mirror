@@ -287,76 +287,84 @@ TEST(JSON, parse_with_comments2) {
 }
 
 //TODO: TEST(JSON, write_and_read_file_comment)
-//TEST(JSON, write_and_read_file_comment) {
-//    Config json(ValueType::eJson);
-//    json.parseJson(json_string_example);
+//нужно очень много подумать, чтоб тест не ломал логику парсера
+//комментарии при переходе функций FromComment() и ToComment() по-разному могут нарезать строку
+//column_size=20 при длине строки 19 после парсера в новый CommentDesign даст column_size=19
+TEST(JSON, write_and_read_file_comment) {
+    Config json(ValueType::eJson);
+    json.parseJson(json_string_example);
 
-//    CommentDesign& cd = json.getCommentDesign();
-//    cd.opt_multiline_column_size = /*20*/0;
+    CommentDesign& cd = json.getCommentDesign();
+//    cd.opt_multiline_column_size = 0;
+    cd.opt_multiline_column_size = 20;
 //    cd.opt_multiline_border = '#';
-//    cd.with_comments = true;
-////    cd.multiline_comment_variants.push_back(std::array<char, 3>{'/', '*', 0});
+    cd.with_comments = true;
+//    cd.opt_multiline_border_at_content_line = true;
+//    cd.multiline_comment_variants.push_back(std::array<char, 3>{'/', '*', 0});
 
-//    std::string main_comment = "1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...";
-//    json.setPrefixComment(main_comment);
-//    json.setSuffixComment(main_comment);
-//    json.set_prefix_comment("bool", "bool some\nwords...");
-//    json.set_suffix_comment("bool", "bool some\nwords...");
-//    json.set_prefix_comment("string", "<string> prefix comment");
-//    json.set_prefix_comment("array", "<array> prefix comment");
-//    json.set_suffix_comment("array", "<array> suffix comment");
-//    json.set_prefix_comment("json", "<json> prefix comment");
-//    json.set_suffix_comment("json", "<json> suffix comment");
+    std::string main_comment = "1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...";
+    json.setPrefixComment(main_comment);
+    json.setSuffixComment(main_comment);
+    json.set_prefix_comment("bool", "bool some\nwords...");
+    json.set_suffix_comment("bool", "bool some\nwords...");
+    json.set_prefix_comment("string", "<string> prefix comment");
+    json.set_prefix_comment("array", "<array> prefix comment");
+    json.set_suffix_comment("array", "<array> suffix comment");
+    json.set_prefix_comment("json", "<json> prefix comment");
+    json.set_suffix_comment("json", "<json> suffix comment");
 
-//    json["json"].set_prefix_comment(0, "json first element\ncomment");
-//    json["array"].set_prefix_comment(1, "array second element\n comment_");
+    json["json"].set_prefix_comment(0, "json first element\ncomment");
+    json["array"].set_prefix_comment(1, "array second element\n comment_");
 
-//    std::string path = "../tests/test_writer_with_comments.json";
-//    json.writeFile(path, ConfigFormat::eJSON, cd, 0);
+    std::string path = "../tests/test_writer_with_comments.json";
+    json.writeFile(path, ConfigFormat::eJSON, cd, 0);
 
-//    Config json2;
-//    try {
-//        json2.readFileJson(path, true);
-//    } catch (const std::exception& e) {
-//        FAIL() << e.what();
-//    }
-//    EXPECT_EQ(json2.size(), json.size());
-//    EXPECT_EQ(json2.getCommentDesign(), json.getCommentDesign());
+    Config json2;
+    try {
+        json2.readFileJson(path, true);
+    } catch (const std::exception& e) {
+        FAIL() << e.what();
+    }
+    EXPECT_EQ(json2.size(), json.size());
+    EXPECT_EQ(json2.getCommentDesign(), json.getCommentDesign());
 
-//    //FIXME: проверка комментариев должна учитывать переносы строк (преобразование комментариев при чтении/записи)
+    //FIXME: проверка комментариев должна учитывать переносы строк (преобразование комментариев при чтении/записи)
 
-//    main_comment = FromComment(ToComment(main_comment, json.getCommentDesign()), json2.getCommentDesign());
-//    main_comment = FromComment(ToComment(main_comment, cd), json2.getCommentDesign());
-//    EXPECT_EQ(json2.getComment(), json.getComment());
-//    EXPECT_EQ(json2.getPrefixComment(), json.getPrefixComment());
-//    EXPECT_EQ(json2.getSuffixComment(), json.getSuffixComment());
-//    EXPECT_EQ(json2.getPrefixComment(), main_comment);
-//    EXPECT_EQ(json2.getSuffixComment(), main_comment);
+    auto FromTo = [&json](const std::string& s) -> std::string {
+        return FromComment(ToComment(s, json.getCommentDesign()), json.getCommentDesign());
+    };
+    main_comment = FromTo(main_comment);
+    main_comment = FromTo(main_comment);
+    EXPECT_EQ(json2.getComment(), json.getComment());
+    EXPECT_EQ(json2.getPrefixComment(), FromTo(json.getPrefixComment()));
+    EXPECT_EQ(json2.getSuffixComment(), FromTo(json.getSuffixComment()));
+    EXPECT_EQ(json2.getPrefixComment(), FromTo(main_comment));
+    EXPECT_EQ(json2.getSuffixComment(), FromTo(main_comment));
 
-//    EXPECT_EQ(json2.get_comment("bool"), json.get_comment("bool"));
-//    EXPECT_EQ(json2.get_prefix_comment("bool"), json.get_prefix_comment("bool"));
-//    EXPECT_EQ(json2.get_suffix_comment("bool"), json.get_suffix_comment("bool"));
+    EXPECT_EQ(json2.get_comment("bool"), json.get_comment("bool"));
+    EXPECT_EQ(json2.get_prefix_comment("bool"), json.get_prefix_comment("bool"));
+    EXPECT_EQ(json2.get_suffix_comment("bool"), json.get_suffix_comment("bool"));
 
-//    EXPECT_EQ(json2.get_comment("string"), json.get_comment("string"));
-//    EXPECT_EQ(json2.get_prefix_comment("string"), json.get_prefix_comment("string"));
-//    EXPECT_EQ(json2.get_suffix_comment("string"), json.get_suffix_comment("string"));
+    EXPECT_EQ(json2.get_comment("string"), json.get_comment("string"));
+    EXPECT_EQ(json2.get_prefix_comment("string"), json.get_prefix_comment("string"));
+    EXPECT_EQ(json2.get_suffix_comment("string"), json.get_suffix_comment("string"));
 
-//    EXPECT_EQ(json2.get_comment("array"), json.get_comment("array"));
-//    EXPECT_EQ(json2.get_prefix_comment("array"), json.get_prefix_comment("array"));
-//    EXPECT_EQ(json2.get_suffix_comment("array"), json.get_suffix_comment("array"));
+    EXPECT_EQ(json2.get_comment("array"), json.get_comment("array"));
+    EXPECT_EQ(json2.get_prefix_comment("array"), json.get_prefix_comment("array"));
+    EXPECT_EQ(json2.get_suffix_comment("array"), json.get_suffix_comment("array"));
 
-//    EXPECT_EQ(json2["json"].get_comment(0), json["json"].get_comment(0));
-//    EXPECT_EQ(json2["json"].get_prefix_comment(0),
-//              json["json"].get_prefix_comment(0));
-//    EXPECT_EQ(json2["json"].get_suffix_comment(0),
-//              json["json"].get_suffix_comment(0));
+    EXPECT_EQ(json2["json"].get_comment(0), json["json"].get_comment(0));
+    EXPECT_EQ(json2["json"].get_prefix_comment(0),
+              json["json"].get_prefix_comment(0));
+    EXPECT_EQ(json2["json"].get_suffix_comment(0),
+              json["json"].get_suffix_comment(0));
 
-//    EXPECT_EQ(json2["array"].get_comment(0), json["array"].get_comment(0));
-//    EXPECT_EQ(json2["array"].get_prefix_comment(0),
-//              json["array"].get_prefix_comment(0));
-//    EXPECT_EQ(json2["array"].get_suffix_comment(0),
-//              json["array"].get_suffix_comment(0));
-//}
+    EXPECT_EQ(json2["array"].get_comment(0), json["array"].get_comment(0));
+    EXPECT_EQ(json2["array"].get_prefix_comment(0),
+              json["array"].get_prefix_comment(0));
+    EXPECT_EQ(json2["array"].get_suffix_comment(0),
+              json["array"].get_suffix_comment(0));
+}
 
 TEST(JSON, read_file) {
     std::string path = "../tests/test_reader.json";
