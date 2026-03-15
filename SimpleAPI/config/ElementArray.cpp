@@ -12,42 +12,6 @@
 class ElementArray;
 
 
-//std::string ElementArray::toJsonString(const int8_t tabulation_level) const noexcept {
-//    if(m_values.empty()) return "[]";
-
-//    using namespace utils;
-//    bool without_space = tabulation_level == -1;
-
-//    std::string ret = "[";
-//    for(auto& it : m_values) {
-//        if(!without_space) ret += "\n" + RepeatSymToStr('\t', tabulation_level);
-//        ret += it.toString(ConfigFormat::eJSON, tabulation_level+1) + ",";
-//    }
-//    if(!without_space) ret += "\n" + RepeatSymToStr('\t', tabulation_level);
-//    ret += "]";
-
-//    return ret;
-//}
-
-//std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t tabulation_level) const noexcept {
-//    if(m_values.empty()) return "[]";
-
-//    using namespace utils;
-//    std::string ret = "[";
-//    for(auto it : m_values) {
-//        ret += "\n" + RepeatSymToStr('\t', tabulation_level);
-//        ret += ToComment(it.getPrefixComment(), design, tabulation_level);
-//        ret += "\n" + RepeatSymToStr('\t', tabulation_level);
-//        ret += it.toString(ConfigFormat::eJSON, design, tabulation_level + 1) + ", ";
-//        //NOTE: суффиксный многострочный комментарий должен начинаться на той же строке, что и значение переменной
-//        ret += ToComment(it.getSuffixComment(), design, tabulation_level);
-//    }
-//    ret += "\n" + RepeatSymToStr('\t', tabulation_level);
-//    ret += "]";
-
-//    return ret;
-//}
-
 void ElementArray::set_comment(const size_t index, const Comment &content) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     m_values.at(index)->setComment(content);
@@ -374,9 +338,6 @@ std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t
                                                  (with_spaces ? -1 : custom_tabulation_level + 1));
         if(m_values[i]->isContainer()) {
             temp = utils::RemoveStartTabulations(temp);
-        }
-        if(m_values[i]->isString()) {
-            temp = "\"" + temp + "\"";
         }
 
         ret += temp;

@@ -708,9 +708,6 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
         if(m_values[i].second->isContainer()) {
             temp = utils::RemoveStartTabulations(temp);
         }
-        if(m_values[i].second->isString()) {
-            temp = "\"" + temp + "\"";
-        }
 
         ret += temp;
         if(i < size() - 1)
