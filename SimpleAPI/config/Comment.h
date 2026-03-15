@@ -171,7 +171,8 @@ public:
     Comment()                                                                                   noexcept;
     Comment(const Comment& other)                                                               noexcept;
     Comment(const Comment&& other)                                                              noexcept;
-    explicit Comment(const std::string& comment_before, const std::string& comment_after = "")  noexcept;
+    // WATRNING: explicit делать не стоит - сломается преобразование из const char*
+    Comment(const std::string& comment_before, const std::string& comment_after = "")           noexcept;
     ~Comment()                                                                                  noexcept;
 
 public:
