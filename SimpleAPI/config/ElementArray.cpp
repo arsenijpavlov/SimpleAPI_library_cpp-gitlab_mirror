@@ -281,6 +281,22 @@ Config ElementArray::operator[](const size_t &index) const    {
     return get_at(index);
 }
 
+bool ElementArray::operator==(const Config &config) const
+{
+    if(!config.isArray())
+        return false;
+
+    if(size() != config.size())
+        return false;
+
+    for(size_t i = 0; i < size(); i++) {
+        if((*this)[i] != config[i])
+            return false;
+    }
+
+    return true;
+}
+
 std::string ElementArray::toString(const ConfigFormat format, const CommentDesign &design,
                                    const int8_t custom_tabulation_level) const noexcept
 {

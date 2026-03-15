@@ -629,6 +629,22 @@ Config ElementJson::operator[](const size_t& index) const {
     return get_at(index);
 }
 
+bool ElementJson::operator==(const Config &config) const
+{
+    if(!config.isJson())
+        return false;
+
+    if(size() != config.size())
+        return false;
+
+    for(size_t i = 0; i < size(); i++) {
+        if((*this)[i] != config[i])
+            return false;
+    }
+
+    return true;
+}
+
 Config &ElementJson::operator[](const std::string &key) noexcept {
     return get_at(key);
 }

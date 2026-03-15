@@ -436,7 +436,6 @@ TEST(JSON, read_file_error) {
     EXPECT_EQ(json.size(), 0);
 }
 
-//TODO: TEST(JSON, put_and_get_elements) compare ElementArray and Config(eArray)
 TEST(JSON, put_and_get_elements) {
     //без const значения перместятся в Json и их нельзя будет проверить через EXPECT_EQ
     const std::string test_str    = "abc";
@@ -453,6 +452,7 @@ TEST(JSON, put_and_get_elements) {
     EXPECT_EQ(test_num, json["number"].getNumber());
     EXPECT_EQ(test_bool, json["bool"].getBool());
 
+    //предполагается, что пользователю не придётся использовать этот класс
     ElementArray array;
     array.push_back("str");
     array.push_back(15);
@@ -465,8 +465,9 @@ TEST(JSON, put_and_get_elements) {
     EXPECT_EQ(json["string"], json2["json"]["string"]);
     EXPECT_EQ(json["string"].getString(), json2["json"]["string"].getString());
 
-//    TODO: compare ElementArray and Config(eArray)
-//    EXPECT_EQ(array, json2["array"]); //нельзя проверить, т.к. типы не совместимы
+    EXPECT_EQ(array, json2["array"]);
+
+    EXPECT_EQ(array.size(), json2["array"].size());
     EXPECT_EQ(array[0], json2["array"][0]);
     EXPECT_EQ(array[0].getString(), json2["array"][0].getString());
 }

@@ -206,6 +206,7 @@ public:
     Config  operator[](const size_t& index)                                     const           override;
     Config& operator[](const std::string& key)                                  noexcept;
     Config  operator[](const std::string& key)                                  const noexcept;
+    bool    operator==(const Config& config)                                    const           override;
     // ======================================================================================================= Operators
 
     // Iterators =======================================================================================================
