@@ -549,7 +549,7 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
     std::string current_string = comment;
     RemoveIllegalSpaces(current_string);
 
-    //разделить на строки необходимой длины
+    //разделить на строки необходимой длины (FIXME: может имеет смысл перенести в часть с multiline?)
     SeparatedLines sl = design.opt_multiline_column_size == 0 ? SeparateWithoutColumned(current_string)
                                                               : SeparateToColumns(current_string, design.opt_multiline_column_size);
     VString& result_lines = sl.lines;
@@ -559,8 +559,7 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
     switch(result_lines.size()) {
     case 0: return "";
     case 1 /*oneline comments*/: {
-        return RepeatSymToStr('\t', tabulation_level)
-               + GetOnelineCommentStr(design) + " " + result_lines[0];
+        return RepeatSymToStr('\t', tabulation_level) + GetOnelineCommentStr(design) + " " + result_lines[0];
     }
     default /*multiline comments*/: {
         if(design.opt_multiline_border != 0) {
@@ -584,6 +583,7 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
             result_lines.push_back(stop_comment_symbols);
 
             //дополнить рамку при необходимости
+            //FIXME: column_size==0 - нужно забрать длину колонки в sl.max_length и дополнить пробелами
             if(design.opt_multiline_border != 0) {
                 // заполняется в стиле (начало комментария "/*"):       /*#######
                 //  альтернативный вариант (начало комментария "/"):    /########
