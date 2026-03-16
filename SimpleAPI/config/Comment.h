@@ -136,20 +136,7 @@ public:
         return *this;
     }
 
-    bool operator==(const CommentDesign& other) const noexcept {
-        if(this != &other) {
-            bool ret = opt_multiline_border                 == other.opt_multiline_border;
-            if(ret && opt_multiline_border == 0)
-                ret = opt_multiline_border_at_content_line  == other.opt_multiline_border_at_content_line;
-            if(ret) ret = opt_multiline_column_size         == other.opt_multiline_column_size;
-            if(ret) ret = oneline_comment_variants          == other.oneline_comment_variants;
-            if(ret) ret = multiline_comment_variants        == other.multiline_comment_variants;
-            if(ret) ret = with_comments                     == other.with_comments;
-            return ret;
-        }
-
-        return true;
-    }
+    bool operator==(const CommentDesign& other)             const   noexcept;
     bool operator!=(const CommentDesign& other)             const   noexcept { return !(*this == other); }
 
     // {#,0} - второй символ 0 -> один символ уже комментирует

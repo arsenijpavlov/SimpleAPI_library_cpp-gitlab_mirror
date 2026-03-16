@@ -1389,7 +1389,7 @@ shared_VPairElement::const_iterator Config::map_cend() const {
 }
 
 Config Config::CreateElementFromString(std::string &&value_string, const ConfigFormat format,
-                                       const CommentDesign& design, const int8_t tabulation_level)
+                                       CommentDesign& design, const int8_t tabulation_level)
 {
     using namespace utils;
     //удаление незначащих пробелов

@@ -17,6 +17,24 @@ std::string to_string(const CommentType &type) {
     }
 }
 
+bool CommentDesign::operator==(const CommentDesign &other) const noexcept {
+    if(this != &other) {
+        bool ret = opt_multiline_border                 == other.opt_multiline_border;
+        if(ret && opt_multiline_border == 0)
+            ret = opt_multiline_border_at_content_line  == other.opt_multiline_border_at_content_line;
+
+        //NOTE: column_size сравнивать не имеет смысла; описано в заметках - кратко: запись N, чтение N-K
+        //if(ret) ret = opt_multiline_column_size         == other.opt_multiline_column_size;
+
+        if(ret) ret = oneline_comment_variants          == other.oneline_comment_variants;
+        if(ret) ret = multiline_comment_variants        == other.multiline_comment_variants;
+        if(ret) ret = with_comments                     == other.with_comments;
+        return ret;
+    }
+
+    return true;
+}
+
 Comment::Comment() noexcept
     : m_prefix(nullptr), m_suffix(nullptr), m_comment_design(nullptr)
 {}
@@ -198,27 +216,54 @@ void Comment::clearDesign() noexcept {
     delCommentDesign();
 }
 
-#define ComparePointers(arg)                                                                            \
-            if(arg == other.arg)                                                                        \
-                return true; /*один и тот же адрес, хотя и невозможно для разных Comment; оба nullptr*/ \
-            else { /*адреса неодинаковые*/                                                              \
-                if(arg == nullptr) {                                                                    \
-                    if(other.arg != nullptr)                                                            \
-                        return false;                                                                   \
-                } else { /*arg != nullptr*/                                                             \
-                    if(other.arg == nullptr)                                                            \
-                        return false;                                                                   \
-                    else if(*arg != *other.arg)                                                         \
-                        return false;                                                                   \
-                }                                                                                       \
-            }
+//FIXME: код дублируется, не нравится
 bool Comment::operator==(const Comment& other) const noexcept {
     if(this == &other)
         return true;
 
-    ComparePointers(m_prefix)
-    ComparePointers(m_suffix)
-    ComparePointers(m_comment_design)
+    //NOTE: строки будут проверены как нормализованные (без пробелов)
+    if(m_prefix == other.m_prefix)
+        return true; /*один и тот же адрес, хотя и невозможно для разных Comment; оба nullptr*/
+    else { /*адреса неодинаковые*/
+        if(m_prefix == nullptr) {
+            if(other.m_prefix != nullptr)
+                return false;
+        } else { /*m_prefix != nullptr*/
+            if(other.m_prefix == nullptr)
+                return false;
+            else if(!utils::IsNormalizeEqual(*m_prefix, *other.m_prefix))
+                return false;
+        }
+    }
+
+    if(m_suffix == other.m_suffix)
+        return true; /*один и тот же адрес, хотя и невозможно для разных Comment; оба nullptr*/
+    else { /*адреса неодинаковые*/
+        if(m_suffix == nullptr) {
+            if(other.m_suffix != nullptr)
+                return false;
+        } else { /*m_suffix != nullptr*/
+            if(other.m_suffix == nullptr)
+                return false;
+            else if(!utils::IsNormalizeEqual(*m_suffix, *other.m_suffix))
+                return false;
+        }
+    }
+
+    //NOTE: ширина колонки не будет проверена
+    if(m_comment_design == other.m_comment_design)
+        return true; /*один и тот же адрес, хотя и невозможно для разных Comment; оба nullptr*/
+    else { /*адреса неодинаковые*/
+        if(m_comment_design == nullptr) {
+            if(other.m_comment_design != nullptr)
+                return false;
+        } else { /*m_comment_design != nullptr*/
+            if(other.m_comment_design == nullptr)
+                return false;
+            else if(*m_comment_design != *other.m_comment_design)
+                return false;
+        }
+    }
 
     return true;
 }
@@ -629,6 +674,9 @@ std::string FromComment(std::string comment_string, CommentDesign& design,
                         const int8_t tabulation_level) noexcept
 {
     using namespace utils;
+
+    if(comment_string.empty())
+        return "";
 
     // определить синтаксические знаки комментария и удалить из входной строки
     {

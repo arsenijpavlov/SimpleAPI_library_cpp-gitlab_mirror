@@ -136,7 +136,8 @@ TEST(JSON, parse) {
     json.parseJson(string_json2);
     EXPECT_EQ(json.size(), 7);
 
-    json = Config::CreateElementFromString(std::move(string_json), ConfigFormat::eJSON);
+    CommentDesign cd;
+    json = Config::CreateElementFromString(std::move(string_json), ConfigFormat::eJSON, cd);
     ASSERT_EQ(json.size(), 7);
 }
 
@@ -286,10 +287,6 @@ TEST(JSON, parse_with_comments2) {
     EXPECT_EQ(json.get_prefix_comment("b"), "p2_comment");
 }
 
-//TODO: TEST(JSON, write_and_read_file_comment)
-//нужно очень много подумать, чтоб тест не ломал логику парсера
-//комментарии при переходе функций FromComment() и ToComment() по-разному могут нарезать строку
-//column_size=20 при длине строки 19 после парсера в новый CommentDesign даст column_size=19
 TEST(JSON, write_and_read_file_comment) {
     Config json(ValueType::eJson);
     json.parseJson(json_string_example);
@@ -297,7 +294,7 @@ TEST(JSON, write_and_read_file_comment) {
     CommentDesign& cd = json.getCommentDesign();
 //    cd.opt_multiline_column_size = 0;
     cd.opt_multiline_column_size = 20;
-//    cd.opt_multiline_border = '#';
+    cd.opt_multiline_border = '#';
     cd.with_comments = true;
 //    cd.opt_multiline_border_at_content_line = true;
 //    cd.multiline_comment_variants.push_back(std::array<char, 3>{'/', '*', 0});
@@ -328,13 +325,12 @@ TEST(JSON, write_and_read_file_comment) {
     EXPECT_EQ(json2.size(), json.size());
     EXPECT_EQ(json2.getCommentDesign(), json.getCommentDesign());
 
-    //FIXME: проверка комментариев должна учитывать переносы строк (преобразование комментариев при чтении/записи)
-
+    // проверка комментариев должна учитывать переносы строк (преобразование комментариев при чтении/записи)
     auto FromTo = [&json](const std::string& s) -> std::string {
         return FromComment(ToComment(s, json.getCommentDesign()), json.getCommentDesign());
     };
-    main_comment = FromTo(main_comment);
-    main_comment = FromTo(main_comment);
+    //при сравнении Comment как цельной единицы, prefix и suffix будут проверены нормализовано
+
     EXPECT_EQ(json2.getComment(), json.getComment());
     EXPECT_EQ(json2.getPrefixComment(), FromTo(json.getPrefixComment()));
     EXPECT_EQ(json2.getSuffixComment(), FromTo(json.getSuffixComment()));
@@ -342,16 +338,21 @@ TEST(JSON, write_and_read_file_comment) {
     EXPECT_EQ(json2.getSuffixComment(), FromTo(main_comment));
 
     EXPECT_EQ(json2.get_comment("bool"), json.get_comment("bool"));
-    EXPECT_EQ(json2.get_prefix_comment("bool"), json.get_prefix_comment("bool"));
-    EXPECT_EQ(json2.get_suffix_comment("bool"), json.get_suffix_comment("bool"));
+    EXPECT_EQ(json2.get_prefix_comment("bool"), FromTo(json.get_prefix_comment("bool")));
+    EXPECT_EQ(json2.get_suffix_comment("bool"), FromTo(json.get_suffix_comment("bool")));
 
     EXPECT_EQ(json2.get_comment("string"), json.get_comment("string"));
-    EXPECT_EQ(json2.get_prefix_comment("string"), json.get_prefix_comment("string"));
-    EXPECT_EQ(json2.get_suffix_comment("string"), json.get_suffix_comment("string"));
+    EXPECT_EQ(json2.get_prefix_comment("string"), FromTo(json.get_prefix_comment("string")));
+    EXPECT_EQ(json2.get_suffix_comment("string"), FromTo(json.get_suffix_comment("string")));
 
-    EXPECT_EQ(json2.get_comment("array"), json.get_comment("array"));
-    EXPECT_EQ(json2.get_prefix_comment("array"), json.get_prefix_comment("array"));
-    EXPECT_EQ(json2.get_suffix_comment("array"), json.get_suffix_comment("array"));
+    //т.к. CommentDesign передаётся рекурсивно с верхних уровней, при чтении повлияет на все подуровни
+    //нюанс актуален для контейнеров
+    Comment c1 = json.get_comment("array");
+    c1.setDesign(json.getCommentDesign());
+    Comment c2 = json2.get_comment("array");
+    EXPECT_EQ(c1, c2);
+    EXPECT_EQ(json2.get_prefix_comment("array"), FromTo(json.get_prefix_comment("array")));
+    EXPECT_EQ(json2.get_suffix_comment("array"), FromTo(json.get_suffix_comment("array")));
 
     EXPECT_EQ(json2["json"].get_comment(0), json["json"].get_comment(0));
     EXPECT_EQ(json2["json"].get_prefix_comment(0),

@@ -726,7 +726,7 @@ public:
 
     //STATIC
     static Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
-                                          const CommentDesign& design = {},
+                                          CommentDesign& design,
                                           const int8_t tabulation_level = 0);
 };
 

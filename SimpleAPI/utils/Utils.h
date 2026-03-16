@@ -63,6 +63,9 @@ uint8_t     LineOfOneSymbol(std::string& input_str)                             
 
 std::vector<uint8_t> FromHexStringToHex(const std::string& str)                         noexcept;
 
+std::string GetNormalizeString(const std::string& input)                                noexcept;
+bool        IsNormalizeEqual(const std::string& str_1, const std::string& str_2)        noexcept;
+
 }
 
 

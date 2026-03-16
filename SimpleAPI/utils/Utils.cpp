@@ -558,5 +558,37 @@ std::vector<uint8_t> FromHexStringToHex(const std::string &str) noexcept {
     return vec;
 }
 
+//соберёт новую строку без пробелов и переносов строк
+std::string GetNormalizeString(const std::string &input) noexcept
+{
+    std::string out;
+    for(const char c : input) {
+        if(!utils::CharInString(c, " \t\n")) {
+            out += c;
+        }
+    }
+    return out;
+}
+
+bool IsNormalizeEqual(const std::string &str_1, const std::string &str_2) noexcept
+{
+    std::string s_norm_1 = GetNormalizeString(str_1);
+    std::string s_norm_2 = GetNormalizeString(str_2);
+
+    if(s_norm_1.size() != s_norm_2.size())
+    {
+        return false;
+    }
+    for(size_t i = 0; i < s_norm_1.size(); i++)
+    {
+        if(s_norm_1[i] != s_norm_2[i])
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 
 }
