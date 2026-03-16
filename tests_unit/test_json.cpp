@@ -329,21 +329,26 @@ TEST(JSON, write_and_read_file_comment) {
     auto FromTo = [&json](const std::string& s) -> std::string {
         return FromComment(ToComment(s, json.getCommentDesign()), json.getCommentDesign());
     };
+    auto FromTo_Suffix = [&json](const std::string& s) -> std::string {
+        CommentDesign temp_cd = json.getCommentDesign();
+        temp_cd.opt_multiline_column_size = 0;
+        return FromComment(ToComment(s, temp_cd), temp_cd);
+    };
     //при сравнении Comment как цельной единицы, prefix и suffix будут проверены нормализовано
 
     EXPECT_EQ(json2.getComment(), json.getComment());
     EXPECT_EQ(json2.getPrefixComment(), FromTo(json.getPrefixComment()));
-    EXPECT_EQ(json2.getSuffixComment(), FromTo(json.getSuffixComment()));
+    EXPECT_EQ(json2.getSuffixComment(), FromTo_Suffix(json.getSuffixComment()));
     EXPECT_EQ(json2.getPrefixComment(), FromTo(main_comment));
-    EXPECT_EQ(json2.getSuffixComment(), FromTo(main_comment));
+    EXPECT_EQ(json2.getSuffixComment(), FromTo_Suffix(main_comment));
 
     EXPECT_EQ(json2.get_comment("bool"), json.get_comment("bool"));
     EXPECT_EQ(json2.get_prefix_comment("bool"), FromTo(json.get_prefix_comment("bool")));
-    EXPECT_EQ(json2.get_suffix_comment("bool"), FromTo(json.get_suffix_comment("bool")));
+    EXPECT_EQ(json2.get_suffix_comment("bool"), FromTo_Suffix(json.get_suffix_comment("bool")));
 
     EXPECT_EQ(json2.get_comment("string"), json.get_comment("string"));
     EXPECT_EQ(json2.get_prefix_comment("string"), FromTo(json.get_prefix_comment("string")));
-    EXPECT_EQ(json2.get_suffix_comment("string"), FromTo(json.get_suffix_comment("string")));
+    EXPECT_EQ(json2.get_suffix_comment("string"), FromTo_Suffix(json.get_suffix_comment("string")));
 
     //т.к. CommentDesign передаётся рекурсивно с верхних уровней, при чтении повлияет на все подуровни
     //нюанс актуален для контейнеров
@@ -352,19 +357,15 @@ TEST(JSON, write_and_read_file_comment) {
     Comment c2 = json2.get_comment("array");
     EXPECT_EQ(c1, c2);
     EXPECT_EQ(json2.get_prefix_comment("array"), FromTo(json.get_prefix_comment("array")));
-    EXPECT_EQ(json2.get_suffix_comment("array"), FromTo(json.get_suffix_comment("array")));
+    EXPECT_EQ(json2.get_suffix_comment("array"), FromTo_Suffix(json.get_suffix_comment("array")));
 
     EXPECT_EQ(json2["json"].get_comment(0), json["json"].get_comment(0));
-    EXPECT_EQ(json2["json"].get_prefix_comment(0),
-              json["json"].get_prefix_comment(0));
-    EXPECT_EQ(json2["json"].get_suffix_comment(0),
-              json["json"].get_suffix_comment(0));
+    EXPECT_EQ(json2["json"].get_prefix_comment(0), FromTo_Suffix(json["json"].get_prefix_comment(0)));
+    EXPECT_EQ(json2["json"].get_suffix_comment(0), FromTo_Suffix(json["json"].get_suffix_comment(0)));
 
     EXPECT_EQ(json2["array"].get_comment(0), json["array"].get_comment(0));
-    EXPECT_EQ(json2["array"].get_prefix_comment(0),
-              json["array"].get_prefix_comment(0));
-    EXPECT_EQ(json2["array"].get_suffix_comment(0),
-              json["array"].get_suffix_comment(0));
+    EXPECT_EQ(json2["array"].get_prefix_comment(0), FromTo_Suffix(json["array"].get_prefix_comment(0)));
+    EXPECT_EQ(json2["array"].get_suffix_comment(0), FromTo_Suffix(json["array"].get_suffix_comment(0)));
 }
 
 TEST(JSON, read_file) {

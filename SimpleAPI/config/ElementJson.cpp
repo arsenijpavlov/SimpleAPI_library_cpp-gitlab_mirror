@@ -700,6 +700,9 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
             && inner_design.with_comments
             && !m_values[i].second->getPrefixComment().empty())
         {
+            if(m_values[i].second->getPrefixComment().find('\n' != std::string::npos))
+                ret += "\n";
+
             ret += ToComment(m_values[i].second->getPrefixComment(), inner_design, custom_tabulation_level + 1);
             ret += "\n";
         }
@@ -731,7 +734,11 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
             && inner_design.with_comments
             && !m_values[i].second->getSuffixComment().empty())
         {
-            std::string temp = ToComment(m_values[i].second->getSuffixComment(), inner_design, -1);
+            CommentDesign temp_cd = inner_design; //FIXME: использовать каждый раз одну и ту же переменную (постоянная переинициализация)
+            //NOTE(???): (ширина колонки многосторчного комментария после значения не влияет на вывод)
+            temp_cd.opt_multiline_column_size = 0;
+
+            std::string temp = ToComment(m_values[i].second->getSuffixComment(), temp_cd, -1);
             const size_t pos = ret.rfind('\n');
             std::string temp__ = (ret.size() > pos +1 ? (ret.substr(pos + 1, ret.size())) : "") + " ";
             utils::SetStringAsOnlySpaces(temp__);
@@ -753,7 +760,10 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
         && !design.is_in_container
         && !getSuffixComment().empty())
     {
-        std::string temp = ToComment(getSuffixComment(), design);
+        //NOTE(???): (ширина колонки многосторчного комментария после значения не влияет на вывод)
+        inner_design.opt_multiline_column_size = 0;
+
+        std::string temp = ToComment(getSuffixComment(), inner_design);
         const size_t pos = ret.rfind('\n');
         std::string temp__ = (ret.size() > pos +1 ? (ret.substr(pos + 1, ret.size())) : "") + " ";
         utils::SetStringAsOnlySpaces(temp__);
