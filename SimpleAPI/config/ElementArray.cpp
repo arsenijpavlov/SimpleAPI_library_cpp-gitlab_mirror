@@ -337,6 +337,9 @@ std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t
             && design.with_comments
             && !m_values[i]->getPrefixComment().empty())
         {
+            //вернули в исходное состояние после записи КОММЕНТАРИЯ ПОСЛЕ ЗНАЧЕНИЯ
+            inner_design.opt_multiline_column_size = design.opt_multiline_column_size;
+
             if(m_values[i]->getPrefixComment().find('\n' != std::string::npos))
                 ret += "\n";
 
@@ -364,11 +367,10 @@ std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t
                 && inner_design.with_comments
                 && !m_values[i]->getSuffixComment().empty())
             {
-                CommentDesign temp_cd = inner_design; //FIXME: использовать каждый раз одну и ту же переменную (постоянная переинициализация)
-                //NOTE(???): (ширина колонки многосторчного комментария после значения не влияет на вывод)
-                temp_cd.opt_multiline_column_size = 0;
+                //NOTE: (ширина колонки многосторчного комментария после значения не влияет на вывод)
+                inner_design.opt_multiline_column_size = 0;
 
-                std::string temp = ToComment(m_values[i]->getSuffixComment(), temp_cd, -1);
+                std::string temp = ToComment(m_values[i]->getSuffixComment(), inner_design, -1);
                 const size_t pos = ret.rfind('\n');
                 std::string temp__ = (ret.size() > pos +1 ? (ret.substr(pos + 1, ret.size())) : "") + " ";
                 utils::SetStringAsOnlySpaces(temp__);
@@ -391,7 +393,7 @@ std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t
         && !design.is_in_container
         && !getSuffixComment().empty())
     {
-        //NOTE(???): (ширина колонки многосторчного комментария после значения не влияет на вывод)
+        //NOTE: (ширина колонки многосторчного комментария после значения не влияет на вывод)
         inner_design.opt_multiline_column_size = 0;
 
         std::string temp = ToComment(getSuffixComment(), inner_design);
