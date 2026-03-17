@@ -1,7 +1,7 @@
 #include "Comment.h"
 
 #include "../utils/Utils.h"
-//#include "../utils/Logger.h"
+#include "../utils/Logger.h" //для cout (debug)
 #include "ConfigDefines.h"
 #include <algorithm>
 
@@ -347,7 +347,13 @@ SeparatedLines SeparateWithoutColumned(const std::string& input_string) noexcept
 
     for(auto& s : sl.lines)
         RemoveIllegalSpaces(s);
+
+    //определить максимальную длину строки (будет иметь влияние только при border!=0)
     sl.max_length = 0;
+    for(auto& s : sl.lines)
+        if(sl.max_length < s.size())
+            sl.max_length = s.size();
+
     return sl;
 }
 
