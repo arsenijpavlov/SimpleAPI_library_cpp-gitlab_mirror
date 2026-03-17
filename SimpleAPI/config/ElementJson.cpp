@@ -898,6 +898,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
     char last_separator_symbol      = '\n';
     uint16_t inner_json_counter     = 0;
     uint16_t inner_array_counter    = 0;
+    bool is_one_value_format        = false; //одиночные значения не требуют фигурных скобок
 
     std::string current_comment     = ""; // текущее значение при парсинге
     VString comments;                     // обработанные комментарии
@@ -998,14 +999,12 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
             if(ch_current == '{') {
                 // работа с комментариями (до разбора json)
                 AppendMainPreviewComment();
-
-                UpdateState(state, ParseState::eJSON_KEY);
-                break;
+            } else {
+                --i; //этот же символ уже является частью ключа
+                is_one_value_format = true;
             }
 
-            //TODO: одиночное значение не должно считаться ошибкой, в этом случае {} не нужны!
-            UpdateState(state, ParseState::eJSON_ERROR_STATE);
-            error_string = "Not found start of JSON.";
+            UpdateState(state, ParseState::eJSON_KEY);
             break;
         }
         case ParseState::eJSON_KEY: {
@@ -1107,7 +1106,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
 
             //значение прочитано полностью?
             if(!is_quotes && inner_json_counter + inner_array_counter == 0
-                && (CharInString(ch_next, __SEPARATORS__ " }")
+                && (ch_next == 0 || CharInString(ch_next, __SEPARATORS__ " }")
                     || CharInString(ch_current, __SEPARATORS__ " }")))
             {
                 DEBUG_LOG("ElementJson: current value done: \"" << value << "\"");
@@ -1158,17 +1157,19 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
             // запоминаем номер строки, на котором закончили считывать значение
             value_read_at_line = line_counter; //применится перед } и перед считыванием значения
 
-            if(CharInString(ch_current, __SEPARATORS__)) {
+            if(!is_one_value_format && CharInString(ch_current, __SEPARATORS__)) {
                 i--;
                 UpdateState(state, ParseState::eJSON_KEY);
                 break;
             }
-            if(CharInString(ch_current, "}")) {
+            if(!is_one_value_format && CharInString(ch_current, "}")) {
                 i--;
                 UpdateState(state, ParseState::eJSON_FINISH);
                 break;
             }
 
+            //либо считано одно значение и всё следующее является ошибкой (комменты не учитываются)
+            //либо считано несколько значений и не найден знак завершения (комменты не учитываются)
             UpdateState(state, ParseState::eJSON_ERROR_STATE);
             error_string = "Not found stop of JSON.";
             break;
@@ -1184,6 +1185,9 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
         default: break;
         }
     }
+
+    if(is_one_value_format)
+        UpdateState(state, ParseState::eJSON_FINISH); //дальше ожидаем завершение файла
 
     //конечный комментарий ...
     if(state == ParseState::eJSON_FINISH)
