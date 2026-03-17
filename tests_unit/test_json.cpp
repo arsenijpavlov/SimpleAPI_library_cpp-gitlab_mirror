@@ -609,7 +609,6 @@ TEST(JSON, check_numbers) {
     }
 }
 
-//TODO: TEST(JSON, parse_simple_element) парсинг Json без рамки
 TEST(JSON, parse_simple_element) {
     std::string test_file_string = "k = 1";
     Config json;

@@ -1060,6 +1060,36 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
                 break;
             if(CharInString(ch_current, ":=")) {
                 UpdateState(state, ParseState::eJSON_VALUE);
+
+                //следующего символа не существует -> значением является null
+                if(ch_next == 0) {
+                    try {
+                        push_back(std::move(key), std::move(Config()));
+                        if(get_back().getCommentDesign().opt_multiline_column_size > design.opt_multiline_column_size)
+                            design.opt_multiline_column_size = get_back().getCommentDesign().opt_multiline_column_size;
+                    } catch (std::exception& e) {
+                        error_string = e.what();
+                        UpdateState(state, ParseState::eJSON_ERROR_STATE);
+                        push_back(key, value);
+                        break;
+                    }
+                    key.clear();
+
+                    // проверка замыкающего комментария (вторичная)
+                    if(value_read_at_line == line_counter)
+                    {
+                        if(!comments.empty()
+                            && size() > 1
+                            && get_at(size() - 2).getSuffixComment().empty()
+                            && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment))
+                        {
+                            get_at(size() - 2).setSuffixComment(comments[0]);
+                            DEBUG_LOG("ElementJson: inner Element add SuffixComment: " << "\"" << get_at(size() - 2).getSuffixComment() << "\"");
+                            comments.erase(comments.cbegin());
+                        }
+                    }
+                }
+
                 break;
             }
 
