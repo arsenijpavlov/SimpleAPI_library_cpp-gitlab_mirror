@@ -118,16 +118,9 @@ TEST(ARRAY, insert) {
     EXPECT_EQ(array[1].getString(), "insert1");
 }
 
-////TEST(ARRAY, erase_it) {
-////    ElementArray array = array_example;
+TEST(ARRAY, erase_it) {
+    Config array = array_example;
 
-////    array.erase(1);
-////    EXPECT_EQ(array[1].getNum(), 3.1);
-////}
-
-////TEST(ARRAY, erase_index) {
-////    ElementArray array = array_example;
-
-////    array.erase(array.begin() + 1);
-////    EXPECT_EQ(array[1].getNum(), 3.1);
-////}
+    array.erase_at(1);
+    EXPECT_EQ(array[1].getNumber(), 3.1);
+}
