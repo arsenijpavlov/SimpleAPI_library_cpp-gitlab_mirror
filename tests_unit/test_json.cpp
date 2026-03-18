@@ -644,6 +644,10 @@ TEST(JSON, parse_simple_element) {
     EXPECT_EQ(json.size(), 1);
 }
 
+//TODO: TEST(JSON, parse_simple_element_with_comments)
+
+//TODO: TEST(JSON, parse_element_with_many_prefix_comments)
+
 TEST(JSON, get_deep_inner_element_1) {
     Config json_main(ValueType::eArray);
     Config json_inner_1(ValueType::eArray);
