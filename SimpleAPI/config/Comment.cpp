@@ -567,8 +567,13 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
         return RepeatSymToStr('\t', tabulation_level) + GetOnelineCommentStr(design) + " " + result_lines[0];
     }
     default /*multiline comments*/: {
+        // если нужно обрамление, то строки нужно выровнять по одной длине (дополнить пробелами)
+        if(design.opt_multiline_border != 0 || design.opt_multiline_border_at_content_line)
+            for(auto& line : result_lines) {
+                SetVisibleColumn(line, sl.max_length);
+            }
+
         if(design.opt_multiline_border != 0) {
-            // если нужно обрамление, то строки нужно выровнять по одной длине (дополнить пробелами)
             for(auto& line : result_lines) {
                 line = " " + line;
                 SetVisibleColumn(line, sl.max_length + /*left space*/2);
@@ -588,7 +593,6 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
             result_lines.push_back(stop_comment_symbols);
 
             //дополнить рамку при необходимости
-            //FIXME: column_size==0 - нужно забрать длину колонки в sl.max_length и дополнить пробелами
             if(design.opt_multiline_border != 0) {
                 // заполняется в стиле (начало комментария "/*"):       /*#######
                 //  альтернативный вариант (начало комментария "/"):    /########
