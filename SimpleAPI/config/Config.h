@@ -120,9 +120,16 @@ public:
             break;
         }
         case ValueType::eJson: {
+            //FIXME: заменить на exception
+//            static_assert(sizeof...(values) % 2 == 0, "Even number of arguments required (Json)");
+
             m_value = dynamic_cast<IElement*>(new ElementJson());
-            if(sizeof...(values) != 0)
-                variadicKVInputter(values...);
+
+            std::vector<Config> vec; //ключи тоже будут преобразованы в Config
+            (void)std::initializer_list<int>{(vec.emplace_back(Config(values)), 0)...};
+            for(size_t i = 0; i < vec.size(); i+=2) {
+                push_back(vec[i].getString(), vec[i+1]);
+            }
             break;
         }
         }
@@ -155,9 +162,17 @@ public:
             break;
         }
         case ValueType::eJson: {
+            //FIXME: заменить на exception
+//            static_assert(sizeof...(values) % 2 == 0, "Even number of arguments required (Json)");
+
             m_value = dynamic_cast<IElement*>(new ElementJson());
-            if(sizeof...(values) != 0)
-                variadicKVInputter(std::move(values)...);
+
+            std::vector<Config> vec; //ключи тоже будут преобразованы в Config
+            (void)std::initializer_list<int>{(vec.emplace_back(Config(std::move(values))), 0)...};
+            for(size_t i = 0; i < vec.size(); i+=2) {
+                std::cout << "key type: \"" << ToString(vec[i].getType()) << "\"" << std::endl;
+                push_back(vec[i].getString(), std::move(vec[i+1]));
+            }
             break;
         }
         }
@@ -176,35 +191,12 @@ public:
             push_at(std::move(pair.first), std::move(pair.second));
     }
 
-
     ~Config()                                                       noexcept    { release(); }
 
 private:
     //создание ПУСТОГО(NULL) элемента
     void init()                                                     noexcept    { setValue(); }
     void release()                                                  noexcept;
-
-    __ONLY_ALLOWED_TYPES_VARIADIC_PAIR__(T, A)
-    void variadicKVInputter(const std::string& key, const A& value, const T& ... others) {
-        static_assert(sizeof...(others) % 2 == 0, "Even number of arguments required");
-        push_at(key, value); //здесь value сконвертируется в Config
-        if(sizeof...(others) == 0) return;
-        variadicKVInputter(others...);
-    }
-    __ONLY_ALLOWED_TYPES_VARIADIC_PAIR__(T, A)
-    void variadicKVInputter(const std::string& key, A&& value, T&& ... others) {
-        static_assert(sizeof...(others) % 2 == 0, "Even number of arguments required");
-        push_at(key, std::move(value)); //здесь value сконвертируется в Config
-        if(sizeof...(others) == 0) return;
-        variadicKVInputter(std::move(others)...);
-    }
-    static void variadicKVInputter()                    {} //NOTE: нужна только для "пустых" вызовов variadic-функции
-
-    // WARNING: в идеале, методы ниже никогда не должны быть использованы
-    __ONLY_ALLOWED_TYPES__(T)
-    static void variadicKVInputter(const T& others)     {} //NOTE: нужна только для компиляции работы с массивами
-    __ONLY_ALLOWED_TYPES__(T)
-    static void variadicKVInputter(T&& others)          {} //NOTE: нужна только для компиляции работы с массивами
 
 public:
     //NOTE: API_ - приписка для обозначения интерфейсных функций при использовании через класс Config

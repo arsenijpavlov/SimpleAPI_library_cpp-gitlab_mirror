@@ -49,7 +49,7 @@
                                             __CHECK_TYPES_NOT_EQUAL_ACTION__(object1, object2) \
                                                 throw std::invalid_argument("Types is not equal");
 
-#define __INCORRECT_INDEX_EXCEPTION__(index) throw std::invalid_argument(std::string("Index ") \
+#define __INCORRECT_INDEX_EXCEPTION__(index) throw std::out_of_range(std::string("Index ") \
                                                 + std::to_string(index) + " not contain an object");
 
 #define __CHECK_CONTAINER_INDEX_CORRECT__(object, index) \
@@ -74,7 +74,7 @@
                                             if(index + 1 > object->size()) \
                                                 return ret;
 
-#define __KEY_NOT_FOUND_EXCEPTION__(key)    throw std::invalid_argument("key not found: " + key);
+#define __KEY_NOT_FOUND_EXCEPTION__(key)    throw std::out_of_range("key not found: " + key);
 #define __RETURN_IF_KEY_NOT_FOUND_RETURN__(key, ret) \
                                             return ret;
 
