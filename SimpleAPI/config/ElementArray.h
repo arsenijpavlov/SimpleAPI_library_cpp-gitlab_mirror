@@ -71,9 +71,6 @@ public:
     // ========================================================================================================== Modify
 
     // Adding ==========================================================================================================
-    void    insert_at(shared_VElement::iterator iterator, const Config& value);
-    void    insert_at(shared_VElement::iterator iterator, Config&& value);
-
             template<typename ... Args>
     void    insert_front(Args&& ... args) noexcept {
         (void)std::initializer_list<int>{(m_values.insert(cbegin(), std::make_shared<Config>(std::move(args))), 0)...};
@@ -99,6 +96,10 @@ public:
     void    insert_back(const VElement& elements)                       noexcept;
     void    insert_back(VElement&& elements)                            noexcept;
 
+    //NOTE(JsonArray): вернёт iterator на первый из вставленных элементов
+    shared_VElement::iterator insert_at(const shared_VElement::iterator iterator, const Config& value);
+    shared_VElement::iterator insert_at(const shared_VElement::iterator iterator, Config&& value);
+
     void    append(const ElementArray& other)                           noexcept;
     void    append(ElementArray&& other)                                noexcept;
 
@@ -122,7 +123,7 @@ public:
     void    pop_front()                                                 noexcept        override;
     void    pop_at(const size_t& index)                                 noexcept        override;
     void    pop_back()                                                  noexcept        override;
-    
+
     Config  get_and_pop_front()                                                         override;
     Config  get_and_pop_at(const size_t& index)                                         override;
     Config  get_and_pop_back()                                                          override;
@@ -134,6 +135,10 @@ public:
     using IElementContainer::remove_front;
     using IElementContainer::remove_at;
     using IElementContainer::remove_back;
+
+    //NOTE(JsonArray): вернёт iterator, следующий после удаляемого
+    shared_VElement::iterator pop_at(const shared_VElement::iterator iterator);
+    shared_VElement::iterator erase_at(const shared_VElement::iterator iterator)                    { return pop_at(iterator); }
     // ======================================================================================================== Removing
 
     // Info ============================================================================================================

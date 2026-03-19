@@ -139,26 +139,6 @@ void ElementArray::clear() noexcept {
     m_values.clear();
 }
 
-//FIXME: ElementArray::insert_at(iterator, const &)
-void ElementArray::insert_at(shared_VElement::iterator iterator, const Config &value) {
-    //    if(size() < index - 1) {
-    //        m_values.push_back(std::make_shared<Config>(value));
-    //    } else {
-    //        m_values.insert(cbegin() + (index - 1), std::make_shared<Config>(value));
-    //    }
-    m_values.insert(iterator, std::make_shared<Config>(value));
-}
-
-//FIXME: ElementArray::insert_at(iterator, &&)
-void ElementArray::insert_at(shared_VElement::iterator iterator, Config &&value) {
-    //    if(size() < index - 1) {
-    //        m_values.push_back(std::make_shared<Config>(std::move(value)));
-    //    } else {
-    //        m_values.insert(cbegin() + (index - 1), std::make_shared<Config>(std::move(value)));
-    //    }
-    m_values.insert(iterator, std::make_shared<Config>(std::move(value)));
-}
-
 void ElementArray::insert_front(const VElement &elements) noexcept {
     for(size_t i = 0; i < elements.size(); i++)
         m_values.insert(cbegin() + i, std::make_shared<Config>(elements[i]));
@@ -199,6 +179,18 @@ void ElementArray::insert_back(VElement &&elements) noexcept {
                    [](const Config& element) {
                        return std::make_shared<Config>(std::move(element));
                    });
+}
+
+shared_VElement::iterator ElementArray::insert_at(const shared_VElement::iterator iterator, const Config &value) {
+    Config temp = value;
+    return insert_at(iterator, std::move(temp));
+}
+
+shared_VElement::iterator ElementArray::insert_at(const shared_VElement::iterator iterator, Config &&value) {
+    if(iterator >= m_values.begin() && iterator < m_values.end())
+        return m_values.insert(iterator, std::make_shared<Config>(std::move(value)));
+    else
+        return m_values.insert(m_values.end(), std::make_shared<Config>(std::move(value)));
 }
 
 void ElementArray::append(const ElementArray &other) noexcept {
@@ -247,6 +239,14 @@ Config ElementArray::get_and_pop_back() {
     Config cfg = get_back();
     pop_back();
     return cfg;
+}
+
+shared_VElement::iterator ElementArray::pop_at(const shared_VElement::iterator iterator)
+{
+    if(iterator >= m_values.begin() && iterator < m_values.end())
+        return m_values.erase(iterator);
+    else
+        return m_values.end();
 }
 
 bool ElementArray::isEqual(const IElement &other, const bool compare_comments,

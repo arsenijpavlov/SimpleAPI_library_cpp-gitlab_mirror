@@ -428,11 +428,11 @@ public:
     Config& insert_at(const size_t& index, const std::string& key, const Config& other);                                    API_MAP_CONTAINER
     Config& insert_at(const size_t& index, const std::string& key, Config&& other);                                         API_MAP_CONTAINER
 
-    Config& insert_at(const shared_VElement::iterator& iterator, const Config& other);                                      API_INDEX_ARRAY
-    Config& insert_at(const shared_VElement::iterator& iterator, Config&& other);                                           API_INDEX_ARRAY
+    Config& insert_at(const shared_VElement::iterator iterator, const Config& other);                                       API_INDEX_ARRAY
+    Config& insert_at(const shared_VElement::iterator iterator, Config&& other);                                            API_INDEX_ARRAY
 
-    Config& insert_at(const shared_VPairElement::iterator& iterator, const std::string& key, const Config& other);          API_MAP_CONTAINER
-    Config& insert_at(const shared_VPairElement::iterator& iterator, const std::string& key, Config&& other);               API_MAP_CONTAINER
+    Config& insert_at(const shared_VPairElement::iterator iterator, const std::string& key, const Config& other);           API_MAP_CONTAINER
+    Config& insert_at(const shared_VPairElement::iterator iterator, const std::string& key, Config&& other);                API_MAP_CONTAINER
 
     Config& insert_back(const Config& other);                                                                               API_CONTAINER
     Config& insert_back(Config&& other);                                                                                    API_CONTAINER
@@ -512,17 +512,23 @@ public:
 
     // Removing ========================================================================================================
     Config& erase_front();                                                                                                      API_CONTAINER
-    Config& erase_at(const size_t& index);                                                                                       API_CONTAINER
+    Config& erase_at(const size_t& index);                                                                                      API_CONTAINER
     Config& erase_at(const std::string& key);                                                                                   API_MAP_CONTAINER
     Config& erase_back();                                                                                                       API_CONTAINER
 
+    Config& erase_at(const shared_VElement::iterator iterator);                                                                 API_INDEX_ARRAY
+    Config& erase_at(const shared_VPairElement::iterator iterator);                                                             API_MAP_CONTAINER
+
     Config& pop_front()                                                 { return erase_front(); }                               API_CONTAINER
     Config& pop_at(const std::string& key)                              { return erase_at(key); }                               API_MAP_CONTAINER
-    Config& pop_at(const size_t& index)                                  { return erase_at(index); }                             API_CONTAINER
+    Config& pop_at(const size_t& index)                                 { return erase_at(index); }                             API_CONTAINER
     Config& pop_back()                                                  { return erase_back(); }                                API_CONTAINER
 
+    Config& pop_at(const shared_VElement::iterator iterator)            { return erase_at(iterator); }                          API_INDEX_ARRAY
+    Config& pop_at(const shared_VPairElement::iterator iterator)        { return erase_at(iterator); }                          API_MAP_CONTAINER
+
     Config  get_and_pop_front();                                                                                                API_CONTAINER
-    Config  get_and_pop_at(const size_t& index);                                                                                 API_CONTAINER
+    Config  get_and_pop_at(const size_t& index);                                                                                API_CONTAINER
     Config  get_and_pop_at(const std::string& key);                                                                             API_MAP_CONTAINER
     Config  get_and_pop_back();                                                                                                 API_CONTAINER
     // ======================================================================================================== Removing
@@ -601,8 +607,8 @@ public:
     bool            operator<=(const Config& other)         const                   { return size() <= other.size(); }          API_ALL
 
     //контейнеры
-    Config&         operator[](const size_t& index)                                  { return get_at(index); }                   API_CONTAINER
-    Config          operator[](const size_t& index)          const                   { return get_at(index); }                   API_CONTAINER
+    Config&         operator[](const size_t& index)                                 { return get_at(index); }                   API_CONTAINER
+    Config          operator[](const size_t& index)          const                  { return get_at(index); }                   API_CONTAINER
     Config&         operator[](const std::string& key)                              { return get_at(key); }                     API_CONTAINER
     Config          operator[](const std::string& key)      const                   { return get_at(key); }                     API_CONTAINER
 

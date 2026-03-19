@@ -107,10 +107,6 @@ public:
     //@return - был ли изменён индекс вниз при перезаписи ключа
     bool    insert_at(const size_t& index, const std::string& key,
                    Config&& value)                                              noexcept;
-    void    insert_at(shared_VPairElement::iterator iterator, const std::string& key,
-                   const Config& value)                                         noexcept;
-    void    insert_at(shared_VPairElement::iterator iterator, const std::string& key,
-                   Config&& value)                                              noexcept;
     void    insert_back(const std::string& key, const Config& value)            noexcept;
     void    insert_back(const std::string& key, Config&& value)                 noexcept;
 
@@ -125,6 +121,12 @@ public:
                       const Config& value);
     void    insert_after(const std::string &position_key, const std::string& key,
                       Config&& value);
+
+    //NOTE(Json): вернёт iterator на первый из вставленных элементов
+    shared_VPairElement::iterator insert_at(shared_VPairElement::iterator iterator, const std::string& key,
+                   const Config& value)                                         noexcept;
+    shared_VPairElement::iterator insert_at(shared_VPairElement::iterator iterator, const std::string& key,
+                   Config&& value)                                              noexcept;
 
     //группы элементов
     void    insert_front(const VPairElement& elements)                          noexcept;
@@ -177,7 +179,6 @@ public:
     Config  get_and_pop_at(const size_t& index)                                                 override;
     Config  get_and_pop_back()                                                                  override;
 
-
     //WARNING: обязательно для области видимости из Config::
     using IElementContainer::erase_front;
     using IElementContainer::erase_at;
@@ -190,8 +191,9 @@ public:
     Config  get_and_pop_at(const std::string& key)                              noexcept;
     void    erase_at(const std::string& key)                                    noexcept;
 
-    //TODO: void pop_at(shared_VPairElement::iterator iterator);                noexcept;
-    //TODO: void erase_at(shared_VPairElement::iterator iterator);              noexcept;
+    //NOTE(JsonArray): вернёт iterator, следующий после удаляемого
+    shared_VPairElement::iterator pop_at(const shared_VPairElement::iterator iterator);
+    shared_VPairElement::iterator erase_at(const shared_VPairElement::iterator iterator)        { return pop_at(iterator); }
     // ======================================================================================================== Removing
 
     // Info ============================================================================================================

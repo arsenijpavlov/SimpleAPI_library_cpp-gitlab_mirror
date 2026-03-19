@@ -1028,13 +1028,13 @@ Config &Config::insert_at(const size_t& index, const std::string &key, Config &&
     return *this;
 }
 
-Config &Config::insert_at(const shared_VElement::iterator &iterator, const Config &other)
+Config &Config::insert_at(const shared_VElement::iterator iterator, const Config &other)
 {
     Config temp(other);
     return insert_at(iterator, std::move(other));
 }
 
-Config &Config::insert_at(const shared_VElement::iterator &iterator, Config &&other)
+Config &Config::insert_at(const shared_VElement::iterator iterator, Config &&other)
 {
     try_convert_null_to_json_array();
 
@@ -1044,14 +1044,14 @@ Config &Config::insert_at(const shared_VElement::iterator &iterator, Config &&ot
     return *this;
 }
 
-Config &Config::insert_at(const shared_VPairElement::iterator &iterator, const std::string& key,
+Config &Config::insert_at(const shared_VPairElement::iterator iterator, const std::string& key,
                           const Config &other)
 {
     Config temp(other);
     return insert_at(iterator, key, std::move(other));
 }
 
-Config &Config::insert_at(const shared_VPairElement::iterator &iterator, const std::string& key,
+Config &Config::insert_at(const shared_VPairElement::iterator iterator, const std::string& key,
                           Config &&other)
 {
     try_convert_null_to_json();
@@ -1175,6 +1175,22 @@ Config& Config::erase_at(const std::string& key) {
 Config& Config::erase_back() {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     dynamic_cast<IElementContainer*>(m_value)->erase_back();
+
+    return *this;
+}
+
+Config &Config::erase_at(const shared_VElement::iterator iterator)
+{
+    __CHECK_TYPE_IS_ARRAY__((*this))
+    dynamic_cast<ElementArray*>(m_value)->erase_at(iterator);
+
+    return *this;
+}
+
+Config &Config::erase_at(const shared_VPairElement::iterator iterator)
+{
+    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+    dynamic_cast<ElementJson*>(m_value)->erase_at(iterator);
 
     return *this;
 }

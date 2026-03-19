@@ -358,22 +358,6 @@ bool ElementJson::insert_at(const size_t& index, const std::string &key, Config 
     return return_flag;
 }
 
-void ElementJson::insert_at(shared_VPairElement::iterator iterator, const std::string &key,
-                            const Config &value) noexcept
-{
-    //TODO: void ElementJson::insert_at()
-
-    //если ключ существует - удалить и перезаписать на новом итераторе
-}
-
-void ElementJson::insert_at(shared_VPairElement::iterator iterator, const std::string &key,
-                            Config &&value) noexcept
-{
-    //TODO: void ElementJson::insert_at()
-
-    //если ключ существует - удалить и перезаписать на новом итераторе
-}
-
 void ElementJson::insert_back(const std::string &key, const Config &value) noexcept {
     if(contains(key))
         erase_at(key);
@@ -449,6 +433,24 @@ void ElementJson::insert_after(const std::string &position_key, const std::strin
     } catch(...) {
         insert_back(key, std::move(value));
     }
+}
+
+shared_VPairElement::iterator ElementJson::insert_at(shared_VPairElement::iterator iterator, const std::string &key,
+                                                     const Config &value) noexcept
+{
+    Config temp = value;
+    return insert_at(iterator, key, std::move(temp));
+}
+
+shared_VPairElement::iterator ElementJson::insert_at(shared_VPairElement::iterator iterator, const std::string &key,
+                                                     Config &&value) noexcept
+{
+    //если ключ существует - удалить и перезаписать на новом итераторе
+    erase_at(key);
+    if(iterator >= m_values.begin() && iterator < m_values.end())
+        return m_values.insert(iterator, std::make_pair(key, std::make_shared<Config>(std::move(value))));
+    else
+        return m_values.insert(m_values.end(), std::make_pair(key, std::make_shared<Config>(std::move(value))));
 }
 
 void ElementJson::insert_front(const VPairElement &elements) noexcept {
@@ -564,6 +566,14 @@ void ElementJson::erase_at(const std::string &key) noexcept {
             break;
         }
     }
+}
+
+shared_VPairElement::iterator ElementJson::pop_at(const shared_VPairElement::iterator iterator)
+{
+    if(iterator >= m_values.begin() && iterator < m_values.end())
+        return m_values.erase(iterator);
+    else
+        return m_values.end();
 }
 
 // NOTE: точно знаю, что можно ускорить, а не запрашивать каждый раз поиск по key
