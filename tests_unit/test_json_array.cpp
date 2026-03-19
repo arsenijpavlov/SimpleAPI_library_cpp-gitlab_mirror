@@ -121,9 +121,28 @@ TEST(ARRAY, insert) {
     EXPECT_EQ(array.get_back().getString(), "insert999");
 }
 
+TEST(ARRAY, insert_iterator) {
+    Config array = array_example;
+    Config::Range range = array.getRange();
+
+    array.insert_at(range.begin() + 1, "insert1");
+    EXPECT_EQ(array[1].getString(), "insert1");
+
+    array.insert_at(range.begin() + 15, "insert999");
+    EXPECT_EQ(array.get_back().getString(), "insert999");
+}
+
 TEST(ARRAY, erase_it) {
     Config array = array_example;
 
     array.erase_at(1);
+    EXPECT_EQ(array[1].getNumber(), 3.1);
+}
+
+TEST(ARRAY, erase_iterator) {
+    Config array = array_example;
+    Config::Range range = array.getRange();
+
+    array.erase_at(range.begin() + 1);
     EXPECT_EQ(array[1].getNumber(), 3.1);
 }

@@ -107,10 +107,10 @@ public:
     //@return - был ли изменён индекс вниз при перезаписи ключа
     bool    insert_at(const size_t& index, const std::string& key,
                    Config&& value)                                              noexcept;
-    void    insert_at(VPairElement::iterator iterator, const std::string& key,
-                   const Config& value);
-    void    insert_at(VPairElement::iterator iterator, const std::string& key,
-                   Config&& value);
+    void    insert_at(shared_VPairElement::iterator iterator, const std::string& key,
+                   const Config& value)                                         noexcept;
+    void    insert_at(shared_VPairElement::iterator iterator, const std::string& key,
+                   Config&& value)                                              noexcept;
     void    insert_back(const std::string& key, const Config& value)            noexcept;
     void    insert_back(const std::string& key, Config&& value)                 noexcept;
 
@@ -172,9 +172,11 @@ public:
     void    pop_at(const size_t& index)                                         noexcept        override;
     void    pop_back()                                                          noexcept        override;
 
+
     Config  get_and_pop_front()                                                                 override;
     Config  get_and_pop_at(const size_t& index)                                                 override;
     Config  get_and_pop_back()                                                                  override;
+
 
     //WARNING: обязательно для области видимости из Config::
     using IElementContainer::erase_front;
@@ -187,6 +189,9 @@ public:
     void    pop_at(const std::string& key)                                      noexcept;
     Config  get_and_pop_at(const std::string& key)                              noexcept;
     void    erase_at(const std::string& key)                                    noexcept;
+
+    //TODO: void pop_at(shared_VPairElement::iterator iterator);                noexcept;
+    //TODO: void erase_at(shared_VPairElement::iterator iterator);              noexcept;
     // ======================================================================================================== Removing
 
     // Info ============================================================================================================

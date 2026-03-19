@@ -205,6 +205,7 @@ public:
     #define API_NUMBER
     #define API_STRING
     #define API_CONTAINER
+    #define API_INDEX_ARRAY
     #define API_MAP_CONTAINER
 
     // Comment =========================================================================================================
@@ -420,12 +421,18 @@ public:
     Config& insert_front(const std::string& key, const Config& other);                                                      API_MAP_CONTAINER
     Config& insert_front(const std::string& key, Config&& other);                                                           API_MAP_CONTAINER
 
-    Config& insert_at(const size_t& index, const Config& other);                                                             API_CONTAINER
-    Config& insert_at(const size_t& index, Config&& other);                                                                  API_CONTAINER
+    Config& insert_at(const size_t& index, const Config& other);                                                            API_CONTAINER
+    Config& insert_at(const size_t& index, Config&& other);                                                                 API_CONTAINER
     Config& insert_at(const std::string& key, const Config& other);                                                         API_MAP_CONTAINER
     Config& insert_at(const std::string& key, Config&& other);                                                              API_MAP_CONTAINER
-    Config& insert_at(const size_t& index, const std::string& key, const Config& other);                                     API_MAP_CONTAINER
-    Config& insert_at(const size_t& index, const std::string& key, Config&& other);                                          API_MAP_CONTAINER
+    Config& insert_at(const size_t& index, const std::string& key, const Config& other);                                    API_MAP_CONTAINER
+    Config& insert_at(const size_t& index, const std::string& key, Config&& other);                                         API_MAP_CONTAINER
+
+    Config& insert_at(const shared_VElement::iterator& iterator, const Config& other);                                      API_INDEX_ARRAY
+    Config& insert_at(const shared_VElement::iterator& iterator, Config&& other);                                           API_INDEX_ARRAY
+
+    Config& insert_at(const shared_VPairElement::iterator& iterator, const std::string& key, const Config& other);          API_MAP_CONTAINER
+    Config& insert_at(const shared_VPairElement::iterator& iterator, const std::string& key, Config&& other);               API_MAP_CONTAINER
 
     Config& insert_back(const Config& other);                                                                               API_CONTAINER
     Config& insert_back(Config&& other);                                                                                    API_CONTAINER
@@ -446,8 +453,8 @@ public:
     Config& push_front(const std::string& key, const Config& other)     { return insert_front(key, other); }                API_MAP_CONTAINER
     Config& push_front(const std::string& key, Config&& other)          { return insert_front(key, std::move(other)); }     API_MAP_CONTAINER
 
-    Config& push_at(const size_t& index, const Config& other)            { return insert_at(index, other); }                 API_CONTAINER
-    Config& push_at(const size_t& index, Config&& other)                 { return insert_at(index, std::move(other)); }      API_CONTAINER
+    Config& push_at(const size_t& index, const Config& other)           { return insert_at(index, other); }                 API_CONTAINER
+    Config& push_at(const size_t& index, Config&& other)                { return insert_at(index, std::move(other)); }      API_CONTAINER
     Config& push_at(const std::string& key, const Config& other)        { return insert_at(key, other); }                   API_MAP_CONTAINER
     Config& push_at(const std::string& key, Config&& other)             { return insert_at(key, std::move(other)); }        API_MAP_CONTAINER
 
@@ -475,9 +482,9 @@ public:
             __ONLY_ALLOWED_TYPES__(T)
     Config& push_front(const std::string& key, T&& other)               { return insert_front(key, std::move(Config(other))); } API_MAP_CONTAINER
             __ONLY_ALLOWED_TYPES__(T)
-    Config& push_at(const size_t& index, const T& other)                 { return insert_at(index, Config(other)); }             API_CONTAINER
+    Config& push_at(const size_t& index, const T& other)                 { return insert_at(index, Config(other)); }            API_CONTAINER
             __ONLY_ALLOWED_TYPES__(T)
-    Config& push_at(const size_t& index, T&& other)                      { return insert_at(index, std::move(Config(other))); }  API_CONTAINER
+    Config& push_at(const size_t& index, T&& other)                      { return insert_at(index, std::move(Config(other))); } API_CONTAINER
             __ONLY_ALLOWED_TYPES__(T)
     Config& push_at(const std::string& key, const T& other)             { return insert_at(key, Config(other)); }               API_MAP_CONTAINER
             __ONLY_ALLOWED_TYPES__(T)

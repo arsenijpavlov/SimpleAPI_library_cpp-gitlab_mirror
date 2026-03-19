@@ -358,16 +358,16 @@ bool ElementJson::insert_at(const size_t& index, const std::string &key, Config 
     return return_flag;
 }
 
-void ElementJson::insert_at(VPairElement::iterator iterator, const std::string &key,
-                            const Config &value)
+void ElementJson::insert_at(shared_VPairElement::iterator iterator, const std::string &key,
+                            const Config &value) noexcept
 {
     //TODO: void ElementJson::insert_at()
 
     //если ключ существует - удалить и перезаписать на новом итераторе
 }
 
-void ElementJson::insert_at(VPairElement::iterator iterator, const std::string &key,
-                            Config &&value)
+void ElementJson::insert_at(shared_VPairElement::iterator iterator, const std::string &key,
+                            Config &&value) noexcept
 {
     //TODO: void ElementJson::insert_at()
 

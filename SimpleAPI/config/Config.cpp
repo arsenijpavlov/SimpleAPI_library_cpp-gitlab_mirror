@@ -1028,6 +1028,40 @@ Config &Config::insert_at(const size_t& index, const std::string &key, Config &&
     return *this;
 }
 
+Config &Config::insert_at(const shared_VElement::iterator &iterator, const Config &other)
+{
+    Config temp(other);
+    return insert_at(iterator, std::move(other));
+}
+
+Config &Config::insert_at(const shared_VElement::iterator &iterator, Config &&other)
+{
+    try_convert_null_to_json_array();
+
+    __CHECK_TYPE_IS_INDEX_CONTAINER__((*this))
+    dynamic_cast<ElementArray*>(m_value)->insert_at(iterator, std::move(other));
+
+    return *this;
+}
+
+Config &Config::insert_at(const shared_VPairElement::iterator &iterator, const std::string& key,
+                          const Config &other)
+{
+    Config temp(other);
+    return insert_at(iterator, key, std::move(other));
+}
+
+Config &Config::insert_at(const shared_VPairElement::iterator &iterator, const std::string& key,
+                          Config &&other)
+{
+    try_convert_null_to_json();
+
+    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+    dynamic_cast<ElementJson*>(m_value)->insert_at(iterator, key, std::move(other));
+
+    return *this;
+}
+
 Config& Config::insert_back(const Config& other) {
     Config config(other);
     return insert_back(std::move(config));
@@ -1077,7 +1111,7 @@ Config& Config::insert_after(const std::string& after_key, const std::string& ke
     return insert_after(after_key, key, std::move(config));
 }
 
-Config& Config::insert_after(const std::string& after_key, const std::string& key, Config&& other) {    
+Config& Config::insert_after(const std::string& after_key, const std::string& key, Config&& other) {
     try_convert_null_to_json();
 
     __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
