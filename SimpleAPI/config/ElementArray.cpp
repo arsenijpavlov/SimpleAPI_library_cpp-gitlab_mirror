@@ -803,7 +803,7 @@ void ElementArray::parseIni(const std::string &input_string, const bool parse_co
 void ElementArray::parseIni(std::string &&input_string, CommentDesign &design,
                             const int8_t tabulation_level)
 {
-    //TODO (скоро): void ElementArray::parseIni()
+    return; //NOTE: массивы могут парситься и выводиться только в составе другого элемента
 }
 
 void ElementArray::parseIni(std::string &&input_string, const bool parse_comments,
@@ -868,4 +868,14 @@ void ElementArray::parseXml(std::string &&input_string, const bool parse_comment
     CommentDesign design;
     design.with_comments = parse_comments;
     parseXml(std::move(input_string), design);
+}
+
+bool IsElementArray(const IElement &e) noexcept
+{
+    return e.getType() == ValueType::eArray;
+}
+
+bool IsElementArray(const Config &cfg) noexcept
+{
+    return cfg.isArray();
 }

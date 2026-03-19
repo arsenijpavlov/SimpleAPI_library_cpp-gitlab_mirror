@@ -171,6 +171,7 @@ public:
                          const int8_t custom_tabulation_level = -1)     const noexcept  override;
     std::string toJsonString(const CommentDesign &design = {},
                              const int8_t custom_tabulation_level = -1) const noexcept  override;
+    //NOTE: метод в данном контексте не функционален
     std::string toIniString(const CommentDesign &design = {},
                             const int8_t custom_tabulation_level = -1)  const noexcept  override;
     std::string toYamlString(const CommentDesign &design = {},
@@ -219,11 +220,13 @@ public:
     void    parseJson(std::string&& input_string,
                 const bool parse_comments = true, const int8_t tabulation_level = 0)    override;
 
+    //NOTE: в данном контексте не функциональны
     void    parseIni(const std::string& input_string, CommentDesign& design,
                 const int8_t tabulation_level = 0)                                      override;
     void    parseIni(const std::string& input_string,
                 const bool parse_comments = true, const int8_t tabulation_level = 0)    override;
 
+    //NOTE: в данном контексте не функциональны
     void    parseIni(std::string&& input_string, CommentDesign& design,
                 const int8_t tabulation_level = 0)                                      override;
     void    parseIni(std::string&& input_string,
@@ -251,9 +254,7 @@ public:
     // ========================================================================================================== Parser
 };
 
-//TODO: bool IsElementArray(const std::string& str, const ConfigFormat format = ConfigFormat::eJSON) noexcept;
-//TODO: bool IsElementJsonArray(const std::string& str)                         noexcept;
-//TODO: bool IsElementIniArray(const std::string& str)                          noexcept;
-//TODO: bool IsElementArray(const IElement& e)                                  noexcept;
+bool IsElementArray(const IElement &e)                                          noexcept;
+bool IsElementArray(const Config &cfg)                                          noexcept;
 
 #endif // ELEMENT_ARRAY_H

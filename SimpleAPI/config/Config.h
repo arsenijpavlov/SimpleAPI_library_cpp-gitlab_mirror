@@ -439,14 +439,11 @@ public:
     Config& insert_back(const std::string& key, const Config& other);                                                       API_MAP_CONTAINER
     Config& insert_back(const std::string& key, Config&& other);                                                            API_MAP_CONTAINER
 
-    //TODO: имеет смысл сделать аналог для массивов?
+    //TODO: сделать аналог для массивов/variadic
     Config& insert_before(const std::string& before_key, const std::string& key, const Config& other);                      API_MAP_CONTAINER
     Config& insert_before(const std::string& before_key, const std::string& key, Config&& other);                           API_MAP_CONTAINER
     Config& insert_after(const std::string& after_key, const std::string& key, const Config& other);                        API_MAP_CONTAINER
     Config& insert_after(const std::string& after_key, const std::string& key, Config&& other);                             API_MAP_CONTAINER
-
-    //NOTE: в использовании итераторов здесь мало смысла видится
-    //NOTE: функции с произвольным количеством аргументов пока не кажутся необходимыми пользователю API
 
     Config& push_front(const Config& other)                             { return insert_front(other); }                     API_CONTAINER
     Config& push_front(Config&& other)                                  { return insert_front(std::move(other)); }          API_CONTAINER
@@ -696,7 +693,6 @@ public:
     //для совместимости с STL
     friend std::ostream& operator<<(std::ostream& os, const Config& config)                     noexcept;                       API_ALL
     friend std::ostream& operator<<(std::ostream& os, const IElement& config)                   noexcept;                       API_ALL
-    //TODO (потом): дать доступ к toJsonString/toIniString/toYamlString/toXmlString ???
     // ========================================================================================================== String
 
     // File ============================================================================================================

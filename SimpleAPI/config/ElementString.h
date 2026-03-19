@@ -65,9 +65,6 @@ public:
     // ======================================================================================================= Iterators
 };
 
-//не const, потому что предполагается использовать эту же переменную для возврата прочитанного значения
-bool IsElementString(std::string& str, const ConfigFormat format = ConfigFormat::eJSON,
-                     std::string* error_log = nullptr)  noexcept;
 bool IsElementString(const IElement& e)                 noexcept;
 bool IsElementString(const Config& cfg)                 noexcept;
 

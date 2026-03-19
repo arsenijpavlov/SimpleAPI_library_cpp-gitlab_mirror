@@ -22,8 +22,6 @@ public:
         put(key, value);
     }
     explicit ElementJson(const VPairElement& vec)                               noexcept;
-    //TODO: исправить конструктор ElementJson(const IElement& element); сейчас просто init()
-    explicit ElementJson(const IElement& element)                               noexcept        { init(); }
     ~ElementJson()                                                              noexcept        {}
 
     // Comment =========================================================================================================
@@ -313,8 +311,6 @@ public:
     // ========================================================================================================== Parser
 };
 
-//здесь нужна детальная проверка синтаксиса Json? Или только проверка по количеству скобок {{{{[[]]}}}}
-//TODO: bool IsElementJson(const std::string& str)                                      noexcept;
 bool IsElementJson(const IElement& e)                                           noexcept;
 bool IsElementJson(const Config& cfg)                                           noexcept;
 
