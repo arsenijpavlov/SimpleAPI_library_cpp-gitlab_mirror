@@ -116,6 +116,9 @@ TEST(ARRAY, insert) {
 
     array.insert_at(1, "insert1");
     EXPECT_EQ(array[1].getString(), "insert1");
+
+    array.insert_at(15, "insert999");
+    EXPECT_EQ(array.get_back().getString(), "insert999");
 }
 
 TEST(ARRAY, erase_it) {

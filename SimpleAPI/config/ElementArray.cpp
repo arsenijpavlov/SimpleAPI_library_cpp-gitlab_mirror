@@ -169,22 +169,20 @@ void ElementArray::insert_front(VElement &&elements) noexcept {
         m_values.insert(cbegin() + i, std::make_shared<Config>(std::move(elements[i])));
 }
 
-//FIXME: нужна проверка на некорректный индекс
-//FIXME: использовать m_values напрямую!
+//если индекс больше существующего - добавить в конец массива
 void ElementArray::insert_at(const size_t& index, const VElement &elements) noexcept {
-    size_t counter = 0;
-    for(const auto &element : elements) {
-        insert_at(index + counter, element);
-        counter++;
-    }
+    VElement temp_elements = elements;
+    insert_at(index, std::move(temp_elements));
 }
 
-//FIXME: нужна проверка на некорректный индекс
-//FIXME: использовать m_values напрямую!
+//если индекс больше существующего - добавить в конец массива
 void ElementArray::insert_at(const size_t& index, VElement &&elements) noexcept {
     size_t counter = 0;
     for(auto &element : elements) {
-        insert_at(index + counter, std::move(element));
+        if(index+counter < size())
+            m_values.insert(m_values.begin() + index + counter, std::make_shared<Config>(std::move(element)));
+        else
+            m_values.push_back(std::make_shared<Config>(std::move(element)));
         counter++;
     }
 }
