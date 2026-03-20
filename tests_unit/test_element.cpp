@@ -162,3 +162,46 @@ TEST(ELEMENT, not_compare_all_types) {
     EXPECT_NE(el_array,     Config(ValueType::eArray, "asd"));          // вариант без обёртки
     EXPECT_NE(el_array,     Config(ValueType::eArray, Config("asd")));  // вариант с обёрткой
 }
+
+TEST(ELEMENT, create_null_from_variadic) {
+    Config config(ValueType::eNull);
+    EXPECT_TRUE(config.isNull());
+
+    EXPECT_ANY_THROW({ Config config2(ValueType::eNull, 123); });
+}
+
+TEST(ELEMENT, create_bool_from_variadic) {
+    Config config(ValueType::eBool);
+    EXPECT_TRUE(config.isBool());
+
+    Config config2(ValueType::eBool, true);
+    EXPECT_TRUE(config2.isBool());
+    EXPECT_EQ(config2.getBool(), true);
+
+    EXPECT_ANY_THROW({ Config config3(ValueType::eBool, true, false); });
+    EXPECT_ANY_THROW({ Config config3(ValueType::eBool, "true"); });
+}
+
+TEST(ELEMENT, create_number_from_variadic) {
+    Config config(ValueType::eNumber);
+    EXPECT_TRUE(config.isNumber());
+
+    Config config2(ValueType::eNumber, 14);
+    EXPECT_TRUE(config2.isNumber());
+    EXPECT_EQ(config2.getNumber(), 14);
+
+    EXPECT_ANY_THROW({ Config config3(ValueType::eNumber, 14, 15); });
+    EXPECT_ANY_THROW({ Config config3(ValueType::eNumber, true); });
+}
+
+TEST(ELEMENT, create_string_from_variadic) {
+    Config config(ValueType::eString);
+    EXPECT_TRUE(config.isString());
+
+    Config config2(ValueType::eString, "true");
+    EXPECT_TRUE(config2.isString());
+    EXPECT_EQ(config2.getString(), "true");
+
+    EXPECT_ANY_THROW({ Config config3(ValueType::eString, "true", "false"); });
+    EXPECT_ANY_THROW({ Config config3(ValueType::eString, true); });
+}

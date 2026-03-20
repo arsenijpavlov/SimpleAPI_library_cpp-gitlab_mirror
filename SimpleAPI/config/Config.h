@@ -96,22 +96,52 @@ public:
     __ONLY_ALLOWED_TYPES_VARIADIC__(T)
     explicit Config(const ValueType config_type, const T& ... values) : m_value(nullptr) {
         release();
+        std::vector<Config> vec; //ключи тоже будут преобразованы в Config
+        (void)std::initializer_list<int>{(vec.push_back(Config(values)), 0)...};
+
         switch(config_type) {
         default:
         case ValueType::eNull: {
+            if(sizeof...(values) != 0)
+                throw std::invalid_argument("zero arguments required (type Null)");
+
             init();
             break;
         }
         case ValueType::eBool: {
-            m_value = dynamic_cast<IElement*>(new ElementBool());
+            if(sizeof...(values) > 1)
+                throw std::invalid_argument("one argument maximum required (type Bool)");
+            if(!vec[0].isBool())
+                throw std::invalid_argument("incorrect format (type Bool)");
+
+            if(sizeof...(values) == 1)
+                setValue(vec[0]);
+            else
+                m_value = dynamic_cast<IElement*>(new ElementBool());
             break;
         }
         case ValueType::eNumber: {
-            m_value = dynamic_cast<IElement*>(new ElementNumber());
+            if(sizeof...(values) > 1)
+                throw std::invalid_argument("one argument maximum required (type Number)");
+            if(!vec[0].isNumber())
+                throw std::invalid_argument("incorrect format (type Number)");
+
+            if(sizeof...(values) == 1)
+                setValue(vec[0]);
+            else
+                m_value = dynamic_cast<IElement*>(new ElementNumber());
             break;
         }
         case ValueType::eString: {
-            m_value = dynamic_cast<IElement*>(new ElementString());
+            if(sizeof...(values) > 1)
+                throw std::invalid_argument("one argument maximum required (type String)");
+            if(!vec[0].isString())
+                throw std::invalid_argument("incorrect format (type String)");
+
+            if(sizeof...(values) == 1)
+                setValue(vec[0]);
+            else
+                m_value = dynamic_cast<IElement*>(new ElementString());
             break;
         }
         case ValueType::eArray: {
@@ -120,14 +150,13 @@ public:
             break;
         }
         case ValueType::eJson: {
-            //FIXME: заменить на exception
-//            static_assert(sizeof...(values) % 2 == 0, "Even number of arguments required (Json)");
+            if(sizeof...(values) % 2 != 0)
+                throw std::invalid_argument("Even number of arguments required (type Json)");
 
             m_value = dynamic_cast<IElement*>(new ElementJson());
 
-            std::vector<Config> vec; //ключи тоже будут преобразованы в Config
-            (void)std::initializer_list<int>{(vec.emplace_back(Config(values)), 0)...};
             for(size_t i = 0; i < vec.size(); i+=2) {
+                std::cout << "key type: \"" << ToString(vec[i].getType()) << "\"" << std::endl;
                 push_back(vec[i].getString(), vec[i+1]);
             }
             break;
@@ -138,22 +167,52 @@ public:
     __ONLY_ALLOWED_TYPES_VARIADIC__(T)
     explicit Config(const ValueType config_type, T&& ... values) : m_value(nullptr) {
         release();
+        std::vector<Config> vec; //ключи тоже будут преобразованы в Config
+        (void)std::initializer_list<int>{(vec.push_back(Config(std::move(values))), 0)...};
+
         switch(config_type) {
         default:
         case ValueType::eNull: {
+            if(sizeof...(values) != 0)
+                throw std::invalid_argument("zero arguments required (type Null)");
+
             init();
             break;
         }
         case ValueType::eBool: {
-            m_value = dynamic_cast<IElement*>(new ElementBool());
+            if(sizeof...(values) > 1)
+                throw std::invalid_argument("one argument maximum required (type Bool)");
+            if(!vec[0].isBool())
+                throw std::invalid_argument("incorrect format (type Bool)");
+
+            if(sizeof...(values) == 1)
+                setValue(std::move(vec[0]));
+            else
+                m_value = dynamic_cast<IElement*>(new ElementBool());
             break;
         }
         case ValueType::eNumber: {
-            m_value = dynamic_cast<IElement*>(new ElementNumber());
+            if(sizeof...(values) > 1)
+                throw std::invalid_argument("one argument maximum required (type Number)");
+            if(!vec[0].isNumber())
+                throw std::invalid_argument("incorrect format (type Number)");
+
+            if(sizeof...(values) == 1)
+                setValue(std::move(vec[0]));
+            else
+                m_value = dynamic_cast<IElement*>(new ElementNumber());
             break;
         }
         case ValueType::eString: {
-            m_value = dynamic_cast<IElement*>(new ElementString());
+            if(sizeof...(values) > 1)
+                throw std::invalid_argument("one argument maximum required (type String)");
+            if(!vec[0].isString())
+                throw std::invalid_argument("incorrect format (type String)");
+
+            if(sizeof...(values) == 1)
+                setValue(std::move(vec[0]));
+            else
+                m_value = dynamic_cast<IElement*>(new ElementString());
             break;
         }
         case ValueType::eArray: {
@@ -162,13 +221,11 @@ public:
             break;
         }
         case ValueType::eJson: {
-            //FIXME: заменить на exception
-//            static_assert(sizeof...(values) % 2 == 0, "Even number of arguments required (Json)");
+            if(sizeof...(values) % 2 != 0)
+                throw std::invalid_argument("Even number of arguments required (type Json)");
 
             m_value = dynamic_cast<IElement*>(new ElementJson());
 
-            std::vector<Config> vec; //ключи тоже будут преобразованы в Config
-            (void)std::initializer_list<int>{(vec.emplace_back(Config(std::move(values))), 0)...};
             for(size_t i = 0; i < vec.size(); i+=2) {
                 std::cout << "key type: \"" << ToString(vec[i].getType()) << "\"" << std::endl;
                 push_back(vec[i].getString(), std::move(vec[i+1]));
