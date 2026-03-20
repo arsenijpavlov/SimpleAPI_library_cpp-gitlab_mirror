@@ -215,12 +215,12 @@ void Comment::clearDesign() noexcept {
     delCommentDesign();
 }
 
-//FIXME: код дублируется, не нравится
+//NOTE: строки будут проверены как нормализованные (без пробелов)
+//NOTE: ширина колонки не будет проверена
 bool Comment::operator==(const Comment& other) const noexcept {
     if(this == &other)
         return true;
 
-    //NOTE: строки будут проверены как нормализованные (без пробелов)
     if(m_prefix == other.m_prefix)
         return true; /*один и тот же адрес, хотя и невозможно для разных Comment; оба nullptr*/
     else { /*адреса неодинаковые*/
@@ -249,7 +249,6 @@ bool Comment::operator==(const Comment& other) const noexcept {
         }
     }
 
-    //NOTE: ширина колонки не будет проверена
     if(m_comment_design == other.m_comment_design)
         return true; /*один и тот же адрес, хотя и невозможно для разных Comment; оба nullptr*/
     else { /*адреса неодинаковые*/

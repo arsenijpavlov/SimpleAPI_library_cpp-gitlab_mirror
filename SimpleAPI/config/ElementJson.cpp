@@ -1042,7 +1042,6 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
                 is_quotes = !is_quotes;
             }
 
-            //FIXME: в имени переменной не может быть этих знаков! (?)
             //защита от дурака: кавычки, именованные списки, массивы
             if(!is_quotes) {
                 switch(ch_current) {

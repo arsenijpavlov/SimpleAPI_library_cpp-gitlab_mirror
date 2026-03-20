@@ -1254,29 +1254,18 @@ bool Config::isEqual(const std::string &other) const noexcept {
 }
 
 bool Config::containsValue(const Config &config) const noexcept {
-    if(!isContainer()) return false;
-
-    //FIXME: warning предлагает сделать всё через std::any_of, но там муть одна. Непонятно.
     switch(getType()) {
-    default:
-    case ValueType::eNull:
-    case ValueType::eBool:
-    case ValueType::eNumber:
-    case ValueType::eString:    return false;
-    case ValueType::eArray: {
-        for(const auto& cfg : getRange()) {
-            if(*cfg == config)
-                return true;
-        }
-        break;
-    }
-    case ValueType::eJson: {
-        for(const auto& pair : getNamedRange()) {
-            if(*pair.second == config)
-                return true;
-        }
-        break;
-    }
+    case ValueType::eNull:      return true;
+    case ValueType::eBool:      return config.isBool() && getBool() == config.getBool();
+    case ValueType::eNumber:    return config.isNumber() && getNumber() == config.getNumber();
+    case ValueType::eString:    return config.isString() && getString() == config.getString();
+    case ValueType::eArray:     return std::any_of(getRange().cbegin(), getRange().cend(),
+                                    [&config](const std::shared_ptr<Config>& value)
+                                    { return *value == config; });
+    case ValueType::eJson:
+                                return std::any_of(getNamedRange().cbegin(), getNamedRange().cend(),
+                                    [&config](const std::pair<std::string, std::shared_ptr<Config>>& pair)
+                                    { return *pair.second == config; });
     }
 
     return false;

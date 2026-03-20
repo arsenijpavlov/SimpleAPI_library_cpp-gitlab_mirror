@@ -146,3 +146,10 @@ TEST(ARRAY, erase_iterator) {
     array.erase_at(range.begin() + 1);
     EXPECT_EQ(array[1].getNumber(), 3.1);
 }
+
+TEST(ARRAY, contains) {
+    Config array = array_example;
+    Config inner = array[0];
+
+    EXPECT_TRUE(array.containsValue(inner));
+}
