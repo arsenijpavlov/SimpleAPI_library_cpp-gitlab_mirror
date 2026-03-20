@@ -6,7 +6,7 @@
 #include <algorithm>
 
 
-std::string to_string(const CommentType &type) {
+std::string ToString(const CommentType &type) {
     switch(type) {
     case CommentType::eNotComment:          return "not_a_comment";
     case CommentType::eOneLineComment:      return "oneline_comment";

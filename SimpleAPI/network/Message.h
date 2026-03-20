@@ -47,21 +47,21 @@
  *  JSON:{}             - текстовое представление контрольного сообщения (без шифрования)
  * ==============================================================================================*/
 using Packet = std::vector<uint8_t>;
-Packet      convert_to_packet(const std::string& str) noexcept;
-Packet      convert_to_packet(const char* str) noexcept;
-std::string convert_from_packet(const Packet& packet) noexcept;
-std::string to_string(const Packet& packet) noexcept;
+Packet      ConvertToPacket(const std::string& str) noexcept;
+Packet      ConvertToPacket(const char* str) noexcept;
+std::string ConvertFromPacket(const Packet& packet) noexcept;
+std::string ToString(const Packet& packet) noexcept;
 
 enum PacketType {
     eControlType    = 0,
     eDataType       = 1
 };
-std::string to_string(PacketType type) noexcept;
+std::string ToString(PacketType type) noexcept;
 
 enum ApiVersion {
     eVersion_1   = 1
 };
-ApiVersion getLastApiVersion() noexcept;
+ApiVersion GetLastApiVersion() noexcept;
 
 enum CRC {
     eCRC_OFF    = 0,
@@ -108,7 +108,7 @@ public:
     PacketMessage() noexcept : m_sn(0)              { clear(); }
 
     void clear() noexcept;
-    std::string to_string() noexcept;
+    std::string toString() noexcept;
 };
 
 class JsonMessage {
@@ -121,7 +121,7 @@ public:
     JsonMessage(const PacketMessage& pm)            noexcept;
 
     void clear()                                    noexcept;
-    std::string to_string(int arg = -1)             noexcept;
+    std::string toString()                          noexcept;
 };
 
 #endif // MESSAGE_H

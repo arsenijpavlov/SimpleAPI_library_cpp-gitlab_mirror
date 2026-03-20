@@ -29,7 +29,7 @@ private:
 
 public:
     SocketSettings() noexcept :
-        m_api_version               (getLastApiVersion()),
+        m_api_version               (GetLastApiVersion()),
         m_crc_level                 (CRC::eCRC_OFF),
         m_inactivity_timer          (10000),
         m_max_length                (1500),
@@ -49,7 +49,7 @@ public:
     //NOTE: -1 == все накопленные отправить за один заход
     void setMaxMsgsSentOnTick(int max_msgs_sent_on_tick = -1) noexcept      { m_max_msgs_sent_on_tick = max_msgs_sent_on_tick; }
     void setCrcLevel(CRC crc_level = CRC::eCRC_OFF) noexcept                { m_crc_level = crc_level; }
-    void setApiVersion(ApiVersion version = getLastApiVersion()) noexcept   { m_api_version = version; }
+    void setApiVersion(ApiVersion version = GetLastApiVersion()) noexcept   { m_api_version = version; }
     void setRecvPacketCallback(RecvPacketMessageCallback callback = nullptr) noexcept
                                                                             { m_recv_packet_callback = callback; }
     void setRecvJsonCallback(RecvJsonMessageCallback callback = nullptr) noexcept

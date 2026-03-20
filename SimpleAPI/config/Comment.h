@@ -35,7 +35,7 @@ enum class CommentType : uint8_t {
     eMultiLineComment,
     eCommentEnd       //последний требует continue!
 };
-std::string to_string(const CommentType& type);
+std::string ToString(const CommentType& type);
 //#define DEFAULT_COMMENT_COLUMN_SIZE 50
 
 //NOTE: пробел в качестве символа начала комментария использовать крайне не советуется, хотя и возможно, в теории
