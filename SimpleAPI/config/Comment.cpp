@@ -553,7 +553,6 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
     std::string current_string = comment;
     RemoveIllegalSpaces(current_string);
 
-    //разделить на строки необходимой длины (FIXME: может имеет смысл перенести в часть с multiline?)
     SeparatedLines sl = design.opt_multiline_column_size == 0 ? SeparateWithoutColumned(current_string)
                                                               : SeparateToColumns(current_string, design.opt_multiline_column_size);
     VString& result_lines = sl.lines;
