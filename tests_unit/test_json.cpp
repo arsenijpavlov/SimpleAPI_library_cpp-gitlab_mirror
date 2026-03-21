@@ -679,7 +679,21 @@ TEST(JSON, parse_simple_element_with_comments) {
     EXPECT_FALSE(json[0].getComment().suffix().empty());
 }
 
-//TODO: TEST(JSON, parse_element_with_many_prefix_comments)
+TEST(JSON, parse_element_with_many_prefix_comments) {
+    std::string test_file_string = "/*b1*/\n"
+                                   "/*b2*/\n"
+                                   "k=1"
+                                   "//a";
+    Config json;
+
+    json.parseJson(test_file_string, true);
+    EXPECT_EQ(json.size(), 1);
+    EXPECT_TRUE(json.getComment().prefix().empty());
+    EXPECT_FALSE(json[0].getComment().prefix().empty());
+    EXPECT_EQ(json[0].getComment().prefix(), "b1\nb2");
+    EXPECT_FALSE(json[0].getComment().suffix().empty());
+    EXPECT_EQ(json[0].getComment().suffix(), "a");
+}
 
 TEST(JSON, get_deep_inner_element_1) {
     Config json_main(ValueType::eArray);
