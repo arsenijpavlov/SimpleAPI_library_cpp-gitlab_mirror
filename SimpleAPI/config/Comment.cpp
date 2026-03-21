@@ -855,9 +855,15 @@ void CheckComments(const char ch_current, const char ch_next,
     switch(design.temp_type) {
     case CommentType::eOneLineComment: {
         //считывается строго до переноса строки
-        if(ch_current == '\n') {
+        if(ch_current == '\n' || ch_next == 0) {
             design.temp_type = CommentType::eCommentEnd;
-            --iter_counter;
+            if(ch_current == '\n')
+                --iter_counter;
+
+            if(ch_next == 0) {
+                current_comment += ch_current;
+                current_comment += "\n"; //т.к. дальше конец входной строки/файла
+            }
             return;
         }
 
