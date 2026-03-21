@@ -988,7 +988,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
                     || (ch_current == '\n' && last_separator_symbol == ',' && comments[0].find('\n') == std::string::npos)))
             {
                 std::cout << "last_separator_symbol: '"
-                          << (last_separator_symbol == '\n' ? "\\n" : std::string(last_separator_symbol, 1))
+                          << (last_separator_symbol == '\n' ? "\\n" : std::string(&last_separator_symbol, 1))
                           << "'" << std::endl;
                 AppendElementSuffixComment();
             }
