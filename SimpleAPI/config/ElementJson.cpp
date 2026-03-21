@@ -911,7 +911,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
 
     std::string current_comment     = ""; // текущее значение при парсинге
     VString comments;                     // обработанные комментарии
-    size_t value_read_at_line       = 0;
+    ssize_t value_read_at_line       = -1;
 
     auto AppendMainPreviewComment = [&]() {
         if(!comments.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
@@ -943,16 +943,50 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
             comments.clear();
         }
     };
-    auto AppendElementSuffixComment = [&](){
+    auto AppendElementSuffixComment = [&](const bool for_penultimate = false){
         if(!comments.empty()
             && !empty()
-            && get_back().getSuffixComment().empty()
             && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment))
         {
-            get_back().setSuffixComment(comments[0]);
-            DEBUG_LOG("ElementJson: inner Element add SuffixComment: " << "\"" << get_back().getSuffixComment() << "\"");
-            comments.erase(comments.cbegin());
+            if(for_penultimate) {
+                if(get_at(size() - 2).getSuffixComment().empty())
+                {
+                    get_at(size() - 2).setSuffixComment(comments[0]);
+                    DEBUG_LOG("ElementJson: inner Element(penultimate) add SuffixComment: " << "\""
+                              << get_at(size() - 2).getSuffixComment() << "\"");
+                }
+                comments.erase(comments.cbegin());
+            } else {
+                if(get_back().getSuffixComment().empty())
+                {
+                    get_back().setSuffixComment(comments.back());
+                    DEBUG_LOG("ElementJson: inner Element(back) add SuffixComment: " << "\""
+                              << get_back().getSuffixComment() << "\"");
+                }
+                comments.pop_back();
+            }
+
         }
+    };
+
+    //дублирующийся код чтения значения
+    auto ConfirmValue = [&, input_string](const bool for_penultimate = false) -> bool {
+        DEBUG_LOG("ElementJson: current value done: \"" << value << "\"");
+        try {
+            Config element = Config::CreateElementFromString(std::move(value), ConfigFormat::eJSON, design, tabulation_level);
+            push_back(std::move(key), std::move(element));
+            if(get_back().getCommentDesign().opt_multiline_column_size > design.opt_multiline_column_size)
+                design.opt_multiline_column_size = get_back().getCommentDesign().opt_multiline_column_size;
+        } catch (std::exception& e) {
+            error_string = e.what();
+            UpdateState(state, ParseState::eJSON_ERROR_STATE);
+            push_back(key, value); // не смогли обработать, сохраняем как строку
+            return false;
+        }
+        key.clear();
+        value.clear();
+
+        return true;
     };
 
     for(size_t i = 0; i < input_string.size(); i++) {
@@ -1071,31 +1105,11 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
 
                 //следующего символа не существует -> значением является null
                 if(ch_next == 0) {
-                    try {
-                        push_back(std::move(key), std::move(Config()));
-                        if(get_back().getCommentDesign().opt_multiline_column_size > design.opt_multiline_column_size)
-                            design.opt_multiline_column_size = get_back().getCommentDesign().opt_multiline_column_size;
-                    } catch (std::exception& e) {
-                        error_string = e.what();
-                        UpdateState(state, ParseState::eJSON_ERROR_STATE);
-                        push_back(key, value);
-                        break;
-                    }
-                    key.clear();
+                    ConfirmValue(); //для предпоследнего элемента заполнить замыкающий комментарий
 
                     // проверка замыкающего комментария (вторичная)
                     if(value_read_at_line == counter.getLastLineCounter())
-                    {
-                        if(!comments.empty()
-                            && size() > 1
-                            && get_at(size() - 2).getSuffixComment().empty()
-                            && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment))
-                        {
-                            get_at(size() - 2).setSuffixComment(comments[0]);
-                            DEBUG_LOG("ElementJson: inner Element add SuffixComment: " << "\"" << get_at(size() - 2).getSuffixComment() << "\"");
-                            comments.erase(comments.cbegin());
-                        }
-                    }
+                        AppendElementSuffixComment(true);
                 }
 
                 break;
@@ -1147,33 +1161,12 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
                 && (ch_next == 0 || CharInString(ch_next, __SEPARATORS__ " }")
                     || CharInString(ch_current, __SEPARATORS__ " }")))
             {
-                DEBUG_LOG("ElementJson: current value done: \"" << value << "\"");
-                try {
-                    Config element = Config::CreateElementFromString(std::move(value), ConfigFormat::eJSON, design, tabulation_level);
-                    push_back(std::move(key), std::move(element));
-                    if(get_back().getCommentDesign().opt_multiline_column_size > design.opt_multiline_column_size)
-                        design.opt_multiline_column_size = get_back().getCommentDesign().opt_multiline_column_size;
-                } catch (std::exception& e) {
-                    error_string = e.what();
-                    UpdateState(state, ParseState::eJSON_ERROR_STATE);
-                    push_back(key, value);
-                    break;
-                }
-                key.clear();
+                if(!ConfirmValue(true))
+                    break; //если словили exception при обработке - выходим из цикла for()
 
                 // проверка замыкающего комментария (вторичная)
                 if(value_read_at_line == counter.getLastLineCounter())
-                {
-                    if(!comments.empty()
-                        && size() > 1
-                        && get_at(size() - 2).getSuffixComment().empty()
-                        && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment))
-                    {
-                        get_at(size() - 2).setSuffixComment(comments[0]);
-                        DEBUG_LOG("ElementJson: inner Element add SuffixComment: " << "\"" << get_at(size() - 2).getSuffixComment() << "\"");
-                        comments.erase(comments.cbegin());
-                    }
-                }
+                    AppendElementSuffixComment(true);
 
                 // работа с комментариями перед элементом
                 AppendElementPrefixComment();
@@ -1212,26 +1205,39 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
             error_string = "Not found stop of JSON.";
             break;
         }
-        case ParseState::eJSON_ERROR_STATE: {
-            error_string = std::string("Unexpected symbol at [")
-                           + std::to_string(counter.getLastLineCounter())
-                           + "][" + std::to_string(counter.getLastSymbolCounter()) + "]. "
-                           + error_string;
-            DEBUG_LOG("ERROR: " << error_string);
-            throw std::invalid_argument(error_string);
-        }
         default: break;
         }
     }
 
+    /*если файл закончился раньше, чем было обработано последнее прочитанное значение*/
+    if(!value.empty()) {
+        if(design.temp_type == CommentType::eOneLineComment)
+            design.temp_type = CommentType::eNotComment; //сбрасываем для корректной обработки oneline comment
+
+        // запоминаем номер строки, на котором закончили считывать значение
+        value_read_at_line = counter.getLastLineCounter();
+        ConfirmValue();
+
+        // проверка замыкающего комментария (вторичная)
+        AppendElementSuffixComment();
+
+        // работа с комментариями перед элементом
+        AppendElementPrefixComment();
+    }
+
+    if(state == ParseState::eJSON_ERROR_STATE) {
+        error_string = std::string("JSON parse error, unexpected symbol at [")
+                       + std::to_string(counter.getLastLineCounter())
+                       + "][" + std::to_string(counter.getLastSymbolCounter()) + "]. "
+                       + error_string;
+        DEBUG_LOG("ERROR: " << error_string);
+        throw std::invalid_argument(error_string);
+    }
+
     if(is_one_value_format)
         UpdateState(state, ParseState::eJSON_FINISH); //дальше ожидаем завершение файла
-
-    //конечный комментарий ...
-    if(state == ParseState::eJSON_FINISH)
-    {
-        AppendMainSuffixComment();
-    }
+    else if(state == ParseState::eJSON_FINISH)
+        AppendMainSuffixComment(); //конечный комментарий для всего Json
 
     if(state != ParseState::eJSON_FINISH && state != ParseState::eJSON_KEY) {
         //NOTE: в случае ошибки парсинга корректно прочитанные значения сохраняются

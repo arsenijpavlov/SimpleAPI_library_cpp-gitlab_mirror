@@ -14,7 +14,7 @@ int main(int argc, char **argv)
 
 //========================================================================================
 Config json_example(ValueType::eJson,
-                    "key_0", Config("first"), //NOTE: ручной каст к Config обязателен, из-за рекурсивной передачи variadic
+                    "key_0", "first",
                     "key_1", Config(2),
                     "key_2", Config(3.1),
                     "key_3", Config(true)
@@ -644,7 +644,40 @@ TEST(JSON, parse_simple_element) {
     EXPECT_EQ(json.size(), 1);
 }
 
-//TODO: TEST(JSON, parse_simple_element_with_comments)
+TEST(JSON, parse_simple_element_with_comments) {
+    std::string test_file_string = "//b\n"
+                                   "k=1"
+                                   "//a";
+    Config json;
+
+    json.parseJson(test_file_string, true);
+    EXPECT_EQ(json.size(), 1);
+    EXPECT_TRUE(json.getComment().prefix().empty());
+    EXPECT_FALSE(json[0].getComment().prefix().empty());
+    EXPECT_EQ(json[0].getComment().prefix(), "b");
+    EXPECT_FALSE(json[0].getComment().suffix().empty());
+    EXPECT_EQ(json[0].getComment().suffix(), "a");
+
+    json.parseJson(test_file_string);
+    EXPECT_EQ(json.size(), 1);
+
+    test_file_string = "//b\n"
+                       "k=1";
+    json.parseJson(test_file_string, true);
+    EXPECT_EQ(json.size(), 1);
+    EXPECT_TRUE(json.getComment().prefix().empty());
+    EXPECT_FALSE(json[0].getComment().prefix().empty());
+    EXPECT_TRUE(json[0].getComment().suffix().empty());
+
+    test_file_string = "\n"
+                       "k=1"
+                       "//a";
+    json.parseJson(test_file_string, true);
+    EXPECT_EQ(json.size(), 1);
+    EXPECT_TRUE(json.getComment().prefix().empty());
+    EXPECT_TRUE(json[0].getComment().prefix().empty());
+    EXPECT_FALSE(json[0].getComment().suffix().empty());
+}
 
 //TODO: TEST(JSON, parse_element_with_many_prefix_comments)
 
