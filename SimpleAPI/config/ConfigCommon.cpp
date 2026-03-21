@@ -103,12 +103,3 @@ bool CreateEmptyFile(const std::string &file_path, const std::string &start_comm
     return false;
 }
 
-void SymbolCounter(const char ch_current, size_t &line_counter,
-                   size_t &symbol_counter) noexcept
-{
-    if(ch_current == '\n') {
-        line_counter++;
-        symbol_counter = 0; //должен перескочить строго на следующей строке
-    } else symbol_counter++;
-}
-

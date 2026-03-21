@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include "../utils/Utils.h"
+#include "../utils/ParserSymbolCounter.h"
 
 //предобъявление
 #include "Config.h"
@@ -509,9 +510,6 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
     RemoveIllegalSpaces(input_string);
     if(input_string.empty()) return;
 
-    size_t line_counter   = 0;
-    size_t symbol_counter = 0;
-
     design.temp_type = CommentType::eNotComment;
 
     ParseState state                = ParseState::eARRAY_START;
@@ -522,6 +520,7 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
     char last_separator_symbol      = '\n';
     uint16_t inner_json_counter     = 0;
     uint16_t inner_array_counter    = 0;
+    ParserSymbolCounter counter;
 
     std::string current_comment     = ""; // текущее значение при парсинге
     VString comments;                     // обработанные комментарии
@@ -573,8 +572,8 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
         char ch_previous    = i == 0 ? 0 : input_string[i - 1];
         char ch_current     = input_string[i];
         char ch_next        = i < input_string.size() ? input_string[i + 1] : 0;
-        //FIXME: сейчас счётчик работает неправильно, есть много мест в парсере, когда --i
-        SymbolCounter(ch_current, line_counter, symbol_counter);
+
+        counter.check(i, ch_current); //TODO: написать тест для проверки счётчика символов
 
         //поиск комментариев ===================================================
         const bool ext_flag = !is_quotes && (inner_array_counter + inner_json_counter == 0);
@@ -701,7 +700,7 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
                 }
 
                 // проверка замыкающего комментария (вторичная)
-                if(value_read_at_line == line_counter)
+                if(value_read_at_line == counter.getLastLineCounter())
                 {
                     if(!comments.empty()
                         && size() > 1
@@ -733,7 +732,7 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
             //  если комментарий расписан после переноса строки, но до знака }, то комментарий попадёт в суффикс основы
 
             // запоминаем номер строки, на котором закончили считывать значение
-            value_read_at_line = line_counter; //применится перед } и перед считыванием значения
+            value_read_at_line = counter.getLastLineCounter(); //применится перед } и перед считыванием значения
             value.clear();
 
             if(CharInString(ch_current, __SEPARATORS__)) {
@@ -753,8 +752,8 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
         }
         case ParseState::eARRAY_ERROR_STATE: {
             error_string = std::string("Unexpected symbol at [")
-                           + std::to_string(line_counter)
-                           + "][" + std::to_string(symbol_counter) + "]. "
+                           + std::to_string(counter.getLastLineCounter())
+                           + "][" + std::to_string(counter.getLastSymbolCounter()) + "]. "
                            + error_string;
             DEBUG_LOG("ERROR: " << error_string);
             throw std::invalid_argument(error_string);

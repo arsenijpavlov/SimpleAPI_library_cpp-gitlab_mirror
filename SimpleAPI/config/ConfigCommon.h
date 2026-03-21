@@ -50,7 +50,4 @@ bool CreateEmptyFile(const std::string& file_path, const std::string& start_comm
                      const std::string& finish_comment, std::string* error_log = nullptr)                   noexcept;
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= WRITING
 
-void SymbolCounter(const char ch_current, size_t &line_counter,
-                                size_t &symbol_counter)                                                     noexcept;
-
 #endif // JSON_COMMON_H
