@@ -1214,8 +1214,6 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
         if(design.temp_type == CommentType::eOneLineComment)
             design.temp_type = CommentType::eNotComment; //сбрасываем для корректной обработки oneline comment
 
-        // запоминаем номер строки, на котором закончили считывать значение
-        value_read_at_line = counter.getLastLineCounter();
         ConfirmValue();
 
         // проверка замыкающего комментария (вторичная)
