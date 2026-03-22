@@ -17,6 +17,7 @@ public:
     void check(const size_t current_iterator, const char current_ch)    noexcept;
     size_t getLastLineCounter()                                         const noexcept;
     size_t getLastSymbolCounter()                                       const noexcept;
+    size_t getLastIterator()                                            const noexcept;
 };
 
 #endif // PARSER_SYMBOL_COUNTER_H

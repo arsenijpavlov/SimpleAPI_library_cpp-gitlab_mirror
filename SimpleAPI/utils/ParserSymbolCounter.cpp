@@ -6,6 +6,7 @@ void ParserSymbolCounter::check(const size_t current_iterator, const char curren
 {
     if(current_iterator > m_last_iterator)
     {
+        m_last_iterator = current_iterator;
         if(current_ch == '\n')
         {
             m_symbol_counter = 0;
@@ -25,4 +26,9 @@ size_t ParserSymbolCounter::getLastLineCounter() const noexcept
 size_t ParserSymbolCounter::getLastSymbolCounter() const noexcept
 {
     return m_symbol_counter;
+}
+
+size_t ParserSymbolCounter::getLastIterator() const noexcept
+{
+    return m_last_iterator;
 }

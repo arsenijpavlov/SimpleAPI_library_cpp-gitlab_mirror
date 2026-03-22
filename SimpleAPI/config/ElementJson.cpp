@@ -577,7 +577,6 @@ shared_VPairElement::iterator ElementJson::pop_at(const shared_VPairElement::ite
         return m_values.end();
 }
 
-// NOTE: точно знаю, что можно ускорить, а не запрашивать каждый раз поиск по key
 bool ElementJson::isEqual(const IElement &other, const bool compare_comments,
                           const bool map_sort_important) const noexcept
 {
@@ -748,7 +747,7 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
             && inner_design.with_comments
             && !m_values[i].second->getSuffixComment().empty())
         {
-            //NOTE: (ширина колонки многосторчного комментария после значения не влияет на вывод)
+            // ширина колонки многострочного комментария после значения не влияет на вывод
             inner_design.opt_multiline_column_size = 0;
 
             std::string temp = ToComment(m_values[i].second->getSuffixComment(), inner_design, -1);
@@ -773,7 +772,7 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
         && !design.is_in_container
         && !getSuffixComment().empty())
     {
-        //NOTE: (ширина колонки многосторчного комментария после значения не влияет на вывод)
+        // ширина колонки многострочного комментария после значения не влияет на вывод
         inner_design.opt_multiline_column_size = 0;
 
         std::string temp = ToComment(getSuffixComment(), inner_design);
@@ -877,7 +876,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
 {
     using namespace utils;
 
-    /* NOTE: для документации
+    /* NOTE: структура Json (для документации)
      * комментарий json
      * начало json
      * (+комментарий перед ключом)
@@ -1223,25 +1222,20 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
         AppendElementPrefixComment();
     }
 
-    if(state == ParseState::eJSON_ERROR_STATE) {
+    if(state != ParseState::eJSON_FINISH) {
         error_string = std::string("JSON parse error, unexpected symbol at [")
                        + std::to_string(counter.getLastLineCounter())
-                       + "][" + std::to_string(counter.getLastSymbolCounter()) + "]. "
+                           + "][" + std::to_string(counter.getLastSymbolCounter()) + "]: '"
+                       + input_string[counter.getLastIterator()] + "'. "
                        + error_string;
         DEBUG_LOG("ERROR: " << error_string);
+        //NOTE: (ElementJson) в случае ошибки парсинга корректно прочитанные значения сохраняются
+        //clear();
         throw std::invalid_argument(error_string);
     }
 
-    if(is_one_value_format)
-        UpdateState(state, ParseState::eJSON_FINISH); //дальше ожидаем завершение файла
-    else if(state == ParseState::eJSON_FINISH)
+    if(!is_one_value_format)
         AppendMainSuffixComment(); //конечный комментарий для всего Json
-
-    if(state != ParseState::eJSON_FINISH && state != ParseState::eJSON_KEY) {
-        //NOTE: в случае ошибки парсинга корректно прочитанные значения сохраняются
-        //clear();
-        throw std::invalid_argument("JSON parse error, end of JSON structure not found");
-    }
 
     setCommentDesign(design);
 }
