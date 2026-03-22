@@ -74,10 +74,11 @@ public:
         }
     }
 
-    void    unset()                                     noexcept        { m_status = false; }
-    bool    isValid()                                   const noexcept  { return m_status; }
-    T&      value()                                     noexcept        { return m_value; }
-    T       value()                                     const noexcept  { return m_value; }
+    explicit operator bool()                            const noexcept  { return m_status; }
+    void unset()                                        noexcept        { m_status = false; }
+    bool isValid()                                      const noexcept  { return m_status; }
+    T&   value()                                        noexcept        { return m_value; }
+    T    value()                                        const noexcept  { return m_value; }
 
     bool operator==(const T& value)                     const noexcept  { return m_status && m_value == value; }
     bool operator!=(T&& value)                          const noexcept  { return !(*this == value); }
