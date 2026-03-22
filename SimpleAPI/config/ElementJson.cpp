@@ -17,14 +17,17 @@ ElementJson::ElementJson(const JPair &pair) noexcept {
     insert_back(pair.first, pair.second);
 }
 
-ElementJson::ElementJson(const std::string &input_string, const ConfigFormat config_format, const bool enable_comment) noexcept {
+ElementJson::ElementJson(const std::string &input_string, const ConfigFormat config_format, const bool enable_comment) {
     ElementJson temp;
     temp.init();
+
+    m_comment.commentDesign().with_comments = enable_comment;
+    //NOTE: во время парсинга может вернуть exception, если нарушена структура формата JSON
+    // (часть значения всё равно будет корректно прочитана)
     try {
-        m_comment.commentDesign().with_comments = enable_comment;
         temp.parse(input_string, m_comment.commentDesign(), config_format);
-    } catch (std::exception& e) {
-        std::cerr << e.what() << std::endl;
+    } catch(std::exception& e) {
+        throw e; //пробрасываем наверх
     }
 
     *this = std::move(temp);
@@ -822,57 +825,57 @@ void ElementJson::UpdateState(ParseState &state, const ParseState new_state) con
     DEBUG_LOG("Parse Json, upd state: " << to_string(state));
 }
 
-void ElementJson::parse(const std::string &input_string, CommentDesign &design,
-                        const ConfigFormat format, const int8_t tabulation_level)
+std::string  ElementJson::parse(const std::string &input_string, CommentDesign &design,
+                        const ConfigFormat format, const int8_t tabulation_level) noexcept
 {
-    parse(std::move(std::string(input_string)), design, format);
+    return parse(std::move(std::string(input_string)), design, format);
 }
 
-void ElementJson::parse(const std::string &input_string, const ConfigFormat format,
-                        const bool parse_comments, const int8_t tabulation_level)
+std::string ElementJson::parse(const std::string &input_string, const ConfigFormat format,
+                        const bool parse_comments, const int8_t tabulation_level) noexcept
 {
     CommentDesign design;
     design.with_comments = parse_comments;
     parse(input_string, design, format);
 }
 
-void ElementJson::parse(std::string &&input_string, CommentDesign &design,
-                        const ConfigFormat format, const int8_t tabulation_level)
+std::string ElementJson::parse(std::string &&input_string, CommentDesign &design,
+                        const ConfigFormat format, const int8_t tabulation_level) noexcept
 {
     switch(format) {
-    default:
-    case ConfigFormat::eJSON:   parseJson(std::move(input_string), design); break;
-    case ConfigFormat::eINI:    parseIni(std::move(input_string), design);  break;
-    case ConfigFormat::eYAML:   parseYaml(std::move(input_string), design); break;
-    case ConfigFormat::eXML:    parseXml(std::move(input_string), design);  break;
+    case ConfigFormat::eJSON:   return parseJson(std::move(input_string), design);
+    case ConfigFormat::eINI:    return parseIni(std::move(input_string), design);
+    case ConfigFormat::eYAML:   return parseYaml(std::move(input_string), design);
+    case ConfigFormat::eXML:    return parseXml(std::move(input_string), design);
+    default:                    return "unexpected format";
     }
 }
 
-void ElementJson::parse(std::string &&input_string, const ConfigFormat format,
-                        const bool parse_comments, const int8_t tabulation_level)
+std::string ElementJson::parse(std::string &&input_string, const ConfigFormat format,
+                        const bool parse_comments, const int8_t tabulation_level) noexcept
 {
     CommentDesign design;
-    parse(std::move(input_string), design, format, parse_comments);
+    return parse(std::move(input_string), design, format, parse_comments);
 }
 
-void ElementJson::parseJson(const std::string &input_string, CommentDesign &design,
-                            const int8_t tabulation_level)
+std::string ElementJson::parseJson(const std::string &input_string, CommentDesign &design,
+                            const int8_t tabulation_level) noexcept
 {
-    parseJson(std::move(std::string(input_string)), design);
+    return parseJson(std::move(std::string(input_string)), design);
 }
 
-void ElementJson::parseJson(const std::string &input_string, const bool parse_comments,
-                            const int8_t tabulation_level)
+std::string ElementJson::parseJson(const std::string &input_string, const bool parse_comments,
+                            const int8_t tabulation_level) noexcept
 {
     CommentDesign design;
     design.with_comments = parse_comments;
-    parseXml(input_string, design);
+    return parseXml(input_string, design);
 }
 
 // MAIN
 // @TEST(JSON, parse)
-void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
-                            const int8_t tabulation_level)
+std::string ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
+                            const int8_t tabulation_level) noexcept
 {
     using namespace utils;
 
@@ -893,7 +896,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
     clear();
     //пустой документ не является ошибкой синтаксиса
     RemoveIllegalSpaces(input_string);
-    if(input_string.empty()) return;
+    if(input_string.empty()) return {};
 
     design.temp_type = CommentType::eNotComment;
 
@@ -988,7 +991,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
         return true;
     };
 
-    for(size_t i = 0; i < input_string.size(); i++) {
+    for(size_t i = 0; i < input_string.size() && error_string.empty(); i++) {
         char ch_previous    = i == 0 ? 0 : input_string[i - 1];
         char ch_current     = input_string[i];
         char ch_next        = i < input_string.size() ? input_string[i + 1] : 0;
@@ -1209,7 +1212,7 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
     }
 
     /*если файл закончился раньше, чем было обработано последнее прочитанное значение*/
-    if(!value.empty()) {
+    if(!value.empty() && state != ParseState::eJSON_ERROR_STATE) {
         if(design.temp_type == CommentType::eOneLineComment)
             design.temp_type = CommentType::eNotComment; //сбрасываем для корректной обработки oneline comment
 
@@ -1222,111 +1225,117 @@ void ElementJson::parseJson(std::string &&input_string, CommentDesign &design,
         AppendElementPrefixComment();
     }
 
-    if(state != ParseState::eJSON_FINISH) {
+    if(!is_one_value_format)
+        AppendMainSuffixComment(); //конечный комментарий для всего Json
+
+    setCommentDesign(design);
+
+    if(!is_one_value_format && state != ParseState::eJSON_FINISH) {
         error_string = std::string("JSON parse error, unexpected symbol at [")
                        + std::to_string(counter.getLastLineCounter())
-                           + "][" + std::to_string(counter.getLastSymbolCounter()) + "]: '"
+                       + "][" + std::to_string(counter.getLastSymbolCounter()) + "]: '"
                        + input_string[counter.getLastIterator()] + "'. "
                        + error_string;
         DEBUG_LOG("ERROR: " << error_string);
         //NOTE: (ElementJson) в случае ошибки парсинга корректно прочитанные значения сохраняются
         //clear();
-        throw std::invalid_argument(error_string);
     }
 
-    if(!is_one_value_format)
-        AppendMainSuffixComment(); //конечный комментарий для всего Json
-
-    setCommentDesign(design);
+    return error_string;
 }
 
-void ElementJson::parseJson(std::string &&input_string, const bool parse_comments, const int8_t tabulation_level) {
-    CommentDesign design;
-    parseJson(std::move(input_string), design, parse_comments);
-}
-
-void ElementJson::parseIni(const std::string &input_string, CommentDesign &design,
-                           const int8_t tabulation_level)
+std::string ElementJson::parseJson(std::string &&input_string, const bool parse_comments,
+                            const int8_t tabulation_level) noexcept
 {
-    parseIni(std::move(std::string(input_string)), design);
+    CommentDesign design;
+    return parseJson(std::move(input_string), design, parse_comments);
 }
 
-void ElementJson::parseIni(const std::string &input_string, const bool parse_comments,
-                           const int8_t tabulation_level)
+std::string ElementJson::parseIni(const std::string &input_string, CommentDesign &design,
+                           const int8_t tabulation_level) noexcept
+{
+    return parseIni(std::move(std::string(input_string)), design);
+}
+
+std::string ElementJson::parseIni(const std::string &input_string, const bool parse_comments,
+                           const int8_t tabulation_level) noexcept
 {
     CommentDesign design;
     design.with_comments = parse_comments;
-    parseIni(input_string, design);
+    return parseIni(input_string, design);
 }
 
-void ElementJson::parseIni(std::string &&input_string, CommentDesign &design,
-                           const int8_t tabulation_level)
+std::string ElementJson::parseIni(std::string &&input_string, CommentDesign &design,
+                           const int8_t tabulation_level) noexcept
 {
     //TODO (скоро): void ElementJson::parseIni()
+    return "error";
 }
 
-void ElementJson::parseIni(std::string &&input_string, const bool parse_comments,
-                           const int8_t tabulation_level)
+std::string ElementJson::parseIni(std::string &&input_string, const bool parse_comments,
+                           const int8_t tabulation_level) noexcept
 {
     CommentDesign design;
     design.with_comments = parse_comments;
-    parseIni(std::move(input_string), design);
+    return parseIni(std::move(input_string), design);
 }
 
-void ElementJson::parseYaml(const std::string &input_string, CommentDesign &design,
-                            const int8_t tabulation_level)
+std::string ElementJson::parseYaml(const std::string &input_string, CommentDesign &design,
+                            const int8_t tabulation_level) noexcept
 {
-    parseYaml(std::move(std::string(input_string)), design);
+    return parseYaml(std::move(std::string(input_string)), design);
 }
 
-void ElementJson::parseYaml(const std::string &input_string, const bool parse_comments,
-                            const int8_t tabulation_level)
+std::string ElementJson::parseYaml(const std::string &input_string, const bool parse_comments,
+                            const int8_t tabulation_level) noexcept
 {
     CommentDesign design;
     design.with_comments = parse_comments;
-    parseYaml(input_string, design);
+    return parseYaml(input_string, design);
 }
 
-void ElementJson::parseYaml(std::string &&input_string, CommentDesign &design,
-                            const int8_t tabulation_level)
+std::string ElementJson::parseYaml(std::string &&input_string, CommentDesign &design,
+                            const int8_t tabulation_level) noexcept
 {
     //TODO (потом): void ElementJson::parseYaml()
+    return "error";
 }
 
-void ElementJson::parseYaml(std::string &&input_string, const bool parse_comments,
-                            const int8_t tabulation_level)
+std::string ElementJson::parseYaml(std::string &&input_string, const bool parse_comments,
+                            const int8_t tabulation_level) noexcept
 {
     CommentDesign design;
     design.with_comments = parse_comments;
-    parseYaml(std::move(input_string), design);
+    return parseYaml(std::move(input_string), design);
 }
 
-void ElementJson::parseXml(const std::string &input_string, CommentDesign &design,
-                           const int8_t tabulation_level)
+std::string ElementJson::parseXml(const std::string &input_string, CommentDesign &design,
+                           const int8_t tabulation_level) noexcept
 {
-    parseXml(std::move(std::string(input_string)), design);
+    return parseXml(std::move(std::string(input_string)), design);
 }
 
-void ElementJson::parseXml(const std::string &input_string, const bool parse_comments,
-                           const int8_t tabulation_level)
+std::string ElementJson::parseXml(const std::string &input_string, const bool parse_comments,
+                           const int8_t tabulation_level) noexcept
 {
     CommentDesign design;
     design.with_comments = parse_comments;
-    parseXml(input_string, design);
+    return parseXml(input_string, design);
 }
 
-void ElementJson::parseXml(std::string &&input_string, CommentDesign &design,
-                           const int8_t tabulation_level)
+std::string ElementJson::parseXml(std::string &&input_string, CommentDesign &design,
+                           const int8_t tabulation_level) noexcept
 {
     //TODO (потом): void ElementJson::parseXml()
+    return "error";
 }
 
-void ElementJson::parseXml(std::string &&input_string, const bool parse_comments,
-                           const int8_t tabulation_level)
+std::string ElementJson::parseXml(std::string &&input_string, const bool parse_comments,
+                           const int8_t tabulation_level) noexcept
 {
     CommentDesign design;
     design.with_comments = parse_comments;
-    parseXml(std::move(input_string), design);
+    return parseXml(std::move(input_string), design);
 }
 
 

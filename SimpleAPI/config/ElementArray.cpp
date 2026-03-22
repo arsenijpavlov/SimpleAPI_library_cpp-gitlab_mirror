@@ -439,55 +439,57 @@ void ElementArray::UpdateState(ParseState &state, const ParseState new_state) co
     DEBUG_LOG("Parse Array, upd state: " << to_string(state) << std::endl);
 }
 
-void ElementArray::parse(const std::string &input_string, CommentDesign &design,
-                         const ConfigFormat format, const int8_t tabulation_level)
+std::string ElementArray::parse(const std::string &input_string, CommentDesign &design,
+                         const ConfigFormat format, const int8_t tabulation_level) noexcept
 {
-    parse(std::move(std::string(input_string)), design, format);
+    return parse(std::move(std::string(input_string)), design, format);
 }
 
-void ElementArray::parse(const std::string &input_string, const ConfigFormat format,
-                         const bool parse_comments, const int8_t tabulation_level)
+std::string ElementArray::parse(const std::string &input_string, const ConfigFormat format,
+                         const bool parse_comments, const int8_t tabulation_level) noexcept
 {
     CommentDesign design;
     design.with_comments = parse_comments;
-    parse(input_string, design, format);
+    return parse(input_string, design, format);
 }
 
-void ElementArray::parse(std::string &&input_string, CommentDesign &design,
-                         const ConfigFormat format, const int8_t tabulation_level)
+std::string ElementArray::parse(std::string &&input_string, CommentDesign &design,
+                         const ConfigFormat format, const int8_t tabulation_level) noexcept
 {
     switch(format) {
-    default:
-    case ConfigFormat::eJSON:   parseJson(std::move(input_string), design); break;
-    case ConfigFormat::eINI:    parseIni(std::move(input_string), design);  break;
-    case ConfigFormat::eYAML:   parseYaml(std::move(input_string), design); break;
-    case ConfigFormat::eXML:    parseXml(std::move(input_string), design);  break;
+    case ConfigFormat::eJSON:   return parseJson(std::move(input_string), design);
+    case ConfigFormat::eINI:    return parseIni(std::move(input_string), design);
+    case ConfigFormat::eYAML:   return parseYaml(std::move(input_string), design);
+    case ConfigFormat::eXML:    return parseXml(std::move(input_string), design);
+    default:                    return "unexpected format";
     }
 }
 
-void ElementArray::parse(std::string &&input_string, const ConfigFormat format,
-                         const bool parse_comments, const int8_t tabulation_level)
+std::string ElementArray::parse(std::string &&input_string, const ConfigFormat format,
+                         const bool parse_comments, const int8_t tabulation_level) noexcept
 {
     CommentDesign design;
     design.with_comments = parse_comments;
-    parse(std::move(input_string), design, format);
+    return parse(std::move(input_string), design, format);
 }
 
-void ElementArray::parseJson(const std::string &input_string, CommentDesign &design,
-                             const int8_t tabulation_level)
+std::string ElementArray::parseJson(const std::string &input_string, CommentDesign &design,
+                             const int8_t tabulation_level) noexcept
 {
-    parseJson(std::move(std::string(input_string)), design);
+    return parseJson(std::move(std::string(input_string)), design);
 }
 
-void ElementArray::parseJson(const std::string &input_string, const bool parse_comments, const int8_t tabulation_level) {
+std::string ElementArray::parseJson(const std::string &input_string, const bool parse_comments,
+                             const int8_t tabulation_level) noexcept
+{
     CommentDesign design;
     design.with_comments = parse_comments;
-    parseXml(input_string, design);
+    return parseXml(input_string, design);
 }
 
 // @TEST(JSON, parse)
-void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
-                             const int8_t tabulation_level)
+std::string ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
+                             const int8_t tabulation_level) noexcept
 {
     using namespace utils;
 
@@ -508,7 +510,7 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
     clear();
     //пустой документ не является ошибкой синтаксиса
     RemoveIllegalSpaces(input_string);
-    if(input_string.empty()) return;
+    if(input_string.empty()) return {};
 
     design.temp_type = CommentType::eNotComment;
 
@@ -568,7 +570,7 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
         }
     };
 
-    for(size_t i = 0; i < input_string.size(); i++) {
+    for(size_t i = 0; i < input_string.size() && error_string.empty(); i++) {
         char ch_previous    = i == 0 ? 0 : input_string[i - 1];
         char ch_current     = input_string[i];
         char ch_next        = i < input_string.size() ? input_string[i + 1] : 0;
@@ -750,14 +752,6 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
             error_string = "Not found stop of ARRAY.";
             break;
         }
-        case ParseState::eARRAY_ERROR_STATE: {
-            error_string = std::string("Unexpected symbol at [")
-                           + std::to_string(counter.getLastLineCounter())
-                           + "][" + std::to_string(counter.getLastSymbolCounter()) + "]. "
-                           + error_string;
-            DEBUG_LOG("ERROR: " << error_string);
-            throw std::invalid_argument(error_string);
-        }
         default: break;
         }
     }
@@ -768,105 +762,114 @@ void ElementArray::parseJson(std::string &&input_string, CommentDesign &design,
         AppendMainSuffixComment();
     }
 
+    setCommentDesign(design);
     if(state != ParseState::eARRAY_FINISH && state != ParseState::eARRAY_VALUE) {
-        //NOTE: в случае ошибки парсинга корректно прочитанные значения сохраняются
-//        clear();
-        throw std::invalid_argument("ARRAY parse error, end of JSON array structure not found");
+        error_string = std::string("JSON parse error, unexpected symbol at [")
+                       + std::to_string(counter.getLastLineCounter())
+                       + "][" + std::to_string(counter.getLastSymbolCounter()) + "]: '"
+                       + input_string[counter.getLastIterator()] + "'. "
+                       + error_string;
+        DEBUG_LOG("ERROR: " << error_string);
+        //NOTE: (ElementArray) в случае ошибки парсинга корректно прочитанные значения сохраняются
+        //clear();
     }
 
-    setCommentDesign(design);
+    return error_string;
 }
 
-void ElementArray::parseJson(std::string &&input_string, const bool parse_comments,
-                             const int8_t tabulation_level)
+std::string ElementArray::parseJson(std::string &&input_string, const bool parse_comments,
+                             const int8_t tabulation_level) noexcept
 {
     CommentDesign design;
     design.with_comments = parse_comments;
-    parseJson(std::move(input_string), design);
+    return parseJson(std::move(input_string), design);
 }
 
-void ElementArray::parseIni(const std::string &input_string, CommentDesign &design,
-                            const int8_t tabulation_level)
+std::string ElementArray::parseIni(const std::string &input_string, CommentDesign &design,
+                            const int8_t tabulation_level) noexcept
 {
-    parseIni(std::move(std::string(input_string)), design);
+    return parseIni(std::move(std::string(input_string)), design);
 }
 
-void ElementArray::parseIni(const std::string &input_string, const bool parse_comments,
-                            const int8_t tabulation_level)
-{
-    CommentDesign design;
-    design.with_comments = parse_comments;
-    parseIni(input_string, design);
-}
-
-void ElementArray::parseIni(std::string &&input_string, CommentDesign &design,
-                            const int8_t tabulation_level)
-{
-    return; //NOTE: массивы могут парситься и выводиться только в составе другого элемента
-}
-
-void ElementArray::parseIni(std::string &&input_string, const bool parse_comments,
-                            const int8_t tabulation_level)
+std::string ElementArray::parseIni(const std::string &input_string, const bool parse_comments,
+                            const int8_t tabulation_level) noexcept
 {
     CommentDesign design;
     design.with_comments = parse_comments;
-    parseIni(std::move(input_string), design);
+    return parseIni(input_string, design);
 }
 
-void ElementArray::parseYaml(const std::string &input_string, CommentDesign &design,
-                             const int8_t tabulation_level)
+std::string ElementArray::parseIni(std::string &&input_string, CommentDesign &design,
+                            const int8_t tabulation_level) noexcept
 {
-    parseYaml(std::move(std::string(input_string)), design);
+    //NOTE: массивы могут парситься и выводиться только в составе другого элемента
+    return "parse Array for INI format not resolved";
 }
 
-void ElementArray::parseYaml(const std::string &input_string, const bool parse_comments,
-                             const int8_t tabulation_level)\
+std::string ElementArray::parseIni(std::string &&input_string, const bool parse_comments,
+                            const int8_t tabulation_level) noexcept
 {
     CommentDesign design;
     design.with_comments = parse_comments;
-    parseYaml(input_string, design);
+    return parseIni(std::move(input_string), design);
 }
 
-void ElementArray::parseYaml(std::string &&input_string, CommentDesign &design,
-                             const int8_t tabulation_level)
+std::string ElementArray::parseYaml(const std::string &input_string, CommentDesign &design,
+                             const int8_t tabulation_level) noexcept
+{
+    return parseYaml(std::move(std::string(input_string)), design);
+}
+
+std::string ElementArray::parseYaml(const std::string &input_string, const bool parse_comments,
+                             const int8_t tabulation_level) noexcept
+{
+    CommentDesign design;
+    design.with_comments = parse_comments;
+    return parseYaml(input_string, design);
+}
+
+std::string ElementArray::parseYaml(std::string &&input_string, CommentDesign &design,
+                             const int8_t tabulation_level) noexcept
 {
     //TODO (потом): void ElementArray::parseYaml()
+    return "error";
 }
 
-void ElementArray::parseYaml(std::string &&input_string, const bool parse_comments,
-                             const int8_t tabulation_level)
+std::string ElementArray::parseYaml(std::string &&input_string, const bool parse_comments,
+                             const int8_t tabulation_level) noexcept
 {
     CommentDesign design;
     design.with_comments = parse_comments;
-    parseYaml(std::move(input_string), design);
+    return parseYaml(std::move(input_string), design);
 }
 
-void ElementArray::parseXml(const std::string &input_string, CommentDesign &design,
-                            const int8_t tabulation_level)
+std::string ElementArray::parseXml(const std::string &input_string, CommentDesign &design,
+                            const int8_t tabulation_level) noexcept
 {
-    parseXml(std::move(std::string(input_string)), design);
+    return parseXml(std::move(std::string(input_string)), design);
 }
 
-void ElementArray::parseXml(const std::string &input_string, const bool parse_comments,
-                            const int8_t tabulation_level)
+std::string ElementArray::parseXml(const std::string &input_string, const bool parse_comments,
+                            const int8_t tabulation_level) noexcept
 {
     CommentDesign design;
     design.with_comments = parse_comments;
-    parseXml(input_string, design);
+    return parseXml(input_string, design);
 }
 
-void ElementArray::parseXml(std::string &&input_string, CommentDesign &design,
-                            const int8_t tabulation_level)
+std::string ElementArray::parseXml(std::string &&input_string, CommentDesign &design,
+                            const int8_t tabulation_level) noexcept
 {
     //TODO (потом): void ElementArray::parseXml()
+    return "error";
 }
 
-void ElementArray::parseXml(std::string &&input_string, const bool parse_comments,
-                            const int8_t tabulation_level)
+std::string ElementArray::parseXml(std::string &&input_string, const bool parse_comments,
+                            const int8_t tabulation_level) noexcept
 {
     CommentDesign design;
     design.with_comments = parse_comments;
-    parseXml(std::move(input_string), design);
+    return parseXml(std::move(input_string), design);
 }
 
 bool IsElementArray(const IElement &e) noexcept

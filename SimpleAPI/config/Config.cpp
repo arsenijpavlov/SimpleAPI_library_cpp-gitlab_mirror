@@ -13,6 +13,29 @@
 #include <regex>
 #include <fstream>
 
+//Вспомогательная функция
+bool WriteStringToFile(const std::string& file_path, std::string&& content) noexcept
+{
+    std::ofstream file;
+    file.open(file_path, std::ios::out);
+    if(!file.is_open()) {
+        std::cerr << "cannot create file: \"" << file_path << "\"" << std::endl;
+        return false;
+    }
+
+    try {
+        file.write(content.c_str(), content.length());
+    } catch(std::exception& e) {
+        std::cerr << "exception while \"" << file_path << "\" writing: " << strerror(errno) << std::endl;
+        file.close();
+        return false;
+    }
+
+    file.close();
+    return true;
+}
+
+
 void Config::release() noexcept {
     if(!m_value)
     {
@@ -1301,25 +1324,41 @@ std::ostream &operator<<(std::ostream &os, const IElement &config) noexcept {
     return os;
 }
 
-Config &Config::readFile(const std::string &file_path, const ConfigFormat format,
-                         const bool with_comments, std::string *error_log)
+bool Config::readFile(const std::string &file_path, const ConfigFormat format,
+                         const bool with_comments, std::string *error_log) noexcept
 {
-    *this = ReadFile(file_path, format, with_comments, error_log);
-    return *this;
+    switch(format) {
+    case ConfigFormat::eJSON:   return readFileJson(file_path, with_comments, error_log);
+    case ConfigFormat::eINI:    return readFileIni(file_path, with_comments, error_log);
+    // case ConfigFormat::eYAML:
+    // case ConfigFormat::eXML:
+    default: break;
+    }
+
+    m_error_str = "unexpected ConfigFormat";
+    return false;
 }
 
-Config &Config::readFileJson(const std::string &file_path, const bool with_comments,
-                             std::string *error_log)
-{
-    *this = ReadFileJson(file_path, with_comments, error_log);
-    return *this;
+bool Config::readFileJson(const std::string &file_path, const bool with_comments,
+                             std::string *error_log) noexcept
+{    
+    std::string input_str;
+    if(GetAllStringsFromFile(file_path, input_str, &m_error_str.value())) {
+        return parseJson(input_str, with_comments, error_log);
+    }
+
+    return false;
 }
 
-Config &Config::readFileIni(const std::string &file_path, const bool with_comments,
-                            std::string *error_log)
+bool Config::readFileIni(const std::string &file_path, const bool with_comments,
+                            std::string *error_log) noexcept
 {
-    *this = ReadFileIni(file_path, with_comments, error_log);
-    return *this;
+    std::string input_str;
+    if(GetAllStringsFromFile(file_path, input_str, &m_error_str.value())) {
+        return parseIni(input_str, with_comments, error_log);
+    }
+
+    return false;
 }
 
 bool Config::writeFile(const std::string &file_path,  const ConfigFormat format,
@@ -1355,36 +1394,38 @@ bool Config::writeFileIni(const std::string &file_path, const CommentDesign &des
     return WriteFileIni(*this, file_path, n_design, custom_tabulation_level);
 }
 
-Config &Config::parse(const std::string &content, const ConfigFormat format,
-                      const bool with_comments, std::string *error_log)
+bool Config::parse(const std::string &content, const ConfigFormat format,
+                      const bool with_comments, std::string *error_log) noexcept
 {
     release();
-    *this = Parse(content, format, with_comments, error_log);
-    return *this;
+
+    switch(format) {
+    case ConfigFormat::eJSON:   return parseJson(content, with_comments, error_log);
+    case ConfigFormat::eINI:    return parseIni(content, with_comments, error_log);
+    // case ConfigFormat::eYAML:
+    // case ConfigFormat::eXML:
+    default:                    break;
+    }
+
+    Config out;
+    out.m_error_str = "unexpected ConfigFormat";
+    return false;
 }
 
-Config &Config::parseArray(const std::string &content, const bool with_comments,
-                           const int8_t tabulation_level, std::string* error_log)
-{
-    release();
-    m_value = new ElementArray(content, ConfigFormat::eJSON, with_comments);
-    return *this;
-}
-
-Config &Config::parseJson(const std::string &content, const bool with_comments,
-                          const int8_t tabulation_level, std::string* error_log)
+bool Config::parseJson(const std::string &content, const bool with_comments,
+                       std::string* error_log) noexcept
 {
     release();
     m_value = new ElementJson(content, ConfigFormat::eJSON, with_comments);
-    return *this;
+    return !m_error_str.isValid();
 }
 
-Config &Config::parseIni(const std::string &content, const bool with_comments,
-                         const int8_t tabulation_level, std::string* error_log)
+bool Config::parseIni(const std::string &content, const bool with_comments,
+                      std::string* error_log) noexcept
 {
     release();
-    *this = ParseIni(content, with_comments, tabulation_level, error_log);
-    return *this;
+    m_value = new ElementJson(content, ConfigFormat::eINI, with_comments);
+    return !m_error_str.isValid();
 }
 
 shared_VElement::iterator Config::array_begin() {
@@ -1479,13 +1520,15 @@ Config Config::CreateElementFromString(std::string &&value_string, const ConfigF
             return Config(value_string);
         }
     }
-    int8_t new_tab_lvl = tabulation_level == -1 ? -1 : tabulation_level + 1;
+    int8_t new_tab_lvl = tabulation_level == -1 ? -1 : tabulation_level + 1; //FIXME: зачем при парсинге?
     /*ARRAY*/ {
         if(first == '[' && last == ']') {
             try {
                 Config array;
                 array.setCommentDesign(design);
-                array.parseArray(value_string, design.with_comments, new_tab_lvl);
+                ElementArray el_arr(value_string, ConfigFormat::eJSON, design.with_comments);
+                array.setValue(el_arr);
+
                 return array;
             } catch(...) {}
         }
@@ -1495,7 +1538,7 @@ Config Config::CreateElementFromString(std::string &&value_string, const ConfigF
             try {
                 Config json;
                 json.setCommentDesign(design);
-                json.parseJson(value_string, design.with_comments, new_tab_lvl);
+                json.parseJson(value_string, design.with_comments);
                 return Config(json);
             } catch(...) {}
         }
@@ -1506,40 +1549,48 @@ Config Config::CreateElementFromString(std::string &&value_string, const ConfigF
 }
 
 
-
-Config ReadFile(const std::string &file_path, const ConfigFormat format,
-                const bool with_comments, std::string *error_log)
+std::pair<bool, Config> ReadFile(const std::string &file_path, const ConfigFormat format,
+                const bool with_comments, std::string *error_log) noexcept
 {
     switch(format) {
     case ConfigFormat::eJSON:   return ReadFileJson(file_path, with_comments, error_log);
     case ConfigFormat::eINI:    return ReadFileIni(file_path, with_comments, error_log);
 //    case ConfigFormat::eYAML:
 //    case ConfigFormat::eXML:
-    default:                    return Config{};
+    default: break;
     }
+
+    Config out;
+    out.m_error_str = "unexpected ConfigFormat";
+    return std::make_pair(false, out);
 }
 
-Config ReadFileJson(const std::string &file_path, const bool with_comments,
-                    std::string *error_log)
+std::pair<bool, Config> ReadFileJson(const std::string &file_path, const bool with_comments,
+                    std::string *error_log) noexcept
 {
     std::string input_str;
-    if(GetAllStringsFromFile(file_path, input_str)) {
-        Config ret = ParseJson(input_str, with_comments, 0, error_log);
-        return ret;
+    Config out;
+    out.m_error_str.set("");
+
+    if(GetAllStringsFromFile(file_path, input_str, &out.m_error_str.value())) {
+        return ParseJson(input_str, with_comments, error_log);
     }
 
-    return Config{};
+    return std::make_pair(false, out);
 }
 
-Config ReadFileIni(const std::string &file_path, const bool with_comments,
-                    std::string *error_log)
+std::pair<bool, Config> ReadFileIni(const std::string &file_path, const bool with_comments,
+                    std::string *error_log) noexcept
 {
     std::string input_str;
-    if(GetAllStringsFromFile(file_path, input_str)) {
-        return ParseIni(input_str, with_comments, 0, error_log);
+    Config out;
+    out.m_error_str.set("");
+
+    if(GetAllStringsFromFile(file_path, input_str, &out.m_error_str.value())) {
+        return ParseIni(input_str, with_comments, error_log);
     }
 
-    return Config{};
+    return std::make_pair(false, out);
 }
 
 //NOTE: eONLY_VALUE выводит переменную в формате JSON без пробелов и комментариев
@@ -1562,54 +1613,37 @@ bool WriteFileIni(const Config& config, const std::string& file_path,
     return WriteStringToFile(file_path, config.toString(ConfigFormat::eINI, design, custom_tabulation_level));
 }
 
-bool WriteStringToFile(const std::string& file_path, std::string&& content) noexcept
-{
-    std::ofstream file;
-    file.open(file_path, std::ios::out);
-    if(!file.is_open()) {
-        std::cerr << "cannot create file: \"" << file_path << "\"" << std::endl;
-        return false;
-    }
-
-    try {
-        file.write(content.c_str(), content.length());
-    } catch(std::exception& e) {
-        std::cerr << "exception while \"" << file_path << "\" writing: " << strerror(errno) << std::endl;
-        file.close();
-        return false;
-    }
-
-    file.close();
-    return true;
-}
-
 //NOTE: массивы отдельно спарсить нельзя - только в составе полного конфига (1 элемент - это тоже конфиг)
-Config Parse(const std::string &content, const ConfigFormat format,
-             const bool with_comments, std::string *error_log)
+std::pair<bool, Config> Parse(const std::string &content, const ConfigFormat format,
+             const bool with_comments, std::string *error_log) noexcept
 {
     switch(format) {
-    case ConfigFormat::eJSON:   return ParseJson(content, with_comments, 0, error_log);
-    case ConfigFormat::eINI:    return ParseIni(content, with_comments, 0, error_log);
+    case ConfigFormat::eJSON:   return ParseJson(content, with_comments, error_log);
+    case ConfigFormat::eINI:    return ParseIni(content, with_comments, error_log);
 //    case ConfigFormat::eYAML:
 //    case ConfigFormat::eXML:
-    default:                    return Config{};
+    default:                    break;
     }
+
+    Config out;
+    out.m_error_str = "unexpected ConfigFormat";
+    return std::make_pair(false, out);
 }
 
-Config ParseJson(const std::string &content, const bool with_comments,
-                 const int8_t tabulation_level, std::string* error_log)
+std::pair<bool, Config> ParseJson(const std::string &content, const bool with_comments,
+                                  std::string* error_log) noexcept
 {
     Config ret(ValueType::eJson);
-    ret.parseJson(content, with_comments, tabulation_level, error_log);
+    bool result = ret.parseJson(content, with_comments, error_log);
 
-    return ret;
+    return std::make_pair(result, ret);
 }
 
-Config ParseIni(const std::string &content, const bool with_comments,
-                const int8_t tabulation_level, std::string* error_log)
+std::pair<bool, Config> ParseIni(const std::string &content, const bool with_comments,
+                                 std::string* error_log) noexcept
 {
     Config ret(ValueType::eJson);
-    ret.parseIni(content, with_comments, tabulation_level, error_log);
+    bool result = ret.parseIni(content, with_comments, error_log);
 
-    return {};
+    return std::make_pair(result, ret);
 }

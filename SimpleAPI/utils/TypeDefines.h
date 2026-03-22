@@ -1,6 +1,9 @@
 #ifndef TYPE_DEFINES_H
 #define TYPE_DEFINES_H
 
+#include <type_traits>
+
+
 #define __ONLY_ALLOWED_TYPES__(ARG) \
 template<typename ARG, \
                        typename std::enable_if< \
@@ -38,5 +41,9 @@ template<typename ARG, \
                                                 std::is_arithmetic<     typename std::decay<ARG>::type>::value \
                                                 && !std::is_same<       typename std::decay<ARG>::type, bool>::value \
                            >::type* = nullptr>
+
+template<bool...> struct bool_pack;
+template<bool... Values>
+struct all_true : std::is_same<bool_pack<Values..., true>, bool_pack<true, Values...>> {};
 
 #endif // TYPE_DEFINES_H

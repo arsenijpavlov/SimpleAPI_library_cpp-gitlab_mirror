@@ -11,6 +11,8 @@
 #include "ElementString.h"
 #include "../utils/OnlySizetOrString.h"
 
+#include "../utils/Optional.h"
+
 template<typename T>
 struct is_valid_config_type {
     static constexpr bool value =
@@ -23,9 +25,6 @@ struct is_valid_config_type {
         // || std::is_same<       typename std::decay<T>::type, const char*>::value
         ;
 };
-template<bool...> struct bool_pack;
-template<bool... bs>
-struct all_true : std::is_same<bool_pack<bs..., true>, bool_pack<true, bs...>> {};
 
 #define __ONLY_ALLOWED_TYPES_VARIADIC__(ARG) \
     template<typename ... ARG, \
@@ -40,9 +39,36 @@ struct all_true : std::is_same<bool_pack<bs..., true>, bool_pack<true, bs...>> {
              >::type* = nullptr, typename ARG2>
 
 
+//ПРЕДВАРИТЕЛЬНЫЕ ОБЪЯВЛЕНИЯ
+//пара <корректность чтения, итоговый Config>
+std::pair<bool, Config> ReadFile(const std::string& file_path, const ConfigFormat format,
+                                 const bool with_comments = false, std::string* error_log = nullptr)    noexcept;
+std::pair<bool, Config> ReadFileJson(const std::string& file_path, const bool with_comments = false,
+                                     std::string* error_log = nullptr)                                  noexcept;
+std::pair<bool, Config> ReadFileIni(const std::string& file_path, const bool with_comments = false,
+                                    std::string* error_log = nullptr)                                   noexcept;
+
+//return - удалось записать файл или нет
+bool WriteFile(const Config& config, const std::string& file_path,
+               const ConfigFormat format, const CommentDesign &design = {},
+               const uint8_t custom_tabulation_level = 0)                                               noexcept;
+bool WriteFileJson(const Config& config, const std::string& file_path,
+                   const CommentDesign &design = {}, const uint8_t custom_tabulation_level = 0)         noexcept;
+bool WriteFileIni(const Config& config, const std::string& file_path,
+                  const CommentDesign &design = {}, const uint8_t custom_tabulation_level = 0)          noexcept;
+
+//пара <корректность чтения, итоговый Config>
+std::pair<bool, Config> Parse(const std::string& content, const ConfigFormat format,
+                              const bool with_comments = false, std::string* error_log = nullptr)       noexcept;
+std::pair<bool, Config> ParseJson(const std::string& content, const bool with_comments = false,
+                                  std::string* error_log = nullptr)                                     noexcept;
+std::pair<bool, Config> ParseIni(const std::string& content, const bool with_comments = false,
+                                 std::string* error_log = nullptr)                                      noexcept;
+
 class Config {
 private:
     IElement* m_value;
+    Optional<std::string> m_error_str;
 
 public:
     Config()                                noexcept : m_value(nullptr)         { init(); }
@@ -754,12 +780,12 @@ public:
 
     // File ============================================================================================================
     //return - получившийся распаршенный корневой элемент, ElementNull если не удалось чтение
-    Config&         readFile(const std::string& file_path, const ConfigFormat format,
-                     const bool with_comments = false, std::string* error_log = nullptr);                                       API_ALL
-    Config&         readFileJson(const std::string& file_path, const bool with_comments = false,
-                     std::string* error_log = nullptr);                                                                         API_ALL
-    Config&         readFileIni(const std::string& file_path, const bool with_comments = false,
-                     std::string* error_log = nullptr);                                                                         API_ALL
+    bool            readFile(const std::string& file_path, const ConfigFormat format,
+                     const bool with_comments = false, std::string* error_log = nullptr)            noexcept;                   API_ALL
+    bool            readFileJson(const std::string& file_path, const bool with_comments = false,
+                     std::string* error_log = nullptr)                                              noexcept;                   API_ALL
+    bool            readFileIni(const std::string& file_path, const bool with_comments = false,
+                     std::string* error_log = nullptr)                                              noexcept;                   API_ALL
 
     //return - удалось записать файл или нет
     bool            writeFile(const std::string& file_path, const ConfigFormat format,
@@ -772,52 +798,43 @@ public:
     // ============================================================================================================ File
 
     // Parser ==========================================================================================================
-    Config&         parse(const std::string& content, const ConfigFormat format,
-                     const bool with_comments = false, std::string* error_log = nullptr);                                       API_ALL
-    Config&         parseArray(const std::string& content, const bool with_comments = false,
-                     const int8_t tabulation_level = 0, std::string* error_log = nullptr);                                      API_ALL
-    Config&         parseJson(const std::string& content, const bool with_comments = false,
-                     const int8_t tabulation_level = 0, std::string* error_log = nullptr);                                      API_ALL
-    Config&         parseIni(const std::string& content, const bool with_comments = false,
-                     const int8_t tabulation_level = 0, std::string* error_log = nullptr);                                      API_ALL
+    bool            parse(const std::string& content, const ConfigFormat format,
+                        const bool with_comments = false, std::string* error_log = nullptr)         noexcept;                   API_ALL
+    bool            parseJson(const std::string& content, const bool with_comments = false,
+                        std::string* error_log = nullptr)                                           noexcept;                   API_ALL
+    bool            parseIni(const std::string& content, const bool with_comments = false,
+                        std::string* error_log = nullptr)                                           noexcept;                   API_ALL
     // ========================================================================================================== Parser
 
     //STATIC
     static Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
                                           CommentDesign& design,
                                           const int8_t tabulation_level = 0);
+
+    //пара <корректность чтения, итоговый Config>
+    friend std::pair<bool, Config> ReadFile(const std::string& file_path, const ConfigFormat format,
+                                            const bool with_comments, std::string* error_log)           noexcept;
+    friend std::pair<bool, Config> ReadFileJson(const std::string& file_path, const bool with_comments,
+                                                std::string* error_log)                                 noexcept;
+    friend std::pair<bool, Config> ReadFileIni(const std::string& file_path, const bool with_comments,
+                                               std::string* error_log)                                  noexcept;
+
+    //return - удалось записать файл или нет
+    friend bool WriteFile(const Config& config, const std::string& file_path,
+                          const ConfigFormat format, const CommentDesign &design,
+                          const uint8_t custom_tabulation_level)                                        noexcept;
+    friend bool WriteFileJson(const Config& config, const std::string& file_path,
+                              const CommentDesign &design, const uint8_t custom_tabulation_level)       noexcept;
+    friend bool WriteFileIni(const Config& config, const std::string& file_path,
+                             const CommentDesign &design, const uint8_t custom_tabulation_level)        noexcept;
+
+    //пара <корректность чтения, итоговый Config>
+    friend std::pair<bool, Config> Parse(const std::string& content, const ConfigFormat format,
+                                         const bool with_comments, std::string* error_log)              noexcept;
+    friend std::pair<bool, Config> ParseJson(const std::string& content, const bool with_comments,
+                                             std::string* error_log)                                    noexcept;
+    friend std::pair<bool, Config> ParseIni(const std::string& content, const bool with_comments,
+                                            std::string* error_log)                                     noexcept;
 };
-
-
-//STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC
-//return - получившийся распаршенный корневой элемент, ElementNull если не удалось чтение
-Config  ReadFile(const std::string& file_path, const ConfigFormat format,
-            const bool with_comments = false, std::string* error_log = nullptr);
-Config  ReadFileJson(const std::string& file_path, const bool with_comments = false,
-            std::string* error_log = nullptr);
-Config  ReadFileIni(const std::string& file_path, const bool with_comments = false,
-            std::string* error_log = nullptr);
-
-//return - удалось записать файл или нет
-bool    WriteFile(const Config& config, const std::string& file_path,
-            const ConfigFormat format, const CommentDesign &design = {},
-            const uint8_t custom_tabulation_level = 0)                                      noexcept;
-bool    WriteFileJson(const Config& config, const std::string& file_path,
-            const CommentDesign &design = {}, const uint8_t custom_tabulation_level = 0)    noexcept;
-bool    WriteFileIni(const Config& config, const std::string& file_path,
-            const CommentDesign &design = {}, const uint8_t custom_tabulation_level = 0)    noexcept;
-bool    WriteStringToFile(const std::string& file_path, std::string&& content)              noexcept;
-
-Config  Parse(const std::string& content, const ConfigFormat format,
-            const bool with_comments = false, std::string* error_log = nullptr);
-Config  ParseArray(const std::string& content, const bool with_comments = false,
-            const int8_t tabulation_level = 0, std::string* error_log = nullptr);
-Config  ParseJson(const std::string& content, const bool with_comments = false,
-            const int8_t tabulation_level = 0, std::string* error_log = nullptr);
-Config  ParseIni(const std::string& content, const bool with_comments = false,
-            const int8_t tabulation_level = 0, std::string* error_log = nullptr);
-//STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC-STATIC
-
-
 
 #endif //CONFIG_H
