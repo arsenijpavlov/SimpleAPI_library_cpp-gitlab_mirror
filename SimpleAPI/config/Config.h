@@ -409,6 +409,8 @@ public:
     long double     getNumber()                                                                 const;                      API_NUMBER
     std::string&    getString();                                                                                            API_STRING
     std::string     getString()                                                                 const;                      API_STRING
+    std::string     getError()                                                                  const noexcept
+    { return (m_error_str.isValid() ? m_error_str.value() : ""); }
 
     // вложенные контейнеры
     // @complex_key - список индексов/ключей: {1, "k1", 2} -> el[1]["k1"][2]

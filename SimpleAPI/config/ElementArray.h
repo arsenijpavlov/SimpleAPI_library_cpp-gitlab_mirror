@@ -12,9 +12,10 @@ protected:
 public:
     ElementArray()                                                      noexcept                    { init(); }
     template<typename... Types,
-             typename = typename std::enable_if<
-                 all_true<(!std::is_same<typename std::decay<Types>::type, ConfigFormat>::value)...>::value>
-             >
+             typename std::enable_if<
+                 all_true<(!std::is_same<typename std::decay<Types>::type, ConfigFormat>::value)...>
+                 ::value>
+             ::type* = nullptr>
     ElementArray(Types&&... args) noexcept {
         init();
         (void)std::initializer_list<int>{(push_back(std::forward<Types>(args)), 0)...};

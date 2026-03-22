@@ -751,10 +751,10 @@ TEST(JSON, contains) {
     EXPECT_FALSE(json.containsValue(json3));
 }
 
+//FIXME: TEST(JSON, parser_symbols_counter)
 TEST(JSON, parser_symbols_counter) {
     Config json;
+    json.parseJson("{a=b #");
 
-    EXPECT_ANY_THROW({
-        json.parseJson("{a=b #");
-    });
+    EXPECT_FALSE(json.getError().empty());
 }
