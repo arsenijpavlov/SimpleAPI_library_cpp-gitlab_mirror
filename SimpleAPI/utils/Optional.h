@@ -61,13 +61,17 @@ public:
     }
     void set(const Optional<T>& other)                  noexcept
     {
-        m_value = other.m_value;
-        m_status = true;
+        if(this != &other) {
+            m_value = other.m_value;
+            m_status = true;
+        }
     }
     void set(Optional<T>&& other)                       noexcept
     {
-        m_value = other.m_value;
-        m_status = true;
+        if(this != &other) {
+            m_value = other.m_value;
+            m_status = true;
+        }
     }
 
     void    unset()                                     noexcept        { m_status = false; }
