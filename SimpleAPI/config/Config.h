@@ -409,6 +409,8 @@ public:
     long double     getNumber()                                                                 const;                      API_NUMBER
     std::string&    getString();                                                                                            API_STRING
     std::string     getString()                                                                 const;                      API_STRING
+    std::string     error()                                                                     const noexcept
+    { return m_error_str.value(); }
     std::string     getError()                                                                  const noexcept
     { return (m_error_str.isValid() ? m_error_str.value() : ""); }
 
