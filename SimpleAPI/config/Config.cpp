@@ -1325,11 +1325,11 @@ std::ostream &operator<<(std::ostream &os, const IElement &config) noexcept {
 }
 
 bool Config::readFile(const std::string &file_path, const ConfigFormat format,
-                         const bool with_comments, std::string *error_log) noexcept
+                         const bool with_comments) noexcept
 {
     switch(format) {
-    case ConfigFormat::eJSON:   return readFileJson(file_path, with_comments, error_log);
-    case ConfigFormat::eINI:    return readFileIni(file_path, with_comments, error_log);
+    case ConfigFormat::eJSON:   return readFileJson(file_path, with_comments);
+    case ConfigFormat::eINI:    return readFileIni(file_path, with_comments);
     // case ConfigFormat::eYAML:
     // case ConfigFormat::eXML:
     default: break;
@@ -1339,23 +1339,21 @@ bool Config::readFile(const std::string &file_path, const ConfigFormat format,
     return false;
 }
 
-bool Config::readFileJson(const std::string &file_path, const bool with_comments,
-                             std::string *error_log) noexcept
+bool Config::readFileJson(const std::string &file_path, const bool with_comments) noexcept
 {    
     std::string input_str;
     if(GetAllStringsFromFile(file_path, input_str, &m_error_str.value())) {
-        return parseJson(input_str, with_comments, error_log);
+        return parseJson(input_str, with_comments);
     }
 
     return false;
 }
 
-bool Config::readFileIni(const std::string &file_path, const bool with_comments,
-                            std::string *error_log) noexcept
+bool Config::readFileIni(const std::string &file_path, const bool with_comments) noexcept
 {
     std::string input_str;
     if(GetAllStringsFromFile(file_path, input_str, &m_error_str.value())) {
-        return parseIni(input_str, with_comments, error_log);
+        return parseIni(input_str, with_comments);
     }
 
     return false;
@@ -1395,13 +1393,13 @@ bool Config::writeFileIni(const std::string &file_path, const CommentDesign &des
 }
 
 bool Config::parse(const std::string &content, const ConfigFormat format,
-                      const bool with_comments, std::string *error_log) noexcept
+                      const bool with_comments) noexcept
 {
     release();
 
     switch(format) {
-    case ConfigFormat::eJSON:   return parseJson(content, with_comments, error_log);
-    case ConfigFormat::eINI:    return parseIni(content, with_comments, error_log);
+    case ConfigFormat::eJSON:   return parseJson(content, with_comments);
+    case ConfigFormat::eINI:    return parseIni(content, with_comments);
     // case ConfigFormat::eYAML:
     // case ConfigFormat::eXML:
     default:                    break;
@@ -1412,16 +1410,18 @@ bool Config::parse(const std::string &content, const ConfigFormat format,
     return false;
 }
 
-bool Config::parseJson(const std::string &content, const bool with_comments,
-                       std::string* error_log) noexcept
+bool Config::parseJson(const std::string &content, const bool with_comments) noexcept
 {
     release();
-    m_value = new ElementJson(content, ConfigFormat::eJSON, with_comments);
-    return !m_error_str.isValid();
+    std::string error;
+    m_value = new ElementJson(content, ConfigFormat::eJSON, with_comments, &error);
+    if(!error.empty())
+        m_error_str = error;
+
+    return !error.empty();
 }
 
-bool Config::parseIni(const std::string &content, const bool with_comments,
-                      std::string* error_log) noexcept
+bool Config::parseIni(const std::string &content, const bool with_comments) noexcept
 {
     release();
     m_value = new ElementJson(content, ConfigFormat::eINI, with_comments);
@@ -1520,7 +1520,6 @@ Config Config::CreateElementFromString(std::string &&value_string, const ConfigF
             return Config(value_string);
         }
     }
-    int8_t new_tab_lvl = tabulation_level == -1 ? -1 : tabulation_level + 1; //FIXME: зачем при парсинге?
     /*ARRAY*/ {
         if(first == '[' && last == ']') {
             try {
@@ -1550,11 +1549,11 @@ Config Config::CreateElementFromString(std::string &&value_string, const ConfigF
 
 
 std::pair<bool, Config> ReadFile(const std::string &file_path, const ConfigFormat format,
-                const bool with_comments, std::string *error_log) noexcept
+                const bool with_comments) noexcept
 {
     switch(format) {
-    case ConfigFormat::eJSON:   return ReadFileJson(file_path, with_comments, error_log);
-    case ConfigFormat::eINI:    return ReadFileIni(file_path, with_comments, error_log);
+    case ConfigFormat::eJSON:   return ReadFileJson(file_path, with_comments);
+    case ConfigFormat::eINI:    return ReadFileIni(file_path, with_comments);
 //    case ConfigFormat::eYAML:
 //    case ConfigFormat::eXML:
     default: break;
@@ -1565,29 +1564,27 @@ std::pair<bool, Config> ReadFile(const std::string &file_path, const ConfigForma
     return std::make_pair(false, out);
 }
 
-std::pair<bool, Config> ReadFileJson(const std::string &file_path, const bool with_comments,
-                    std::string *error_log) noexcept
+std::pair<bool, Config> ReadFileJson(const std::string &file_path, const bool with_comments) noexcept
 {
     std::string input_str;
     Config out;
     out.m_error_str.set("");
 
     if(GetAllStringsFromFile(file_path, input_str, &out.m_error_str.value())) {
-        return ParseJson(input_str, with_comments, error_log);
+        return ParseJson(input_str, with_comments);
     }
 
     return std::make_pair(false, out);
 }
 
-std::pair<bool, Config> ReadFileIni(const std::string &file_path, const bool with_comments,
-                    std::string *error_log) noexcept
+std::pair<bool, Config> ReadFileIni(const std::string &file_path, const bool with_comments) noexcept
 {
     std::string input_str;
     Config out;
     out.m_error_str.set("");
 
     if(GetAllStringsFromFile(file_path, input_str, &out.m_error_str.value())) {
-        return ParseIni(input_str, with_comments, error_log);
+        return ParseIni(input_str, with_comments);
     }
 
     return std::make_pair(false, out);
@@ -1615,11 +1612,11 @@ bool WriteFileIni(const Config& config, const std::string& file_path,
 
 //NOTE: массивы отдельно спарсить нельзя - только в составе полного конфига (1 элемент - это тоже конфиг)
 std::pair<bool, Config> Parse(const std::string &content, const ConfigFormat format,
-             const bool with_comments, std::string *error_log) noexcept
+             const bool with_comments) noexcept
 {
     switch(format) {
-    case ConfigFormat::eJSON:   return ParseJson(content, with_comments, error_log);
-    case ConfigFormat::eINI:    return ParseIni(content, with_comments, error_log);
+    case ConfigFormat::eJSON:   return ParseJson(content, with_comments);
+    case ConfigFormat::eINI:    return ParseIni(content, with_comments);
 //    case ConfigFormat::eYAML:
 //    case ConfigFormat::eXML:
     default:                    break;
@@ -1630,20 +1627,18 @@ std::pair<bool, Config> Parse(const std::string &content, const ConfigFormat for
     return std::make_pair(false, out);
 }
 
-std::pair<bool, Config> ParseJson(const std::string &content, const bool with_comments,
-                                  std::string* error_log) noexcept
+std::pair<bool, Config> ParseJson(const std::string &content, const bool with_comments) noexcept
 {
     Config ret(ValueType::eJson);
-    bool result = ret.parseJson(content, with_comments, error_log);
+    bool result = ret.parseJson(content, with_comments);
 
     return std::make_pair(result, ret);
 }
 
-std::pair<bool, Config> ParseIni(const std::string &content, const bool with_comments,
-                                 std::string* error_log) noexcept
+std::pair<bool, Config> ParseIni(const std::string &content, const bool with_comments) noexcept
 {
     Config ret(ValueType::eJson);
-    bool result = ret.parseIni(content, with_comments, error_log);
+    bool result = ret.parseIni(content, with_comments);
 
     return std::make_pair(result, ret);
 }

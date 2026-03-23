@@ -21,13 +21,7 @@ public:
         (void)std::initializer_list<int>{(push_back(std::forward<Types>(args)), 0)...};
     }
     ElementArray(const std::string& input_string, const ConfigFormat config_format,
-                 const bool enable_comments = false)                    noexcept {
-        init();
-        ElementArray temp;
-        temp.parse(input_string, config_format, enable_comments);
-
-        *this = temp;
-    }
+                 const bool enable_comments = false, std::string* error_str = nullptr)  noexcept;
     ~ElementArray()                                                     noexcept                    {}
 
     // Comment =========================================================================================================

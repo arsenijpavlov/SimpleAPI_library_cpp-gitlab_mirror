@@ -13,13 +13,25 @@
 class ElementArray;
 
 
+ElementArray::ElementArray(const std::string &input_string, const ConfigFormat config_format,
+                           const bool enable_comments, std::string *error_str) noexcept
+{
+    ElementArray temp;
+    temp.init();
+    std::string error = temp.parse(input_string, config_format, enable_comments);
+    if(error_str != nullptr)
+        *error_str = error;
+
+    *this = std::move(temp);
+}
+
 void ElementArray::set_comment(const size_t& index, const Comment &content) {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     m_values.at(index)->setComment(content);
 }
 
 void ElementArray::set_comment(const size_t& index, const std::string &content_before,
-                              const std::string &content_after)
+                               const std::string &content_after)
 {
     __CHECK_CONTAINER_INDEX_CORRECT__((*this), index)
     m_values.at(index)->setComment(content_before, content_after);

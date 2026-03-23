@@ -42,11 +42,9 @@ struct is_valid_config_type {
 //ПРЕДВАРИТЕЛЬНЫЕ ОБЪЯВЛЕНИЯ
 //пара <корректность чтения, итоговый Config>
 std::pair<bool, Config> ReadFile(const std::string& file_path, const ConfigFormat format,
-                                 const bool with_comments = false, std::string* error_log = nullptr)    noexcept;
-std::pair<bool, Config> ReadFileJson(const std::string& file_path, const bool with_comments = false,
-                                     std::string* error_log = nullptr)                                  noexcept;
-std::pair<bool, Config> ReadFileIni(const std::string& file_path, const bool with_comments = false,
-                                    std::string* error_log = nullptr)                                   noexcept;
+                                 const bool with_comments = false)                                      noexcept;
+std::pair<bool, Config> ReadFileJson(const std::string& file_path, const bool with_comments = false)    noexcept;
+std::pair<bool, Config> ReadFileIni(const std::string& file_path, const bool with_comments = false)     noexcept;
 
 //return - удалось записать файл или нет
 bool WriteFile(const Config& config, const std::string& file_path,
@@ -59,11 +57,9 @@ bool WriteFileIni(const Config& config, const std::string& file_path,
 
 //пара <корректность чтения, итоговый Config>
 std::pair<bool, Config> Parse(const std::string& content, const ConfigFormat format,
-                              const bool with_comments = false, std::string* error_log = nullptr)       noexcept;
-std::pair<bool, Config> ParseJson(const std::string& content, const bool with_comments = false,
-                                  std::string* error_log = nullptr)                                     noexcept;
-std::pair<bool, Config> ParseIni(const std::string& content, const bool with_comments = false,
-                                 std::string* error_log = nullptr)                                      noexcept;
+                              const bool with_comments = false)                                         noexcept;
+std::pair<bool, Config> ParseJson(const std::string& content, const bool with_comments = false)         noexcept;
+std::pair<bool, Config> ParseIni(const std::string& content, const bool with_comments = false)          noexcept;
 
 class Config {
 private:
@@ -409,8 +405,8 @@ public:
     long double     getNumber()                                                                 const;                      API_NUMBER
     std::string&    getString();                                                                                            API_STRING
     std::string     getString()                                                                 const;                      API_STRING
-    std::string     error()                                                                     const noexcept
-    { return m_error_str.value(); }
+    bool            error()                                                                     const noexcept
+    { return m_error_str.isValid(); }
     std::string     getError()                                                                  const noexcept
     { return (m_error_str.isValid() ? m_error_str.value() : ""); }
 
@@ -785,11 +781,9 @@ public:
     // File ============================================================================================================
     //return - получившийся распаршенный корневой элемент, ElementNull если не удалось чтение
     bool            readFile(const std::string& file_path, const ConfigFormat format,
-                     const bool with_comments = false, std::string* error_log = nullptr)            noexcept;                   API_ALL
-    bool            readFileJson(const std::string& file_path, const bool with_comments = false,
-                     std::string* error_log = nullptr)                                              noexcept;                   API_ALL
-    bool            readFileIni(const std::string& file_path, const bool with_comments = false,
-                     std::string* error_log = nullptr)                                              noexcept;                   API_ALL
+                     const bool with_comments = false)                                              noexcept;                   API_ALL
+    bool            readFileJson(const std::string& file_path, const bool with_comments = false)    noexcept;                   API_ALL
+    bool            readFileIni(const std::string& file_path, const bool with_comments = false)     noexcept;                   API_ALL
 
     //return - удалось записать файл или нет
     bool            writeFile(const std::string& file_path, const ConfigFormat format,
@@ -803,25 +797,20 @@ public:
 
     // Parser ==========================================================================================================
     bool            parse(const std::string& content, const ConfigFormat format,
-                        const bool with_comments = false, std::string* error_log = nullptr)         noexcept;                   API_ALL
-    bool            parseJson(const std::string& content, const bool with_comments = false,
-                        std::string* error_log = nullptr)                                           noexcept;                   API_ALL
-    bool            parseIni(const std::string& content, const bool with_comments = false,
-                        std::string* error_log = nullptr)                                           noexcept;                   API_ALL
+                        const bool with_comments = false)                                           noexcept;                   API_ALL
+    bool            parseJson(const std::string& content, const bool with_comments = false)         noexcept;                   API_ALL
+    bool            parseIni(const std::string& content, const bool with_comments = false)          noexcept;                   API_ALL
     // ========================================================================================================== Parser
 
     //STATIC
     static Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
-                                          CommentDesign& design,
-                                          const int8_t tabulation_level = 0);
+                                          CommentDesign& design, const int8_t tabulation_level = 0);
 
     //пара <корректность чтения, итоговый Config>
     friend std::pair<bool, Config> ReadFile(const std::string& file_path, const ConfigFormat format,
-                                            const bool with_comments, std::string* error_log)           noexcept;
-    friend std::pair<bool, Config> ReadFileJson(const std::string& file_path, const bool with_comments,
-                                                std::string* error_log)                                 noexcept;
-    friend std::pair<bool, Config> ReadFileIni(const std::string& file_path, const bool with_comments,
-                                               std::string* error_log)                                  noexcept;
+                                            const bool with_comments)                                   noexcept;
+    friend std::pair<bool, Config> ReadFileJson(const std::string& file_path, const bool with_comments) noexcept;
+    friend std::pair<bool, Config> ReadFileIni(const std::string& file_path, const bool with_comments)  noexcept;
 
     //return - удалось записать файл или нет
     friend bool WriteFile(const Config& config, const std::string& file_path,
@@ -834,11 +823,9 @@ public:
 
     //пара <корректность чтения, итоговый Config>
     friend std::pair<bool, Config> Parse(const std::string& content, const ConfigFormat format,
-                                         const bool with_comments, std::string* error_log)              noexcept;
-    friend std::pair<bool, Config> ParseJson(const std::string& content, const bool with_comments,
-                                             std::string* error_log)                                    noexcept;
-    friend std::pair<bool, Config> ParseIni(const std::string& content, const bool with_comments,
-                                            std::string* error_log)                                     noexcept;
+                                         const bool with_comments)                                      noexcept;
+    friend std::pair<bool, Config> ParseJson(const std::string& content, const bool with_comments)      noexcept;
+    friend std::pair<bool, Config> ParseIni(const std::string& content, const bool with_comments)       noexcept;
 };
 
 #endif //CONFIG_H

@@ -17,18 +17,15 @@ ElementJson::ElementJson(const JPair &pair) noexcept {
     insert_back(pair.first, pair.second);
 }
 
-ElementJson::ElementJson(const std::string &input_string, const ConfigFormat config_format, const bool enable_comment) {
+ElementJson::ElementJson(const std::string &input_string, const ConfigFormat config_format,
+                         const bool enable_comment, std::string* error_str) {
     ElementJson temp;
     temp.init();
 
     m_comment.commentDesign().with_comments = enable_comment;
-    //NOTE: во время парсинга может вернуть exception, если нарушена структура формата JSON
-    // (часть значения всё равно будет корректно прочитана)
-    try {
-        temp.parse(input_string, m_comment.commentDesign(), config_format);
-    } catch(std::exception& e) {
-        throw e; //пробрасываем наверх
-    }
+    std::string error = temp.parse(input_string, m_comment.commentDesign(), config_format);
+    if(error_str != nullptr)
+        *error_str = error;
 
     *this = std::move(temp);
 }
