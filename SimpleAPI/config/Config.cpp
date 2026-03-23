@@ -42,6 +42,7 @@ void Config::release() noexcept {
         delete m_value;
         m_value = nullptr;
     }
+    m_error_str.unset();
 }
 
 Config &Config::setComment(const Comment &content) noexcept {
@@ -1339,6 +1340,7 @@ bool Config::readFile(const std::string &file_path, const ConfigFormat format,
     return false;
 }
 
+//FIXME: m_error_str должен обнуляться
 bool Config::readFileJson(const std::string &file_path, const bool with_comments) noexcept
 {    
     std::string input_str;
@@ -1349,6 +1351,7 @@ bool Config::readFileJson(const std::string &file_path, const bool with_comments
     return false;
 }
 
+//FIXME: m_error_str должен обнуляться
 bool Config::readFileIni(const std::string &file_path, const bool with_comments) noexcept
 {
     std::string input_str;
@@ -1564,6 +1567,7 @@ std::pair<bool, Config> ReadFile(const std::string &file_path, const ConfigForma
     return std::make_pair(false, out);
 }
 
+//FIXME: m_error_str должен обнуляться
 std::pair<bool, Config> ReadFileJson(const std::string &file_path, const bool with_comments) noexcept
 {
     std::string input_str;
@@ -1577,6 +1581,7 @@ std::pair<bool, Config> ReadFileJson(const std::string &file_path, const bool wi
     return std::make_pair(false, out);
 }
 
+//FIXME: m_error_str должен обнуляться
 std::pair<bool, Config> ReadFileIni(const std::string &file_path, const bool with_comments) noexcept
 {
     std::string input_str;

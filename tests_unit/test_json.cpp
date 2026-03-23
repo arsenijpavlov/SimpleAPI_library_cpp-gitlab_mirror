@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <fstream>
+#include <regex>
 
 int main(int argc, char **argv)
 {
@@ -751,10 +752,48 @@ TEST(JSON, contains) {
     EXPECT_FALSE(json.containsValue(json3));
 }
 
+
+bool RegexCheckCounter(const std::string& error_str, const size_t& line_number,
+                       const size_t& symbol_number)
+{
+    std::regex reg(R"(unexpected symbol at \[([0-9]+)\]\[([0-9]+)\])"); //ожидаем два совпадения по одной маске
+    std::smatch matches;
+    if(std::regex_search(error_str, matches, reg) && matches.size() == 3)
+    {
+        // std::cout << "matches size: " << matches.size() << std::endl;
+        // std::cout << "matches: " << matches[1] << std::endl;
+        // std::cout << "matches: " << matches[2] << std::endl;
+
+        try {
+            size_t x_coord = stoull(matches[1]);
+            size_t y_coord = stoull(matches[2]);
+            return x_coord == line_number && y_coord == symbol_number;
+        } catch (std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
+    }
+
+    return false;
+}
+
 //FIXME: TEST(JSON, parser_symbols_counter)
 TEST(JSON, parser_symbols_counter) {
     Config json;
-    json.parseJson("{a=b #");
+    bool regex_found;
 
-    EXPECT_FALSE(json.getError().empty());
+//    json.parseJson("{a=b #");
+//    EXPECT_TRUE(json.error());
+//    regex_found = RegexCheckCounter(json.getError(), 0, 5);
+//    EXPECT_TRUE(regex_found);
+
+//    json.parseJson("{a=b,\n"
+//                   "c= #");
+//    EXPECT_TRUE(json.error());
+//    regex_found = RegexCheckCounter(json.getError(), 1, 4);
+//    EXPECT_TRUE(regex_found);
+
+    json.parseJson("#");
+    EXPECT_TRUE(json.error());
+    regex_found = RegexCheckCounter(json.getError(), 0, 0);
+    EXPECT_TRUE(regex_found);
 }
