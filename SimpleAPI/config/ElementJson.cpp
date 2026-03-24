@@ -1209,7 +1209,7 @@ std::string ElementJson::parseJson(std::string &&input_string, CommentDesign &de
     }
 
     /*если файл закончился раньше, чем было обработано последнее прочитанное значение*/
-    if(!value.empty() && state != ParseState::eJSON_ERROR_STATE) {
+    if(!value.empty() && state != ParseState::eJSON_ERROR_STATE && state == ParseState::eJSON_VALUE) {
         if(design.temp_type == CommentType::eOneLineComment)
             design.temp_type = CommentType::eNotComment; //сбрасываем для корректной обработки oneline comment
 
