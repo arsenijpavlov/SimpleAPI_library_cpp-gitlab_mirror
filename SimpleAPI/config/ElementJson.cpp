@@ -907,6 +907,7 @@ std::string ElementJson::parseJson(std::string &&input_string, CommentDesign &de
     uint16_t inner_array_counter    = 0;
     bool is_one_value_format        = false; //одиночные значения не требуют фигурных скобок
     ParserSymbolCounter counter;
+    ParserSymbolCounter start_value_counter; //для счётчика внутри значения
 
     std::string current_comment     = ""; // текущее значение при парсинге
     VString comments;                     // обработанные комментарии
@@ -971,29 +972,31 @@ std::string ElementJson::parseJson(std::string &&input_string, CommentDesign &de
     //дублирующийся код чтения значения
     auto ConfirmValue = [&, input_string](const bool for_penultimate = false) -> bool {
         DEBUG_LOG("ElementJson: current value done: \"" << value << "\"");
-        try {
-            Config element = Config::CreateElementFromString(std::move(value), ConfigFormat::eJSON, design, tabulation_level);
-            push_back(std::move(key), std::move(element));
-            if(get_back().getCommentDesign().opt_multiline_column_size > design.opt_multiline_column_size)
-                design.opt_multiline_column_size = get_back().getCommentDesign().opt_multiline_column_size;
-        } catch (std::exception& e) {
-            error_string = e.what();
-            UpdateState(state, ParseState::eJSON_ERROR_STATE);
-            push_back(key, value); // не смогли обработать, сохраняем как строку
-            return false;
-        }
+
+        Config element = CreateElementFromString(std::move(value), ConfigFormat::eJSON, design, start_value_counter);
+        push_back(std::move(key), std::move(element));
+        if(get_back().getCommentDesign().opt_multiline_column_size > design.opt_multiline_column_size)
+            design.opt_multiline_column_size = get_back().getCommentDesign().opt_multiline_column_size;
         key.clear();
         value.clear();
 
+        if(element.error()) {
+            //если случилась ошибка при внутренней конвертации прочитанного значения,
+            // то эта ошибка становится основной ошибкой парсинга
+            error_string = "JSON value parse error[" + std::to_string(counter.getLastLineCounter())
+                           + "][" + std::to_string(counter.getLastSymbolCounter()) + "]: " + element.getError();
+            UpdateState(state, ParseState::eJSON_ERROR_STATE);
+            return false;
+        }
         return true;
     };
 
-    for(size_t i = 0; i < input_string.size() && error_string.empty(); i++) {
+    for(size_t i = 0; i < input_string.size() && state != ParseState::eJSON_ERROR_STATE; i++) {
         char ch_previous    = i == 0 ? 0 : input_string[i - 1];
         char ch_current     = input_string[i];
         char ch_next        = i < input_string.size() ? input_string[i + 1] : 0;
 
-        counter.check(i, ch_current); //TODO: написать тест для проверки счётчика символов
+        counter.check(i, ch_current);
 
         //поиск комментариев ===================================================
         const bool ext_flag = !is_quotes && (inner_array_counter + inner_json_counter == 0);
@@ -1127,6 +1130,9 @@ std::string ElementJson::parseJson(std::string &&input_string, CommentDesign &de
                 break;
             }
 
+            if(value.empty())
+                start_value_counter = counter; //будет использовано в CreateElementFromString()
+
             if(ch_current == '\"'
                 && ch_previous != '\\'
                 && inner_json_counter + inner_array_counter == 0)
@@ -1209,7 +1215,9 @@ std::string ElementJson::parseJson(std::string &&input_string, CommentDesign &de
     }
 
     /*если файл закончился раньше, чем было обработано последнее прочитанное значение*/
-    if(!value.empty() && state != ParseState::eJSON_ERROR_STATE && state == ParseState::eJSON_VALUE) {
+    if(!value.empty()
+        && state == ParseState::eJSON_VALUE)
+    {
         if(design.temp_type == CommentType::eOneLineComment)
             design.temp_type = CommentType::eNotComment; //сбрасываем для корректной обработки oneline comment
 
@@ -1227,7 +1235,8 @@ std::string ElementJson::parseJson(std::string &&input_string, CommentDesign &de
 
     setCommentDesign(design);
 
-    if(!is_one_value_format && state != ParseState::eJSON_FINISH) {
+    if(!is_one_value_format && state != ParseState::eJSON_FINISH && error_string.empty())
+    {
         error_string = std::string("JSON parse error, unexpected symbol at [")
                        + std::to_string(counter.getLastLineCounter())
                        + "][" + std::to_string(counter.getLastSymbolCounter()) + "]: '"

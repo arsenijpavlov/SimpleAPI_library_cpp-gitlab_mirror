@@ -1471,12 +1471,14 @@ shared_VPairElement::const_iterator Config::map_cend() const {
     return dynamic_cast<const ElementJson*>(m_value)->cend();
 }
 
-Config Config::CreateElementFromString(std::string &&value_string, const ConfigFormat format,
-                                       CommentDesign& design, const int8_t tabulation_level)
+Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
+                               CommentDesign& design, ParserSymbolCounter& start_iterator) noexcept
 {
     using namespace utils;
     //удаление незначащих пробелов
     RemoveIllegalSpaces(value_string);
+
+    //FIXME: определение начального и конечного комментариев (при их наличии)
 
     std::string temp;
     auto Append = [&](const char c) {
@@ -1524,29 +1526,35 @@ Config Config::CreateElementFromString(std::string &&value_string, const ConfigF
         }
     }
     /*ARRAY*/ {
-        if(first == '[' && last == ']') {
-            try {
-                Config array;
+        if(first == '[') {
+            Config array;
+            if(last == ']') {
                 array.setCommentDesign(design);
                 ElementArray el_arr(value_string, ConfigFormat::eJSON, design.with_comments);
                 array.setValue(el_arr);
-
-                return array;
-            } catch(...) {}
+            } else {
+                //есть начало массива, но нет конца
+                array.m_error_str = "not found end of Json-array value";
+            }
+            return array;
         }
     }
     /*JSON*/ {
-        if(first == '{' && last == '}') {
-            try {
-                Config json;
+        if(first == '{') {
+            Config json;
+            if(last == '}') {
                 json.setCommentDesign(design);
                 json.parseJson(value_string, design.with_comments);
-                return Config(json);
-            } catch(...) {}
+            } else {
+                //есть начало Json, но нет конца
+                json.m_error_str = "not found end of Json value";
+            }
+            return json;
         }
     }
 
     // в теории, всё, что не распарсилось в другие значения, - должно считаться строкой
+    //FIXME: строка не должна начинаться с технических скобок
     return Config(value_string);
 }
 
