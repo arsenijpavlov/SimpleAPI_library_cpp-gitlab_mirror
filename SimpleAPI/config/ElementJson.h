@@ -15,7 +15,7 @@ public:
     explicit ElementJson(const ElementJson& json)                               noexcept;
     explicit ElementJson(const JPair& pair)                                     noexcept;
     explicit ElementJson(const std::string& input_string, const ConfigFormat config_format = ConfigFormat::eJSON,
-                const bool enable_comment = false, std::string* error_str = nullptr);
+                const bool enable_comment = false, std::string* error_str = nullptr) noexcept;
     __ONLY_ALLOWED_TYPES__(T)
     explicit ElementJson(const std::string& key, const T& value) noexcept {
         init();

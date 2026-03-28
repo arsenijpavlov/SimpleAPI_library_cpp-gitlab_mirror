@@ -18,7 +18,7 @@ ElementJson::ElementJson(const JPair &pair) noexcept {
 }
 
 ElementJson::ElementJson(const std::string &input_string, const ConfigFormat config_format,
-                         const bool enable_comment, std::string* error_str) {
+                         const bool enable_comment, std::string* error_str) noexcept {
     ElementJson temp;
     temp.init();
 
