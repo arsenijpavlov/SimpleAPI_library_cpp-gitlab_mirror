@@ -677,8 +677,8 @@ bool DefineCommentSymbols(const char first_sym, const char second_sym,
 
 // NOTE: для всего файла конфига подменяется символ границы только если не задан (первый комментарий с границей)
 // Предполагается, что пользователь сам укажет символы для поиска комментариев, при парсинге будет обновлён CommentDesign
-std::string FromComment(std::string comment_string, CommentDesign& design,
-                        const int8_t tabulation_level) noexcept
+// FIXME: строку стоит передать через && ?
+std::string FromComment(std::string comment_string, CommentDesign& design) noexcept
 {
     using namespace utils;
 
@@ -732,8 +732,6 @@ std::string FromComment(std::string comment_string, CommentDesign& design,
 
     //NOTE: в начале каждой строки удаляются табуляции согласно аргументу функции
     for(std::string& s : lines) {
-//        RemoveFrontTabsIllegalSpaces(s, tabulation_level + 1);
-//        RemoveEndIllegalSpaces(s); // пробелы в конце ничего не значат
         RemoveIllegalSpaces(s);
     }
 

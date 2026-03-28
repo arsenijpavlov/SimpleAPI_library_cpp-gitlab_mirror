@@ -1396,7 +1396,8 @@ bool Config::writeFileIni(const std::string &file_path, const CommentDesign &des
 }
 
 //NOTE: функция нужна исключительно для перенаправления на внутренние парсеры
-bool Config::parseSimpleValue(const std::string &content, const ConfigFormat format) noexcept
+bool Config::parseSimpleValue(const std::string &content, const ConfigFormat format,
+                              ParserSymbolCounter& start_iterator, const int8_t yaml_tabulation_level) noexcept
 {
     /* Суть функции:
      * - начать запись начального комментария
@@ -1428,7 +1429,7 @@ bool Config::parseSimpleValue(const std::string &content, const ConfigFormat for
             CheckComments(ch_current, ch_next, i, cd, comment_string);
             if(cd.temp_type == CommentType::eCommentEnd)
             {
-//                previous_comments.push_back(FromComment(current_comment, design, tabulation_level));
+                previous_comments.push_back(FromComment(comment_string, cd));
 //                current_comment.clear();
 //                design.temp_type = CommentType::eNotComment;
                 break;
@@ -1467,7 +1468,7 @@ bool Config::parseJson(const std::string &content, const bool with_comments) noe
     release();
     std::string error;
 //    m_value = new ElementJson(content, ConfigFormat::eJSON, with_comments, &error);
-    m_value = CreateElementFromString(content, ConfigFormat::eJSON, getCommentDesign(), &error);
+//    m_value = CreateElementFromString(content, ConfigFormat::eJSON, getCommentDesign(), {}, &error);
     if(!error.empty())
         m_error_str = error;
 

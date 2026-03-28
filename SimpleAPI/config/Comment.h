@@ -222,8 +222,7 @@ std::string ToComment(const std::string &comment, const CommentDesign& design,
                 const int8_t tabulation_level = 0)                                              noexcept;
 bool        DefineCommentSymbols(const char first_sym, const char second_sym,
                 CommentDesign& cd)                                                              noexcept;
-std::string FromComment(std::string comment_string, CommentDesign& design,
-                const int8_t tabulation_level = 0)                                              noexcept;
+std::string FromComment(std::string comment_string, CommentDesign& design)                      noexcept;
 
 
 void RemoveComments(std::string& input_string, CommentDesign design = {});

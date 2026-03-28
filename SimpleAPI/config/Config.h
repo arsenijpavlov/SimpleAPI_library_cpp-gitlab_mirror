@@ -799,7 +799,9 @@ public:
 
     // Parser ==========================================================================================================
 private:
-    bool            parseSimpleValue(const std::string& content, const ConfigFormat format)         noexcept;
+    bool            parseSimpleValue(const std::string& content, const ConfigFormat format,
+                          ParserSymbolCounter& start_iterator,
+                          const int8_t yaml_tabulation_level = 0)                                   noexcept;
 public:
     bool            parse(const std::string& content, const ConfigFormat format,
                         const bool with_comments = false)                                           noexcept;                   API_ALL
@@ -810,7 +812,7 @@ public:
     // ========================================================================================================== Parser
 
     // вернёт текст ошибки, указывающий на тип некорректно прочитанного значения
-    friend Config CreateElementFromString(const std::string &value_string, const ConfigFormat format,
+    friend Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
                                           CommentDesign& design, ParserSymbolCounter& start_iterator)       noexcept;
 
     //пара <корректность чтения, итоговый Config>
