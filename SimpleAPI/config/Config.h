@@ -798,14 +798,19 @@ public:
     // ============================================================================================================ File
 
     // Parser ==========================================================================================================
+private:
+    bool            parseSimpleValue(const std::string& content, const ConfigFormat format)         noexcept;
+public:
     bool            parse(const std::string& content, const ConfigFormat format,
                         const bool with_comments = false)                                           noexcept;                   API_ALL
     bool            parseJson(const std::string& content, const bool with_comments = false)         noexcept;                   API_ALL
     bool            parseIni(const std::string& content, const bool with_comments = false)          noexcept;                   API_ALL
+    bool            parseYaml(const std::string& content, const bool with_comments = false)         noexcept;                   API_ALL
+    bool            parseXml(const std::string& content, const bool with_comments = false)          noexcept;                   API_ALL
     // ========================================================================================================== Parser
 
     // вернёт текст ошибки, указывающий на тип некорректно прочитанного значения
-    friend Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
+    friend Config CreateElementFromString(const std::string &value_string, const ConfigFormat format,
                                           CommentDesign& design, ParserSymbolCounter& start_iterator)       noexcept;
 
     //пара <корректность чтения, итоговый Config>

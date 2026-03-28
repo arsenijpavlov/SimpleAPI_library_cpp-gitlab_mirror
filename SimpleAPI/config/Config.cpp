@@ -1395,6 +1395,55 @@ bool Config::writeFileIni(const std::string &file_path, const CommentDesign &des
     return WriteFileIni(*this, file_path, n_design, custom_tabulation_level);
 }
 
+//NOTE: функция нужна исключительно для перенаправления на внутренние парсеры
+bool Config::parseSimpleValue(const std::string &content, const ConfigFormat format) noexcept
+{
+    /* Суть функции:
+     * - начать запись начального комментария
+     * - найти границу начала значения (не считывать комментарий в границах значения)
+     * - определить тип значения (на основе формата)
+     * - запомнить начальный комментарий
+     * - найти границу конечного комментария (с конца строки), если он есть
+     * - запомнить конечный комментарий
+     * - передать строку без начального и конечного комментариев на дальнейший парсинг в дочерний IElement
+     */
+
+//    size_t start_pos_comment_before;
+    size_t finish_pos_comment_before;
+    size_t start_pos_comment_after;
+//    size_t finish_pos_comment_after;
+    std::string comment_string;
+    VString previous_comments;
+    CommentDesign& cd = getCommentDesign();
+
+    size_t i = 0; //начало строки
+
+    //определение границ начального комментария
+    {
+        for(; i < content.size(); i++) {
+            char ch_previous    = i == 0 ? 0 : content[i - 1];
+            char ch_current     = content[i];
+            char ch_next        = i < content.size() ? content[i + 1] : 0;
+
+            CheckComments(ch_current, ch_next, i, cd, comment_string);
+            if(cd.temp_type == CommentType::eCommentEnd)
+            {
+//                previous_comments.push_back(FromComment(current_comment, design, tabulation_level));
+//                current_comment.clear();
+//                design.temp_type = CommentType::eNotComment;
+                break;
+            }
+        }
+
+        if(cd.with_comments && !comment_string.empty())
+        {
+            //сохранить комментарий
+        }
+    }
+
+    return false;
+}
+
 bool Config::parse(const std::string &content, const ConfigFormat format,
                       const bool with_comments) noexcept
 {
@@ -1403,8 +1452,8 @@ bool Config::parse(const std::string &content, const ConfigFormat format,
     switch(format) {
     case ConfigFormat::eJSON:   return parseJson(content, with_comments);
     case ConfigFormat::eINI:    return parseIni(content, with_comments);
-    // case ConfigFormat::eYAML:
-    // case ConfigFormat::eXML:
+    case ConfigFormat::eYAML:   return parseYaml(content, with_comments);
+    case ConfigFormat::eXML:    return parseXml(content, with_comments);
     default:                    break;
     }
 
@@ -1417,7 +1466,8 @@ bool Config::parseJson(const std::string &content, const bool with_comments) noe
 {
     release();
     std::string error;
-    m_value = new ElementJson(content, ConfigFormat::eJSON, with_comments, &error);
+//    m_value = new ElementJson(content, ConfigFormat::eJSON, with_comments, &error);
+    m_value = CreateElementFromString(content, ConfigFormat::eJSON, getCommentDesign(), &error);
     if(!error.empty())
         m_error_str = error;
 
@@ -1429,6 +1479,18 @@ bool Config::parseIni(const std::string &content, const bool with_comments) noex
     release();
     m_value = new ElementJson(content, ConfigFormat::eINI, with_comments);
     return !m_error_str.isValid();
+}
+
+bool Config::parseYaml(const std::string &content, const bool with_comments) noexcept
+{
+    //TODO: Config::parseYaml()
+    return false;
+}
+
+bool Config::parseXml(const std::string &content, const bool with_comments) noexcept
+{
+    //TODO: Config::parseXml()
+    return false;
 }
 
 shared_VElement::iterator Config::array_begin() {
@@ -1471,6 +1533,7 @@ shared_VPairElement::const_iterator Config::map_cend() const {
     return dynamic_cast<const ElementJson*>(m_value)->cend();
 }
 
+//функция должна быть вызвана исключительно для обработки строки значения, комменты не учитывает
 Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
                                CommentDesign& design, ParserSymbolCounter& start_iterator) noexcept
 {
@@ -1478,78 +1541,78 @@ Config CreateElementFromString(std::string &&value_string, const ConfigFormat fo
     //удаление незначащих пробелов
     RemoveIllegalSpaces(value_string);
 
-    //FIXME: определение начального и конечного комментариев (при их наличии)
-
     std::string temp;
     auto Append = [&](const char c) {
         temp += std::tolower(c);
     };
 
     //проверка типа, по порядку
-    /*NULL*/ {
-        if(value_string.empty())
-            return Config();
-        if(value_string.size() == 4) {
-            for(auto ch : value_string)
-                Append(ch);
-            if(temp == "null")  return Config();
-            temp.clear();
-        }
-    }
-    /*BOOL*/ {
-        if(value_string.size() == 4 || value_string.size() == 5) {
-            for(auto ch : value_string)
-                Append(ch);
-            if(temp == "true")  return Config(true);
-            if(temp == "false") return Config(false);
-            temp.clear();
-        }
-        if(value_string.size() == 1) {
-            if(value_string == "T" || value_string == "t" || value_string == "+")  return Config(true);
-            if(value_string == "F" || value_string == "f" || value_string == "-")  return Config(false);
-        }
-    }
-    char first = value_string.front();
-    char last = value_string.back();
-    /*NUMBER*/ {
-        try {
-            std::regex reg("^[+-]?[0-9]*[.]?[0-9]*[eE]?[+-]?[0-9]*[fF]?$");
-            if(std::regex_match(value_string, reg))
-                return Config(std::stold(value_string));
-        } catch (...) {}
-    }
-    /*STRING*/ {
-        if(first == '"' && last == '"') {
-            value_string.erase(0, 1);
-            value_string.pop_back();
-            return Config(value_string);
-        }
-    }
-    /*ARRAY*/ {
-        if(first == '[') {
-            Config array;
-            if(last == ']') {
-                array.setCommentDesign(design);
-                ElementArray el_arr(value_string, ConfigFormat::eJSON, design.with_comments);
-                array.setValue(el_arr);
-            } else {
-                //есть начало массива, но нет конца
-                array.m_error_str = "not found end of Json-array value";
+    {
+        /*NULL*/ {
+            if(value_string.empty())
+                return Config();
+            if(value_string.size() == 4) {
+                for(auto ch : value_string)
+                    Append(ch);
+                if(temp == "null")  return Config();
+                temp.clear();
             }
-            return array;
         }
-    }
-    /*JSON*/ {
-        if(first == '{') {
-            Config json;
-            if(last == '}') {
-                json.setCommentDesign(design);
-                json.parseJson(value_string, design.with_comments);
-            } else {
-                //есть начало Json, но нет конца
-                json.m_error_str = "not found end of Json value";
+        /*BOOL*/ {
+            if(value_string.size() == 4 || value_string.size() == 5) {
+                for(auto ch : value_string)
+                    Append(ch);
+                if(temp == "true")  return Config(true);
+                if(temp == "false") return Config(false);
+                temp.clear();
             }
-            return json;
+            if(value_string.size() == 1) {
+                if(value_string == "T" || value_string == "t" || value_string == "+")  return Config(true);
+                if(value_string == "F" || value_string == "f" || value_string == "-")  return Config(false);
+            }
+        }
+        char first = value_string.front();
+        char last = value_string.back();
+        /*NUMBER*/ {
+            try {
+                std::regex reg("^[+-]?[0-9]*[.]?[0-9]*[eE]?[+-]?[0-9]*[fF]?$");
+                if(std::regex_match(value_string, reg))
+                    return Config(std::stold(value_string));
+            } catch (...) {}
+        }
+        /*STRING*/ {
+            if(first == '"' && last == '"') {
+                value_string.erase(0, 1);
+                value_string.pop_back();
+                return Config(value_string);
+            }
+        }
+        /*ARRAY*/ {
+            if(first == '[') {
+                Config array;
+                if(last == ']') {
+                    array.setCommentDesign(design);
+                    ElementArray el_arr(value_string, ConfigFormat::eJSON, design.with_comments);
+                    array.setValue(el_arr);
+                } else {
+                    //есть начало массива, но нет конца
+                    array.m_error_str = "not found end of Json-array value";
+                }
+                return array;
+            }
+        }
+        /*JSON*/ {
+            if(first == '{') {
+                Config json;
+                if(last == '}') {
+                    json.setCommentDesign(design);
+                    json.parseJson(value_string, design.with_comments);
+                } else {
+                    //есть начало Json, но нет конца
+                    json.m_error_str = "not found end of Json value";
+                }
+                return json;
+            }
         }
     }
 
