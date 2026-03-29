@@ -1395,56 +1395,6 @@ bool Config::writeFileIni(const std::string &file_path, const CommentDesign &des
     return WriteFileIni(*this, file_path, n_design, custom_tabulation_level);
 }
 
-//NOTE: функция нужна исключительно для перенаправления на внутренние парсеры
-bool Config::parseSimpleValue(const std::string &content, const ConfigFormat format,
-                              ParserSymbolCounter& start_iterator, const int8_t yaml_tabulation_level) noexcept
-{
-    /* Суть функции:
-     * - начать запись начального комментария
-     * - найти границу начала значения (не считывать комментарий в границах значения)
-     * - определить тип значения (на основе формата)
-     * - запомнить начальный комментарий
-     * - найти границу конечного комментария (с конца строки), если он есть
-     * - запомнить конечный комментарий
-     * - передать строку без начального и конечного комментариев на дальнейший парсинг в дочерний IElement
-     */
-
-//    size_t start_pos_comment_before;
-    size_t finish_pos_comment_before;
-    size_t start_pos_comment_after;
-//    size_t finish_pos_comment_after;
-    std::string comment_string;
-    VString previous_comments;
-    CommentDesign& cd = getCommentDesign();
-
-    size_t i = 0; //начало строки
-
-    //определение границ начального комментария
-    {
-        for(; i < content.size(); i++) {
-            char ch_previous    = i == 0 ? 0 : content[i - 1];
-            char ch_current     = content[i];
-            char ch_next        = i < content.size() ? content[i + 1] : 0;
-
-            CheckComments(ch_current, ch_next, i, cd, comment_string);
-            if(cd.temp_type == CommentType::eCommentEnd)
-            {
-                previous_comments.push_back(FromComment(comment_string, cd));
-//                current_comment.clear();
-//                design.temp_type = CommentType::eNotComment;
-                break;
-            }
-        }
-
-        if(cd.with_comments && !comment_string.empty())
-        {
-            //сохранить комментарий
-        }
-    }
-
-    return false;
-}
-
 bool Config::parse(const std::string &content, const ConfigFormat format,
                       const bool with_comments) noexcept
 {
@@ -1620,6 +1570,72 @@ Config CreateElementFromString(std::string &&value_string, const ConfigFormat fo
     // в теории, всё, что не распарсилось в другие значения, - должно считаться строкой
     //FIXME: строка не должна начинаться с технических скобок
     return Config(value_string);
+}
+
+//NOTE: функция нужна исключительно для перенаправления на внутренние парсеры
+Config ParseSimpleValue(const std::string& content, const ConfigFormat format,
+                                                CommentDesign& design, ParserSymbolCounter& start_iterator,
+                                                const int8_t yaml_tabulation_level) noexcept
+{
+    Config config; //изначально пустой
+    /* Суть функции:
+     * - начать запись начального комментария
+     * - найти границу начала значения (не считывать комментарий в границах значения)
+     * - определить тип значения (на основе формата)
+     * - запомнить начальный комментарий
+     * - найти границу конечного комментария (с конца строки), если он есть
+     * - запомнить конечный комментарий
+     * - передать строку без начального и конечного комментариев на дальнейший парсинг в дочерний IElement
+     */
+
+    //    size_t start_pos_comment_before;
+    size_t finish_pos_comment_before;
+    size_t start_pos_comment_after;
+    //    size_t finish_pos_comment_after;
+    std::string comment_string;
+    VString previous_comments;
+
+    size_t i = 0; //начало строки
+
+    //определение границ начального комментария
+    {
+        for(; i < content.size(); i++) {
+            char ch_previous    = i == 0 ? 0 : content[i - 1];
+            char ch_current     = content[i];
+            char ch_next        = i < content.size() ? content[i + 1] : 0;
+
+            CheckComments(ch_current, ch_next, i, design, comment_string);
+            if(design.temp_type == CommentType::eCommentEnd)
+            {
+                previous_comments.push_back(FromComment(comment_string, design));
+                comment_string.clear();
+                design.temp_type = CommentType::eNotComment;
+                continue;
+            }
+
+            //если найдено начало значения (следующий символ), то выходим из цикла
+            if(utils::CharInString(ch_current, ...)) {
+
+            }
+        }
+
+        if(design.with_comments && !comment_string.empty())
+        {
+            //сохранить комментарий
+        }
+    }
+
+    //обработка конечного комментария (поиск границ, сохранение)
+    {
+
+    }
+
+    //обработка значения
+    {
+        //TODO:
+    }
+
+    return config;
 }
 
 

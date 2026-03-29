@@ -42,6 +42,9 @@ struct is_valid_config_type {
 //ПРЕДВАРИТЕЛЬНЫЕ ОБЪЯВЛЕНИЯ
 Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
                                CommentDesign& design, ParserSymbolCounter& start_iterator)              noexcept;
+Config ParseSimpleValue(const std::string& content, const ConfigFormat format,
+                        CommentDesign& design, ParserSymbolCounter& start_iterator,
+                        const int8_t yaml_tabulation_level = 0)                                         noexcept;
 //пара <корректность чтения, итоговый Config>
 std::pair<bool, Config> ReadFile(const std::string& file_path, const ConfigFormat format,
                                  const bool with_comments = false)                                      noexcept;
@@ -798,11 +801,6 @@ public:
     // ============================================================================================================ File
 
     // Parser ==========================================================================================================
-private:
-    bool            parseSimpleValue(const std::string& content, const ConfigFormat format,
-                          ParserSymbolCounter& start_iterator,
-                          const int8_t yaml_tabulation_level = 0)                                   noexcept;
-public:
     bool            parse(const std::string& content, const ConfigFormat format,
                         const bool with_comments = false)                                           noexcept;                   API_ALL
     bool            parseJson(const std::string& content, const bool with_comments = false)         noexcept;                   API_ALL
@@ -814,7 +812,9 @@ public:
     // вернёт текст ошибки, указывающий на тип некорректно прочитанного значения
     friend Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
                                           CommentDesign& design, ParserSymbolCounter& start_iterator)       noexcept;
-
+    friend Config ParseSimpleValue(const std::string& content, const ConfigFormat format,
+                                   CommentDesign& design, ParserSymbolCounter& start_iterator,
+                                   const int8_t yaml_tabulation_level)                                      noexcept;
     //пара <корректность чтения, итоговый Config>
     friend std::pair<bool, Config> ReadFile(const std::string& file_path, const ConfigFormat format,
                                             const bool with_comments)                                       noexcept;
