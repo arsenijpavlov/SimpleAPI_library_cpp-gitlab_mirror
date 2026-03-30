@@ -1632,7 +1632,7 @@ Config ParseSimpleValue(const std::string& content, const ConfigFormat format,
 
     //обработка значения
     {
-        //TODO:
+        //TODO: следует искать по шаблонам из design, но с конечных символов
     }
 
     return config;
