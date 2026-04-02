@@ -45,6 +45,13 @@ Config CreateElementFromString(std::string &&value_string, const ConfigFormat fo
 Config ParseSimpleValue(const std::string& content, const ConfigFormat format,
                         CommentDesign& design, ParserSymbolCounter& start_iterator,
                         const int8_t yaml_tabulation_level = 0)                                         noexcept;
+Config ParseSimpleValueJson(const std::string& content, CommentDesign& design,
+                            ParserSymbolCounter& start_iterator)                                        noexcept;
+//NOTE: формат INI не подразумевает схему "только value", обязательно связки "key=value"
+Config ParseSimpleValueYaml(const std::string& content, CommentDesign& design,
+                            ParserSymbolCounter& start_iterator, const int8_t yaml_tabulation_level)    noexcept;
+Config ParseSimpleValueXml(const std::string& content, CommentDesign& design,
+                           ParserSymbolCounter& start_iterator)                                         noexcept;
 //пара <корректность чтения, итоговый Config>
 std::pair<bool, Config> ReadFile(const std::string& file_path, const ConfigFormat format,
                                  const bool with_comments = false)                                      noexcept;
@@ -815,6 +822,14 @@ public:
     friend Config ParseSimpleValue(const std::string& content, const ConfigFormat format,
                                    CommentDesign& design, ParserSymbolCounter& start_iterator,
                                    const int8_t yaml_tabulation_level)                                      noexcept;
+    friend Config ParseSimpleValueJson(const std::string& content, CommentDesign& design,
+                                       ParserSymbolCounter& start_iterator)                                 noexcept;
+    //NOTE: формат INI не подразумевает схему "только value", обязательно связки "key=value"
+    friend Config ParseSimpleValueYaml(const std::string& content, CommentDesign& design,
+                                       ParserSymbolCounter& start_iterator, const int8_t yaml_tabulation_level) noexcept;
+    friend Config ParseSimpleValueXml(const std::string& content, CommentDesign& design,
+                                      ParserSymbolCounter& start_iterator)                                  noexcept;
+
     //пара <корректность чтения, итоговый Config>
     friend std::pair<bool, Config> ReadFile(const std::string& file_path, const ConfigFormat format,
                                             const bool with_comments)                                       noexcept;

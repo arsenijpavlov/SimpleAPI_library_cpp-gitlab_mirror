@@ -1342,7 +1342,7 @@ bool Config::readFile(const std::string &file_path, const ConfigFormat format,
 
 //FIXME: m_error_str должен обнуляться
 bool Config::readFileJson(const std::string &file_path, const bool with_comments) noexcept
-{    
+{
     std::string input_str;
     if(GetAllStringsFromFile(file_path, input_str, &m_error_str.value())) {
         return parseJson(input_str, with_comments);
@@ -1577,65 +1577,84 @@ Config ParseSimpleValue(const std::string& content, const ConfigFormat format,
                                                 CommentDesign& design, ParserSymbolCounter& start_iterator,
                                                 const int8_t yaml_tabulation_level) noexcept
 {
-    Config config; //изначально пустой
-    /* Суть функции:
-     * - начать запись начального комментария
-     * - найти границу начала значения (не считывать комментарий в границах значения)
-     * - определить тип значения (на основе формата)
-     * - запомнить начальный комментарий
-     * - найти границу конечного комментария (с конца строки), если он есть
-     * - запомнить конечный комментарий
-     * - передать строку без начального и конечного комментариев на дальнейший парсинг в дочерний IElement
+    switch(format) {
+    case ConfigFormat::eONLY_VALUE:
+    case ConfigFormat::eJSON:       return ParseSimpleValueJson(content, design, start_iterator);
+    case ConfigFormat::eYAML:       return ParseSimpleValueYaml(content, design, start_iterator, yaml_tabulation_level);
+    case ConfigFormat::eXML:        return ParseSimpleValueXml(content, design, start_iterator);
+    case ConfigFormat::eINI:        break;
+    }
+
+    Config config;
+    config.m_error_str = "incorrect format for ParseSimpleValue()";
+    return config;
+}
+
+Config ParseSimpleValueJson(const std::string& content, const ConfigFormat format,
+                        CommentDesign& design, ParserSymbolCounter& start_iterator) noexcept
+{
+    /* игнорируя комментарий, найти первое вхождение символа ключа(значения)
+     * определить следующий после "слова" символ-разделитель, если он есть
+     *   - комментарий после "слова" тоже игнорируется
+     * если за символами пробела есть разделитель key-value - передать на парсер ElementJson::parseJson()
+     * если за "пробельными символами" есть новое "слово" - явно ошибка
+     * иначе использовать парсер CreateElementFromString(), а комментарии сохранить здесь же
+     */
+    ParserSymbolCounter counter; //заглушка, ничего не делает
+    std::string current_comment;
+    bool is_quotes             = false;
+    size_t inner_json_counter  = 0;
+    size_t inner_array_counter = 0;
+
+    for(size_t i = 0; i < content.size(); i++) {
+        char ch_previous = i == 0 ? 0 : content[i - 1];
+        char ch_current  = content[i];
+        char ch_next     = i < content.size() ? content[i + 1] : 0;
+
+        counter.check(i, ch_current);
+
+        //поиск комментариев ===================================================
+        const bool ext_flag = !is_quotes && (inner_array_counter + inner_json_counter == 0);
+        //вернёт комментарий без обрамления
+        CheckComments(ch_current, ch_next, i, design, current_comment, ext_flag);
+        if(!design.with_comments)
+            current_comment.clear();
+        if(design.with_comments && design.temp_type == CommentType::eCommentEnd)
+        {
+            //в этой функции комментарии не запоминаются
+            continue;
+        }
+        if(design.temp_type != CommentType::eNotComment)
+            continue; // здесь комментарий, не обрабатываем символ
+        //=================================================== поиск комментариев
+
+    }
+
+    //TODO: ParseSimpleValueJson()
+    return {};
+}
+
+Config ParseSimpleValueYaml(const std::string& content, const ConfigFormat format,
+                            CommentDesign& design, ParserSymbolCounter& start_iterator,
+                            const int8_t yaml_tabulation_level) noexcept
+{
+    //TODO: ParseSimpleValueYaml()
+    return {};
+}
+
+Config ParseSimpleValueXml(const std::string& content, const ConfigFormat format,
+                            CommentDesign& design, ParserSymbolCounter& start_iterator) noexcept
+{
+    /* игнорируя комментарий, найти первое вхождение символа ключа(значения)
+     * определить следующий после "слова" символ-разделитель, если он есть
+     *   - комментарий после "слова" тоже игнорируется
+     * если за символами пробела есть разделитель key-value - передать на парсер ElementJson::parseJson()
+     * если за "пробельными символами" есть новое "слово" - явно ошибка
+     * иначе использовать парсер CreateElementFromString(), а комментарии сохранить здесь же
      */
 
-    //    size_t start_pos_comment_before;
-    size_t finish_pos_comment_before;
-    size_t start_pos_comment_after;
-    //    size_t finish_pos_comment_after;
-    std::string comment_string;
-    VString previous_comments;
-
-    size_t i = 0; //начало строки
-
-    //определение границ начального комментария
-    {
-        for(; i < content.size(); i++) {
-            char ch_previous    = i == 0 ? 0 : content[i - 1];
-            char ch_current     = content[i];
-            char ch_next        = i < content.size() ? content[i + 1] : 0;
-
-            CheckComments(ch_current, ch_next, i, design, comment_string);
-            if(design.temp_type == CommentType::eCommentEnd)
-            {
-                previous_comments.push_back(FromComment(comment_string, design));
-                comment_string.clear();
-                design.temp_type = CommentType::eNotComment;
-                continue;
-            }
-
-            //если найдено начало значения (следующий символ), то выходим из цикла
-            if(utils::CharInString(ch_current, ...)) {
-
-            }
-        }
-
-        if(design.with_comments && !comment_string.empty())
-        {
-            //сохранить комментарий
-        }
-    }
-
-    //обработка конечного комментария (поиск границ, сохранение)
-    {
-
-    }
-
-    //обработка значения
-    {
-        //TODO: следует искать по шаблонам из design, но с конечных символов
-    }
-
-    return config;
+    //TODO: ParseSimpleValueXml()
+    return {};
 }
 
 
@@ -1703,7 +1722,6 @@ bool WriteFileIni(const Config& config, const std::string& file_path,
     return WriteStringToFile(file_path, config.toString(ConfigFormat::eINI, design, custom_tabulation_level));
 }
 
-//NOTE: массивы отдельно спарсить нельзя - только в составе полного конфига (1 элемент - это тоже конфиг)
 std::pair<bool, Config> Parse(const std::string &content, const ConfigFormat format,
              const bool with_comments) noexcept
 {
