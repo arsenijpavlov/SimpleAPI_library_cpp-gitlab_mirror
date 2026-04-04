@@ -12,7 +12,7 @@ protected:
 
 public:
     ElementJson()                                                               noexcept        { init(); }
-    explicit ElementJson(const ElementJson& json)                               noexcept;
+    explicit ElementJson(const ElementJson& other)                              noexcept;
     explicit ElementJson(const JPair& pair)                                     noexcept;
     explicit ElementJson(const std::string& input_string,
                          const ConfigFormat config_format = ConfigFormat::eJSON,

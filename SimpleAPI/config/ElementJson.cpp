@@ -7,9 +7,10 @@
 #include "../utils/ParserSymbolCounter.h"
 
 
-ElementJson::ElementJson(const ElementJson &json) noexcept {
+ElementJson::ElementJson(const ElementJson &other) noexcept {
     init();
-    m_values = json.m_values;
+    m_comment = other.m_comment;
+    m_values = other.m_values;
 }
 
 ElementJson::ElementJson(const JPair &pair) noexcept {

@@ -256,7 +256,7 @@ TEST(JSON, parse_with_comments) {
 
     std::string test_input = "{a:15,/*s_comment*//*p1_comment*//*p2_comment*/b:120}";
     Config json;
-    json.parseJson(test_input, true);
+    json.parseJson(test_input, cd);
 
     EXPECT_EQ(json.get_suffix_comment("a"), "s_comment");
     EXPECT_EQ(json.get_prefix_comment("b"), "p1_comment\n"
@@ -348,10 +348,10 @@ TEST(JSON, write_and_read_file_comment) {
     //при сравнении Comment как цельной единицы, prefix и suffix будут проверены нормализовано
 
     EXPECT_EQ(json2.getComment(), json.getComment());
-    EXPECT_EQ(json2.getPrefixComment(), FromTo(json.getPrefixComment()));
-    EXPECT_EQ(json2.getSuffixComment(), FromTo_Suffix(json.getSuffixComment()));
-    EXPECT_EQ(json2.getPrefixComment(), FromTo(main_comment));
-    EXPECT_EQ(json2.getSuffixComment(), FromTo_Suffix(main_comment));
+    EXPECT_EQ(utils::GetNormalizeString(json2.getPrefixComment()), utils::GetNormalizeString(json.getPrefixComment()));
+    EXPECT_EQ(utils::GetNormalizeString(json2.getSuffixComment()), utils::GetNormalizeString(json.getSuffixComment()));
+    EXPECT_EQ(utils::GetNormalizeString(json2.getPrefixComment()), utils::GetNormalizeString(main_comment));
+    EXPECT_EQ(utils::GetNormalizeString(json2.getSuffixComment()), utils::GetNormalizeString(main_comment));
 
     EXPECT_EQ(json2.get_comment("bool"), json.get_comment("bool"));
     EXPECT_EQ(json2.get_prefix_comment("bool"), FromTo(json.get_prefix_comment("bool")));

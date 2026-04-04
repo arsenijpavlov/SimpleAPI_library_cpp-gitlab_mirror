@@ -1322,7 +1322,7 @@ bool Config::containsKey(const std::string &key) const noexcept {
 std::string Config::toString(const ConfigFormat format, const CommentDesign &design,
                              const int8_t tabulation_level) const noexcept
 {
-    CommentDesign n_design;
+    CommentDesign n_design = design;
     if(design == CommentDesign{}) { // если переменная не заполнена, используется собственная
         n_design = m_value->getCommentDesign();
     } else {
@@ -1359,7 +1359,7 @@ bool Config::readFile(const std::string &file_path, const ConfigFormat format,
 //FIXME: m_error_str должен обнуляться
 bool Config::readFileJson(const std::string &file_path, const CommentDesign &design) noexcept
 {
-    CommentDesign n_design;
+    CommentDesign n_design = design;
     if(design == CommentDesign{}) { // если переменная не заполнена, используется соб
         n_design = m_value->getCommentDesign();
     }
@@ -1375,7 +1375,7 @@ bool Config::readFileJson(const std::string &file_path, const CommentDesign &des
 //FIXME: m_error_str должен обнуляться
 bool Config::readFileIni(const std::string &file_path, const CommentDesign &design) noexcept
 {
-    CommentDesign n_design;
+    CommentDesign n_design = design;
     if(design == CommentDesign{}) { // если переменная не заполнена, используется соб
         n_design = m_value->getCommentDesign();
     }
@@ -1392,7 +1392,7 @@ bool Config::writeFile(const std::string &file_path,  const ConfigFormat format,
                        const CommentDesign &design,
                        const int8_t custom_tabulation_level) noexcept
 {
-    CommentDesign n_design;
+    CommentDesign n_design = design;
     if(design == CommentDesign{}) { // если переменная не заполнена, используется собственная
         n_design = m_value->getCommentDesign();
     } else {
@@ -1404,7 +1404,7 @@ bool Config::writeFile(const std::string &file_path,  const ConfigFormat format,
 bool Config::writeFileJson(const std::string &file_path, const CommentDesign &design,
                            const int8_t custom_tabulation_level) noexcept
 {
-    CommentDesign n_design;
+    CommentDesign n_design = design;
     if(design == CommentDesign{}) { // если переменная не заполнена, используется соб
         n_design = m_value->getCommentDesign();
     }
@@ -1414,7 +1414,7 @@ bool Config::writeFileJson(const std::string &file_path, const CommentDesign &de
 bool Config::writeFileIni(const std::string &file_path, const CommentDesign &design,
                           const int8_t custom_tabulation_level) noexcept
 {
-    CommentDesign n_design;
+    CommentDesign n_design = design;
     if(design == CommentDesign{}) { // если переменная не заполнена, используется собственная
         n_design = m_value->getCommentDesign();
     }
@@ -1424,7 +1424,7 @@ bool Config::writeFileIni(const std::string &file_path, const CommentDesign &des
 bool Config::parse(const std::string &content, const ConfigFormat format,
                    const CommentDesign &design) noexcept
 {
-    CommentDesign n_design;
+    CommentDesign n_design = design;
     if(design == CommentDesign{}) { // если переменная не заполнена, используется соб
         n_design = m_value->getCommentDesign();
     }
@@ -1914,7 +1914,7 @@ std::pair<bool, Config> ParseJson(const std::string &content, const CommentDesig
 {
     Config ret(ValueType::eJson);
 
-    CommentDesign n_design;
+    CommentDesign n_design = design;
     if(design == CommentDesign{}) { // если переменная не заполнена, используется соб
         n_design = ret.getCommentDesign();
     }
@@ -1927,7 +1927,7 @@ std::pair<bool, Config> ParseIni(const std::string &content, const CommentDesign
 {
     Config ret(ValueType::eJson);
 
-    CommentDesign n_design;
+    CommentDesign n_design = design;
     if(design == CommentDesign{}) { // если переменная не заполнена, используется соб
         n_design = ret.getCommentDesign();
     }

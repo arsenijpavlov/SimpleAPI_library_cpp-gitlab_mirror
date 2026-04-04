@@ -17,7 +17,7 @@ ElementArray::ElementArray(const std::string &input_string, const ConfigFormat c
                            const CommentDesign& design, std::string *error_str) noexcept
 {
     ElementArray temp;
-    CommentDesign n_design;
+    CommentDesign n_design = design;
     temp.init();
 
     std::string error = temp.parse(input_string, n_design, config_format);
