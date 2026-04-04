@@ -30,6 +30,19 @@ ElementJson::ElementJson(const std::string &input_string, const ConfigFormat con
     *this = std::move(temp);
 }
 
+ElementJson::ElementJson(const std::string &input_string, const ConfigFormat config_format,
+                         const CommentDesign design, std::string* error_str) noexcept {
+    ElementJson temp;
+    temp.init();
+
+    m_comment.commentDesign() = design;
+    std::string error = temp.parse(input_string, m_comment.commentDesign(), config_format);
+    if(error_str != nullptr)
+        *error_str = error;
+
+    *this = std::move(temp);
+}
+
 ElementJson::ElementJson(const VPairElement &vec) noexcept {
     init();
     insert_back(vec);
