@@ -1597,7 +1597,8 @@ Config ParseSimpleValue(const std::string& content, const ConfigFormat format,
     case ConfigFormat::eJSON:       return ParseSimpleValueJson(content, design, start_iterator);
     case ConfigFormat::eYAML:       return ParseSimpleValueYaml(content, design, start_iterator, yaml_tabulation_level);
     case ConfigFormat::eXML:        return ParseSimpleValueXml(content, design, start_iterator);
-    case ConfigFormat::eINI:        break;
+    case ConfigFormat::eINI:
+    default:                        break;
     }
 
     Config config;
@@ -1605,8 +1606,9 @@ Config ParseSimpleValue(const std::string& content, const ConfigFormat format,
     return config;
 }
 
-Config ParseSimpleValueJson(const std::string& content, const ConfigFormat format,
-                        CommentDesign& design, ParserSymbolCounter& start_iterator) noexcept
+// Задача функции: определить тип значения верхнего уровня и передать в соответствующий обработчик
+Config ParseSimpleValueJson(const std::string& content, CommentDesign& design,
+                            ParserSymbolCounter& start_iterator) noexcept
 {
     /* игнорируя комментарий, найти первое вхождение символа ключа(значения)
      * определить следующий после "слова" символ-разделитель, если он есть
@@ -1615,50 +1617,194 @@ Config ParseSimpleValueJson(const std::string& content, const ConfigFormat forma
      * если за "пробельными символами" есть новое "слово" - явно ошибка
      * иначе использовать парсер CreateElementFromString(), а комментарии сохранить здесь же
      */
-    ParserSymbolCounter counter; //заглушка, ничего не делает
     std::string current_comment;
+    VString comments;
     bool is_quotes             = false;
     size_t inner_json_counter  = 0;
     size_t inner_array_counter = 0;
 
-    for(size_t i = 0; i < content.size(); i++) {
-        char ch_previous = i == 0 ? 0 : content[i - 1];
-        char ch_current  = content[i];
-        char ch_next     = i < content.size() ? content[i + 1] : 0;
+    bool value_found        = false;
+    size_t value_started_at = 0;
+    bool is_full_json       = false;
 
-        counter.check(i, ch_current);
+    ParserSymbolCounter counter;
 
-        //поиск комментариев ===================================================
-        const bool ext_flag = !is_quotes && (inner_array_counter + inner_json_counter == 0);
-        //вернёт комментарий без обрамления
-        CheckComments(ch_current, ch_next, i, design, current_comment, ext_flag);
-        if(!design.with_comments)
-            current_comment.clear();
-        if(design.with_comments && design.temp_type == CommentType::eCommentEnd)
-        {
-            //в этой функции комментарии не запоминаются
-            continue;
+    //нужно определить тип значения: "100%-json", "json с одним ключом" или что-то иное
+    {
+        for(size_t i = 0; i < content.size(); i++) {
+            const char ch_current  = content[i];
+            const char ch_next     = i < content.size() ? content[i + 1] : 0;
+
+            counter.check(i, ch_current);
+
+            //поиск комментариев ===================================================
+            const bool ext_flag = !is_quotes && (inner_array_counter + inner_json_counter == 0);
+            //вернёт комментарий без обрамления
+            CheckComments(ch_current, ch_next, i, design, current_comment, ext_flag);
+            if(!design.with_comments)
+                current_comment.clear();
+            if(design.with_comments && design.temp_type == CommentType::eCommentEnd)
+            {
+                // запомнить комментарий, если он потом понадобится для одиночного значения
+//                comments.push_back(FromComment(std::move(current_comment), design)); //FIXME: на будущее
+                comments.push_back(FromComment(current_comment, design));
+                current_comment.clear();
+                continue;
+            }
+            if(design.temp_type != CommentType::eNotComment)
+                continue; // здесь комментарий, не обрабатываем символ
+            //=================================================== поиск комментариев
+
+            //первый не пробельный символ является определителем
+            if(!value_found && !utils::CharInString(ch_current, __SPACES__))
+            {
+                value_found      = true;
+                value_started_at = i;
+                if(ch_current == '{') {
+                    is_full_json = true;
+                    break;
+                }
+            }
+
+            //находим следующие определители
+            if(value_found) {
+                if(inner_json_counter == 0 && inner_array_counter == 0)
+                {
+                    if(utils::CharInString(ch_current, "=:")) {
+                        is_full_json = true;
+                        break;
+                    }
+                }
+            }
+
+            //само наличие этих знаков
+            switch(ch_current){
+            case '{': inner_json_counter++;     break;
+            case '}': inner_json_counter--;     break;
+            case '[': inner_array_counter++;    break;
+            case ']': inner_array_counter--;    break;
+            }
         }
-        if(design.temp_type != CommentType::eNotComment)
-            continue; // здесь комментарий, не обрабатываем символ
-        //=================================================== поиск комментариев
-
     }
 
-    //TODO: ParseSimpleValueJson()
-    return {};
+    Config result_cfg;
+    std::string prefix_comment = VStringToString(comments);
+    std::string error;
+
+    result_cfg.release();
+    if(is_full_json) {
+        result_cfg.setValue(ElementJson(content, ConfigFormat::eJSON, design, &error));
+        result_cfg.setError(std::move(error));
+    } else if(value_found) {
+        //сначала нужно отделить комментарии, затем обработать внутреннее значение через CreateElementFromString()
+        //начальные комментарии уже известны
+        //здесь только значение, ключа быть не может
+        ParserSymbolCounter start_value_counter = counter; //будет использовано в CreateElementFromString()
+        std::string value;
+
+        auto ConfirmValue = [&, content](const bool for_penultimate = false) -> bool {
+            Config element = CreateElementFromString(std::move(value), ConfigFormat::eJSON, design, start_value_counter);
+            if(element.error()) {
+                //если случилась ошибка при внутренней конвертации прочитанного значения,
+                // то эта ошибка становится основной ошибкой парсинга
+                error = "value parse error[" + std::to_string(counter.getLastLineCounter())
+                        + "][" + std::to_string(counter.getLastSymbolCounter()) + "]: " + element.getError();
+                return false;
+            }
+
+            result_cfg = Config(std::move(element));
+            if(result_cfg.getCommentDesign().opt_multiline_column_size > design.opt_multiline_column_size)
+                design.opt_multiline_column_size = result_cfg.getCommentDesign().opt_multiline_column_size;
+
+            return true;
+        };
+
+        bool value_stored = false;
+        //нужно прочитать значение полностью и отделить его от замыкающего комментария
+        for(size_t i = value_started_at; i < content.size(); i++) {
+            char ch_previous    = i == 0 ? 0 : content[i - 1];
+            char ch_current     = content[i];
+            char ch_next        = i < content.size() ? content[i + 1] : 0;
+
+            counter.check(i, ch_current);
+
+            //поиск комментариев ===================================================
+            const bool ext_flag = !is_quotes && (inner_array_counter + inner_json_counter == 0);
+            //вернёт комментарий без обрамления
+            CheckComments(ch_current, ch_next, i, design, current_comment, ext_flag);
+            if(!design.with_comments)
+                current_comment.clear();
+            if(design.with_comments && design.temp_type == CommentType::eCommentEnd)
+            {
+                comments.push_back(FromComment(current_comment, design));
+                current_comment.clear();
+                design.temp_type = CommentType::eNotComment;
+                continue;
+            }
+            if(design.temp_type != CommentType::eNotComment)
+                continue;
+            //=================================================== поиск комментариев
+
+
+            if(!value_stored) {
+                if(ch_current == '\"'
+                    && ch_previous != '\\'
+                    && inner_json_counter + inner_array_counter == 0)
+                {
+                    is_quotes = !is_quotes;
+                }
+
+                //кавычки, именованные списки, массивы
+                if(!is_quotes) {
+                    switch(ch_current) {
+                    case '{':   { ++inner_json_counter;     break; }
+                    case '}':   { --inner_json_counter;     break; }
+                    case '[':   { ++inner_array_counter;    break; }
+                    case ']':   { --inner_array_counter;    break; }
+                    default:    { break; }
+                    }
+                }
+                value += content[i];
+
+                //значение прочитано полностью?
+                if(!is_quotes && inner_json_counter + inner_array_counter == 0
+                    && (ch_next == 0 || utils::CharInString(ch_next, __SEPARATORS__ " }")
+                        || utils::CharInString(ch_current, __SEPARATORS__ " }")))
+                {
+                    if(!ConfirmValue(true))
+                        break; //если словили exception при обработке - выходим из цикла for()
+                    //иначе отмечаем, что значение прочитано корректно
+                    value_stored = true;
+                }
+            } else {
+                // все остальные символы кроме пробелов - признак ошибки парсера
+                if(!utils::CharInString(ch_current, __SPACES__)) {
+                    error = "value parse error[" + std::to_string(counter.getLastLineCounter())
+                            + "][" + std::to_string(counter.getLastSymbolCounter()) + "]: \'" + content[i] + "\'";
+                    break;
+                }
+            }
+        } //for loop
+        if(error.empty()) {
+            result_cfg.setSuffixComment(VStringToString(comments));
+        } else {
+            result_cfg.setError(error);
+        }
+    }
+    result_cfg.setPrefixComment(std::move(prefix_comment));
+    result_cfg.setCommentDesign(design);
+    return result_cfg;
 }
 
-Config ParseSimpleValueYaml(const std::string& content, const ConfigFormat format,
-                            CommentDesign& design, ParserSymbolCounter& start_iterator,
-                            const int8_t yaml_tabulation_level) noexcept
+Config ParseSimpleValueYaml(const std::string& content, CommentDesign& design,
+                            ParserSymbolCounter& start_iterator, const int8_t yaml_tabulation_level) noexcept
 {
     //TODO: ParseSimpleValueYaml()
     return {};
 }
 
-Config ParseSimpleValueXml(const std::string& content, const ConfigFormat format,
-                            CommentDesign& design, ParserSymbolCounter& start_iterator) noexcept
+Config ParseSimpleValueXml(const std::string& content, CommentDesign& design,
+                           ParserSymbolCounter& start_iterator) noexcept
 {
     /* игнорируя комментарий, найти первое вхождение символа ключа(значения)
      * определить следующий после "слова" символ-разделитель, если он есть
@@ -1743,8 +1889,8 @@ std::pair<bool, Config> Parse(const std::string &content, const ConfigFormat for
     switch(format) {
     case ConfigFormat::eJSON:   return ParseJson(content, with_comments);
     case ConfigFormat::eINI:    return ParseIni(content, with_comments);
-//    case ConfigFormat::eYAML:
-//    case ConfigFormat::eXML:
+//    case ConfigFormat::eYAML:   return ParseYaml(content, with_comments);
+//    case ConfigFormat::eXML:    return ParseXml(content, with_comments);
     default:                    break;
     }
 
