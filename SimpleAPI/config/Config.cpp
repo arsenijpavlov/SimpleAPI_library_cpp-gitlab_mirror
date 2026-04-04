@@ -1432,12 +1432,9 @@ bool Config::parse(const std::string &content, const ConfigFormat format,
 bool Config::parseJson(const std::string &content, const bool with_comments) noexcept
 {
     release();
-    std::string error;
-//    m_value = new ElementJson(content, ConfigFormat::eJSON, with_comments, &error);
-//    m_value = CreateElementFromString(content, ConfigFormat::eJSON, getCommentDesign(), {}, &error);
-    m_error_str = error;
-
-    return !error.empty();
+    CommentDesign design;
+    *this = ParseSimpleValueJson(content, design);
+    return !error();
 }
 
 bool Config::parseIni(const std::string &content, const bool with_comments) noexcept
@@ -1589,14 +1586,13 @@ Config CreateElementFromString(std::string &&value_string, const ConfigFormat fo
 
 //NOTE: функция нужна исключительно для перенаправления на внутренние парсеры
 Config ParseSimpleValue(const std::string& content, const ConfigFormat format,
-                                                CommentDesign& design, ParserSymbolCounter& start_iterator,
-                                                const int8_t yaml_tabulation_level) noexcept
+                                                CommentDesign& design, const int8_t yaml_tabulation_level) noexcept
 {
     switch(format) {
     case ConfigFormat::eONLY_VALUE:
-    case ConfigFormat::eJSON:       return ParseSimpleValueJson(content, design, start_iterator);
-    case ConfigFormat::eYAML:       return ParseSimpleValueYaml(content, design, start_iterator, yaml_tabulation_level);
-    case ConfigFormat::eXML:        return ParseSimpleValueXml(content, design, start_iterator);
+    case ConfigFormat::eJSON:       return ParseSimpleValueJson(content, design);
+    case ConfigFormat::eYAML:       return ParseSimpleValueYaml(content, design, yaml_tabulation_level);
+    case ConfigFormat::eXML:        return ParseSimpleValueXml(content, design);
     case ConfigFormat::eINI:
     default:                        break;
     }
@@ -1607,8 +1603,7 @@ Config ParseSimpleValue(const std::string& content, const ConfigFormat format,
 }
 
 // Задача функции: определить тип значения верхнего уровня и передать в соответствующий обработчик
-Config ParseSimpleValueJson(const std::string& content, CommentDesign& design,
-                            ParserSymbolCounter& start_iterator) noexcept
+Config ParseSimpleValueJson(const std::string& content, CommentDesign& design) noexcept
 {
     /* игнорируя комментарий, найти первое вхождение символа ключа(значения)
      * определить следующий после "слова" символ-разделитель, если он есть
@@ -1797,14 +1792,13 @@ Config ParseSimpleValueJson(const std::string& content, CommentDesign& design,
 }
 
 Config ParseSimpleValueYaml(const std::string& content, CommentDesign& design,
-                            ParserSymbolCounter& start_iterator, const int8_t yaml_tabulation_level) noexcept
+                            const int8_t yaml_tabulation_level) noexcept
 {
     //TODO: ParseSimpleValueYaml()
     return {};
 }
 
-Config ParseSimpleValueXml(const std::string& content, CommentDesign& design,
-                           ParserSymbolCounter& start_iterator) noexcept
+Config ParseSimpleValueXml(const std::string& content, CommentDesign& design) noexcept
 {
     /* игнорируя комментарий, найти первое вхождение символа ключа(значения)
      * определить следующий после "слова" символ-разделитель, если он есть
