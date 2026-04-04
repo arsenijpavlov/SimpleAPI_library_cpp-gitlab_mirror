@@ -515,6 +515,9 @@ SeparatedLines SeparateToColumns(const std::string& input_string, const size_t c
 
 // Вспомогательная функция для вывода массива строк в лог
 std::string VStringToString(const VString& input_vec, const bool need_quotes) noexcept {
+    if(input_vec.empty())
+        return "";
+
     std::string res;
 
     for(const auto& s : input_vec) {
@@ -526,7 +529,8 @@ std::string VStringToString(const VString& input_vec, const bool need_quotes) no
         res += "\n";
     }
     //последний перенос лишний
-    res.pop_back();
+    if(!res.empty())
+        res.pop_back();
 
     return res;
 }
