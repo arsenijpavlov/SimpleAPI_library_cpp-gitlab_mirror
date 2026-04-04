@@ -512,6 +512,22 @@ std::string Config::getString() const {
     return dynamic_cast<const ElementString*>(m_value)->getValue();
 }
 
+void Config::setError(const std::string &error_string) noexcept
+{
+    if(error_string.empty())
+        m_error_str.unset();
+    else
+        m_error_str = error_string;
+}
+
+void Config::setError(std::string &&error_string) noexcept
+{
+    if(error_string.empty())
+        m_error_str.unset();
+    else
+        m_error_str = std::move(error_string);
+}
+
 Config &Config::get_front() {
     __CHECK_TYPE_IS_CONTAINER__((*this))
     switch(getType()) {
@@ -1409,7 +1425,7 @@ bool Config::parse(const std::string &content, const ConfigFormat format,
     }
 
     Config out;
-    out.m_error_str = "unexpected ConfigFormat";
+    out.setError("unexpected ConfigFormat");
     return false;
 }
 
@@ -1419,8 +1435,7 @@ bool Config::parseJson(const std::string &content, const bool with_comments) noe
     std::string error;
 //    m_value = new ElementJson(content, ConfigFormat::eJSON, with_comments, &error);
 //    m_value = CreateElementFromString(content, ConfigFormat::eJSON, getCommentDesign(), {}, &error);
-    if(!error.empty())
-        m_error_str = error;
+    m_error_str = error;
 
     return !error.empty();
 }
