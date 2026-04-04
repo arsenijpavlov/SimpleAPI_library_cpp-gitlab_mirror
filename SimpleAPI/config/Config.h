@@ -657,6 +657,10 @@ public:
     bool            isEqual(const long double& other)                               const noexcept;                             API_ALL
     bool            isEqual(const std::string& other)                               const noexcept;                             API_ALL
 
+    //WIKI: для контейнеров вернёт количество элементов
+    //WIKI: для строк вернёт количество символов
+    //WIKI: для null вернёт 0
+    //WIKI: для всех остальных значений вернёт 1
     size_t          size()                                  const noexcept          { return m_value->size(); }                 API_ALL
     bool            isEmpty()                               const noexcept          { return size() == 0; }                     API_CONTAINER
     bool            containsValue(const Config& config)     const noexcept;                                                     API_CONTAINER
@@ -857,3 +861,7 @@ public:
 };
 
 #endif //CONFIG_H
+
+//TODO: вынести пользовательские функции в namespace sapi:: или simpleapi::
+//TODO: внутренние инструменты перенести ещё дальше simpleapi::element_json и т.д.
+//TODO: все функции с bool with_comment заменить на CommentDesign design
