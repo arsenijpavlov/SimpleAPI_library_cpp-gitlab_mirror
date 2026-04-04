@@ -1342,11 +1342,11 @@ std::ostream &operator<<(std::ostream &os, const IElement &config) noexcept {
 }
 
 bool Config::readFile(const std::string &file_path, const ConfigFormat format,
-                         const bool with_comments) noexcept
+                      const CommentDesign &design) noexcept
 {
     switch(format) {
-    case ConfigFormat::eJSON:   return readFileJson(file_path, with_comments);
-    case ConfigFormat::eINI:    return readFileIni(file_path, with_comments);
+    case ConfigFormat::eJSON:   return readFileJson(file_path, design);
+    case ConfigFormat::eINI:    return readFileIni(file_path, design);
     // case ConfigFormat::eYAML:
     // case ConfigFormat::eXML:
     default: break;
@@ -1357,22 +1357,32 @@ bool Config::readFile(const std::string &file_path, const ConfigFormat format,
 }
 
 //FIXME: m_error_str должен обнуляться
-bool Config::readFileJson(const std::string &file_path, const bool with_comments) noexcept
+bool Config::readFileJson(const std::string &file_path, const CommentDesign &design) noexcept
 {
+    CommentDesign n_design;
+    if(design == CommentDesign{}) { // если переменная не заполнена, используется соб
+        n_design = m_value->getCommentDesign();
+    }
+
     std::string input_str;
     if(GetAllStringsFromFile(file_path, input_str, &m_error_str.value())) {
-        return parseJson(input_str, with_comments);
+        return parseJson(input_str, n_design);
     }
 
     return false;
 }
 
 //FIXME: m_error_str должен обнуляться
-bool Config::readFileIni(const std::string &file_path, const bool with_comments) noexcept
+bool Config::readFileIni(const std::string &file_path, const CommentDesign &design) noexcept
 {
+    CommentDesign n_design;
+    if(design == CommentDesign{}) { // если переменная не заполнена, используется соб
+        n_design = m_value->getCommentDesign();
+    }
+
     std::string input_str;
     if(GetAllStringsFromFile(file_path, input_str, &m_error_str.value())) {
-        return parseIni(input_str, with_comments);
+        return parseIni(input_str, n_design);
     }
 
     return false;
@@ -1412,15 +1422,20 @@ bool Config::writeFileIni(const std::string &file_path, const CommentDesign &des
 }
 
 bool Config::parse(const std::string &content, const ConfigFormat format,
-                      const bool with_comments) noexcept
+                   const CommentDesign &design) noexcept
 {
+    CommentDesign n_design;
+    if(design == CommentDesign{}) { // если переменная не заполнена, используется соб
+        n_design = m_value->getCommentDesign();
+    }
+
     release();
 
     switch(format) {
-    case ConfigFormat::eJSON:   return parseJson(content, with_comments);
-    case ConfigFormat::eINI:    return parseIni(content, with_comments);
-    case ConfigFormat::eYAML:   return parseYaml(content, with_comments);
-    case ConfigFormat::eXML:    return parseXml(content, with_comments);
+    case ConfigFormat::eJSON:   return parseJson(content, n_design);
+    case ConfigFormat::eINI:    return parseIni(content, n_design);
+    case ConfigFormat::eYAML:   return parseYaml(content, n_design);
+    case ConfigFormat::eXML:    return parseXml(content, n_design);
     default:                    break;
     }
 
@@ -1429,28 +1444,27 @@ bool Config::parse(const std::string &content, const ConfigFormat format,
     return false;
 }
 
-bool Config::parseJson(const std::string &content, const bool with_comments) noexcept
+bool Config::parseJson(const std::string &content, const CommentDesign &design) noexcept
 {
     release();
-    CommentDesign design;
     *this = ParseSimpleValueJson(content, design);
     return !error();
 }
 
-bool Config::parseIni(const std::string &content, const bool with_comments) noexcept
+bool Config::parseIni(const std::string &content, const CommentDesign &design) noexcept
 {
     release();
-    m_value = new ElementJson(content, ConfigFormat::eINI, with_comments);
+    m_value = new ElementJson(content, ConfigFormat::eINI, design);
     return !m_error_str.isValid();
 }
 
-bool Config::parseYaml(const std::string &content, const bool with_comments) noexcept
+bool Config::parseYaml(const std::string &content, const CommentDesign &design) noexcept
 {
     //TODO: Config::parseYaml()
     return false;
 }
 
-bool Config::parseXml(const std::string &content, const bool with_comments) noexcept
+bool Config::parseXml(const std::string &content, const CommentDesign &design) noexcept
 {
     //TODO: Config::parseXml()
     return false;
@@ -1498,7 +1512,7 @@ shared_VPairElement::const_iterator Config::map_cend() const {
 
 //функция должна быть вызвана исключительно для обработки строки значения, комменты не учитывает
 Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
-                               CommentDesign& design, ParserSymbolCounter& start_iterator) noexcept
+                               CommentDesign &design, ParserSymbolCounter& start_iterator) noexcept
 {
     using namespace utils;
     //удаление незначащих пробелов
@@ -1555,7 +1569,7 @@ Config CreateElementFromString(std::string &&value_string, const ConfigFormat fo
                 Config array;
                 if(last == ']') {
                     array.setCommentDesign(design);
-                    ElementArray el_arr(value_string, ConfigFormat::eJSON, design.with_comments);
+                    ElementArray el_arr(value_string, ConfigFormat::eJSON, design);
                     array.setValue(el_arr);
                 } else {
                     //есть начало массива, но нет конца
@@ -1569,7 +1583,7 @@ Config CreateElementFromString(std::string &&value_string, const ConfigFormat fo
                 Config json;
                 if(last == '}') {
                     json.setCommentDesign(design);
-                    json.parseJson(value_string, design.with_comments);
+                    json.parseJson(value_string, design);
                 } else {
                     //есть начало Json, но нет конца
                     json.m_error_str = "not found end of Json value";
@@ -1586,7 +1600,7 @@ Config CreateElementFromString(std::string &&value_string, const ConfigFormat fo
 
 //NOTE: функция нужна исключительно для перенаправления на внутренние парсеры
 Config ParseSimpleValue(const std::string& content, const ConfigFormat format,
-                                                CommentDesign& design, const int8_t yaml_tabulation_level) noexcept
+                        const CommentDesign &design, const int8_t yaml_tabulation_level) noexcept
 {
     switch(format) {
     case ConfigFormat::eONLY_VALUE:
@@ -1603,8 +1617,8 @@ Config ParseSimpleValue(const std::string& content, const ConfigFormat format,
 }
 
 // Задача функции: определить тип значения верхнего уровня и передать в соответствующий обработчик
-Config ParseSimpleValueJson(const std::string& content, CommentDesign& design) noexcept
-{
+Config ParseSimpleValueJson(const std::string& content, const CommentDesign &design) noexcept
+{   
     /* игнорируя комментарий, найти первое вхождение символа ключа(значения)
      * определить следующий после "слова" символ-разделитель, если он есть
      *   - комментарий после "слова" тоже игнорируется
@@ -1623,6 +1637,7 @@ Config ParseSimpleValueJson(const std::string& content, CommentDesign& design) n
     bool is_full_json       = false;
 
     ParserSymbolCounter counter;
+    CommentDesign n_design = design;
 
     //нужно определить тип значения: "100%-json", "json с одним ключом" или что-то иное
     {
@@ -1635,18 +1650,18 @@ Config ParseSimpleValueJson(const std::string& content, CommentDesign& design) n
             //поиск комментариев ===================================================
             const bool ext_flag = !is_quotes && (inner_array_counter + inner_json_counter == 0);
             //вернёт комментарий без обрамления
-            CheckComments(ch_current, ch_next, i, design, current_comment, ext_flag);
-            if(!design.with_comments)
+            CheckComments(ch_current, ch_next, i, n_design, current_comment, ext_flag);
+            if(!n_design.with_comments)
                 current_comment.clear();
-            if(design.with_comments && design.temp_type == CommentType::eCommentEnd)
+            if(n_design.with_comments && n_design.temp_type == CommentType::eCommentEnd)
             {
                 // запомнить комментарий, если он потом понадобится для одиночного значения
 //                comments.push_back(FromComment(std::move(current_comment), design)); //FIXME: на будущее
-                comments.push_back(FromComment(current_comment, design));
+                comments.push_back(FromComment(current_comment, n_design));
                 current_comment.clear();
                 continue;
             }
-            if(design.temp_type != CommentType::eNotComment)
+            if(n_design.temp_type != CommentType::eNotComment)
                 continue; // здесь комментарий, не обрабатываем символ
             //=================================================== поиск комментариев
 
@@ -1683,12 +1698,14 @@ Config ParseSimpleValueJson(const std::string& content, CommentDesign& design) n
     }
 
     Config result_cfg;
+    result_cfg.setCommentDesign(n_design);
     std::string prefix_comment = VStringToString(comments);
     std::string error;
 
     result_cfg.release();
     if(is_full_json) {
-        result_cfg.setValue(ElementJson(content, ConfigFormat::eJSON, design, &error));
+        ElementJson element_json(content, ConfigFormat::eJSON, n_design, &error);
+        result_cfg.setValue(element_json);
         result_cfg.setError(std::move(error));
     } else if(value_found) {
         //сначала нужно отделить комментарии, затем обработать внутреннее значение через CreateElementFromString()
@@ -1698,7 +1715,8 @@ Config ParseSimpleValueJson(const std::string& content, CommentDesign& design) n
         std::string value;
 
         auto ConfirmValue = [&, content](const bool for_penultimate = false) -> bool {
-            Config element = CreateElementFromString(std::move(value), ConfigFormat::eJSON, design, start_value_counter);
+            Config element = CreateElementFromString(std::move(value), ConfigFormat::eJSON,
+                                                     result_cfg.getCommentDesign(), start_value_counter);
             if(element.error()) {
                 //если случилась ошибка при внутренней конвертации прочитанного значения,
                 // то эта ошибка становится основной ошибкой парсинга
@@ -1708,8 +1726,8 @@ Config ParseSimpleValueJson(const std::string& content, CommentDesign& design) n
             }
 
             result_cfg = Config(std::move(element));
-            if(result_cfg.getCommentDesign().opt_multiline_column_size > design.opt_multiline_column_size)
-                design.opt_multiline_column_size = result_cfg.getCommentDesign().opt_multiline_column_size;
+            if(result_cfg.getCommentDesign().opt_multiline_column_size > n_design.opt_multiline_column_size)
+                n_design.opt_multiline_column_size = result_cfg.getCommentDesign().opt_multiline_column_size;
 
             return true;
         };
@@ -1726,17 +1744,17 @@ Config ParseSimpleValueJson(const std::string& content, CommentDesign& design) n
             //поиск комментариев ===================================================
             const bool ext_flag = !is_quotes && (inner_array_counter + inner_json_counter == 0);
             //вернёт комментарий без обрамления
-            CheckComments(ch_current, ch_next, i, design, current_comment, ext_flag);
-            if(!design.with_comments)
+            CheckComments(ch_current, ch_next, i, n_design, current_comment, ext_flag);
+            if(!n_design.with_comments)
                 current_comment.clear();
-            if(design.with_comments && design.temp_type == CommentType::eCommentEnd)
+            if(n_design.with_comments && n_design.temp_type == CommentType::eCommentEnd)
             {
-                comments.push_back(FromComment(current_comment, design));
+                comments.push_back(FromComment(current_comment, n_design));
                 current_comment.clear();
-                design.temp_type = CommentType::eNotComment;
+                n_design.temp_type = CommentType::eNotComment;
                 continue;
             }
-            if(design.temp_type != CommentType::eNotComment)
+            if(n_design.temp_type != CommentType::eNotComment)
                 continue;
             //=================================================== поиск комментариев
 
@@ -1787,18 +1805,17 @@ Config ParseSimpleValueJson(const std::string& content, CommentDesign& design) n
         }
     }
     result_cfg.setPrefixComment(std::move(prefix_comment));
-    result_cfg.setCommentDesign(design);
     return result_cfg;
 }
 
-Config ParseSimpleValueYaml(const std::string& content, CommentDesign& design,
+Config ParseSimpleValueYaml(const std::string& content, const CommentDesign &design,
                             const int8_t yaml_tabulation_level) noexcept
 {
     //TODO: ParseSimpleValueYaml()
     return {};
 }
 
-Config ParseSimpleValueXml(const std::string& content, CommentDesign& design) noexcept
+Config ParseSimpleValueXml(const std::string& content, const CommentDesign &design) noexcept
 {
     /* игнорируя комментарий, найти первое вхождение символа ключа(значения)
      * определить следующий после "слова" символ-разделитель, если он есть
@@ -1814,11 +1831,11 @@ Config ParseSimpleValueXml(const std::string& content, CommentDesign& design) no
 
 
 std::pair<bool, Config> ReadFile(const std::string &file_path, const ConfigFormat format,
-                const bool with_comments) noexcept
+                const CommentDesign &design) noexcept
 {
     switch(format) {
-    case ConfigFormat::eJSON:   return ReadFileJson(file_path, with_comments);
-    case ConfigFormat::eINI:    return ReadFileIni(file_path, with_comments);
+    case ConfigFormat::eJSON:   return ReadFileJson(file_path, design);
+    case ConfigFormat::eINI:    return ReadFileIni(file_path, design);
 //    case ConfigFormat::eYAML:
 //    case ConfigFormat::eXML:
     default: break;
@@ -1830,28 +1847,28 @@ std::pair<bool, Config> ReadFile(const std::string &file_path, const ConfigForma
 }
 
 //FIXME: m_error_str должен обнуляться
-std::pair<bool, Config> ReadFileJson(const std::string &file_path, const bool with_comments) noexcept
+std::pair<bool, Config> ReadFileJson(const std::string &file_path, const CommentDesign &design) noexcept
 {
     std::string input_str;
     Config out;
     out.m_error_str.set("");
 
     if(GetAllStringsFromFile(file_path, input_str, &out.m_error_str.value())) {
-        return ParseJson(input_str, with_comments);
+        return ParseJson(input_str, design);
     }
 
     return std::make_pair(false, out);
 }
 
 //FIXME: m_error_str должен обнуляться
-std::pair<bool, Config> ReadFileIni(const std::string &file_path, const bool with_comments) noexcept
+std::pair<bool, Config> ReadFileIni(const std::string &file_path, const CommentDesign &design) noexcept
 {
     std::string input_str;
     Config out;
     out.m_error_str.set("");
 
     if(GetAllStringsFromFile(file_path, input_str, &out.m_error_str.value())) {
-        return ParseIni(input_str, with_comments);
+        return ParseIni(input_str, design);
     }
 
     return std::make_pair(false, out);
@@ -1878,11 +1895,11 @@ bool WriteFileIni(const Config& config, const std::string& file_path,
 }
 
 std::pair<bool, Config> Parse(const std::string &content, const ConfigFormat format,
-             const bool with_comments) noexcept
+                              const CommentDesign &design) noexcept
 {
     switch(format) {
-    case ConfigFormat::eJSON:   return ParseJson(content, with_comments);
-    case ConfigFormat::eINI:    return ParseIni(content, with_comments);
+    case ConfigFormat::eJSON:   return ParseJson(content, design);
+    case ConfigFormat::eINI:    return ParseIni(content, design);
 //    case ConfigFormat::eYAML:   return ParseYaml(content, with_comments);
 //    case ConfigFormat::eXML:    return ParseXml(content, with_comments);
     default:                    break;
@@ -1893,18 +1910,28 @@ std::pair<bool, Config> Parse(const std::string &content, const ConfigFormat for
     return std::make_pair(false, out);
 }
 
-std::pair<bool, Config> ParseJson(const std::string &content, const bool with_comments) noexcept
+std::pair<bool, Config> ParseJson(const std::string &content, const CommentDesign &design) noexcept
 {
     Config ret(ValueType::eJson);
-    bool result = ret.parseJson(content, with_comments);
 
+    CommentDesign n_design;
+    if(design == CommentDesign{}) { // если переменная не заполнена, используется соб
+        n_design = ret.getCommentDesign();
+    }
+
+    bool result = ret.parseJson(content, n_design);
     return std::make_pair(result, ret);
 }
 
-std::pair<bool, Config> ParseIni(const std::string &content, const bool with_comments) noexcept
+std::pair<bool, Config> ParseIni(const std::string &content, const CommentDesign &design) noexcept
 {
     Config ret(ValueType::eJson);
-    bool result = ret.parseIni(content, with_comments);
 
+    CommentDesign n_design;
+    if(design == CommentDesign{}) { // если переменная не заполнена, используется соб
+        n_design = ret.getCommentDesign();
+    }
+
+    bool result = ret.parseIni(content, n_design);
     return std::make_pair(result, ret);
 }

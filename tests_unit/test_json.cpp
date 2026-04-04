@@ -251,6 +251,9 @@ TEST(JSON, write_file) {
 }
 
 TEST(JSON, parse_with_comments) {
+    CommentDesign cd;
+    cd.with_comments = true;
+
     std::string test_input = "{a:15,/*s_comment*//*p1_comment*//*p2_comment*/b:120}";
     Config json;
     json.parseJson(test_input, true);
@@ -263,7 +266,7 @@ TEST(JSON, parse_with_comments) {
                  "//p2_comment\n"
                  "b:20 //s2_comment\n"
                  "} //sf_comment\n";
-    json.parseJson(test_input, true);
+    json.parseJson(test_input, cd);
 
     EXPECT_EQ(json.get_suffix_comment("a"), "s1_comment");
     EXPECT_EQ(json.get_prefix_comment("b"), "p2_comment");
@@ -272,13 +275,16 @@ TEST(JSON, parse_with_comments) {
 }
 
 TEST(JSON, parse_with_comments2) {
+    CommentDesign cd;
+    cd.with_comments = true;
+
     std::string test_input = "{\n"
                              "a:15,\n"
                              "/*p1_comment*/\n"
                              "b:120\n"
                              "}";
     Config json;
-    json.parseJson(test_input, true);
+    json.parseJson(test_input, cd);
 
     EXPECT_EQ(json.get_suffix_comment("a"), "");
     EXPECT_EQ(json.get_prefix_comment("b"), "p1_comment");
@@ -288,7 +294,7 @@ TEST(JSON, parse_with_comments2) {
                  "//p2_comment\n"
                  "b:20\n"
                  "}\n";
-    json.parseJson(test_input, true);
+    json.parseJson(test_input, cd);
 
     EXPECT_EQ(json.get_suffix_comment("a"), "");
     EXPECT_EQ(json.get_prefix_comment("b"), "p2_comment");
@@ -323,7 +329,7 @@ TEST(JSON, write_and_read_file_comment) {
 
     Config json2;
     try {
-        json2.readFileJson(path, true);
+        json2.readFileJson(path, cd);
     } catch (const std::exception& e) {
         FAIL() << e.what();
     }
@@ -424,8 +430,11 @@ TEST(JSON, read_file_comment) {
     file.close();
     //========================================================================
 
+    CommentDesign cd;
+    cd.with_comments = true;
+
     Config json2;
-    json2.readFile(path, ConfigFormat::eJSON, true); //по умолчанию считывается JSON формат
+    json2.readFile(path, ConfigFormat::eJSON, cd); //по умолчанию считывается JSON формат
     ASSERT_EQ(false, json2.isEmpty());
 
     EXPECT_EQ(json2.getPrefixComment(), preview_comment);
@@ -652,12 +661,15 @@ TEST(JSON, parse_simple_element) {
 }
 
 TEST(JSON, parse_simple_element_with_comments) {
+    CommentDesign cd;
+    cd.with_comments = true;
+
     std::string test_file_string = "//b\n"
                                    "k=1"
                                    "//a";
     Config json;
 
-    json.parseJson(test_file_string, true);
+    json.parseJson(test_file_string, cd);
     EXPECT_EQ(json.size(), 1);
     EXPECT_TRUE(json.getComment().prefix().empty());
     EXPECT_FALSE(json[0].getComment().prefix().empty());
@@ -670,7 +682,7 @@ TEST(JSON, parse_simple_element_with_comments) {
 
     test_file_string = "//b\n"
                        "k=1";
-    json.parseJson(test_file_string, true);
+    json.parseJson(test_file_string, cd);
     EXPECT_EQ(json.size(), 1);
     EXPECT_TRUE(json.getComment().prefix().empty());
     EXPECT_FALSE(json[0].getComment().prefix().empty());
@@ -679,7 +691,7 @@ TEST(JSON, parse_simple_element_with_comments) {
     test_file_string = "\n"
                        "k=1"
                        "//a";
-    json.parseJson(test_file_string, true);
+    json.parseJson(test_file_string, cd);
     EXPECT_EQ(json.size(), 1);
     EXPECT_TRUE(json.getComment().prefix().empty());
     EXPECT_TRUE(json[0].getComment().prefix().empty());
@@ -687,13 +699,16 @@ TEST(JSON, parse_simple_element_with_comments) {
 }
 
 TEST(JSON, parse_element_with_many_prefix_comments) {
+    CommentDesign cd;
+    cd.with_comments = true;
+
     std::string test_file_string = "/*b1*/\n"
                                    "/*b2*/\n"
                                    "k=1"
                                    "//a";
     Config json;
 
-    json.parseJson(test_file_string, true);
+    json.parseJson(test_file_string, cd);
     EXPECT_EQ(json.size(), 1);
     EXPECT_TRUE(json.getComment().prefix().empty());
     EXPECT_FALSE(json[0].getComment().prefix().empty());

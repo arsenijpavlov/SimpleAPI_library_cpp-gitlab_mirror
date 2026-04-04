@@ -207,9 +207,9 @@ public:
 };
 
 
-std::string GetOnelineCommentStr(const CommentDesign& design)                                   noexcept;
-std::string GetMultilineCommentStartStr(const CommentDesign& design)                            noexcept;
-std::string GetMultilineCommentStopStr(const CommentDesign& design)                             noexcept;
+std::string GetOnelineCommentStr(const CommentDesign &design)                                   noexcept;
+std::string GetMultilineCommentStartStr(const CommentDesign &design)                            noexcept;
+std::string GetMultilineCommentStopStr(const CommentDesign &design)                             noexcept;
 
 struct SeparatedLines {
     VString lines;
@@ -218,17 +218,17 @@ struct SeparatedLines {
 SeparatedLines SeparateWithoutColumned(const std::string& input_string)                         noexcept;
 SeparatedLines SeparateToColumns(const std::string& input_string, const size_t column_size)     noexcept;
 std::string VStringToString(const VString& input_vec, const bool need_quotes = false)           noexcept;
-std::string ToComment(const std::string &comment, const CommentDesign& design,
+std::string ToComment(const std::string &comment, const CommentDesign &design,
                 const int8_t tabulation_level = 0)                                              noexcept;
 bool        DefineCommentSymbols(const char first_sym, const char second_sym,
                 CommentDesign& cd)                                                              noexcept;
-std::string FromComment(std::string comment_string, CommentDesign& design)                      noexcept;
+std::string FromComment(std::string comment_string, CommentDesign &design)                      noexcept;
 
 
 void RemoveComments(std::string& input_string, CommentDesign design = {});
 
 void CheckComments(const char ch_current, const char ch_next,
-                   size_t &iter_counter, CommentDesign& design,
+                   size_t &iter_counter, CommentDesign &design,
                    std::string &current_comment, const bool external_flag = true);
 
 #endif // COMMENT_H

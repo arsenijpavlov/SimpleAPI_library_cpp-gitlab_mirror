@@ -41,19 +41,19 @@ struct is_valid_config_type {
 
 //ПРЕДВАРИТЕЛЬНЫЕ ОБЪЯВЛЕНИЯ
 Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
-                               CommentDesign& design, ParserSymbolCounter& start_iterator)              noexcept;
+                               CommentDesign &design, ParserSymbolCounter& start_iterator)              noexcept;
 Config ParseSimpleValue(const std::string& content, const ConfigFormat format,
-                        CommentDesign& design, const int8_t yaml_tabulation_level = 0)                  noexcept;
-Config ParseSimpleValueJson(const std::string& content, CommentDesign& design)                          noexcept;
+                        const CommentDesign &design, const int8_t yaml_tabulation_level = 0)            noexcept;
+Config ParseSimpleValueJson(const std::string& content, const CommentDesign &design)                    noexcept;
 //NOTE: формат INI не подразумевает схему "только value", обязательно связки "key=value"
-Config ParseSimpleValueYaml(const std::string& content, CommentDesign& design,
+Config ParseSimpleValueYaml(const std::string& content, const CommentDesign &design,
                             const int8_t yaml_tabulation_level)                                         noexcept;
-Config ParseSimpleValueXml(const std::string& content, CommentDesign& design)                           noexcept;
+Config ParseSimpleValueXml(const std::string& content, const CommentDesign &design)                     noexcept;
 //пара <корректность чтения, итоговый Config>
 std::pair<bool, Config> ReadFile(const std::string& file_path, const ConfigFormat format,
-                                 const bool with_comments = false)                                      noexcept;
-std::pair<bool, Config> ReadFileJson(const std::string& file_path, const bool with_comments = false)    noexcept;
-std::pair<bool, Config> ReadFileIni(const std::string& file_path, const bool with_comments = false)     noexcept;
+                                 const CommentDesign &design = {})                                      noexcept;
+std::pair<bool, Config> ReadFileJson(const std::string& file_path, const CommentDesign &design = {})    noexcept;
+std::pair<bool, Config> ReadFileIni(const std::string& file_path, const CommentDesign &design = {})     noexcept;
 
 //return - удалось записать файл или нет
 bool WriteFile(const Config& config, const std::string& file_path,
@@ -66,9 +66,9 @@ bool WriteFileIni(const Config& config, const std::string& file_path,
 
 //пара <корректность чтения, итоговый Config>
 std::pair<bool, Config> Parse(const std::string& content, const ConfigFormat format,
-                              const bool with_comments = false)                                         noexcept;
-std::pair<bool, Config> ParseJson(const std::string& content, const bool with_comments = false)         noexcept;
-std::pair<bool, Config> ParseIni(const std::string& content, const bool with_comments = false)          noexcept;
+                              const CommentDesign &design = {})                                         noexcept;
+std::pair<bool, Config> ParseJson(const std::string& content, const CommentDesign &design = {})         noexcept;
+std::pair<bool, Config> ParseIni(const std::string& content, const CommentDesign &design = {})          noexcept;
 
 class Config {
 private:
@@ -320,7 +320,7 @@ public:
 
     CommentDesign&  getCommentDesign()                              noexcept        { return m_value->getCommentDesign(); } API_ALL
     CommentDesign   getCommentDesign()                              const noexcept  { return m_value->getCommentDesign(); } API_ALL
-    Config&         setCommentDesign(const CommentDesign& design)   noexcept;                                               API_ALL
+    Config&         setCommentDesign(const CommentDesign &design)   noexcept;                                               API_ALL
     Config&         clearCommentDesign()                            noexcept;                                               API_ALL
 
     // вложенные контейнеры
@@ -798,9 +798,9 @@ public:
     // File ============================================================================================================
     //return - получившийся распаршенный корневой элемент, ElementNull если не удалось чтение
     bool            readFile(const std::string& file_path, const ConfigFormat format,
-                     const bool with_comments = false)                                              noexcept;                   API_ALL
-    bool            readFileJson(const std::string& file_path, const bool with_comments = false)    noexcept;                   API_ALL
-    bool            readFileIni(const std::string& file_path, const bool with_comments = false)     noexcept;                   API_ALL
+                             const CommentDesign &design = {})                                      noexcept;                   API_ALL
+    bool            readFileJson(const std::string& file_path, const CommentDesign &design = {})    noexcept;                   API_ALL
+    bool            readFileIni(const std::string& file_path, const CommentDesign &design = {})     noexcept;                   API_ALL
 
     //return - удалось записать файл или нет
     bool            writeFile(const std::string& file_path, const ConfigFormat format,
@@ -814,29 +814,29 @@ public:
 
     // Parser ==========================================================================================================
     bool            parse(const std::string& content, const ConfigFormat format,
-                        const bool with_comments = false)                                           noexcept;                   API_ALL
-    bool            parseJson(const std::string& content, const bool with_comments = false)         noexcept;                   API_ALL
-    bool            parseIni(const std::string& content, const bool with_comments = false)          noexcept;                   API_ALL
-    bool            parseYaml(const std::string& content, const bool with_comments = false)         noexcept;                   API_ALL
-    bool            parseXml(const std::string& content, const bool with_comments = false)          noexcept;                   API_ALL
+                          const CommentDesign &design = {})                                         noexcept;                   API_ALL
+    bool            parseJson(const std::string& content, const CommentDesign &design = {})         noexcept;                   API_ALL
+    bool            parseIni(const std::string& content, const CommentDesign &design = {})          noexcept;                   API_ALL
+    bool            parseYaml(const std::string& content, const CommentDesign &design = {})         noexcept;                   API_ALL
+    bool            parseXml(const std::string& content, const CommentDesign &design = {})          noexcept;                   API_ALL
     // ========================================================================================================== Parser
 
     // вернёт текст ошибки, указывающий на тип некорректно прочитанного значения
     friend Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
-                                          CommentDesign& design, ParserSymbolCounter& start_iterator)       noexcept;
+                                          CommentDesign &design, ParserSymbolCounter& start_iterator)       noexcept;
     friend Config ParseSimpleValue(const std::string& content, const ConfigFormat format,
-                                   CommentDesign& design, const int8_t yaml_tabulation_level)               noexcept;
-    friend Config ParseSimpleValueJson(const std::string& content, CommentDesign& design)                   noexcept;
+                                   const CommentDesign &design, const int8_t yaml_tabulation_level)         noexcept;
+    friend Config ParseSimpleValueJson(const std::string& content, const CommentDesign &design)             noexcept;
     //NOTE: формат INI не подразумевает схему "только value", обязательно связки "key=value"
-    friend Config ParseSimpleValueYaml(const std::string& content, CommentDesign& design,
+    friend Config ParseSimpleValueYaml(const std::string& content, const CommentDesign &design,
                                        const int8_t yaml_tabulation_level)                                  noexcept;
-    friend Config ParseSimpleValueXml(const std::string& content, CommentDesign& design)                    noexcept;
+    friend Config ParseSimpleValueXml(const std::string& content, const CommentDesign &design)              noexcept;
 
     //пара <корректность чтения, итоговый Config>
     friend std::pair<bool, Config> ReadFile(const std::string& file_path, const ConfigFormat format,
-                                            const bool with_comments)                                       noexcept;
-    friend std::pair<bool, Config> ReadFileJson(const std::string& file_path, const bool with_comments)     noexcept;
-    friend std::pair<bool, Config> ReadFileIni(const std::string& file_path, const bool with_comments)      noexcept;
+                                            const CommentDesign &design)                                    noexcept;
+    friend std::pair<bool, Config> ReadFileJson(const std::string& file_path, const CommentDesign &design)  noexcept;
+    friend std::pair<bool, Config> ReadFileIni(const std::string& file_path, const CommentDesign &design)   noexcept;
 
     //return - удалось записать файл или нет
     friend bool WriteFile(const Config& config, const std::string& file_path,
@@ -849,9 +849,9 @@ public:
 
     //пара <корректность чтения, итоговый Config>
     friend std::pair<bool, Config> Parse(const std::string& content, const ConfigFormat format,
-                                         const bool with_comments)                                          noexcept;
-    friend std::pair<bool, Config> ParseJson(const std::string& content, const bool with_comments)          noexcept;
-    friend std::pair<bool, Config> ParseIni(const std::string& content, const bool with_comments)           noexcept;
+                                         const CommentDesign &design)                                       noexcept;
+    friend std::pair<bool, Config> ParseJson(const std::string& content, const CommentDesign &design)       noexcept;
+    friend std::pair<bool, Config> ParseIni(const std::string& content, const CommentDesign &design)        noexcept;
 };
 
 #endif //CONFIG_H

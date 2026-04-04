@@ -10,7 +10,7 @@ protected:
     shared_VElement m_values;
 
 public:
-    ElementArray()                                                      noexcept                    { init(); }
+    ElementArray()                                                                      noexcept    { init(); }
     template<typename... Types,
              typename std::enable_if<
                  all_true<(!std::is_same<typename std::decay<Types>::type, ConfigFormat>::value)...>
@@ -21,8 +21,8 @@ public:
         (void)std::initializer_list<int>{(push_back(std::forward<Types>(args)), 0)...};
     }
     ElementArray(const std::string& input_string, const ConfigFormat config_format,
-                 const bool enable_comments = false, std::string* error_str = nullptr)  noexcept;
-    ~ElementArray()                                                     noexcept                    {}
+                 const CommentDesign& design = {}, std::string* error_str = nullptr)    noexcept;
+    ~ElementArray()                                                                     noexcept    {}
 
     // Comment =========================================================================================================
     void    set_comment(const size_t& index, const Comment &content)                    override;
@@ -192,49 +192,33 @@ private:
     std::string to_string(const ParseState state)                       const noexcept;
     void    UpdateState(ParseState& state, const ParseState new_state)  const noexcept;
 public:
-    std::string parse(const std::string& input_string, CommentDesign& design,
+    std::string parse(const std::string& input_string, CommentDesign &design,
                       const ConfigFormat format = ConfigFormat::eJSON,
                       const int8_t tabulation_level = 0)                                        noexcept    override;
-    std::string parse(const std::string& input_string,
-                      const ConfigFormat format = ConfigFormat::eJSON,
-                      const bool parse_comments = true, const int8_t tabulation_level = 0)      noexcept    override;
 
-    std::string parse(std::string&& input_string, CommentDesign& design,
+    std::string parse(std::string&& input_string, CommentDesign &design,
                       const ConfigFormat format = ConfigFormat::eJSON,
                       const int8_t tabulation_level = 0)                                        noexcept    override;
-    std::string parse(std::string&& input_string,
-                      const ConfigFormat format = ConfigFormat::eJSON,
-                      const bool parse_comments = true, const int8_t tabulation_level = 0)      noexcept    override;
 
-    std::string parseJson(const std::string& input_string, CommentDesign& design)               noexcept    override;
-    std::string parseJson(const std::string& input_string, const bool parse_comments = true)    noexcept    override;
+    std::string parseJson(const std::string& input_string, CommentDesign &design)               noexcept    override;
 
-    std::string parseJson(std::string&& input_string, CommentDesign& design)                    noexcept    override;
-    std::string parseJson(std::string&& input_string, const bool parse_comments = true)         noexcept    override;
+    std::string parseJson(std::string&& input_string, CommentDesign &design)                    noexcept    override;
 
     //NOTE: в данном контексте не функциональны
-    std::string parseIni(const std::string& input_string, CommentDesign& design)                noexcept    override;
-    std::string parseIni(const std::string& input_string, const bool parse_comments = true)     noexcept    override;
+    std::string parseIni(const std::string& input_string, CommentDesign &design)                noexcept    override;
 
     //NOTE: в данном контексте не функциональны
-    std::string parseIni(std::string&& input_string, CommentDesign& design)                     noexcept    override;
-    std::string parseIni(std::string&& input_string, const bool parse_comments = true)          noexcept    override;
+    std::string parseIni(std::string&& input_string, CommentDesign &design)                     noexcept    override;
 
-    std::string parseYaml(const std::string& input_string, CommentDesign& design,
-                          const int8_t tabulation_level = 0)                                    noexcept    override;
-    std::string parseYaml(const std::string& input_string, const bool parse_comments = true,
+    std::string parseYaml(const std::string& input_string, CommentDesign &design,
                           const int8_t tabulation_level = 0)                                    noexcept    override;
 
-    std::string parseYaml(std::string&& input_string, CommentDesign& design,
-                          const int8_t tabulation_level = 0)                                    noexcept    override;
-    std::string parseYaml(std::string&& input_string, const bool parse_comments = true,
+    std::string parseYaml(std::string&& input_string, CommentDesign &design,
                           const int8_t tabulation_level = 0)                                    noexcept    override;
 
-    std::string parseXml(const std::string& input_string, CommentDesign& design)                noexcept    override;
-    std::string parseXml(const std::string& input_string, const bool parse_comments = true)     noexcept    override;
+    std::string parseXml(const std::string& input_string, CommentDesign &design)                noexcept    override;
 
-    std::string parseXml(std::string&& input_string, CommentDesign& design)                     noexcept    override;
-    std::string parseXml(std::string&& input_string, const bool parse_comments = true)          noexcept    override;
+    std::string parseXml(std::string&& input_string, CommentDesign &design)                     noexcept    override;
     // ========================================================================================================== Parser
 };
 

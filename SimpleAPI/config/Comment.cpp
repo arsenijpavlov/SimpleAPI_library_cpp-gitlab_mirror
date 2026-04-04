@@ -296,7 +296,7 @@ Comment& Comment::operator=(const std::string&& prefix_comment) noexcept {
 
 //только для to_string(design)
 // @TEST(COMMENT, default_wrappers)
-std::string GetOnelineCommentStr(const CommentDesign& design) noexcept {
+std::string GetOnelineCommentStr(const CommentDesign &design) noexcept {
     const auto variant = design.oneline_comment_variants.empty() ? CommentDesign::GetDefaultOnelineCommentVariant()
                                                                  : design.oneline_comment_variants[0];
     return std::string(&variant[0], variant[1] == 0 ? 1 : 2);
@@ -304,7 +304,7 @@ std::string GetOnelineCommentStr(const CommentDesign& design) noexcept {
 
 //только для to_string(design)
 // @TEST(COMMENT, default_wrappers)
-std::string GetMultilineCommentStartStr(const CommentDesign& design) noexcept {
+std::string GetMultilineCommentStartStr(const CommentDesign &design) noexcept {
     const auto variant = design.multiline_comment_variants.empty() ? CommentDesign::GetDefaultMultilineCommentVariant()
                                                                    : design.multiline_comment_variants[0];
 
@@ -313,7 +313,7 @@ std::string GetMultilineCommentStartStr(const CommentDesign& design) noexcept {
 
 //только для to_string(design)
 // @TEST(COMMENT, default_wrappers)
-std::string GetMultilineCommentStopStr(const CommentDesign& design) noexcept {
+std::string GetMultilineCommentStopStr(const CommentDesign &design) noexcept {
     const auto variant = design.multiline_comment_variants.empty() ? CommentDesign::GetDefaultMultilineCommentVariant()
                                                                    : design.multiline_comment_variants[0];
 
@@ -543,7 +543,7 @@ std::string VStringToString(const VString& input_vec, const bool need_quotes) no
 */
 
 // @TEST(COMMENT, tabulation_level)
-std::string ToComment(const std::string &comment, const CommentDesign& design,
+std::string ToComment(const std::string &comment, const CommentDesign &design,
                       const int8_t tabulation_level) noexcept
 {
     using namespace utils;
@@ -682,7 +682,7 @@ bool DefineCommentSymbols(const char first_sym, const char second_sym,
 // NOTE: для всего файла конфига подменяется символ границы только если не задан (первый комментарий с границей)
 // Предполагается, что пользователь сам укажет символы для поиска комментариев, при парсинге будет обновлён CommentDesign
 // FIXME: строку стоит передать через && ?
-std::string FromComment(std::string comment_string, CommentDesign& design) noexcept
+std::string FromComment(std::string comment_string, CommentDesign &design) noexcept
 {
     using namespace utils;
 
@@ -846,7 +846,7 @@ void RemoveComments(std::string &input_string, CommentDesign design)
 
 //предполагается использовать только для парсинга
 void CheckComments(const char ch_current, const char ch_next,
-                   size_t &iter_counter, CommentDesign& design,
+                   size_t &iter_counter, CommentDesign &design,
                    std::string &current_comment, const bool external_flag)
 {
     if(!external_flag) { //например, значения в кавычках не могут влиять на комментирование
