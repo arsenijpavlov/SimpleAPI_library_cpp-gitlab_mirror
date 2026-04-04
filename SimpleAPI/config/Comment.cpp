@@ -137,7 +137,7 @@ void Comment::setPrefix(const std::string &comment) noexcept {
 
 void Comment::setSuffix(const std::string &comment) noexcept {
     if(comment.empty() && m_suffix) {
-        delPrefix();
+        delSuffix();
         return;
     }
 
