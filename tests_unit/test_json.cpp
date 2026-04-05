@@ -336,6 +336,13 @@ TEST(JSON, write_and_read_file_comment) {
     EXPECT_EQ(json2.size(), json.size());
     EXPECT_EQ(json2.getCommentDesign(), json.getCommentDesign());
 
+    //при сравнении Comment как цельной единицы, prefix и suffix будут проверены нормализовано
+    EXPECT_EQ(json2.getComment(), json.getComment());
+    EXPECT_EQ(utils::GetNormalizeString(json2.getPrefixComment()), utils::GetNormalizeString(json.getPrefixComment()));
+    EXPECT_EQ(utils::GetNormalizeString(json2.getSuffixComment()), utils::GetNormalizeString(json.getSuffixComment()));
+    EXPECT_EQ(utils::GetNormalizeString(json2.getPrefixComment()), utils::GetNormalizeString(main_comment));
+    EXPECT_EQ(utils::GetNormalizeString(json2.getSuffixComment()), utils::GetNormalizeString(main_comment));
+
     // проверка комментариев должна учитывать переносы строк (преобразование комментариев при чтении/записи)
     auto FromTo = [&json](const std::string& s) -> std::string {
         return FromComment(ToComment(s, json.getCommentDesign()), json.getCommentDesign());
@@ -345,13 +352,6 @@ TEST(JSON, write_and_read_file_comment) {
         temp_cd.opt_multiline_column_size = 0;
         return FromComment(ToComment(s, temp_cd), temp_cd);
     };
-    //при сравнении Comment как цельной единицы, prefix и suffix будут проверены нормализовано
-
-    EXPECT_EQ(json2.getComment(), json.getComment());
-    EXPECT_EQ(utils::GetNormalizeString(json2.getPrefixComment()), utils::GetNormalizeString(json.getPrefixComment()));
-    EXPECT_EQ(utils::GetNormalizeString(json2.getSuffixComment()), utils::GetNormalizeString(json.getSuffixComment()));
-    EXPECT_EQ(utils::GetNormalizeString(json2.getPrefixComment()), utils::GetNormalizeString(main_comment));
-    EXPECT_EQ(utils::GetNormalizeString(json2.getSuffixComment()), utils::GetNormalizeString(main_comment));
 
     EXPECT_EQ(json2.get_comment("bool"), json.get_comment("bool"));
     EXPECT_EQ(json2.get_prefix_comment("bool"), FromTo(json.get_prefix_comment("bool")));

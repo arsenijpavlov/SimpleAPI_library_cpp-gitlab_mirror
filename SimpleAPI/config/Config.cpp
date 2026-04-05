@@ -1703,6 +1703,8 @@ Config ParseSimpleValueJson(const std::string& content, const CommentDesign &des
     std::string error;
 
     result_cfg.release();
+    result_cfg.setPrefixComment(std::move(prefix_comment));
+
     if(is_full_json) {
         ElementJson element_json(content, ConfigFormat::eJSON, n_design, &error);
         result_cfg.setValue(element_json);
@@ -1804,7 +1806,6 @@ Config ParseSimpleValueJson(const std::string& content, const CommentDesign &des
             result_cfg.setError(error);
         }
     }
-    result_cfg.setPrefixComment(std::move(prefix_comment));
     return result_cfg;
 }
 
