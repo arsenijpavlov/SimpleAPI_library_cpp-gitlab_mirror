@@ -304,7 +304,6 @@ void ElementJson::insert_front(const std::string &key, Config &&value) noexcept 
 
 //@return - был ли изменён индекс вниз при перезаписи ключа
 bool ElementJson::insert_at(const size_t& index, const std::string &key, const Config &value) noexcept {
-    size_t _index       = index;
     bool return_flag    = false;
 
     if(contains(key)) {
@@ -333,7 +332,6 @@ bool ElementJson::insert_at(const size_t& index, const std::string &key, const C
 
 //@return - был ли изменён индекс вниз при перезаписи ключа
 bool ElementJson::insert_at(const size_t& index, const std::string &key, Config &&value) noexcept {
-    size_t _index       = index;
     bool return_flag    = false;
 
     if(contains(key)) {
