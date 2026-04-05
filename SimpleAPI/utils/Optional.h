@@ -63,14 +63,14 @@ public:
     {
         if(this != &other) {
             m_value = other.m_value;
-            m_status = true;
+            m_status = other.m_status;
         }
     }
     void set(Optional<T>&& other)                       noexcept
     {
         if(this != &other) {
             m_value = other.m_value;
-            m_status = true;
+            m_status = other.m_status;
         }
     }
 
