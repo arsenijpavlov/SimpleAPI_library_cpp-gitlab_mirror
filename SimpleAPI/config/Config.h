@@ -10,7 +10,6 @@
 #include "ElementNumber.h"
 #include "ElementString.h"
 #include "../utils/OnlySizetOrString.h"
-#include "../utils/Optional.h"
 #include "../utils/ParserSymbolCounter.h"
 
 template<typename T>
@@ -44,11 +43,11 @@ Config CreateElementFromString(std::string &&value_string, const ConfigFormat fo
                                CommentDesign &design, ParserSymbolCounter& start_iterator)              noexcept;
 Config SpecificParser(const std::string& content, const ConfigFormat format,
                         const CommentDesign &design, const int8_t yaml_tabulation_level = 0)            noexcept;
-Config SpecificParserJson(const std::string& content, const CommentDesign &design)                    noexcept;
+Config SpecificParserJson(const std::string& content, const CommentDesign &design)                      noexcept;
 //NOTE: формат INI не подразумевает схему "только value", обязательно связки "key=value"
 Config SpecificParserYaml(const std::string& content, const CommentDesign &design,
                             const int8_t yaml_tabulation_level)                                         noexcept;
-Config SpecificParserXml(const std::string& content, const CommentDesign &design)                     noexcept;
+Config SpecificParserXml(const std::string& content, const CommentDesign &design)                       noexcept;
 //пара <корректность чтения, итоговый Config>
 std::pair<bool, Config> ReadFile(const std::string& file_path, const ConfigFormat format,
                                  const CommentDesign &design = {})                                      noexcept;
@@ -87,9 +86,9 @@ public:
 
     // NOTE: с explicit Config(const char*) не работает
     __ONLY_STRING_TYPES__(T)
-    /*explicit*/ Config(const T& other)         noexcept : m_value(nullptr)         { setValue(std::string(other)); }
+    /*explicit*/ Config(const T& other)         noexcept : m_value(nullptr)     { setValue(std::string(other)); }
     __ONLY_STRING_TYPES__(T)
-    /*explicit*/ Config(T&& other)              noexcept : m_value(nullptr)         { setValue(std::string(std::move(other))); }
+    /*explicit*/ Config(T&& other)              noexcept : m_value(nullptr)     { setValue(std::string(std::move(other))); }
 
     explicit Config(const ValueType config_type) : m_value(nullptr) {
         release();
@@ -448,8 +447,8 @@ public:
     std::string&    get_front_string();                                                                                     API_CONTAINER
     std::string     get_front_string()                                                          const;                      API_CONTAINER
 
-    bool&           get_bool_at(const size_t& index);                                                                        API_CONTAINER
-    bool            get_bool_at(const size_t& index)                                             const;                      API_CONTAINER
+    bool&           get_bool_at(const size_t& index);                                                                       API_CONTAINER
+    bool            get_bool_at(const size_t& index)                                             const;                     API_CONTAINER
     bool&           get_bool_at(const std::string& key);                                                                    API_MAP_CONTAINER
     bool            get_bool_at(const std::string& key)                                         const;                      API_MAP_CONTAINER
     bool&           get_bool_at(const std::vector<OnlySizetOrString>& complex_key);                                         API_CONTAINER
@@ -460,8 +459,8 @@ public:
     bool            get_bool_at(const std::initializer_list<OnlySizetOrString>& complex_key)    const
                     { return get_bool_at(std::vector<OnlySizetOrString>(complex_key)); }                                    API_CONTAINER
 
-    long double&    get_number_at(const size_t& index);                                                                      API_CONTAINER
-    long double     get_number_at(const size_t& index)                                           const;                      API_CONTAINER
+    long double&    get_number_at(const size_t& index);                                                                     API_CONTAINER
+    long double     get_number_at(const size_t& index)                                           const;                     API_CONTAINER
     long double&    get_number_at(const std::string& key);                                                                  API_MAP_CONTAINER
     long double     get_number_at(const std::string& key)                                       const;                      API_MAP_CONTAINER
     long double&    get_number_at(const std::vector<OnlySizetOrString>& complex_key);                                       API_CONTAINER
@@ -472,8 +471,8 @@ public:
     long double     get_number_at(const std::initializer_list<OnlySizetOrString>& complex_key)  const
                     { return get_number_at(std::vector<OnlySizetOrString>(complex_key)); }                                  API_CONTAINER
 
-    std::string&    get_string_at(const size_t& index);                                                                      API_CONTAINER
-    std::string     get_string_at(const size_t& index)                                           const;                      API_CONTAINER
+    std::string&    get_string_at(const size_t& index);                                                                     API_CONTAINER
+    std::string     get_string_at(const size_t& index)                                           const;                     API_CONTAINER
     std::string&    get_string_at(const std::string& key);                                                                  API_MAP_CONTAINER
     std::string     get_string_at(const std::string& key)                                       const;                      API_MAP_CONTAINER
     std::string&    get_string_at(const std::vector<OnlySizetOrString>& complex_key);                                       API_CONTAINER
@@ -712,7 +711,7 @@ public:
     //фикс для вызова через {}
     Config&         operator[](const std::initializer_list<OnlySizetOrString>& complex_key)
                     { return get_at(std::vector<OnlySizetOrString>(complex_key)); }                                             API_CONTAINER
-    Config          operator[](const std::initializer_list<OnlySizetOrString>& complex_key) const
+    Config          operator[](const std::initializer_list<OnlySizetOrString>& complex_key)     const
                     { return get_at(std::vector<OnlySizetOrString>(complex_key)); }                                             API_CONTAINER
     // ======================================================================================================= Operators
 
@@ -787,10 +786,10 @@ public:
     //вывод без комментариев, "tabulation_level == -1" => запись в одну строку
     std::string     toString(const ConfigFormat format = ConfigFormat::eONLY_VALUE,
                          const CommentDesign &design = {},
-                         const int8_t tabulation_level = 0)                                     const noexcept;                 API_ALL
+                         const int8_t tabulation_level = 0)                                         const noexcept;             API_ALL
     //для совместимости с STL
-    friend std::ostream& operator<<(std::ostream& os, const Config& config)                     noexcept;                       API_ALL
-    friend std::ostream& operator<<(std::ostream& os, const IElement& config)                   noexcept;                       API_ALL
+    friend std::ostream& operator<<(std::ostream& os, const Config& config)                         noexcept;                   API_ALL
+    friend std::ostream& operator<<(std::ostream& os, const IElement& config)                       noexcept;                   API_ALL
     // ========================================================================================================== String
 
     // File ============================================================================================================
@@ -824,11 +823,11 @@ public:
                                           CommentDesign &design, ParserSymbolCounter& start_iterator)       noexcept;
     friend Config SpecificParser(const std::string& content, const ConfigFormat format,
                                    const CommentDesign &design, const int8_t yaml_tabulation_level)         noexcept;
-    friend Config SpecificParserJson(const std::string& content, const CommentDesign &design)             noexcept;
+    friend Config SpecificParserJson(const std::string& content, const CommentDesign &design)               noexcept;
     //NOTE: формат INI не подразумевает схему "только value", обязательно связки "key=value"
     friend Config SpecificParserYaml(const std::string& content, const CommentDesign &design,
                                        const int8_t yaml_tabulation_level)                                  noexcept;
-    friend Config SpecificParserXml(const std::string& content, const CommentDesign &design)              noexcept;
+    friend Config SpecificParserXml(const std::string& content, const CommentDesign &design)                noexcept;
 
     //пара <корректность чтения, итоговый Config>
     friend std::pair<bool, Config> ReadFile(const std::string& file_path, const ConfigFormat format,
