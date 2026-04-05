@@ -9,6 +9,8 @@
 
 ElementJson::ElementJson(const ElementJson &other) noexcept {
     init();
+    if(other.error())
+        setError(other.getError());
     m_comment = other.m_comment;
     m_values = other.m_values;
 }
@@ -1210,7 +1212,7 @@ std::string ElementJson::parseJson(std::string &&input_string, CommentDesign &de
 
     setCommentDesign(design);
 
-    if(!is_one_value_format && state != ParseState::eJSON_FINISH && error_string.empty())
+    if(!is_one_value_format && state != ParseState::eJSON_FINISH /*&& error_string.empty()*/)
     {
         error_string = std::string("JSON parse error, unexpected symbol at [")
                        + std::to_string(counter.getLastLineCounter())

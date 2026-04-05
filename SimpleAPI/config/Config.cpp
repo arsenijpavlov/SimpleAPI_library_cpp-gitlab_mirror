@@ -42,7 +42,6 @@ void Config::release() noexcept {
         delete m_value;
         m_value = nullptr;
     }
-    m_error_str.unset();
 }
 
 Config &Config::setComment(const Comment &content) noexcept {
@@ -512,20 +511,42 @@ std::string Config::getString() const {
     return dynamic_cast<const ElementString*>(m_value)->getValue();
 }
 
-void Config::setError(const std::string &error_string) noexcept
-{
-    if(error_string.empty())
-        m_error_str.unset();
-    else
-        m_error_str = error_string;
+bool Config::error() const noexcept {
+    IErrorField* ptr = dynamic_cast<IErrorField*>(m_value);
+    if(ptr == nullptr)
+        return false;
+    return ptr->error();
 }
 
-void Config::setError(std::string &&error_string) noexcept
+std::string Config::getError() const noexcept {
+    IErrorField* ptr = dynamic_cast<IErrorField*>(m_value);
+    if(ptr == nullptr)
+        return "";
+    return ptr->getError();
+}
+
+void Config::setError()
 {
-    if(error_string.empty())
-        m_error_str.unset();
-    else
-        m_error_str = std::move(error_string);
+    IErrorField* ptr = dynamic_cast<IErrorField*>(m_value);
+    if(ptr == nullptr)
+        throw std::logic_error("this type does not support of \"error\" field");
+    return ptr->setError();
+}
+
+void Config::setError(const std::string &error_string)
+{
+    IErrorField* ptr = dynamic_cast<IErrorField*>(m_value);
+    if(ptr == nullptr)
+        throw std::logic_error("this type does not support of \"error\" field");
+    return ptr->setError(error_string);
+}
+
+void Config::setError(std::string &&error_string)
+{
+    IErrorField* ptr = dynamic_cast<IErrorField*>(m_value);
+    if(ptr == nullptr)
+        throw std::logic_error("this type does not support of \"error\" field");
+    return ptr->setError(std::move(error_string));
 }
 
 Config &Config::get_front() {
@@ -1341,9 +1362,11 @@ std::ostream &operator<<(std::ostream &os, const IElement &config) noexcept {
     return os;
 }
 
+//WIKI: если
 bool Config::readFile(const std::string &file_path, const ConfigFormat format,
                       const CommentDesign &design) noexcept
 {
+    release();
     switch(format) {
     case ConfigFormat::eJSON:   return readFileJson(file_path, design);
     case ConfigFormat::eINI:    return readFileIni(file_path, design);
@@ -1352,7 +1375,7 @@ bool Config::readFile(const std::string &file_path, const ConfigFormat format,
     default: break;
     }
 
-    m_error_str = "unexpected ConfigFormat";
+    setError("unexpected ConfigFormat");
     return false;
 }
 
@@ -1365,10 +1388,12 @@ bool Config::readFileJson(const std::string &file_path, const CommentDesign &des
     }
 
     std::string input_str;
-    if(GetAllStringsFromFile(file_path, input_str, &m_error_str.value())) {
+    std::string error_str;
+    if(GetAllStringsFromFile(file_path, input_str, &error_str)) {
         return parseJson(input_str, n_design);
     }
 
+    setError(error_str);
     return false;
 }
 
@@ -1381,10 +1406,12 @@ bool Config::readFileIni(const std::string &file_path, const CommentDesign &desi
     }
 
     std::string input_str;
-    if(GetAllStringsFromFile(file_path, input_str, &m_error_str.value())) {
+    std::string error_str;
+    if(GetAllStringsFromFile(file_path, input_str, &error_str)) {
         return parseIni(input_str, n_design);
     }
 
+    setError(error_str);
     return false;
 }
 
@@ -1447,7 +1474,7 @@ bool Config::parse(const std::string &content, const ConfigFormat format,
 bool Config::parseJson(const std::string &content, const CommentDesign &design) noexcept
 {
     release();
-    *this = ParseSimpleValueJson(content, design);
+    *this = SpecificParserJson(content, design);
     return !error();
 }
 
@@ -1573,7 +1600,7 @@ Config CreateElementFromString(std::string &&value_string, const ConfigFormat fo
                     array.setValue(el_arr);
                 } else {
                     //есть начало массива, но нет конца
-                    array.m_error_str = "not found end of Json-array value";
+                    array.setError("not found end of Json-array value");
                 }
                 return array;
             }
@@ -1586,7 +1613,7 @@ Config CreateElementFromString(std::string &&value_string, const ConfigFormat fo
                     json.parseJson(value_string, design);
                 } else {
                     //есть начало Json, но нет конца
-                    json.m_error_str = "not found end of Json value";
+                    json.setError("not found end of Json value");
                 }
                 return json;
             }
@@ -1599,25 +1626,25 @@ Config CreateElementFromString(std::string &&value_string, const ConfigFormat fo
 }
 
 //NOTE: функция нужна исключительно для перенаправления на внутренние парсеры
-Config ParseSimpleValue(const std::string& content, const ConfigFormat format,
+Config SpecificParser(const std::string& content, const ConfigFormat format,
                         const CommentDesign &design, const int8_t yaml_tabulation_level) noexcept
 {
     switch(format) {
     case ConfigFormat::eONLY_VALUE:
-    case ConfigFormat::eJSON:       return ParseSimpleValueJson(content, design);
-    case ConfigFormat::eYAML:       return ParseSimpleValueYaml(content, design, yaml_tabulation_level);
-    case ConfigFormat::eXML:        return ParseSimpleValueXml(content, design);
+    case ConfigFormat::eJSON:       return SpecificParserJson(content, design);
+    case ConfigFormat::eYAML:       return SpecificParserYaml(content, design, yaml_tabulation_level);
+    case ConfigFormat::eXML:        return SpecificParserXml(content, design);
     case ConfigFormat::eINI:
     default:                        break;
     }
 
     Config config;
-    config.m_error_str = "incorrect format for ParseSimpleValue()";
+    config.setError("incorrect format for SpecificParser()");
     return config;
 }
 
 // Задача функции: определить тип значения верхнего уровня и передать в соответствующий обработчик
-Config ParseSimpleValueJson(const std::string& content, const CommentDesign &design) noexcept
+Config SpecificParserJson(const std::string& content, const CommentDesign &design) noexcept
 {   
     /* игнорируя комментарий, найти первое вхождение символа ключа(значения)
      * определить следующий после "слова" символ-разделитель, если он есть
@@ -1804,20 +1831,21 @@ Config ParseSimpleValueJson(const std::string& content, const CommentDesign &des
         if(error.empty()) {
             result_cfg.setSuffixComment(VStringToString(comments));
         } else {
+            result_cfg.setValue(); //значение не распознано, то выставить в null
             result_cfg.setError(error);
         }
     }
     return result_cfg;
 }
 
-Config ParseSimpleValueYaml(const std::string& content, const CommentDesign &design,
+Config SpecificParserYaml(const std::string& content, const CommentDesign &design,
                             const int8_t yaml_tabulation_level) noexcept
 {
-    //TODO: ParseSimpleValueYaml()
+    //TODO: SpecificParserYaml()
     return {};
 }
 
-Config ParseSimpleValueXml(const std::string& content, const CommentDesign &design) noexcept
+Config SpecificParserXml(const std::string& content, const CommentDesign &design) noexcept
 {
     /* игнорируя комментарий, найти первое вхождение символа ключа(значения)
      * определить следующий после "слова" символ-разделитель, если он есть
@@ -1827,7 +1855,7 @@ Config ParseSimpleValueXml(const std::string& content, const CommentDesign &desi
      * иначе использовать парсер CreateElementFromString(), а комментарии сохранить здесь же
      */
 
-    //TODO: ParseSimpleValueXml()
+    //TODO: SpecificParserXml()
     return {};
 }
 
@@ -1844,7 +1872,7 @@ std::pair<bool, Config> ReadFile(const std::string &file_path, const ConfigForma
     }
 
     Config out;
-    out.m_error_str = "unexpected ConfigFormat";
+    out.setError("unexpected ConfigFormat");
     return std::make_pair(false, out);
 }
 
@@ -1852,13 +1880,14 @@ std::pair<bool, Config> ReadFile(const std::string &file_path, const ConfigForma
 std::pair<bool, Config> ReadFileJson(const std::string &file_path, const CommentDesign &design) noexcept
 {
     std::string input_str;
-    Config out;
-    out.m_error_str.set("");
+    std::string error_str;
 
-    if(GetAllStringsFromFile(file_path, input_str, &out.m_error_str.value())) {
+    if(GetAllStringsFromFile(file_path, input_str, &error_str)) {
         return ParseJson(input_str, design);
     }
 
+    Config out;
+    out.setError(error_str);
     return std::make_pair(false, out);
 }
 
@@ -1866,13 +1895,14 @@ std::pair<bool, Config> ReadFileJson(const std::string &file_path, const Comment
 std::pair<bool, Config> ReadFileIni(const std::string &file_path, const CommentDesign &design) noexcept
 {
     std::string input_str;
-    Config out;
-    out.m_error_str.set("");
+    std::string error_str;
 
-    if(GetAllStringsFromFile(file_path, input_str, &out.m_error_str.value())) {
+    if(GetAllStringsFromFile(file_path, input_str, &error_str)) {
         return ParseIni(input_str, design);
     }
 
+    Config out;
+    out.setError(error_str);
     return std::make_pair(false, out);
 }
 
@@ -1908,7 +1938,7 @@ std::pair<bool, Config> Parse(const std::string &content, const ConfigFormat for
     }
 
     Config out;
-    out.m_error_str = "unexpected ConfigFormat";
+    out.setError("unexpected ConfigFormat");
     return std::make_pair(false, out);
 }
 

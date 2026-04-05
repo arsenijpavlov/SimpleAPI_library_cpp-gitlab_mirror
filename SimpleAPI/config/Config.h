@@ -42,13 +42,13 @@ struct is_valid_config_type {
 //ПРЕДВАРИТЕЛЬНЫЕ ОБЪЯВЛЕНИЯ
 Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
                                CommentDesign &design, ParserSymbolCounter& start_iterator)              noexcept;
-Config ParseSimpleValue(const std::string& content, const ConfigFormat format,
+Config SpecificParser(const std::string& content, const ConfigFormat format,
                         const CommentDesign &design, const int8_t yaml_tabulation_level = 0)            noexcept;
-Config ParseSimpleValueJson(const std::string& content, const CommentDesign &design)                    noexcept;
+Config SpecificParserJson(const std::string& content, const CommentDesign &design)                    noexcept;
 //NOTE: формат INI не подразумевает схему "только value", обязательно связки "key=value"
-Config ParseSimpleValueYaml(const std::string& content, const CommentDesign &design,
+Config SpecificParserYaml(const std::string& content, const CommentDesign &design,
                             const int8_t yaml_tabulation_level)                                         noexcept;
-Config ParseSimpleValueXml(const std::string& content, const CommentDesign &design)                     noexcept;
+Config SpecificParserXml(const std::string& content, const CommentDesign &design)                     noexcept;
 //пара <корректность чтения, итоговый Config>
 std::pair<bool, Config> ReadFile(const std::string& file_path, const ConfigFormat format,
                                  const CommentDesign &design = {})                                      noexcept;
@@ -73,7 +73,6 @@ std::pair<bool, Config> ParseIni(const std::string& content, const CommentDesign
 class Config {
 private:
     IElement* m_value;
-    Optional<std::string> m_error_str;
 
 public:
     Config()                                noexcept : m_value(nullptr)         { init(); }
@@ -324,7 +323,7 @@ public:
     Config&         clearCommentDesign()                            noexcept;                                               API_ALL
 
     // вложенные контейнеры
-    Config&         set_comment(const size_t& index, const Comment &content);                                                API_CONTAINER
+    Config&         set_comment(const size_t& index, const Comment &content);                                               API_CONTAINER
     Config&         set_comment(const std::string& key, const Comment &content);                                            API_MAP_CONTAINER
 
     Config&         set_comment(const size_t& index, const std::string &content_before,
@@ -332,48 +331,48 @@ public:
     Config&         set_comment(const std::string& key, const std::string &content_before,
                      const std::string &content_after);                                                                     API_MAP_CONTAINER
 
-    Config&         set_prefix_comment(const size_t& index, const std::string &content);                                     API_CONTAINER
+    Config&         set_prefix_comment(const size_t& index, const std::string &content);                                    API_CONTAINER
     Config&         set_prefix_comment(const std::string& key, const std::string &content);                                 API_MAP_CONTAINER
 
-    Config&         set_suffix_comment(const size_t& index, const std::string &content);                                     API_CONTAINER
+    Config&         set_suffix_comment(const size_t& index, const std::string &content);                                    API_CONTAINER
     Config&         set_suffix_comment(const std::string& key, const std::string &content);                                 API_MAP_CONTAINER
 
-    Comment&        get_comment(const size_t& index);                                                                        API_CONTAINER
+    Comment&        get_comment(const size_t& index);                                                                       API_CONTAINER
     Comment&        get_comment(const std::string& key);                                                                    API_MAP_CONTAINER
 
-    Comment         get_comment(const size_t& index)                 const;                                                  API_CONTAINER
+    Comment         get_comment(const size_t& index)                 const;                                                 API_CONTAINER
     Comment         get_comment(const std::string& key)             const;                                                  API_MAP_CONTAINER
 
-    std::string     get_prefix_comment(const size_t& index)          const;                                                  API_CONTAINER
+    std::string     get_prefix_comment(const size_t& index)          const;                                                 API_CONTAINER
     std::string     get_prefix_comment(const std::string& key)      const;                                                  API_MAP_CONTAINER
 
     //NOTE: доступы к внутренним значениям строго по set() и get() запросам
-//    std::string&    get_prefix_comment(const size_t& index);                                                                 API_CONTAINER
+//    std::string&    get_prefix_comment(const size_t& index);                                                                API_CONTAINER
 //    std::string&    get_prefix_comment(const std::string& key);                                                             API_MAP_CONTAINER
 
-    std::string     get_suffix_comment(const size_t& index)          const;                                                  API_CONTAINER
+    std::string     get_suffix_comment(const size_t& index)          const;                                                 API_CONTAINER
     std::string     get_suffix_comment(const std::string& key)      const;                                                  API_MAP_CONTAINER
 
     //NOTE: доступы к внутренним значениям строго по set() и get() запросам
 //    std::string&    get_suffix_comment(const size_t& index);                                                                 API_CONTAINER
 //    std::string&    get_suffix_comment(const std::string& key);                                                             API_MAP_CONTAINER
 
-    Config&         clear_comment(const size_t& index);                                                                      API_CONTAINER
+    Config&         clear_comment(const size_t& index);                                                                     API_CONTAINER
     Config&         clear_comment(const std::string& key);                                                                  API_MAP_CONTAINER
 
-    Config&         clear_prefix_comment(const size_t& index);                                                               API_CONTAINER
+    Config&         clear_prefix_comment(const size_t& index);                                                              API_CONTAINER
     Config&         clear_prefix_comment(const std::string& key);                                                           API_MAP_CONTAINER
 
-    Config&         clear_suffix_comment(const size_t& index);                                                               API_CONTAINER
+    Config&         clear_suffix_comment(const size_t& index);                                                              API_CONTAINER
     Config&         clear_suffix_comment(const std::string& key);                                                           API_MAP_CONTAINER
 
-    Config&         delete_comment(const size_t& index);                                                                     API_CONTAINER
+    Config&         delete_comment(const size_t& index);                                                                    API_CONTAINER
     Config&         delete_comment(const std::string& key);                                                                 API_MAP_CONTAINER
 
-    Config&         delete_prefix_comment(const size_t& index);                                                              API_CONTAINER
+    Config&         delete_prefix_comment(const size_t& index);                                                             API_CONTAINER
     Config&         delete_prefix_comment(const std::string& key);                                                          API_MAP_CONTAINER
 
-    Config&         delete_suffix_comment(const size_t& index);                                                              API_CONTAINER
+    Config&         delete_suffix_comment(const size_t& index);                                                             API_CONTAINER
     Config&         delete_suffix_comment(const std::string& key);                                                          API_MAP_CONTAINER
     // ========================================================================================================= Comment
 
@@ -401,10 +400,10 @@ public:
     // вложенные контейнеры (используют insert_*() ниже, но возвращают этот же базовый элемент)
     Config&         set(const std::string& key, const Config& value);                                                       API_MAP_CONTAINER
     Config&         set(const std::string& key, Config&& value);                                                            API_MAP_CONTAINER
-    Config&         set(const size_t& index, const Config& value);                                                           API_CONTAINER
-    Config&         set(const size_t& index, Config&& value);                                                                API_CONTAINER
-    Config&         set(const size_t& index, const std::string& key, const Config& value);                                   API_MAP_CONTAINER
-    Config&         set(const size_t& index, const std::string& key, Config&& value);                                        API_MAP_CONTAINER
+    Config&         set(const size_t& index, const Config& value);                                                          API_CONTAINER
+    Config&         set(const size_t& index, Config&& value);                                                               API_CONTAINER
+    Config&         set(const size_t& index, const std::string& key, const Config& value);                                  API_MAP_CONTAINER
+    Config&         set(const size_t& index, const std::string& key, Config&& value);                                       API_MAP_CONTAINER
     // ========================================================================================================= Setters
 
     // Getters =========================================================================================================
@@ -414,13 +413,12 @@ public:
     long double     getNumber()                                                                 const;                      API_NUMBER
     std::string&    getString();                                                                                            API_STRING
     std::string     getString()                                                                 const;                      API_STRING
-    bool            error()                                                                     const noexcept
-                    { return m_error_str.isValid(); }
-    std::string     getError()                                                                  const noexcept
-                    { return (m_error_str.isValid() ? m_error_str.value() : ""); }
+    bool            error()                                                                     const noexcept;             API_CONTAINER
+    std::string     getError()                                                                  const noexcept;             API_CONTAINER
 private:
-    void            setError(const std::string& error_string)                                   noexcept;
-    void            setError(std::string&& error_string)                                        noexcept;
+    void            setError();                                                                                             API_CONTAINER
+    void            setError(const std::string& error_string);                                                              API_CONTAINER
+    void            setError(std::string&& error_string);                                                                   API_CONTAINER
 public:
 
     // вложенные контейнеры
@@ -428,8 +426,8 @@ public:
     Config&         get_front();                                                                                            API_CONTAINER
     Config          get_front()                                                                 const;                      API_CONTAINER
 
-    Config&         get_at(const size_t& index);                                                                             API_CONTAINER
-    Config          get_at(const size_t& index)                                                  const;                      API_CONTAINER
+    Config&         get_at(const size_t& index);                                                                            API_CONTAINER
+    Config          get_at(const size_t& index)                                                  const;                     API_CONTAINER
     Config&         get_at(const std::string& key);                                                                         API_MAP_CONTAINER
     Config          get_at(const std::string& key)                                              const;                      API_MAP_CONTAINER
     Config&         get_at(const std::vector<OnlySizetOrString>& complex_key);                                              API_CONTAINER
@@ -824,13 +822,13 @@ public:
     // вернёт текст ошибки, указывающий на тип некорректно прочитанного значения
     friend Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
                                           CommentDesign &design, ParserSymbolCounter& start_iterator)       noexcept;
-    friend Config ParseSimpleValue(const std::string& content, const ConfigFormat format,
+    friend Config SpecificParser(const std::string& content, const ConfigFormat format,
                                    const CommentDesign &design, const int8_t yaml_tabulation_level)         noexcept;
-    friend Config ParseSimpleValueJson(const std::string& content, const CommentDesign &design)             noexcept;
+    friend Config SpecificParserJson(const std::string& content, const CommentDesign &design)             noexcept;
     //NOTE: формат INI не подразумевает схему "только value", обязательно связки "key=value"
-    friend Config ParseSimpleValueYaml(const std::string& content, const CommentDesign &design,
+    friend Config SpecificParserYaml(const std::string& content, const CommentDesign &design,
                                        const int8_t yaml_tabulation_level)                                  noexcept;
-    friend Config ParseSimpleValueXml(const std::string& content, const CommentDesign &design)              noexcept;
+    friend Config SpecificParserXml(const std::string& content, const CommentDesign &design)              noexcept;
 
     //пара <корректность чтения, итоговый Config>
     friend std::pair<bool, Config> ReadFile(const std::string& file_path, const ConfigFormat format,

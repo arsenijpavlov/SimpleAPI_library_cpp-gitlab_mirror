@@ -2,9 +2,10 @@
 #define ELEMENT_NULL_H
 
 #include "interface/IElement.h"
+#include "interface/IErrorField.h"
 
 
-class ElementNull : public IElement {
+class ElementNull : public IElement, public IErrorField {
     /* "Пустое значение"
      * JSON, наполнение:
      *      - null (во всех регистрах)

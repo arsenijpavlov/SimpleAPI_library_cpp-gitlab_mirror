@@ -3,9 +3,11 @@
 
 #include "IElement.h"
 
+#include "IErrorField.h"
+
 
 //абстрактный класс для управления списками элементов
-class IElementContainer : public IElement {
+class IElementContainer : public IElement, public IErrorField {
     // Comment =========================================================================================================
 protected:
 //    CommentDesign m_comment_design;
@@ -113,7 +115,6 @@ public:
     virtual std::string parseXml(const std::string& input_string, CommentDesign &design)                noexcept    = 0;
 
     virtual std::string parseXml(std::string&& input_string, CommentDesign &design)                     noexcept    = 0;
-
     // ========================================================================================================== Parser
 };
 
