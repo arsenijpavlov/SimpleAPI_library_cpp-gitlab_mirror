@@ -1659,6 +1659,7 @@ Config ParseSimpleValueJson(const std::string& content, const CommentDesign &des
 //                comments.push_back(FromComment(std::move(current_comment), design)); //FIXME: на будущее
                 comments.push_back(FromComment(current_comment, n_design));
                 current_comment.clear();
+                n_design.temp_type = CommentType::eNotComment;
                 continue;
             }
             if(n_design.temp_type != CommentType::eNotComment)
