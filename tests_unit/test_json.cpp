@@ -771,7 +771,7 @@ TEST(JSON, contains) {
 bool RegexCheckCounter(const std::string& error_str, const size_t& line_number,
                        const size_t& symbol_number)
 {
-    std::regex reg(R"(unexpected symbol at \[([0-9]+)\]\[([0-9]+)\])"); //ожидаем два совпадения по одной маске
+    std::regex reg(R"(\[([0-9]+)\]\[([0-9]+)\])"); //ожидаем два совпадения по одной маске
     std::smatch matches;
     if(std::regex_search(error_str, matches, reg) && matches.size() == 3)
     {
@@ -791,25 +791,24 @@ bool RegexCheckCounter(const std::string& error_str, const size_t& line_number,
     return false;
 }
 
-//FIXME: TEST(JSON, parser_symbols_counter)
 TEST(JSON, parser_symbols_counter) {
     Config json;
     bool regex_found;
 
-//    json.parseJson("{a=b #");
-//    EXPECT_TRUE(json.error());
-//    regex_found = RegexCheckCounter(json.getError(), 0, 5);
-//    EXPECT_TRUE(regex_found);
-
-//    json.parseJson("{a=b,\n"
-//                   "c= #");
-//    EXPECT_TRUE(json.error());
-//    regex_found = RegexCheckCounter(json.getError(), 1, 4);
-//    EXPECT_TRUE(regex_found);
-
-    json.parseJson("#");
+    json.parseJson("{a=b #");
     EXPECT_TRUE(json.error());
-    regex_found = RegexCheckCounter(json.getError(), 0, 0);
+    regex_found = RegexCheckCounter(json.getError(), 0, 5);
+    EXPECT_TRUE(regex_found);
+
+    json.parseJson("{a=b,\n"
+                   "c= #");
+    EXPECT_TRUE(json.error());
+    regex_found = RegexCheckCounter(json.getError(), 1, 4);
+    EXPECT_TRUE(regex_found);
+
+    json.parseJson("# #");
+    EXPECT_TRUE(json.error());
+    regex_found = RegexCheckCounter(json.getError(), 0, 2);
     EXPECT_TRUE(regex_found);
 }
 

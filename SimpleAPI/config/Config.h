@@ -856,4 +856,4 @@ public:
 
 //TODO: вынести пользовательские функции в namespace sapi:: или simpleapi::
 //TODO: внутренние инструменты перенести ещё дальше simpleapi::element_json и т.д.
-//TODO: все функции с bool with_comment заменить на CommentDesign design
+//TODO(очень потом): пересмотреть все тексты подсказок об ошибках во время парсинга

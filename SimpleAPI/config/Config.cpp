@@ -313,7 +313,13 @@ Config &Config::setValue(const Config &other) noexcept {
     {
         release();
         switch(other.getType()) {
-        case ValueType::eNull:      { setValue();                                                               break;  }
+        case ValueType::eNull:      {
+            setValue();
+            //FIXME: решение, откровенно говоря, странное, может потом исправлю
+            if(other.error())
+                setError(other.getError());
+            break;
+        }
         case ValueType::eBool:      { setValue(dynamic_cast<const ElementBool*>(other.m_value)->getValue());    break;  }
         case ValueType::eNumber:    { setValue(dynamic_cast<const ElementNumber*>(other.m_value)->getValue());  break;  }
         case ValueType::eString:    { setValue(dynamic_cast<const ElementString*>(other.m_value)->getValue());  break;  }
@@ -335,7 +341,13 @@ Config &Config::setValue(Config &&other) noexcept {
         release();
 
         switch(other.getType()) {
-        case ValueType::eNull:      { setValue();                                                                           break;  }
+        case ValueType::eNull:      {
+            setValue();
+            //FIXME: решение, откровенно говоря, странное, может потом исправлю
+            if(other.error())
+                setError(other.getError());
+            break;
+        }
         case ValueType::eBool:      { setValue(dynamic_cast<const ElementBool*>(other.m_value)->getValue());                break;  }
         case ValueType::eNumber:    { setValue(std::move(dynamic_cast<const ElementNumber*>(other.m_value)->getValue()));   break;  }
         case ValueType::eString:    { setValue(std::move(dynamic_cast<const ElementString*>(other.m_value)->getValue()));   break;  }
@@ -1741,8 +1753,12 @@ Config SpecificParserJson(const std::string& content, const CommentDesign &desig
         //сначала нужно отделить комментарии, затем обработать внутреннее значение через CreateElementFromString()
         //начальные комментарии уже известны
         //здесь только значение, ключа быть не может
-        ParserSymbolCounter start_value_counter = counter; //будет использовано в CreateElementFromString()
+        ParserSymbolCounter start_value_counter; //будет использовано в CreateElementFromString()
         std::string value;
+
+        //выровнять счётчик под текущую позицию (FIXME: можно перенести выше в момент нахождения начала значения)
+        for(size_t i = 0; i < value_started_at; i++)
+            counter.check(i, content[i]);
 
         auto ConfirmValue = [&, content](const bool for_penultimate = false) -> bool {
             Config element = CreateElementFromString(std::move(value), ConfigFormat::eJSON,
