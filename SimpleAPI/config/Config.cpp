@@ -1455,7 +1455,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &design) n
 {
     release();
     m_value = new ElementJson(content, ConfigFormat::eINI, design);
-    return !m_error_str.isValid();
+    return !error();
 }
 
 bool Config::parseYaml(const std::string &content, const CommentDesign &design) noexcept
