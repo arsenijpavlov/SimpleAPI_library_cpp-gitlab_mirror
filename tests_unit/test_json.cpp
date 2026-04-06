@@ -83,65 +83,64 @@ TEST(JSON, append_json) {
     EXPECT_EQ(pre_size + j2.size(), j1.size());
 }
 
-//FIXME: TEST(JSON, parse)
-//TEST(JSON, parse) {
-//    std::string string_json = json_string_example;
-//    std::string string_json2 = json_string_example;
-//    Config json;
+TEST(JSON, parse) {
+    std::string string_json = json_string_example;
+    std::string string_json2 = json_string_example;
+    Config json;
 
-//    Config inner_json;
-//    inner_json.parseJson(inner_json_example);
-//    ASSERT_EQ(inner_json.size(), 2);
-//    EXPECT_TRUE(inner_json["string"].isString());
-//    EXPECT_TRUE(inner_json["string2"].isNumber());
+    Config inner_json;
+    inner_json.parseJson(inner_json_example);
+    ASSERT_EQ(inner_json.size(), 2);
+    EXPECT_TRUE(inner_json["string"].isString());
+    EXPECT_TRUE(inner_json["string2"].isNumber());
 
-//    Config inner_array;
-//    inner_array.parseArray(inner_array_example);
-//    ASSERT_EQ(inner_array.size(), 2);
-//    EXPECT_TRUE(inner_array[0].isString());
-//    EXPECT_TRUE(inner_array[1].isBool());
+    Config inner_array;
+    inner_array.parseJson(inner_array_example);
+    ASSERT_EQ(inner_array.size(), 2);
+    EXPECT_TRUE(inner_array[0].isString());
+    EXPECT_TRUE(inner_array[1].isBool());
 
-//    json.parseJson(string_json);
-//    EXPECT_EQ(json.size(), 7);
+    json.parseJson(string_json);
+    EXPECT_EQ(json.size(), 7);
 
-//    EXPECT_TRUE(json["number"].isNumber());
-//    EXPECT_EQ(json["number"].getNumber(),           182);
-//    EXPECT_EQ(json["number"],                       182);
+    EXPECT_TRUE(json["number"].isNumber());
+    EXPECT_EQ(json["number"].getNumber(),           182);
+    EXPECT_EQ(json["number"],                       182);
 
-//    EXPECT_TRUE(json["bool"].isBool());
-//    EXPECT_EQ(json["bool"].getBool(),               true);
-//    EXPECT_EQ(json["bool"].getBool(),               true);
+    EXPECT_TRUE(json["bool"].isBool());
+    EXPECT_EQ(json["bool"].getBool(),               true);
+    EXPECT_EQ(json["bool"].getBool(),               true);
 
-//    EXPECT_TRUE(json["null"].isNull());
-//    EXPECT_EQ(json["null"],                         Config());
-//    EXPECT_EQ(json["null"],                         Config(ValueType::eNull));
+    EXPECT_TRUE(json["null"].isNull());
+    EXPECT_EQ(json["null"],                         Config());
+    EXPECT_EQ(json["null"],                         Config(ValueType::eNull));
 
-//    EXPECT_TRUE(json["null2"].isNull());
-//    EXPECT_EQ(json["null2"],                        Config());
-//    EXPECT_EQ(json["null2"],                        Config(ValueType::eNull));
+    EXPECT_TRUE(json["null2"].isNull());
+    EXPECT_EQ(json["null2"],                        Config());
+    EXPECT_EQ(json["null2"],                        Config(ValueType::eNull));
 
-//    EXPECT_TRUE(json["string"].isString());
-//    EXPECT_EQ(json["string"].getString(),           "string_value");
-//    EXPECT_EQ(json["string"],                       "string_value");
+    EXPECT_TRUE(json["string"].isString());
+    EXPECT_EQ(json["string"].getString(),           "string_value");
+    EXPECT_EQ(json["string"],                       "string_value");
 
-//    EXPECT_FALSE(json["json"].isNull());
-//    EXPECT_TRUE(json["json"].isJson());
-//    ASSERT_EQ(json["json"].size(),                  2);
-//    EXPECT_EQ(json["json"]["string"].getString(),   "inner_string_value");
+    EXPECT_FALSE(json["json"].isNull());
+    EXPECT_TRUE(json["json"].isJson());
+    ASSERT_EQ(json["json"].size(),                  2);
+    EXPECT_EQ(json["json"]["string"].getString(),   "inner_string_value");
 
-//    EXPECT_TRUE(json["array"].isArray());
-//    ASSERT_EQ(json["array"].size(),                 2);
-//    EXPECT_EQ(json["array"][0].getString(),         "string_value");
-//    EXPECT_EQ(json["array"][1].getBool(),           true);
+    EXPECT_TRUE(json["array"].isArray());
+    ASSERT_EQ(json["array"].size(),                 2);
+    EXPECT_EQ(json["array"][0].getString(),         "string_value");
+    EXPECT_EQ(json["array"][1].getBool(),           true);
 
-//    //повторная обработка (очистка, новое заполнение)
-//    json.parseJson(string_json2);
-//    EXPECT_EQ(json.size(), 7);
+    //повторная обработка (очистка, новое заполнение)
+    json.parseJson(string_json2);
+    EXPECT_EQ(json.size(), 7);
 
-//    CommentDesign cd;
-//    json = Config::CreateElementFromString(std::move(string_json), ConfigFormat::eJSON, cd);
-//    ASSERT_EQ(json.size(), 7);
-//}
+    CommentDesign cd;
+    json.parse(std::move(string_json), ConfigFormat::eJSON, cd);
+    ASSERT_EQ(json.size(), 7);
+}
 
 TEST(JSON, parse2) {
     std::string string_json = R"({"get":["chip_key"]})";
@@ -159,38 +158,37 @@ TEST(JSON, parse3) {
     EXPECT_EQ(json.size(), 1);
 }
 
-//FIXME: TEST(JSON, parse_custom_string_elements)
-//TEST(JSON, parse_custom_string_elements) {
-//    //ВСЕ экранированные символы должны попасть в значение без изменений
-//    std::string temp_string = "\"asd\\\"\\b\\f\\n\\r\\tdsa\"";
-//    std::string json_string = std::string("{ ")
-//                              + "string:" + temp_string
-//                              + ", array:[" + temp_string + "]"
-//                              + "}";
+TEST(JSON, parse_custom_string_elements) {
+    //ВСЕ экранированные символы должны попасть в значение без изменений
+    std::string temp_string = "\"asd\\\"\\b\\f\\n\\r\\tdsa\"";
+    std::string json_string = std::string("{ ")
+                              + "string:" + temp_string
+                              + ", array:[" + temp_string + "]"
+                              + "}";
 
-//    //исходная строка без кавычек по бокам
-//    std::string temp_string_without_quotes = temp_string.substr(1, temp_string.length() - 2);
+    //исходная строка без кавычек по бокам
+    std::string temp_string_without_quotes = temp_string.substr(1, temp_string.length() - 2);
 
-//    Config inner_array;
-//    std::string inner_array_str = "[" + temp_string + "]";
-//    inner_array.parseArray(inner_array_str);
-//    ASSERT_EQ(inner_array.size(),           1);
+    Config inner_array;
+    std::string inner_array_str = "[" + temp_string + "]";
+    inner_array.parse(inner_array_str, ConfigFormat::eJSON);
+    ASSERT_EQ(inner_array.size(),           1);
 
-//    Config json;
-//    json.parseJson(json_string);
+    Config json;
+    json.parseJson(json_string);
 
-//    ASSERT_TRUE(json.isJson());
-//    EXPECT_EQ(json.size(),                  2);
+    ASSERT_TRUE(json.isJson());
+    EXPECT_EQ(json.size(),                  2);
 
-//    EXPECT_TRUE(json["string"].isString());
-//    EXPECT_EQ(json["string"],               temp_string_without_quotes);
-//    EXPECT_EQ(json["string"].toString(),    temp_string_without_quotes);
+    EXPECT_TRUE(json["string"].isString());
+    EXPECT_EQ(json["string"],               temp_string_without_quotes);
+    EXPECT_EQ(json["string"].toString(),    temp_string_without_quotes);
 
-//    ASSERT_TRUE(json["array"].isArray());
-//    ASSERT_EQ(json["array"].size(),         1);
-//    EXPECT_EQ(json["array"][0],             temp_string_without_quotes);
-//    EXPECT_EQ(json["array"][0].toString(),  temp_string_without_quotes);
-//}
+    ASSERT_TRUE(json["array"].isArray());
+    ASSERT_EQ(json["array"].size(),         1);
+    EXPECT_EQ(json["array"][0],             temp_string_without_quotes);
+    EXPECT_EQ(json["array"][0].toString(),  temp_string_without_quotes);
+}
 
 TEST(JSON, parse_error) {
     std::string string_json;
