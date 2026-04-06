@@ -25,7 +25,7 @@ public:
 
     __ONLY_NUMBER_TYPES__(T)
     OnlySizetOrString(const T& index) noexcept
-        : m_sizet{index}, m_type{Type::type_sizet} {};
+        : m_sizet{static_cast<size_t>(index)}, m_type{Type::type_sizet} {};
 
     std::string toString() const noexcept {
         return m_type == Type::type_string ? "\"" + m_string + "\"" : std::to_string(m_sizet);
