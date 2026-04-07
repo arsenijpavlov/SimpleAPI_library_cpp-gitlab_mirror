@@ -12,6 +12,7 @@
 #include "../utils/OnlySizetOrString.h"
 #include "../utils/ParserSymbolCounter.h"
 
+//вынести вовне нельзя, т.к. нет контекста об ElementJson и ElementArray
 template<typename T>
 struct is_valid_config_type {
     static constexpr bool value =
@@ -21,7 +22,6 @@ struct is_valid_config_type {
         std::is_arithmetic< typename std::decay<T>::type>::value ||
         std::is_same<       typename std::decay<T>::type, bool>::value ||
         std::is_same<       typename std::decay<T>::type, Config>::value
-        // || std::is_same<       typename std::decay<T>::type, const char*>::value
         ;
 };
 
