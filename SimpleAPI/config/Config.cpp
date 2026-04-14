@@ -1493,7 +1493,37 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
 bool Config::parseIni(const std::string &content, const CommentDesign &design) noexcept
 {
     release();
-    m_value = new ElementJson(content, ConfigFormat::eINI, design);
+    m_value = new ElementJson();
+    m_value->setCommentDesign(design);
+
+    VString lines;
+    // разбить content на строки
+    for(size_t i = 0; i < content.size(); /*i++*/) {
+        const size_t i_ = i;
+        i = content.find('\n', i_);
+        if(i == std::string::npos) {
+            // std::cout << "new iter: [" << i_ << "," << (content.size() - 1) << "]" << std::endl;
+            lines.push_back(content.substr(i_, content.size() - 1));
+            break;
+        } else {
+            const size_t end_i = i > i_ ? i - 1 : i;
+            // std::cout << "new iter: [" << i_ << "," << end_i << "]" << std::endl;
+            lines.push_back(content.substr(i_, end_i - i_ + 1));
+        }
+        i += 1;
+    }
+
+    /* совместить многострочные значения:
+     * - кавычки начаты, но не закончены                                (+следующая, следующую удалить)
+     * - есть обратный слэш в конце строки                              (+следующая, следующую удалить)
+     * - на следующей строке первыми символами идёт пробел/табуляция    (+следующая, следующую удалить)
+     */
+    for(size_t i = 0; i < lines.size(); i++) {
+        //TODO: INI PARSER, value comparator
+    }
+
+    //TODO: INI PARSER
+
     return !error();
 }
 
