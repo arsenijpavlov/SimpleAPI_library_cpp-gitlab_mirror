@@ -185,7 +185,7 @@ public:
             m_value = dynamic_cast<IElement*>(new ElementJson());
 
             for(size_t i = 0; i < vec.size(); i+=2) {
-                std::cout << "key type: \"" << ToString(vec[i].getType()) << "\"" << std::endl;
+//                std::cout << "key type: \"" << ToString(vec[i].getType()) << "\"" << std::endl;
                 push_back(vec[i].getString(), vec[i+1]);
             }
             break;
@@ -256,7 +256,7 @@ public:
             m_value = dynamic_cast<IElement*>(new ElementJson());
 
             for(size_t i = 0; i < vec.size(); i+=2) {
-                std::cout << "key type: \"" << ToString(vec[i].getType()) << "\"" << std::endl;
+//                std::cout << "key type: \"" << ToString(vec[i].getType()) << "\"" << std::endl;
                 push_back(vec[i].getString(), std::move(vec[i+1]));
             }
             break;

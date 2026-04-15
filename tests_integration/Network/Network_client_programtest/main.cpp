@@ -43,7 +43,7 @@ void RecvJson(JsonMessage jm) {
                                 NAME_COLUMN_SIZE,
                                 NAME_COLUMN_RIGHT_ALIGN) << " "
               << logs::to_color_string({logs::COLOR::eGREEN_BG, logs::COLOR::eWHITE_FG},
-                                       "recv json: " + jm.to_string())
+                                       "recv json: " + jm.toString())
               << std::endl;
 }
 void Log(std::string msg) {
@@ -82,7 +82,7 @@ int main(int argc, char** argv) {
 
     st.startThread();
 
-    Packet packet = convert_to_packet("Hello world!");
+    Packet packet = ConvertToPacket("Hello world!");
     Config json(ValueType::eJson, "Hello", std::string("WORLD!"));
 
 //    st.findSocket(server)->m_settings.enableChiphering(true);
