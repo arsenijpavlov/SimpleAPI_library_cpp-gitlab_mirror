@@ -1492,9 +1492,8 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
 
 bool Config::parseIni(const std::string &content, const CommentDesign &design) noexcept
 {
-    release();
-    m_value = new ElementJson();
-    m_value->setCommentDesign(design);
+    setValue(ElementJson());
+    setCommentDesign(design);
 
     VString lines;
     // разбить content на строки
@@ -1517,6 +1516,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &design) n
      * - кавычки начаты, но не закончены                                (+следующая, следующую удалить)
      * - есть обратный слэш в конце строки                              (+следующая, следующую удалить)
      * - на следующей строке первыми символами идёт пробел/табуляция    (+следующая, следующую удалить)
+     * - начат многострочный комментарий, но не закончен                (+следующая, следующую удалить)
      */
     for(size_t i = 0; i < lines.size(); i++) {
         //TODO: INI PARSER, value comparator
@@ -1687,7 +1687,7 @@ Config SpecificParser(const std::string& content, const ConfigFormat format,
 
 // Задача функции: определить тип значения верхнего уровня и передать в соответствующий обработчик
 Config SpecificParserJson(const std::string& content, const CommentDesign &design) noexcept
-{   
+{
     /* игнорируя комментарий, найти первое вхождение символа ключа(значения)
      * определить следующий после "слова" символ-разделитель, если он есть
      *   - комментарий после "слова" тоже игнорируется
