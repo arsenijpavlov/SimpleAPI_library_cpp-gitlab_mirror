@@ -1507,7 +1507,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &design) n
         } else {
             const size_t end_i = i > i_ ? i - 1 : i;
             // std::cout << "new iter: [" << i_ << "," << end_i << "]" << std::endl;
-            lines.push_back(content.substr(i_, end_i - i_ + 1));
+            lines.push_back(content.substr(i_, end_i - i_ + (i == i_ ? 0 : 1))); //уникальный случай "нулевая длина"
         }
         i += 1;
     }
