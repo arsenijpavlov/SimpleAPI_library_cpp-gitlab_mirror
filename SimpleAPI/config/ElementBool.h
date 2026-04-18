@@ -3,6 +3,9 @@
 
 #include "interface/IElement.h"
 
+
+namespace simpleapi {
+
 class ElementBool : public IElement {
 protected:
     bool m_value;
@@ -65,5 +68,7 @@ public:
 bool IsElementBool(const std::string& str)              noexcept;
 bool IsElementBool(const IElement& e)                   noexcept;
 bool IsElementBool(const Config& cfg)                   noexcept;
+
+} // namespace simpleapi
 
 #endif // ELEMENT_BOOL_H

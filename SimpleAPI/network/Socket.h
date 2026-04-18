@@ -17,6 +17,8 @@
 #include <sys/socket.h>
 
 
+namespace simpleapi {
+
 #define MAX_PACKET_LENGTH 65535
 
 using time_point_default = std::chrono::system_clock::time_point;
@@ -227,5 +229,7 @@ public:
 //public:
 //    ~TCPServer(){};
 //};
+
+} // namespace simpleapi
 
 #endif // SOCKET_H

@@ -4,6 +4,8 @@
 #include "interface/IElement.h"
 
 
+namespace simpleapi {
+
 class ElementNumber : public IElement {
 protected:
     long double m_value;
@@ -66,5 +68,7 @@ public:
 bool IsElementNumber(const std::string& str)    noexcept;
 bool IsElementNumber(const IElement& e)         noexcept;
 bool IsElementNumber(const Config& cfg)         noexcept;
+
+} // namespace simpleapi
 
 #endif // ELEMENT_NUMBER_H

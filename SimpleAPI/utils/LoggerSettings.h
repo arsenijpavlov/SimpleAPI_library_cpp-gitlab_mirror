@@ -5,6 +5,8 @@
 #include <functional>
 
 
+namespace simpleapi {
+
 class LoggerSettings {
 public:
     using LogCallback = std::function<void(std::string)>;
@@ -58,5 +60,7 @@ public:
     LogCallback getColorLogCallback() noexcept                      { return m_color_log_callback; }
     LogCallback getColorLogErrorCallback() noexcept                 { return m_color_log_error_callback; }
 };
+
+} // namespace simpleapi
 
 #endif // LOGGER_SETTINGS_H

@@ -6,6 +6,8 @@
 #include "Socket.h"
 
 
+namespace simpleapi {
+
 class SocketThread {
     std::thread     m_thread;
     bool            m_active;
@@ -67,5 +69,7 @@ public:
     //индивидуальные настройки для каждого сокета отдельно
     void setSocketsSettings(const IpPort& local_ip_port, const SocketSettings settings = SocketSettings()) noexcept;
 };
+
+} // namespace simpleapi
 
 #endif // SOCKET_THREAD_H

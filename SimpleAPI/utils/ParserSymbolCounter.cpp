@@ -1,6 +1,7 @@
 #include "ParserSymbolCounter.h"
 
 
+namespace simpleapi {
 
 void ParserSymbolCounter::check(const size_t current_iterator, const char current_ch) noexcept
 {
@@ -32,3 +33,6 @@ size_t ParserSymbolCounter::getLastIterator() const noexcept
 {
     return m_last_iterator;
 }
+
+} // namespace simpleapi
+

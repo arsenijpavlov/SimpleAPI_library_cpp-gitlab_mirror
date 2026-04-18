@@ -4,6 +4,8 @@
 #include <algorithm>
 
 
+namespace simpleapi {
+
 void ElementBool::clear() noexcept {
     clearComment();
     m_value = false;
@@ -71,3 +73,6 @@ bool IsElementBool(const IElement &e) noexcept {
 bool IsElementBool(const Config &cfg) noexcept {
     return cfg.isBool();
 }
+
+} // namespace simpleapi
+

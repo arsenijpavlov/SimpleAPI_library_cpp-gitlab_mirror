@@ -13,7 +13,10 @@ int main(int argc, char **argv)
     return RUN_ALL_TESTS();
 }
 
+
 //========================================================================================
+using namespace simpleapi;
+
 Config json_example(ValueType::eJson,
                     "key_0", "first",
                     "key_1", Config(2),

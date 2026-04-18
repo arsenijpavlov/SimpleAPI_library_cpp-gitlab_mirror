@@ -10,8 +10,10 @@
 #include "ConfigDefines.h"
 #include "ElementArray.h"
 
-class ElementArray;
 
+namespace simpleapi {
+
+class ElementArray;
 
 ElementArray::ElementArray(const std::string &input_string, const ConfigFormat config_format,
                            const CommentDesign& design, std::string *error_str) noexcept
@@ -834,3 +836,5 @@ bool IsElementArray(const Config &cfg) noexcept
 {
     return cfg.isArray();
 }
+
+} // namespace simpleapi

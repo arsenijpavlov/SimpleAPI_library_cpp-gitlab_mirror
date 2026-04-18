@@ -7,6 +7,8 @@
 #include "../utils/Utils.h"
 
 
+namespace simpleapi {
+
 #define FULL_MSG_COLOR          {logs::COLOR::eYELLOW_BG, logs::COLOR::eBLACK_FG, logs::COLOR::eBOLD_TEXT}
 #define GLOBAL_APPEND_MSG_COLOR {logs::COLOR::eBRIGHT_GRAY_BG, logs::COLOR::eBRIGHT_RED_FG}
 #define CRITICAL_MSG_COLOR      {logs::eRED_BG, logs::eWHITE_FG}
@@ -1171,4 +1173,5 @@ std::string to_string(SocketType type) noexcept {
     }
 }
 
+} // namespace simpleapi
 

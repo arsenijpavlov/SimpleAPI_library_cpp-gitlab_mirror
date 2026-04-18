@@ -7,6 +7,8 @@
 #include <bits/shared_ptr.h>
 
 
+namespace simpleapi {
+
 //NOTE: это лишь примеры, не использовать при записи и парсинге
 //первый символ в случае многострочного комментария может быть другим
 //constexpr uint8_t SIZE_comment_multi_line = 6;
@@ -230,5 +232,7 @@ void RemoveComments(std::string& input_string, CommentDesign design = {});
 void CheckComments(const char ch_current, const char ch_next,
                    size_t &iter_counter, CommentDesign &design,
                    std::string &current_comment, const bool external_flag = true);
+
+} // namespace simpleapi
 
 #endif // COMMENT_H

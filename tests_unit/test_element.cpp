@@ -14,6 +14,8 @@ int main(int argc, char **argv)
 //========================================================================================
 
 TEST(ELEMENT, create_empty) {
+    using namespace simpleapi;
+
     Config el_null;
     EXPECT_EQ(el_null.getType(), ValueType::eNull);
     EXPECT_TRUE(el_null.isNull());
@@ -24,6 +26,8 @@ TEST(ELEMENT, create_empty) {
 }
 
 TEST(ELEMENT, set_empty) {
+    using namespace simpleapi;
+
     Config el_null;
     EXPECT_TRUE(el_null.isNull());
 
@@ -36,6 +40,8 @@ TEST(ELEMENT, set_empty) {
 }
 
 TEST(ELEMENT, create_bool) {
+    using namespace simpleapi;
+
     Config el_bool_1(ValueType::eBool);
     EXPECT_EQ(el_bool_1.getType(), ValueType::eBool);
     EXPECT_TRUE(el_bool_1.isBool());
@@ -53,6 +59,8 @@ TEST(ELEMENT, create_bool) {
 }
 
 TEST(ELEMENT, set_bool) {
+    using namespace simpleapi;
+
     Config el_bool;
     el_bool = Config(ValueType::eBool);
     EXPECT_TRUE(el_bool.isBool());
@@ -69,6 +77,8 @@ TEST(ELEMENT, set_bool) {
 }
 
 TEST(ELEMENT, create_number) {
+    using namespace simpleapi;
+
     Config el_int(1);
     EXPECT_EQ(el_int.getType(), ValueType::eNumber);
     EXPECT_TRUE(el_int.isNumber());
@@ -87,6 +97,8 @@ TEST(ELEMENT, create_number) {
 }
 
 TEST(ELEMENT, set_number) {
+    using namespace simpleapi;
+
     Config el_int;
 
     el_int = 1;
@@ -111,6 +123,8 @@ TEST(ELEMENT, set_number) {
 }
 
 TEST(ELEMENT, create_string) {
+    using namespace simpleapi;
+
     Config el_string(std::string("asd"));
     EXPECT_EQ(el_string.getType(), ValueType::eString);
     EXPECT_TRUE(el_string.isString());
@@ -134,6 +148,8 @@ TEST(ELEMENT, create_string) {
 }
 
 TEST(ELEMENT, set_string) {
+    using namespace simpleapi;
+
     Config el_string;
 
     el_string = std::string("asd");
@@ -154,6 +170,8 @@ TEST(ELEMENT, set_string) {
 }
 
 TEST(ELEMENT, create_array) {
+    using namespace simpleapi;
+
     Config ar(ValueType::eArray);
     EXPECT_EQ(ar.getType(), ValueType::eArray);
 
@@ -165,6 +183,8 @@ TEST(ELEMENT, create_array) {
 }
 
 TEST(ELEMENT, create_json) {
+    using namespace simpleapi;
+
     Config js(ValueType::eJson);
     EXPECT_EQ(js.getType(), ValueType::eJson);
 
@@ -177,6 +197,8 @@ TEST(ELEMENT, create_json) {
 }
 
 TEST(ELEMENT, compare_all_types) {
+    using namespace simpleapi;
+
     Config el_num(15.0);
     ASSERT_EQ(el_num.getType(), ValueType::eNumber);
     ASSERT_TRUE(el_num.isNumber());
@@ -204,6 +226,8 @@ TEST(ELEMENT, compare_all_types) {
 }
 
 TEST(ELEMENT, not_compare_all_types) {
+    using namespace simpleapi;
+
     Config el_num(15.0);
     ASSERT_EQ(el_num.getType(), ValueType::eNumber);
     ASSERT_TRUE(el_num.isNumber());
@@ -240,6 +264,8 @@ TEST(ELEMENT, not_compare_all_types) {
 }
 
 TEST(ELEMENT, create_null_from_variadic) {
+    using namespace simpleapi;
+
     Config config(ValueType::eNull);
     EXPECT_TRUE(config.isNull());
 
@@ -247,6 +273,8 @@ TEST(ELEMENT, create_null_from_variadic) {
 }
 
 TEST(ELEMENT, create_bool_from_variadic) {
+    using namespace simpleapi;
+
     Config config(ValueType::eBool);
     EXPECT_TRUE(config.isBool());
 
@@ -259,6 +287,8 @@ TEST(ELEMENT, create_bool_from_variadic) {
 }
 
 TEST(ELEMENT, create_number_from_variadic) {
+    using namespace simpleapi;
+
     Config config(ValueType::eNumber);
     EXPECT_TRUE(config.isNumber());
 
@@ -271,6 +301,8 @@ TEST(ELEMENT, create_number_from_variadic) {
 }
 
 TEST(ELEMENT, create_string_from_variadic) {
+    using namespace simpleapi;
+
     Config config(ValueType::eString);
     EXPECT_TRUE(config.isString());
 

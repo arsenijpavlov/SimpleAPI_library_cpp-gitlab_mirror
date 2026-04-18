@@ -1,6 +1,8 @@
 #include "Message.h"
 
 
+namespace simpleapi {
+
 Packet ConvertToPacket(const std::string& str) noexcept {
     Packet packet;
     packet.resize(str.size());
@@ -71,4 +73,6 @@ std::string JsonMessage::toString() noexcept {
 ApiVersion GetLastApiVersion() noexcept {
     return ApiVersion::eVersion_1; //NOTE: при новых версиях заменять вручную
 }
+
+} // namespace simpleapi
 

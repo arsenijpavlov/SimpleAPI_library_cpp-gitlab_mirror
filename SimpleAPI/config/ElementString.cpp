@@ -7,6 +7,8 @@
 #include <algorithm>
 
 
+namespace simpleapi {
+
 void ElementString::clear() noexcept {
     clearComment();
     m_value.clear();
@@ -56,3 +58,5 @@ bool IsElementString(const IElement &e) noexcept {
 bool IsElementString(const Config &cfg) noexcept {
     return cfg.isString();
 }
+
+} // namespace simpleapi

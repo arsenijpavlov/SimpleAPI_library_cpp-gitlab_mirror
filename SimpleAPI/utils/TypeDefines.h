@@ -4,6 +4,8 @@
 #include <type_traits>
 
 
+namespace simpleapi {
+
 #define __ONLY_ALLOWED_TYPES__(ARG) \
 template<typename ARG, \
                        typename std::enable_if< \
@@ -45,5 +47,7 @@ template<typename ARG, \
 template<bool...> struct bool_pack;
 template<bool... Values>
 struct all_true : std::is_same<bool_pack<Values..., true>, bool_pack<true, Values...>> {};
+
+} // namespace simpleapi
 
 #endif // TYPE_DEFINES_H

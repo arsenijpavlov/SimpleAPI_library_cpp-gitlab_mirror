@@ -4,6 +4,8 @@
 #include <regex>
 
 
+namespace simpleapi {
+
 void ElementNumber::clear() noexcept {
     clearComment();
     m_value = 0;
@@ -74,3 +76,6 @@ bool IsElementNumber(const IElement &e) noexcept {
 bool IsElementNumber(const Config &cfg) noexcept {
     return cfg.isNumber();
 }
+
+} // namespace simpleapi
+

@@ -14,6 +14,8 @@ int main(int argc, char **argv)
 //========================================================================================
 
 TEST(UTILS, string_len) {
+    using namespace simpleapi;
+
     std::string example = "12345";
     EXPECT_EQ(5, utils::GetStringCharCount(example));
 

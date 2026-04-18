@@ -10,6 +10,8 @@
 #include <vector>
 
 
+namespace simpleapi {
+
 /* ================================================================================================
  * API v.1
  * ================================================================================================
@@ -123,5 +125,7 @@ public:
     void clear()                                    noexcept;
     std::string toString()                          noexcept;
 };
+
+} // namespace simpleapi
 
 #endif // MESSAGE_H

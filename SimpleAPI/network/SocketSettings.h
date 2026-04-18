@@ -9,6 +9,8 @@
 #include <string>
 
 
+namespace simpleapi {
+
 class SocketSettings : public LoggerSettings {
 public:
     using RecvPacketMessageCallback = std::function<void(PacketMessage)>;
@@ -69,5 +71,7 @@ public:
     ConnectionCallback          getNewConnectionCallback() noexcept         { return m_new_connection_callback; }
     ConnectionCallback          getConnectionResetCallback() noexcept       { return m_connection_reset_callback; }
 };
+
+} // namespace simpleapi
 
 #endif // SOCKET_SETTINGS_H

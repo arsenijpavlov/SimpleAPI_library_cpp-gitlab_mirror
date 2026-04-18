@@ -1,5 +1,8 @@
 #include "IErrorField.h"
 
+
+namespace simpleapi {
+
 bool IErrorField::error() const noexcept
 {
     return m_error_str.isValid();
@@ -30,3 +33,6 @@ void IErrorField::setError(std::string &&error_string) noexcept
     else
         m_error_str = std::move(error_string);
 }
+
+} // namespace simpleapi
+

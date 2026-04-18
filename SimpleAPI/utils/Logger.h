@@ -5,6 +5,9 @@
 #include <string>
 #include <vector>
 
+
+namespace simpleapi {
+
 //NOTE: https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences
 //      гайд по цветовому выводу
 
@@ -174,6 +177,8 @@ std::string columned(const LEVEL level, const T& log_message,
                                 { return columned(level, std::to_string(log_message), column_size, right_align); }
 //-----------------------------------------------------------------------------------------
 
-}
+} // namespace logs
+
+} // namespace simpleapi
 
 #endif // LOGGER_H

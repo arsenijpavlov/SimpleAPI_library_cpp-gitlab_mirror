@@ -3,6 +3,9 @@
 
 #include <algorithm>
 
+
+namespace simpleapi {
+
 template <typename T>
 class Optional {
     T    m_value;
@@ -85,5 +88,7 @@ public:
     bool operator==(const Optional<T>& other)           const noexcept  { return !(*this != other); }
     bool operator!=(Optional<T>&& other)                const noexcept  { return (m_status != other.m_status) || (m_value != other); }
 };
+
+} // namespace simpleapi
 
 #endif // OPTIONAL_H

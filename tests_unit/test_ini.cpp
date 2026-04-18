@@ -103,6 +103,8 @@ std::string ini_example_string = std::string(
 
 
 TEST(INI, main_parser) {
+    using namespace simpleapi;
+
     Config json;
     CommentDesign cd;
     cd.with_comments = true;

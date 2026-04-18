@@ -2,6 +2,8 @@
 #include <stdexcept>
 
 
+namespace simpleapi {
+
 #define __INCOMPATIBLE_SIZE_EXCEPTION__ \
             if(m_max_size != other.m_max_size) \
                 throw std::invalid_argument("try using incompatible size format");
@@ -184,3 +186,6 @@ void EECounter::reset() noexcept {
     m_pos = 0;
     m_global_pos = 0;
 }
+
+} // namespace simpleapi
+

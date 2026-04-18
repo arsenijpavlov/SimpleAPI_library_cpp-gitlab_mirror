@@ -2,6 +2,9 @@
 #include <iostream>
 #include <unistd.h>
 
+
+namespace simpleapi {
+
 #define SOCKETS_THREAD_NAME "SERVERS_THREAD"
 
 void SocketThread::run() noexcept {
@@ -173,4 +176,6 @@ void SocketThread::setSocketsSettings(const IpPort& local_ip_port, const SocketS
     if(it != m_sockets.end())
         it->second->setSettings(settings);
 }
+
+} // namespace simpleapi
 

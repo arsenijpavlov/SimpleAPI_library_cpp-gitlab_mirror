@@ -6,6 +6,8 @@
 #include <algorithm>
 
 
+namespace simpleapi {
+
 bool ElementNull::isEqual(const IElement &other, const bool compare_comments,
                           const bool map_sort_important) const noexcept
 {
@@ -64,4 +66,6 @@ bool IsElementNull(const IElement &e) noexcept {
 bool IsElementNull(const Config &cfg) noexcept {
     return cfg.isNull();
 }
+
+} // namespace simpleapi
 

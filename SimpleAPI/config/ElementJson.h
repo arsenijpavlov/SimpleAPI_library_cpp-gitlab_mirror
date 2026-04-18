@@ -6,6 +6,8 @@
 #include <iostream>
 
 
+namespace simpleapi {
+
 class ElementJson : public IElementContainer {
 protected:
     shared_VPairElement m_values;
@@ -288,5 +290,7 @@ public:
 
 bool IsElementJson(const IElement& e)                                           noexcept;
 bool IsElementJson(const Config& cfg)                                           noexcept;
+
+} // namespace simpleapi
 
 #endif // ELEMENT_JSON_H

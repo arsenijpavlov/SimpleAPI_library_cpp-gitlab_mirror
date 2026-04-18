@@ -4,6 +4,8 @@
 #include <string>
 
 
+namespace simpleapi {
+
 struct IpPort {
     std::string ip;
     uint16_t    port;
@@ -16,5 +18,7 @@ struct IpPort {
     std::string to_string(std::string info = "") const noexcept;
     bool from_string(std::string ip_port_string) noexcept;
 };
+
+} // namespace simpleapi
 
 #endif // IP_PORT_H

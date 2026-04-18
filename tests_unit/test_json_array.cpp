@@ -14,6 +14,8 @@ int main(int argc, char **argv)
 //========================================================================================
 
 
+using namespace simpleapi;
+
 //проверка должна затрагивать все вариации значений (number, bool, string, array, json, null)
 Config array_example(ValueType::eArray,
                      "first",

@@ -5,6 +5,9 @@
 #include <iostream>
 #include "../utils/TypeDefines.h"
 
+
+namespace simpleapi {
+
 class ElementArray : public IElementContainer {
 protected:
     shared_VElement m_values;
@@ -224,5 +227,7 @@ public:
 
 bool IsElementArray(const IElement &e)                                          noexcept;
 bool IsElementArray(const Config &cfg)                                          noexcept;
+
+} // namespace simpleapi
 
 #endif // ELEMENT_ARRAY_H

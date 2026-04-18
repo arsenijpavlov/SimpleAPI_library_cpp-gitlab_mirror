@@ -6,6 +6,8 @@
 #include "IErrorField.h"
 
 
+namespace simpleapi {
+
 //абстрактный класс для управления списками элементов
 class IElementContainer : public IElement, public IErrorField {
     // Comment =========================================================================================================
@@ -117,5 +119,7 @@ public:
     virtual std::string parseXml(std::string&& input_string, CommentDesign &design)                     noexcept    = 0;
     // ========================================================================================================== Parser
 };
+
+} // namespace simpleapi
 
 #endif // I_ELEMENT_CONTAINER_H

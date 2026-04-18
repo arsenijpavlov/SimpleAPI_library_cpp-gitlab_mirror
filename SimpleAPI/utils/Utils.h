@@ -13,6 +13,8 @@
 #endif
 
 
+namespace simpleapi {
+
 namespace utils {
 
 bool        IsNumber(const std::string& str, bool use_point = true)                     noexcept;
@@ -66,7 +68,7 @@ std::vector<uint8_t> FromHexStringToHex(const std::string& str)                 
 std::string GetNormalizeString(const std::string& input)                                noexcept;
 bool        IsNormalizeEqual(const std::string& str_1, const std::string& str_2)        noexcept;
 
-}
-
+} // namespace utils
+} // namespace simpleapi
 
 #endif // UTILS_H

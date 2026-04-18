@@ -13,6 +13,9 @@
 #include <regex>
 #include <fstream>
 
+
+namespace simpleapi {
+
 //Вспомогательная функция
 bool WriteStringToFile(const std::string& file_path, std::string&& content) noexcept
 {
@@ -2025,3 +2028,5 @@ std::pair<bool, Config> ParseIni(const std::string &content, const CommentDesign
     bool result = ret.parseIni(content, n_design);
     return std::make_pair(result, ret);
 }
+
+} // namespace simpleapi

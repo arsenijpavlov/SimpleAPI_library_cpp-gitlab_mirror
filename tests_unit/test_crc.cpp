@@ -14,6 +14,8 @@ int main(int argc, char **argv)
 std::string data_template("127B2248656C6C6F223A22574F524C4421227D");
 
 TEST(CRC, CRC8_ENCODE_DECODE) {
+    using namespace simpleapi;
+
     Packet prep_packet = utils::FromHexString("00" + data_template);
     Packet crc_packet = prep_packet;
 
@@ -25,6 +27,8 @@ TEST(CRC, CRC8_ENCODE_DECODE) {
 }
 
 TEST(CRC, CRC8_incorrect_ENCODE_DECODE) {
+    using namespace simpleapi;
+
     Packet prep_packet = utils::FromHexString("00" + data_template);
     Packet crc_packet = prep_packet;
 
@@ -37,6 +41,8 @@ TEST(CRC, CRC8_incorrect_ENCODE_DECODE) {
 }
 
 TEST(CRC, CRC8_Packet_incorrect_ENCODE_DECODE) {
+    using namespace simpleapi;
+
     Packet prep_packet = utils::FromHexString("00" + data_template);
     Packet crc_packet = prep_packet;
 
@@ -49,6 +55,8 @@ TEST(CRC, CRC8_Packet_incorrect_ENCODE_DECODE) {
 }
 
 TEST(CRC, CRC16_ENCODE_DECODE) {
+    using namespace simpleapi;
+
     Packet prep_packet = utils::FromHexString("0000" + data_template);
     Packet crc_packet = prep_packet;
 
@@ -60,6 +68,8 @@ TEST(CRC, CRC16_ENCODE_DECODE) {
 }
 
 TEST(CRC, CRC16_incorrect_ENCODE_DECODE) {
+    using namespace simpleapi;
+
     Packet prep_packet = utils::FromHexString("0000" + data_template);
     Packet crc_packet = prep_packet;
 
@@ -72,6 +82,8 @@ TEST(CRC, CRC16_incorrect_ENCODE_DECODE) {
 }
 
 TEST(CRC, CRC16_Packet_incorrect_ENCODE_DECODE) {
+    using namespace simpleapi;
+
     Packet prep_packet = utils::FromHexString("0000" + data_template);
     Packet crc_packet = prep_packet;
 
@@ -84,6 +96,8 @@ TEST(CRC, CRC16_Packet_incorrect_ENCODE_DECODE) {
 }
 
 TEST(CRC, CRC32_ENCODE_DECODE) {
+    using namespace simpleapi;
+
     Packet prep_packet = utils::FromHexString("00000000" + data_template);
     Packet crc_packet = prep_packet;
 
@@ -95,6 +109,8 @@ TEST(CRC, CRC32_ENCODE_DECODE) {
 }
 
 TEST(CRC, CRC32_incorrect_ENCODE_DECODE) {
+    using namespace simpleapi;
+
     Packet prep_packet = utils::FromHexString("00000000" + data_template);
     Packet crc_packet = prep_packet;
 
@@ -107,6 +123,8 @@ TEST(CRC, CRC32_incorrect_ENCODE_DECODE) {
 }
 
 TEST(CRC, CRC32_Packet_incorrect_ENCODE_DECODE) {
+    using namespace simpleapi;
+
     Packet prep_packet = utils::FromHexString("00000000" + data_template);
     Packet crc_packet = prep_packet;
 

@@ -5,6 +5,8 @@
 #include <string>
 #include "TypeDefines.h"
 
+namespace simpleapi {
+
 class OnlySizetOrString {
 public:
     enum class Type {
@@ -45,5 +47,7 @@ public:
         return m_string;
     }
 };
+
+} // namespace simpleapi
 
 #endif // ONLYSIZETORSTRING_H

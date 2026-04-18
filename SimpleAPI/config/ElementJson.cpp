@@ -7,6 +7,8 @@
 #include "../utils/ParserSymbolCounter.h"
 
 
+namespace simpleapi {
+
 ElementJson::ElementJson(const ElementJson &other) noexcept {
     init();
     if(other.error())
@@ -1271,3 +1273,6 @@ bool IsElementJson(const Config &cfg) noexcept
 {
     return cfg.isJson();
 }
+
+} // namespace simpleapi
+

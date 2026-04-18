@@ -4,6 +4,8 @@
 #include "../../utils/Optional.h"
 #include <string>
 
+namespace simpleapi {
+
 class IErrorField {
     Optional<std::string> m_error_str;
 public:
@@ -16,5 +18,7 @@ public:
     void                setError(std::string &&error_string)                                            noexcept;
     // ========================================================================================================== Parser
 };
+
+} // namespace simpleapi
 
 #endif // I_ERROR_FIELD_H

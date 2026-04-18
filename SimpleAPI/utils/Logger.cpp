@@ -3,6 +3,8 @@
 #include <chrono>
 #include <iomanip>
 
+
+namespace simpleapi {
 namespace logs {
 
 const std::string to_string(const LEVEL level) noexcept {
@@ -134,6 +136,7 @@ std::string columned(const LEVEL level, const std::string &log_message,
                      const int column_size, const bool right_align) noexcept
 { return to_color_string(level, columned(log_message, column_size, right_align)); }
 
+} // namespace logs
+} // namespace simpleapi
 
 
-}

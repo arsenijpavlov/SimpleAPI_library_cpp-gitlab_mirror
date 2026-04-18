@@ -4,6 +4,8 @@
 #include <regex>
 #include <string>
 
+
+namespace simpleapi {
 namespace utils {
 
 bool IsNumber(const std::string &str, bool use_point) noexcept {
@@ -590,5 +592,6 @@ bool IsNormalizeEqual(const std::string &str_1, const std::string &str_2) noexce
     return true;
 }
 
+} // namespace utils
+} // namespace simpleapi
 
-}

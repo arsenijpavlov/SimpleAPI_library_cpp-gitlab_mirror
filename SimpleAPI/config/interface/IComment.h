@@ -4,6 +4,8 @@
 #include "../Comment.h"
 
 
+namespace simpleapi {
+
 class IComment {
 protected:
     Comment     m_comment;
@@ -40,5 +42,7 @@ public:
     void            clearCommentDesign()                        noexcept            { m_comment.clearDesign(); }
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= COMMENT
 };
+
+} // namespace simpleapi
 
 #endif // I_COMMENT_H

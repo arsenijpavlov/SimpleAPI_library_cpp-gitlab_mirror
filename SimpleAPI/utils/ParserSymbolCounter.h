@@ -3,6 +3,9 @@
 
 #include <cstddef>
 
+
+namespace simpleapi {
+
 class ParserSymbolCounter {
     size_t m_last_iterator;
     size_t m_line_counter;
@@ -19,5 +22,7 @@ public:
     size_t getLastSymbolCounter()                                       const noexcept;
     size_t getLastIterator()                                            const noexcept;
 };
+
+} // namespace simpleapi
 
 #endif // PARSER_SYMBOL_COUNTER_H

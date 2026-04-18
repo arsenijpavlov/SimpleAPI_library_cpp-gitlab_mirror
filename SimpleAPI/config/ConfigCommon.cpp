@@ -7,6 +7,8 @@
 #include <regex>
 
 
+namespace simpleapi {
+
 std::string ToString(const ValueType type) noexcept {
     switch(type) {
     case ValueType::eNumber:    return "Number";    break;
@@ -102,4 +104,6 @@ bool CreateEmptyFile(const std::string &file_path, const std::string &start_comm
 
     return false;
 }
+
+} // namespace simpleapi
 

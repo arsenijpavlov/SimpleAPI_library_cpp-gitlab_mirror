@@ -12,6 +12,9 @@
 #include "../utils/OnlySizetOrString.h"
 #include "../utils/ParserSymbolCounter.h"
 
+
+namespace simpleapi {
+
 //вынести вовне нельзя, т.к. нет контекста об ElementJson и ElementArray
 template<typename T>
 struct is_valid_config_type {
@@ -865,8 +868,11 @@ public:
     friend std::pair<bool, Config> ParseIni(const std::string& content, const CommentDesign &design)        noexcept;
 };
 
+} // namespace simpleapi
+
 #endif //CONFIG_H
 
-//TODO: вынести пользовательские функции в namespace sapi:: или simpleapi::
+//TODO: вынести скрытые от пользователя функции в другой namespace, например simpleapi::tools
 //TODO: внутренние инструменты перенести ещё дальше simpleapi::element_json и т.д.
 //TODO(очень потом): пересмотреть все тексты подсказок об ошибках во время парсинга
+

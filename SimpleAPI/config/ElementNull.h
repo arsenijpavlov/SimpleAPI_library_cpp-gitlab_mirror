@@ -5,6 +5,8 @@
 #include "interface/IErrorField.h"
 
 
+namespace simpleapi {
+
 class ElementNull : public IElement, public IErrorField {
     /* "Пустое значение"
      * JSON, наполнение:
@@ -67,5 +69,7 @@ public:
 bool IsElementNull(const std::string& str)              noexcept;
 bool IsElementNull(const IElement& e)                   noexcept;
 bool IsElementNull(const Config& cfg)                   noexcept;
+
+} // namespace simpleapi
 
 #endif // ELEMENT_NULL_H

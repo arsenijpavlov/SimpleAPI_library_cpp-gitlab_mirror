@@ -3,6 +3,9 @@
 
 #include <stdexcept>
 
+
+namespace simpleapi {
+
 //VALUES==========================================================================
 #define __SPACES__                                  " \n\t"
 #define __KEY_VALUE_SEPARATOR__                     ":="
@@ -92,5 +95,7 @@
 #define __NO_ELEMENTS_EXCEPTION__           if(size() < 1) \
                                                 throw std::invalid_argument("There are no Element(s)");
 //=======================================================================EXEPTIONS
+
+} // namespace simpleapi
 
 #endif // CONFIG_DEFINES_H

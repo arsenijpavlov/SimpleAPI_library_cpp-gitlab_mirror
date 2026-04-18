@@ -5,6 +5,8 @@
 #include <netinet/in.h>
 
 
+namespace simpleapi {
+
 bool IpPort::operator==(const IpPort &other) const noexcept {
     if(ip == other.ip && port == other.port)    return true;
     else                                        return false;
@@ -76,3 +78,6 @@ bool IpPort::from_string(std::string ip_port_string) noexcept {
 
     return true;
 }
+
+} // namespace simpleapi
+

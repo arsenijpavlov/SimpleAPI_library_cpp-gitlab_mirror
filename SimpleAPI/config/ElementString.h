@@ -5,6 +5,8 @@
 #include "../utils/Utils.h"
 
 
+namespace simpleapi {
+
 class ElementString : public IElement {
 protected:
     std::string m_value;
@@ -68,5 +70,6 @@ public:
 bool IsElementString(const IElement& e)                 noexcept;
 bool IsElementString(const Config& cfg)                 noexcept;
 
+} // namespace simpleapi
 
 #endif // ELEMENT_STRING_H

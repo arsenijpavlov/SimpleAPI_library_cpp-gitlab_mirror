@@ -6,6 +6,8 @@
 #include <algorithm>
 
 
+namespace simpleapi {
+
 std::string ToString(const CommentType &type) {
     switch(type) {
     case CommentType::eNotComment:          return "not_a_comment";
@@ -963,3 +965,5 @@ void CheckComments(const char ch_current, const char ch_next,
     design.temp_type = CommentType::eNotComment;
     return;
 }
+
+} // namespace simpleapi

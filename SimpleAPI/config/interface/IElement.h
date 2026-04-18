@@ -10,6 +10,8 @@
 #include <vector>
 
 
+namespace simpleapi {
+
 //предобъявление
 class Config;
 class IElement;
@@ -124,5 +126,6 @@ public:
     // ======================================================================================================= Iterators
 };
 
+} // namespace simpleapi
 
 #endif // I_ELEMENT_H

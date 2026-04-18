@@ -5,6 +5,8 @@
 #include <cstdint>
 
 
+namespace simpleapi {
+
 class EECounter {
     uint64_t m_max_size;
     uint64_t m_pos;
@@ -44,5 +46,7 @@ public:
     uint64_t    size() noexcept { return m_max_size; }
     void        reset() noexcept;
 };
+
+} // namespace simpleapi
 
 #endif // END_TO_END_COUNTER_H
