@@ -1533,6 +1533,7 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
     return !error();
 }
 
+//TODO: INI PARSER
 bool Config::parseIni(const std::string &content, const CommentDesign &design) noexcept
 {
     using namespace tools;
@@ -1558,21 +1559,49 @@ bool Config::parseIni(const std::string &content, const CommentDesign &design) n
     }
 
     /* совместить многострочные значения:
-     * - кавычки начаты, но не закончены  (скобки тоже считаются {}[]<>())  (+следующая, следующую удалить)
-     * - есть обратный слэш в конце строки                                  (+следующая, следующую удалить)
-     * - на следующей строке первыми символами идёт пробел/табуляция        (+следующая, следующую удалить)
-     * - начат многострочный комментарий, но не закончен                    (+следующая, следующую удалить)
+     * - кавычки начаты, но не закончены  (скобки тоже считаются {}[]<>())  (+ \n + следующая, следующую удалить)
+     * - есть обратный слэш в конце строки                                  (+ \n + следующая, следующую удалить)
+     * - на следующей строке первыми символами идёт пробел/табуляция        (+ \n + следующая, следующую удалить)
+     * - начат многострочный комментарий, но не закончен                    (+ \n + следующая, следующую удалить)
      */
     // NOTE: комментарии внутри значения являются частью значения, а не комментарием самого значения
-    for(size_t i = 0; i < lines.size(); i++) {
-        //TODO: INI PARSER, value comparator
-    }
 
-    //TODO: INI PARSER
+    // обработка обратного слэша на конце строкsи и пробела в начале следующей
+    VVString vlines;
+    while(!lines.empty()) {
+        vlines.push_back({lines.front()});
+        lines.erase(lines.cbegin());
+
+        while(!lines.empty())
+        {
+            const char c = utils::GetLastNotSpaceChar(vlines.back().back());
+            if(lines.size() >= 1) // следующая строка существует?
+            {
+                if(c == '\\' || utils::CharInString(lines.front().front(), "\t ")) //следующая строка является частью значения
+                {
+                    vlines.back().push_back(lines.front());
+                    lines.erase(lines.cbegin());
+                }
+                else break; //выход из while
+            }
+            else break; //выход из while
+        }
+    }
+    // по выходу из цикла lines должна быть пуста
 
     //TEST
-    for(size_t i = 0; i < lines.size(); i++) {
-        push_back(std::to_string(i), lines[i]);
+    size_t value_counter = 0;
+    for(auto& lines_ : vlines)
+    {
+        push_back(std::to_string(value_counter), lines_[0]);
+        std::string& last_string = get_string_back();
+        for(size_t i = 1; i < lines_.size(); i++) {
+            if(i + 1 < lines_.size()) {
+                last_string.push_back('\n');
+            }
+            last_string += lines_[i];
+        }
+        value_counter++;
     }
 
     return !error();

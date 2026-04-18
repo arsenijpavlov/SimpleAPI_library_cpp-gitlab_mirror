@@ -33,6 +33,18 @@ bool CharInString(const char ch, std::string symbols) noexcept {
     return false;
 }
 
+char GetLastNotSpaceChar(const std::string& str) noexcept
+{
+    for(size_t i = 0; i < str.size(); i++) {
+        const char current_ch = str[str.size() - i - 1];
+        if(!CharInString(current_ch, "\t ")) {
+            return current_ch;
+        }
+    }
+
+    return 0;
+}
+
 std::string ToString(const long double& d) noexcept {
     std::ostringstream str;
     str << d;

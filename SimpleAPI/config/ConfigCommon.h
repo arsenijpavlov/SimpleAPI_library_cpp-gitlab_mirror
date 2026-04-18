@@ -7,7 +7,10 @@
 
 namespace simpleapi {
 
+// вектор строк
 using VString = std::vector<std::string>;
+// вектор векторов строк
+using VVString = std::vector<std::vector<std::string>>;
 
 //Format =======================================================================================
 enum class ConfigFormat {

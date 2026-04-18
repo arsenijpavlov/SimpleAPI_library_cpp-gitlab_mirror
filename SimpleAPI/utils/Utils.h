@@ -22,6 +22,8 @@ bool        IsNumber(const char ch, bool use_point = true)                      
 
 size_t      CountSymInStr(const std::string& str, const char ch)                        noexcept;
 bool        CharInString(const char ch, std::string symbols)                            noexcept;
+char        GetLastNotSpaceChar(const std::string& str)                                 noexcept;
+
 std::string ToString(const long double& d)                                              noexcept; //исключить лишние знаки при выводе чисел
 bool        IsBool(const std::string& str)                                              noexcept;
 bool        ToBool(const std::string& str)                                              noexcept;
