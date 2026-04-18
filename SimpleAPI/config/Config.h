@@ -377,15 +377,26 @@ public:
 
     // Setters =========================================================================================================
     Config&         setValue()                                      noexcept;                                               API_ALL
+    Config&         setValue(std::nullptr_t)                        noexcept;                                               API_ALL
     Config&         setValue(const Config& other)                   noexcept;                                               API_ALL
     Config&         setValue(Config&& other)                        noexcept;                                               API_ALL
     Config&         setValue(const IElement& other)                 noexcept;                                               API_ALL
     Config&         setValue(IElement&& other)                      noexcept;                                               API_ALL
     Config&         setValue(const bool other)                      noexcept;                                               API_ALL
+
     Config&         setValue(const long double& other)              noexcept;                                               API_ALL
     Config&         setValue(long double&& other)                   noexcept;                                               API_ALL
+                    __ONLY_NUMBER_TYPES__(T)
+    Config&         setValue(const T& other)    noexcept    { return setValue(static_cast<long double>(other)); }           API_ALL
+                    __ONLY_NUMBER_TYPES__(T)
+    Config&         setValue(T&& other)         noexcept    { return setValue(static_cast<long double>(std::move(other))); }API_ALL
+
     Config&         setValue(const std::string& other)              noexcept;                                               API_ALL
     Config&         setValue(std::string&& other)                   noexcept;                                               API_ALL
+                    __ONLY_STRING_TYPES__(T)
+    Config&         setValue(const T& other)    noexcept    { return setValue(std::string(other));}                         API_ALL
+                    __ONLY_STRING_TYPES__(T)
+    Config&         setValue(T&& other)         noexcept    { return setValue(std::move(std::string(std::move(other))));}   API_ALL
 
     Config&         setValue(const ElementArray& other)             noexcept;                                               API_ALL
     Config&         setValue(ElementArray&& other)                  noexcept;                                               API_ALL
@@ -669,12 +680,15 @@ public:
     Config&         operator=(Config&& other)               noexcept                { return setValue(std::move(other)); }      API_ALL
     Config&         operator=(const IElement& other)        noexcept                { return setValue(other); }                 API_ALL
     Config&         operator=(IElement&& other)             noexcept                { return setValue(std::move(other)); }      API_ALL
+    Config&         operator=(std::nullptr_t)               noexcept                { return setValue(); }                      API_ALL
     Config&         operator=(const bool other)             noexcept                { return setValue(other); }                 API_ALL
                     __ONLY_NUMBER_TYPES__(T)
     Config&         operator=(const T& other)               noexcept                { return setValue(static_cast<const long double&>(other)); }    API_ALL
     Config&         operator=(long double&& other)          noexcept                { return setValue(std::move(other)); }      API_ALL
-    Config&         operator=(const std::string& other)     noexcept                { return setValue(other); }                 API_ALL
-    Config&         operator=(std::string&& other)          noexcept                { return setValue(std::move(other)); }      API_ALL
+                    __ONLY_STRING_TYPES__(T)
+    Config&         operator=(const T& other)               noexcept                { return setValue(other); }                 API_ALL
+                    __ONLY_STRING_TYPES__(T)
+    Config&         operator=(T&& other)                    noexcept                { return setValue(std::move(other)); }      API_ALL
 
     /* WARNING: комментарии при сравнении не учитываются!
      * Учитывание комментариев только при вызове isEqual(<object>, true)

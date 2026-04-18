@@ -23,6 +23,18 @@ TEST(ELEMENT, create_empty) {
     EXPECT_TRUE(el_null_2.isNull());
 }
 
+TEST(ELEMENT, set_empty) {
+    Config el_null;
+    EXPECT_TRUE(el_null.isNull());
+
+    el_null = nullptr;
+    EXPECT_TRUE(el_null.isNull());
+    el_null.setValue(nullptr);
+    EXPECT_TRUE(el_null.isNull());
+    el_null.setValue();
+    EXPECT_TRUE(el_null.isNull());
+}
+
 TEST(ELEMENT, create_bool) {
     Config el_bool_1(ValueType::eBool);
     EXPECT_EQ(el_bool_1.getType(), ValueType::eBool);
@@ -38,6 +50,22 @@ TEST(ELEMENT, create_bool) {
     EXPECT_EQ(el_bool_3.getType(), ValueType::eBool);
     EXPECT_TRUE(el_bool_3.isBool());
     EXPECT_EQ(el_bool_3.getBool(), true);
+}
+
+TEST(ELEMENT, set_bool) {
+    Config el_bool;
+    el_bool = Config(ValueType::eBool);
+    EXPECT_TRUE(el_bool.isBool());
+
+    el_bool = false;
+    EXPECT_TRUE(el_bool.isBool());
+    el_bool.setValue(false);
+    EXPECT_TRUE(el_bool.isBool());
+
+    el_bool = true;
+    EXPECT_TRUE(el_bool.isBool());
+    el_bool.setValue(true);
+    EXPECT_TRUE(el_bool.isBool());
 }
 
 TEST(ELEMENT, create_number) {
@@ -58,6 +86,30 @@ TEST(ELEMENT, create_number) {
     EXPECT_EQ(el_float.getType(), ValueType::eNumber);
 }
 
+TEST(ELEMENT, set_number) {
+    Config el_int;
+
+    el_int = 1;
+    EXPECT_TRUE(el_int.isNumber());
+    el_int.setValue(1);
+    EXPECT_TRUE(el_int.isNumber());
+
+    el_int = 11;
+    EXPECT_TRUE(el_int.isNumber());
+    el_int.setValue(11);
+    EXPECT_TRUE(el_int.isNumber());
+
+    el_int = 1.1;
+    EXPECT_TRUE(el_int.isNumber());
+    el_int.setValue(1.1);
+    EXPECT_TRUE(el_int.isNumber());
+
+    el_int = 11.f;
+    EXPECT_TRUE(el_int.isNumber());
+    el_int.setValue(11.f);
+    EXPECT_TRUE(el_int.isNumber());
+}
+
 TEST(ELEMENT, create_string) {
     Config el_string(std::string("asd"));
     EXPECT_EQ(el_string.getType(), ValueType::eString);
@@ -75,6 +127,30 @@ TEST(ELEMENT, create_string) {
     Config el_string_4(chr);
     EXPECT_EQ(el_string_4.getType(), ValueType::eString);
     EXPECT_TRUE(el_string_4.isString());
+
+    Config el_string_5("asd");
+    EXPECT_EQ(el_string_5.getType(), ValueType::eString);
+    EXPECT_TRUE(el_string_5.isString());
+}
+
+TEST(ELEMENT, set_string) {
+    Config el_string;
+
+    el_string = std::string("asd");
+    EXPECT_TRUE(el_string.isString());
+    el_string.setValue(std::string("asd"));
+    EXPECT_TRUE(el_string.isString());
+
+    el_string = "asd";
+    EXPECT_TRUE(el_string.isString());
+    el_string.setValue("asd");
+    EXPECT_TRUE(el_string.isString());
+
+    const char* chr = "asd";
+    el_string = (chr);
+    EXPECT_TRUE(el_string.isString());
+    el_string.setValue(chr);
+    EXPECT_TRUE(el_string.isString());
 }
 
 TEST(ELEMENT, create_array) {

@@ -308,6 +308,12 @@ Config &Config::setValue() noexcept {
     return *this;
 }
 
+//полностью дублирует метод выше, но с передачей аргумента
+Config &Config::setValue(std::nullptr_t) noexcept
+{
+    return setValue();
+}
+
 Config &Config::setValue(const Config &other) noexcept {
     if(this != &other)
     {
