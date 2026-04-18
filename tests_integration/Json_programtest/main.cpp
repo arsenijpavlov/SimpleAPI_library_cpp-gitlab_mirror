@@ -59,7 +59,7 @@ void ParseParameter(std::string parameter) {
 }
 
 int main(int argc, char **argv) {
-//    using namespace json;
+    using namespace simpleapi;
 //    system("tabs 4");
 
     std::cout << "args: ";
@@ -121,14 +121,14 @@ int main(int argc, char **argv) {
         std::cout << jj.toString(ConfigFormat::eJSON) << std::endl;
 
         //тест для каскада вложенных значений с одним get'тером
-        std::vector<std::string> index_1;
-        index_1.push_back("aa");  //array
-        index_1.push_back("0");   //json
-        index_1.push_back("a");   //array
+        std::vector<OnlySizetOrString> index_1;
+        index_1.push_back("aa"); //array
+        index_1.push_back(0);    //json
+        index_1.push_back("a");  //array
         Config ee;
         ee = jj[index_1];
-        std::array<std::string, 3> index_2({"aa", "1", "a"});
-//        ee = jj[index_2]; //TODO: исправить наличие метода
+        ee = jj[{"aa", 0, "a"}]; //альтернативный способ
+
         double dddd = ee.getNumber();
         std::cout << std::endl << "d: " << dddd << std::endl;
     }

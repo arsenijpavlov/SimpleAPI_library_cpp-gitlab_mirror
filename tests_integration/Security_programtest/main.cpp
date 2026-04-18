@@ -79,7 +79,7 @@ std::vector<std::string> dechipher(const std::string& str) {
 }
 
 int main() {
-    Packet message1 = convert_to_packet("abcdefghijklmnopqrstuvwxyz0123456789!");
+    Packet message1 = simpleapi::ConvertToPacket("abcdefghijklmnopqrstuvwxyz0123456789!");
     auto ch_messages = chipher(message1);
     for(auto fragment : ch_messages) {
         std::cout << "chiphered fragment size [" << fragment.size() << "]" << std::endl;

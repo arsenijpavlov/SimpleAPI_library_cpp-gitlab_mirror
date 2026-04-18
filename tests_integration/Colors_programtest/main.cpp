@@ -1,6 +1,8 @@
 #include <SimpleAPI.h>
 #include <iostream>
 
+using namespace simpleapi;
+
 std::vector<uint8_t> ignore_list_bg {
     logs::eWHITE_BG,
     logs::eBRIGHT_GREEN_BG,
