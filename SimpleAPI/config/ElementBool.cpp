@@ -5,6 +5,7 @@
 
 
 namespace simpleapi {
+namespace tools {
 
 void ElementBool::clear() noexcept {
     clearComment();
@@ -74,5 +75,6 @@ bool IsElementBool(const Config &cfg) noexcept {
     return cfg.isBool();
 }
 
+} // namespace tools
 } // namespace simpleapi
 

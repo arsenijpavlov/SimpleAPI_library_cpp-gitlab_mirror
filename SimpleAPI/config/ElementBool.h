@@ -5,6 +5,7 @@
 
 
 namespace simpleapi {
+namespace tools {
 
 class ElementBool : public IElement {
 protected:
@@ -69,6 +70,7 @@ bool IsElementBool(const std::string& str)              noexcept;
 bool IsElementBool(const IElement& e)                   noexcept;
 bool IsElementBool(const Config& cfg)                   noexcept;
 
+} // namespace tools
 } // namespace simpleapi
 
 #endif // ELEMENT_BOOL_H

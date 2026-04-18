@@ -478,7 +478,7 @@ TEST(JSON, put_and_get_elements) {
     EXPECT_EQ(test_bool, json["bool"].getBool());
 
     //предполагается, что пользователю не придётся использовать этот класс
-    ElementArray array;
+    tools::ElementArray array;
     array.push_back("str");
     array.push_back(15);
 

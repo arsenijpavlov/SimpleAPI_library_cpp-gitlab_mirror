@@ -1,5 +1,5 @@
-#ifndef JSON_COMMON_H
-#define JSON_COMMON_H
+#ifndef CONFIG_COMMON_H
+#define CONFIG_COMMON_H
 
 #include <string>
 #include <vector>
@@ -54,4 +54,4 @@ bool CreateEmptyFile(const std::string& file_path, const std::string& start_comm
 
 } // namespace simpleapi
 
-#endif // JSON_COMMON_H
+#endif // CONFIG_COMMON_H

@@ -12,6 +12,7 @@
 
 
 namespace simpleapi {
+namespace tools {
 
 class ElementArray;
 
@@ -837,4 +838,5 @@ bool IsElementArray(const Config &cfg) noexcept
     return cfg.isArray();
 }
 
+} // namespace tools
 } // namespace simpleapi

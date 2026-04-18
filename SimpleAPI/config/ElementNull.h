@@ -6,6 +6,7 @@
 
 
 namespace simpleapi {
+namespace tools {
 
 class ElementNull : public IElement, public IErrorField {
     /* "Пустое значение"
@@ -70,6 +71,7 @@ bool IsElementNull(const std::string& str)              noexcept;
 bool IsElementNull(const IElement& e)                   noexcept;
 bool IsElementNull(const Config& cfg)                   noexcept;
 
+} // namespace tools
 } // namespace simpleapi
 
 #endif // ELEMENT_NULL_H

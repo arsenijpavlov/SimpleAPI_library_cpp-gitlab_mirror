@@ -2,6 +2,7 @@
 
 
 namespace simpleapi {
+namespace tools {
 
 bool IErrorField::error() const noexcept
 {
@@ -34,5 +35,6 @@ void IErrorField::setError(std::string &&error_string) noexcept
         m_error_str = std::move(error_string);
 }
 
+} // namespace tools
 } // namespace simpleapi
 

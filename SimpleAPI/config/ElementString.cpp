@@ -8,6 +8,7 @@
 
 
 namespace simpleapi {
+namespace tools {
 
 void ElementString::clear() noexcept {
     clearComment();
@@ -59,4 +60,5 @@ bool IsElementString(const Config &cfg) noexcept {
     return cfg.isString();
 }
 
+} // namespace tools
 } // namespace simpleapi

@@ -6,6 +6,7 @@
 
 
 namespace simpleapi {
+namespace tools {
 
 class ElementString : public IElement {
 protected:
@@ -70,6 +71,7 @@ public:
 bool IsElementString(const IElement& e)                 noexcept;
 bool IsElementString(const Config& cfg)                 noexcept;
 
+} // namespace tools
 } // namespace simpleapi
 
 #endif // ELEMENT_STRING_H

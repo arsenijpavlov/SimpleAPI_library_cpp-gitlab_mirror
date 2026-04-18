@@ -14,7 +14,6 @@ namespace simpleapi {
 
 //предобъявление
 class Config;
-class IElement;
 
 using JPair                 = std::pair<std::string, Config>;
 using shared_JPair          = std::pair<std::string, std::shared_ptr<Config>>;
@@ -24,6 +23,9 @@ using shared_VPairElement   = std::vector<shared_JPair>;
 
 using VElement              = std::vector<Config>;
 using shared_VElement       = std::vector<std::shared_ptr<Config>>;
+
+
+namespace tools {
 
 //базовый класс, в идеале используется только для ссылки на производный
 class IElement : public IComment {
@@ -126,6 +128,7 @@ public:
     // ======================================================================================================= Iterators
 };
 
+} // namespace tools
 } // namespace simpleapi
 
 #endif // I_ELEMENT_H

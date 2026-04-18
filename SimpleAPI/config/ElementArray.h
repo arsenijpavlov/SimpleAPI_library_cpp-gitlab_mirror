@@ -7,6 +7,7 @@
 
 
 namespace simpleapi {
+namespace tools {
 
 class ElementArray : public IElementContainer {
 protected:
@@ -228,6 +229,7 @@ public:
 bool IsElementArray(const IElement &e)                                          noexcept;
 bool IsElementArray(const Config &cfg)                                          noexcept;
 
+} // namespace tools
 } // namespace simpleapi
 
 #endif // ELEMENT_ARRAY_H

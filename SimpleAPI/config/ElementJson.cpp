@@ -8,6 +8,7 @@
 
 
 namespace simpleapi {
+namespace tools {
 
 ElementJson::ElementJson(const ElementJson &other) noexcept {
     init();
@@ -1274,5 +1275,6 @@ bool IsElementJson(const Config &cfg) noexcept
     return cfg.isJson();
 }
 
+} // namespace tools
 } // namespace simpleapi
 

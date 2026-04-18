@@ -7,6 +7,7 @@
 
 
 namespace simpleapi {
+namespace tools {
 
 class ElementJson : public IElementContainer {
 protected:
@@ -291,6 +292,7 @@ public:
 bool IsElementJson(const IElement& e)                                           noexcept;
 bool IsElementJson(const Config& cfg)                                           noexcept;
 
+} // namespace tools
 } // namespace simpleapi
 
 #endif // ELEMENT_JSON_H

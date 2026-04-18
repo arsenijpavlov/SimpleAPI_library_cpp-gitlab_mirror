@@ -19,8 +19,8 @@ namespace simpleapi {
 template<typename T>
 struct is_valid_config_type {
     static constexpr bool value =
-        std::is_same<       typename std::decay<T>::type, ElementJson>::value ||
-        std::is_same<       typename std::decay<T>::type, ElementArray>::value ||
+        std::is_same<       typename std::decay<T>::type, tools::ElementJson>::value ||
+        std::is_same<       typename std::decay<T>::type, tools::ElementArray>::value ||
         std::is_convertible<typename std::decay<T>::type, std::string>::value ||
         std::is_arithmetic< typename std::decay<T>::type>::value ||
         std::is_same<       typename std::decay<T>::type, bool>::value ||
@@ -74,14 +74,14 @@ std::pair<bool, Config> ParseIni(const std::string& content, const CommentDesign
 
 class Config {
 private:
-    IElement* m_value;
+    tools::IElement* m_value;
 
 public:
     Config()                                noexcept : m_value(nullptr)         { init(); }
     Config(const Config& other)             noexcept : m_value(nullptr)         { setValue(other); }
     Config(Config&& other)                  noexcept : m_value(nullptr)         { setValue(std::move(other)); }
-    explicit Config(const IElement& other)  noexcept : m_value(nullptr)         { setValue(other); }
-    explicit Config(IElement&& other)       noexcept : m_value(nullptr)         { setValue(std::move(other)); }
+    explicit Config(const tools::IElement& other)  noexcept : m_value(nullptr)         { setValue(other); }
+    explicit Config(tools::IElement&& other)       noexcept : m_value(nullptr)         { setValue(std::move(other)); }
 
     explicit Config(const bool other)       noexcept : m_value(nullptr)         { setValue(other); }
     __ONLY_NUMBER_TYPES__(T)
@@ -94,6 +94,8 @@ public:
     /*explicit*/ Config(T&& other)              noexcept : m_value(nullptr)     { setValue(std::string(std::move(other))); }
 
     explicit Config(const ValueType config_type) : m_value(nullptr) {
+        using namespace tools;
+
         release();
         switch(config_type) {
         default:
@@ -127,6 +129,8 @@ public:
     //контейнеры
     __ONLY_ALLOWED_TYPES_VARIADIC__(T)
     explicit Config(const ValueType config_type, const T& ... values) : m_value(nullptr) {
+        using namespace tools;
+
         release();
         std::vector<Config> vec; //ключи тоже будут преобразованы в Config
         (void)std::initializer_list<int>{(vec.push_back(Config(values)), 0)...};
@@ -198,6 +202,8 @@ public:
 
     __ONLY_ALLOWED_TYPES_VARIADIC__(T)
     explicit Config(const ValueType config_type, T&& ... values) : m_value(nullptr) {
+        using namespace tools;
+
         release();
         std::vector<Config> vec; //ключи тоже будут преобразованы в Config
         (void)std::initializer_list<int>{(vec.push_back(Config(std::move(values))), 0)...};
@@ -269,13 +275,13 @@ public:
 
     __ONLY_ALLOWED_TYPES__(T)
     explicit Config(const std::vector<std::pair<std::string, T>>& pairs_key_config) : m_value(nullptr) {
-        m_value = dynamic_cast<IElement*>(new ElementJson());
+        m_value = dynamic_cast<tools::IElement*>(new tools::ElementJson());
         for(const auto& pair : pairs_key_config)
             push_at(pair.first, pair.second);
     }
     __ONLY_ALLOWED_TYPES__(T)
     explicit Config(std::vector<std::pair<std::string, T>>&& pairs_key_config) : m_value(nullptr) {
-        m_value = dynamic_cast<IElement*>(new ElementJson());
+        m_value = dynamic_cast<tools::IElement*>(new tools::ElementJson());
         for(auto& pair : pairs_key_config)
             push_at(std::move(pair.first), std::move(pair.second));
     }
@@ -383,8 +389,8 @@ public:
     Config&         setValue(std::nullptr_t)                        noexcept;                                               API_ALL
     Config&         setValue(const Config& other)                   noexcept;                                               API_ALL
     Config&         setValue(Config&& other)                        noexcept;                                               API_ALL
-    Config&         setValue(const IElement& other)                 noexcept;                                               API_ALL
-    Config&         setValue(IElement&& other)                      noexcept;                                               API_ALL
+    Config&         setValue(const tools::IElement& other)          noexcept;                                               API_ALL
+    Config&         setValue(tools::IElement&& other)               noexcept;                                               API_ALL
     Config&         setValue(const bool other)                      noexcept;                                               API_ALL
 
     Config&         setValue(const long double& other)              noexcept;                                               API_ALL
@@ -401,14 +407,14 @@ public:
                     __ONLY_STRING_TYPES__(T)
     Config&         setValue(T&& other)         noexcept    { return setValue(std::move(std::string(std::move(other))));}   API_ALL
 
-    Config&         setValue(const ElementArray& other)             noexcept;                                               API_ALL
-    Config&         setValue(ElementArray&& other)                  noexcept;                                               API_ALL
-    Config&         setValue(const ElementJson& other)              noexcept;                                               API_ALL
-    Config&         setValue(ElementJson&& other)                   noexcept;                                               API_ALL
-    //TODO (потом):    Config&         setValue(const ElementYaml& other)      noexcept;
-    //TODO (потом):    Config&         setValue(ElementYaml&& other)           noexcept;
-    //TODO (потом):    Config&         setValue(const ElementXml& other)       noexcept;
-    //TODO (потом):    Config&         setValue(ElementXml&& other)            noexcept;
+    Config&         setValue(const tools::ElementArray& other)      noexcept;                                               API_ALL
+    Config&         setValue(tools::ElementArray&& other)           noexcept;                                               API_ALL
+    Config&         setValue(const tools::ElementJson& other)       noexcept;                                               API_ALL
+    Config&         setValue(tools::ElementJson&& other)            noexcept;                                               API_ALL
+    //TODO (потом):    Config&         setValue(const tools::ElementYaml& other)      noexcept;
+    //TODO (потом):    Config&         setValue(tools::ElementYaml&& other)           noexcept;
+    //TODO (потом):    Config&         setValue(const tools::ElementXml& other)       noexcept;
+    //TODO (потом):    Config&         setValue(tools::ElementXml&& other)            noexcept;
 
     // вложенные контейнеры (используют insert_*() ниже, но возвращают этот же базовый элемент)
     Config&         set(const std::string& key, const Config& value);                                                       API_MAP_CONTAINER
@@ -659,7 +665,7 @@ public:
 
     bool            isEqual(const Config& other, const bool compare_comments = false,
                             const bool map_sort_important = false) const noexcept   { return isEqual(*other.m_value, compare_comments, map_sort_important); }
-    bool            isEqual(const IElement& other, const bool compare_comments = false,
+    bool            isEqual(const tools::IElement& other, const bool compare_comments = false,
                             const bool map_sort_important = false) const noexcept;                                              API_ALL
     bool            isEqual(const bool other)                                       const noexcept;                             API_ALL
     bool            isEqual(const long double& other)                               const noexcept;                             API_ALL
@@ -681,8 +687,8 @@ public:
     // Operators =======================================================================================================
     Config&         operator=(const Config& other)          noexcept                { return setValue(other); }                 API_ALL
     Config&         operator=(Config&& other)               noexcept                { return setValue(std::move(other)); }      API_ALL
-    Config&         operator=(const IElement& other)        noexcept                { return setValue(other); }                 API_ALL
-    Config&         operator=(IElement&& other)             noexcept                { return setValue(std::move(other)); }      API_ALL
+    Config&         operator=(const tools::IElement& other) noexcept                { return setValue(other); }                 API_ALL
+    Config&         operator=(tools::IElement&& other)      noexcept                { return setValue(std::move(other)); }      API_ALL
     Config&         operator=(std::nullptr_t)               noexcept                { return setValue(); }                      API_ALL
     Config&         operator=(const bool other)             noexcept                { return setValue(other); }                 API_ALL
                     __ONLY_NUMBER_TYPES__(T)
@@ -697,7 +703,7 @@ public:
      * Учитывание комментариев только при вызове isEqual(<object>, true)
      */
     bool            operator==(const Config& other)         const                   { return isEqual(other); }                  API_ALL
-    bool            operator==(const IElement& other)       const                   { return isEqual(other); }                  API_ALL
+    bool            operator==(const tools::IElement& other)const                   { return isEqual(other); }                  API_ALL
     bool            operator==(const bool other)            const                   { return isEqual(other); }                  API_ALL
                     __ONLY_NUMBER_TYPES__(T)
     bool            operator==(const T& other)              const                   { return isEqual(static_cast<const long double&>(other)); }     API_ALL
@@ -705,7 +711,7 @@ public:
     bool            operator==(const T& other)              const                   { return isEqual(std::string(other)); }     API_ALL
 
     bool            operator!=(const Config& other)         const                   { return !isEqual(other); }                 API_ALL
-    bool            operator!=(const IElement& other)       const                   { return !isEqual(other); }                 API_ALL
+    bool            operator!=(const tools::IElement& other)const                   { return !isEqual(other); }                 API_ALL
     bool            operator!=(const bool other)            const                   { return !isEqual(other); }                 API_ALL
                     __ONLY_NUMBER_TYPES__(T)
     bool            operator!=(const T& other)              const                   { return !isEqual(static_cast<const long double&>(other)); }    API_ALL
@@ -806,7 +812,7 @@ public:
                          const int8_t tabulation_level = 0)                                         const noexcept;             API_ALL
     //для совместимости с STL
     friend std::ostream& operator<<(std::ostream& os, const Config& config)                         noexcept;                   API_ALL
-    friend std::ostream& operator<<(std::ostream& os, const IElement& config)                       noexcept;                   API_ALL
+    friend std::ostream& operator<<(std::ostream& os, const tools::IElement& config)                noexcept;                   API_ALL
     // ========================================================================================================== String
 
     // File ============================================================================================================
@@ -872,7 +878,5 @@ public:
 
 #endif //CONFIG_H
 
-//TODO: вынести скрытые от пользователя функции в другой namespace, например simpleapi::tools
-//TODO: внутренние инструменты перенести ещё дальше simpleapi::element_json и т.д.
 //TODO(очень потом): пересмотреть все тексты подсказок об ошибках во время парсинга
 

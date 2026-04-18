@@ -5,6 +5,7 @@
 
 
 namespace simpleapi {
+namespace tools {
 
 class ElementNumber : public IElement {
 protected:
@@ -69,6 +70,7 @@ bool IsElementNumber(const std::string& str)    noexcept;
 bool IsElementNumber(const IElement& e)         noexcept;
 bool IsElementNumber(const Config& cfg)         noexcept;
 
+} // namespace tools
 } // namespace simpleapi
 
 #endif // ELEMENT_NUMBER_H

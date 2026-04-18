@@ -5,6 +5,7 @@
 
 
 namespace simpleapi {
+namespace tools {
 
 class IComment {
 protected:
@@ -43,6 +44,7 @@ public:
     //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= COMMENT
 };
 
+} // namespace tools
 } // namespace simpleapi
 
 #endif // I_COMMENT_H

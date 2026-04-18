@@ -5,6 +5,7 @@
 #include <string>
 
 namespace simpleapi {
+namespace tools {
 
 class IErrorField {
     Optional<std::string> m_error_str;
@@ -19,6 +20,7 @@ public:
     // ========================================================================================================== Parser
 };
 
+} // namespace tools
 } // namespace simpleapi
 
 #endif // I_ERROR_FIELD_H

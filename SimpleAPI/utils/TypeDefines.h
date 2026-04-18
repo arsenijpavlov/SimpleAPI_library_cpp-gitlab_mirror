@@ -9,8 +9,8 @@ namespace simpleapi {
 #define __ONLY_ALLOWED_TYPES__(ARG) \
 template<typename ARG, \
                        typename std::enable_if< \
-                                                std::is_same<           typename std::remove_cv<typename std::remove_reference<ARG>::type>::type, ElementJson>::value \
-                                                || std::is_same<        typename std::remove_cv<typename std::remove_reference<ARG>::type>::type, ElementArray>::value \
+                                                std::is_same<           typename std::remove_cv<typename std::remove_reference<ARG>::type>::type, tools::ElementJson>::value \
+                                                || std::is_same<        typename std::remove_cv<typename std::remove_reference<ARG>::type>::type, tools::ElementArray>::value \
                                                 || std::is_convertible< typename std::remove_cv<typename std::remove_reference<ARG>::type>::type, std::string>::value \
                                                 || std::is_same<        typename std::decay<ARG>::type, const char*>::value \
                                                 || std::is_arithmetic<  typename std::remove_cv<typename std::remove_reference<ARG>::type>::type>::value \
@@ -20,8 +20,8 @@ template<typename ARG, \
 #define __ONLY_ALLOWED_TYPES_WITHOUT_CONFIG__(ARG) \
 template<typename ARG, \
                        typename std::enable_if< \
-                                                std::is_same<           typename std::remove_cv<typename std::remove_reference<ARG>::type>::type, ElementJson>::value \
-                                                || std::is_same<        typename std::remove_cv<typename std::remove_reference<ARG>::type>::type, ElementArray>::value \
+                                                std::is_same<           typename std::remove_cv<typename std::remove_reference<ARG>::type>::type, tools::ElementJson>::value \
+                                                || std::is_same<        typename std::remove_cv<typename std::remove_reference<ARG>::type>::type, tools::ElementArray>::value \
                                                 || std::is_convertible< typename std::remove_cv<typename std::remove_reference<ARG>::type>::type, std::string>::value \
                                                 || std::is_same<        typename std::decay<ARG>::type, const char*>::value \
                                                 || std::is_arithmetic<  typename std::remove_cv<typename std::remove_reference<ARG>::type>::type>::value \

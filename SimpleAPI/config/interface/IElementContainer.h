@@ -7,6 +7,7 @@
 
 
 namespace simpleapi {
+namespace tools {
 
 //абстрактный класс для управления списками элементов
 class IElementContainer : public IElement, public IErrorField {
@@ -120,6 +121,7 @@ public:
     // ========================================================================================================== Parser
 };
 
+} // namespace tools
 } // namespace simpleapi
 
 #endif // I_ELEMENT_CONTAINER_H

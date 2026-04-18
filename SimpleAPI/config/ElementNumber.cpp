@@ -5,6 +5,7 @@
 
 
 namespace simpleapi {
+namespace tools {
 
 void ElementNumber::clear() noexcept {
     clearComment();
@@ -77,5 +78,6 @@ bool IsElementNumber(const Config &cfg) noexcept {
     return cfg.isNumber();
 }
 
+} // namespace tools
 } // namespace simpleapi
 
