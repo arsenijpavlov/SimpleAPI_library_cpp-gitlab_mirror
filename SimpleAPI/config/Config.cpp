@@ -1534,12 +1534,13 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
 }
 
 //TODO: INI PARSER
-bool Config::parseIni(const std::string &content, const CommentDesign &design) noexcept
+bool Config::parseIni(const std::string &content, const CommentDesign &input_design) noexcept
 {
     using namespace tools;
 
     setValue(ElementJson());
-    setCommentDesign(design);
+    setCommentDesign(input_design);
+    CommentDesign& design = getCommentDesign();
 
     VString lines;
     // разбить content на строки
@@ -1589,9 +1590,9 @@ bool Config::parseIni(const std::string &content, const CommentDesign &design) n
     }
     // по выходу из цикла lines должна быть пуста
 
-    //TEST
+    // TEST --------------------------------------
     size_t value_counter = 0;
-    for(auto& lines_ : vlines)
+    for(const auto& lines_ : vlines)
     {
         push_back(std::to_string(value_counter), lines_[0]);
         std::string& last_string = get_string_back();
@@ -1602,6 +1603,61 @@ bool Config::parseIni(const std::string &content, const CommentDesign &design) n
             last_string += lines_[i];
         }
         value_counter++;
+    }
+    push_back("__", "------------------------------------------------------");
+    // TEST --------------------------------------
+
+    // один фрагмент - одно значение (часть многострочного комментария ПОСЛЕ значеня может остаться за бортом)
+    size_t k = 0;
+    for(VString& fragments : vlines) {
+        std::vector<Comment> comments;
+        std::string current_comment;
+        std::string temp_string_value;
+
+        bool is_quotes = false;
+        size_t inner_fugure_brackets_counter      = 0; // {}
+        size_t inner_square_brackets_counter      = 0; // []
+        size_t inner_triangulare_brackets_counter = 0; // <>
+        size_t inner_parentheses_counter          = 0; // ()
+
+        char ch_previous;
+        char ch_current;
+        char ch_next;
+        for(size_t i = 0; i < fragments.size(); i++) {
+            for(size_t j = 0; j < fragments[i].size(); j++) {
+                ch_previous  = (i == 0) ? (j == 0 ? 0 : fragments[i][j - 1])
+                                        : (fragments[i-1].back());
+                ch_current   = fragments[i][j];
+                ch_next      = j + 1 < fragments[i].size() ? (fragments[i][j + 1])
+                                                           : (i + 1 < fragments.size() ? (fragments[i+1].front()) : 0);
+
+//TODO:                counter.check(j, ch_current);
+
+                //поиск комментариев ===================================================
+                const bool ext_flag = !is_quotes
+                                      && (inner_fugure_brackets_counter
+                                              + inner_square_brackets_counter
+                                              + inner_triangulare_brackets_counter +
+                                              inner_parentheses_counter == 0);
+                //вернёт комментарий без обрамления
+                CheckComments(ch_current, ch_next, i, design, current_comment, ext_flag);
+                if(!design.with_comments)
+                    current_comment.clear();
+                if(design.with_comments && design.temp_type == CommentType::eCommentEnd)
+                {
+                    std::cout << "current_comment: \"" << current_comment << "\"" << std::endl;
+                    comments.push_back(FromComment(current_comment, design));
+                    current_comment.clear();
+                    design.temp_type = CommentType::eNotComment;
+                    continue;
+                }
+                if(design.temp_type != CommentType::eNotComment)
+                    continue;
+                //=================================================== поиск комментариев
+            }
+        }
+
+        k++;
     }
 
     return !error();
