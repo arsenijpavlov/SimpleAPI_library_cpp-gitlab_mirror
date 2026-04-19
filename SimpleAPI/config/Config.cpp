@@ -1801,14 +1801,14 @@ Config SpecificParserJson(const std::string& content, const CommentDesign &desig
             //поиск комментариев ===================================================
             const bool ext_flag = !is_quotes && (inner_array_counter + inner_json_counter == 0);
             //вернёт комментарий без обрамления
-            CheckComments(ch_current, ch_next, i, n_design, current_comment, ext_flag);
+            tools::CheckComments(ch_current, ch_next, i, n_design, current_comment, ext_flag);
             if(!n_design.with_comments)
                 current_comment.clear();
             if(n_design.with_comments && n_design.temp_type == CommentType::eCommentEnd)
             {
                 // запомнить комментарий, если он потом понадобится для одиночного значения
 //                comments.push_back(FromComment(std::move(current_comment), design)); //FIXME: на будущее
-                comments.push_back(FromComment(current_comment, n_design));
+                comments.push_back(tools::FromComment(current_comment, n_design));
                 current_comment.clear();
                 n_design.temp_type = CommentType::eNotComment;
                 continue;
@@ -1851,7 +1851,7 @@ Config SpecificParserJson(const std::string& content, const CommentDesign &desig
 
     Config result_cfg;
     result_cfg.setCommentDesign(n_design);
-    std::string prefix_comment = VStringToString(comments);
+    std::string prefix_comment = tools::VStringToString(comments);
     std::string error;
 
     result_cfg.release();
@@ -1902,12 +1902,12 @@ Config SpecificParserJson(const std::string& content, const CommentDesign &desig
             //поиск комментариев ===================================================
             const bool ext_flag = !is_quotes && (inner_array_counter + inner_json_counter == 0);
             //вернёт комментарий без обрамления
-            CheckComments(ch_current, ch_next, i, n_design, current_comment, ext_flag);
+            tools::CheckComments(ch_current, ch_next, i, n_design, current_comment, ext_flag);
             if(!n_design.with_comments)
                 current_comment.clear();
             if(n_design.with_comments && n_design.temp_type == CommentType::eCommentEnd)
             {
-                comments.push_back(FromComment(current_comment, n_design));
+                comments.push_back(tools::FromComment(current_comment, n_design));
                 current_comment.clear();
                 n_design.temp_type = CommentType::eNotComment;
                 continue;
@@ -1957,7 +1957,7 @@ Config SpecificParserJson(const std::string& content, const CommentDesign &desig
             }
         } //for loop
         if(error.empty()) {
-            result_cfg.setSuffixComment(VStringToString(comments));
+            result_cfg.setSuffixComment(tools::VStringToString(comments));
         } else {
             result_cfg.setValue(); //значение не распознано, то выставить в null
             result_cfg.setError(error);

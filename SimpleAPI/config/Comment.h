@@ -208,6 +208,7 @@ public:
     Comment&    operator=(const std::string&& prefix_comment)                                   noexcept;
 };
 
+namespace tools {
 
 std::string GetOnelineCommentStr(const CommentDesign &design)                                   noexcept;
 std::string GetMultilineCommentStartStr(const CommentDesign &design)                            noexcept;
@@ -233,6 +234,7 @@ void CheckComments(const char ch_current, const char ch_next,
                    size_t &iter_counter, CommentDesign &design,
                    std::string &current_comment, const bool external_flag = true);
 
+} // namespace tools
 } // namespace simpleapi
 
 #endif // COMMENT_H

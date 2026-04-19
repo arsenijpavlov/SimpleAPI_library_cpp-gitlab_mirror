@@ -296,6 +296,8 @@ Comment& Comment::operator=(const std::string&& prefix_comment) noexcept {
     return *this;
 }
 
+namespace tools {
+
 //только для to_string(design)
 // @TEST(COMMENT, default_wrappers)
 std::string GetOnelineCommentStr(const CommentDesign &design) noexcept {
@@ -966,4 +968,5 @@ void CheckComments(const char ch_current, const char ch_next,
     return;
 }
 
+} // namespace tools
 } // namespace simpleapi
