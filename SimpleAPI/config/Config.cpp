@@ -1580,6 +1580,13 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
             {
                 if(c == '\\' || utils::CharInString(lines.front().front(), "\t ")) //следующая строка является частью значения
                 {
+                    size_t erase_pos = vlines.back().back().find_last_of('\\');
+                    if(erase_pos != std::string::npos) {
+                        vlines.back().back().erase(vlines.back().back().cbegin() + erase_pos);
+                        vlines.back().back().push_back('\n');
+                    }
+
+                    RemoveFrontIllegalSpaces(lines.front());
                     vlines.back().push_back(lines.front());
                     lines.erase(lines.cbegin());
                 }
@@ -1607,10 +1614,13 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
     push_back("__", "------------------------------------------------------");
     // TEST --------------------------------------
 
-    // один фрагмент - одно значение (часть многострочного комментария ПОСЛЕ значеня может остаться за бортом)
+    // один объект vlines - одно значение (часть многострочного комментария ПОСЛЕ значеня может остаться за бортом)
+    Config* target = this; //точка привязки нового значения
+    bool last_line_is_empty = true; //нужна для определения точки привязки комментария
     size_t k = 0;
     for(VString& fragments : vlines) {
-        std::vector<Comment> comments;
+        std::vector<Comment> prefix_comments;
+        std::vector<Comment> suffix_comments;
         std::string current_comment;
         std::string temp_string_value;
 
@@ -1624,6 +1634,10 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
         char ch_current;
         char ch_next;
         for(size_t i = 0; i < fragments.size(); i++) {
+            //связать строки между собой
+            if(i + 1 < fragments.size())
+                fragments[i].push_back('\n');
+
             for(size_t j = 0; j < fragments[i].size(); j++) {
                 ch_previous  = (i == 0) ? (j == 0 ? 0 : fragments[i][j - 1])
                                         : (fragments[i-1].back());
@@ -1645,8 +1659,12 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                     current_comment.clear();
                 if(design.with_comments && design.temp_type == CommentType::eCommentEnd)
                 {
-                    std::cout << "current_comment: \"" << current_comment << "\"" << std::endl;
-                    comments.push_back(FromComment(current_comment, design));
+                    std::cout << "comment" << (temp_string_value.empty() ? "(prefix)" : "(suffix)")
+                              << ": \"" << FromComment(current_comment, design) << "\"" << std::endl;
+                    if(temp_string_value.empty())
+                        prefix_comments.push_back(FromComment(current_comment, design));
+                    else
+                        suffix_comments.push_back(FromComment(current_comment, design));
                     current_comment.clear();
                     design.temp_type = CommentType::eNotComment;
                     continue;
@@ -1654,10 +1672,53 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                 if(design.temp_type != CommentType::eNotComment)
                     continue;
                 //=================================================== поиск комментариев
+
+                if(temp_string_value.empty() && ext_flag && utils::CharInString(ch_current, __SPACES_WITHOUT_SEPARATORS__))
+                    continue;
+
+                temp_string_value += ch_current;
+
+                if(ch_previous != '\\') {
+                    switch(ch_current) {
+                    case '{':   inner_fugure_brackets_counter++;        break;
+                    case '}':   inner_fugure_brackets_counter--;        break;
+                    case '[':   inner_square_brackets_counter++;        break;
+                    case ']':   inner_square_brackets_counter--;        break;
+                    case '(':   inner_parentheses_counter++;            break;
+                    case ')':   inner_parentheses_counter--;            break;
+                    case '<':   inner_triangulare_brackets_counter++;   break;
+                    case '>':   inner_triangulare_brackets_counter--;   break;
+                    case '"':   is_quotes = !is_quotes;                 break;
+                    }
+                }
             }
         }
+        RemoveIllegalSpaces(temp_string_value);
+        if(temp_string_value.empty()) {
+//            target->push_back("-----(" + std::to_string(k) + ")", "--------------------------");
 
-        k++;
+            last_line_is_empty = true;
+        } else {
+            if(temp_string_value.front() == '[' && temp_string_value.back() == ']') {
+                temp_string_value.erase(0, 1);
+                temp_string_value.pop_back();
+                if(temp_string_value.empty()) {
+                    std::cerr << "ERROR! Name of group must be not null!";
+                    //FIXME: сделать возврат ошибки
+                }
+
+                target = this;
+                target->push_back(temp_string_value, Config(ValueType::eJson));
+                target = &target->get_back();
+            } else {
+                target->push_back("value(" + std::to_string(k) + ")", temp_string_value);
+            }
+            temp_string_value.clear();
+
+            last_line_is_empty = false;
+        }
+
+        k++; //счётчик переменных
     }
 
     return !error();
