@@ -1640,7 +1640,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                                               + inner_triangulare_brackets_counter +
                                               inner_parentheses_counter == 0);
                 //вернёт комментарий без обрамления
-                CheckComments(ch_current, ch_next, i, design, current_comment, ext_flag);
+                CheckComments(ch_current, ch_next, j, design, current_comment, ext_flag);
                 if(!design.with_comments)
                     current_comment.clear();
                 if(design.with_comments && design.temp_type == CommentType::eCommentEnd)
