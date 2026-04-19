@@ -641,6 +641,7 @@ std::string ToComment(const std::string &comment, const CommentDesign &design,
     return ret;
 }
 
+// Определит тип комментария на основе начальных двух символов
 bool DefineCommentSymbols(const char first_sym, const char second_sym,
                           CommentDesign& cd) noexcept
 {
@@ -805,16 +806,16 @@ std::string FromComment(std::string comment_string, CommentDesign &design) noexc
     }
     //удалить пустые строки в начале и конце комментария
     {
-        if(lines.front().empty())
+        if(!lines.empty() && lines.front().empty())
             lines.erase(lines.begin());
-        if(lines.back().empty())
+        if(!lines.empty() && lines.back().empty())
             lines.erase(lines.end());
     }
 
     std::string ret;
 
     std::for_each(lines.begin(), lines.end(), [&ret, &lines](const std::string& s) {
-        ret += s + (s != lines.back() ? "\n" : "");
+        ret += s + (!s.empty() && s != lines.back() ? "\n" : "");
     });
 
     return ret;
