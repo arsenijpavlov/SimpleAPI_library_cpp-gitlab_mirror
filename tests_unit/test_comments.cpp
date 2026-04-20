@@ -19,6 +19,7 @@ int main(int argc, char **argv)
 
 TEST(COMMENT, default_wrappers) {
     using namespace simpleapi;
+    using namespace tools;
 
     EXPECT_EQ("//", GetOnelineCommentStr(CommentDesign()));
     EXPECT_EQ("/*", GetMultilineCommentStartStr(CommentDesign()));
@@ -32,6 +33,7 @@ TEST(COMMENT, default_wrappers) {
 
 TEST(COMMENT, tabulation_level) {
     using namespace simpleapi;
+    using namespace tools;
 
     //oneline
     CommentDesign cd;
@@ -80,6 +82,7 @@ TEST(COMMENT, tabulation_level) {
 
 TEST(COMMENT, multiline_chopper) {
     using namespace simpleapi;
+    using namespace tools;
 
     CommentDesign cd;
     cd.opt_multiline_border = '#';
@@ -129,6 +132,7 @@ TEST(COMMENT, multiline_chopper) {
 
 TEST(COMMENT, SeparateToColumn_1) {
     using namespace simpleapi;
+    using namespace tools;
 
     CommentDesign cd;
     cd.opt_multiline_column_size = 20;
@@ -152,6 +156,7 @@ TEST(COMMENT, SeparateToColumn_1) {
 
 TEST(COMMENT, SeparateToColumn_2) {
     using namespace simpleapi;
+    using namespace tools;
 
     CommentDesign cd;
     cd.opt_multiline_column_size = 8;
@@ -169,6 +174,7 @@ TEST(COMMENT, SeparateToColumn_2) {
 
 TEST(COMMENT, SeparateToColumn_3) {
     using namespace simpleapi;
+    using namespace tools;
 
     CommentDesign cd;
     cd.opt_multiline_column_size = 5; // преобразуется по максимальной длине слова
@@ -198,6 +204,7 @@ TEST(COMMENT, SeparateToColumn_3) {
 // обработка дефисов и тире
 TEST(COMMENT, SeparateToColumn_4) {
     using namespace simpleapi;
+    using namespace tools;
 
     CommentDesign cd;
     cd.opt_multiline_column_size = 4; // преобразуется по максимальной длине слова
@@ -220,6 +227,7 @@ TEST(COMMENT, SeparateToColumn_4) {
 
 TEST(COMMENT, SeparateToColumn_5) {
     using namespace simpleapi;
+    using namespace tools;
 
     CommentDesign cd;
     cd.opt_multiline_column_size = 20;
@@ -238,6 +246,7 @@ TEST(COMMENT, SeparateToColumn_5) {
 
 TEST(COMMENT, ToComment_FromComment_Oneline) {
     using namespace simpleapi;
+    using namespace tools;
 
     CommentDesign cd;
     std::string input = "1;losdihfg2;slopighsd3;pogihvd4;pfgvibhdfns5;ipnbedf6 7;voihnaern8 som9 word1...";
@@ -250,6 +259,7 @@ TEST(COMMENT, ToComment_FromComment_Oneline) {
 
 TEST(COMMENT, ToComment_FromComment_Multiline) {
     using namespace simpleapi;
+    using namespace tools;
 
     CommentDesign cd;
     cd.opt_multiline_column_size = 20;
@@ -272,6 +282,7 @@ TEST(COMMENT, ToComment_FromComment_Multiline) {
 
 TEST(COMMENT, CheckComments_Multiline) {
     using namespace simpleapi;
+    using namespace tools;
 
     std::string     input = "A/*comment1*/B/*comment2*/C/*comment3*/D";
     CommentDesign   cd;
@@ -304,6 +315,7 @@ TEST(COMMENT, CheckComments_Multiline) {
 
 TEST(COMMENT, CheckComments_Oneline) {
     using namespace simpleapi;
+    using namespace tools;
 
     std::string     input = "A//comment\nB";
     CommentDesign   cd;
@@ -335,6 +347,7 @@ TEST(COMMENT, CheckComments_Oneline) {
 
 TEST(COMMENT, FromComment_Extractor_FromTABs) {
     using namespace simpleapi;
+    using namespace tools;
 
     std::string input = "/*######################\n"
                         "\t# some                 #\n"

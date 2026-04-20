@@ -16,6 +16,7 @@ int main(int argc, char **argv)
 
 //========================================================================================
 using namespace simpleapi;
+using namespace tools;
 
 Config json_example(ValueType::eJson,
                     "key_0", "first",
