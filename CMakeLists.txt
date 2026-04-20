@@ -15,7 +15,7 @@ if(CMAKE_BUILD_TYPE STREQUAL Debug )
 endif()
 
 message("CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
-project(SimpleAPI_main LANGUAGES CXX)
+project(SimpleAPI_project LANGUAGES CXX)
 print_project_name(${PROJECT_NAME})
 
 set(CMAKE_CXX_STANDARD 11)
