@@ -681,6 +681,7 @@ std::string ElementJson::toString(const ConfigFormat format, const CommentDesign
     }
 }
 
+//FIXME: многострочные строки выводятся без выравнивания по табуляции
 std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     std::string ret;

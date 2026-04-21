@@ -1597,38 +1597,45 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
     }
     // по выходу из цикла lines должна быть пуста
 
-    /* // TEST --------------------------------------
-    size_t value_counter = 0;
-    for(const auto& lines_ : vlines)
-    {
-        push_back(std::to_string(value_counter), lines_[0]);
-        std::string& last_string = get_string_back();
-        for(size_t i = 1; i < lines_.size(); i++) {
-            if(i + 1 < lines_.size()) {
-                last_string.push_back('\n');
+    // TEST --------------------------------------
+    if(false) {
+        size_t value_counter = 0;
+        for(const auto& lines_ : vlines)
+        {
+            push_back(std::to_string(value_counter), lines_[0]);
+            std::string& last_string = get_string_back();
+            for(size_t i = 1; i < lines_.size(); i++) {
+                if(i + 1 < lines_.size()) {
+                    last_string.push_back('\n');
+                }
+                last_string += lines_[i];
             }
-            last_string += lines_[i];
+            value_counter++;
         }
-        value_counter++;
+        push_back("--", "------------------------------------------------------");
     }
-    push_back("__", "------------------------------------------------------");
-    // TEST -------------------------------------- */
+    // TEST --------------------------------------
 
     // один объект vlines - одно значение (часть многострочного комментария ПОСЛЕ значеня может остаться за бортом)
     Config* target = this; //точка привязки нового значения
-    bool last_line_is_empty = true; //нужна для определения точки привязки комментария
+    std::vector<std::string> prefix_comments;
     size_t k = 0;
     for(VString& fragments : vlines) {
-        std::vector<Comment> prefix_comments;
-        std::vector<Comment> suffix_comments;
+        std::vector<std::string> suffix_comments;
         std::string current_comment;
         std::string temp_string_value;
 
-        bool is_quotes = false;
+        size_t assignment_counter                     = 0;
+        bool is_quotes                            = false;
         size_t inner_fugure_brackets_counter      = 0; // {}
         size_t inner_square_brackets_counter      = 0; // []
         size_t inner_triangulare_brackets_counter = 0; // <>
         size_t inner_parentheses_counter          = 0; // ()
+
+        ParserSymbolCounter counter(k); //FIXME: считает строки неправильно!
+        //TODO: в конец for сделать проверку количества =/: в значении переменной
+        //TODO: на основе этой информации сделать вывод ошибки
+        //TODO: здесь же проверить заполнение имени группы
 
         char ch_previous;
         char ch_current;
@@ -1641,7 +1648,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                 ch_next      = j + 1 < fragments[i].size() ? (fragments[i][j + 1])
                                                            : (i + 1 < fragments.size() ? (fragments[i+1].front()) : 0);
 
-//TODO:                counter.check(j, ch_current);
+                counter.check(j, ch_current);
 
                 //поиск комментариев ===================================================
                 const bool ext_flag = !is_quotes
@@ -1655,7 +1662,8 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                     current_comment.clear();
                 if(design.with_comments && design.temp_type == CommentType::eCommentEnd)
                 {
-                    std::cout << "comment" << (temp_string_value.empty() ? "(prefix)" : "(suffix)")
+                    std::cout << "comment (value_size:" << temp_string_value.size() << ")"
+                              << (temp_string_value.empty() ? "(prefix)" : "(suffix)")
                               << ": \"" << FromComment(current_comment, design) << "\"" << std::endl;
                     if(temp_string_value.empty())
                         prefix_comments.push_back(FromComment(current_comment, design));
@@ -1676,44 +1684,65 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
 
                 if(ch_previous != '\\') {
                     switch(ch_current) {
-                    case '{':   inner_fugure_brackets_counter++;        break;
-                    case '}':   inner_fugure_brackets_counter--;        break;
-                    case '[':   inner_square_brackets_counter++;        break;
-                    case ']':   inner_square_brackets_counter--;        break;
-                    case '(':   inner_parentheses_counter++;            break;
-                    case ')':   inner_parentheses_counter--;            break;
-                    case '<':   inner_triangulare_brackets_counter++;   break;
-                    case '>':   inner_triangulare_brackets_counter--;   break;
+                    case '{':   inner_fugure_brackets_counter++;        break; //FIXME: может разбирать, что за переменная уже после разбора???
+                    case '}':   inner_fugure_brackets_counter--;        break; //FIXME: может разбирать, что за переменная уже после разбора???
+                    case '[':   inner_square_brackets_counter++;        break; //FIXME: может разбирать, что за переменная уже после разбора???
+                    case ']':   inner_square_brackets_counter--;        break; //FIXME: может разбирать, что за переменная уже после разбора???
+                    case '(':   inner_parentheses_counter++;            break; //FIXME: может разбирать, что за переменная уже после разбора???
+                    case ')':   inner_parentheses_counter--;            break; //FIXME: может разбирать, что за переменная уже после разбора???
+                    case '<':   inner_triangulare_brackets_counter++;   break; //FIXME: может разбирать, что за переменная уже после разбора???
+                    case '>':   inner_triangulare_brackets_counter--;   break; //FIXME: может разбирать, что за переменная уже после разбора???
                     case '"':   is_quotes = !is_quotes;                 break;
                     }
+                }
+
+                if(utils::CharInString(ch_current, "=:")) {
+                    assignment_counter++;
+                }
+
+                if(assignment_counter == 0 && ch_previous == '[' && ch_current == ']') {
+                    //TODO: использовать шаблон через лямбду
+                    setError("INI parser error[" + std::to_string(counter.getLastLineCounter())
+                             + "][" + std::to_string(counter.getLastSymbolCounter())
+                             + "]: name of group must not be empty!");
+                    return false;
                 }
             }
         }
         RemoveIllegalSpaces(temp_string_value);
-        if(temp_string_value.empty()) {
-
-            last_line_is_empty = true;
-        } else {
-            if(temp_string_value.front() == '[' && temp_string_value.back() == ']') {
-                temp_string_value.erase(0, 1);
-                temp_string_value.pop_back();
-                if(temp_string_value.empty()) {
-                    std::cerr << "ERROR! Name of group must be not null!";
-                    //FIXME: сделать возврат ошибки
+        if(!temp_string_value.empty())
+        {
+            if(temp_string_value.front() == '[' && temp_string_value.back() == ']')
+            {
+                //группы значений могут быть объявлены только для основного Config
+                this->push_back(temp_string_value, Config(ValueType::eJson));
+                this->get_back().setPrefixComment(VStringToString(prefix_comments));
+                this->get_back().setSuffixComment(VStringToString(suffix_comments));
+                target = &this->get_back();
+            }
+            else if(!temp_string_value.empty())
+            {
+                if(assignment_counter == 0) {
+                    setError("INI parser error[" + std::to_string(counter.getLastLineCounter())
+                             + "]: the assignment symbol ('=' or ':') was not found in the value!");
+                    return false;
                 }
 
-                target = this;
-                target->push_back(temp_string_value, Config(ValueType::eJson));
-                target = &target->get_back();
-            } else if(!temp_string_value.empty()) {
-                target->push_back("value(" + std::to_string(k) + ")", temp_string_value);
+                target->push_back("value(" + std::to_string(target->size()) + ")", temp_string_value);
+                target->get_back().setPrefixComment(VStringToString(prefix_comments));
+                target->get_back().setSuffixComment(VStringToString(suffix_comments));
             }
             temp_string_value.clear();
-
-            last_line_is_empty = false;
+            prefix_comments.clear();
+            suffix_comments.clear();
         }
 
         k++; //счётчик переменных
+    }
+
+    std::cout << "prefix comments:" << std::endl;
+    for(const auto& comment : prefix_comments) {
+        std::cout << "\t\"" << comment << "\"" << std::endl;
     }
 
     return !error();

@@ -16,6 +16,16 @@ public:
         , m_line_counter{0}
         , m_symbol_counter{0}
     {}
+    ParserSymbolCounter(const size_t& line_start_counter, const size_t& symbol_start_counter) noexcept
+        : m_last_iterator{symbol_start_counter}
+        , m_line_counter{line_start_counter}
+        , m_symbol_counter{symbol_start_counter}
+    {}
+    ParserSymbolCounter(const size_t& line_start_counter) noexcept
+        : m_last_iterator{0}
+        , m_line_counter{line_start_counter}
+        , m_symbol_counter{0}
+    {}
 
     void check(const size_t current_iterator, const char current_ch)    noexcept;
     size_t getLastLineCounter()                                         const noexcept;
