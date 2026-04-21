@@ -1583,8 +1583,8 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                     size_t erase_pos = vlines.back().back().find_last_of('\\');
                     if(erase_pos != std::string::npos) {
                         vlines.back().back().erase(vlines.back().back().cbegin() + erase_pos);
-                        vlines.back().back().push_back('\n');
                     }
+                    vlines.back().back().push_back('\n'); //нужно для последующей конкатенации строк в одну большую
 
                     RemoveFrontIllegalSpaces(lines.front());
                     vlines.back().push_back(lines.front());
@@ -1597,7 +1597,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
     }
     // по выходу из цикла lines должна быть пуста
 
-    // TEST --------------------------------------
+    /* // TEST --------------------------------------
     size_t value_counter = 0;
     for(const auto& lines_ : vlines)
     {
@@ -1612,7 +1612,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
         value_counter++;
     }
     push_back("__", "------------------------------------------------------");
-    // TEST --------------------------------------
+    // TEST -------------------------------------- */
 
     // один объект vlines - одно значение (часть многострочного комментария ПОСЛЕ значеня может остаться за бортом)
     Config* target = this; //точка привязки нового значения
@@ -1634,10 +1634,6 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
         char ch_current;
         char ch_next;
         for(size_t i = 0; i < fragments.size(); i++) {
-            //связать строки между собой
-            if(i + 1 < fragments.size())
-                fragments[i].push_back('\n');
-
             for(size_t j = 0; j < fragments[i].size(); j++) {
                 ch_previous  = (i == 0) ? (j == 0 ? 0 : fragments[i][j - 1])
                                         : (fragments[i-1].back());
@@ -1695,7 +1691,6 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
         }
         RemoveIllegalSpaces(temp_string_value);
         if(temp_string_value.empty()) {
-//            target->push_back("-----(" + std::to_string(k) + ")", "--------------------------");
 
             last_line_is_empty = true;
         } else {
@@ -1710,7 +1705,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                 target = this;
                 target->push_back(temp_string_value, Config(ValueType::eJson));
                 target = &target->get_back();
-            } else {
+            } else if(!temp_string_value.empty()) {
                 target->push_back("value(" + std::to_string(k) + ")", temp_string_value);
             }
             temp_string_value.clear();
