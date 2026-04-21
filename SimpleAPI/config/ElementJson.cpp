@@ -717,6 +717,7 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
             //вернули в исходное состояние после записи КОММЕНТАРИЯ ПОСЛЕ ЗНАЧЕНИЯ
             inner_design.opt_multiline_column_size = design.opt_multiline_column_size;
 
+            //NOTE: если переменная содержит комментарий ДО значения - делаем пустую строку для лучшей читабельности
             if(m_values[i].second->getPrefixComment().find('\n' != std::string::npos))
                 ret += "\n";
 
