@@ -1569,6 +1569,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
 
     // обработка обратного слэша на конце строкsи и пробела в начале следующей
     VVString vlines;
+    std::array<char, 3> current_comment_format = {0, 0, 0};
     while(!lines.empty()) {
         vlines.push_back({lines.front()});
         lines.erase(lines.cbegin());
@@ -1618,6 +1619,16 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
         push_back("--", "------------------------------------------------------");
     }
     // TEST --------------------------------------
+
+    auto CreateError = [&](const ParserSymbolCounter& counter, std::string message) -> void {
+        setError("INI parser error[" + std::to_string(counter.getLastLineCounter())
+                 + "][" + std::to_string(counter.getLastSymbolCounter())
+                 + "]: " + message + "!");
+    };
+    auto CreateErrorLine = [&](const ParserSymbolCounter& counter, std::string message) -> void {
+        setError("INI parser error at line [" + std::to_string(counter.getLastLineCounter())
+                 + "]: " + message + "!");
+    };
 
     // один объект vlines - одно значение (часть многострочного комментария ПОСЛЕ значеня может остаться за бортом)
     Config* target = this; //точка привязки нового значения
@@ -1704,10 +1715,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                 }
 
                 if(assignment_counter == 0 && ch_previous == '[' && ch_current == ']') {
-                    //TODO: использовать шаблон через лямбду
-                    setError("INI parser error[" + std::to_string(counter.getLastLineCounter())
-                             + "][" + std::to_string(counter.getLastSymbolCounter())
-                             + "]: name of group must not be empty!");
+                    CreateError(counter, "name of group must not be empty");
                     return false;
                 }
             }
@@ -1726,8 +1734,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
             else if(!temp_string_value.empty())
             {
                 if(assignment_counter == 0) {
-                    setError("INI parser error[" + std::to_string(counter.getLastLineCounter())
-                             + "]: the assignment symbol ('=' or ':') was not found in the value!");
+                    CreateErrorLine(counter, "the assignment symbol ('=' or ':') was not found in the value");
                     return false;
                 }
 
