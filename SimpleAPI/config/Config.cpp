@@ -1568,33 +1568,29 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
     // NOTE: комментарии внутри значения являются частью значения, а не комментарием самого значения
 
     // обработка обратного слэша на конце строкsи и пробела в начале следующей
-    VVString vlines;
+    VVString lines_vec;
     std::array<char, 3> current_comment_format = {0, 0, 0};
     bool in_simple_qoutes = false;
     bool in_double_qoutes = false;
     while(!lines.empty()) {
-        vlines.push_back({lines.front()});
+        lines_vec.push_back({lines.front()});
         lines.erase(lines.cbegin());
-        if(vlines.back().back().find('"') != std::string::npos)
 
         while(!lines.empty())
         {
-            const char c = utils::GetLastNotSpaceChar(vlines.back().back());
+            const char c = utils::GetLastNotSpaceChar(lines_vec.back().back());
             if(lines.size() >= 1) // следующая строка существует?
             {
-                //TODO: проверка на незаконченный комментарий
-                //TODO: проверка на незакрытые кавычки
-
                 if(c == '\\' || utils::CharInString(lines.front().front(), "\t ")) //следующая строка является частью значения
                 {
-                    size_t erase_pos = vlines.back().back().find_last_of('\\');
+                    size_t erase_pos = lines_vec.back().back().find_last_of('\\');
                     if(erase_pos != std::string::npos) {
-                        vlines.back().back().erase(vlines.back().back().cbegin() + erase_pos);
+                        lines_vec.back().back().erase(lines_vec.back().back().cbegin() + erase_pos);
                     }
-                    vlines.back().back().push_back('\n'); //нужно для последующей конкатенации строк в одну большую
+                    lines_vec.back().back().push_back('\n'); //нужно для последующей конкатенации строк в одну большую
 
                     RemoveFrontIllegalSpaces(lines.front());
-                    vlines.back().push_back(lines.front());
+                    lines_vec.back().push_back(lines.front());
                     lines.erase(lines.cbegin());
                 }
                 else break; //выход из while
@@ -1604,10 +1600,19 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
     }
     // по выходу из цикла lines должна быть пуста
 
+    //дополнить знаком переноса строки, если знака нет
+    for(auto& vstring : lines_vec) {
+        for(auto& str : vstring) {
+            if(!str.empty() && str.back() != '\n') {
+                str.push_back('\n');
+            }
+        }
+    }
+
     // TEST --------------------------------------
     if(false) {
         size_t value_counter = 0;
-        for(const auto& lines_ : vlines)
+        for(const auto& lines_ : lines_vec)
         {
             push_back(std::to_string(value_counter), lines_[0]);
             std::string& last_string = get_string_back();
@@ -1634,37 +1639,54 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
     };
 
     // пройтись по всем VString и объединить некоторые из них при необходимости
-    CheckIniStrings(vlines, getCommentDesign());
+//    CheckIniStrings(lines_vec, getCommentDesign());
 
     // один объект vlines - одно значение (часть многострочного комментария ПОСЛЕ значеня может остаться за бортом)
     Config* target = this; //точка привязки нового значения
     std::vector<std::string> prefix_comments;
-    size_t k = 0;
-    for(VString& fragments : vlines) {
-        std::vector<std::string> suffix_comments;
-        std::string current_comment;
-        std::string temp_string_value;
+    std::vector<std::string> suffix_comments;
+    std::string current_comment;
+    std::string temp_string_value;
 
-        size_t assignment_counter                 = 0;
-        bool is_quotes                            = false;
-        size_t inner_fugure_brackets_counter      = 0; // {}
-        size_t inner_square_brackets_counter      = 0; // []
-        size_t inner_triangulare_brackets_counter = 0; // <>
-        size_t inner_parentheses_counter          = 0; // ()
+    size_t assignment_counter                 = 0;
+    bool is_quotes                            = false;
+    size_t inner_fugure_brackets_counter      = 0; // {}
+    size_t inner_square_brackets_counter      = 0; // []
+    size_t inner_triangulare_brackets_counter = 0; // <>
+    size_t inner_parentheses_counter          = 0; // ()
 
+    char ch_previous = 0;
+    char ch_current  = 0;
+    char ch_next     = 0;
+
+    size_t k = 0; //вынес для видимости вне for()
+    for(; k < lines_vec.size(); k++) {
+        VString& fragments = lines_vec[k];
+
+        bool need_to_iterate_k = false;
         ParserSymbolCounter counter(k); //FIXME: считает строки неправильно!
-        //TODO: здесь же проверить заполнение имени группы
 
-        char ch_previous;
-        char ch_current;
-        char ch_next;
         for(size_t i = 0; i < fragments.size(); i++) {
             for(size_t j = 0; j < fragments[i].size(); j++) {
-                ch_previous  = (i == 0) ? (j == 0 ? 0 : fragments[i][j - 1])
-                                        : (fragments[i-1].back());
+                ch_previous  = ch_current; //будет 0, если вся предыдущая цепочка была прочитана как значение
                 ch_current   = fragments[i][j];
-                ch_next      = j + 1 < fragments[i].size() ? (fragments[i][j + 1])
-                                                           : (i + 1 < fragments.size() ? (fragments[i+1].front()) : 0);
+                //если следующий символ в этой подстроке существует
+                if(j + 1 < fragments[i].size()) {
+                    ch_next = fragments[i][j + 1];
+                } else {
+                    //если следующая строка в этом фрагменте существует и не пустая
+                    if(i + 1 < fragments.size() && !fragments[i + 1].empty()) {
+                        ch_next = fragments[i + 1].front();
+                    } else {
+                        if(k + 1 < lines_vec.size()              // если следующий фрагмент существует
+                            && !lines_vec[k + 1].empty()         // подстрока следующего фрагмента существует
+                            && !lines_vec[k + 1].front().empty() // подстрока не пустая
+                            )
+                        {
+                            ch_next = lines_vec[k + 1].front().front();
+                        }
+                    }
+                }
 
                 counter.check(j, ch_current);
 
@@ -1675,14 +1697,22 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                                               + inner_triangulare_brackets_counter +
                                               inner_parentheses_counter == 0);
                 //вернёт комментарий без обрамления
-                CheckComments(ch_current, ch_next, j, design, current_comment, ext_flag);
+                try {
+                    CheckComments(ch_current, ch_next, j, design, current_comment, ext_flag);
+                } catch(std::exception& e) {
+                    //не хватило символов для прочтения комментария, переходим к следующему фрагменту
+                    CreateError(counter, e.what());
+                    break;
+                }
+
                 if(!design.with_comments)
                     current_comment.clear();
                 if(design.with_comments && design.temp_type == CommentType::eCommentEnd)
                 {
-                    std::cout << "comment (value_size:" << temp_string_value.size() << ")"
-                              << (temp_string_value.empty() ? "(prefix)" : "(suffix)")
-                              << ": \"" << FromComment(current_comment, design) << "\"" << std::endl;
+                    // для отладки
+                    // std::cout << "comment (value_size:" << temp_string_value.size() << ")"
+                    //           << (temp_string_value.empty() ? "(prefix)" : "(suffix)")
+                    //           << ": \"" << FromComment(current_comment, design) << "\"" << std::endl;
                     if(temp_string_value.empty())
                         prefix_comments.push_back(FromComment(current_comment, design));
                     else
@@ -1702,15 +1732,16 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
 
                 if(ch_previous != '\\') {
                     switch(ch_current) {
-                    case '{':   inner_fugure_brackets_counter++;        break; //FIXME: может разбирать, что за переменная уже после разбора???
-                    case '}':   inner_fugure_brackets_counter--;        break; //FIXME: может разбирать, что за переменная уже после разбора???
-                    case '[':   inner_square_brackets_counter++;        break; //FIXME: может разбирать, что за переменная уже после разбора???
-                    case ']':   inner_square_brackets_counter--;        break; //FIXME: может разбирать, что за переменная уже после разбора???
-                    case '(':   inner_parentheses_counter++;            break; //FIXME: может разбирать, что за переменная уже после разбора???
-                    case ')':   inner_parentheses_counter--;            break; //FIXME: может разбирать, что за переменная уже после разбора???
-                    case '<':   inner_triangulare_brackets_counter++;   break; //FIXME: может разбирать, что за переменная уже после разбора???
-                    case '>':   inner_triangulare_brackets_counter--;   break; //FIXME: может разбирать, что за переменная уже после разбора???
-                    case '"':   is_quotes = !is_quotes;                 break;
+                        //TODO: внести использование этих проверок в CommentDesign::opt_
+//                    case '{':   if(!is_quotes)  inner_fugure_brackets_counter++;        break; //FIXME: может разбирать, что за переменная уже после разбора???
+//                    case '}':   if(!is_quotes)  inner_fugure_brackets_counter--;        break; //FIXME: может разбирать, что за переменная уже после разбора???
+//                    case '[':   if(!is_quotes)  inner_square_brackets_counter++;        break; //FIXME: может разбирать, что за переменная уже после разбора???
+//                    case ']':   if(!is_quotes)  inner_square_brackets_counter--;        break; //FIXME: может разбирать, что за переменная уже после разбора???
+//                    case '(':   if(!is_quotes)  inner_parentheses_counter++;            break; //FIXME: может разбирать, что за переменная уже после разбора???
+//                    case ')':   if(!is_quotes)  inner_parentheses_counter--;            break; //FIXME: может разбирать, что за переменная уже после разбора???
+//                    case '<':   if(!is_quotes)  inner_triangulare_brackets_counter++;   break; //FIXME: может разбирать, что за переменная уже после разбора???
+//                    case '>':   if(!is_quotes)  inner_triangulare_brackets_counter--;   break; //FIXME: может разбирать, что за переменная уже после разбора???
+                    case '"':   is_quotes = !is_quotes;                                 break;
                     }
                 }
 
@@ -1724,6 +1755,22 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                 }
             }
         }
+
+        //значение корректно?
+        if(is_quotes
+//            || inner_fugure_brackets_counter      != 0
+//            || inner_fugure_brackets_counter      != 0
+//            || inner_square_brackets_counter      != 0
+//            || inner_square_brackets_counter      != 0
+//            || inner_parentheses_counter          != 0
+//            || inner_parentheses_counter          != 0
+//            || inner_triangulare_brackets_counter != 0
+//            || inner_triangulare_brackets_counter != 0
+            || design.temp_type != CommentType::eNotComment)
+        {
+            continue; //значение прочитано не полностью!
+        }
+
         RemoveIllegalSpaces(temp_string_value);
         if(!temp_string_value.empty())
         {
@@ -1738,7 +1785,8 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
             else if(!temp_string_value.empty())
             {
                 if(assignment_counter == 0) {
-                    CreateErrorLine(counter, "the assignment symbol ('=' or ':') was not found in this value");
+                    CreateErrorLine(counter, "the assignment symbol ('=' or ':') was not found in this value: \""
+                                                 + temp_string_value + "\"");
                     return false;
                 }
 
@@ -1749,14 +1797,14 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
             temp_string_value.clear();
             prefix_comments.clear();
             suffix_comments.clear();
+            assignment_counter = 0;
         }
 
-        k++; //счётчик переменных
+        ch_current  = 0; //обнуляем, чтобы следующий фрагмент рассматривался самостоятельно
     }
 
-    std::cout << "prefix comments:" << std::endl;
-    for(const auto& comment : prefix_comments) {
-        std::cout << "\t\"" << comment << "\"" << std::endl;
+    if(!temp_string_value.empty()) {
+        CreateError(ParserSymbolCounter(k), "not found end of value: \"" + temp_string_value + "\"");
     }
 
     return !error();
@@ -1780,7 +1828,7 @@ bool Config::parseXml(const std::string &content, const CommentDesign &design) n
 void Config::CheckIniStrings(VVString &vvstring, const CommentDesign &cd) noexcept
 {
     //TODO: Config::CheckIniStrings
-    ...
+//    ...
 }
 
 shared_VElement::iterator Config::array_begin() {
