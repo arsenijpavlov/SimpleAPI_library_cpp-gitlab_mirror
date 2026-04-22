@@ -353,8 +353,8 @@ SeparatedLines SeparateWithoutColumned(const std::string& input_string) noexcept
     //определить максимальную длину строки (будет иметь влияние только при border!=0)
     sl.max_length = 0;
     for(auto& s : sl.lines)
-        if(sl.max_length < s.size())
-            sl.max_length = s.size();
+        if(sl.max_length < utils::GetStringCharCount(s, true))
+            sl.max_length = utils::GetStringCharCount(s, true);
 
     return sl;
 }
@@ -561,9 +561,29 @@ std::string ToComment(const std::string &comment, const CommentDesign &design,
     std::string current_string = comment;
     RemoveIllegalSpaces(current_string);
 
-    //FIXME: если не нужна рамка и все строки меньше указанной ширины - считать по максимальной длине
-    SeparatedLines sl = design.opt_multiline_column_size == 0 ? SeparateWithoutColumned(current_string)
-                                                              : SeparateToColumns(current_string, design.opt_multiline_column_size);
+    //NOTE: если не нужна рамка и все строки меньше указанной ширины - считать по максимальной длине
+    bool all_strings_less_than_column_size = true;
+    size_t last_pos = 0;
+    size_t next_pos = 0;
+    do {
+        next_pos = current_string.find('\n', last_pos);
+        size_t len = GetStringCharCount(current_string.substr(
+                                            last_pos,
+                                            next_pos != std::string::npos ? (next_pos - last_pos + /*знак переноса*/1)
+                                                                          : (current_string.size() - last_pos)
+                                            ), true);
+        all_strings_less_than_column_size = len < design.opt_multiline_column_size;
+
+        last_pos = next_pos + /*знак переноса*/1;
+    } while(next_pos != std::string::npos && all_strings_less_than_column_size);
+
+    SeparatedLines sl;
+    if(design.opt_multiline_column_size == 0 || (all_strings_less_than_column_size && design.opt_multiline_border == 0)) {
+        sl = SeparateWithoutColumned(current_string);
+    } else {
+        sl = SeparateToColumns(current_string, design.opt_multiline_column_size);
+    }
+
     VString& result_lines = sl.lines;
 //    std::cout << "sl.max_length: " << sl.max_length << std::endl;
 //    std::cout << "sl.lines:" << std::endl << VStringToString(sl.lines, true) << std::endl;

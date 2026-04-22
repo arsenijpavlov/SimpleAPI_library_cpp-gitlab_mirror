@@ -366,3 +366,20 @@ TEST(COMMENT, Compare) {
     Comment cmt2 = cmt1;
     EXPECT_EQ(cmt1, cmt2);
 }
+
+TEST(COMMENT, content_less_than_column_size) {
+    std::string comment_string = "small string testing\n"
+                                 "small2 string2 testing2";
+    using namespace simpleapi;
+    using namespace tools;
+
+    CommentDesign cd;
+    cd.opt_multiline_column_size = 63;
+    cd.opt_multiline_border = 0;
+    cd.opt_multiline_border_at_content_line = true;
+
+    std::string res_expected = "/* small string testing   \n"
+                               "   small2 string2 testing2 */";
+    std::string res = ToComment(comment_string, cd);
+    EXPECT_EQ(res, res_expected) << res;
+}
