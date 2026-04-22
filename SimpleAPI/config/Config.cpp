@@ -1578,6 +1578,9 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
             const char c = utils::GetLastNotSpaceChar(vlines.back().back());
             if(lines.size() >= 1) // следующая строка существует?
             {
+                //TODO: проверка на незаконченный комментарий
+                //TODO: проверка на незакрытые кавычки
+
                 if(c == '\\' || utils::CharInString(lines.front().front(), "\t ")) //следующая строка является частью значения
                 {
                     size_t erase_pos = vlines.back().back().find_last_of('\\');
