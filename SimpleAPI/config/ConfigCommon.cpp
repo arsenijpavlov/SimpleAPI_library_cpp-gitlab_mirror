@@ -32,7 +32,7 @@ void RemoveFrontIllegalSpaces(std::string &string) noexcept {
     using namespace utils;
     if(string.empty()) return;
 
-    while(CharInString(*string.begin(), __SPACES_WITHOUT_SEPARATORS__))
+    while(CharInString(*string.begin(), __SPACES__))
         string = string.erase(0, 1);
 }
 
@@ -40,7 +40,7 @@ void RemoveEndIllegalSpaces(std::string &string) noexcept {
     using namespace utils;
     if(string.empty()) return;
 
-    while(CharInString(string.back(), __SPACES_WITHOUT_SEPARATORS__))
+    while(CharInString(string.back(), __SPACES__))
         string.pop_back();
 }
 
