@@ -1734,7 +1734,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
             else if(!temp_string_value.empty())
             {
                 if(assignment_counter == 0) {
-                    CreateErrorLine(counter, "the assignment symbol ('=' or ':') was not found in the value");
+                    CreateErrorLine(counter, "the assignment symbol ('=' or ':') was not found in this value");
                     return false;
                 }
 
