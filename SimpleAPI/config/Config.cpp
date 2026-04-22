@@ -1570,9 +1570,12 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
     // обработка обратного слэша на конце строкsи и пробела в начале следующей
     VVString vlines;
     std::array<char, 3> current_comment_format = {0, 0, 0};
+    bool in_simple_qoutes = false;
+    bool in_double_qoutes = false;
     while(!lines.empty()) {
         vlines.push_back({lines.front()});
         lines.erase(lines.cbegin());
+        if(vlines.back().back().find('"') != std::string::npos)
 
         while(!lines.empty())
         {
@@ -1630,6 +1633,9 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                  + "]: " + message + "!");
     };
 
+    // пройтись по всем VString и объединить некоторые из них при необходимости
+    CheckIniStrings(vlines, getCommentDesign());
+
     // один объект vlines - одно значение (часть многострочного комментария ПОСЛЕ значеня может остаться за бортом)
     Config* target = this; //точка привязки нового значения
     std::vector<std::string> prefix_comments;
@@ -1639,7 +1645,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
         std::string current_comment;
         std::string temp_string_value;
 
-        size_t assignment_counter                     = 0;
+        size_t assignment_counter                 = 0;
         bool is_quotes                            = false;
         size_t inner_fugure_brackets_counter      = 0; // {}
         size_t inner_square_brackets_counter      = 0; // []
@@ -1647,8 +1653,6 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
         size_t inner_parentheses_counter          = 0; // ()
 
         ParserSymbolCounter counter(k); //FIXME: считает строки неправильно!
-        //TODO: в конец for сделать проверку количества =/: в значении переменной
-        //TODO: на основе этой информации сделать вывод ошибки
         //TODO: здесь же проверить заполнение имени группы
 
         char ch_previous;
@@ -1768,6 +1772,15 @@ bool Config::parseXml(const std::string &content, const CommentDesign &design) n
 {
     //TODO: Config::parseXml()
     return false;
+}
+
+//TODO: проверка на завершённость одиночек кавычек
+//TODO: проверка на завершённость двойных кавычек
+//TODO: проверка на завершённость многосторчных комментариев
+void Config::CheckIniStrings(VVString &vvstring, const CommentDesign &cd) noexcept
+{
+    //TODO: Config::CheckIniStrings
+    ...
 }
 
 shared_VElement::iterator Config::array_begin() {

@@ -841,6 +841,10 @@ public:
     bool            parseXml(const std::string& content, const CommentDesign &design = {})          noexcept;                   API_ALL
     // ========================================================================================================== Parser
 
+private:
+    void CheckIniStrings(VVString& vvstring, const CommentDesign& cd) noexcept;
+public:
+
     // вернёт текст ошибки, указывающий на тип некорректно прочитанного значения
     friend Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
                                           CommentDesign &design, ParserSymbolCounter& start_iterator)       noexcept;
