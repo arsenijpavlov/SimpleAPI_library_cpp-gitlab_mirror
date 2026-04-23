@@ -1242,6 +1242,7 @@ Config &Config::push_back_force(const VString &keys, const Config &other) noexce
     return push_back_force(keys, std::move(temp));
 }
 
+//TODO: сделать аналог функции для insert_back()
 Config &Config::push_back_force(const VString &keys, Config &&other) noexcept
 {
     if(keys.empty()) {
@@ -1275,16 +1276,30 @@ Config &Config::push_back_force(const VString &keys, Config &&other) noexcept
         new_keys.erase(new_keys.cbegin());
 
         if(containsKey(key)) {
+            Config& target_cfg = get_at(key);
+
             //итоговый ключ существует - нужно преобразовать в array
-            if(!get_at(key).isArray()) {
-                Config temp = get_at(key);
-                get_at(key) = Config(ValueType::eArray);
-                get_at(key).push_back(std::move(temp));
+            if(!target_cfg.isArray()) {
+                Config temp = target_cfg;
+                target_cfg = Config(ValueType::eArray);
+                target_cfg.push_back(std::move(temp));
             }
 
-            //дополнить итоговый массив новой парой ключ-значение
-            get_at(key).push_back(Config(ValueType::eJson));
-            return get_at(key).get_back().push_back_force(new_keys, std::move(other));
+            //дополнить итоговый массив новой парой ключ-значение, если такой ключ в массиве ещё не создан
+            Config* p_target_json = nullptr;
+            for(auto& cfg : target_cfg.getRange()) {
+                if(cfg->isJson() && cfg->containsKey(new_keys[0])) {
+                    p_target_json = cfg.get();
+                    break;
+                }
+            }
+
+            if(p_target_json == nullptr) {
+                target_cfg.push_back(Config(ValueType::eJson));
+                p_target_json = &target_cfg.get_back();
+            }
+
+            return p_target_json->push_back_force(new_keys, std::move(other));
         } else {
             //ключ новый
             return push_back(key, Config()).get_at(key).push_back_force(new_keys, std::move(other));
@@ -1642,7 +1657,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                 {
                     size_t erase_pos = lines_vec.back().back().find_last_of('\\');
                     if(erase_pos != std::string::npos) {
-                        lines_vec.back().back().erase(lines_vec.back().back().cbegin() + erase_pos);
+                        lines_vec.back().back().erase(erase_pos, lines_vec.back().back().size() - erase_pos);
                     }
                     lines_vec.back().back().push_back('\n'); //нужно для последующей конкатенации строк в одну большую
 
