@@ -573,6 +573,11 @@ public:
     Config& push_back(const std::string& key, const Config& other)      { return insert_back(key, other); }                 API_MAP_CONTAINER
     Config& push_back(const std::string& key, Config&& other)           { return insert_back(key, std::move(other)); }      API_MAP_CONTAINER
 
+    //если путь не существовал - будут созданы все необходимые array и json, чтобы путь был достижим
+    //если указанный путь уже занят, то элемент по пути должен быть преобразован в array
+    Config& push_back_force(const VString& keys, const Config& other)   noexcept;                                           API_ALL
+    Config& push_back_force(const VString& keys, Config&& other)        noexcept;                                           API_ALL
+
     Config& push_before(const std::string& before_key, const std::string& key,
                         const Config& other)                            { return insert_before(before_key, key, other); }               API_MAP_CONTAINER
     Config& push_before(const std::string& before_key, const std::string& key,
@@ -840,10 +845,6 @@ public:
     bool            parseYaml(const std::string& content, const CommentDesign &design = {})         noexcept;                   API_ALL
     bool            parseXml(const std::string& content, const CommentDesign &design = {})          noexcept;                   API_ALL
     // ========================================================================================================== Parser
-
-private:
-    void CheckIniStrings(VVString& vvstring, const CommentDesign& cd) noexcept;
-public:
 
     // вернёт текст ошибки, указывающий на тип некорректно прочитанного значения
     friend Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,

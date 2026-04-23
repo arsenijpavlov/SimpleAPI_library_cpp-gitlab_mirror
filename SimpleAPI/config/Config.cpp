@@ -1236,6 +1236,64 @@ Config& Config::insert_after(const std::string& after_key, const std::string& ke
     return *this;
 }
 
+Config &Config::push_back_force(const VString &keys, const Config &other) noexcept
+{
+    Config temp(other);
+    return push_back_force(keys, std::move(temp));
+}
+
+Config &Config::push_back_force(const VString &keys, Config &&other) noexcept
+{
+    if(keys.empty()) {
+        //текущий объект нужно обновить
+        *this = std::move(other);
+    } else if(keys.size() == 1) {
+        const std::string& key = keys[0];
+
+        if(containsKey(key)) {
+            //итоговый ключ существует - нужно преобразовать в array
+            if(!get_at(key).isArray()) {
+                Config temp = get_at(key);
+                get_at(key) = Config(ValueType::eArray);
+                get_at(key).push_back(std::move(temp));
+            }
+
+            //дополнить итоговый массив
+            get_at(key).push_back(std::move(other));
+            return get_at(key).get_back();
+        } else {
+            //ключ новый
+            push_back(key, std::move(other));
+            return get_at(key);
+        }
+    } else {
+        //если промежуточный ключ должен быть вставлен на место существующего значения
+        // то нужно преобразовать значение в часть массива, а в конец массива добавить новый JSON
+
+        const std::string& key = keys[0];
+        VString new_keys = keys;
+        new_keys.erase(new_keys.cbegin());
+
+        if(containsKey(key)) {
+            //итоговый ключ существует - нужно преобразовать в array
+            if(!get_at(key).isArray()) {
+                Config temp = get_at(key);
+                get_at(key) = Config(ValueType::eArray);
+                get_at(key).push_back(std::move(temp));
+            }
+
+            //дополнить итоговый массив новой парой ключ-значение
+            get_at(key).push_back(Config(ValueType::eJson));
+            return get_at(key).get_back().push_back_force(new_keys, std::move(other));
+        } else {
+            //ключ новый
+            return push_back(key, Config()).get_at(key).push_back_force(new_keys, std::move(other));
+        }
+    }
+
+    return *this; //сюда попасть не должны
+}
+
 Config &Config::append(const Config &config) {
     Config cfg_copy(config);
     return append(std::move(cfg_copy));
@@ -1533,7 +1591,6 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
     return !error();
 }
 
-//TODO: INI PARSER
 bool Config::parseIni(const std::string &content, const CommentDesign &input_design) noexcept
 {
     using namespace tools;
@@ -1609,25 +1666,6 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
         }
     }
 
-    // TEST --------------------------------------
-    if(false) {
-        size_t value_counter = 0;
-        for(const auto& lines_ : lines_vec)
-        {
-            push_back(std::to_string(value_counter), lines_[0]);
-            std::string& last_string = get_string_back();
-            for(size_t i = 1; i < lines_.size(); i++) {
-                if(i + 1 < lines_.size()) {
-                    last_string.push_back('\n');
-                }
-                last_string += lines_[i];
-            }
-            value_counter++;
-        }
-        push_back("--", "------------------------------------------------------");
-    }
-    // TEST --------------------------------------
-
     auto CreateError = [&](const ParserSymbolCounter& counter, std::string message) -> void {
         setError("INI parser error[" + std::to_string(counter.getLastLineCounter())
                  + "][" + std::to_string(counter.getLastSymbolCounter())
@@ -1637,9 +1675,6 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
         setError("INI parser error at line [" + std::to_string(counter.getLastLineCounter())
                  + "]: " + message + "!");
     };
-
-    // пройтись по всем VString и объединить некоторые из них при необходимости
-//    CheckIniStrings(lines_vec, getCommentDesign());
 
     // один объект vlines - одно значение (часть многострочного комментария ПОСЛЕ значеня может остаться за бортом)
     Config* target = this; //точка привязки нового значения
@@ -1790,9 +1825,129 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                     return false;
                 }
 
-                target->push_back("value(" + std::to_string(target->size()) + ")", temp_string_value);
-                target->get_back().setPrefixComment(VStringToString(prefix_comments));
-                target->get_back().setSuffixComment(VStringToString(suffix_comments));
+                //отделить ключи от значения
+                auto GetIniKeys = [](std::string& content) -> std::vector<std::string> {
+                    std::vector<std::string> keys;
+
+                    //находить знаки = и : до тех пор, пока не будут встречены лишние символы
+                    //ключ в кавычках не должен влиять на поиск
+                    bool is_quotes        = false;
+                    bool is_simple_quotes = false;
+
+                    std::string temp;
+                    char ch_previous = 0;
+                    char ch_current = 0;
+                    size_t last_key_pos = 0;
+                    for(size_t i = 0; i < content.size(); i++, ch_previous = ch_current) {
+                        ch_current = content[i];
+
+                        bool parsed = false;
+                        if(ch_previous != '\\') {
+                            switch(ch_current) {
+                            case '{':
+                            case '}':
+                            case '[':
+                            case ']':
+                            case '(':
+                            case ')':
+                            case '<':
+                            case '>': {
+                                    //уже пошёл разбор значения, все ключи найдены
+                                    parsed = true;
+                                    break;
+                                }
+                            case '"':  {
+                                    if(!is_simple_quotes)
+                                        is_quotes = !is_quotes;
+                                    break;
+                            }
+                            case '\'':  {
+                                    if(!is_quotes)
+                                        is_simple_quotes = !is_simple_quotes;
+                                    break;
+                            }
+                            }
+                        }
+                        if(parsed) break;
+
+                        switch(ch_current) {
+                        case ':':
+                        case '=': {
+                            RemoveIllegalSpaces(temp);
+                            keys.push_back(temp);
+                            temp.clear();
+                            last_key_pos = i;
+                            break;
+                        }
+                        default: temp += ch_current;
+                        }
+                    }
+                    content.erase(0, last_key_pos + 1);
+                    RemoveIllegalSpaces(content);
+
+                    return keys;
+                };
+                auto SplitIniKeyPath = [](const std::string& big_key) -> std::vector<std::string> {
+                    VString keys;
+
+                    //находить знаки / и \\ до тех пор, пока не будут встречены лишние символы
+                    //ключ в кавычках не должен влиять на поиск
+                    bool is_quotes        = false;
+                    bool is_simple_quotes = false;
+
+                    std::string temp;
+                    char ch_previous = 0;
+                    char ch_current = 0;
+                    size_t last_key_pos = 0;
+                    for(size_t i = 0; i < big_key.size(); i++, ch_previous = ch_current) {
+                        ch_current = big_key[i];
+
+                        if(ch_previous != '\\') {
+                            switch(ch_current) {
+                            case '"':  {
+                                if(!is_simple_quotes)
+                                    is_quotes = !is_quotes;
+                                break;
+                            }
+                            case '\'':  {
+                                if(!is_quotes)
+                                    is_simple_quotes = !is_simple_quotes;
+                                break;
+                            }
+                            }
+                        }
+
+                        switch(ch_current) {
+                        case '/':
+                        case '\\': {
+                            RemoveIllegalSpaces(temp);
+                            RemoveQuotes(temp);
+                            keys.push_back(temp);
+                            temp.clear();
+                            last_key_pos = i;
+                            break;
+                        }
+                        default: temp += ch_current;
+                        }
+                    }
+                    RemoveIllegalSpaces(temp);
+                    RemoveQuotes(temp);
+                    keys.push_back(temp);
+
+                    return keys;
+                };
+
+                VString keys = GetIniKeys(temp_string_value);
+                for(auto& k : keys) {
+                    // если ключ многосотавной (вложенные структуры), то значение положить составное (k1->k2->k3=value)
+                    VString keys_path = SplitIniKeyPath(k);
+                    Config temp = CreateElementFromString(std::string(temp_string_value), ConfigFormat::eJSON, design, counter);
+                    Config& pushed_cfg = target->push_back_force(keys_path, std::move(temp));
+
+                    // добавить комментарии к добавленному значению
+                    pushed_cfg.setPrefixComment(VStringToString(prefix_comments));
+                    pushed_cfg.setSuffixComment(VStringToString(suffix_comments));
+                }
             }
             temp_string_value.clear();
             prefix_comments.clear();
@@ -1820,15 +1975,6 @@ bool Config::parseXml(const std::string &content, const CommentDesign &design) n
 {
     //TODO: Config::parseXml()
     return false;
-}
-
-//TODO: проверка на завершённость одиночек кавычек
-//TODO: проверка на завершённость двойных кавычек
-//TODO: проверка на завершённость многосторчных комментариев
-void Config::CheckIniStrings(VVString &vvstring, const CommentDesign &cd) noexcept
-{
-    //TODO: Config::CheckIniStrings
-//    ...
 }
 
 shared_VElement::iterator Config::array_begin() {
