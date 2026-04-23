@@ -467,7 +467,6 @@ std::string ElementArray::parse(std::string &&input_string, CommentDesign &desig
 {
     switch(format) {
     case ConfigFormat::eJSON:   return parseJson(std::move(input_string), design);
-    case ConfigFormat::eINI:    return parseIni(std::move(input_string), design);
     case ConfigFormat::eYAML:   return parseYaml(std::move(input_string), design, tabulation_level);
     case ConfigFormat::eXML:    return parseXml(std::move(input_string), design);
     default:                    return "unexpected format";
@@ -791,17 +790,6 @@ std::string ElementArray::parseJson(std::string &&input_string, CommentDesign &d
     }
 
     return error_string;
-}
-
-std::string ElementArray::parseIni(const std::string &input_string, CommentDesign &design) noexcept
-{
-    return parseIni(std::move(std::string(input_string)), design);
-}
-
-std::string ElementArray::parseIni(std::string &&input_string, CommentDesign &design) noexcept
-{
-    //NOTE: массивы могут парситься и выводиться только в составе другого элемента
-    return "parse Array for INI format not resolved";
 }
 
 std::string ElementArray::parseYaml(const std::string &input_string, CommentDesign &design,

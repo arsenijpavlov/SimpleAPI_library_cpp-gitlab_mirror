@@ -208,12 +208,6 @@ public:
 
     std::string parseJson(std::string&& input_string, CommentDesign &design)                    noexcept    override;
 
-    //NOTE: в данном контексте не функциональны
-    std::string parseIni(const std::string& input_string, CommentDesign &design)                noexcept    override;
-
-    //NOTE: в данном контексте не функциональны
-    std::string parseIni(std::string&& input_string, CommentDesign &design)                     noexcept    override;
-
     std::string parseYaml(const std::string& input_string, CommentDesign &design,
                           const int8_t tabulation_level = 0)                                    noexcept    override;
 

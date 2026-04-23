@@ -105,10 +105,6 @@ public:
 
     virtual std::string parseJson(std::string&& input_string, CommentDesign &design)                    noexcept    = 0;
 
-    virtual std::string parseIni(const std::string& input_string, CommentDesign &design)                noexcept    = 0;
-
-    virtual std::string parseIni(std::string&& input_string, CommentDesign &design)                     noexcept    = 0;
-
     virtual std::string parseYaml(const std::string& input_string, CommentDesign &design,
                                   const int8_t tabulation_level = 0)                                    noexcept    = 0;
 

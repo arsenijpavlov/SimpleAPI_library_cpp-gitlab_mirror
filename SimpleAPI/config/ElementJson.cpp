@@ -839,7 +839,6 @@ std::string ElementJson::parse(std::string &&input_string, CommentDesign &design
 {
     switch(format) {
     case ConfigFormat::eJSON:   return parseJson(std::move(input_string), design);
-    case ConfigFormat::eINI:    return parseIni(std::move(input_string), design);
     case ConfigFormat::eYAML:   return parseYaml(std::move(input_string), design, tabulation_level);
     case ConfigFormat::eXML:    return parseXml(std::move(input_string), design);
     default:                    return "unexpected format";
@@ -1230,17 +1229,6 @@ std::string ElementJson::parseJson(std::string &&input_string, CommentDesign &de
     }
 
     return error_string;
-}
-
-std::string ElementJson::parseIni(const std::string &input_string, CommentDesign &design) noexcept
-{
-    return parseIni(std::move(std::string(input_string)), design);
-}
-
-std::string ElementJson::parseIni(std::string &&input_string, CommentDesign &design) noexcept
-{
-    //TODO (скоро): void ElementJson::parseIni()
-    return "error";
 }
 
 std::string ElementJson::parseYaml(const std::string &input_string, CommentDesign &design,
