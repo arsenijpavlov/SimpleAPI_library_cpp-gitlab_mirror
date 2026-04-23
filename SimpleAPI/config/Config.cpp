@@ -1811,6 +1811,9 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
         {
             if(temp_string_value.front() == '[' && temp_string_value.back() == ']')
             {
+                temp_string_value.erase(0, 1);
+                temp_string_value.pop_back();
+
                 //группы значений могут быть объявлены только для основного Config
                 this->push_back(temp_string_value, Config(ValueType::eJson));
                 this->get_back().setPrefixComment(VStringToString(prefix_comments));
