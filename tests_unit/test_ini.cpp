@@ -79,6 +79,13 @@ std::string ini_example_string = std::string(
     //пустая строка после описания группы завершает группу
     "\n"
     "key2 = value2\n"
+    "\n"
+    "; многострочный коммент\n"
+    "; ДО переменной inner_key2\n"
+    "key2\\inner_key2 = a /*многострочный коммент\nпосле переменной inner_key2*/\n"
+    "key2/inner_key2 = b\n" // "/" и "\" равнозначны при обработке
+    "key3\\inner_key3 = a\n"
+    "key3/inner_key33 = b\n"
     "[group 2]\n"
     "g2_string = one line string\n"
     "g2 string2 = big\n"
@@ -87,13 +94,6 @@ std::string ini_example_string = std::string(
     //комментарий применится только для конечного элемента
     "; коммент ДО переменной inner_inner_key\n"
     "g2_key\\inner_key\\inner_inner_key = inner_inner_value ; вложенные значения и группы значений\n"
-    "\n"
-    "; многострочный коммент\n"
-    "; ДО переменной inner_key2\n"
-    "key2\\inner_key2 = a /*многострочный коммент\nпосле переменной inner_key2*/\n"
-    "key2/inner_key2 = b\n" // "/" и "\" равнозначны при обработке
-    "key3\\inner_key3 = a\n"
-    "key3/inner_key33 = b\n"
     "\n"
     "[group_3]\n"
     "g3_key = 15\n"
@@ -114,7 +114,7 @@ TEST(INI, main_parser) {
     std::cout << json.toString(ConfigFormat::eJSON) << std::endl;
     std::cout << json.toString(ConfigFormat::eINI) << std::endl;
 
-    EXPECT_EQ(json.size(), 8);
+    EXPECT_EQ(json.size(), 6);
 
     ASSERT_EQ(json.containsKey("key"), true); {
         ASSERT_TRUE(json["key"].isNumber());
@@ -151,65 +151,56 @@ TEST(INI, main_parser) {
         }
     }
 
-    ASSERT_EQ(json.containsKey("key2"), true); {
-        ASSERT_TRUE(json["key2"].isArray());
-        Config ja = json["key2"];
-        {
-            ASSERT_EQ(ja.size(), 2);
-            ASSERT_TRUE(ja[0].isString());
-            EXPECT_EQ(ja[0].getString(), "value2");
-            ASSERT_TRUE(ja[1].isJson());
-            Config j = ja[1];
-            {
-                ASSERT_EQ(j.size(), 1);
-                ASSERT_EQ(j.containsKey("inner_key2"), true);
-                ASSERT_TRUE(j["inner_key2"].isArray());
-                Config ja2 = j["inner_key2"];
-                {
-                    EXPECT_EQ(ja2.size(), 2);
-                    ASSERT_TRUE(ja2[0].isString());
-                    EXPECT_EQ(ja2[0].getString(), "a");
-                    ASSERT_TRUE(ja2[1].isString());
-                    EXPECT_EQ(ja2[1].getString(), "b");
-                }
-
-                EXPECT_EQ(j.get_comment("inner_key2").prefix(),
-                          std::string("многострочный коммент\nДО переменной inner_key2"));
-                EXPECT_EQ(j.get_comment("inner_key2").suffix(),
-                          std::string("многострочный коммент\nпосле переменной inner_key2"));
-            }
-        }
-    }
-
-    ASSERT_EQ(json.containsKey("key3"), true); {
-        ASSERT_TRUE(json["key3"].isJson());
-        Config j = json["key3"];
-        {
-            ASSERT_EQ(j.size(), 2);
-            ASSERT_EQ(j.containsKey("inner_key3"), true);
-            ASSERT_TRUE(j["inner_key3"].isString());
-            EXPECT_EQ(j["inner_key3"].getString(), "a");
-            ASSERT_EQ(j.containsKey("inner_key33"), true);
-            ASSERT_TRUE(j["inner_key33"].isString());
-            ASSERT_EQ(j["inner_key33"].getString(), "b");
-        }
-    }
-
     //группы значений
     ASSERT_EQ(json.containsKey("group 1"), true); {
         ASSERT_TRUE(json["group 1"].isJson());
         Config j = json["group 1"];
         {
-            ASSERT_EQ(j.size(), 3);
+            ASSERT_EQ(j.size(), 5);
             ASSERT_EQ(j.containsKey("g1_key"), true);
             ASSERT_TRUE(j["g1_key"].isString());
             EXPECT_EQ(j["g1_key"].getString(), "value");
+
             ASSERT_EQ(j.containsKey("g1_key2"), true);
             ASSERT_TRUE(j["g1_key2"].isNumber());
             EXPECT_EQ(j["g1_key2"].getNumber(), 152);
+
             ASSERT_EQ(j.containsKey("g1_key3"), true);
             ASSERT_TRUE(j["g1_key3"].isNumber());
             EXPECT_EQ(j["g1_key3"].getNumber(), 152);
+
+            ASSERT_EQ(j.containsKey("key2"), true);
+            {
+                ASSERT_TRUE(j["key2"].isArray());
+                Config ja = j["key2"];
+                {
+                    ASSERT_EQ(ja.size(), 3);
+
+                    ASSERT_TRUE(ja[0].isString());
+                    EXPECT_EQ(ja[0].getString(), "value2");
+
+                    ASSERT_TRUE(ja[1].isJson());
+                    Config jj = ja[1];
+                    {
+                        ASSERT_EQ(jj.size(), 1);
+                        ASSERT_EQ(jj.containsKey("inner_key2"), true);
+                        ASSERT_TRUE(jj["inner_key2"].isArray());
+                        Config ja2 = jj["inner_key2"];
+                        {
+                            EXPECT_EQ(ja2.size(), 2);
+                            ASSERT_TRUE(ja2[0].isString());
+                            EXPECT_EQ(ja2[0].getString(), "a");
+                            ASSERT_TRUE(ja2[1].isString());
+                            EXPECT_EQ(ja2[1].getString(), "b");
+                        }
+
+                        EXPECT_EQ(jj.get_comment("inner_key2").prefix(),
+                                  std::string("многострочный коммент\nДО переменной inner_key2"));
+                        EXPECT_EQ(jj.get_comment("inner_key2").suffix(),
+                                  std::string("многострочный коммент\nпосле переменной inner_key2"));
+                    }
+                }
+            }
 
             EXPECT_EQ(j.get_comment("g1_key").prefix(),
                       std::string("ещё комментарий"));
@@ -220,7 +211,7 @@ TEST(INI, main_parser) {
         ASSERT_TRUE(json["group 2"].isJson());
         Config j = json["group 2"];
         {
-            ASSERT_EQ(j.size(), 3);
+            ASSERT_EQ(j.size(), 4);
             ASSERT_EQ(j.containsKey("g2_string"), true);
             ASSERT_TRUE(j["g2_string"].isString());
             EXPECT_EQ(j["g2_string"].getString(), "one line string");
@@ -238,6 +229,20 @@ TEST(INI, main_parser) {
                               std::string("коммент ДО переменной inner_inner_key"));
                     EXPECT_EQ(j3.get_comment("inner_inner_key").suffix(),
                               std::string("вложенные значения и группы значений"));
+                }
+            }
+
+            ASSERT_EQ(j.containsKey("key3"), true); {
+                ASSERT_TRUE(j["key3"].isJson());
+                Config jj = j["key3"];
+                {
+                    ASSERT_EQ(jj.size(), 2);
+                    ASSERT_EQ(jj.containsKey("inner_key3"), true);
+                    ASSERT_TRUE(jj["inner_key3"].isString());
+                    EXPECT_EQ(jj["inner_key3"].getString(), "a");
+                    ASSERT_EQ(jj.containsKey("inner_key33"), true);
+                    ASSERT_TRUE(jj["inner_key33"].isString());
+                    ASSERT_EQ(jj["inner_key33"].getString(), "b");
                 }
             }
         }
