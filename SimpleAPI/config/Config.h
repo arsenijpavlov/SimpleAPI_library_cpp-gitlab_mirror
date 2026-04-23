@@ -552,6 +552,11 @@ public:
     Config& insert_back(const std::string& key, const Config& other);                                                       API_MAP_CONTAINER
     Config& insert_back(const std::string& key, Config&& other);                                                            API_MAP_CONTAINER
 
+    //если путь не существовал - будут созданы все необходимые array и json, чтобы путь был достижим
+    //если указанный путь уже занят, то элемент по пути должен быть преобразован в array
+    Config& insert_back_force(const VString& keys, const Config& other) noexcept;                                           API_ALL
+    Config& insert_back_force(const VString& keys, Config&& other)      noexcept;                                           API_ALL
+
     //TODO: сделать аналог для массивов/variadic
     Config& insert_before(const std::string& before_key, const std::string& key, const Config& other);                      API_MAP_CONTAINER
     Config& insert_before(const std::string& before_key, const std::string& key, Config&& other);                           API_MAP_CONTAINER
@@ -573,10 +578,8 @@ public:
     Config& push_back(const std::string& key, const Config& other)      { return insert_back(key, other); }                 API_MAP_CONTAINER
     Config& push_back(const std::string& key, Config&& other)           { return insert_back(key, std::move(other)); }      API_MAP_CONTAINER
 
-    //если путь не существовал - будут созданы все необходимые array и json, чтобы путь был достижим
-    //если указанный путь уже занят, то элемент по пути должен быть преобразован в array
-    Config& push_back_force(const VString& keys, const Config& other)   noexcept;                                           API_ALL
-    Config& push_back_force(const VString& keys, Config&& other)        noexcept;                                           API_ALL
+    Config& push_back_force(const VString& keys, const Config& other)   noexcept { return insert_back_force(keys, other); }             API_ALL
+    Config& push_back_force(const VString& keys, Config&& other)        noexcept { return insert_back_force(keys, std::move(other)); }  API_ALL
 
     Config& push_before(const std::string& before_key, const std::string& key,
                         const Config& other)                            { return insert_before(before_key, key, other); }               API_MAP_CONTAINER

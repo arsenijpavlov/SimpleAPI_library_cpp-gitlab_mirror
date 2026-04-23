@@ -1206,44 +1206,13 @@ Config& Config::insert_back(const std::string& key, Config&& other) {
     return *this;
 }
 
-Config &Config::insert_before(const std::string &before_key, const std::string &key, const Config &other)
-{
-    Config config(other);
-    return insert_before(before_key, key, std::move(config));
-}
-
-Config &Config::insert_before(const std::string &before_key, const std::string &key, Config &&other)
-{
-    try_convert_null_to_json();
-
-    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
-    dynamic_cast<tools::ElementJson*>(m_value)->insert_before(before_key, key, std::move(other));
-
-    return *this;
-}
-
-Config& Config::insert_after(const std::string& after_key, const std::string& key, const Config& other) {
-    Config config(other);
-    return insert_after(after_key, key, std::move(config));
-}
-
-Config& Config::insert_after(const std::string& after_key, const std::string& key, Config&& other) {
-    try_convert_null_to_json();
-
-    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
-    dynamic_cast<tools::ElementJson*>(m_value)->insert_after(after_key, key, std::move(other));
-
-    return *this;
-}
-
-Config &Config::push_back_force(const VString &keys, const Config &other) noexcept
+Config &Config::insert_back_force(const VString &keys, const Config &other) noexcept
 {
     Config temp(other);
     return push_back_force(keys, std::move(temp));
 }
 
-//TODO: сделать аналог функции для insert_back()
-Config &Config::push_back_force(const VString &keys, Config &&other) noexcept
+Config &Config::insert_back_force(const VString &keys, Config &&other) noexcept
 {
     if(keys.empty()) {
         //текущий объект нужно обновить
@@ -1307,6 +1276,38 @@ Config &Config::push_back_force(const VString &keys, Config &&other) noexcept
     }
 
     return *this; //сюда попасть не должны
+}
+
+
+
+Config &Config::insert_before(const std::string &before_key, const std::string &key, const Config &other)
+{
+    Config config(other);
+    return insert_before(before_key, key, std::move(config));
+}
+
+Config &Config::insert_before(const std::string &before_key, const std::string &key, Config &&other)
+{
+    try_convert_null_to_json();
+
+    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+    dynamic_cast<tools::ElementJson*>(m_value)->insert_before(before_key, key, std::move(other));
+
+    return *this;
+}
+
+Config& Config::insert_after(const std::string& after_key, const std::string& key, const Config& other) {
+    Config config(other);
+    return insert_after(after_key, key, std::move(config));
+}
+
+Config& Config::insert_after(const std::string& after_key, const std::string& key, Config&& other) {
+    try_convert_null_to_json();
+
+    __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+    dynamic_cast<tools::ElementJson*>(m_value)->insert_after(after_key, key, std::move(other));
+
+    return *this;
 }
 
 Config &Config::append(const Config &config) {
