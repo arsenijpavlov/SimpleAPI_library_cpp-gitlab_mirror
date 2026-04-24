@@ -241,7 +241,8 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) noexcept {
                 pm.m_is_error = !utils::CheckCrc32(pm.m_packet);
                 pm.m_packet.erase(pm.m_packet.begin(), pm.m_packet.begin() + 4);
                 break;
-            default:        break;
+            default:
+                break;
             }
             log(logs::eDEBUG2, "after CRC: " + utils::ToHexString(pm.m_packet));
 
@@ -338,6 +339,7 @@ void Socket::log(const logs::LEVEL level, const std::string& log_message,
         currentCallback         = m_settings.getLogErrorCallback();
         currentColorCallback    = m_settings.getColorLogErrorCallback();
         levelSubstring          = ".e";
+        break;
     default:
         currentCallback         = m_settings.getLogErrorCallback();
         currentColorCallback    = m_settings.getColorLogErrorCallback();
@@ -1042,7 +1044,7 @@ PacketMessage UDPSocket::recvRawMsg(int timeout) noexcept {
 
     if(recv_num < 0) {
         log(logs::eERROR, "recvfrom() failed, error(" + std::to_string(errno) + ")");
-    } else if(recv_num > 0) {        
+    } else if(recv_num > 0) {
         char rpacket_ip[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &(sock.sin_addr), (char*)rpacket_ip, INET_ADDRSTRLEN);
 

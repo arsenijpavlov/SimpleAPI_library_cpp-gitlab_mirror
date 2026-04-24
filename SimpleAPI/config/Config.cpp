@@ -822,8 +822,8 @@ bool Config::get_bool_at(const std::vector<OnlySizetOrString> &complex_key) cons
     //определить тип значения первого индекса/ключа
     Config ret;
     switch (complex_key[0].getType()) {
-    case OnlySizetOrString::Type::type_string:  ret = get_at(complex_key[0].getStringValue());
-    case OnlySizetOrString::Type::type_sizet:   ret = get_at(complex_key[0].getIndexValue());
+    case OnlySizetOrString::Type::type_string:  ret = get_at(complex_key[0].getStringValue());  break;
+    case OnlySizetOrString::Type::type_sizet:   ret = get_at(complex_key[0].getIndexValue());   break;
     default:
         //это значение пользователь библиотеки не увидит
         throw std::invalid_argument("incorrect complex_key type");
@@ -900,8 +900,8 @@ long double Config::get_number_at(const std::vector<OnlySizetOrString> &complex_
     //определить тип значения первого индекса/ключа
     Config ret;
     switch (complex_key[0].getType()) {
-    case OnlySizetOrString::Type::type_string:  ret = get_at(complex_key[0].getStringValue());
-    case OnlySizetOrString::Type::type_sizet:   ret = get_at(complex_key[0].getIndexValue());
+    case OnlySizetOrString::Type::type_string:  ret = get_at(complex_key[0].getStringValue());  break;
+    case OnlySizetOrString::Type::type_sizet:   ret = get_at(complex_key[0].getIndexValue());   break;
     default:
         //это значение пользователь библиотеки не увидит
         throw std::invalid_argument("incorrect complex_key type");
@@ -978,8 +978,8 @@ std::string Config::get_string_at(const std::vector<OnlySizetOrString> &complex_
     //определить тип значения первого индекса/ключа
     Config ret;
     switch (complex_key[0].getType()) {
-    case OnlySizetOrString::Type::type_string:  ret = get_at(complex_key[0].getStringValue());
-    case OnlySizetOrString::Type::type_sizet:   ret = get_at(complex_key[0].getIndexValue());
+    case OnlySizetOrString::Type::type_string:  ret = get_at(complex_key[0].getStringValue());  break;
+    case OnlySizetOrString::Type::type_sizet:   ret = get_at(complex_key[0].getIndexValue());   break;
     default:
         //это значение пользователь библиотеки не увидит
         throw std::invalid_argument("incorrect complex_key type");

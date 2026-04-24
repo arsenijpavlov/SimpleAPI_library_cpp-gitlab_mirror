@@ -54,6 +54,7 @@ void SocketThread::log(const logs::LEVEL level, const std::string log_message,
             currentCallback         = m_settings.getLogErrorCallback();
             currentColorCallback    = m_settings.getColorLogErrorCallback();
             levelSubstring          = ".e";
+            break;
         default:
             currentCallback         = m_settings.getLogErrorCallback();
             currentColorCallback    = m_settings.getColorLogErrorCallback();
