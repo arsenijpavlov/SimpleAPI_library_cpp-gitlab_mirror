@@ -254,7 +254,9 @@ public:
         }
         case ValueType::eArray: {
             m_value = new ElementArray();
-            (void)std::initializer_list<int>{(push_back(std::move(values)), 0)...};
+            for(size_t i = 0; i < vec.size(); i++) {
+                push_back(std::move(vec[i]));
+            }
             break;
         }
         case ValueType::eJson: {
@@ -650,7 +652,8 @@ public:
     // ======================================================================================================== Removing
 
     // Info ============================================================================================================
-    ValueType       getType()                               const noexcept          { return m_value->getType(); }              API_ALL
+    ValueType       getType()                               const noexcept
+                    { return m_value ? m_value->getType() : ValueType::eNull; }                                                 API_ALL
                     // @TEST(ELEMENT, create_empty)
     bool            isNull()                                const noexcept          { return getType() == ValueType::eNull; }   API_ALL
                     // @TEST(ELEMENT, create_bool)
