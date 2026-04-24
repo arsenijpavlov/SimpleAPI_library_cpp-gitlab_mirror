@@ -1597,7 +1597,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
 {
     using namespace tools;
 
-    setValue(ElementJson());
+    setValue(ElementJson()); // clear() не нужен, т.к. объект только создан
     setCommentDesign(input_design);
     CommentDesign& design = getCommentDesign();
 
