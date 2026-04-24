@@ -77,21 +77,21 @@ private:
     tools::IElement* m_value;
 
 public:
-    Config()                                noexcept : m_value(nullptr)         { init(); }
-    Config(const Config& other)             noexcept : m_value(nullptr)         { setValue(other); }
-    Config(Config&& other)                  noexcept : m_value(nullptr)         { setValue(std::move(other)); }
-    explicit Config(const tools::IElement& other)  noexcept : m_value(nullptr)         { setValue(other); }
-    explicit Config(tools::IElement&& other)       noexcept : m_value(nullptr)         { setValue(std::move(other)); }
+    Config()                                        noexcept : m_value(nullptr)     { init(); }
+    Config(const Config& other)                     noexcept : m_value(nullptr)     { setValue(other); }
+    Config(Config&& other)                          noexcept : m_value(other.m_value) { other.m_value = nullptr; }
+    explicit Config(const tools::IElement& other)   noexcept : m_value(nullptr)     { setValue(other); }
+    explicit Config(tools::IElement&& other)        noexcept : m_value(nullptr)     { setValue(std::move(other)); }
 
-    explicit Config(const bool other)       noexcept : m_value(nullptr)         { setValue(other); }
+    explicit Config(const bool other)               noexcept : m_value(nullptr)     { setValue(other); }
     __ONLY_NUMBER_TYPES__(T)
-    explicit Config(T&& other)              noexcept : m_value(nullptr)         { setValue(static_cast<long double>(other)); }
+    explicit Config(T&& other)                      noexcept : m_value(nullptr)     { setValue(static_cast<long double>(other)); }
 
     // NOTE: с explicit Config(const char*) не работает
     __ONLY_STRING_TYPES__(T)
-    /*explicit*/ Config(const T& other)         noexcept : m_value(nullptr)     { setValue(std::string(other)); }
+    /*explicit*/ Config(const T& other)             noexcept : m_value(nullptr)     { setValue(std::string(other)); }
     __ONLY_STRING_TYPES__(T)
-    /*explicit*/ Config(T&& other)              noexcept : m_value(nullptr)     { setValue(std::string(std::move(other))); }
+    /*explicit*/ Config(T&& other)                  noexcept : m_value(nullptr)     { setValue(std::string(std::move(other))); }
 
     explicit Config(const ValueType config_type) : m_value(nullptr) {
         using namespace tools;
@@ -104,23 +104,23 @@ public:
             break;
         }
         case ValueType::eBool: {
-            m_value = dynamic_cast<IElement*>(new ElementBool());
+            m_value = new ElementBool();
             break;
         }
         case ValueType::eNumber: {
-            m_value = dynamic_cast<IElement*>(new ElementNumber());
+            m_value = new ElementNumber();
             break;
         }
         case ValueType::eString: {
-            m_value = dynamic_cast<IElement*>(new ElementString());
+            m_value = new ElementString();
             break;
         }
         case ValueType::eArray: {
-            m_value = dynamic_cast<IElement*>(new ElementArray());
+            m_value = new ElementArray();
             break;
         }
         case ValueType::eJson: {
-            m_value = dynamic_cast<IElement*>(new ElementJson());
+            m_value = new ElementJson();
             break;
         }
         }
@@ -153,7 +153,7 @@ public:
             if(sizeof...(values) == 1)
                 setValue(vec[0]);
             else
-                m_value = dynamic_cast<IElement*>(new ElementBool());
+                m_value = new ElementBool();
             break;
         }
         case ValueType::eNumber: {
@@ -165,7 +165,7 @@ public:
             if(sizeof...(values) == 1)
                 setValue(vec[0]);
             else
-                m_value = dynamic_cast<IElement*>(new ElementNumber());
+                m_value = new ElementNumber();
             break;
         }
         case ValueType::eString: {
@@ -177,11 +177,11 @@ public:
             if(sizeof...(values) == 1)
                 setValue(vec[0]);
             else
-                m_value = dynamic_cast<IElement*>(new ElementString());
+                m_value = new ElementString();
             break;
         }
         case ValueType::eArray: {
-            m_value = dynamic_cast<IElement*>(new ElementArray());
+            m_value = new ElementArray();
             (void)std::initializer_list<int>{(push_back(values), 0)...};
             break;
         }
@@ -189,10 +189,9 @@ public:
             if(sizeof...(values) % 2 != 0)
                 throw std::invalid_argument("Even number of arguments required (type Json)");
 
-            m_value = dynamic_cast<IElement*>(new ElementJson());
+            m_value = new ElementJson();
 
             for(size_t i = 0; i < vec.size(); i+=2) {
-//                std::cout << "key type: \"" << ToString(vec[i].getType()) << "\"" << std::endl;
                 push_back(vec[i].getString(), vec[i+1]);
             }
             break;
@@ -226,7 +225,7 @@ public:
             if(sizeof...(values) == 1)
                 setValue(std::move(vec[0]));
             else
-                m_value = dynamic_cast<IElement*>(new ElementBool());
+                m_value = new ElementBool();
             break;
         }
         case ValueType::eNumber: {
@@ -238,7 +237,7 @@ public:
             if(sizeof...(values) == 1)
                 setValue(std::move(vec[0]));
             else
-                m_value = dynamic_cast<IElement*>(new ElementNumber());
+                m_value = new ElementNumber();
             break;
         }
         case ValueType::eString: {
@@ -250,11 +249,11 @@ public:
             if(sizeof...(values) == 1)
                 setValue(std::move(vec[0]));
             else
-                m_value = dynamic_cast<IElement*>(new ElementString());
+                m_value = new ElementString();
             break;
         }
         case ValueType::eArray: {
-            m_value = dynamic_cast<IElement*>(new ElementArray());
+            m_value = new ElementArray();
             (void)std::initializer_list<int>{(push_back(std::move(values)), 0)...};
             break;
         }
@@ -262,10 +261,9 @@ public:
             if(sizeof...(values) % 2 != 0)
                 throw std::invalid_argument("Even number of arguments required (type Json)");
 
-            m_value = dynamic_cast<IElement*>(new ElementJson());
+            m_value = new ElementJson();
 
             for(size_t i = 0; i < vec.size(); i+=2) {
-//                std::cout << "key type: \"" << ToString(vec[i].getType()) << "\"" << std::endl;
                 push_back(vec[i].getString(), std::move(vec[i+1]));
             }
             break;
@@ -275,13 +273,13 @@ public:
 
     __ONLY_ALLOWED_TYPES__(T)
     explicit Config(const std::vector<std::pair<std::string, T>>& pairs_key_config) : m_value(nullptr) {
-        m_value = dynamic_cast<tools::IElement*>(new tools::ElementJson());
+        m_value = new tools::ElementJson();
         for(const auto& pair : pairs_key_config)
             push_at(pair.first, pair.second);
     }
     __ONLY_ALLOWED_TYPES__(T)
     explicit Config(std::vector<std::pair<std::string, T>>&& pairs_key_config) : m_value(nullptr) {
-        m_value = dynamic_cast<tools::IElement*>(new tools::ElementJson());
+        m_value = new tools::ElementJson();
         for(auto& pair : pairs_key_config)
             push_at(std::move(pair.first), std::move(pair.second));
     }

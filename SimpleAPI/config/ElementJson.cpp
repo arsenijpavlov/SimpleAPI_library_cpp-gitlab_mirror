@@ -12,10 +12,35 @@ namespace tools {
 
 ElementJson::ElementJson(const ElementJson &other) noexcept {
     init();
-    if(other.error())
-        setError(other.getError());
+    if(other.error()) setError(other.getError());
     m_comment = other.m_comment;
-    m_values = other.m_values;
+    m_values  = other.m_values;
+}
+
+ElementJson::ElementJson(ElementJson &&other) noexcept
+{
+    init();
+    if(other.error()) setError(other.getError());
+    m_comment = std::move(other.m_comment);
+    m_values  = std::move(other.m_values);
+}
+
+ElementJson &ElementJson::operator=(const ElementJson &other) noexcept
+{
+    init();
+    if(other.error()) setError(other.getError());
+    m_comment = other.m_comment;
+    m_values  = other.m_values;
+    return *this;
+}
+
+ElementJson &ElementJson::operator=(ElementJson &&other) noexcept
+{
+    init();
+    if(other.error()) setError(other.getError());
+    m_comment = std::move(other.m_comment);
+    m_values  = std::move(other.m_values);
+    return *this;
 }
 
 ElementJson::ElementJson(const JPair &pair) noexcept {

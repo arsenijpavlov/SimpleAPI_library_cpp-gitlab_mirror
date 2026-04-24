@@ -307,7 +307,7 @@ Config &Config::delete_suffix_comment(const std::string &key) {
 
 Config &Config::setValue() noexcept {
     release();
-    m_value = dynamic_cast<tools::IElement*>(new tools::ElementNull());
+    m_value = new tools::ElementNull();
     return *this;
 }
 
@@ -326,9 +326,7 @@ Config &Config::setValue(const Config &other) noexcept {
         switch(other.getType()) {
         case ValueType::eNull:      {
             setValue();
-            //FIXME: решение, откровенно говоря, странное, может потом исправлю
-            if(other.error())
-                setError(other.getError());
+            if(other.error()) setError(other.getError());
             break;
         }
         case ValueType::eBool:      { setValue(dynamic_cast<const ElementBool*>(other.m_value)->getValue());    break;  }
@@ -351,27 +349,13 @@ Config &Config::setValue(Config &&other) noexcept {
 
     if(this != &other)
     {
-        release();
+        // освобождаем прежде занятое значение
+        if(m_value)
+            delete m_value;
 
-        switch(other.getType()) {
-        case ValueType::eNull:      {
-            setValue();
-            //FIXME: решение, откровенно говоря, странное, может потом исправлю
-            if(other.error())
-                setError(other.getError());
-            break;
-        }
-        case ValueType::eBool:      { setValue(dynamic_cast<const ElementBool*>(other.m_value)->getValue());                break;  }
-        case ValueType::eNumber:    { setValue(std::move(dynamic_cast<const ElementNumber*>(other.m_value)->getValue()));   break;  }
-        case ValueType::eString:    { setValue(std::move(dynamic_cast<const ElementString*>(other.m_value)->getValue()));   break;  }
-        case ValueType::eArray:     { setValue(std::move(dynamic_cast<const ElementArray&>(*other.m_value)));               break;  }
-        case ValueType::eJson:      { setValue(std::move(dynamic_cast<const ElementJson&>(*other.m_value)));                break;  }
-        default:                    break;
-        }
-
-        setCommentDesign(other.getCommentDesign());
-        setComment(other.getComment());
-        other.release(); //обнулить значение
+        // передача указателя в текущий объект
+        m_value       = other.m_value;
+        other.m_value = nullptr;
     }
     return *this;
 }
@@ -422,55 +406,55 @@ Config &Config::setValue(tools::IElement &&other) noexcept {
 
 Config &Config::setValue(const bool other) noexcept {
     release();
-    m_value = dynamic_cast<tools::IElement*>(new tools::ElementBool(other));
+    m_value = new tools::ElementBool(other);
     return *this;
 }
 
 Config &Config::setValue(const long double &other) noexcept {
     release();
-    m_value = dynamic_cast<tools::IElement*>(new tools::ElementNumber(other));
+    m_value = new tools::ElementNumber(other);
     return *this;
 }
 
 Config &Config::setValue(long double &&other) noexcept {
     release();
-    m_value = dynamic_cast<tools::IElement*>(new tools::ElementNumber(std::move(other)));
+    m_value = new tools::ElementNumber(std::move(other));
     return *this;
 }
 
 Config &Config::setValue(const std::string &other) noexcept {
     release();
-    m_value = dynamic_cast<tools::IElement*>(new tools::ElementString(other));
+    m_value = new tools::ElementString(other);
     return *this;
 }
 
 Config &Config::setValue(std::string &&other) noexcept {
     release();
-    m_value = dynamic_cast<tools::IElement*>(new tools::ElementString(std::move(other)));
+    m_value = new tools::ElementString(std::move(other));
     return *this;
 }
 
 Config &Config::setValue(const tools::ElementArray &other) noexcept {
     release();
-    m_value = dynamic_cast<tools::IElement*>(new tools::ElementArray(other));
+    m_value = new tools::ElementArray(other);
     return *this;
 }
 
 Config &Config::setValue(tools::ElementArray &&other) noexcept {
     release();
-    m_value = dynamic_cast<tools::IElement*>(new tools::ElementArray(std::move(other)));
+    m_value = new tools::ElementArray(std::move(other));
     return *this;
 }
 
 Config &Config::setValue(const tools::ElementJson &other) noexcept {
     release();
-    m_value = dynamic_cast<tools::IElement*>(new tools::ElementJson(other));
+    m_value = new tools::ElementJson(other);
     return *this;
 }
 
 Config &Config::setValue(tools::ElementJson &&other) noexcept {
     release();
-    m_value = dynamic_cast<tools::IElement*>(new tools::ElementJson(std::move(other)));
+    m_value = new tools::ElementJson(std::move(other));
     return *this;
 }
 
@@ -813,8 +797,8 @@ bool &Config::get_bool_at(const std::vector<OnlySizetOrString> &complex_key)
     //определить тип значения первого индекса/ключа
     Config* ret;
     switch (complex_key[0].getType()) {
-    case OnlySizetOrString::Type::type_string:  ret = &get_at(complex_key[0].getStringValue());
-    case OnlySizetOrString::Type::type_sizet:   ret = &get_at(complex_key[0].getIndexValue());
+    case OnlySizetOrString::Type::type_string:  ret = &get_at(complex_key[0].getStringValue()); break;
+    case OnlySizetOrString::Type::type_sizet:   ret = &get_at(complex_key[0].getIndexValue());  break;
     default:
         //это значение пользователь библиотеки не увидит
         throw std::invalid_argument("incorrect complex_key type");
@@ -891,8 +875,8 @@ long double &Config::get_number_at(const std::vector<OnlySizetOrString> &complex
     //определить тип значения первого индекса/ключа
     Config* ret;
     switch (complex_key[0].getType()) {
-    case OnlySizetOrString::Type::type_string:  ret = &get_at(complex_key[0].getStringValue());
-    case OnlySizetOrString::Type::type_sizet:   ret = &get_at(complex_key[0].getIndexValue());
+    case OnlySizetOrString::Type::type_string:  ret = &get_at(complex_key[0].getStringValue()); break;
+    case OnlySizetOrString::Type::type_sizet:   ret = &get_at(complex_key[0].getIndexValue());  break;
     default:
         //это значение пользователь библиотеки не увидит
         throw std::invalid_argument("incorrect complex_key type");
@@ -969,8 +953,8 @@ std::string &Config::get_string_at(const std::vector<OnlySizetOrString> &complex
     //определить тип значения первого индекса/ключа
     Config* ret;
     switch (complex_key[0].getType()) {
-    case OnlySizetOrString::Type::type_string:  ret = &get_at(complex_key[0].getStringValue());
-    case OnlySizetOrString::Type::type_sizet:   ret = &get_at(complex_key[0].getIndexValue());
+    case OnlySizetOrString::Type::type_string:  ret = &get_at(complex_key[0].getStringValue()); break;
+    case OnlySizetOrString::Type::type_sizet:   ret = &get_at(complex_key[0].getIndexValue());  break;
     default:
         //это значение пользователь библиотеки не увидит
         throw std::invalid_argument("incorrect complex_key type");
@@ -1058,7 +1042,7 @@ void Config::try_convert_null_to_json() noexcept
 
     if(isNull()) {
         release();
-        m_value = dynamic_cast<IElement*>(new ElementJson());
+        m_value = new ElementJson();
     }
 }
 
@@ -1068,7 +1052,7 @@ void Config::try_convert_null_to_json_array() noexcept
 
     if(isNull()){
         release();
-        m_value = dynamic_cast<IElement*>(new ElementArray());
+        m_value = new ElementArray();
     }
 }
 
@@ -1511,8 +1495,9 @@ bool Config::readFile(const std::string &file_path, const ConfigFormat format,
 //FIXME: m_error_str должен обнуляться
 bool Config::readFileJson(const std::string &file_path, const CommentDesign &design) noexcept
 {
+    // если переменная не заполнена, используется собственное значение CommentDesign
     CommentDesign n_design = design;
-    if(design == CommentDesign{}) { // если переменная не заполнена, используется соб
+    if(m_value && design == CommentDesign{}) {
         n_design = m_value->getCommentDesign();
     }
 
@@ -1529,8 +1514,9 @@ bool Config::readFileJson(const std::string &file_path, const CommentDesign &des
 //FIXME: m_error_str должен обнуляться
 bool Config::readFileIni(const std::string &file_path, const CommentDesign &design) noexcept
 {
+    // если переменная не заполнена, используется собственное значение CommentDesign
     CommentDesign n_design = design;
-    if(design == CommentDesign{}) { // если переменная не заполнена, используется соб
+    if(m_value && design == CommentDesign{}) {
         n_design = m_value->getCommentDesign();
     }
 

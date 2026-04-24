@@ -16,6 +16,10 @@ protected:
 public:
     ElementJson()                                                               noexcept        { init(); }
     explicit ElementJson(const ElementJson& other)                              noexcept;
+    explicit ElementJson(ElementJson&& other)                                   noexcept;
+    ElementJson& operator=(const ElementJson& other)                            noexcept;
+    ElementJson& operator=(ElementJson&& other)                                 noexcept;
+
     explicit ElementJson(const JPair& pair)                                     noexcept;
     explicit ElementJson(const std::string& input_string,
                          const ConfigFormat config_format = ConfigFormat::eJSON,
@@ -259,7 +263,7 @@ private:
         eJSON_ERROR_STATE
     };
     std::string to_string(const ParseState state)                               const noexcept;
-    void    UpdateState(ParseState& state, const ParseState new_state)          const noexcept;
+    void        UpdateState(ParseState& state, const ParseState new_state)      const noexcept;
 public:
     std::string parse(const std::string& input_string, CommentDesign &design,
                       const ConfigFormat format = ConfigFormat::eJSON,
