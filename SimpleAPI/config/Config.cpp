@@ -1685,12 +1685,9 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
     std::string current_comment;
     std::string temp_string_value;
 
-    size_t assignment_counter                 = 0;
-    bool is_quotes                            = false;
-    size_t inner_fugure_brackets_counter      = 0; // {}
-    size_t inner_square_brackets_counter      = 0; // []
-    size_t inner_triangulare_brackets_counter = 0; // <>
-    size_t inner_parentheses_counter          = 0; // ()
+    size_t assignment_counter = 0;
+    bool is_small_quotes      = false;
+    bool is_quotes            = false;
 
     char ch_previous = 0;
     char ch_current  = 0;
@@ -1728,11 +1725,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                 counter.check(j, ch_current);
 
                 //поиск комментариев ===================================================
-                const bool ext_flag = !is_quotes
-                                      && (inner_fugure_brackets_counter
-                                              + inner_square_brackets_counter
-                                              + inner_triangulare_brackets_counter +
-                                              inner_parentheses_counter == 0);
+                const bool ext_flag = !is_small_quotes && !is_quotes;
                 //вернёт комментарий без обрамления
                 try {
                     CheckComments(ch_current, ch_next, j, design, current_comment, ext_flag);
@@ -1769,16 +1762,8 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
 
                 if(ch_previous != '\\') {
                     switch(ch_current) {
-                        //TODO: внести использование этих проверок в CommentDesign::opt_
-//                    case '{':   if(!is_quotes)  inner_fugure_brackets_counter++;        break; //FIXME: может разбирать, что за переменная уже после разбора???
-//                    case '}':   if(!is_quotes)  inner_fugure_brackets_counter--;        break; //FIXME: может разбирать, что за переменная уже после разбора???
-//                    case '[':   if(!is_quotes)  inner_square_brackets_counter++;        break; //FIXME: может разбирать, что за переменная уже после разбора???
-//                    case ']':   if(!is_quotes)  inner_square_brackets_counter--;        break; //FIXME: может разбирать, что за переменная уже после разбора???
-//                    case '(':   if(!is_quotes)  inner_parentheses_counter++;            break; //FIXME: может разбирать, что за переменная уже после разбора???
-//                    case ')':   if(!is_quotes)  inner_parentheses_counter--;            break; //FIXME: может разбирать, что за переменная уже после разбора???
-//                    case '<':   if(!is_quotes)  inner_triangulare_brackets_counter++;   break; //FIXME: может разбирать, что за переменная уже после разбора???
-//                    case '>':   if(!is_quotes)  inner_triangulare_brackets_counter--;   break; //FIXME: может разбирать, что за переменная уже после разбора???
-                    case '"':   is_quotes = !is_quotes;                                 break;
+                    case '\'':  is_small_quotes = !is_small_quotes; break;
+                    case '"':   is_quotes = !is_quotes;             break;
                     }
                 }
 
@@ -1794,16 +1779,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
         }
 
         //значение корректно?
-        if(is_quotes
-//            || inner_fugure_brackets_counter      != 0
-//            || inner_fugure_brackets_counter      != 0
-//            || inner_square_brackets_counter      != 0
-//            || inner_square_brackets_counter      != 0
-//            || inner_parentheses_counter          != 0
-//            || inner_parentheses_counter          != 0
-//            || inner_triangulare_brackets_counter != 0
-//            || inner_triangulare_brackets_counter != 0
-            || design.temp_type != CommentType::eNotComment)
+        if(is_small_quotes || is_quotes || design.temp_type != CommentType::eNotComment)
         {
             continue; //значение прочитано не полностью!
         }
