@@ -814,6 +814,17 @@ TEST(JSON, parser_symbols_counter) {
     EXPECT_TRUE(regex_found);
 }
 
+TEST(JSON, parser_simple_value) {
+    Config cfg = ParseJson("15").second;
+    EXPECT_EQ(cfg, 15);
+
+    cfg = ParseJson("string").second;
+    EXPECT_EQ(cfg, "string");
+
+    cfg = ParseJson("{string").second;
+    EXPECT_NE(cfg, "{string"); //должно распарсить как Json, но при этом Json некорректный - 0 элементов
+}
+
 //TODO: функционал проверки типа JSON - значение любого типа, ключ не нужен
 //TODO: функционал проверки "есть ключ - нет значения"
 //TODO: функционал проверки "нет разделителя между значениями"

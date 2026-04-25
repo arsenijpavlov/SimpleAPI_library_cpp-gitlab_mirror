@@ -2106,6 +2106,8 @@ Config SpecificParser(const std::string& content, const ConfigFormat format,
     return config;
 }
 
+
+
 // Задача функции: определить тип значения верхнего уровня и передать в соответствующий обработчик
 Config SpecificParserJson(const std::string& content, const CommentDesign &design) noexcept
 {
@@ -2118,82 +2120,81 @@ Config SpecificParserJson(const std::string& content, const CommentDesign &desig
      */
     std::string current_comment;
     VString comments;
+    bool is_small_quotes       = false;
     bool is_quotes             = false;
     size_t inner_json_counter  = 0;
     size_t inner_array_counter = 0;
 
-    bool value_found        = false;
-    size_t value_started_at = 0;
-    bool is_full_json       = false;
+    bool value_found           = false;
+    size_t value_started_at    = 0;
+    bool is_full_json          = false;
 
     ParserSymbolCounter counter;
-    CommentDesign n_design = design;
+    CommentDesign n_design = design; //для изменения в процессе парсинга
 
     //нужно определить тип значения: "100%-json", "json с одним ключом" или что-то иное
-    {
-        for(size_t i = 0; i < content.size(); i++) {
-            const char ch_current  = content[i];
-            const char ch_next     = i < content.size() ? content[i + 1] : 0;
+    for(size_t i = 0; i < content.size(); i++) {
+        const char ch_current  = content[i];
+        const char ch_next     = i < content.size() ? content[i + 1] : 0;
 
-            counter.check(i, ch_current);
+        counter.check(i, ch_current);
 
-            //поиск комментариев ===================================================
-            const bool ext_flag = !is_quotes && (inner_array_counter + inner_json_counter == 0);
-            //вернёт комментарий без обрамления
-            tools::CheckComments(ch_current, ch_next, i, n_design, current_comment, ext_flag);
-            if(!n_design.with_comments)
-                current_comment.clear();
-            if(n_design.with_comments && n_design.temp_type == CommentType::eCommentEnd)
-            {
-                // запомнить комментарий, если он потом понадобится для одиночного значения
-//                comments.push_back(FromComment(std::move(current_comment), design)); //FIXME: на будущее
-                comments.push_back(tools::FromComment(current_comment, n_design));
-                current_comment.clear();
-                n_design.temp_type = CommentType::eNotComment;
-                continue;
-            }
-            if(n_design.temp_type != CommentType::eNotComment)
-                continue; // здесь комментарий, не обрабатываем символ
-            //=================================================== поиск комментариев
+        //поиск комментариев ===================================================
+        const bool ext_flag = !is_quotes && !is_small_quotes && (inner_array_counter + inner_json_counter == 0);
+        //вернёт комментарий без обрамления
+        tools::CheckComments(ch_current, ch_next, i, n_design, current_comment, ext_flag);
+        if(!n_design.with_comments)
+            current_comment.clear();
+        if(n_design.with_comments && n_design.temp_type == CommentType::eCommentEnd)
+        {
+            // запомнить комментарий, если он потом понадобится для одиночного значения
+            //                comments.push_back(FromComment(std::move(current_comment), design)); //FIXME: на будущее
+            comments.push_back(tools::FromComment(current_comment, n_design));
+            current_comment.clear();
+            n_design.temp_type = CommentType::eNotComment;
+            continue;
+        }
+        if(n_design.temp_type != CommentType::eNotComment)
+            continue; // здесь комментарий, не обрабатываем символ
+        //=================================================== поиск комментариев
 
-            //первый не пробельный символ является определителем
-            if(!value_found && !utils::CharInString(ch_current, __SPACES__))
-            {
-                value_found      = true;
-                value_started_at = i;
-                if(ch_current == '{') {
-                    is_full_json = true;
-                    break;
-                }
-            }
-
-            //находим следующие определители
-            if(value_found) {
-                if(inner_json_counter == 0 && inner_array_counter == 0)
-                {
-                    if(utils::CharInString(ch_current, "=:")) {
-                        is_full_json = true;
-                        break;
-                    }
-                }
-            }
-
-            //само наличие этих знаков
-            switch(ch_current){
-            case '{': inner_json_counter++;     break;
-            case '}': inner_json_counter--;     break;
-            case '[': inner_array_counter++;    break;
-            case ']': inner_array_counter--;    break;
+        //первый не пробельный символ является определителем
+        if(!value_found && !utils::CharInString(ch_current, __SPACES__))
+        {
+            value_found      = true;
+            value_started_at = i;
+            if(ch_current == '{') {
+                is_full_json = true;
+                break;
             }
         }
+
+        //находим следующие определители
+        if(value_found) {
+//            if(inner_json_counter == 0 && inner_array_counter == 0)
+//            {
+                if(utils::CharInString(ch_current, "=:")) {
+                    is_full_json = true;
+                    break;
+//                }
+            }
+        }
+
+        //FIXME: is_small_quotes, is_quotes
+        //само наличие этих знаков
+//        switch(ch_current){
+//        case '{': inner_json_counter++;     break;
+//        case '}': inner_json_counter--;     break;
+//        case '[': inner_array_counter++;    break;
+//        case ']': inner_array_counter--;    break;
+//        }
     }
 
     Config result_cfg;
-    result_cfg.setCommentDesign(n_design);
     std::string prefix_comment = tools::VStringToString(comments);
     std::string error;
 
-    result_cfg.release();
+    result_cfg.setCommentDesign(n_design);
     result_cfg.setPrefixComment(std::move(prefix_comment));
 
     if(is_full_json) {
@@ -2239,7 +2240,7 @@ Config SpecificParserJson(const std::string& content, const CommentDesign &desig
             counter.check(i, ch_current);
 
             //поиск комментариев ===================================================
-            const bool ext_flag = !is_quotes && (inner_array_counter + inner_json_counter == 0);
+            const bool ext_flag = !is_quotes && !is_small_quotes && (inner_array_counter + inner_json_counter == 0);
             //вернёт комментарий без обрамления
             tools::CheckComments(ch_current, ch_next, i, n_design, current_comment, ext_flag);
             if(!n_design.with_comments)
@@ -2257,15 +2258,22 @@ Config SpecificParserJson(const std::string& content, const CommentDesign &desig
 
 
             if(!value_stored) {
-                if(ch_current == '\"'
-                    && ch_previous != '\\'
-                    && inner_json_counter + inner_array_counter == 0)
-                {
-                    is_quotes = !is_quotes;
+                if(ch_previous != '\\') {
+                    switch(ch_current) {
+                    case '\'':  if(!is_quotes)          is_small_quotes = !is_small_quotes; break;
+                    case '"':   if(!is_small_quotes)    is_quotes = !is_quotes;             break;
+                    }
                 }
 
+//                if(ch_current == '\"'
+//                    && ch_previous != '\\'
+//                    && inner_json_counter + inner_array_counter == 0)
+//                {
+//                    is_quotes = !is_quotes;
+//                }
+
                 //кавычки, именованные списки, массивы
-                if(!is_quotes) {
+                if(!is_quotes && !is_small_quotes) {
                     switch(ch_current) {
                     case '{':   { ++inner_json_counter;     break; }
                     case '}':   { --inner_json_counter;     break; }
@@ -2277,7 +2285,7 @@ Config SpecificParserJson(const std::string& content, const CommentDesign &desig
                 value += content[i];
 
                 //значение прочитано полностью?
-                if(!is_quotes && inner_json_counter + inner_array_counter == 0
+                if(!is_quotes && !is_small_quotes && inner_json_counter + inner_array_counter == 0
                     && (ch_next == 0 || utils::CharInString(ch_next, __SEPARATORS__ " }")
                         || utils::CharInString(ch_current, __SEPARATORS__ " }")))
                 {

@@ -313,3 +313,12 @@ TEST(ELEMENT, create_string_from_variadic) {
     EXPECT_ANY_THROW({ Config config3(ValueType::eString, "true", "false"); });
     EXPECT_ANY_THROW({ Config config3(ValueType::eString, true); });
 }
+
+TEST(ELEMENT, equal_test_1) {
+    using namespace simpleapi;
+
+    Config cfg1(ValueType::eArray, "a", "b", "c");
+    Config cfg2(ValueType::eArray, "a", "b", "c");
+
+    EXPECT_TRUE(cfg1 == cfg2);
+}

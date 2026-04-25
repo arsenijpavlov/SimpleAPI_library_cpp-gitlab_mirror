@@ -278,7 +278,7 @@ bool ElementArray::isEqual(const IElement &other, const bool compare_comments,
     if(b2) {
         const ElementArray& other_array = reinterpret_cast<const ElementArray&>(other);
         for(size_t i = 0; i < size(); i++) {
-            if(m_values[i]->isEqual(*other_array.m_values[i], compare_comments, map_sort_important)) {
+            if(!m_values[i]->isEqual(*other_array.m_values[i], compare_comments, map_sort_important)) {
                 b2 = false;
                 break;
             }

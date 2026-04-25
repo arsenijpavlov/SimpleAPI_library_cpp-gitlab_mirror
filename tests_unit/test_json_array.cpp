@@ -155,3 +155,8 @@ TEST(ARRAY, contains) {
 
     EXPECT_TRUE(array.containsValue(inner));
 }
+
+TEST(ARRAY, parse_json_simple_array) {
+    Config cfg = ParseJson("[a, b, c]").second;
+    EXPECT_EQ(cfg, Config(ValueType::eArray, "a", "b", "c"));
+}
