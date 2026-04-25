@@ -44,16 +44,6 @@ struct is_valid_config_type {
 //ПРЕДВАРИТЕЛЬНЫЕ ОБЪЯВЛЕНИЯ
 Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
                                CommentDesign &design, ParserSymbolCounter& start_iterator)              noexcept;
-namespace tools {
-Config ParserDistributor(const std::string& content, const ConfigFormat format,
-                        const CommentDesign &design, const int8_t yaml_tabulation_level = 0)            noexcept;
-Config ParserDistributorJsonson(const std::string& content, const CommentDesign &design)                noexcept;
-//NOTE: формат INI не подразумевает схему "только value", обязательно связки "key=value"
-Config ParserDistributorYaml(const std::string& content, const CommentDesign &design,
-                            const int8_t yaml_tabulation_level)                                         noexcept;
-Config ParserDistributorXml(const std::string& content, const CommentDesign &design)                    noexcept;
-} // namespace tools
-
 //пара <корректность чтения, итоговый Config>
 std::pair<bool, Config> ReadFile(const std::string& file_path, const ConfigFormat format,
                                  const CommentDesign &design = {})                                      noexcept;
@@ -884,14 +874,6 @@ public:
     // вернёт текст ошибки, указывающий на тип некорректно прочитанного значения
     friend Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
                                           CommentDesign &design, ParserSymbolCounter& start_iterator)       noexcept;
-    friend Config tools::ParserDistributor(const std::string& content, const ConfigFormat format,
-                                   const CommentDesign &design, const int8_t yaml_tabulation_level)         noexcept;
-    friend Config tools::ParserDistributorJsonson(const std::string& content, const CommentDesign &design)  noexcept;
-    //NOTE: формат INI не подразумевает схему "только value", обязательно связки "key=value"
-    friend Config tools::ParserDistributorYaml(const std::string& content, const CommentDesign &design,
-                                       const int8_t yaml_tabulation_level)                                  noexcept;
-    friend Config tools::ParserDistributorXml(const std::string& content, const CommentDesign &design)      noexcept;
-
     //пара <корректность чтения, итоговый Config>
     friend std::pair<bool, Config> ReadFile(const std::string& file_path, const ConfigFormat format,
                                             const CommentDesign &design)                                    noexcept;
