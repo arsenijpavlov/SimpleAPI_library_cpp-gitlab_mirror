@@ -1545,7 +1545,6 @@ bool Config::readFile(const std::string &file_path, const ConfigFormat format,
     return false;
 }
 
-//FIXME: m_error_str должен обнуляться
 bool Config::readFileJson(const std::string &file_path, const CommentDesign &design) noexcept
 {
     // если переменная не заполнена, используется собственное значение CommentDesign
@@ -1564,7 +1563,6 @@ bool Config::readFileJson(const std::string &file_path, const CommentDesign &des
     return false;
 }
 
-//FIXME: m_error_str должен обнуляться
 bool Config::readFileIni(const std::string &file_path, const CommentDesign &design) noexcept
 {
     // если переменная не заполнена, используется собственное значение CommentDesign
@@ -3029,7 +3027,6 @@ std::pair<bool, Config> ReadFile(const std::string &file_path, const ConfigForma
     return std::make_pair(false, out);
 }
 
-//FIXME: m_error_str должен обнуляться
 std::pair<bool, Config> ReadFileJson(const std::string &file_path, const CommentDesign &design) noexcept
 {
     std::string input_str;
@@ -3044,7 +3041,6 @@ std::pair<bool, Config> ReadFileJson(const std::string &file_path, const Comment
     return std::make_pair(false, out);
 }
 
-//FIXME: m_error_str должен обнуляться
 std::pair<bool, Config> ReadFileIni(const std::string &file_path, const CommentDesign &design) noexcept
 {
     std::string input_str;

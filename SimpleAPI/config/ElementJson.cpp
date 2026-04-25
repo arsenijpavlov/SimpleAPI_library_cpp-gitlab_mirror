@@ -804,10 +804,166 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
     return ret;
 }
 
+std::vector<ElementJson::KeysValuesAndComments> ElementJson::CollectKeysAndComments(Config& cfg, std::string prefix) const noexcept
+{
+    std::vector<KeysValuesAndComments> ret;
+
+    switch(cfg.getType()) {
+    case ValueType::eJson: {
+        for(auto& pair : cfg.getNamedRange()) {
+            auto temp = CollectKeysAndComments(*pair.second, prefix + "/" + pair.first);
+            ret.insert(ret.end(), temp.begin(), temp.end());
+        }
+        break;
+    }
+    case ValueType::eArray: {
+        for(auto& cfg_inner : cfg.getRange()) {
+            auto temp = CollectKeysAndComments(*cfg_inner, prefix);
+            ret.insert(ret.end(), temp.begin(), temp.end());
+        }
+        break;
+    }
+    default: {
+        ret.push_back({prefix, &cfg});
+        break;
+    }
+    }
+
+    return ret;
+}
+
+//метод не рекурсивный для контейнеров!
 std::string ElementJson::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
-    //TODO (скоро): std::string ElementJson::toIniString()
-    return "";
+    std::string ret;
+
+    auto GetPrefixComment = [&design](const Config cfg) -> std::string {
+        return (cfg.getPrefixComment().empty()) ? "" : (ToComment(cfg.getPrefixComment(), design) + "\n");
+    };
+    auto GetSuffixComment = [&design](const Config cfg) -> std::string {
+        return (cfg.getSuffixComment().empty()) ? "" : " " + (ToComment(cfg.getSuffixComment(), design));
+    };
+    auto IsArrayWithPrimitives = [](const Config cfg) -> bool {
+        if(!cfg.isIndexContainer())
+            return false;
+        for(const auto& cfg_inner : cfg.getRange()) {
+            if(cfg_inner->isContainer()
+                || !cfg_inner->getPrefixComment().empty()
+                || !cfg_inner->getSuffixComment().empty()
+                || (cfg_inner->isString() && (cfg_inner->getString().find('\n') != std::string::npos
+                                              || cfg_inner->getString().size() > 50)))
+            {
+                return false;
+            }
+        }
+        return true;
+    };
+    auto AppendMultinlineString = [&ret](const std::string& str) -> void {
+        ret += "\"";
+        std::string temp_str = str;
+        if(temp_str.find('\n') != std::string::npos) {
+            SeparatedLines sl = tools::SeparateWithoutColumned(temp_str);
+            for(size_t i = 0; i < sl.lines.size(); i++) {
+                ret += (i == 0 ? "" : "    ");
+                if(i + 1 < sl.lines.size())
+                    ret += sl.lines[i] + " \\\n";
+                else
+                    ret += sl.lines[i];
+            }
+        } else {
+            ret += str;
+        }
+        ret += "\"";
+    };
+    auto AppendArrayPrimitives = [&](const std::string& key, Config& cfg) -> void {
+        ret += key + " = ";
+
+        ret += "[";
+        for(size_t i = 0; i < cfg.size(); i++) {
+            if(cfg.isString())
+                ret += "\"";
+            ret += cfg[i].toString();
+            if(cfg.isString())
+                ret += "\"";
+
+            if(i + 1 < cfg.size())
+                ret += ", ";
+        }
+        ret += "]\n";
+    };
+    auto AppendCollection = [&](const std::string& prefix, Config& cfg) -> void {
+        std::vector<KeysValuesAndComments> kvacs = CollectKeysAndComments(cfg, prefix);
+        for(auto& kvac : kvacs) {
+            ret += GetPrefixComment(*kvac.remote_cfg);
+            ret += kvac.key + " = ";
+            if(kvac.remote_cfg->isString()) {
+                AppendMultinlineString(kvac.remote_cfg->toString());
+            } else {
+                ret += kvac.remote_cfg->toString();
+            }
+            ret += GetSuffixComment(*kvac.remote_cfg);
+            ret += "\n";
+        }
+    };
+
+    for(const auto& cfg : m_values) {
+        switch(cfg.second->getType()) {
+        case ValueType::eJson: {
+            if(!ret.empty())
+                ret += '\n';
+            ret += GetPrefixComment(*cfg.second);
+            ret += "[" + cfg.first + "]";
+            ret += GetSuffixComment(*cfg.second);
+            ret += "\n";
+
+            for(const auto& cfg_inner : cfg.second->getNamedRange()) {
+                if(cfg_inner.second->isContainer()) {
+                    if(IsArrayWithPrimitives(*cfg_inner.second))
+                    {
+                        //если внутри только примитивы без комментариев - вывести их в одну строку (строки длиной <=50)
+                        AppendArrayPrimitives(cfg_inner.first, *cfg_inner.second);
+                    } else {
+                        //нужно собрать все элементы массива и упаковать в общее имя с переходом между уровнями
+                        AppendCollection(cfg_inner.first, *cfg_inner.second);
+                    }
+                } else if(cfg_inner.second->isString()) {
+                    ret += GetPrefixComment(*cfg_inner.second);
+                    ret += cfg_inner.first + " = ";
+                    AppendMultinlineString(cfg_inner.second->toString());
+                    ret += GetSuffixComment(*cfg_inner.second);
+                    ret += "\n";
+                } else {
+                    ret += GetPrefixComment(*cfg_inner.second);
+                    ret += cfg_inner.first + " = " + cfg_inner.second->toString();
+                    ret += GetSuffixComment(*cfg_inner.second);
+                    ret += "\n";
+                }
+            } // for()
+
+            break;
+        }
+        case ValueType::eArray: {
+            //если внутри только примитивы без комментариев - вывести их в одну строку (строки длиной <=50)
+            if(IsArrayWithPrimitives(*cfg.second.get())) {
+                AppendArrayPrimitives(cfg.first, *cfg.second);
+            } else {
+                //нужно собрать все элементы массива и упаковать в общее имя с переходом между уровнями
+                AppendCollection(cfg.first, *cfg.second);
+            }
+
+            break;
+        }
+        default: {
+            ret += GetPrefixComment(*cfg.second);
+            ret += cfg.first + " = " + cfg.second->toString() + "\n";
+            ret += GetSuffixComment(*cfg.second);
+            break;
+        }
+        }
+
+    }
+
+    return ret;
 }
 
 std::string ElementJson::toYamlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept

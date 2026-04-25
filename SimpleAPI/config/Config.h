@@ -648,7 +648,7 @@ public:
 
     // Info ============================================================================================================
     ValueType       getType()                               const noexcept
-                    { return m_value ? m_value->getType() : ValueType::eNull; }                                                 API_ALL
+                    { return m_value != nullptr ? m_value->getType() : ValueType::eNull; }                                      API_ALL
                     // @TEST(ELEMENT, create_empty)
     bool            isNull()                                const noexcept          { return getType() == ValueType::eNull; }   API_ALL
                     // @TEST(ELEMENT, create_bool)
@@ -770,7 +770,7 @@ public:
         friend shared_VElement::const_iterator          cend(const Range& r)                    { return r.cend(); }
     };
     Range getRange()                                            { return Range(*this); }
-    Range getRange()                                    const   { return Range(*this); }
+    const Range getRange()                              const   { return Range(*this); }
     shared_VElement::iterator           array_begin();
     shared_VElement::const_iterator     array_cbegin()                                          const;
     shared_VElement::iterator           array_end();
