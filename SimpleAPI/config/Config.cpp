@@ -1036,6 +1036,14 @@ std::string Config::get_string_back() const {
     return dynamic_cast<const tools::ElementString*>(config.m_value)->getValue();
 }
 
+Config &Config::clearContainer()
+{
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+
+    dynamic_cast<tools::IElementContainer*>(m_value)->clearContainer();
+    return *this;
+}
+
 void Config::try_convert_null_to_json() noexcept
 {
     using namespace tools;
