@@ -408,9 +408,11 @@ std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t
     return ret;
 }
 
+//метод не рекурсивный для контейнеров!
 std::string ElementArray::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
-    return ""; //скорее всего не стоит здесь формировать строку, только в Json-парсере
+    //TODO: ElementArray::toIniString()
+    return "";
 }
 
 std::string ElementArray::toYamlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept

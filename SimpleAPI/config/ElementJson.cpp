@@ -805,6 +805,7 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
 }
 
 //метод не рекурсивный для контейнеров!
+//FIXME: переменные без имени - часть массива, даже если рядом карта ключ-значение
 std::string ElementJson::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     std::string ret;

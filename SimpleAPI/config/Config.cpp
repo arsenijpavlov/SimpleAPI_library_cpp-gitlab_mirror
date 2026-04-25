@@ -1528,7 +1528,6 @@ std::ostream &operator<<(std::ostream &os, const tools::IElement &config) noexce
     return os;
 }
 
-//WIKI: если
 bool Config::readFile(const std::string &file_path, const ConfigFormat format,
                       const CommentDesign &design) noexcept
 {
@@ -1826,6 +1825,7 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
     return !error();
 }
 
+//FIXME: переменные без имени - часть массива, даже если рядом карта ключ-значение
 bool Config::parseIni(const std::string &content, const CommentDesign &input_design) noexcept
 {
     using namespace tools;

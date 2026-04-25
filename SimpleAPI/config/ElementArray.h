@@ -170,7 +170,6 @@ public:
                          const int8_t custom_tabulation_level = -1)     const noexcept  override;
     std::string toJsonString(const CommentDesign &design = {},
                              const int8_t custom_tabulation_level = -1) const noexcept  override;
-    //NOTE: метод в данном контексте не функционален
     std::string toIniString(const CommentDesign &design = {},
                             const int8_t custom_tabulation_level = -1)  const noexcept  override;
     std::string toYamlString(const CommentDesign &design = {},
