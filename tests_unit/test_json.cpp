@@ -798,18 +798,18 @@ TEST(JSON, parser_symbols_counter) {
     bool regex_found;
 
     json.parseJson("{a=b #");
-    EXPECT_TRUE(json.error());
+    EXPECT_TRUE(json.error()) << json.getError();
     regex_found = RegexCheckCounter(json.getError(), 0, 5);
     EXPECT_TRUE(regex_found);
 
     json.parseJson("{a=b,\n"
                    "c= #");
-    EXPECT_TRUE(json.error());
+    EXPECT_TRUE(json.error()) << json.getError();;
     regex_found = RegexCheckCounter(json.getError(), 1, 4);
     EXPECT_TRUE(regex_found);
 
     json.parseJson("# #");
-    EXPECT_TRUE(json.error());
+    EXPECT_TRUE(json.error()) << json.getError();;
     regex_found = RegexCheckCounter(json.getError(), 0, 2);
     EXPECT_TRUE(regex_found);
 }

@@ -850,6 +850,21 @@ public:
     bool            parseXml(const std::string& content, const CommentDesign &design = {})          noexcept;                   API_ALL
     // ========================================================================================================== Parser
 
+private:
+    enum class ParseState {
+        eJSON_START,
+        eJSON_KEY,
+        eJSON_KEY_VALUE_SEPARATOR,
+        eJSON_VALUE,
+        eJSON_SEPARATOR,
+        eJSON_FINISH,
+        eJSON_ERROR_STATE
+    };
+    static std::string     to_string(const ParseState state)                                        noexcept;
+    static void            UpdateState(ParseState& state, const ParseState new_state)               noexcept;
+    void            parseFullJsonDoc(std::string&& content)                                         noexcept;
+
+public:
     // вернёт текст ошибки, указывающий на тип некорректно прочитанного значения
     friend Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
                                           CommentDesign &design, ParserSymbolCounter& start_iterator)       noexcept;
