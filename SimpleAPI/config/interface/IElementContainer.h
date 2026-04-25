@@ -92,28 +92,7 @@ public:
     // ============================================================================================================ File
 
     // Parser ==========================================================================================================
-    // NOTE: все методы ниже при ошибке вернут строку, описывающую ошибку
-    virtual std::string parse(const std::string& input_string, CommentDesign &design,
-                              const ConfigFormat format = ConfigFormat::eJSON,
-                              const int8_t tabulation_level = 0)                                        noexcept    = 0;
-
-    virtual std::string parse(std::string&& input_string, CommentDesign &design,
-                              const ConfigFormat format = ConfigFormat::eJSON,
-                              const int8_t tabulation_level = 0)                                        noexcept    = 0;
-
-    virtual std::string parseJson(const std::string& input_string, CommentDesign &design)               noexcept    = 0;
-
-    virtual std::string parseJson(std::string&& input_string, CommentDesign &design)                    noexcept    = 0;
-
-    virtual std::string parseYaml(const std::string& input_string, CommentDesign &design,
-                                  const int8_t tabulation_level = 0)                                    noexcept    = 0;
-
-    virtual std::string parseYaml(std::string&& input_string, CommentDesign &design,
-                                  const int8_t tabulation_level = 0)                                    noexcept    = 0;
-
-    virtual std::string parseXml(const std::string& input_string, CommentDesign &design)                noexcept    = 0;
-
-    virtual std::string parseXml(std::string&& input_string, CommentDesign &design)                     noexcept    = 0;
+    // парсерами управляет исключительно Config
     // ========================================================================================================== Parser
 };
 

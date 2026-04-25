@@ -851,7 +851,7 @@ public:
     // ========================================================================================================== Parser
 
 private:
-    enum class ParseState {
+    enum class ParseStateJson {
         eJSON_START,
         eJSON_KEY,
         eJSON_KEY_VALUE_SEPARATOR,
@@ -860,9 +860,20 @@ private:
         eJSON_FINISH,
         eJSON_ERROR_STATE
     };
-    static std::string     to_string(const ParseState state)                                        noexcept;
-    static void            UpdateState(ParseState& state, const ParseState new_state)               noexcept;
+    static std::string to_string(const ParseStateJson state)                                        noexcept;
+    static void     UpdateState(ParseStateJson& state, const ParseStateJson new_state)              noexcept;
     void            parseFullJsonDoc(std::string&& content)                                         noexcept;
+
+    enum class ParseStateJsonArray {
+        eARRAY_START,
+        eARRAY_VALUE,
+        eARRAY_SEPARATOR,
+        eARRAY_FINISH,
+        eARRAY_ERROR_STATE
+    };
+    static std::string to_string(const ParseStateJsonArray state)                                   noexcept;
+    static void     UpdateState(ParseStateJsonArray& state, const ParseStateJsonArray new_state)    noexcept;
+    void            parseFullJsonArrayDoc(std::string&& content)                                    noexcept;
 
 public:
     // вернёт текст ошибки, указывающий на тип некорректно прочитанного значения

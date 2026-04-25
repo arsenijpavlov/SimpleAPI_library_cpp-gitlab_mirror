@@ -78,7 +78,11 @@ TEST(ARRAY, parse_error) {
     } catch (...) {
         FAIL(); //метод не должен генерировать исключений
     }
-    EXPECT_FALSE(json["array"].size() == 3); //будет прочитано только значение 15
+    ASSERT_FALSE(json["array"].size() == 3); //будет прочитано только значение 15
+    EXPECT_TRUE(json.error());
+    ASSERT_TRUE(json.containsKey("array"));
+    ASSERT_TRUE(json["array"].isArray());
+    ASSERT_EQ(json["array"].size(), 1);
     EXPECT_EQ(json["array"][0], 15);
 }
 

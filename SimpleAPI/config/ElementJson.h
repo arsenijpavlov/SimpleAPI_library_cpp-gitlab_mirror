@@ -21,10 +21,6 @@ public:
     ElementJson& operator=(ElementJson&& other)                                 noexcept;
 
     explicit ElementJson(const JPair& pair)                                     noexcept;
-    explicit ElementJson(const std::string& input_string,
-                         const ConfigFormat config_format = ConfigFormat::eJSON,
-                         const CommentDesign design = {},
-                         std::string* error_str = nullptr)                      noexcept;
 
     __ONLY_ALLOWED_TYPES__(T)
     explicit ElementJson(const std::string& key, const T& value) noexcept {
@@ -251,42 +247,7 @@ public:
     // ============================================================================================================ File
 
     // Parser ==========================================================================================================
-private:
-    //NOTE: всё это можно вынести из класса
-    //FIXME: на удаление?
-    enum class ParseState {
-        eJSON_START,
-        eJSON_KEY,
-        eJSON_KEY_VALUE_SEPARATOR,
-        eJSON_VALUE,
-        eJSON_SEPARATOR,
-        eJSON_FINISH,
-        eJSON_ERROR_STATE
-    };
-    std::string to_string(const ParseState state)                               const noexcept;
-    void        UpdateState(ParseState& state, const ParseState new_state)      const noexcept;
-public:
-    std::string parse(const std::string& input_string, CommentDesign &design,
-                      const ConfigFormat format = ConfigFormat::eJSON,
-                      const int8_t tabulation_level = 0)                                        noexcept    override;
-
-    std::string parse(std::string&& input_string, CommentDesign &design,
-                      const ConfigFormat format = ConfigFormat::eJSON,
-                      const int8_t tabulation_level = 0)                                        noexcept    override;
-
-    std::string parseJson(const std::string& input_string, CommentDesign &design)               noexcept    override;
-
-    std::string parseJson(std::string&& input_string, CommentDesign &design)                    noexcept    override;
-
-    std::string parseYaml(const std::string& input_string, CommentDesign &design,
-                          const int8_t tabulation_level = 0)                                    noexcept    override;
-
-    std::string parseYaml(std::string&& input_string, CommentDesign &design,
-                          const int8_t tabulation_level = 0)                                    noexcept    override;
-
-    std::string parseXml(const std::string& input_string, CommentDesign &design)                noexcept    override;
-
-    std::string parseXml(std::string&& input_string, CommentDesign &design)                     noexcept    override;
+    // все парсеры в Config
     // ========================================================================================================== Parser
 };
 

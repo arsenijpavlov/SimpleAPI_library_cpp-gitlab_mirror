@@ -369,6 +369,7 @@ TEST(JSON, write_and_read_file_comment) {
     c1.setDesign(json.getCommentDesign());
     Comment c2 = json2.get_comment("array");
     EXPECT_EQ(c1, c2);
+    EXPECT_EQ(c1.commentDesign(), c2.commentDesign());
     EXPECT_EQ(json2.get_prefix_comment("array"), FromTo(json.get_prefix_comment("array")));
     EXPECT_EQ(json2.get_suffix_comment("array"), FromTo_Suffix(json.get_suffix_comment("array")));
 

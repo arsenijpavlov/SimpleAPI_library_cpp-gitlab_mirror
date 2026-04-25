@@ -24,8 +24,6 @@ public:
         init();
         (void)std::initializer_list<int>{(push_back(std::forward<Types>(args)), 0)...};
     }
-    ElementArray(const std::string& input_string, const ConfigFormat config_format,
-                 const CommentDesign& design = {}, std::string* error_str = nullptr)    noexcept;
     ~ElementArray()                                                                     noexcept    {}
 
     // Comment =========================================================================================================
@@ -184,39 +182,7 @@ public:
     // ============================================================================================================ File
 
     // Parser ==========================================================================================================
-private:
-    //NOTE: всё это можно вынести из класса
-    enum class ParseState {
-        eARRAY_START,
-        eARRAY_VALUE,
-        eARRAY_SEPARATOR,
-        eARRAY_FINISH,
-        eARRAY_ERROR_STATE
-    };
-    std::string to_string(const ParseState state)                       const noexcept;
-    void    UpdateState(ParseState& state, const ParseState new_state)  const noexcept;
-public:
-    std::string parse(const std::string& input_string, CommentDesign &design,
-                      const ConfigFormat format = ConfigFormat::eJSON,
-                      const int8_t tabulation_level = 0)                                        noexcept    override;
-
-    std::string parse(std::string&& input_string, CommentDesign &design,
-                      const ConfigFormat format = ConfigFormat::eJSON,
-                      const int8_t tabulation_level = 0)                                        noexcept    override;
-
-    std::string parseJson(const std::string& input_string, CommentDesign &design)               noexcept    override;
-
-    std::string parseJson(std::string&& input_string, CommentDesign &design)                    noexcept    override;
-
-    std::string parseYaml(const std::string& input_string, CommentDesign &design,
-                          const int8_t tabulation_level = 0)                                    noexcept    override;
-
-    std::string parseYaml(std::string&& input_string, CommentDesign &design,
-                          const int8_t tabulation_level = 0)                                    noexcept    override;
-
-    std::string parseXml(const std::string& input_string, CommentDesign &design)                noexcept    override;
-
-    std::string parseXml(std::string&& input_string, CommentDesign &design)                     noexcept    override;
+    // все парсеры в Config
     // ========================================================================================================== Parser
 };
 

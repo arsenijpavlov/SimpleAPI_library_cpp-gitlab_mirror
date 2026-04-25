@@ -1962,20 +1962,20 @@ bool Config::parseXml(const std::string &content, const CommentDesign &design) n
     return false;
 }
 
-std::string Config::to_string(const ParseState state) noexcept {
+std::string Config::to_string(const ParseStateJson state) noexcept {
     switch (state) {
-    case ParseState::eJSON_START:               return "[JSON_START]";
-    case ParseState::eJSON_KEY:                 return "[JSON_KEY]";
-    case ParseState::eJSON_KEY_VALUE_SEPARATOR: return "[JSON_KEY_VALUE_SEPARATOR]";
-    case ParseState::eJSON_VALUE:               return "[JSON_VALUE]";
-    case ParseState::eJSON_SEPARATOR:           return "[JSON_SEPARATOR]";
-    case ParseState::eJSON_FINISH:              return "[JSON_FINISH]";
-    case ParseState::eJSON_ERROR_STATE:
-    default:                                    return "[JSON_ERROR_STATE]";
+    case ParseStateJson::eJSON_START:               return "[JSON_START]";
+    case ParseStateJson::eJSON_KEY:                 return "[JSON_KEY]";
+    case ParseStateJson::eJSON_KEY_VALUE_SEPARATOR: return "[JSON_KEY_VALUE_SEPARATOR]";
+    case ParseStateJson::eJSON_VALUE:               return "[JSON_VALUE]";
+    case ParseStateJson::eJSON_SEPARATOR:           return "[JSON_SEPARATOR]";
+    case ParseStateJson::eJSON_FINISH:              return "[JSON_FINISH]";
+    case ParseStateJson::eJSON_ERROR_STATE:
+    default:                                        return "[JSON_ERROR_STATE]";
     }
 }
 
-void Config::UpdateState(ParseState &state, const ParseState new_state) noexcept {
+void Config::UpdateState(ParseStateJson &state, const ParseStateJson new_state) noexcept {
     state = new_state;
     DEBUG_LOG("Parse Json, upd state: " << to_string(state));
 }
@@ -2005,7 +2005,7 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
     CommentDesign& design = getCommentDesign();
     design.temp_type      = CommentType::eNotComment;
 
-    ParseState state                = ParseState::eJSON_START;
+    ParseStateJson state            = ParseStateJson::eJSON_START;
     std::string key                 = "";
     std::string value               = "";
     std::string error_string        = "";
@@ -2084,11 +2084,18 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
 
         Config element = CreateElementFromString(std::move(value), ConfigFormat::eJSON, design, start_value_counter);
         if(element.error()) {
+            //контейнеры имеют добавляются если успешно прочитано хотя бы одно значение
+            if(element.isArray() && !element.isEmpty()) {
+                push_back(std::move(key), std::move(element));
+                if(get_back().getCommentDesign().opt_multiline_column_size > design.opt_multiline_column_size)
+                    design.opt_multiline_column_size = get_back().getCommentDesign().opt_multiline_column_size;
+            }
+
             //если случилась ошибка при внутренней конвертации прочитанного значения,
             // то эта ошибка становится основной ошибкой парсинга
             error_string = "ElementJson value parse error[" + std::to_string(counter.getLastLineCounter())
                            + "][" + std::to_string(counter.getLastSymbolCounter()) + "]: " + element.getError();
-            UpdateState(state, ParseState::eJSON_ERROR_STATE);
+            UpdateState(state, ParseStateJson::eJSON_ERROR_STATE);
             return false;
         }
 
@@ -2101,7 +2108,7 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
         return true;
     };
 
-    for(size_t i = 0; i < content.size() && state != ParseState::eJSON_ERROR_STATE; i++) {
+    for(size_t i = 0; i < content.size() && state != ParseStateJson::eJSON_ERROR_STATE; i++) {
         char ch_previous = i == 0 ? 0 : content[i - 1];
         char ch_current  = content[i];
         char ch_next     = i < content.size() ? content[i + 1] : 0;
@@ -2127,7 +2134,7 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
 
         // обработка комментария ПОСЛЕ значения
         if(utils::CharInString(ch_current, __SEPARATORS__)) {
-            if(state == ParseState::eJSON_KEY
+            if(state == ParseStateJson::eJSON_KEY
                 && key.empty()
                 && !comments.empty()
                 && (last_separator_symbol == ','
@@ -2146,7 +2153,7 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
         }
 
         switch (state) {
-        case ParseState::eJSON_START: {
+        case ParseStateJson::eJSON_START: {
             //пропуск пробелов =====================================================
             if(CharInString(ch_current, __SPACES__)) break;
             //===================================================== пропуск пробелов
@@ -2159,10 +2166,10 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
                 is_one_value_format = true;
             }
 
-            UpdateState(state, ParseState::eJSON_KEY);
+            UpdateState(state, ParseStateJson::eJSON_KEY);
             break;
         }
-        case ParseState::eJSON_KEY: {
+        case ParseStateJson::eJSON_KEY: {
             //игнор пробелов и разделителей пока ключ пустой
             if(!is_quotes && !is_small_quotes
                 && key.empty()
@@ -2175,7 +2182,7 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
                 if(get_back().getSuffixComment().empty())
                     AppendElementSuffixComment();
 
-                UpdateState(state, ParseState::eJSON_FINISH);
+                UpdateState(state, ParseStateJson::eJSON_FINISH);
                 break;
             }
 
@@ -2203,17 +2210,17 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
             if(!is_quotes && !is_small_quotes && CharInString(ch_next, __SPACES__ ":=")) {
                 RemoveQuotes(key);
                 DEBUG_LOG("ElementJson: current key done: \"" << key << "\"");
-                UpdateState(state, ParseState::eJSON_KEY_VALUE_SEPARATOR);
+                UpdateState(state, ParseStateJson::eJSON_KEY_VALUE_SEPARATOR);
                 value.clear();
             }
 
             break;
         }
-        case ParseState::eJSON_KEY_VALUE_SEPARATOR: {
+        case ParseStateJson::eJSON_KEY_VALUE_SEPARATOR: {
             if(CharInString(ch_current, __SPACES__))
                 break;
             if(CharInString(ch_current, ":=")) {
-                UpdateState(state, ParseState::eJSON_VALUE);
+                UpdateState(state, ParseStateJson::eJSON_VALUE);
 
                 //следующего символа не существует -> значением является null
                 if(ch_next == 0) {
@@ -2228,10 +2235,10 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
             }
 
             error_string = "not found json key-value separator (: or =)";
-            UpdateState(state, ParseState::eJSON_ERROR_STATE);
+            UpdateState(state, ParseStateJson::eJSON_ERROR_STATE);
             break;
         }
-        case ParseState::eJSON_VALUE: {
+        case ParseStateJson::eJSON_VALUE: {
             //игнор пробелов пока значение пустое
             if(!is_quotes && !is_small_quotes
                 && value.empty()
@@ -2286,11 +2293,11 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
                 // работа с комментариями перед элементом
                 AppendElementPrefixComment();
 
-                UpdateState(state, ParseState::eJSON_SEPARATOR);
+                UpdateState(state, ParseStateJson::eJSON_SEPARATOR);
             }
             break;
         }
-        case ParseState::eJSON_SEPARATOR: {
+        case ParseStateJson::eJSON_SEPARATOR: {
             //пропуск пробелов =====================================================
             if(CharInString(ch_current, __SPACES_WITHOUT_SEPARATORS__)) break;
             //===================================================== пропуск пробелов
@@ -2305,18 +2312,18 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
 
             if(!is_one_value_format && CharInString(ch_current, __SEPARATORS__)) {
                 i--;
-                UpdateState(state, ParseState::eJSON_KEY);
+                UpdateState(state, ParseStateJson::eJSON_KEY);
                 break;
             }
             if(!is_one_value_format && CharInString(ch_current, "}")) {
                 i--;
-                UpdateState(state, ParseState::eJSON_FINISH);
+                UpdateState(state, ParseStateJson::eJSON_FINISH);
                 break;
             }
 
             //либо считано одно значение и всё следующее является ошибкой (комменты не учитываются)
             //либо считано несколько значений и не найден знак завершения (комменты не учитываются)
-            UpdateState(state, ParseState::eJSON_ERROR_STATE);
+            UpdateState(state, ParseStateJson::eJSON_ERROR_STATE);
             error_string = "Not found stop of JSON.";
             break;
         }
@@ -2326,7 +2333,7 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
 
     /*если файл закончился раньше, чем было обработано последнее прочитанное значение*/
     if(!value.empty()
-        && state == ParseState::eJSON_VALUE)
+        && state == ParseStateJson::eJSON_VALUE)
     {
         if(design.temp_type == CommentType::eOneLineComment)
             design.temp_type = CommentType::eNotComment; //сбрасываем для корректной обработки oneline comment
@@ -2343,7 +2350,7 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
     if(!is_one_value_format)
         AppendMainSuffixComment(); //конечный комментарий для всего Json
 
-    if(!is_one_value_format && state != ParseState::eJSON_FINISH /*&& error_string.empty()*/)
+    if(!is_one_value_format && state != ParseStateJson::eJSON_FINISH /*&& error_string.empty()*/)
     {
         error_string = std::string("JSON parse error, unexpected symbol at [")
                        + std::to_string(counter.getLastLineCounter())
@@ -2352,6 +2359,334 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
                        + error_string;
         DEBUG_LOG("ERROR: " << error_string);
         //NOTE: в случае ошибки парсинга корректно прочитанные значения сохраняются
+        //clear();
+    }
+
+    setError(error_string);
+}
+
+std::string Config::to_string(const ParseStateJsonArray state) noexcept {
+    switch (state) {
+    case ParseStateJsonArray::eARRAY_START:         return "[ARRAY_START]";
+    case ParseStateJsonArray::eARRAY_VALUE:         return "[ARRAY_VALUE]";
+    case ParseStateJsonArray::eARRAY_SEPARATOR:     return "[ARRAY_SEPARATOR]";
+    case ParseStateJsonArray::eARRAY_FINISH:        return "[ARRAY_FINISH]";
+    case ParseStateJsonArray::eARRAY_ERROR_STATE:
+    default:                                        return "[ARRAY_ERROR_STATE]";
+    }
+}
+
+void Config::UpdateState(ParseStateJsonArray& state, const ParseStateJsonArray new_state) noexcept {
+    state = new_state;
+    DEBUG_LOG("Parse Array, upd state: " << to_string(state) << std::endl);
+}
+
+void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
+    using namespace utils;
+    using namespace tools;
+
+    /* NOTE: для документации
+     * комментарий массива
+     * начало массива (формат JSON)
+     * (+комментарий перед значением)
+     * значение массива
+     * (+комментарий после значения) = на строке значения
+     * (разделитель)
+     * (+комментарий перед значением)= после разделителя
+     * (+значение массива)           = после разделителя
+     * (+комментарий после значения) = после разделителя
+     * конец массива
+    */
+
+    //пустой документ не является ошибкой синтаксиса
+    RemoveIllegalSpaces(content);
+    if(content.empty()) return;
+
+    CommentDesign& design = getCommentDesign();
+    design.temp_type = CommentType::eNotComment;
+
+    ParseStateJsonArray state       = ParseStateJsonArray::eARRAY_START;
+    std::string key                 = "";
+    std::string value               = "";
+    std::string error_string        = "";
+    bool is_quotes                  = false;
+    char last_separator_symbol      = '\n';
+    uint16_t inner_json_counter     = 0;
+    uint16_t inner_array_counter    = 0;
+    ParserSymbolCounter counter;
+    ParserSymbolCounter start_value_counter; //для счётчика внутри значения
+
+    std::string current_comment     = ""; // текущее значение при парсинге
+    VString comments;                     // обработанные комментарии
+    size_t value_read_at_line       = 0;
+
+    auto AppendMainPreviewComment = [&]() {
+        if(!comments.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
+            setPrefixComment(VStringToString(comments));
+            DEBUG_LOG("ElementArray: PreviewComment: " << "\"" << getPrefixComment() << "\"");
+            comments.clear();
+        }
+    };
+    auto AppendMainSuffixComment = [&]() {
+        if(!comments.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
+            setSuffixComment(VStringToString(comments));
+            DEBUG_LOG("ElementArray: SuffixComment: " << "\"" << getSuffixComment() << "\"");
+            comments.clear();
+        }
+    };
+
+    /* Логика работы комментариев:
+     * - комментарий после значения применяется только при начале на той же строке,
+     * что и разделитель этого значения
+     * - все остальные комментарии добавляются перед следующим значением
+     */
+    auto AppendElementPrefixComment = [&](){
+        if(!comments.empty()
+            && !isEmpty()
+            && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment))
+        {
+            get_back().setPrefixComment(VStringToString(comments));
+            DEBUG_LOG("ElementArray: inner Element add PreviewComment: " << "\"" << get_back().getPrefixComment() << "\"");
+            comments.clear();
+        }
+    };
+    auto AppendElementSuffixComment = [&](const bool for_penultimate = false){
+        if(!comments.empty()
+            && size() > (for_penultimate ? 2 : 1)
+            && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment))
+        {
+            if(for_penultimate) {
+                if(get_at(size() - 2).getSuffixComment().empty())
+                {
+                    get_at(size() - 2).setSuffixComment(comments[0]);
+                    DEBUG_LOG("ElementArray: inner Element(penultimate) add SuffixComment: " << "\""
+                              << get_at(size() - 2).getSuffixComment() << "\"");
+                }
+                comments.erase(comments.cbegin());
+            } else {
+                if(get_back().getSuffixComment().empty())
+                {
+                    get_back().setSuffixComment(comments[0]);
+                    DEBUG_LOG("ElementArray: inner Element(back) add SuffixComment: " << "\""
+                              << get_back().getSuffixComment() << "\"");
+                }
+                comments.pop_back();
+            }
+
+        }
+    };
+
+    for(size_t i = 0; i < content.size() && error_string.empty(); i++) {
+        char ch_previous    = i == 0 ? 0 : content[i - 1];
+        char ch_current     = content[i];
+        char ch_next        = i < content.size() ? content[i + 1] : 0;
+
+        counter.check(i, ch_current); //TODO: написать тест для проверки счётчика символов
+
+        //поиск комментариев ===================================================
+        const bool ext_flag = !is_quotes && (inner_array_counter + inner_json_counter == 0);
+        //вернёт комментарий без обрамления
+        CheckComments(ch_current, ch_next, i, design, current_comment, ext_flag);
+        if(!design.with_comments)
+            current_comment.clear();
+        if(design.with_comments && design.temp_type == CommentType::eCommentEnd)
+        {
+            comments.push_back(FromComment(current_comment, design));
+            current_comment.clear();
+            design.temp_type = CommentType::eNotComment;
+            continue;
+        }
+        if(design.temp_type != CommentType::eNotComment)
+            continue;
+        //=================================================== поиск комментариев
+
+        // обработка комментария ПОСЛЕ значения
+        if(utils::CharInString(ch_current, __SEPARATORS__)) {
+            if(state == ParseStateJsonArray::eARRAY_VALUE
+                && key.empty()
+                && !comments.empty()
+                && (last_separator_symbol == ','
+                    || (ch_current == '\n' && last_separator_symbol == ',' && comments[0].find('\n') == std::string::npos)))
+            {
+                std::cout << "last_separator_symbol: '"
+                          << (last_separator_symbol == '\n' ? "\\n" : std::string(&last_separator_symbol, 1))
+                          << "'" << std::endl;
+                AppendElementSuffixComment();
+            }
+            /* таким образом запоминаются последние два разделителя:
+             * - last_separator_symbol  - предыдущий
+             * - ch_current             - текущий
+             */
+            last_separator_symbol = ch_current;
+        }
+
+        switch(state) {
+        case ParseStateJsonArray::eARRAY_START: {
+            //пропуск пробелов =====================================================
+            if(CharInString(ch_current, __SPACES__)) break;
+            //===================================================== пропуск пробелов
+
+            if(ch_current == '[') {
+                // работа с комментариями (до разбора json)
+                AppendMainPreviewComment();
+
+                UpdateState(state, ParseStateJsonArray::eARRAY_VALUE);
+                break;
+            }
+
+            UpdateState(state, ParseStateJsonArray::eARRAY_ERROR_STATE);
+            error_string = "Not found start of ARRAY.";
+            break;
+        }
+        case ParseStateJsonArray::eARRAY_VALUE: {
+            //игнор пробелов и разделителей пока значение пустое
+            if(!is_quotes
+                && value.empty()
+                && CharInString(ch_current, __SPACES__ ",")) // пустое значение между запятыми - не ошибка
+            {
+                break;
+            }
+            if(ch_current == ']') {
+                // работа с комментарием после элемента
+                if(get_back().getSuffixComment().empty())
+                    AppendElementSuffixComment();
+
+                UpdateState(state, ParseStateJsonArray::eARRAY_FINISH);
+                break;
+            }
+
+            //если ключ в кавычках, то ждём кавычки, иначе любой __SPACES__
+            if(ch_current == '\"'
+                && ch_previous != '\\'
+                && inner_json_counter + inner_array_counter == 0)
+            {
+                is_quotes = !is_quotes;
+            }
+
+            //кавычки, именованные списки, массивы
+            if(!is_quotes) {
+                switch(ch_current) {
+                case '{':   { ++inner_json_counter;     break; }
+                case '}':   { --inner_json_counter;     break; }
+                case '[':   { ++inner_array_counter;    break; }
+                case ']':   { --inner_array_counter;    break; }
+                default: break;
+                }
+            }
+            value += ch_current;
+
+            //если значение пустое, есть только разделитель - запятая
+            if(!is_quotes
+                && inner_json_counter + inner_array_counter == 0
+                && ch_current == ',')
+            {
+                value.clear();
+                i--;
+            }
+
+            //значение прочитано полностью?
+            if(!is_quotes
+                && inner_json_counter + inner_array_counter == 0
+                && (CharInString(ch_next, __SEPARATORS__ " ]")
+                    || CharInString(ch_current, __SEPARATORS__ "]")))
+            {
+                DEBUG_LOG("ElementArray: current value done: \"" << value << "\"");
+                if(value.empty()) {
+                    DEBUG_LOG("ElementArray: found empty value, skip...");
+                    UpdateState(state, ParseStateJsonArray::eARRAY_SEPARATOR);
+                    break;
+                }
+
+                Config element = CreateElementFromString(std::move(value), ConfigFormat::eJSON, design, start_value_counter);
+                if(element.error()) {
+                    //если случилась ошибка при внутренней конвертации прочитанного значения,
+                    // то эта ошибка становится основной ошибкой парсинга
+                    error_string = "ElementArray value parse error[" + std::to_string(counter.getLastLineCounter())
+                                   + "][" + std::to_string(counter.getLastSymbolCounter()) + "]: " + element.getError();
+                    UpdateState(state, ParseStateJsonArray::eARRAY_ERROR_STATE);
+                    break;
+                }
+
+                push_back(std::move(element));
+                if(get_back().getCommentDesign().opt_multiline_column_size > design.opt_multiline_column_size)
+                    design.opt_multiline_column_size = get_back().getCommentDesign().opt_multiline_column_size;
+                key.clear();
+                value.clear();
+
+                // проверка замыкающего комментария (вторичная)
+                if(value_read_at_line == counter.getLastLineCounter())
+                {
+                    if(!comments.empty()
+                        && size() > 1
+                        && get_at(size() - 2).getSuffixComment().empty()
+                        && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment))
+                    {
+                        get_at(size() - 2).setSuffixComment(comments[0]);
+                        DEBUG_LOG("ElementJson: inner Element add SuffixComment: " << "\"" << get_at(size() - 2).getSuffixComment() << "\"");
+                        comments.erase(comments.cbegin());
+                    }
+                }
+
+                // проверка замыкающего комментария (вторичная)
+                if(value_read_at_line == counter.getLastLineCounter())
+                    AppendElementSuffixComment(true);
+
+                // работа с комментариями перед элементом
+                AppendElementPrefixComment();
+
+                UpdateState(state, ParseStateJsonArray::eARRAY_SEPARATOR);
+            }
+
+            break;
+        }
+        case ParseStateJsonArray::eARRAY_SEPARATOR: {
+            //пропуск пробелов =====================================================
+            if(CharInString(ch_current, __SPACES_WITHOUT_SEPARATORS__)) break;
+            //===================================================== пропуск пробелов
+
+            //может встретиться разделитель или знак завершения массива
+            //  комментарий ПОСЛЕ значения может начинаться только на той же строке, что и значение
+            //  разделитель может быть как ДО, так и ПОСЛЕ комментария
+            //  если комментарий расписан после переноса строки, но до знака }, то комментарий попадёт в суффикс основы
+
+            // запоминаем номер строки, на котором закончили считывать значение
+            value_read_at_line = counter.getLastLineCounter(); //применится перед } и перед считыванием значения
+            value.clear();
+
+            if(CharInString(ch_current, __SEPARATORS__)) {
+                i--;
+                UpdateState(state, ParseStateJsonArray::eARRAY_VALUE);
+                break;
+            }
+            if(CharInString(ch_current, "]")) {
+                i--;
+                UpdateState(state, ParseStateJsonArray::eARRAY_FINISH);
+                break;
+            }
+
+            UpdateState(state, ParseStateJsonArray::eARRAY_ERROR_STATE);
+            error_string = "Not found stop of ARRAY.";
+            break;
+        }
+        default: break;
+        }
+    }
+
+    //конечный комментарий ...
+    if(state == ParseStateJsonArray::eARRAY_FINISH)
+    {
+        AppendMainSuffixComment();
+    }
+
+    setCommentDesign(design);
+    if(state != ParseStateJsonArray::eARRAY_FINISH && state != ParseStateJsonArray::eARRAY_VALUE) {
+        error_string = std::string("JSON parse error, unexpected symbol at [")
+                       + std::to_string(counter.getLastLineCounter())
+                       + "][" + std::to_string(counter.getLastSymbolCounter()) + "]: '"
+                       + content[counter.getLastIterator()] + "'. "
+                       + error_string;
+        DEBUG_LOG("ERROR: " << error_string);
+        //NOTE: (ElementArray) в случае ошибки парсинга корректно прочитанные значения сохраняются
         //clear();
     }
 
@@ -2460,8 +2795,7 @@ Config CreateElementFromString(std::string &&value_string, const ConfigFormat fo
                 Config array;
                 if(last == ']') {
                     array.setCommentDesign(design);
-                    ElementArray el_arr(value_string, ConfigFormat::eJSON, design);
-                    array.setValue(el_arr);
+                    array.parseFullJsonArrayDoc(std::string(value_string));
                 } else {
                     //есть начало массива, но нет конца
                     array.setError("not found end of Json-array value");
@@ -2474,7 +2808,7 @@ Config CreateElementFromString(std::string &&value_string, const ConfigFormat fo
                 Config json;
                 if(last == '}') {
                     json.setCommentDesign(design);
-                    json.parseJson(value_string, design);
+                    json.parseFullJsonDoc(std::string(value_string));
                 } else {
                     //есть начало Json, но нет конца
                     json.setError("not found end of Json value");
