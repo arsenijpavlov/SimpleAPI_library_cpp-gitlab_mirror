@@ -1642,7 +1642,7 @@ bool Config::parse(const std::string &content, const ConfigFormat format,
 bool Config::parseJson(const std::string &content, const CommentDesign &design) noexcept
 {
     release();
-    *this = SpecificParserJson(content, design);
+    *this = tools::ParserDistributorJsonson(content, design);
     return !error();
 }
 
@@ -2831,26 +2831,28 @@ Config CreateElementFromString(std::string &&value_string, const ConfigFormat fo
     return Config(value_string);
 }
 
+namespace tools {
+
 //NOTE: функция нужна исключительно для перенаправления на внутренние парсеры
-Config SpecificParser(const std::string& content, const ConfigFormat format,
+Config ParserDistributor(const std::string& content, const ConfigFormat format,
                         const CommentDesign &design, const int8_t yaml_tabulation_level) noexcept
 {
     switch(format) {
     case ConfigFormat::eONLY_VALUE:
-    case ConfigFormat::eJSON:       return SpecificParserJson(content, design);
-    case ConfigFormat::eYAML:       return SpecificParserYaml(content, design, yaml_tabulation_level);
-    case ConfigFormat::eXML:        return SpecificParserXml(content, design);
+    case ConfigFormat::eJSON:       return ParserDistributorJsonson(content, design);
+    case ConfigFormat::eYAML:       return ParserDistributorYaml(content, design, yaml_tabulation_level);
+    case ConfigFormat::eXML:        return ParserDistributorXml(content, design);
     case ConfigFormat::eINI:
     default:                        break;
     }
 
     Config config;
-    config.setError("incorrect format for SpecificParser()");
+    config.setError("incorrect format for ParserDistributor()");
     return config;
 }
 
 // Задача функции: определить тип значения верхнего уровня и передать в соответствующий обработчик
-Config SpecificParserJson(const std::string& content, const CommentDesign &design) noexcept
+Config ParserDistributorJsonson(const std::string& content, const CommentDesign &design) noexcept
 {
     /* игнорируя комментарий, найти первое вхождение символа ключа(значения)
      * определить следующий после "слова" символ-разделитель, если он есть
@@ -3038,14 +3040,14 @@ Config SpecificParserJson(const std::string& content, const CommentDesign &desig
     return result_cfg;
 }
 
-Config SpecificParserYaml(const std::string& content, const CommentDesign &design,
+Config ParserDistributorYaml(const std::string& content, const CommentDesign &design,
                             const int8_t yaml_tabulation_level) noexcept
 {
-    //TODO: SpecificParserYaml()
+    //TODO: ParserDistributorYaml()
     return {};
 }
 
-Config SpecificParserXml(const std::string& content, const CommentDesign &design) noexcept
+Config ParserDistributorXml(const std::string& content, const CommentDesign &design) noexcept
 {
     /* игнорируя комментарий, найти первое вхождение символа ключа(значения)
      * определить следующий после "слова" символ-разделитель, если он есть
@@ -3055,10 +3057,11 @@ Config SpecificParserXml(const std::string& content, const CommentDesign &design
      * иначе использовать парсер CreateElementFromString(), а комментарии сохранить здесь же
      */
 
-    //TODO: SpecificParserXml()
+    //TODO: ParserDistributorXml()
     return {};
 }
 
+} // namespace tools
 
 std::pair<bool, Config> ReadFile(const std::string &file_path, const ConfigFormat format,
                 const CommentDesign &design) noexcept
