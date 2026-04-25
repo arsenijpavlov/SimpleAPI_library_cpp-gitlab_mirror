@@ -1465,6 +1465,47 @@ bool Config::containsKey(const std::string &key) const noexcept {
                        { return pair.first == key; });
 }
 
+shared_VElement::iterator Config::array_begin() {
+    __CHECK_TYPE_IS_ARRAY__((*this))
+    return dynamic_cast<tools::ElementArray*>(m_value)->begin();
+}
+
+shared_VElement::const_iterator Config::array_cbegin() const {
+    __CHECK_TYPE_IS_ARRAY__((*this))
+    return dynamic_cast<const tools::ElementArray*>(m_value)->cbegin();
+}
+
+shared_VElement::iterator Config::array_end() {
+    __CHECK_TYPE_IS_ARRAY__((*this))
+    return dynamic_cast<tools::ElementArray*>(m_value)->end();
+}
+
+shared_VElement::const_iterator Config::array_cend() const {
+    __CHECK_TYPE_IS_ARRAY__((*this))
+    return dynamic_cast<const tools::ElementArray*>(m_value)->cend();
+}
+
+shared_VPairElement::iterator Config::map_begin() {
+    __CHECK_TYPE_IS_JSON__((*this))
+    return dynamic_cast<tools::ElementJson*>(m_value)->begin();
+}
+
+shared_VPairElement::const_iterator Config::map_cbegin() const {
+    __CHECK_TYPE_IS_JSON__((*this))
+    return dynamic_cast<const tools::ElementJson*>(m_value)->cbegin();
+}
+
+shared_VPairElement::iterator Config::map_end() {
+    __CHECK_TYPE_IS_JSON__((*this))
+    return dynamic_cast<tools::ElementJson*>(m_value)->end();
+}
+
+shared_VPairElement::const_iterator Config::map_cend() const {
+    __CHECK_TYPE_IS_JSON__((*this))
+    return dynamic_cast<const tools::ElementJson*>(m_value)->cend();
+}
+
+
 std::string Config::toString(const ConfigFormat format, const CommentDesign &design,
                              const int8_t tabulation_level) const noexcept
 {
@@ -2699,47 +2740,6 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
     }
 
     setError(error_string);
-}
-
-//TODO: переместить на уровень Range/MapRange
-shared_VElement::iterator Config::array_begin() {
-    __CHECK_TYPE_IS_ARRAY__((*this))
-    return dynamic_cast<tools::ElementArray*>(m_value)->begin();
-}
-
-shared_VElement::const_iterator Config::array_cbegin() const {
-    __CHECK_TYPE_IS_ARRAY__((*this))
-    return dynamic_cast<const tools::ElementArray*>(m_value)->cbegin();
-}
-
-shared_VElement::iterator Config::array_end() {
-    __CHECK_TYPE_IS_ARRAY__((*this))
-    return dynamic_cast<tools::ElementArray*>(m_value)->end();
-}
-
-shared_VElement::const_iterator Config::array_cend() const {
-    __CHECK_TYPE_IS_ARRAY__((*this))
-    return dynamic_cast<const tools::ElementArray*>(m_value)->cend();
-}
-
-shared_VPairElement::iterator Config::map_begin() {
-    __CHECK_TYPE_IS_JSON__((*this))
-    return dynamic_cast<tools::ElementJson*>(m_value)->begin();
-}
-
-shared_VPairElement::const_iterator Config::map_cbegin() const {
-    __CHECK_TYPE_IS_JSON__((*this))
-    return dynamic_cast<const tools::ElementJson*>(m_value)->cbegin();
-}
-
-shared_VPairElement::iterator Config::map_end() {
-    __CHECK_TYPE_IS_JSON__((*this))
-    return dynamic_cast<tools::ElementJson*>(m_value)->end();
-}
-
-shared_VPairElement::const_iterator Config::map_cend() const {
-    __CHECK_TYPE_IS_JSON__((*this))
-    return dynamic_cast<const tools::ElementJson*>(m_value)->cend();
 }
 
 //функция должна быть вызвана исключительно для обработки строки значения, комменты не учитывает
