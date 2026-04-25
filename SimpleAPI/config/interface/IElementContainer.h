@@ -95,6 +95,13 @@ public:
     // Parser ==========================================================================================================
     // парсерами управляет исключительно Config
     // ========================================================================================================== Parser
+
+protected:
+    struct KeysValuesAndComments {
+        std::string key;
+        Config*     remote_cfg;
+    };
+    static std::vector<KeysValuesAndComments> CollectKeysAndComments(Config& cfg, std::string prefix = "") noexcept;
 };
 
 } // namespace tools

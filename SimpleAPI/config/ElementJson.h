@@ -236,13 +236,6 @@ public:
                          const int8_t custom_tabulation_level = -1)             const noexcept  override;
     std::string toJsonString(const CommentDesign &design = {}, const int8_t custom_tabulation_level = -1)
                                                                                 const noexcept  override;
-private:
-    struct KeysValuesAndComments {
-        std::string key;
-        Config*     remote_cfg;
-    };
-    std::vector<KeysValuesAndComments> CollectKeysAndComments(Config& cfg, std::string prefix = "") const noexcept;
-public:
     std::string toIniString(const CommentDesign &design = {}, const int8_t custom_tabulation_level = -1)
                                                                                 const noexcept  override;
     std::string toYamlString(const CommentDesign &design = {}, const int8_t custom_tabulation_level = -1)

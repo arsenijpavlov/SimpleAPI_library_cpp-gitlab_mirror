@@ -804,34 +804,6 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
     return ret;
 }
 
-std::vector<ElementJson::KeysValuesAndComments> ElementJson::CollectKeysAndComments(Config& cfg, std::string prefix) const noexcept
-{
-    std::vector<KeysValuesAndComments> ret;
-
-    switch(cfg.getType()) {
-    case ValueType::eJson: {
-        for(auto& pair : cfg.getNamedRange()) {
-            auto temp = CollectKeysAndComments(*pair.second, prefix + "/" + pair.first);
-            ret.insert(ret.end(), temp.begin(), temp.end());
-        }
-        break;
-    }
-    case ValueType::eArray: {
-        for(auto& cfg_inner : cfg.getRange()) {
-            auto temp = CollectKeysAndComments(*cfg_inner, prefix);
-            ret.insert(ret.end(), temp.begin(), temp.end());
-        }
-        break;
-    }
-    default: {
-        ret.push_back({prefix, &cfg});
-        break;
-    }
-    }
-
-    return ret;
-}
-
 //метод не рекурсивный для контейнеров!
 std::string ElementJson::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
