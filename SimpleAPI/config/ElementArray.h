@@ -165,7 +165,8 @@ public:
 
     // String ==========================================================================================================
     //вывод без комментариев, "tabulation_level == -1" => запись в одну строку
-    std::string toString(const ConfigFormat format = ConfigFormat::eJSON,
+    std::string toString()                                              const noexcept override     { return toString(ConfigFormat::eONLY_VALUE); }
+    std::string toString(const ConfigFormat format,
                          const CommentDesign &design = {},
                          const int8_t custom_tabulation_level = -1)     const noexcept  override;
     std::string toJsonString(const CommentDesign &design = {},

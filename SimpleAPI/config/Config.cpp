@@ -1515,7 +1515,15 @@ std::string Config::toString(const ConfigFormat format, const CommentDesign &des
     } else {
         n_design = design;
     }
-    return m_value->toString(format, n_design, tabulation_level);
+
+    switch(getType()){
+    case ValueType::eArray:
+        return dynamic_cast<const tools::ElementArray*>(m_value)->toString(format, n_design, tabulation_level);
+    case ValueType::eJson:
+        return dynamic_cast<const tools::ElementJson*>(m_value)->toString(format, n_design, tabulation_level);
+    default:
+        return m_value->toString();
+    }
 }
 
 std::ostream &operator<<(std::ostream &os, const Config &config) noexcept {

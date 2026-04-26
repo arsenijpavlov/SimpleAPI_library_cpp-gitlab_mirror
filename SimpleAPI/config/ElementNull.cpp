@@ -17,33 +17,6 @@ bool ElementNull::isEqual(const IElement &other, const bool compare_comments,
     return true;
 }
 
-std::string ElementNull::toString(const ConfigFormat format, const CommentDesign &design,
-                                  const int8_t custom_tabulation_level) const noexcept
-{
-    return "null";
-}
-
-std::string ElementNull::toJsonString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
-{
-    return "null";
-}
-
-std::string ElementNull::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
-{
-    return "null";
-}
-
-std::string ElementNull::toYamlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
-{
-    return "null";
-}
-
-std::string ElementNull::toXmlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
-{
-    return "null";
-}
-
-
 //----------------------------------------------------------------------------------------------------------------------
 
 

@@ -43,17 +43,7 @@ public:
 
     // String ==========================================================================================================
     //вывод без комментариев, "tabulation_level == -1" => запись в одну строку
-    std::string     toString(const ConfigFormat format = ConfigFormat::eONLY_VALUE,
-                         const CommentDesign &design = {},
-                         const int8_t custom_tabulation_level = -1)     const noexcept  override;
-    std::string     toJsonString(const CommentDesign &design = {},
-                             const int8_t custom_tabulation_level = -1) const noexcept  override;
-    std::string     toIniString(const CommentDesign &design = {},
-                            const int8_t custom_tabulation_level = -1)  const noexcept  override;
-    std::string     toYamlString(const CommentDesign &design = {},
-                             const int8_t custom_tabulation_level = -1) const noexcept  override;
-    std::string     toXmlString(const CommentDesign &design = {},
-                            const int8_t custom_tabulation_level = -1)  const noexcept  override;
+    std::string     toString()                      const noexcept          override;
     // ========================================================================================================== String
 
     // File ============================================================================================================

@@ -24,31 +24,7 @@ bool ElementString::isEqual(const IElement &other, const bool compare_comments,
     return b1 && b2;
 }
 
-std::string ElementString::toString(const ConfigFormat format, const CommentDesign &design,
-                                    const int8_t custom_tabulation_level) const noexcept
-{
-    return (format == ConfigFormat::eONLY_VALUE ? m_value : utils::AddQuotes(m_value));
-}
 
-std::string ElementString::toJsonString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
-{
-    return utils::AddQuotes(m_value);
-}
-
-std::string ElementString::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
-{
-    return utils::AddQuotes(m_value);
-}
-
-std::string ElementString::toYamlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
-{
-    return utils::AddQuotes(m_value);
-}
-
-std::string ElementString::toXmlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
-{
-    return utils::AddQuotes(m_value);
-}
 
 //----------------------------------------------------------------------------------------------------------------------
 

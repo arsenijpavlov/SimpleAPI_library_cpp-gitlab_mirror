@@ -25,33 +25,6 @@ std::string ElementBool::toString(bool value) noexcept {
     return (value ? "true" : "false");
 }
 
-std::string ElementBool::toString(const ConfigFormat format, const CommentDesign &design,
-                                  const int8_t custom_tabulation_level) const noexcept
-{
-    return toString(m_value);
-}
-
-std::string ElementBool::toJsonString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
-{
-    return toString(m_value);
-}
-
-std::string ElementBool::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
-{
-    return toString(m_value);
-}
-
-std::string ElementBool::toYamlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
-{
-    return toString(m_value);
-}
-
-std::string ElementBool::toXmlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
-{
-    return toString(m_value);
-}
-
-
 //----------------------------------------------------------------------------------------------------------------------
 
 

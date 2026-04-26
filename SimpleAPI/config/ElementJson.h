@@ -222,16 +222,17 @@ public:
     // ======================================================================================================= Operators
 
     // Iterators =======================================================================================================
-    shared_VPairElement::iterator       begin()                                 noexcept        { return m_values.begin(); }
-    shared_VPairElement::iterator       end()                                   noexcept        { return m_values.end(); }
-    shared_VPairElement::const_iterator cbegin()                                const noexcept  { return m_values.cbegin(); }
-    shared_VPairElement::const_iterator cend()                                  const noexcept  { return m_values.cend(); }
+    shared_VPairElement::iterator       begin()                                 noexcept                    { return m_values.begin(); }
+    shared_VPairElement::iterator       end()                                   noexcept                    { return m_values.end(); }
+    shared_VPairElement::const_iterator cbegin()                                const noexcept              { return m_values.cbegin(); }
+    shared_VPairElement::const_iterator cend()                                  const noexcept              { return m_values.cend(); }
     // ======================================================================================================= Iterators
 
     // String ==========================================================================================================
     //вывод без комментариев, "tabulation_level == -1" => запись в одну строку
     //вывод без комментариев, ConfigFormat::eONLY_VALUE => запись в одну строку без комментариев
-    std::string toString(const ConfigFormat format = ConfigFormat::eONLY_VALUE,
+    std::string toString()                                                      const noexcept override     { return toString(ConfigFormat::eONLY_VALUE); }
+    std::string toString(const ConfigFormat format,
                          const CommentDesign &design = {},
                          const int8_t custom_tabulation_level = -1)             const noexcept  override;
     std::string toJsonString(const CommentDesign &design = {}, const int8_t custom_tabulation_level = -1)
