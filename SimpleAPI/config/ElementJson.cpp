@@ -805,6 +805,7 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
 }
 
 //метод не рекурсивный для контейнеров!
+//TODO: при выводе многострочных комментариев выравнивать левую границу строк комментария
 std::string ElementJson::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     std::string ret;
@@ -848,7 +849,8 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
         ret += "\"";
     };
     auto AppendArrayPrimitives = [&](const std::string& key, Config& cfg) -> void {
-        ret += key + " = ";
+        if(!key.empty())
+            ret += key + " = ";
 
         ret += "[";
         for(size_t i = 0; i < cfg.size(); i++) {
@@ -867,7 +869,8 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
         std::vector<KeysValuesAndComments> kvacs = CollectKeysAndComments(cfg, prefix);
         for(auto& kvac : kvacs) {
             ret += GetPrefixComment(*kvac.remote_cfg);
-            ret += kvac.key + " = ";
+            if(!kvac.key.empty())
+                ret += kvac.key + " = ";
             if(kvac.remote_cfg->isString()) {
                 AppendMultinlineString(kvac.remote_cfg->toString());
             } else {
@@ -904,13 +907,16 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
                     }
                 } else if(cfg_inner.second->isString()) {
                     ret += GetPrefixComment(*cfg_inner.second);
-                    ret += cfg_inner.first + " = ";
+                    if(!cfg_inner.first.empty())
+                        ret += cfg_inner.first + " = ";
                     AppendMultinlineString(cfg_inner.second->toString());
                     ret += GetSuffixComment(*cfg_inner.second);
                     ret += "\n";
                 } else {
                     ret += GetPrefixComment(*cfg_inner.second);
-                    ret += cfg_inner.first + " = " + cfg_inner.second->toString();
+                    if(!cfg_inner.first.empty())
+                        ret += cfg_inner.first + " = ";
+                    ret += cfg_inner.second->toString();
                     ret += GetSuffixComment(*cfg_inner.second);
                     ret += "\n";
                 }
@@ -930,14 +936,25 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
             break;
         }
         default: {
-            ret += GetPrefixComment(*cfg.second);
-            ret += cfg.first + " = " + cfg.second->toString() + "\n";
-            ret += GetSuffixComment(*cfg.second);
+            if(cfg.second->isArray()) {
+                //если внутри только примитивы без комментариев - вывести их в одну строку (строки длиной <=50)
+                if(IsArrayWithPrimitives(*cfg.second.get())) {
+                    AppendArrayPrimitives(cfg.first, *cfg.second);
+                } else {
+                    //нужно собрать все элементы массива и упаковать в общее имя с переходом между уровнями
+                    AppendCollection(cfg.first, *cfg.second);
+                }
+            } else {
+                ret += GetPrefixComment(*cfg.second);
+                if(!cfg.first.empty())
+                    ret += cfg.first + " = ";
+                ret += cfg.second->toString() + "\n";
+                ret += GetSuffixComment(*cfg.second);
+            }
             break;
         }
         }
-
-    }
+    } // loop for()
 
     if(!getSuffixComment().empty()) {
         ret += "\n\n" + ToComment(getSuffixComment(), design);

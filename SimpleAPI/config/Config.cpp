@@ -1825,12 +1825,11 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
     return !error();
 }
 
-//FIXME: переменные без имени - часть массива, даже если рядом карта ключ-значение
 bool Config::parseIni(const std::string &content, const CommentDesign &input_design) noexcept
 {
     using namespace tools;
 
-    setValue(ElementJson()); // clear() не нужен, т.к. объект только создан
+    setValue(Config(ValueType::eJson)); // clear() не нужен, т.к. объект только создан
     setCommentDesign(input_design);
     CommentDesign& design = getCommentDesign();
 
@@ -1912,7 +1911,8 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
     };
 
     // один объект vlines - одно значение (часть многострочного комментария ПОСЛЕ значеня может остаться за бортом)
-    Config* target = this; //точка привязки нового значения
+    Config* main_target = this; //точка привязки группы значений
+    Config* target      = this; //точка привязки нового значения
     std::vector<std::string> prefix_comments;
     std::vector<std::string> suffix_comments;
     std::string current_comment;
@@ -2038,19 +2038,28 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                 temp_string_value.pop_back();
 
                 //группы значений могут быть объявлены только для основного Config
-                this->push_back(temp_string_value, Config(ValueType::eJson));
-                this->get_back().setPrefixComment(VStringToString(prefix_comments));
-                this->get_back().setSuffixComment(VStringToString(suffix_comments));
-                target = &this->get_back();
+                //NOTE: если группа с таким именем уже существует - дополнить её
+                Config& cfg_main_target = GetFirstJsonFromThis(*main_target);
+                if(!cfg_main_target.containsKey(temp_string_value))
+                    cfg_main_target.push_back(temp_string_value, Config(ValueType::eJson));
+
+                //создать либо дополнить префиксный комментарий
+                if(cfg_main_target[temp_string_value].getPrefixComment().empty())
+                    cfg_main_target[temp_string_value].setPrefixComment(VStringToString(prefix_comments));
+                else
+                    cfg_main_target[temp_string_value].setPrefixComment(cfg_main_target[temp_string_value].getPrefixComment() + "\n"
+                                                                        + VStringToString(prefix_comments));
+                //создать либо дополнить постфиксный комментарий
+                if(cfg_main_target[temp_string_value].getSuffixComment().empty())
+                    cfg_main_target[temp_string_value].setSuffixComment(VStringToString(suffix_comments));
+                else
+                    cfg_main_target[temp_string_value].setSuffixComment(cfg_main_target[temp_string_value].getSuffixComment() + "\n"
+                                                                        + VStringToString(suffix_comments));
+
+                target = &cfg_main_target[temp_string_value];
             }
             else if(!temp_string_value.empty())
             {
-                if(assignment_counter == 0) {
-                    CreateErrorLine(counter, "the assignment symbol ('=' or ':') was not found in this value: \""
-                                                 + temp_string_value + "\"");
-                    return false;
-                }
-
                 //отделить ключи от значения
                 auto GetIniKeys = [](std::string& content) -> std::vector<std::string> {
                     std::vector<std::string> keys;
@@ -2078,19 +2087,19 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                             case ')':
                             case '<':
                             case '>': {
-                                    //уже пошёл разбор значения, все ключи найдены
-                                    parsed = true;
-                                    break;
-                                }
+                                //уже пошёл разбор значения, все ключи найдены
+                                parsed = true;
+                                break;
+                            }
                             case '"':  {
-                                    if(!is_simple_quotes)
-                                        is_quotes = !is_quotes;
-                                    break;
+                                if(!is_simple_quotes)
+                                    is_quotes = !is_quotes;
+                                break;
                             }
                             case '\'':  {
-                                    if(!is_quotes)
-                                        is_simple_quotes = !is_simple_quotes;
-                                    break;
+                                if(!is_quotes)
+                                    is_simple_quotes = !is_simple_quotes;
+                                break;
                             }
                             }
                         }
@@ -2108,7 +2117,10 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                         default: temp += ch_current;
                         }
                     }
-                    content.erase(0, last_key_pos + 1);
+                    if(keys.empty())
+                        keys.push_back("");
+                    else
+                        content.erase(0, last_key_pos + 1);
                     RemoveIllegalSpaces(content);
 
                     return keys;
@@ -2168,7 +2180,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                     // если ключ многосотавной (вложенные структуры), то значение положить составное (k1->k2->k3=value)
                     VString keys_path = SplitIniKeyPath(k);
                     Config temp = CreateElementFromString(std::string(temp_string_value), ConfigFormat::eJSON, design, counter);
-                    Config& pushed_cfg = target->push_back_force(keys_path, std::move(temp));
+                    Config& pushed_cfg = GetFirstJsonFromThis(*target).push_back_force(keys_path, std::move(temp));
 
                     // добавить комментарии к добавленному значению
                     pushed_cfg.setPrefixComment(VStringToString(prefix_comments));
@@ -2937,6 +2949,63 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
     }
 
     setError(error_string);
+}
+
+Config &Config::GetFirstArrayFromThis(Config &config) noexcept
+{
+    //если был Null - преобразовать в ElementArray
+    //если был любой элемент, кроме массива - создать массив и вернуть его
+    //если был массив - вернуть его же
+
+    switch(config.getType()) {
+    case ValueType::eNull: {
+        config = Config(ValueType::eArray);
+        return config;
+    }
+    case ValueType::eArray: {
+        return config;
+    }
+    default: {
+        Config temp = config;
+        config.setValue(Config(ValueType::eArray));
+        config.push_back(temp);
+        return config;
+    }
+    }
+}
+
+Config &Config::GetFirstJsonFromThis(Config &config) noexcept
+{
+    //если был Null - преобразовать в ElementJson
+    //если был примитив - создать массив и положить внутрь примитив, после добавить ElementJson и вернуть его
+    //если был массив - найти первый попавшийся ElementJson
+    //если элемент уже ElementJson - вернуть его же
+
+    switch(config.getType()) {
+    case ValueType::eNull: {
+        config = Config(ValueType::eJson);
+        return config;
+    }
+    case ValueType::eArray: {
+        for(auto& c : config.getRange()) {
+            if(c->isJson()) {
+                return *c;
+            }
+        }
+        config.push_back(Config(ValueType::eJson));
+        return config.get_back();
+    }
+    case ValueType::eJson: {
+        return config;
+    }
+    default: {
+        Config temp = config;
+        config.setValue(Config(ValueType::eArray));
+        config.push_back(temp);
+        config.push_back(Config(ValueType::eJson));
+        return config.get_back();
+    }
+    }
 }
 
 //функция должна быть вызвана исключительно для обработки строки значения, комменты не учитывает

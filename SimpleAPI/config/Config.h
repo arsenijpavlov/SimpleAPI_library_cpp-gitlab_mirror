@@ -870,6 +870,9 @@ private:
     static void     UpdateState(ParseStateJsonArray& state, const ParseStateJsonArray new_state)    noexcept;
     void            parseFullJsonArrayDoc(std::string&& content)                                    noexcept;
 
+    static Config&  GetFirstArrayFromThis(Config& config)                                           noexcept;
+    static Config&  GetFirstJsonFromThis(Config& config)                                            noexcept;
+
 public:
     // вернёт текст ошибки, указывающий на тип некорректно прочитанного значения
     friend Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
