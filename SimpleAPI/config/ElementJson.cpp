@@ -805,7 +805,6 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
 }
 
 //метод не рекурсивный для контейнеров!
-//TODO: при выводе многострочных комментариев выравнивать левую границу строк комментария
 std::string ElementJson::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     std::string ret;
@@ -813,8 +812,24 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
     auto GetPrefixComment = [&design](const Config cfg) -> std::string {
         return (cfg.getPrefixComment().empty()) ? "" : (ToComment(cfg.getPrefixComment(), design) + "\n");
     };
-    auto GetSuffixComment = [&design](const Config cfg) -> std::string {
-        return (cfg.getSuffixComment().empty()) ? "" : " " + (ToComment(cfg.getSuffixComment(), design));
+    auto GetSuffixComment = [&design, &ret](const Config cfg) -> std::string {
+        if(cfg.getSuffixComment().empty())
+            return "";
+
+        SeparatedLines sl = SeparateWithoutColumned(ToComment(cfg.getSuffixComment(), design));
+        //начиная со второй, все строки дополнить пробелами в начале по длине
+        // последней строки +1(отделение комментария от значения)
+        size_t pos = ret.rfind('\n');
+        std::string last_line = (pos == std::string::npos) ? ret
+                                                           : (ret.substr(pos + 1, ret.size()));
+        size_t end_line_size = utils::GetStringCharCount(last_line) + 1;
+        for(size_t i = 0; i < sl.lines.size(); i++) {
+            if(i != 0) {
+                sl.lines[i] = utils::RepeatSymToStr(' ', end_line_size) + sl.lines[i];
+            }
+        }
+
+        return (cfg.getSuffixComment().empty()) ? "" : " " + VStringToString(sl.lines);
     };
     auto IsArrayWithPrimitives = [](const Config cfg) -> bool {
         if(!cfg.isIndexContainer())
