@@ -409,10 +409,178 @@ std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t
 }
 
 //метод не рекурсивный для контейнеров!
+//TODO: ElementArray::toIniString()
 std::string ElementArray::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
-    //TODO: ElementArray::toIniString()
-    return "";
+    std::string ret;
+
+    auto GetPrefixComment = [&design](const Config cfg) -> std::string {
+        return (cfg.getPrefixComment().empty()) ? "" : (ToComment(cfg.getPrefixComment(), design) + "\n");
+    };
+    auto GetSuffixComment = [&design, &ret](const Config cfg) -> std::string {
+        if(cfg.getSuffixComment().empty())
+            return "";
+
+        SeparatedLines sl = SeparateWithoutColumned(ToComment(cfg.getSuffixComment(), design));
+        //начиная со второй, все строки дополнить пробелами в начале по длине
+        // последней строки +1(отделение комментария от значения)
+        size_t pos = ret.rfind('\n');
+        std::string last_line = (pos == std::string::npos) ? ret
+                                                           : (ret.substr(pos + 1, ret.size()));
+        size_t end_line_size = utils::GetStringCharCount(last_line) + 1;
+        for(size_t i = 0; i < sl.lines.size(); i++) {
+            if(i != 0) {
+                sl.lines[i] = utils::RepeatSymToStr(' ', end_line_size) + sl.lines[i];
+            }
+        }
+
+        return (cfg.getSuffixComment().empty()) ? "" : " " + VStringToString(sl.lines);
+    };
+    auto IsArrayWithPrimitives = [](const Config cfg) -> bool {
+        if(!cfg.isIndexContainer())
+            return false;
+        for(const auto& cfg_inner : cfg.getRange()) {
+            if(cfg_inner->isContainer()
+                || !cfg_inner->getPrefixComment().empty()
+                || !cfg_inner->getSuffixComment().empty()
+                || (cfg_inner->isString() && (cfg_inner->getString().find('\n') != std::string::npos
+                                              || cfg_inner->getString().size() > 50)))
+            {
+                return false;
+            }
+        }
+        return true;
+    };
+    auto AppendMultinlineString = [&ret](const std::string& str) -> void {
+        ret += "\"";
+        std::string temp_str = str;
+        if(temp_str.find('\n') != std::string::npos) {
+            SeparatedLines sl = tools::SeparateWithoutColumned(temp_str);
+            for(size_t i = 0; i < sl.lines.size(); i++) {
+                ret += (i == 0 ? "" : "    ");
+                if(i + 1 < sl.lines.size())
+                    ret += sl.lines[i] + " \\\n";
+                else
+                    ret += sl.lines[i];
+            }
+        } else {
+            ret += str;
+        }
+        ret += "\"";
+    };
+    auto AppendArrayPrimitives = [&](const std::string& key, Config& cfg) -> void {
+        if(!key.empty())
+            ret += key + " = ";
+
+        ret += "[";
+        for(size_t i = 0; i < cfg.size(); i++) {
+            if(cfg.isString())
+                ret += "\"";
+            ret += cfg[i].toString();
+            if(cfg.isString())
+                ret += "\"";
+
+            if(i + 1 < cfg.size())
+                ret += ", ";
+        }
+        ret += "]\n";
+    };
+    auto AppendCollection = [&](const std::string& prefix, Config& cfg) -> void {
+        std::vector<KeysValuesAndComments> kvacs = CollectKeysAndComments(cfg, prefix);
+        for(auto& kvac : kvacs) {
+            ret += GetPrefixComment(*kvac.remote_cfg);
+            if(!kvac.key.empty())
+                ret += kvac.key + " = ";
+            if(kvac.remote_cfg->isString()) {
+                AppendMultinlineString(kvac.remote_cfg->toString());
+            } else {
+                ret += kvac.remote_cfg->toString();
+            }
+            ret += GetSuffixComment(*kvac.remote_cfg);
+            ret += "\n";
+        }
+    };
+
+    if(!getPrefixComment().empty()) {
+        ret += ToComment(getPrefixComment(), design) + "\n\n\n";
+    }
+
+//    for(const auto& cfg : m_values) {
+//        switch(cfg.second->getType()) {
+//        case ValueType::eJson: {
+//            if(!ret.empty())
+//                ret += '\n';
+//            ret += GetPrefixComment(*cfg.second);
+//            ret += "[" + cfg.first + "]";
+//            ret += GetSuffixComment(*cfg.second);
+//            ret += "\n";
+
+//            for(const auto& cfg_inner : cfg.second->getNamedRange()) {
+//                if(cfg_inner.second->isContainer()) {
+//                    if(IsArrayWithPrimitives(*cfg_inner.second))
+//                    {
+//                        //если внутри только примитивы без комментариев - вывести их в одну строку (строки длиной <=50)
+//                        AppendArrayPrimitives(cfg_inner.first, *cfg_inner.second);
+//                    } else {
+//                        //нужно собрать все элементы массива и упаковать в общее имя с переходом между уровнями
+//                        AppendCollection(cfg_inner.first, *cfg_inner.second);
+//                    }
+//                } else if(cfg_inner.second->isString()) {
+//                    ret += GetPrefixComment(*cfg_inner.second);
+//                    if(!cfg_inner.first.empty())
+//                        ret += cfg_inner.first + " = ";
+//                    AppendMultinlineString(cfg_inner.second->toString());
+//                    ret += GetSuffixComment(*cfg_inner.second);
+//                    ret += "\n";
+//                } else {
+//                    ret += GetPrefixComment(*cfg_inner.second);
+//                    if(!cfg_inner.first.empty())
+//                        ret += cfg_inner.first + " = ";
+//                    ret += cfg_inner.second->toString();
+//                    ret += GetSuffixComment(*cfg_inner.second);
+//                    ret += "\n";
+//                }
+//            } // for()
+
+//            break;
+//        }
+//        case ValueType::eArray: {
+//            //если внутри только примитивы без комментариев - вывести их в одну строку (строки длиной <=50)
+//            if(IsArrayWithPrimitives(*cfg.second.get())) {
+//                AppendArrayPrimitives(cfg.first, *cfg.second);
+//            } else {
+//                //нужно собрать все элементы массива и упаковать в общее имя с переходом между уровнями
+//                AppendCollection(cfg.first, *cfg.second);
+//            }
+
+//            break;
+//        }
+//        default: {
+//            if(cfg.second->isArray()) {
+//                //если внутри только примитивы без комментариев - вывести их в одну строку (строки длиной <=50)
+//                if(IsArrayWithPrimitives(*cfg.second.get())) {
+//                    AppendArrayPrimitives(cfg.first, *cfg.second);
+//                } else {
+//                    //нужно собрать все элементы массива и упаковать в общее имя с переходом между уровнями
+//                    AppendCollection(cfg.first, *cfg.second);
+//                }
+//            } else {
+//                ret += GetPrefixComment(*cfg.second);
+//                if(!cfg.first.empty())
+//                    ret += cfg.first + " = ";
+//                ret += cfg.second->toString() + "\n";
+//                ret += GetSuffixComment(*cfg.second);
+//            }
+//            break;
+//        }
+//        }
+//    } // loop for()
+
+    if(!getSuffixComment().empty()) {
+        ret += "\n\n" + ToComment(getSuffixComment(), design);
+    }
+
+    return ret;
 }
 
 std::string ElementArray::toYamlString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
