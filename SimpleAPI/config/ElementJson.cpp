@@ -805,7 +805,6 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
 }
 
 //метод не рекурсивный для контейнеров!
-//FIXME: переменные без имени - часть массива, даже если рядом карта ключ-значение
 std::string ElementJson::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     std::string ret;
@@ -879,6 +878,10 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
         }
     };
 
+    if(!getPrefixComment().empty()) {
+        ret += ToComment(getPrefixComment(), design) + "\n\n";
+    }
+
     for(const auto& cfg : m_values) {
         switch(cfg.second->getType()) {
         case ValueType::eJson: {
@@ -934,6 +937,10 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
         }
         }
 
+    }
+
+    if(!getSuffixComment().empty()) {
+        ret += "\n" + ToComment(getSuffixComment(), design);
     }
 
     return ret;
