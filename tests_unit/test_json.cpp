@@ -816,13 +816,13 @@ TEST(JSON, parser_symbols_counter) {
 }
 
 TEST(JSON, parser_simple_value) {
-    Config cfg = ParseJson("15").second;
+    Config cfg = ParseJson("15");
     EXPECT_EQ(cfg, 15);
 
-    cfg = ParseJson("string").second;
+    cfg = ParseJson("string");
     EXPECT_EQ(cfg, "string");
 
-    cfg = ParseJson("{string").second;
+    cfg = ParseJson("{string");
     EXPECT_NE(cfg, "{string"); //должно распарсить как Json, но при этом Json некорректный - 0 элементов
 }
 

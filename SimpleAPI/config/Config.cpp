@@ -2738,7 +2738,6 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
                 }
                 comments.pop_back();
             }
-
         }
     };
 
@@ -3105,7 +3104,7 @@ Config CreateElementFromString(std::string &&value_string, const ConfigFormat fo
     return Config(value_string);
 }
 
-std::pair<bool, Config> ReadFile(const std::string &file_path, const ConfigFormat format,
+Config ReadFile(const std::string &file_path, const ConfigFormat format,
                 const CommentDesign &design) noexcept
 {
     switch(format) {
@@ -3118,10 +3117,10 @@ std::pair<bool, Config> ReadFile(const std::string &file_path, const ConfigForma
 
     Config out;
     out.setError("unexpected ConfigFormat");
-    return std::make_pair(false, out);
+    return out;
 }
 
-std::pair<bool, Config> ReadFileJson(const std::string &file_path, const CommentDesign &design) noexcept
+Config ReadFileJson(const std::string &file_path, const CommentDesign &design) noexcept
 {
     std::string input_str;
     std::string error_str;
@@ -3132,10 +3131,10 @@ std::pair<bool, Config> ReadFileJson(const std::string &file_path, const Comment
 
     Config out;
     out.setError(error_str);
-    return std::make_pair(false, out);
+    return out;
 }
 
-std::pair<bool, Config> ReadFileIni(const std::string &file_path, const CommentDesign &design) noexcept
+Config ReadFileIni(const std::string &file_path, const CommentDesign &design) noexcept
 {
     std::string input_str;
     std::string error_str;
@@ -3146,7 +3145,7 @@ std::pair<bool, Config> ReadFileIni(const std::string &file_path, const CommentD
 
     Config out;
     out.setError(error_str);
-    return std::make_pair(false, out);
+    return out;
 }
 
 //NOTE: eONLY_VALUE выводит переменную в формате JSON без пробелов и комментариев
@@ -3169,7 +3168,7 @@ bool WriteFileIni(const Config& config, const std::string& file_path,
     return WriteStringToFile(file_path, config.toString(ConfigFormat::eINI, design, custom_tabulation_level));
 }
 
-std::pair<bool, Config> Parse(const std::string &content, const ConfigFormat format,
+Config Parse(const std::string &content, const ConfigFormat format,
                               const CommentDesign &design) noexcept
 {
     switch(format) {
@@ -3182,10 +3181,10 @@ std::pair<bool, Config> Parse(const std::string &content, const ConfigFormat for
 
     Config out;
     out.setError("unexpected ConfigFormat");
-    return std::make_pair(false, out);
+    return out;
 }
 
-std::pair<bool, Config> ParseJson(const std::string &content, const CommentDesign &design) noexcept
+Config ParseJson(const std::string &content, const CommentDesign &design) noexcept
 {
     Config ret(ValueType::eJson);
 
@@ -3194,11 +3193,11 @@ std::pair<bool, Config> ParseJson(const std::string &content, const CommentDesig
         n_design = ret.getCommentDesign();
     }
 
-    bool result = ret.parseJson(content, n_design);
-    return std::make_pair(result, ret);
+    ret.parseJson(content, n_design);
+    return ret;
 }
 
-std::pair<bool, Config> ParseIni(const std::string &content, const CommentDesign &design) noexcept
+Config ParseIni(const std::string &content, const CommentDesign &design) noexcept
 {
     Config ret(ValueType::eJson);
 
@@ -3207,8 +3206,8 @@ std::pair<bool, Config> ParseIni(const std::string &content, const CommentDesign
         n_design = ret.getCommentDesign();
     }
 
-    bool result = ret.parseIni(content, n_design);
-    return std::make_pair(result, ret);
+    ret.parseIni(content, n_design);
+    return ret;
 }
 
 } // namespace simpleapi

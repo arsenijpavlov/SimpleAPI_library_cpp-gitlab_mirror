@@ -161,6 +161,6 @@ TEST(ARRAY, contains) {
 }
 
 TEST(ARRAY, parse_json_simple_array) {
-    Config cfg = ParseJson("[a, b, c]").second;
+    Config cfg = ParseJson("[a, b, c]");
     EXPECT_EQ(cfg, Config(ValueType::eArray, "a", "b", "c"));
 }

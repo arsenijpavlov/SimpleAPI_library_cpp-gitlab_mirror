@@ -44,11 +44,11 @@ struct is_valid_config_type {
 //ПРЕДВАРИТЕЛЬНЫЕ ОБЪЯВЛЕНИЯ
 Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
                                CommentDesign &design, ParserSymbolCounter& start_iterator)              noexcept;
-//пара <корректность чтения, итоговый Config>
-std::pair<bool, Config> ReadFile(const std::string& file_path, const ConfigFormat format,
-                                 const CommentDesign &design = {})                                      noexcept;
-std::pair<bool, Config> ReadFileJson(const std::string& file_path, const CommentDesign &design = {})    noexcept;
-std::pair<bool, Config> ReadFileIni(const std::string& file_path, const CommentDesign &design = {})     noexcept;
+
+Config ReadFile(const std::string& file_path, const ConfigFormat format,
+                const CommentDesign &design = {})                                                       noexcept;
+Config ReadFileJson(const std::string& file_path, const CommentDesign &design = {})                     noexcept;
+Config ReadFileIni(const std::string& file_path, const CommentDesign &design = {})                      noexcept;
 
 //return - удалось записать файл или нет
 bool WriteFile(const Config& config, const std::string& file_path,
@@ -59,11 +59,10 @@ bool WriteFileJson(const Config& config, const std::string& file_path,
 bool WriteFileIni(const Config& config, const std::string& file_path,
                   const CommentDesign &design = {}, const uint8_t custom_tabulation_level = 0)          noexcept;
 
-//пара <корректность чтения, итоговый Config>
-std::pair<bool, Config> Parse(const std::string& content, const ConfigFormat format,
-                              const CommentDesign &design = {})                                         noexcept;
-std::pair<bool, Config> ParseJson(const std::string& content, const CommentDesign &design = {})         noexcept;
-std::pair<bool, Config> ParseIni(const std::string& content, const CommentDesign &design = {})          noexcept;
+Config Parse(const std::string& content, const ConfigFormat format,
+             const CommentDesign &design = {})                                                          noexcept;
+Config ParseJson(const std::string& content, const CommentDesign &design = {})                          noexcept;
+Config ParseIni(const std::string& content, const CommentDesign &design = {})                           noexcept;
 
 class Config {
 private:
@@ -877,11 +876,11 @@ public:
     // вернёт текст ошибки, указывающий на тип некорректно прочитанного значения
     friend Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
                                           CommentDesign &design, ParserSymbolCounter& start_iterator)       noexcept;
-    //пара <корректность чтения, итоговый Config>
-    friend std::pair<bool, Config> ReadFile(const std::string& file_path, const ConfigFormat format,
-                                            const CommentDesign &design)                                    noexcept;
-    friend std::pair<bool, Config> ReadFileJson(const std::string& file_path, const CommentDesign &design)  noexcept;
-    friend std::pair<bool, Config> ReadFileIni(const std::string& file_path, const CommentDesign &design)   noexcept;
+
+    friend Config ReadFile(const std::string& file_path, const ConfigFormat format,
+                           const CommentDesign &design)                                                     noexcept;
+    friend Config ReadFileJson(const std::string& file_path, const CommentDesign &design)                   noexcept;
+    friend Config ReadFileIni(const std::string& file_path, const CommentDesign &design)                    noexcept;
 
     //return - удалось записать файл или нет
     friend bool WriteFile(const Config& config, const std::string& file_path,
@@ -892,11 +891,10 @@ public:
     friend bool WriteFileIni(const Config& config, const std::string& file_path,
                              const CommentDesign &design, const uint8_t custom_tabulation_level)            noexcept;
 
-    //пара <корректность чтения, итоговый Config>
-    friend std::pair<bool, Config> Parse(const std::string& content, const ConfigFormat format,
-                                         const CommentDesign &design)                                       noexcept;
-    friend std::pair<bool, Config> ParseJson(const std::string& content, const CommentDesign &design)       noexcept;
-    friend std::pair<bool, Config> ParseIni(const std::string& content, const CommentDesign &design)        noexcept;
+    friend Config Parse(const std::string& content, const ConfigFormat format,
+                        const CommentDesign &design)                                                        noexcept;
+    friend Config ParseJson(const std::string& content, const CommentDesign &design)                        noexcept;
+    friend Config ParseIni(const std::string& content, const CommentDesign &design)                         noexcept;
 };
 
 } // namespace simpleapi
