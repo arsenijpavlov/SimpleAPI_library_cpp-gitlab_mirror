@@ -1859,7 +1859,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
      */
     // NOTE: комментарии внутри значения являются частью значения, а не комментарием самого значения
 
-    // обработка обратного слэша на конце строкsи и пробела в начале следующей
+    // обработка обратного слэша на конце строки и пробела в начале следующей
     VVString lines_vec;
     std::array<char, 3> current_comment_format = {0, 0, 0};
     bool in_simple_qoutes = false;
@@ -1892,7 +1892,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
     }
     // по выходу из цикла lines должна быть пуста
 
-    //дополнить знаком переноса строки, если знака нет
+    //дополнить знаком переноса строки, если знака нет и строка не пустая
     for(auto& vstring : lines_vec) {
         for(auto& str : vstring) {
             if(!str.empty() && str.back() != '\n') {
@@ -1922,18 +1922,26 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
     bool is_small_quotes      = false;
     bool is_quotes            = false;
 
-    char ch_previous = 0;
-    char ch_current  = 0;
-    char ch_next     = 0;
+    char ch_previous          = 0;
+    char ch_current           = 0;
+    char ch_next              = 0;
 
     size_t k = 0; //вынес для видимости вне for()
+    size_t all_lines_counter = 0;
     for(; k < lines_vec.size(); k++) {
         VString& fragments = lines_vec[k];
 
         bool need_to_iterate_k = false;
-        ParserSymbolCounter counter(k); //FIXME: считает строки неправильно!
+        ParserSymbolCounter counter;
 
-        for(size_t i = 0; i < fragments.size(); i++) {
+        for(size_t i = 0; i < fragments.size(); i++, all_lines_counter++) {
+            counter = ParserSymbolCounter(all_lines_counter); //FIXME: считает строки неправильно??
+
+            if(getPrefixComment().empty() && !prefix_comments.empty() && fragments[i].empty()) {
+                setPrefixComment(VStringToString(prefix_comments));
+                prefix_comments.clear();
+            }
+
             for(size_t j = 0; j < fragments[i].size(); j++) {
                 ch_previous  = ch_current; //будет 0, если вся предыдущая цепочка была прочитана как значение
                 ch_current   = fragments[i][j];
@@ -1963,7 +1971,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                 try {
                     CheckComments(ch_current, ch_next, j, design, current_comment, ext_flag);
                 } catch(std::exception& e) {
-                    //не хватило символов для прочтения комментария, переходим к следующему фрагменту
+                    //не хватило символов для прочтения комментария
                     CreateError(counter, e.what());
                     break;
                 }
@@ -1988,8 +1996,12 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                     continue;
                 //=================================================== поиск комментариев
 
-                if(temp_string_value.empty() && ext_flag && utils::CharInString(ch_current, __SPACES_WITHOUT_SEPARATORS__))
+                if(temp_string_value.empty()
+                    && ext_flag
+                    && utils::CharInString(ch_current, __SPACES_WITHOUT_SEPARATORS__))
+                {
                     continue;
+                }
 
                 temp_string_value += ch_current;
 
@@ -2174,6 +2186,11 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
 
     if(!temp_string_value.empty()) {
         CreateError(ParserSymbolCounter(k), "not found end of value: \"" + temp_string_value + "\"");
+    }
+
+    if(!prefix_comments.empty()) {
+        setSuffixComment(VStringToString(prefix_comments));
+        prefix_comments.clear();
     }
 
     return !error();

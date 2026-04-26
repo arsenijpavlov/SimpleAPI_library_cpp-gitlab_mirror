@@ -879,7 +879,7 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
     };
 
     if(!getPrefixComment().empty()) {
-        ret += ToComment(getPrefixComment(), design) + "\n\n";
+        ret += ToComment(getPrefixComment(), design) + "\n\n\n";
     }
 
     for(const auto& cfg : m_values) {
@@ -940,7 +940,7 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
     }
 
     if(!getSuffixComment().empty()) {
-        ret += "\n" + ToComment(getSuffixComment(), design);
+        ret += "\n\n" + ToComment(getSuffixComment(), design);
     }
 
     return ret;
