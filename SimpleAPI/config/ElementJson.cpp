@@ -692,8 +692,6 @@ std::string ElementJson::toString(const ConfigFormat format, const CommentDesign
     }
 }
 
-//FIXME: многострочные строки выводятся без выравнивания по табуляции
-//TODO: вывод может быть либо числом, либо словом в кавычках (для совместимости с другими парсерами)
 std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     std::string ret;
@@ -755,10 +753,19 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
         if(m_values[i].second->isContainer()) {
             ret += utils::RemoveStartTabulations(temp);
         } else {
-            if(m_values[i].second->isNumber())
+            if(m_values[i].second->isNumber()) {
                 ret += temp;
-            else
-                ret += "\"" + temp + "\"";
+            } else {
+                SeparatedLines sl = SeparateWithoutColumned(temp);
+                size_t len_of_key = utils::GetStringCharCount(m_values[i].first) + /*кавычки*/2 + /*двоеточие и пробел*/2;
+                // все строки кроме первой выровнять по первой строке
+                for(size_t j = 1; j < sl.lines.size(); j++) {
+                    sl.lines[j] = utils::RepeatSymToStr('\t', custom_tabulation_level + 1)
+                                  + utils::RepeatSymToStr(' ', len_of_key)
+                                  + sl.lines[j];
+                }
+                ret += "\"" + VStringToString(sl.lines) + "\"";
+            }
         }
 
         if(i < size() - 1)
@@ -827,10 +834,8 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
         std::string last_line = (pos == std::string::npos) ? ret
                                                            : (ret.substr(pos + 1, ret.size()));
         size_t end_line_size = utils::GetStringCharCount(last_line) + 1;
-        for(size_t i = 0; i < sl.lines.size(); i++) {
-            if(i != 0) {
-                sl.lines[i] = utils::RepeatSymToStr(' ', end_line_size) + sl.lines[i];
-            }
+        for(size_t i = 1; i < sl.lines.size(); i++) {
+            sl.lines[i] = utils::RepeatSymToStr(' ', end_line_size) + sl.lines[i];
         }
 
         return (cfg.getSuffixComment().empty()) ? "" : " " + VStringToString(sl.lines);

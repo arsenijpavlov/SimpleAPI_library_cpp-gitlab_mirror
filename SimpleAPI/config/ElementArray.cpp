@@ -356,10 +356,16 @@ std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t
         if(m_values[i]->isContainer()) {
             ret += utils::RemoveStartTabulations(temp);
         } else {
-            if(m_values[i]->isNumber())
+            if(m_values[i]->isNumber()) {
                 ret += temp;
-            else
-                ret += "\"" + temp + "\"";
+            } else {
+                SeparatedLines sl = SeparateWithoutColumned(temp);
+                // все строки кроме первой выровнять по первой строке
+                for(size_t j = 1; j < sl.lines.size(); j++) {
+                    sl.lines[j] = utils::RepeatSymToStr('\t', custom_tabulation_level + 1) + sl.lines[j];
+                }
+                ret += "\"" + VStringToString(sl.lines) + "\"";
+            }
         }
 
         if(i < size() - 1)
