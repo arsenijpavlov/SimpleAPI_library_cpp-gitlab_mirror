@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <stdexcept>
 #include "../utils/Utils.h"
-#include "../utils/ParserSymbolCounter.h"
 
 //предобъявление
 #include "Config.h"
@@ -355,10 +354,14 @@ std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t
         std::string temp = m_values[i]->toString(ConfigFormat::eJSON, inner_design,
                                                  (with_spaces ? custom_tabulation_level + 1 : -1));
         if(m_values[i]->isContainer()) {
-            temp = utils::RemoveStartTabulations(temp);
+            ret += utils::RemoveStartTabulations(temp);
+        } else {
+            if(m_values[i]->isNumber())
+                ret += temp;
+            else
+                ret += "\"" + temp + "\"";
         }
 
-        ret += temp;
         if(i < size() - 1)
             ret += ",";
 

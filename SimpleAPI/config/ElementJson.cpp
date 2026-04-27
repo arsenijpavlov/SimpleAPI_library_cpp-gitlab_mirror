@@ -4,7 +4,6 @@
 #include <algorithm>
 #include "../utils/Utils.h"
 #include "ConfigDefines.h"
-#include "../utils/ParserSymbolCounter.h"
 
 
 namespace simpleapi {
@@ -694,6 +693,7 @@ std::string ElementJson::toString(const ConfigFormat format, const CommentDesign
 }
 
 //FIXME: многострочные строки выводятся без выравнивания по табуляции
+//TODO: вывод может быть либо числом, либо словом в кавычках (для совместимости с другими парсерами)
 std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     std::string ret;
@@ -753,10 +753,14 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
         std::string temp = m_values[i].second->toString(ConfigFormat::eJSON, inner_design,
                                                         (with_spaces ? custom_tabulation_level + 1 : -1));
         if(m_values[i].second->isContainer()) {
-            temp = utils::RemoveStartTabulations(temp);
+            ret += utils::RemoveStartTabulations(temp);
+        } else {
+            if(m_values[i].second->isNumber())
+                ret += temp;
+            else
+                ret += "\"" + temp + "\"";
         }
 
-        ret += temp;
         if(i < size() - 1)
             ret += ",";
 

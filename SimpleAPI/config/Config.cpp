@@ -3024,6 +3024,8 @@ Config CreateElementFromString(std::string &&value_string, const ConfigFormat fo
 
     //удаление незначащих пробелов
     RemoveIllegalSpaces(value_string);
+    //удаление кавычек (при наличии)
+    RemoveQuotes(value_string);
 
     std::string temp;
     auto Append = [&](const char c) {
@@ -3064,13 +3066,6 @@ Config CreateElementFromString(std::string &&value_string, const ConfigFormat fo
                     return Config(std::stold(value_string));
             } catch (...) {}
         }
-        /*STRING*/ {
-            if(first == '"' && last == '"') {
-                value_string.erase(0, 1);
-                value_string.pop_back();
-                return Config(value_string);
-            }
-        }
         /*ARRAY*/ {
             if(first == '[') {
                 Config array;
@@ -3097,9 +3092,16 @@ Config CreateElementFromString(std::string &&value_string, const ConfigFormat fo
                 return json;
             }
         }
+        // в теории, всё, что не распарсилось в другие значения, - должно считаться строкой
+        /*STRING*/ {
+            if(first == '"' && last == '"') {
+                value_string.erase(0, 1);
+                value_string.pop_back();
+                return Config(value_string);
+            }
+        }
     }
 
-    // в теории, всё, что не распарсилось в другие значения, - должно считаться строкой
     //FIXME: строка не должна начинаться с технических скобок
     return Config(value_string);
 }
