@@ -364,7 +364,14 @@ std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t
                 for(size_t j = 1; j < sl.lines.size(); j++) {
                     sl.lines[j] = utils::RepeatSymToStr('\t', custom_tabulation_level + 1) + sl.lines[j];
                 }
-                ret += "\"" + VStringToString(sl.lines) + "\"";
+
+                if(m_values[i]->isString()) //строки ВСЕГДА обрамляются кавычками
+                    ret += "\"";
+
+                ret += VStringToString(sl.lines);
+
+                if(m_values[i]->isString()) //строки ВСЕГДА обрамляются кавычками
+                    ret += "\"";
             }
         }
 
@@ -514,9 +521,9 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
         ret += ToComment(getPrefixComment(), design) + "\n\n\n";
     }
 
-//    for(const auto& cfg : m_values) {
-//        switch(cfg.second->getType()) {
-//        case ValueType::eJson: {
+    for(const auto& cfg : m_values) {
+        switch(cfg->getType()) {
+        case ValueType::eJson: {
 //            if(!ret.empty())
 //                ret += '\n';
 //            ret += GetPrefixComment(*cfg.second);

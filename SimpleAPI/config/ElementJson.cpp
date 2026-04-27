@@ -764,7 +764,14 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
                                   + utils::RepeatSymToStr(' ', len_of_key)
                                   + sl.lines[j];
                 }
-                ret += "\"" + VStringToString(sl.lines) + "\"";
+
+                if(m_values[i].second->isString()) //строки ВСЕГДА обрамляются кавычками
+                    ret += "\"";
+
+                ret += VStringToString(sl.lines);
+
+                if(m_values[i].second->isString()) //строки ВСЕГДА обрамляются кавычками
+                    ret += "\"";
             }
         }
 
