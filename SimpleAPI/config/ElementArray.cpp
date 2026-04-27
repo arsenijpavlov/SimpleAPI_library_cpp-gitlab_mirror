@@ -426,6 +426,21 @@ std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t
 
 //метод не рекурсивный для контейнеров!
 //TODO: ElementArray::toIniString()
+//FIXME: переносы строк
+//FIXME: вывод комментариев
+/*
+ *     Config cfg2;
+    cfg2.parseJson("[[\"a\naaa\", b],{c=[d,{e=f}]},g]"); //TODO: кандидат на тест
+//    cfg2.parseJson("{a={b=\"c\nccc\",d=e},f:[{g=[h,{i=j}]}]}"); //TODO: кандидат на тест
+//    cfg2.setPrefixComment("big preview\ncomment");
+//    cfg2.setSuffixComment("big suffix\ncomment");
+    std::cout << "----------------------------------" << std::endl;
+    std::cout << cfg2.toString(simpleapi::ConfigFormat::eJSON, cfg2.getCommentDesign()) << std::endl;
+    std::cout << "----------------------------------" << std::endl;
+    std::cout << cfg2.toString(simpleapi::ConfigFormat::eINI, cfg2.getCommentDesign()) << std::endl;
+    std::cout << "----------------------------------" << std::endl;
+*/
+
 std::string ElementArray::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     std::string ret;
@@ -501,8 +516,8 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
         }
         ret += "]\n";
     };
-    auto AppendCollection = [&](const std::string& prefix, Config& cfg) -> void {
-        std::vector<KeysValuesAndComments> kvacs = CollectKeysAndComments(cfg, prefix);
+    auto AppendCollection = [&](const VString& prefixes, Config& cfg) -> void {
+        std::vector<KeysValuesAndComments> kvacs = CollectKeysAndComments(cfg, prefixes);
         for(auto& kvac : kvacs) {
             ret += GetPrefixComment(*kvac.remote_cfg);
             if(!kvac.key.empty())
@@ -523,74 +538,67 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
 
     for(const auto& cfg : m_values) {
         switch(cfg->getType()) {
+        case ValueType::eArray: {
+            //все массивы первого уровня должны быть преобразованы в безымянный Json
+            Config temp = *cfg;
+            *cfg = Config(ValueType::eJson);
+            cfg->push_back("", temp);
+        }
         case ValueType::eJson: {
-//            if(!ret.empty())
-//                ret += '\n';
-//            ret += GetPrefixComment(*cfg.second);
-//            ret += "[" + cfg.first + "]";
-//            ret += GetSuffixComment(*cfg.second);
-//            ret += "\n";
+            ret += GetPrefixComment(*cfg);
 
-//            for(const auto& cfg_inner : cfg.second->getNamedRange()) {
-//                if(cfg_inner.second->isContainer()) {
-//                    if(IsArrayWithPrimitives(*cfg_inner.second))
-//                    {
-//                        //если внутри только примитивы без комментариев - вывести их в одну строку (строки длиной <=50)
-//                        AppendArrayPrimitives(cfg_inner.first, *cfg_inner.second);
-//                    } else {
-//                        //нужно собрать все элементы массива и упаковать в общее имя с переходом между уровнями
-//                        AppendCollection(cfg_inner.first, *cfg_inner.second);
-//                    }
-//                } else if(cfg_inner.second->isString()) {
-//                    ret += GetPrefixComment(*cfg_inner.second);
-//                    if(!cfg_inner.first.empty())
-//                        ret += cfg_inner.first + " = ";
-//                    AppendMultinlineString(cfg_inner.second->toString());
-//                    ret += GetSuffixComment(*cfg_inner.second);
-//                    ret += "\n";
-//                } else {
-//                    ret += GetPrefixComment(*cfg_inner.second);
-//                    if(!cfg_inner.first.empty())
-//                        ret += cfg_inner.first + " = ";
-//                    ret += cfg_inner.second->toString();
-//                    ret += GetSuffixComment(*cfg_inner.second);
-//                    ret += "\n";
-//                }
-//            } // for()
+            ret += ""; //контейнер без имени
 
-//            break;
-//        }
-//        case ValueType::eArray: {
-//            //если внутри только примитивы без комментариев - вывести их в одну строку (строки длиной <=50)
-//            if(IsArrayWithPrimitives(*cfg.second.get())) {
-//                AppendArrayPrimitives(cfg.first, *cfg.second);
-//            } else {
-//                //нужно собрать все элементы массива и упаковать в общее имя с переходом между уровнями
-//                AppendCollection(cfg.first, *cfg.second);
-//            }
+            for(const auto& cfg_inner : cfg->getNamedRange()) {
+                if(cfg_inner.second->isContainer()) {
+                    if(IsArrayWithPrimitives(*cfg_inner.second))
+                    {
+                        //если внутри только примитивы без комментариев - вывести их в одну строку (строки длиной <=50)
+                        AppendArrayPrimitives(cfg_inner.first, *cfg_inner.second);
+                    } else {
+                        //нужно собрать все элементы массива и упаковать в общее имя с переходом между уровнями
+                        AppendCollection({"", cfg_inner.first}, *cfg_inner.second);
+                    }
+                } else if(cfg_inner.second->isString()) {
+                    ret += GetPrefixComment(*cfg_inner.second);
+                    if(!cfg_inner.first.empty())
+                        ret += cfg_inner.first + " = ";
+                    AppendMultinlineString(cfg_inner.second->toString());
+                    ret += GetSuffixComment(*cfg_inner.second);
+                    ret += "\n";
+                } else {
+                    ret += GetPrefixComment(*cfg_inner.second);
+                    if(!cfg_inner.first.empty())
+                        ret += cfg_inner.first + " = ";
+                    ret += cfg_inner.second->toString();
+                    ret += GetSuffixComment(*cfg_inner.second);
+                    ret += "\n";
+                }
+            } // for()
 
-//            break;
-//        }
-//        default: {
-//            if(cfg.second->isArray()) {
-//                //если внутри только примитивы без комментариев - вывести их в одну строку (строки длиной <=50)
-//                if(IsArrayWithPrimitives(*cfg.second.get())) {
-//                    AppendArrayPrimitives(cfg.first, *cfg.second);
-//                } else {
-//                    //нужно собрать все элементы массива и упаковать в общее имя с переходом между уровнями
-//                    AppendCollection(cfg.first, *cfg.second);
-//                }
-//            } else {
-//                ret += GetPrefixComment(*cfg.second);
-//                if(!cfg.first.empty())
-//                    ret += cfg.first + " = ";
-//                ret += cfg.second->toString() + "\n";
-//                ret += GetSuffixComment(*cfg.second);
-//            }
-//            break;
-//        }
-//        }
-//    } // loop for()
+            ret += GetSuffixComment(*cfg);
+            ret += "\n";
+
+            break;
+        }
+        default: {
+            if(cfg->isArray()) {
+                //если внутри только примитивы без комментариев - вывести их в одну строку (строки длиной <=50)
+                if(IsArrayWithPrimitives(*cfg)) {
+                    AppendArrayPrimitives("", *cfg);
+                } else {
+                    //нужно собрать все элементы массива и упаковать в общее имя с переходом между уровнями
+                    AppendCollection({}, *cfg);
+                }
+            } else {
+                ret += GetPrefixComment(*cfg);
+                ret += cfg->toString() + "\n";
+                ret += GetSuffixComment(*cfg);
+            }
+            break;
+        }
+        }
+    } // loop for()
 
     if(!getSuffixComment().empty()) {
         ret += "\n\n" + ToComment(getSuffixComment(), design);

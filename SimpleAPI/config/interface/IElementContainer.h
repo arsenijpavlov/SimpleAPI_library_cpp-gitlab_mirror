@@ -114,7 +114,8 @@ protected:
         std::string key;
         Config*     remote_cfg;
     };
-    static std::vector<KeysValuesAndComments> CollectKeysAndComments(Config& cfg, std::string prefix = "") noexcept;
+    static std::vector<KeysValuesAndComments> CollectKeysAndComments(Config& cfg, std::string prefix = "")  noexcept;
+    static std::vector<KeysValuesAndComments> CollectKeysAndComments(Config& cfg, VString prefixes)         noexcept;
 };
 
 } // namespace tools
