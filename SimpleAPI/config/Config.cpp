@@ -9,6 +9,7 @@
 #include "ElementJson.h"
 //#include "ElementYaml.h"
 //#include "ElementXml.h"
+#include "../utils/Stacker.h"
 
 #include <regex>
 #include <fstream>
@@ -2680,11 +2681,14 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
     std::string key                 = "";
     std::string value               = "";
     std::string error_string        = "";
-    bool is_quotes                  = false;
-    bool is_small_quotes            = false;
+
+    Stacker stacker;
+//    bool is_quotes                  = false;
+//    bool is_small_quotes            = false;
     char last_separator_symbol      = '\n';
-    uint16_t inner_json_counter     = 0;
-    uint16_t inner_array_counter    = 0;
+//    uint16_t inner_json_counter     = 0;
+//    uint16_t inner_array_counter    = 0;
+
     ParserSymbolCounter counter;
     ParserSymbolCounter start_value_counter; //для счётчика внутри значения
 
@@ -2755,9 +2759,8 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
         counter.check(i, ch_current); //TODO: написать тест для проверки счётчика символов
 
         //поиск комментариев ===================================================
-        const bool ext_flag = !is_quotes && !is_small_quotes && (inner_array_counter + inner_json_counter == 0);
         //вернёт комментарий без обрамления
-        CheckComments(ch_current, ch_next, i, design, current_comment, ext_flag);
+        CheckComments(ch_current, ch_next, i, design, current_comment, stacker.empty());
         if(!design.with_comments)
             current_comment.clear();
         if(design.with_comments && design.temp_type == CommentType::eCommentEnd)
@@ -2811,15 +2814,13 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
         }
         case ParseStateJsonArray::eARRAY_VALUE: {
             //игнор пробелов и разделителей пока значение пустое
-            if(!is_quotes && !is_small_quotes
+            if(stacker.empty()
                 && value.empty()
                 && CharInString(ch_current, __SPACES__ ",")) // пустое значение между запятыми - не ошибка
             {
                 break;
             }
-            if(!is_quotes && !is_small_quotes
-                && inner_json_counter == 0
-                && inner_array_counter == 1
+            if(stacker.empty()
                 && value.empty()
                 && ch_current == ']') {
                 // работа с комментарием после элемента
