@@ -833,3 +833,9 @@ TEST(JSON, parser_simple_value) {
 //TODO: функционал проверки "нет завершения массива"
 //TODO: функционал проверки "нет завершения Json"
 
+//TODO: TESTS cfg2.parseJson("[[\"a\naaa\", b],{c=[d,{e=f}]},g]", cd);
+//TODO: TESTS cfg2.parseJson("{a=[\"a\naaa\", b],{c=[d,{e=f}]},g]}", cd);
+//TODO: TESTS cfg2.parseJson("{a={b=\"c\nccc\",d=e},f:[{g=[h,{i=j}]}]}");
+//TODO: TESTS cfg2.parseJson("{}]");
+//TODO: TESTS cfg2.parseJson("{{}]}");
+//TODO: TESTS cfg2.parseJson("{{a=b}]}");
