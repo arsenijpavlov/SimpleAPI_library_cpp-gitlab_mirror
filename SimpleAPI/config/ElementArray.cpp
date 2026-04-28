@@ -311,6 +311,7 @@ std::string ElementArray::toString(const ConfigFormat format, const CommentDesig
     }
 }
 
+//FIXME: вывод начального комментария, если элемент считается основным
 std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     std::string ret;
@@ -321,8 +322,18 @@ std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t
     //ret += "custom_tabulation_level:" + std::to_string(custom_tabulation_level) + "\n";
 
     bool with_spaces = custom_tabulation_level != -1;
-    CommentDesign inner_design = design;
+    CommentDesign inner_design   = design;
     inner_design.is_in_container = true;
+
+    //вывод комментария с рамкой
+    if(with_spaces
+        && design.with_comments
+        && !design.is_in_container
+        && !getPrefixComment().empty())
+    {
+        ret += ToComment(getPrefixComment(), inner_design, custom_tabulation_level);
+        ret += "\n";
+    }
 
     if(with_spaces)
         ret += tablulation_str;
@@ -379,21 +390,19 @@ std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t
             ret += ",";
 
         //вывод комментария без рамки
-        if(!m_values[i]->isContainer()) { //NOTE: контейнеры сами себя описывают
-            if(with_spaces
-                && inner_design.with_comments
-                && !m_values[i]->getSuffixComment().empty())
-            {
-                //NOTE: (ширина колонки многосторчного комментария после значения не влияет на вывод)
-                inner_design.opt_multiline_column_size = 0;
+        if(with_spaces
+            && inner_design.with_comments
+            && !m_values[i]->getSuffixComment().empty())
+        {
+            //NOTE: (ширина колонки многосторчного комментария после значения не влияет на вывод)
+            inner_design.opt_multiline_column_size = 0;
 
-                std::string temp = ToComment(m_values[i]->getSuffixComment(), inner_design, -1);
-                const size_t pos = ret.rfind('\n');
-                std::string temp__ = (ret.size() > pos +1 ? (ret.substr(pos + 1, ret.size())) : "") + " ";
-                utils::SetStringAsOnlySpaces(temp__);
-                utils::AddStringForFromLine(temp, 2, temp__);
-                ret += " " + temp;
-            }
+            std::string temp = ToComment(m_values[i]->getSuffixComment(), inner_design, -1);
+            const size_t pos = ret.rfind('\n');
+            std::string temp__ = (ret.size() > pos +1 ? (ret.substr(pos + 1, ret.size())) : "") + " ";
+            utils::SetStringAsOnlySpaces(temp__);
+            utils::AddStringForFromLine(temp, 2, temp__);
+            ret += " " + temp;
         }
 
         if(with_spaces)
@@ -425,22 +434,7 @@ std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t
 }
 
 //метод не рекурсивный для контейнеров!
-//TODO: ElementArray::toIniString()
-//FIXME: переносы строк
 //FIXME: вывод комментариев
-/*
- *     Config cfg2;
-    cfg2.parseJson("[[\"a\naaa\", b],{c=[d,{e=f}]},g]"); //TODO: кандидат на тест
-//    cfg2.parseJson("{a={b=\"c\nccc\",d=e},f:[{g=[h,{i=j}]}]}"); //TODO: кандидат на тест
-//    cfg2.setPrefixComment("big preview\ncomment");
-//    cfg2.setSuffixComment("big suffix\ncomment");
-    std::cout << "----------------------------------" << std::endl;
-    std::cout << cfg2.toString(simpleapi::ConfigFormat::eJSON, cfg2.getCommentDesign()) << std::endl;
-    std::cout << "----------------------------------" << std::endl;
-    std::cout << cfg2.toString(simpleapi::ConfigFormat::eINI, cfg2.getCommentDesign()) << std::endl;
-    std::cout << "----------------------------------" << std::endl;
-*/
-
 std::string ElementArray::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     std::string ret;
@@ -547,7 +541,7 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
         case ValueType::eJson: {
             ret += GetPrefixComment(*cfg);
 
-            ret += ""; //контейнер без имени
+            ret += ""; //контейнер в главном списке не может содержать ключа
 
             for(const auto& cfg_inner : cfg->getNamedRange()) {
                 if(cfg_inner.second->isContainer()) {
@@ -577,7 +571,6 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
             } // for()
 
             ret += GetSuffixComment(*cfg);
-            ret += "\n";
 
             break;
         }
