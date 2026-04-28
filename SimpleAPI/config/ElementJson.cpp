@@ -699,7 +699,7 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
     const std::string tablulation_str_1 = utils::RepeatSymToStr('\t', custom_tabulation_level + 1);
 
     bool with_spaces = custom_tabulation_level != -1;
-    CommentDesign inner_design = design;
+    CommentDesign inner_design   = design;
     inner_design.is_in_container = true;
 
     //вывод комментария с рамкой
