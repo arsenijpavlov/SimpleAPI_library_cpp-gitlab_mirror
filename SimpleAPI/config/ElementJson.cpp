@@ -753,7 +753,7 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
         if(m_values[i].second->isContainer()) {
             ret += utils::RemoveStartTabulations(temp);
         } else {
-            if(m_values[i].second->isNumber()) {
+            if(!m_values[i].second->isString()) {
                 ret += temp;
             } else {
                 SeparatedLines sl = SeparateWithoutColumned(temp);
@@ -765,13 +765,9 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
                                   + sl.lines[j];
                 }
 
-                if(m_values[i].second->isString()) //строки ВСЕГДА обрамляются кавычками
-                    ret += "\"";
-
+                ret += "\"";
                 ret += VStringToString(sl.lines);
-
-                if(m_values[i].second->isString()) //строки ВСЕГДА обрамляются кавычками
-                    ret += "\"";
+                ret += "\"";
             }
         }
 

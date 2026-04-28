@@ -367,7 +367,7 @@ std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t
         if(m_values[i]->isContainer()) {
             ret += utils::RemoveStartTabulations(temp);
         } else {
-            if(m_values[i]->isNumber()) {
+            if(!m_values[i]->isString()) {
                 ret += temp;
             } else {
                 SeparatedLines sl = SeparateWithoutColumned(temp);
@@ -376,13 +376,9 @@ std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t
                     sl.lines[j] = utils::RepeatSymToStr('\t', custom_tabulation_level + 1) + sl.lines[j];
                 }
 
-                if(m_values[i]->isString()) //строки ВСЕГДА обрамляются кавычками
-                    ret += "\"";
-
+                ret += "\"";
                 ret += VStringToString(sl.lines);
-
-                if(m_values[i]->isString()) //строки ВСЕГДА обрамляются кавычками
-                    ret += "\"";
+                ret += "\"";
             }
         }
 
