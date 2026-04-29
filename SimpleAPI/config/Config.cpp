@@ -1876,8 +1876,6 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
     // обработка обратного слэша на конце строки и пробела в начале следующей
     VVString lines_vec;
     std::array<char, 3> current_comment_format = {0, 0, 0};
-    bool in_simple_qoutes = false;
-    bool in_double_qoutes = false;
     while(!lines.empty()) {
         lines_vec.push_back({lines.front()});
         lines.erase(lines.cbegin());
@@ -1934,8 +1932,10 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
     std::string temp_string_value;
 
     size_t assignment_counter = 0;
-    bool is_small_quotes      = false;
-    bool is_quotes            = false;
+    Stacker stacker;
+    stacker.addSimpleRule('\'');
+    stacker.addSimpleRule('"');
+    stacker.addDoubleRule('[', ']');
 
     char ch_previous          = 0;
     char ch_current           = 0;
@@ -1981,11 +1981,10 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                 counter.check(j, ch_current);
 
                 //поиск комментариев ===================================================
-                const bool ext_flag = !is_small_quotes && !is_quotes;
                 //вернёт комментарий без обрамления
                 try {
-                    CheckComments(ch_current, ch_next, j, design, current_comment, ext_flag);
-                } catch(std::exception& e) {
+                    CheckComments(ch_current, ch_next, j, design, current_comment, stacker.empty());
+                } catch(std::exception& e) { //FIXME: продублировать для Json/JsonArray
                     //не хватило символов для прочтения комментария
                     CreateError(counter, e.what());
                     break;
@@ -2012,20 +2011,22 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                 //=================================================== поиск комментариев
 
                 if(temp_string_value.empty()
-                    && ext_flag
+                    && stacker.empty()
                     && utils::CharInString(ch_current, __SPACES_WITHOUT_SEPARATORS__))
                 {
                     continue;
                 }
 
-                temp_string_value += ch_current;
-
                 if(ch_previous != '\\') {
-                    switch(ch_current) {
-                    case '\'':  is_small_quotes = !is_small_quotes; break;
-                    case '"':   is_quotes = !is_quotes;             break;
+                    if(!stacker.autocheck(ch_current)) { //проверяет только нахождение в кавычках
+                        // недостижимый код ?
+                        //error_string = "ERROR!";
+                        break;
                     }
                 }
+
+                //здесь нет смысла проверять внешние условия - всё, что введёт пользователь - строка в том или ином виде
+                temp_string_value += ch_current;
 
                 if(utils::CharInString(ch_current, "=:")) {
                     assignment_counter++;
@@ -2039,7 +2040,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
         }
 
         //значение корректно?
-        if(is_small_quotes || is_quotes || design.temp_type != CommentType::eNotComment)
+        if(!stacker.empty() || design.temp_type != CommentType::eNotComment)
         {
             continue; //значение прочитано не полностью!
         }
@@ -2081,8 +2082,9 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
 
                     //находить знаки = и : до тех пор, пока не будут встречены лишние символы
                     //ключ в кавычках не должен влиять на поиск
-                    bool is_quotes        = false;
-                    bool is_simple_quotes = false;
+//                    Stacker stacker_lambda;
+//                    stacker_lambda.addSimpleRule('\'');
+//                    stacker_lambda.addSimpleRule('"');
 
                     std::string temp;
                     char ch_previous = 0;
@@ -2106,8 +2108,6 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                                 parsed = true;
                                 break;
                             }
-                            case '"':   if(!is_simple_quotes)   is_quotes = !is_quotes;                 break;
-                            case '\'':  if(!is_quotes)          is_simple_quotes = !is_simple_quotes;   break;
                             }
                         }
                         if(parsed) break;
@@ -2137,8 +2137,8 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
 
                     //находить знаки / и \\ до тех пор, пока не будут встречены лишние символы
                     //ключ в кавычках не должен влиять на поиск
-                    bool is_quotes        = false;
-                    bool is_simple_quotes = false;
+//                    bool is_quotes        = false;
+//                    bool is_simple_quotes = false;
 
                     std::string temp;
                     char ch_previous = 0;
@@ -2147,12 +2147,12 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                     for(size_t i = 0; i < big_key.size(); i++, ch_previous = ch_current) {
                         ch_current = big_key[i];
 
-                        if(ch_previous != '\\') {
-                            switch(ch_current) {
-                            case '"':   if(!is_simple_quotes)   is_quotes = !is_quotes;                 break;
-                            case '\'':  if(!is_quotes)          is_simple_quotes = !is_simple_quotes;   break;
-                            }
-                        }
+//                        if(ch_previous != '\\') {
+//                            switch(ch_current) {
+//                            case '"':   if(!is_simple_quotes)   is_quotes = !is_quotes;                 break;
+//                            case '\'':  if(!is_quotes)          is_simple_quotes = !is_simple_quotes;   break;
+//                            }
+//                        }
 
                         switch(ch_current) {
                         case '/':
