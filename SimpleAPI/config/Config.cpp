@@ -2683,11 +2683,12 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
     std::string error_string        = "";
 
     Stacker stacker;
-//    bool is_quotes                  = false;
-//    bool is_small_quotes            = false;
+    stacker.addSimpleRule('\'');
+    stacker.addSimpleRule('"');
+    stacker.addDoubleRule('[', ']');
+    stacker.addDoubleRule('{', '}');
+
     char last_separator_symbol      = '\n';
-//    uint16_t inner_json_counter     = 0;
-//    uint16_t inner_array_counter    = 0;
 
     ParserSymbolCounter counter;
     ParserSymbolCounter start_value_counter; //для счётчика внутри значения
@@ -2816,7 +2817,7 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
             //игнор пробелов и разделителей пока значение пустое
             if(stacker.empty()
                 && value.empty()
-                && CharInString(ch_current, __SPACES__ ",")) // пустое значение между запятыми - не ошибка
+                && CharInString(ch_current, __SPACES__))
             {
                 break;
             }
@@ -2831,49 +2832,31 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
                 break;
             }
 
-            //если ключ в кавычках, то ждём кавычки, иначе любой __SPACES__
-            if(ch_previous != '\\') {
-                switch(ch_current) {
-                case '\'':  if(!is_quotes)          is_small_quotes = !is_small_quotes; break;
-                case '"':   if(!is_small_quotes)    is_quotes = !is_quotes;             break;
-                }
-            }
-
-            //кавычки, именованные списки, массивы
-            if(!is_quotes && !is_small_quotes) {
-                switch(ch_current) {
-                case '{':   { ++inner_json_counter;     break; }
-                case '}':   { --inner_json_counter;     break; }
-                case '[':   { ++inner_array_counter;    break; }
-                case ']':   { --inner_array_counter;    break; }
-                default: break;
-                }
-            }
-            value += ch_current;
-
-            //если значение пустое, есть только разделитель - запятая
-            if(!is_quotes && !is_small_quotes
-                && inner_json_counter + inner_array_counter == 0
-                && ch_current == ',')
+            if(ch_previous != '\\')
             {
-                value.clear();
+                if(!stacker.autocheck(ch_current)) {
+                    //TODO: обработать ошибку синтаксиса
+                    error_string = "ERROR!";
+                    UpdateState(state, ParseStateJsonArray::eARRAY_ERROR_STATE);
+                    break;
+                }
+            }
+
+            if(!CharInString(ch_current, __SEPARATORS__))
+                value += ch_current;
+            else {
                 i--;
             }
 
             //значение прочитано полностью?
-            if(!is_quotes && !is_small_quotes
-                && inner_json_counter == 0
-                && inner_array_counter == 0
+            if(stacker.empty()
                 && (CharInString(ch_next, __SEPARATORS__ " ]")
-                    || CharInString(ch_current, __SEPARATORS__ "]"))
+                        || ch_next == 0
+                        || CharInString(ch_current, __SEPARATORS__))
+                && (value.empty() || !utils::OnlySpaces(value))
                 )
             {
                 DEBUG_LOG("ElementArray: current value done: \"" << value << "\"");
-                if(value.empty()) {
-                    DEBUG_LOG("ElementArray: found empty value, skip...");
-                    UpdateState(state, ParseStateJsonArray::eARRAY_SEPARATOR);
-                    break;
-                }
 
                 Config element = CreateElementFromString(std::move(value), ConfigFormat::eJSON, design, start_value_counter);
                 if(element.error()) {
@@ -2932,12 +2915,10 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
             value.clear();
 
             if(CharInString(ch_current, __SEPARATORS__)) {
-                i--;
                 UpdateState(state, ParseStateJsonArray::eARRAY_VALUE);
                 break;
             }
             if(CharInString(ch_current, "]")) {
-                i--;
                 UpdateState(state, ParseStateJsonArray::eARRAY_FINISH);
                 break;
             }
@@ -2948,6 +2929,10 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
         }
         default: break;
         }
+
+        // любая ошибка означает выход из парсера
+        if(state == ParseStateJsonArray::eARRAY_ERROR_STATE)
+            break;
     }
 
     //конечный комментарий ...

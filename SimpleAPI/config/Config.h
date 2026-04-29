@@ -75,6 +75,7 @@ public:
     explicit Config(const tools::IElement& other)   noexcept : m_value(nullptr)     { setValue(other); }
     explicit Config(tools::IElement&& other)        noexcept : m_value(nullptr)     { setValue(std::move(other)); }
 
+    explicit Config(std::nullptr_t)                 noexcept : m_value(nullptr)     { setValue(); }
     explicit Config(const bool other)               noexcept : m_value(nullptr)     { setValue(other); }
     __ONLY_NUMBER_TYPES__(T)
     explicit Config(T&& other)                      noexcept : m_value(nullptr)     { setValue(static_cast<long double>(other)); }
@@ -670,9 +671,10 @@ public:
                             const bool map_sort_important = false) const noexcept   { return isEqual(*other.m_value, compare_comments, map_sort_important); }
     bool            isEqual(const tools::IElement& other, const bool compare_comments = false,
                             const bool map_sort_important = false) const noexcept;                                              API_ALL
-    bool            isEqual(const bool other)                                       const noexcept;                             API_ALL
-    bool            isEqual(const long double& other)                               const noexcept;                             API_ALL
-    bool            isEqual(const std::string& other)                               const noexcept;                             API_ALL
+    bool            isEqual(const bool other)               const noexcept;                                                     API_ALL
+    bool            isEqual(std::nullptr_t)                 const noexcept          { return isNull(); }                        API_ALL
+    bool            isEqual(const long double& other)       const noexcept;                                                     API_ALL
+    bool            isEqual(const std::string& other)       const noexcept;                                                     API_ALL
 
     //WIKI: для контейнеров вернёт количество элементов
     //WIKI: для строк вернёт количество символов
@@ -708,6 +710,7 @@ public:
     bool            operator==(const Config& other)         const                   { return isEqual(other); }                  API_ALL
     bool            operator==(const tools::IElement& other)const                   { return isEqual(other); }                  API_ALL
     bool            operator==(const bool other)            const                   { return isEqual(other); }                  API_ALL
+    bool            operator==(std::nullptr_t)            const                     { return isNull(); }                        API_ALL
                     __ONLY_NUMBER_TYPES__(T)
     bool            operator==(const T& other)              const                   { return isEqual(static_cast<const long double&>(other)); }     API_ALL
                     __ONLY_STRING_TYPES__(T)
@@ -716,6 +719,7 @@ public:
     bool            operator!=(const Config& other)         const                   { return !isEqual(other); }                 API_ALL
     bool            operator!=(const tools::IElement& other)const                   { return !isEqual(other); }                 API_ALL
     bool            operator!=(const bool other)            const                   { return !isEqual(other); }                 API_ALL
+    bool            operator!=(std::nullptr_t)            const                     { return !isNull(); }                       API_ALL
                     __ONLY_NUMBER_TYPES__(T)
     bool            operator!=(const T& other)              const                   { return !isEqual(static_cast<const long double&>(other)); }    API_ALL
     bool            operator!=(const std::string& other)    const                   { return !isEqual(other); }                 API_ALL
