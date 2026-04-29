@@ -2454,7 +2454,7 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
                 }
             }
 
-            if(!CharInString(ch_current, ":="))
+            if(!stacker.empty() || !CharInString(ch_current, ":="))
                 key += ch_current;
             else {
                 i--;
