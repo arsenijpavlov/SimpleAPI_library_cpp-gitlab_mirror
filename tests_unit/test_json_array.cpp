@@ -164,3 +164,10 @@ TEST(ARRAY, parse_json_simple_array) {
     Config cfg = ParseJson("[a, b, c]");
     EXPECT_EQ(cfg, Config(ValueType::eArray, "a", "b", "c"));
 }
+
+TEST(ARRAY, parse_json_array_with_empty_element) {
+    Config cfg = ParseJson("[a,, b, c]");
+    ASSERT_EQ(cfg.size(), 4);
+    Config cfg2 = Config(ValueType::eArray, "a", nullptr, "b", "c");
+    EXPECT_EQ(cfg, cfg2);
+}
