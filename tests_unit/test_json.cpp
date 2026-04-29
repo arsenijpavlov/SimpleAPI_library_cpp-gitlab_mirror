@@ -826,6 +826,13 @@ TEST(JSON, parser_simple_value) {
     EXPECT_NE(cfg, "{string"); //должно распарсить как Json, но при этом Json некорректный - 0 элементов
 }
 
+TEST(JSON, parse_json_with_empty_element) {
+    Config cfg = ParseJson("{a=b,c=,d=e}");
+    ASSERT_EQ(cfg.size(), 3);
+    Config cfg2 = Config(ValueType::eJson, "a", "b", "c", nullptr, "d", "e");
+    EXPECT_EQ(cfg, cfg2);
+}
+
 //TODO: функционал проверки типа JSON - значение любого типа, ключ не нужен
 //TODO: функционал проверки "есть ключ - нет значения"
 //TODO: функционал проверки "нет разделителя между значениями"

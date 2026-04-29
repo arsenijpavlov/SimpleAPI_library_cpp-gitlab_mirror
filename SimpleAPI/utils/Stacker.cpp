@@ -5,6 +5,7 @@ namespace simpleapi {
 namespace tools {
 
 
+//FIXME: если последний символ стека кавычка, то другие правила игнорировать
 bool Stacker::autocheck(char ch) noexcept
 {
     for(const auto rule : m_rules) {

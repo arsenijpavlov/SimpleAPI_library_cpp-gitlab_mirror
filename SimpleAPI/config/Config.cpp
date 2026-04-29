@@ -1657,10 +1657,12 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
      */
     std::string current_comment;
     VString comments;
-    bool is_small_quotes       = false;
-    bool is_quotes             = false;
-    size_t inner_json_counter  = 0;
-    size_t inner_array_counter = 0;
+
+    tools::Stacker stacker;
+    stacker.addSimpleRule('\'');
+    stacker.addSimpleRule('"');
+    stacker.addDoubleRule('[', ']');
+    stacker.addDoubleRule('{', '}');
 
     bool value_found           = false;
     size_t value_started_at    = 0;
@@ -1679,9 +1681,8 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
         counter.check(i, ch_current);
 
         //поиск комментариев ===================================================
-        const bool ext_flag = !is_quotes && !is_small_quotes && (inner_array_counter + inner_json_counter == 0);
         //вернёт комментарий без обрамления
-        tools::CheckComments(ch_current, ch_next, i, n_design, current_comment, ext_flag);
+        tools::CheckComments(ch_current, ch_next, i, n_design, current_comment, stacker.empty());
         if(!n_design.with_comments)
             current_comment.clear();
         if(n_design.with_comments && n_design.temp_type == CommentType::eCommentEnd)
@@ -1698,7 +1699,7 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
         //=================================================== поиск комментариев
 
         //первый не пробельный символ является определителем
-        if(!value_found && ext_flag && !utils::CharInString(ch_current, __SPACES__))
+        if(!value_found && stacker.empty() && !utils::CharInString(ch_current, __SPACES__))
         {
             value_found      = true;
             value_started_at = i;
@@ -1709,27 +1710,14 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
         }
 
         //находим следующие определители
-        if(value_found && ext_flag && utils::CharInString(ch_current, "=:")) {
+        if(value_found && stacker.empty() && utils::CharInString(ch_current, "=:")) {
             is_full_json = true;
             break;
         }
 
         if(ch_previous != '\\') {
-            switch(ch_current) {
-            case '\'':  if(!is_quotes)          is_small_quotes = !is_small_quotes; break;
-            case '"':   if(!is_small_quotes)    is_quotes = !is_quotes;             break;
-            default: break;
-            }
-        }
-
-        //кавычки, именованные списки, массивы
-        if(!is_quotes && !is_small_quotes) {
-            switch(ch_current) {
-            case '{':   { ++inner_json_counter;     break; }
-            case '}':   { --inner_json_counter;     break; }
-            case '[':   { ++inner_array_counter;    break; }
-            case ']':   { --inner_array_counter;    break; }
-            default:    { break; }
+            if(!stacker.autocheck(ch_current)) {
+                break;
             }
         }
     }
@@ -1787,9 +1775,8 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
             counter.check(i, ch_current);
 
             //поиск комментариев ===================================================
-            const bool ext_flag = !is_quotes && !is_small_quotes && (inner_array_counter + inner_json_counter == 0);
             //вернёт комментарий без обрамления
-            tools::CheckComments(ch_current, ch_next, i, n_design, current_comment, ext_flag);
+            tools::CheckComments(ch_current, ch_next, i, n_design, current_comment, stacker.empty());
             if(!n_design.with_comments)
                 current_comment.clear();
             if(n_design.with_comments && n_design.temp_type == CommentType::eCommentEnd)
@@ -1805,28 +1792,26 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
 
             if(!value_stored) {
                 if(ch_previous != '\\') {
-                    switch(ch_current) {
-                    case '\'':  if(!is_quotes)          is_small_quotes = !is_small_quotes; break;
-                    case '"':   if(!is_small_quotes)    is_quotes = !is_quotes;             break;
+                    if(!stacker.autocheck(ch_current)) {
+                        //TODO: обработать ошибку синтаксиса
+//                        error_string = "ERROR!";
+                        break;
                     }
                 }
 
-                //кавычки, именованные списки, массивы
-                if(!is_quotes && !is_small_quotes) {
-                    switch(ch_current) {
-                    case '{':   { ++inner_json_counter;     break; }
-                    case '}':   { --inner_json_counter;     break; }
-                    case '[':   { ++inner_array_counter;    break; }
-                    case ']':   { --inner_array_counter;    break; }
-                    default:    { break; }
-                    }
+                if(!stacker.empty() ||  !utils::CharInString(ch_current, __SEPARATORS__))
+                    value += content[i];
+                else {
+                    i--;
                 }
-                value += content[i];
 
                 //значение прочитано полностью?
-                if(!is_quotes && !is_small_quotes && inner_json_counter + inner_array_counter == 0
-                    && (ch_next == 0 || utils::CharInString(ch_next, __SEPARATORS__ " }")
-                        || utils::CharInString(ch_current, __SEPARATORS__ " }")))
+                if(stacker.empty()
+                    && (utils::CharInString(ch_next, __SEPARATORS__ " ")
+                        || ch_next == 0
+                        || utils::CharInString(ch_current, __SEPARATORS__))
+                    && (value.empty() || !utils::OnlySpaces(value))
+                    )
                 {
                     if(!ConfirmValue(true))
                         break; //если словили exception при обработке - выходим из цикла for()
@@ -2281,11 +2266,14 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
     std::string key                 = "";
     std::string value               = "";
     std::string error_string        = "";
-    bool is_small_quotes            = false;
-    bool is_quotes                  = false;
+
+    Stacker stacker;
+    stacker.addSimpleRule('\'');
+    stacker.addSimpleRule('"');
+    stacker.addDoubleRule('[', ']');
+    stacker.addDoubleRule('{', '}');
+
     char last_separator_symbol      = '\n';
-    uint16_t inner_json_counter     = 0;
-    uint16_t inner_array_counter    = 0;
     bool is_one_value_format        = false; //одиночные значения не требуют фигурных скобок
     ParserSymbolCounter counter;
     ParserSymbolCounter start_value_counter; //для счётчика внутри значения
@@ -2388,9 +2376,8 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
         counter.check(i, ch_current);
 
         //поиск комментариев ===================================================
-        const bool ext_flag = !is_quotes && !is_small_quotes && (inner_array_counter + inner_json_counter == 0);
         //вернёт комментарий без обрамления
-        CheckComments(ch_current, ch_next, i, design, current_comment, ext_flag);
+        CheckComments(ch_current, ch_next, i, design, current_comment, stacker.empty());
         if(!design.with_comments)
             current_comment.clear();
         if(design.with_comments && design.temp_type == CommentType::eCommentEnd)
@@ -2443,13 +2430,13 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
         }
         case ParseStateJson::eJSON_KEY: {
             //игнор пробелов и разделителей пока ключ пустой
-            if(!is_quotes && !is_small_quotes
+            if(stacker.empty()
                 && key.empty()
-                && CharInString(ch_current, __SPACES__ ",")) //сама по себе запятая не считается ошибкой
+                && CharInString(ch_current, __SPACES__))
             {
                 break;
             }
-            if(ext_flag && ch_current == '}') {
+            if(stacker.empty() && ch_current == '}') {
                 // работа с комментарием после элемента
                 if(get_back().getSuffixComment().empty())
                     AppendElementSuffixComment();
@@ -2458,28 +2445,24 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
                 break;
             }
 
-            //если ключ в кавычках, то ждём кавычки, иначе любой __SPACES__
             if(ch_previous != '\\') {
-                switch(ch_current) {
-                case '\'':  if(!is_quotes)          is_small_quotes = !is_small_quotes; break;
-                case '"':   if(!is_small_quotes)    is_quotes = !is_quotes;             break;
+                if(!stacker.autocheck(ch_current)) {
+                    //TODO: обработать ошибку синтаксиса
+                    error_string = "ERROR!";
+                    UpdateState(state, ParseStateJson::eJSON_ERROR_STATE);
+                    break;
                 }
             }
 
-            //защита от дурака: кавычки, именованные списки, массивы
-            if(!is_quotes && !is_small_quotes) {
-                switch(ch_current) {
-                case '{':   { ++inner_json_counter;     break; }
-                case '}':   { --inner_json_counter;     break; }
-                case '[':   { ++inner_array_counter;    break; }
-                case ']':   { --inner_array_counter;    break; }
-                default: break;
-                }
+            if(!CharInString(ch_current, ":="))
+                key += ch_current;
+            else {
+                i--;
             }
-            key += ch_current;
 
             //ключ прочитан полностью?
-            if(!is_quotes && !is_small_quotes && CharInString(ch_next, __SPACES__ ":=")) {
+            if(stacker.empty() && CharInString(ch_next, __SPACES__ ":=")) {
+                RemoveIllegalSpaces(key); //игнорировать незначащие пробелы
                 RemoveQuotes(key);
                 DEBUG_LOG("ElementJson: current key done: \"" << key << "\"");
                 UpdateState(state, ParseStateJson::eJSON_KEY_VALUE_SEPARATOR);
@@ -2512,7 +2495,7 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
         }
         case ParseStateJson::eJSON_VALUE: {
             //игнор пробелов пока значение пустое
-            if(!is_quotes && !is_small_quotes
+            if(stacker.empty()
                 && value.empty()
                 && CharInString(ch_current, __SPACES__))
             {
@@ -2523,37 +2506,27 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
                 start_value_counter = counter; //будет использовано в CreateElementFromString()
 
             if(ch_previous != '\\') {
-                switch(ch_current) {
-                case '\'':  if(!is_quotes)          is_small_quotes = !is_small_quotes; break;
-                case '"':   if(!is_small_quotes)    is_quotes = !is_quotes;             break;
+                if(!stacker.autocheck(ch_current)) {
+                    //TODO: обработать ошибку синтаксиса
+                    error_string = "ERROR!";
+                    UpdateState(state, ParseStateJson::eJSON_ERROR_STATE);
+                    break;
                 }
             }
 
-            //кавычки, именованные списки, массивы
-            if(!is_quotes && !is_small_quotes) {
-                switch(ch_current) {
-                case '{':   { ++inner_json_counter;     break; }
-                case '}':   { --inner_json_counter;     break; }
-                case '[':   { ++inner_array_counter;    break; }
-                case ']':   { --inner_array_counter;    break; }
-                default:    { break; }
-                }
-            }
-            value += ch_current;
-
-            //если значение пустое, есть только разделитель - запятая
-            if(!is_quotes && !is_small_quotes
-                && inner_json_counter + inner_array_counter == 0
-                && ch_current == ',')
-            {
-                value.clear();
+            if(!stacker.empty() || !CharInString(ch_current, __SEPARATORS__))
+                value += ch_current;
+            else {
                 i--;
             }
 
             //значение прочитано полностью?
-            if(!is_quotes && !is_small_quotes && inner_json_counter + inner_array_counter == 0
-                && (ch_next == 0 || CharInString(ch_next, __SEPARATORS__ " }")
-                    || CharInString(ch_current, __SEPARATORS__ " }")))
+            if(stacker.empty()
+                && (CharInString(ch_next, __SEPARATORS__ " }")
+                    || ch_next == 0
+                    || CharInString(ch_current, __SEPARATORS__))
+                && (value.empty() || !utils::OnlySpaces(value))
+                )
             {
                 if(!ConfirmValue(true))
                     break; //если словили exception при обработке - выходим из цикла for()
@@ -2583,12 +2556,10 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
             value_read_at_line = counter.getLastLineCounter(); //применится перед } и перед считыванием значения
 
             if(!is_one_value_format && CharInString(ch_current, __SEPARATORS__)) {
-                i--;
                 UpdateState(state, ParseStateJson::eJSON_KEY);
                 break;
             }
             if(!is_one_value_format && CharInString(ch_current, "}")) {
-                i--;
                 UpdateState(state, ParseStateJson::eJSON_FINISH);
                 break;
             }
@@ -2842,7 +2813,7 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
                 }
             }
 
-            if(!CharInString(ch_current, __SEPARATORS__))
+            if(!stacker.empty() || !CharInString(ch_current, __SEPARATORS__))
                 value += ch_current;
             else {
                 i--;
