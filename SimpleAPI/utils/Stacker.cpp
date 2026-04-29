@@ -4,42 +4,54 @@
 namespace simpleapi {
 namespace tools {
 
-void Stacker::push(char ch) noexcept
+
+bool Stacker::autocheck(char ch) noexcept
 {
-    m_stack.push_back(ch);
-}
-
-bool Stacker::equal_at_last(char ch) const noexcept
-{
-    if(m_stack.empty()) return false;
-
-    return ch == m_stack.back();
-}
-
-void Stacker::pop() noexcept
-{
-    if(m_stack.empty())
-        return;
-
-    m_stack.pop_back();
-}
-
-void Stacker::autocheck(char ch) noexcept
-{
-    if(m_stack.empty()) {
-        m_stack.push_back(ch);
-        return;
+    for(const auto rule : m_rules) {
+        //проверить одиночные правила
+        if(rule.second == 0 && rule.first == ch) {
+            if(!m_stack.empty() && m_stack.back() == ch)
+                m_stack.pop_back();
+            else
+                m_stack.push_back(ch);
+            break;
+        }
+        //проверить правила на закрытие
+        else if(rule.second == ch) {
+            if(!m_stack.empty() && m_stack.back() == rule.first)
+                m_stack.pop_back();
+            else
+                return false;
+            break;
+        }
+        //проверить правила на открытие
+        else if(rule.first == ch) {
+            m_stack.push_back(ch);
+            break;
+        }
     }
 
-    if(ch == m_stack.back())
-        m_stack.pop_back();
-    else
-        m_stack.push_back(ch);
+    return true;
 }
 
-bool Stacker::lastIsQuotes() const noexcept
+bool Stacker::addSimpleRule(char ch) noexcept
 {
-    return equal_at_last('\'') || equal_at_last('"');
+    for(const auto it : m_rules) {
+        if(it.first == ch) return false;
+    }
+
+    m_rules.push_back({ch, 0});
+    return true;
+}
+
+bool Stacker::addDoubleRule(char ch1, char ch2) noexcept
+{
+    for(const auto it : m_rules) {
+        if(it.first == ch1) return false;
+    }
+
+    m_rules.push_back({ch1, ch2});
+    return true;
 }
 
 
