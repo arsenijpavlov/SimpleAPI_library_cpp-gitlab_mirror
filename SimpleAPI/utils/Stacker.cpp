@@ -5,7 +5,6 @@ namespace simpleapi {
 namespace tools {
 
 
-//FIXME: если последний символ стека кавычка, то другие правила игнорировать
 bool Stacker::autocheck(char ch) noexcept
 {
     for(const auto rule : m_rules) {
@@ -15,6 +14,15 @@ bool Stacker::autocheck(char ch) noexcept
                 m_stack.pop_back();
             else
                 m_stack.push_back(ch);
+            break;
+        }
+        //если кавычка, то ждём закрывающую кавычку
+        else if((rule.first == '\'' || rule.first == '"')
+                 && !m_stack.empty()
+                 && (m_stack.back() == '\'' || m_stack.back() == '"')
+                 && (ch != '\'' && ch != '"')
+                 )
+        {
             break;
         }
         //проверить правила на закрытие
