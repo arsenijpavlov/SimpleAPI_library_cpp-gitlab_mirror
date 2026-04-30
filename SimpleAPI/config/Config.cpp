@@ -2084,9 +2084,9 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
 
                     //находить знаки = и : до тех пор, пока не будут встречены лишние символы
                     //ключ в кавычках не должен влиять на поиск
-//                    Stacker stacker_lambda;
-//                    stacker_lambda.addSimpleRule('\'');
-//                    stacker_lambda.addSimpleRule('"');
+                    Stacker stacker_lambda;
+                    stacker_lambda.addSimpleRule('\'');
+                    stacker_lambda.addSimpleRule('"');
 
                     std::string temp;
                     char ch_previous = 0;
@@ -2096,7 +2096,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                         ch_current = content[i];
 
                         bool parsed = false;
-                        if(ch_previous != '\\') {
+                        if(ch_previous != '\\' && !stacker_lambda.inQuotes()) {
                             switch(ch_current) {
                             case '{':
                             case '}':
@@ -2113,6 +2113,8 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                             }
                         }
                         if(parsed) break;
+
+                        stacker_lambda.autocheck(ch_current); // для проверки нахождения внутри кавычек
 
                         switch(ch_current) {
                         case ':':
@@ -2806,7 +2808,7 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
             }
 
             UpdateState(state, ParseStateJsonArray::eARRAY_ERROR_STATE);
-            error_string = "Not found start of ARRAY.";
+            error_string = "not found start of JSON-ARRRAY structure";
             break;
         }
         case ParseStateJsonArray::eARRAY_VALUE: {

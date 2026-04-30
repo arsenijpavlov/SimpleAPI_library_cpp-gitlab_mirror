@@ -63,6 +63,21 @@ bool Stacker::addDoubleRule(char ch1, char ch2) noexcept
     return true;
 }
 
+bool Stacker::inQuotes() const noexcept
+{
+    //на основе правил определить тип кавычки (при наличии) и проверить её наличие в стеке
+    for(const auto& rule : m_rules) {
+        if(rule.first == '\'' || rule.first == '"') {
+            for(const auto c : m_stack) {
+                if(c == rule.first)
+                    return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 
 } // namespace tools
 } // namespace simpleapi

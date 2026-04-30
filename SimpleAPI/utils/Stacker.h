@@ -30,6 +30,8 @@ public:
     //ch1 включает в стек, ch2 исклюает из стека
     bool addDoubleRule(char ch1, char ch2)  noexcept;
     void clearAllRules()                    noexcept        { m_rules.clear(); }
+
+    bool inQuotes()                         const noexcept;
 };
 
 } // namespace tools
