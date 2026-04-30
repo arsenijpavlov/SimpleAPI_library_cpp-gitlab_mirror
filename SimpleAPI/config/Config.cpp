@@ -1933,12 +1933,12 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
     std::string current_comment;
     std::string temp_string_value;
 
-    size_t assignment_counter = 0;
     Stacker stacker;
     stacker.addSimpleRule('\'');
     stacker.addSimpleRule('"');
     stacker.addDoubleRule('[', ']');
 
+    size_t assignment_counter = 0;
     char ch_previous          = 0;
     char ch_current           = 0;
     char ch_next              = 0;
@@ -2583,7 +2583,7 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
             //либо считано одно значение и всё следующее является ошибкой (комменты не учитываются)
             //либо считано несколько значений и не найден знак завершения (комменты не учитываются)
             UpdateState(state, ParseStateJson::eJSON_ERROR_STATE);
-            error_string = "not found stop of JSON or value separator";
+            error_string = "not found end of JSON structure or value separator";
             break;
         }
         case ParseStateJson::eJSON_FINISH: {
@@ -2611,18 +2611,20 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
     }
 
     if(!is_one_value_format) {
-        if(state != ParseStateJson::eJSON_FINISH && error_string.empty())
-            error_string = "not found stop of JSON"; //если встретили конец файла
         AppendMainSuffixComment(); //конечный комментарий для всего Json
     }
 
     if(!is_one_value_format && state != ParseStateJson::eJSON_FINISH)
     {
-        error_string = std::string("JSON parse error, unexpected symbol at [")
-                       + std::to_string(counter.getLastLineCounter())
-                       + "][" + std::to_string(counter.getLastSymbolCounter()) + "]: '"
-                       + content[counter.getLastIterator()] + "'. "
-                       + error_string;
+        if(error_string.empty())
+            error_string = "not found end of JSON structure or value separator"; //если встретили конец файла
+        else
+            error_string = std::string("unexpected symbol at [")
+                           + std::to_string(counter.getLastLineCounter())
+                           + "][" + std::to_string(counter.getLastSymbolCounter()) + "]: '"
+                           + content[counter.getLastIterator()] + "'. "
+                           + error_string;
+        error_string = "JSON parse error, " + error_string;
         DEBUG_LOG("ERROR: " << error_string);
         //NOTE: в случае ошибки парсинга корректно прочитанные значения сохраняются
         //clear();
@@ -2918,11 +2920,11 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
             }
 
             UpdateState(state, ParseStateJsonArray::eARRAY_ERROR_STATE);
-            error_string = "Not found stop of ARRAY.";
+            error_string = "not found end of JSON-ARRAY structure or value separator";
             break;
         }
         case ParseStateJsonArray::eARRAY_FINISH: {
-            error_string = "unknown symbol after JSON structure";
+            error_string = "unknown symbol after JSON-ARRAY structure";
             break;
         }
         default: break;
@@ -2941,11 +2943,15 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
 
     setCommentDesign(design);
     if(state != ParseStateJsonArray::eARRAY_FINISH && state != ParseStateJsonArray::eARRAY_VALUE) {
-        error_string = std::string("JSON parse error, unexpected symbol at [")
+        if(error_string.empty())
+            error_string = "not found end of JSON-ARRAY structure or value separator"; //если встретили конец файла
+        else
+            error_string = std::string("unexpected symbol at [")
                        + std::to_string(counter.getLastLineCounter())
                        + "][" + std::to_string(counter.getLastSymbolCounter()) + "]: '"
                        + content[counter.getLastIterator()] + "'. "
                        + error_string;
+        error_string = "JSON-ARRAY parse error, " + error_string;
         DEBUG_LOG("ERROR: " << error_string);
         //NOTE: (ElementArray) в случае ошибки парсинга корректно прочитанные значения сохраняются
         //clear();

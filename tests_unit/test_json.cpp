@@ -804,9 +804,9 @@ TEST(JSON, parser_symbols_counter) {
     EXPECT_TRUE(regex_found);
 
     json.parseJson("{a=b,\n"
-                   "c= #");
+                   "c=d #");
     EXPECT_TRUE(json.error()) << json.getError();;
-    regex_found = RegexCheckCounter(json.getError(), 1, 4);
+    regex_found = RegexCheckCounter(json.getError(), 1, 5);
     EXPECT_TRUE(regex_found);
 
     json.parseJson("# #");
@@ -904,12 +904,12 @@ TEST(JSON, parse_error_separator) {
     Config cfg = ParseJson("{a=b c=d}");
     ASSERT_TRUE(cfg.error());
     EXPECT_TRUE(RegexCheckCounter(cfg.getError(), 0, 5));
-    EXPECT_TRUE(cfg.getError().find("not found stop") != std::string::npos);
+    EXPECT_TRUE(cfg.getError().find("not found end of JSON") != std::string::npos);
     EXPECT_TRUE(cfg.getError().find("value separator") != std::string::npos);
 }
 
 TEST(JSON, parse_error_not_found_stop) {
     Config cfg = ParseJson("{a=b ");
     ASSERT_TRUE(cfg.error());
-    EXPECT_TRUE(cfg.getError().find("not found stop") != std::string::npos);
+    EXPECT_TRUE(cfg.getError().find("not found end of JSON") != std::string::npos);
 }
