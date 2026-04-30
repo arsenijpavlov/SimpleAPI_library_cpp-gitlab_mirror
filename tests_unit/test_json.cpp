@@ -833,16 +833,89 @@ TEST(JSON, parse_json_with_empty_element) {
     EXPECT_EQ(cfg, cfg2);
 }
 
-//TODO: функционал проверки типа JSON - значение любого типа, ключ не нужен
-//TODO: функционал проверки "есть ключ - нет значения"
-//TODO: функционал проверки "нет разделителя между значениями"
-//TODO: функционал проверки "нет разделителя ключ-значение"
-//TODO: функционал проверки "нет завершения массива"
-//TODO: функционал проверки "нет завершения Json"
+TEST(JSON, parse_incorrect) {
+    Config cfg = ParseJson("{}]");
+    EXPECT_TRUE(cfg.error());
+}
 
-//TODO: TESTS cfg2.parseJson("[[\"a\naaa\", b],{c=[d,{e=f}]},g]", cd);
-//TODO: TESTS cfg2.parseJson("{a=[\"a\naaa\", b],{c=[d,{e=f}]},g]}", cd);
-//TODO: TESTS cfg2.parseJson("{a={b=\"c\nccc\",d=e},f:[{g=[h,{i=j}]}]}");
-//TODO: TESTS cfg2.parseJson("{}]");
-//TODO: TESTS cfg2.parseJson("{{}]}");
-//TODO: TESTS cfg2.parseJson("{{a=b}]}");
+TEST(JSON, parse_incorrect2) {
+    Config cfg = ParseJson("{{}]}");
+    EXPECT_TRUE(cfg.error());
+}
+
+TEST(JSON, parse_incorrect3) {
+    Config cfg = ParseJson("{{a=b}]}");
+    EXPECT_TRUE(cfg.error());
+}
+
+TEST(JSON, parse_incorrect5) {
+    CommentDesign cd;
+    Config cfg = ParseJson("{a=[\"a\naaa\", b],{c=[d,{e=f}]},g]}", cd);
+    EXPECT_TRUE(cfg.error());
+}
+
+TEST(JSON, parse_correct) {
+    CommentDesign cd;
+    Config cfg = ParseJson("[[\"a\naaa\", b],{c=[d,{e=f}]},g]", cd);
+    EXPECT_FALSE(cfg.error());
+}
+
+TEST(JSON, parse_correct2) {
+    Config cfg = ParseJson("{a={b=\"c\nccc\",d=e},f:[{g=[h,{i=j}]}]}");
+    EXPECT_FALSE(cfg.error());
+}
+
+//пустой ключ (full JSON)
+TEST(JSON, parse_without_key) {
+    Config cfg = ParseJson("{=b}");
+    ASSERT_FALSE(cfg.error());
+    EXPECT_EQ(cfg[""], "b");
+}
+
+//пустой ключ (simple value)
+TEST(JSON, parse_without_key2) {
+    Config cfg = ParseJson(":b");
+    ASSERT_FALSE(cfg.error());
+    EXPECT_EQ(cfg[""], "b");
+}
+
+//пустое значение (full JSON)
+TEST(JSON, parse_without_value) {
+    Config cfg = ParseJson("{a=}");
+    ASSERT_FALSE(cfg.error());
+    EXPECT_EQ(cfg["a"], nullptr);
+}
+
+//пустое значение (simple value)
+TEST(JSON, parse_without_value2) {
+    Config cfg = ParseJson("a:");
+    ASSERT_FALSE(cfg.error());
+    EXPECT_EQ(cfg["a"], nullptr);
+}
+
+TEST(JSON, parse_simple_value_empty) {
+    Config cfg = ParseJson("    ");
+    ASSERT_FALSE(cfg.error());
+    EXPECT_EQ(cfg, nullptr);
+}
+
+TEST(JSON, parse_error_key_value_separator) {
+    Config cfg = ParseJson("{a b}");
+    ASSERT_TRUE(cfg.error());
+    EXPECT_TRUE(RegexCheckCounter(cfg.getError(), 0, 3));
+    EXPECT_TRUE(cfg.getError().find("key-value separator") != std::string::npos);
+}
+
+TEST(JSON, parse_error_separator) {
+    Config cfg = ParseJson("{a=b c=d}");
+    ASSERT_TRUE(cfg.error());
+    EXPECT_TRUE(RegexCheckCounter(cfg.getError(), 0, 5));
+    EXPECT_TRUE(cfg.getError().find("not found stop") != std::string::npos);
+    EXPECT_TRUE(cfg.getError().find("value separator") != std::string::npos);
+}
+
+TEST(JSON, parse_error_not_found_stop) {
+    Config cfg = ParseJson("{a=b ");
+    ASSERT_TRUE(cfg.error());
+    EXPECT_TRUE(cfg.getError().find("not found stop") != std::string::npos);
+}

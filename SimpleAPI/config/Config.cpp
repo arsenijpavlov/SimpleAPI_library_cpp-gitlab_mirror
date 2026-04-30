@@ -1835,6 +1835,8 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
             result_cfg.setError(error);
         }
         result_cfg.setPrefixComment(std::move(prefix_comment));
+    } else {
+        result_cfg = Config();
     }
 
     return !error();
@@ -2438,7 +2440,7 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
             }
             if(stacker.empty() && ch_current == '}') {
                 // работа с комментарием после элемента
-                if(get_back().getSuffixComment().empty())
+                if(!isEmpty() && get_back().getSuffixComment().empty())
                     AppendElementSuffixComment();
 
                 UpdateState(state, ParseStateJson::eJSON_FINISH);
@@ -2461,7 +2463,10 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
             }
 
             //ключ прочитан полностью?
-            if(stacker.empty() && CharInString(ch_next, __SPACES__ ":=")) {
+            if(stacker.empty() && (CharInString(ch_next, __SPACES__ ":=")
+                                    || CharInString(ch_current, __SPACES__ ":=")) //т.к. пустой ключ - не ошибка
+                )
+            {
                 RemoveIllegalSpaces(key); //игнорировать незначащие пробелы
                 RemoveQuotes(key);
                 DEBUG_LOG("ElementJson: current key done: \"" << key << "\"");
@@ -2505,8 +2510,15 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
             if(value.empty())
                 start_value_counter = counter; //будет использовано в CreateElementFromString()
 
+            bool skip_append = false;
             if(ch_previous != '\\') {
-                if(!stacker.autocheck(ch_current)) {
+                if(stacker.empty() && ch_current == '}')
+                {
+                    //уникальный случай - пустое значение перед завершением чтения значения
+                    skip_append = true;
+                    i--;
+                } else if (!stacker.autocheck(ch_current))
+                {
                     //TODO: обработать ошибку синтаксиса
                     error_string = "ERROR!";
                     UpdateState(state, ParseStateJson::eJSON_ERROR_STATE);
@@ -2514,17 +2526,21 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
                 }
             }
 
-            if(!stacker.empty() || !CharInString(ch_current, __SEPARATORS__))
-                value += ch_current;
-            else {
-                i--;
+            if(!skip_append) {
+                if(!stacker.empty() || !CharInString(ch_current, __SEPARATORS__))
+                    value += ch_current;
+                else {
+                    i--;
+                }
             }
 
             //значение прочитано полностью?
             if(stacker.empty()
                 && (CharInString(ch_next, __SEPARATORS__ " }")
                     || ch_next == 0
-                    || CharInString(ch_current, __SEPARATORS__))
+                    || CharInString(ch_current, __SEPARATORS__)
+                    || CharInString(ch_current, __SEPARATORS__ " }") //т.к. пустой ключ - не ошибка
+                    )
                 && (value.empty() || !utils::OnlySpaces(value))
                 )
             {
@@ -2567,7 +2583,11 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
             //либо считано одно значение и всё следующее является ошибкой (комменты не учитываются)
             //либо считано несколько значений и не найден знак завершения (комменты не учитываются)
             UpdateState(state, ParseStateJson::eJSON_ERROR_STATE);
-            error_string = "Not found stop of JSON.";
+            error_string = "not found stop of JSON or value separator";
+            break;
+        }
+        case ParseStateJson::eJSON_FINISH: {
+            error_string = "unknown symbol after JSON structure";
             break;
         }
         default: break;
@@ -2590,10 +2610,13 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
         AppendElementPrefixComment();
     }
 
-    if(!is_one_value_format)
+    if(!is_one_value_format) {
+        if(state != ParseStateJson::eJSON_FINISH && error_string.empty())
+            error_string = "not found stop of JSON"; //если встретили конец файла
         AppendMainSuffixComment(); //конечный комментарий для всего Json
+    }
 
-    if(!is_one_value_format && state != ParseStateJson::eJSON_FINISH /*&& error_string.empty()*/)
+    if(!is_one_value_format && state != ParseStateJson::eJSON_FINISH)
     {
         error_string = std::string("JSON parse error, unexpected symbol at [")
                        + std::to_string(counter.getLastLineCounter())
@@ -2796,7 +2819,7 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
                 && value.empty()
                 && ch_current == ']') {
                 // работа с комментарием после элемента
-                if(get_back().getSuffixComment().empty())
+                if(!isEmpty() && get_back().getSuffixComment().empty())
                     AppendElementSuffixComment();
 
                 UpdateState(state, ParseStateJsonArray::eARRAY_FINISH);
@@ -2896,6 +2919,10 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
 
             UpdateState(state, ParseStateJsonArray::eARRAY_ERROR_STATE);
             error_string = "Not found stop of ARRAY.";
+            break;
+        }
+        case ParseStateJsonArray::eARRAY_FINISH: {
+            error_string = "unknown symbol after JSON structure";
             break;
         }
         default: break;
