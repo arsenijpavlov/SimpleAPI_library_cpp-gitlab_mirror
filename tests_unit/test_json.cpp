@@ -855,12 +855,6 @@ TEST(JSON, parse_incorrect5) {
 }
 
 TEST(JSON, parse_correct) {
-    CommentDesign cd;
-    Config cfg = ParseJson("[[\"a\naaa\", b],{c=[d,{e=f}]},g]", cd);
-    EXPECT_FALSE(cfg.error());
-}
-
-TEST(JSON, parse_correct2) {
     Config cfg = ParseJson("{a={b=\"c\nccc\",d=e},f:[{g=[h,{i=j}]}]}");
     EXPECT_FALSE(cfg.error());
 }

@@ -171,3 +171,9 @@ TEST(ARRAY, parse_json_array_with_empty_element) {
     Config cfg2 = Config(ValueType::eArray, "a", nullptr, "b", "c");
     EXPECT_EQ(cfg, cfg2);
 }
+
+TEST(ARRAY, parse_correct) {
+    CommentDesign cd;
+    Config cfg = ParseJson("[[\"a\naaa\", b],{c=[d,{e=f}]},g]", cd);
+    EXPECT_FALSE(cfg.error());
+}
