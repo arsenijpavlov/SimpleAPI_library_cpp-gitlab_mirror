@@ -173,8 +173,8 @@ public:
     std::string     suffix()                                                                    const noexcept;
 
     //NOTE: доступы к внутренним значениям строго по set() и get() запросам
-//    std::string&    prefix()                                                                    noexcept;
-//    std::string&    suffix()                                                                    noexcept;
+    std::string&    prefix()                                                                    noexcept;
+    std::string&    suffix()                                                                    noexcept;
 
     void set(const std::string& prefix_comment, const std::string& suffix_comment = "")         noexcept;
     void set(const Comment& other)                                                              noexcept;

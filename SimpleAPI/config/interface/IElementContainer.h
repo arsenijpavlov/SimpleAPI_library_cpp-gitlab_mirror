@@ -110,12 +110,33 @@ public:
     // ========================================================================================================== Parser
 
 protected:
-    struct KeysValuesAndComments {
-        std::string key;
-        Config*     remote_cfg;
+    struct KeysBase {
+        virtual ~KeysBase()                                 noexcept {}
     };
-    static std::vector<KeysValuesAndComments> CollectKeysAndComments(Config& cfg, std::string prefix = "")  noexcept;
-    static std::vector<KeysValuesAndComments> CollectKeysAndComments(Config& cfg, VString prefixes)         noexcept;
+    struct KeysComments : KeysBase {
+        const std::string* m_ptr_comment_str; //указатель для экономии памяти, всё равно объект статичный
+
+        KeysComments(const std::string* p_to_comment)       noexcept : m_ptr_comment_str(p_to_comment)  {}
+        KeysComments(const KeysComments& other)             noexcept;
+        KeysComments(KeysComments&& other)                  noexcept;
+        ~KeysComments()                                     noexcept override                           { m_ptr_comment_str = nullptr; }
+        KeysComments& operator=(const KeysComments& other)  noexcept;
+        KeysComments& operator=(KeysComments&& other)       noexcept;
+    };
+    struct KeysValues : KeysBase {
+        std::string m_key;
+        const Config* m_ptr_remote_cfg;
+
+        KeysValues(std::string key, const Config* p_to_cfg) noexcept : m_key(key), m_ptr_remote_cfg(p_to_cfg) {}
+        KeysValues(const KeysValues& other)                 noexcept;
+        KeysValues(KeysValues&& other)                      noexcept;
+        ~KeysValues()                                       noexcept override                           { m_ptr_remote_cfg = nullptr; }
+        KeysValues& operator=(const KeysValues& other)      noexcept;
+        KeysValues& operator=(KeysValues&& other)           noexcept;
+    };
+
+    static std::vector<std::unique_ptr<KeysBase>> CollectKeys(Config& cfg, std::string prefix = "")     noexcept;
+    static std::vector<std::unique_ptr<KeysBase>> CollectKeys(Config& cfg, VString prefixes)            noexcept;
 };
 
 } // namespace tools

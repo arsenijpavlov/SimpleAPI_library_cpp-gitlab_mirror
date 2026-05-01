@@ -729,7 +729,7 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
             inner_design.opt_multiline_column_size = design.opt_multiline_column_size;
 
             //NOTE: если переменная содержит комментарий ДО значения - делаем пустую строку для лучшей читабельности
-            if(m_values[i].second->getPrefixComment().find('\n' != std::string::npos))
+            if(i != 0) //из-за табуляции для первого элемента итоговый стиль смотрится странно
                 ret += "\n";
 
             ret += ToComment(m_values[i].second->getPrefixComment(), inner_design, custom_tabulation_level + 1);
@@ -822,6 +822,7 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
 std::string ElementJson::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     std::string ret;
+    std::string temp;
 
     auto GetPrefixComment = [&design](const Config cfg) -> std::string {
         return (cfg.getPrefixComment().empty()) ? "" : (ToComment(cfg.getPrefixComment(), design) + "\n");
@@ -893,18 +894,25 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
         ret += "]\n";
     };
     auto AppendCollection = [&](const std::string& prefix, Config& cfg) -> void {
-        std::vector<KeysValuesAndComments> kvacs = CollectKeysAndComments(cfg, prefix);
-        for(auto& kvac : kvacs) {
-            ret += GetPrefixComment(*kvac.remote_cfg);
-            if(!kvac.key.empty())
-                ret += kvac.key + " = ";
-            if(kvac.remote_cfg->isString()) {
-                AppendMultinlineString(kvac.remote_cfg->toString());
-            } else {
-                ret += kvac.remote_cfg->toString();
+        std::vector<std::unique_ptr<KeysBase>> kbss = CollectKeys(cfg, prefix);
+        for(auto& kbs : kbss) {
+            KeysComments* ptr_comment = dynamic_cast<KeysComments*>(kbs.get());
+            KeysValues* ptr_cfg       = dynamic_cast<KeysValues*>(kbs.get());
+            if(ptr_comment) {
+                //групповой комментарий для INI так и или иначе будет напечатан с новой строки, т.к. потеряется привязанность к группе
+                ret += ToComment(*ptr_comment->m_ptr_comment_str, cfg.getCommentDesign()) + "\n";
+            } else if(ptr_cfg) {
+                ret += GetPrefixComment(*ptr_cfg->m_ptr_remote_cfg);
+                if(!ptr_cfg->m_key.empty())
+                    ret += ptr_cfg->m_key + " = ";
+                if(ptr_cfg->m_ptr_remote_cfg->isString()) {
+                    AppendMultinlineString(ptr_cfg->m_ptr_remote_cfg->toString());
+                } else {
+                    ret += ptr_cfg->m_ptr_remote_cfg->toString();
+                }
+                ret += GetSuffixComment(*ptr_cfg->m_ptr_remote_cfg);
+                ret += "\n";
             }
-            ret += GetSuffixComment(*kvac.remote_cfg);
-            ret += "\n";
         }
     };
 
@@ -926,9 +934,18 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
                 if(cfg_inner.second->isContainer()) {
                     if(IsArrayWithPrimitives(*cfg_inner.second))
                     {
+                        ret += GetPrefixComment(*cfg_inner.second);
+
                         //если внутри только примитивы без комментариев - вывести их в одну строку (строки длиной <=50)
                         AppendArrayPrimitives(cfg_inner.first, *cfg_inner.second);
+
+                        temp = GetSuffixComment(*cfg_inner.second);
+                        RemoveIllegalSpaces(temp); //необходимо удалить пробелы в начале, т.к. контейнер в INI-формате не имеет рамок
+                        ret += std::move(temp);
+                        if(!temp.empty())
+                            ret += "\n";
                     } else {
+                        //комментарии элемента cfg_inner будут обработаны в рекурсивной функции
                         //нужно собрать все элементы массива и упаковать в общее имя с переходом между уровнями
                         AppendCollection(cfg_inner.first, *cfg_inner.second);
                     }
@@ -954,8 +971,17 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
         case ValueType::eArray: {
             //если внутри только примитивы без комментариев - вывести их в одну строку (строки длиной <=50)
             if(IsArrayWithPrimitives(*cfg.second.get())) {
+                ret += GetPrefixComment(*cfg.second);
+
                 AppendArrayPrimitives(cfg.first, *cfg.second);
+
+                temp = GetSuffixComment(*cfg.second);
+                RemoveIllegalSpaces(temp); //необходимо удалить пробелы в начале, т.к. контейнер в INI-формате не имеет рамок
+                ret += std::move(temp);
+                if(!temp.empty())
+                    ret += "\n";
             } else {
+                //комментарии элемента cfg будут обработаны в рекурсивной функции
                 //нужно собрать все элементы массива и упаковать в общее имя с переходом между уровнями
                 AppendCollection(cfg.first, *cfg.second);
             }
@@ -966,8 +992,17 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
             if(cfg.second->isArray()) {
                 //если внутри только примитивы без комментариев - вывести их в одну строку (строки длиной <=50)
                 if(IsArrayWithPrimitives(*cfg.second.get())) {
+                    ret += GetPrefixComment(*cfg.second);
+
                     AppendArrayPrimitives(cfg.first, *cfg.second);
+
+                    temp = GetSuffixComment(*cfg.second);
+                    RemoveIllegalSpaces(temp); //необходимо удалить пробелы в начале, т.к. контейнер в INI-формате не имеет рамок
+                    ret += std::move(temp);
+                    if(!temp.empty())
+                        ret += "\n";
                 } else {
+                    //комментарии элемента cfg будут обработаны в рекурсивной функции
                     //нужно собрать все элементы массива и упаковать в общее имя с переходом между уровнями
                     AppendCollection(cfg.first, *cfg.second);
                 }

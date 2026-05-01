@@ -311,7 +311,6 @@ std::string ElementArray::toString(const ConfigFormat format, const CommentDesig
     }
 }
 
-//FIXME: вывод начального комментария, если элемент считается основным
 std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     std::string ret;
@@ -351,7 +350,8 @@ std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t
             //вернули в исходное состояние после записи КОММЕНТАРИЯ ПОСЛЕ ЗНАЧЕНИЯ
             inner_design.opt_multiline_column_size = design.opt_multiline_column_size;
 
-            if(m_values[i]->getPrefixComment().find('\n' != std::string::npos))
+            //NOTE: если переменная содержит комментарий ДО значения - делаем пустую строку для лучшей читабельности
+            if(i != 0) //из-за табуляции для первого элемента итоговый стиль смотрится странно
                 ret += "\n";
 
             ret += ToComment(m_values[i]->getPrefixComment(), inner_design, custom_tabulation_level + 1);
@@ -430,10 +430,11 @@ std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t
 }
 
 //метод не рекурсивный для контейнеров!
-//FIXME: вывод комментариев
+//NOTE: потому что нельзя мешать пользователю прострелить себе колено (не предполагается к использованию)
 std::string ElementArray::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     std::string ret;
+    std::string temp;
 
     auto GetPrefixComment = [&design](const Config cfg) -> std::string {
         return (cfg.getPrefixComment().empty()) ? "" : (ToComment(cfg.getPrefixComment(), design) + "\n");
@@ -507,18 +508,32 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
         ret += "]\n";
     };
     auto AppendCollection = [&](const VString& prefixes, Config& cfg) -> void {
-        std::vector<KeysValuesAndComments> kvacs = CollectKeysAndComments(cfg, prefixes);
-        for(auto& kvac : kvacs) {
-            ret += GetPrefixComment(*kvac.remote_cfg);
-            if(!kvac.key.empty())
-                ret += kvac.key + " = ";
-            if(kvac.remote_cfg->isString()) {
-                AppendMultinlineString(kvac.remote_cfg->toString());
-            } else {
-                ret += kvac.remote_cfg->toString();
+        std::vector<std::unique_ptr<KeysBase>> kbss = CollectKeys(cfg, prefixes);
+        for(auto& kbs : kbss) {
+            KeysComments* ptr_comment = dynamic_cast<KeysComments*>(kbs.get());
+            KeysValues* ptr_cfg       = dynamic_cast<KeysValues*>(kbs.get());
+            if(ptr_comment) {
+                //групповой комментарий для INI так и или иначе будет напечатан с новой строки, т.к. потеряется привязанность к группе
+                ret += ToComment(*ptr_comment->m_ptr_comment_str, cfg.getCommentDesign()) + "\n";
+            } else if(ptr_cfg) {
+                if(!ptr_cfg->m_ptr_remote_cfg->isContainer())
+                    ret += GetPrefixComment(*ptr_cfg->m_ptr_remote_cfg);
+
+                if(!ptr_cfg->m_key.empty())
+                    ret += ptr_cfg->m_key + " = ";
+                if(ptr_cfg->m_ptr_remote_cfg->isString()) {
+                    AppendMultinlineString(ptr_cfg->m_ptr_remote_cfg->toString());
+                } else {
+                    ret += ptr_cfg->m_ptr_remote_cfg->toString();
+                }
+
+                if(!ptr_cfg->m_ptr_remote_cfg->isContainer()) {
+                    temp = GetSuffixComment(*ptr_cfg->m_ptr_remote_cfg);
+                    RemoveIllegalSpaces(temp);
+                    ret += std::move(temp);
+                    ret += "\n";
+                }
             }
-            ret += GetSuffixComment(*kvac.remote_cfg);
-            ret += "\n";
         }
     };
 
@@ -527,6 +542,7 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
     }
 
     for(const auto& cfg : m_values) {
+        bool it_was_array = cfg->isArray();
         switch(cfg->getType()) {
         case ValueType::eArray: {
             //все массивы первого уровня должны быть преобразованы в безымянный Json
@@ -541,49 +557,73 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
 
             for(const auto& cfg_inner : cfg->getNamedRange()) {
                 if(cfg_inner.second->isContainer()) {
+
                     if(IsArrayWithPrimitives(*cfg_inner.second))
                     {
+                        ret += GetPrefixComment(*cfg_inner.second);
+
                         //если внутри только примитивы без комментариев - вывести их в одну строку (строки длиной <=50)
                         AppendArrayPrimitives(cfg_inner.first, *cfg_inner.second);
+
+                        temp = GetSuffixComment(*cfg_inner.second);
+                        RemoveIllegalSpaces(temp); //необходимо удалить пробелы в начале, т.к. контейнер в INI-формате не имеет рамок
+                        ret += std::move(temp);
+                        if(!temp.empty())
+                            ret += "\n";
                     } else {
+                        //комментарии элемента cfg_inner будут обработаны внутри рекурсивной функции
+
                         //нужно собрать все элементы массива и упаковать в общее имя с переходом между уровнями
                         AppendCollection({"", cfg_inner.first}, *cfg_inner.second);
                     }
+
                 } else if(cfg_inner.second->isString()) {
                     ret += GetPrefixComment(*cfg_inner.second);
+
                     if(!cfg_inner.first.empty())
                         ret += cfg_inner.first + " = ";
                     AppendMultinlineString(cfg_inner.second->toString());
-                    ret += GetSuffixComment(*cfg_inner.second);
-                    ret += "\n";
+
+                    temp = GetSuffixComment(*cfg_inner.second);
+                    ret += std::move(temp);
+                    if(!temp.empty())
+                        ret += "\n";
                 } else {
                     ret += GetPrefixComment(*cfg_inner.second);
+
                     if(!cfg_inner.first.empty())
                         ret += cfg_inner.first + " = ";
                     ret += cfg_inner.second->toString();
-                    ret += GetSuffixComment(*cfg_inner.second);
-                    ret += "\n";
+
+                    temp = GetSuffixComment(*cfg_inner.second);
+                    RemoveIllegalSpaces(temp); //необходимо удалить пробелы в начале, т.к. контейнер в INI-формате не имеет рамок
+                    ret += std::move(temp);
+                    if(!temp.empty())
+                        ret += "\n";
                 }
             } // for()
 
-            ret += GetSuffixComment(*cfg);
+            if(!it_was_array)
+            {
+                temp = GetSuffixComment(*cfg);
+                RemoveIllegalSpaces(temp);
+                ret += std::move(temp);
+                if(!temp.empty())
+                    ret += "\n";
+            }
 
             break;
         }
         default: {
-            if(cfg->isArray()) {
-                //если внутри только примитивы без комментариев - вывести их в одну строку (строки длиной <=50)
-                if(IsArrayWithPrimitives(*cfg)) {
-                    AppendArrayPrimitives("", *cfg);
-                } else {
-                    //нужно собрать все элементы массива и упаковать в общее имя с переходом между уровнями
-                    AppendCollection({}, *cfg);
-                }
-            } else {
-                ret += GetPrefixComment(*cfg);
-                ret += cfg->toString() + "\n";
-                ret += GetSuffixComment(*cfg);
-            }
+            ret += GetPrefixComment(*cfg);
+
+            ret += cfg->toString() + "\n";
+
+            temp = GetSuffixComment(*cfg);
+            RemoveIllegalSpaces(temp);
+            ret += std::move(temp);
+            if(!temp.empty())
+                ret += "\n";
             break;
         }
         }
