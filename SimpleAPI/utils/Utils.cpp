@@ -371,29 +371,6 @@ size_t GetStringCharCount(const std::string &str, bool only_visible) {
     return size;
 }
 
-//TODO: написать тест для проверки SeparateString()
-std::string SeparateString(std::string &str, const size_t length) noexcept {
-    std::string res;
-
-    size_t counter = 0;
-    bool flag = false;
-    size_t i = 0;
-    for(; i < str.length() && counter < length; i++) {
-        char ch = str[i];
-
-        if(ch < 0) {
-            if(flag)
-                counter++;
-            flag = !flag;
-        } else
-            counter++;
-    }
-    res = str.substr(0, i);
-    str = str.substr(i, str.size() - 1);
-
-    return res;
-}
-
 bool IsMultiLine(const std::string &str, const size_t column_size) noexcept {
     if(column_size == 0)
         return str.find('\n') != -1;

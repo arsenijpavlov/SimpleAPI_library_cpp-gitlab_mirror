@@ -49,7 +49,6 @@ bool        CheckCrc32(std::vector<uint8_t>& data)                              
 //std::string ToStringWithEsc(const std::string& str, const bool use_backslash = false)   noexcept;
 
 size_t      GetStringCharCount(const std::string &str, bool only_visible = false);
-std::string SeparateString(std::string& str, const size_t length)                       noexcept;
 bool        IsMultiLine(const std::string& str, const size_t column_size = 0)           noexcept;
 bool        IsStringOfFloatNumber(const std::string& str, long double& result)          noexcept;
 bool        IsStringOfIntNumber(const std::string& str, long int& result)               noexcept;
