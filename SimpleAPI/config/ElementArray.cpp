@@ -514,7 +514,7 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
             KeysValues* ptr_cfg       = dynamic_cast<KeysValues*>(kbs.get());
             if(ptr_comment) {
                 //групповой комментарий для INI так и или иначе будет напечатан с новой строки, т.к. потеряется привязанность к группе
-                ret += ToComment(*ptr_comment->m_ptr_comment_str, cfg.getCommentDesign()) + "\n";
+                ret += ToComment(ptr_comment->m_comment_str, cfg.getCommentDesign()) + "\n";
             } else if(ptr_cfg) {
                 if(!ptr_cfg->m_ptr_remote_cfg->isContainer())
                     ret += GetPrefixComment(*ptr_cfg->m_ptr_remote_cfg);

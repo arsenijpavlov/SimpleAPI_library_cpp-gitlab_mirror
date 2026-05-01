@@ -335,6 +335,7 @@ TEST(JSON, write_and_read_file_comment) {
     } catch (const std::exception& e) {
         FAIL() << e.what();
     }
+
     EXPECT_EQ(json2.size(), json.size());
     EXPECT_EQ(json2.getCommentDesign(), json.getCommentDesign());
 

@@ -5,25 +5,23 @@ using namespace simpleapi::tools;
 
 IElementContainer::KeysComments::KeysComments(const KeysComments &other) noexcept
 {
-    m_ptr_comment_str = other.m_ptr_comment_str;
+    m_comment_str = other.m_comment_str;
 }
 
 IElementContainer::KeysComments::KeysComments(KeysComments &&other) noexcept
 {
-    m_ptr_comment_str       = other.m_ptr_comment_str;
-    other.m_ptr_comment_str = nullptr;
+    m_comment_str = other.m_comment_str;
 }
 
 IElementContainer::KeysComments &IElementContainer::KeysComments::operator=(const KeysComments &other) noexcept
 {
-    m_ptr_comment_str = other.m_ptr_comment_str;
+    m_comment_str = other.m_comment_str;
     return *this;
 }
 
 IElementContainer::KeysComments &IElementContainer::KeysComments::operator=(KeysComments &&other) noexcept
 {
-    m_ptr_comment_str       = other.m_ptr_comment_str;
-    other.m_ptr_comment_str = nullptr;
+    m_comment_str = other.m_comment_str;
     return *this;
 }
 
@@ -64,7 +62,7 @@ std::vector<std::unique_ptr<IElementContainer::KeysBase>> IElementContainer::Col
     switch(cfg.getType()) {
     case ValueType::eJson: {
         if(!cfg.getPrefixComment().empty())
-            ret.push_back(std::unique_ptr<KeysComments>(new KeysComments(&cfg.getPrefixComment())));
+            ret.push_back(std::unique_ptr<KeysComments>(new KeysComments(cfg.getPrefixComment())));
 
         for(auto& pair : cfg.getNamedRange()) {
             auto temp = CollectKeys(*pair.second, prefix + "/" + pair.first);
@@ -74,13 +72,13 @@ std::vector<std::unique_ptr<IElementContainer::KeysBase>> IElementContainer::Col
         }
 
         if(!cfg.getSuffixComment().empty())
-            ret.push_back(std::unique_ptr<KeysComments>(new KeysComments(&cfg.getSuffixComment())));
+            ret.push_back(std::unique_ptr<KeysComments>(new KeysComments(cfg.getSuffixComment())));
 
         break;
     }
     case ValueType::eArray: {
         if(!cfg.getPrefixComment().empty())
-            ret.push_back(std::unique_ptr<KeysComments>(new KeysComments(&cfg.getPrefixComment())));
+            ret.push_back(std::unique_ptr<KeysComments>(new KeysComments(cfg.getPrefixComment())));
 
         for(auto& cfg_inner : cfg.getRange()) {
             auto temp = CollectKeys(*cfg_inner, prefix);
@@ -90,7 +88,7 @@ std::vector<std::unique_ptr<IElementContainer::KeysBase>> IElementContainer::Col
         }
 
         if(!cfg.getSuffixComment().empty())
-            ret.push_back(std::unique_ptr<KeysComments>(new KeysComments(&cfg.getSuffixComment())));
+            ret.push_back(std::unique_ptr<KeysComments>(new KeysComments(cfg.getSuffixComment())));
 
         break;
     }
@@ -122,7 +120,7 @@ std::vector<std::unique_ptr<IElementContainer::KeysBase>> IElementContainer::Col
     switch(cfg.getType()) {
     case ValueType::eJson: {
         if(!cfg.getPrefixComment().empty())
-            ret.push_back(std::unique_ptr<KeysComments>(new KeysComments(&cfg.getPrefixComment())));
+            ret.push_back(std::unique_ptr<KeysComments>(new KeysComments(cfg.getPrefixComment())));
 
         for(auto& pair : cfg.getNamedRange()) {
             auto temp = CollectKeys(*pair.second, {prefix, pair.first});
@@ -132,13 +130,13 @@ std::vector<std::unique_ptr<IElementContainer::KeysBase>> IElementContainer::Col
         }
 
         if(!cfg.getSuffixComment().empty())
-            ret.push_back(std::unique_ptr<KeysComments>(new KeysComments(&cfg.getSuffixComment())));
+            ret.push_back(std::unique_ptr<KeysComments>(new KeysComments(cfg.getSuffixComment())));
 
         break;
     }
     case ValueType::eArray: {
         if(!cfg.getPrefixComment().empty())
-            ret.push_back(std::unique_ptr<KeysComments>(new KeysComments(&cfg.getPrefixComment())));
+            ret.push_back(std::unique_ptr<KeysComments>(new KeysComments(cfg.getPrefixComment())));
 
         for(auto& cfg_inner : cfg.getRange()) {
             auto temp = CollectKeys(*cfg_inner, VString{prefix});
@@ -148,7 +146,7 @@ std::vector<std::unique_ptr<IElementContainer::KeysBase>> IElementContainer::Col
         }
 
         if(!cfg.getSuffixComment().empty())
-            ret.push_back(std::unique_ptr<KeysComments>(new KeysComments(&cfg.getSuffixComment())));
+            ret.push_back(std::unique_ptr<KeysComments>(new KeysComments(cfg.getSuffixComment())));
 
         break;
     }

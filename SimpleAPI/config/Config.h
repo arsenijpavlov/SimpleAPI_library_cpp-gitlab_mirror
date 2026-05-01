@@ -308,8 +308,8 @@ public:
     std::string     getSuffixComment()                              const noexcept  { return m_value->getSuffixComment(); } API_ALL
 
     //NOTE: доступы к внутренним значениям строго по set() и get() запросам
-    std::string&    getPrefixComment()                              noexcept        { return m_value->getPrefixComment(); } API_ALL
-    std::string&    getSuffixComment()                              noexcept        { return m_value->getSuffixComment(); } API_ALL
+    //std::string&    getPrefixComment()                              noexcept        { return m_value->getPrefixComment(); } API_ALL
+    //std::string&    getSuffixComment()                              noexcept        { return m_value->getSuffixComment(); } API_ALL
 
     Config&         clearComment()                                  noexcept;                                               API_ALL
     Config&         clearPrefixComment()                            noexcept;                                               API_ALL

@@ -99,15 +99,15 @@ std::string Comment::suffix() const noexcept {
     return *m_suffix;
 }
 
-std::string& Comment::prefix() noexcept {
-    if(!m_prefix) m_prefix = new std::string();
-    return *m_prefix;
-}
+//std::string& Comment::prefix() noexcept {
+//    if(!m_prefix) m_prefix = new std::string();
+//    return *m_prefix;
+//}
 
-std::string& Comment::suffix() noexcept {
-    if(!m_suffix) m_suffix = new std::string();
-    return *m_suffix;
-}
+//std::string& Comment::suffix() noexcept {
+//    if(!m_suffix) m_suffix = new std::string();
+//    return *m_suffix;
+//}
 
 void Comment::set(const std::string &prefix_comment, const std::string &suffix_comment) noexcept {
     setPrefix(prefix_comment);
