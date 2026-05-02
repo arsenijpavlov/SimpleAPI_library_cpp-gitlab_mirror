@@ -1766,10 +1766,6 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
         ParserSymbolCounter start_value_counter; //будет использовано в CreateElementFromString()
         std::string value;
 
-        //выровнять счётчик под текущую позицию (FIXME: можно перенести выше в момент нахождения начала значения)
-        for(size_t i = 0; i < value_started_at; i++)
-            counter.check(i, content[i]);
-
         auto ConfirmValue = [&, content](const bool for_penultimate = false) -> bool {
             Config element = CreateElementFromString(std::move(value), ConfigFormat::eJSON,
                                                      result_cfg.getCommentDesign(), start_value_counter);

@@ -311,3 +311,14 @@ TEST(INI, main_parser) {
 }
 
 //TODO: TEST(INI, main_writer) {}
+
+//TODO: TEST(INI, writer_large_strings) {
+//std::string json_string_example2 = std::string(
+//    "/*asd*/\n"
+//    "a = \n\"very\n"
+//    "large\n"
+//    "string\""
+//    );
+// CommentDesign cd;
+// Config cfg = ParseJson(json_string_example2, cd);
+//}

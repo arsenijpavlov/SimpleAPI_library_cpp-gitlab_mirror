@@ -31,6 +31,9 @@ public:
     size_t getLastLineCounter()                                         const noexcept;
     size_t getLastSymbolCounter()                                       const noexcept;
     size_t getLastIterator()                                            const noexcept;
+
+    //для отладки
+    void printCoords()                                                  const noexcept;
 };
 
 } // namespace simpleapi

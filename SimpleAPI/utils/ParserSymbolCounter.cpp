@@ -1,4 +1,5 @@
 #include "ParserSymbolCounter.h"
+#include <iostream>
 
 
 namespace simpleapi {
@@ -32,6 +33,14 @@ size_t ParserSymbolCounter::getLastSymbolCounter() const noexcept
 size_t ParserSymbolCounter::getLastIterator() const noexcept
 {
     return m_last_iterator;
+}
+
+void ParserSymbolCounter::printCoords() const noexcept
+{
+    std::cout << "line counter: " << m_line_counter
+              << " symbol counter: " << m_symbol_counter
+              << " last iterator: " << m_last_iterator
+              << std::endl;
 }
 
 } // namespace simpleapi
