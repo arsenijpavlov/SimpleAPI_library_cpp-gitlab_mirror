@@ -3163,7 +3163,6 @@ Config CreateElementFromString(std::string &&value_string, const ConfigFormat fo
         return Config(value_string);
     }
 
-    //FIXME: строка не должна начинаться с технических скобок
     return Config(value_string);
 }
 
