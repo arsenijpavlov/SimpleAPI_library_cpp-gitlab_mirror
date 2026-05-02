@@ -3,14 +3,12 @@
 
 #include "IElement.h"
 
-#include "IErrorField.h"
-
 
 namespace simpleapi {
 namespace tools {
 
 //абстрактный класс для управления списками элементов
-class IElementContainer : public IElement, public IErrorField {
+class IElementContainer : public IElement {
     // Comment =========================================================================================================
 protected:
 //    CommentDesign m_comment_design;

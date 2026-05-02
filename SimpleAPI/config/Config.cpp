@@ -1671,6 +1671,24 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
     ParserSymbolCounter counter;
     CommentDesign n_design = design; //для изменения в процессе парсинга
 
+    auto CreateError = [&](const ParserSymbolCounter& counter, const std::string& message) -> void {
+        setError("ElementJson JSON parser error[" + std::to_string(counter.getLastLineCounter())
+                 + "][" + std::to_string(counter.getLastSymbolCounter())
+                 + "]: " + message + "!");
+    };
+    auto CreateErrorLine = [&](const ParserSymbolCounter& counter, const std::string& message) -> void {
+        setError("ElementJson JSON parser error at line [" + std::to_string(counter.getLastLineCounter())
+                 + "]: " + message + "!");
+    };
+    auto CreateErrorUnexpected = [&](const ParserSymbolCounter& counter, const char ch, const std::string& message = "") -> void {
+        std::string temp = std::string("ElementJson JSON parser: unexpected symbol '") + ch;
+        temp += "' at ["
+                + std::to_string(counter.getLastLineCounter())
+                + "][" + std::to_string(counter.getLastSymbolCounter());
+        temp += "]" + (message.empty() ? "" : ": " + message + "!");
+        setError(temp);
+    };
+
     //нужно определить тип значения: "100%-json", "json с одним ключом" или что-то иное
     char ch_previous = 0;
     char ch_current = 0;
@@ -1682,7 +1700,14 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
 
         //поиск комментариев ===================================================
         //вернёт комментарий без обрамления
-        tools::CheckComments(ch_current, ch_next, i, n_design, current_comment, stacker.empty());
+        try {
+            tools::CheckComments(ch_current, ch_next, i, n_design, current_comment, stacker.empty());
+        } catch(std::exception& e) {
+            //не хватило символов для прочтения комментария
+            CreateError(counter, e.what());
+            break;
+        }
+
         if(!n_design.with_comments)
             current_comment.clear();
         if(n_design.with_comments && n_design.temp_type == CommentType::eCommentEnd)
@@ -1741,7 +1766,6 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
         //здесь только значение, ключа быть не может
         ParserSymbolCounter start_value_counter; //будет использовано в CreateElementFromString()
         std::string value;
-        std::string error;
 
         //выровнять счётчик под текущую позицию (FIXME: можно перенести выше в момент нахождения начала значения)
         for(size_t i = 0; i < value_started_at; i++)
@@ -1753,8 +1777,7 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
             if(element.error()) {
                 //если случилась ошибка при внутренней конвертации прочитанного значения,
                 // то эта ошибка становится основной ошибкой парсинга
-                error = "ElementJson value parse error[" + std::to_string(counter.getLastLineCounter())
-                        + "][" + std::to_string(counter.getLastSymbolCounter()) + "]: " + element.getError();
+                CreateError(counter, element.getError());
                 return false;
             }
 
@@ -1776,7 +1799,14 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
 
             //поиск комментариев ===================================================
             //вернёт комментарий без обрамления
-            tools::CheckComments(ch_current, ch_next, i, n_design, current_comment, stacker.empty());
+            try {
+                tools::CheckComments(ch_current, ch_next, i, n_design, current_comment, stacker.empty());
+            } catch(std::exception& e) {
+                //не хватило символов для прочтения комментария
+                CreateError(counter, e.what());
+                break;
+            }
+
             if(!n_design.with_comments)
                 current_comment.clear();
             if(n_design.with_comments && n_design.temp_type == CommentType::eCommentEnd)
@@ -1793,8 +1823,7 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
             if(!value_stored) {
                 if(ch_previous != '\\') {
                     if(!stacker.autocheck(ch_current)) {
-                        //TODO: обработать ошибку синтаксиса
-//                        error_string = "ERROR!";
+                        CreateErrorUnexpected(counter, ch_current);
                         break;
                     }
                 }
@@ -1821,18 +1850,18 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
             } else {
                 // все остальные символы кроме пробелов - признак ошибки парсера
                 if(!utils::CharInString(ch_current, __SPACES__)) {
-                    error = "value parse error[" + std::to_string(counter.getLastLineCounter())
-                            + "][" + std::to_string(counter.getLastSymbolCounter()) + "]: \'" + content[i] + "\'";
+                    CreateErrorUnexpected(counter, ch_current);
                     break;
                 }
             }
         } // loop for()
 
-        if(error.empty()) {
+        if(!error()) {
             result_cfg.setSuffixComment(tools::VStringToString(comments));
         } else {
+            std::string error_msg = getError();
             result_cfg.setValue(); //значение не распознано, выставить в null
-            result_cfg.setError(error);
+            result_cfg.setError(error_msg);
         }
         result_cfg.setPrefixComment(std::move(prefix_comment));
     } else {
@@ -1916,12 +1945,12 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
     }
 
     auto CreateError = [&](const ParserSymbolCounter& counter, std::string message) -> void {
-        setError("INI parser error[" + std::to_string(counter.getLastLineCounter())
+        setError("ElementJson/ElementArray INI parser error[" + std::to_string(counter.getLastLineCounter())
                  + "][" + std::to_string(counter.getLastSymbolCounter())
                  + "]: " + message + "!");
     };
     auto CreateErrorLine = [&](const ParserSymbolCounter& counter, std::string message) -> void {
-        setError("INI parser error at line [" + std::to_string(counter.getLastLineCounter())
+        setError("ElementJson/ElementArray INI parser error at line [" + std::to_string(counter.getLastLineCounter())
                  + "]: " + message + "!");
     };
 
@@ -1986,7 +2015,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                 //вернёт комментарий без обрамления
                 try {
                     CheckComments(ch_current, ch_next, j, design, current_comment, stacker.empty());
-                } catch(std::exception& e) { //FIXME: продублировать для Json/JsonArray
+                } catch(std::exception& e) {
                     //не хватило символов для прочтения комментария
                     CreateError(counter, e.what());
                     break;
@@ -2138,12 +2167,12 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                 };
                 auto SplitIniKeyPath = [](const std::string& big_key) -> std::vector<std::string> {
                     VString keys;
+                    Stacker inner_stacker;
+                    inner_stacker.addSimpleRule('\'');
+                    inner_stacker.addSimpleRule('"');
 
                     //находить знаки / и \\ до тех пор, пока не будут встречены лишние символы
                     //ключ в кавычках не должен влиять на поиск
-//                    bool is_quotes        = false;
-//                    bool is_simple_quotes = false;
-
                     std::string temp;
                     char ch_previous = 0;
                     char ch_current = 0;
@@ -2151,24 +2180,23 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                     for(size_t i = 0; i < big_key.size(); i++, ch_previous = ch_current) {
                         ch_current = big_key[i];
 
-//                        if(ch_previous != '\\') {
-//                            switch(ch_current) {
-//                            case '"':   if(!is_simple_quotes)   is_quotes = !is_quotes;                 break;
-//                            case '\'':  if(!is_quotes)          is_simple_quotes = !is_simple_quotes;   break;
-//                            }
-//                        }
-
-                        switch(ch_current) {
-                        case '/':
-                        case '\\': {
-                            RemoveIllegalSpaces(temp);
-                            RemoveQuotes(temp);
-                            keys.push_back(temp);
-                            temp.clear();
-                            last_key_pos = i;
-                            break;
+                        if(ch_previous != '\\') {
+                            inner_stacker.autocheck(ch_current);
                         }
-                        default: temp += ch_current;
+
+                        if(inner_stacker.empty()) {
+                            switch(ch_current) {
+                            case '/':
+                            case '\\': {
+                                RemoveIllegalSpaces(temp);
+                                RemoveQuotes(temp);
+                                keys.push_back(temp);
+                                temp.clear();
+                                last_key_pos = i;
+                                break;
+                            }
+                            default: temp += ch_current;
+                            }
                         }
                     }
                     RemoveIllegalSpaces(temp);
@@ -2269,7 +2297,6 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
     ParseStateJson state            = ParseStateJson::eJSON_START;
     std::string key                 = "";
     std::string value               = "";
-    std::string error_string        = "";
 
     Stacker stacker;
     stacker.addSimpleRule('\'');
@@ -2285,6 +2312,23 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
     std::string current_comment     = ""; // текущее значение при парсинге
     VString comments;                     // обработанные комментарии
     ssize_t value_read_at_line       = -1;
+
+    const std::string error_template = "ElementJson JSON parser error";
+    auto CreateError = [&](const ParserSymbolCounter& counter, std::string message) -> void {
+        setError(error_template + "[" + std::to_string(counter.getLastLineCounter())
+                 + "][" + std::to_string(counter.getLastSymbolCounter())
+                 + "]: " + message + "!");
+    };
+    auto CreateErrorLine = [&](const ParserSymbolCounter& counter, std::string message) -> void {
+        setError(error_template + " at line [" + std::to_string(counter.getLastLineCounter())
+                 + "]: " + message + "!");
+    };
+    auto CreateErrorUnexpected = [&](const ParserSymbolCounter& counter, char ch, std::string message = "") -> void {
+        setError(error_template + ": unexpected symbol '" + ch + "' at ["
+                 + std::to_string(counter.getLastLineCounter())
+                 + "][" + std::to_string(counter.getLastSymbolCounter())
+                 + "]" + (message.empty() ? "" : ": " + message + "!"));
+    };
 
     auto AppendMainPreviewComment = [&]() {
         if(!comments.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
@@ -2357,8 +2401,7 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
 
             //если случилась ошибка при внутренней конвертации прочитанного значения,
             // то эта ошибка становится основной ошибкой парсинга
-            error_string = "ElementJson value parse error[" + std::to_string(counter.getLastLineCounter())
-                           + "][" + std::to_string(counter.getLastSymbolCounter()) + "]: " + element.getError();
+            CreateError(counter, "value parse error: " + element.getError());
             UpdateState(state, ParseStateJson::eJSON_ERROR_STATE);
             return false;
         }
@@ -2381,7 +2424,14 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
 
         //поиск комментариев ===================================================
         //вернёт комментарий без обрамления
-        CheckComments(ch_current, ch_next, i, design, current_comment, stacker.empty());
+        try {
+            CheckComments(ch_current, ch_next, i, design, current_comment, stacker.empty());
+        } catch(std::exception& e) {
+            //не хватило символов для прочтения комментария
+            CreateError(counter, e.what());
+            break;
+        }
+
         if(!design.with_comments)
             current_comment.clear();
         if(design.with_comments && design.temp_type == CommentType::eCommentEnd)
@@ -2403,9 +2453,10 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
                 && (last_separator_symbol == ','
                     || (ch_current == '\n' && last_separator_symbol == ',' && comments[0].find('\n') == std::string::npos)))
             {
-                std::cout << "last_separator_symbol: '"
-                          << (last_separator_symbol == '\n' ? "\\n" : std::string(&last_separator_symbol, 1))
-                          << "'" << std::endl;
+                //для отладки
+                // std::cout << "last_separator_symbol: '"
+                //           << (last_separator_symbol == '\n' ? "\\n" : std::string(&last_separator_symbol, 1))
+                //           << "'" << std::endl;
                 AppendElementSuffixComment();
             }
             /* таким образом запоминаются последние два разделителя:
@@ -2451,8 +2502,7 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
 
             if(ch_previous != '\\') {
                 if(!stacker.autocheck(ch_current)) {
-                    //TODO: обработать ошибку синтаксиса
-                    error_string = "ERROR!";
+                    CreateErrorUnexpected(counter, ch_current);
                     UpdateState(state, ParseStateJson::eJSON_ERROR_STATE);
                     break;
                 }
@@ -2496,7 +2546,7 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
                 break;
             }
 
-            error_string = "not found json key-value separator (: or =)";
+            CreateError(counter, "not found json key-value separator ':' or '='");
             UpdateState(state, ParseStateJson::eJSON_ERROR_STATE);
             break;
         }
@@ -2521,8 +2571,7 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
                     i--;
                 } else if (!stacker.autocheck(ch_current))
                 {
-                    //TODO: обработать ошибку синтаксиса
-                    error_string = "ERROR!";
+                    CreateErrorUnexpected(counter, ch_current);
                     UpdateState(state, ParseStateJson::eJSON_ERROR_STATE);
                     break;
                 }
@@ -2584,12 +2633,12 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
 
             //либо считано одно значение и всё следующее является ошибкой (комменты не учитываются)
             //либо считано несколько значений и не найден знак завершения (комменты не учитываются)
+            CreateError(counter, "not found end of JSON structure or value separator");
             UpdateState(state, ParseStateJson::eJSON_ERROR_STATE);
-            error_string = "not found end of JSON structure or value separator";
             break;
         }
         case ParseStateJson::eJSON_FINISH: {
-            error_string = "unknown symbol after JSON structure";
+            CreateErrorUnexpected(counter, ch_current, "after end of JSON structure there can only be comments");
             break;
         }
         default: break;
@@ -2618,21 +2667,12 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
 
     if(!is_one_value_format && state != ParseStateJson::eJSON_FINISH)
     {
-        if(error_string.empty())
-            error_string = "not found end of JSON structure or value separator"; //если встретили конец файла
-        else
-            error_string = std::string("unexpected symbol at [")
-                           + std::to_string(counter.getLastLineCounter())
-                           + "][" + std::to_string(counter.getLastSymbolCounter()) + "]: '"
-                           + content[counter.getLastIterator()] + "'. "
-                           + error_string;
-        error_string = "JSON parse error, " + error_string;
-        DEBUG_LOG("ERROR: " << error_string);
+        if(!error())
+            setError(error_template + "not found end of JSON structure or value separator"); //если встретили конец файла
+        DEBUG_LOG("ERROR: " << getError());
         //NOTE: в случае ошибки парсинга корректно прочитанные значения сохраняются
         //clear();
     }
-
-    setError(error_string);
 }
 
 std::string Config::to_string(const ParseStateJsonArray state) noexcept {
@@ -2678,7 +2718,6 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
     ParseStateJsonArray state       = ParseStateJsonArray::eARRAY_START;
     std::string key                 = "";
     std::string value               = "";
-    std::string error_string        = "";
 
     Stacker stacker;
     stacker.addSimpleRule('\'');
@@ -2694,6 +2733,23 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
     std::string current_comment     = ""; // текущее значение при парсинге
     VString comments;                     // обработанные комментарии
     size_t value_read_at_line       = 0;
+
+    const std::string error_template = "ElementArray JSON parser error";
+    auto CreateError = [&](const ParserSymbolCounter& counter, std::string message) -> void {
+        setError(error_template + "[" + std::to_string(counter.getLastLineCounter())
+                 + "][" + std::to_string(counter.getLastSymbolCounter())
+                 + "]: " + message + "!");
+    };
+    auto CreateErrorLine = [&](const ParserSymbolCounter& counter, std::string message) -> void {
+        setError(error_template + " at line [" + std::to_string(counter.getLastLineCounter())
+                 + "]: " + message + "!");
+    };
+    auto CreateErrorUnexpected = [&](const ParserSymbolCounter& counter, char ch, std::string message = "") -> void {
+        setError(error_template + ": unexpected symbol '" + ch + "' at ["
+                 + std::to_string(counter.getLastLineCounter())
+                 + "][" + std::to_string(counter.getLastSymbolCounter())
+                 + "]" + (message.empty() ? "" : ": " + message + "!"));
+    };
 
     auto AppendMainPreviewComment = [&]() {
         if(!comments.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
@@ -2750,7 +2806,7 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
         }
     };
 
-    for(size_t i = 0; i < content.size() && error_string.empty(); i++) {
+    for(size_t i = 0; i < content.size() && state != ParseStateJsonArray::eARRAY_ERROR_STATE; i++) {
         char ch_previous    = i == 0 ? 0 : content[i - 1];
         char ch_current     = content[i];
         char ch_next        = i < content.size() ? content[i + 1] : 0;
@@ -2759,7 +2815,14 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
 
         //поиск комментариев ===================================================
         //вернёт комментарий без обрамления
-        CheckComments(ch_current, ch_next, i, design, current_comment, stacker.empty());
+        try {
+            CheckComments(ch_current, ch_next, i, design, current_comment, stacker.empty());
+        } catch(std::exception& e) {
+            //не хватило символов для прочтения комментария
+            CreateError(counter, e.what());
+            break;
+        }
+
         if(!design.with_comments)
             current_comment.clear();
         if(design.with_comments && design.temp_type == CommentType::eCommentEnd)
@@ -2781,9 +2844,10 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
                 && (last_separator_symbol == ','
                     || (ch_current == '\n' && last_separator_symbol == ',' && comments[0].find('\n') == std::string::npos)))
             {
-                std::cout << "last_separator_symbol: '"
-                          << (last_separator_symbol == '\n' ? "\\n" : std::string(&last_separator_symbol, 1))
-                          << "'" << std::endl;
+                //для отладки
+                // std::cout << "last_separator_symbol: '"
+                //           << (last_separator_symbol == '\n' ? "\\n" : std::string(&last_separator_symbol, 1))
+                //           << "'" << std::endl;
                 AppendElementSuffixComment();
             }
             /* таким образом запоминаются последние два разделителя:
@@ -2807,8 +2871,8 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
                 break;
             }
 
+            CreateError(counter, "not found start of JSON-ARRRAY structure");
             UpdateState(state, ParseStateJsonArray::eARRAY_ERROR_STATE);
-            error_string = "not found start of JSON-ARRRAY structure";
             break;
         }
         case ParseStateJsonArray::eARRAY_VALUE: {
@@ -2833,8 +2897,7 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
             if(ch_previous != '\\')
             {
                 if(!stacker.autocheck(ch_current)) {
-                    //TODO: обработать ошибку синтаксиса
-                    error_string = "ERROR!";
+                    CreateErrorUnexpected(counter, ch_current);
                     UpdateState(state, ParseStateJsonArray::eARRAY_ERROR_STATE);
                     break;
                 }
@@ -2860,8 +2923,7 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
                 if(element.error()) {
                     //если случилась ошибка при внутренней конвертации прочитанного значения,
                     // то эта ошибка становится основной ошибкой парсинга
-                    error_string = "ElementArray value parse error[" + std::to_string(counter.getLastLineCounter())
-                                   + "][" + std::to_string(counter.getLastSymbolCounter()) + "]: " + element.getError();
+                    CreateError(counter, "value parse error: " + element.getError());
                     UpdateState(state, ParseStateJsonArray::eARRAY_ERROR_STATE);
                     break;
                 }
@@ -2921,12 +2983,12 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
                 break;
             }
 
+            CreateError(counter, "not found end of JSON-ARRAY structure or value separator");
             UpdateState(state, ParseStateJsonArray::eARRAY_ERROR_STATE);
-            error_string = "not found end of JSON-ARRAY structure or value separator";
             break;
         }
         case ParseStateJsonArray::eARRAY_FINISH: {
-            error_string = "unknown symbol after JSON-ARRAY structure";
+            CreateErrorUnexpected(counter, ch_current, "after end of JSON-ARRAY structure there can only be comments");
             break;
         }
         default: break;
@@ -2945,21 +3007,12 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
 
     setCommentDesign(design);
     if(state != ParseStateJsonArray::eARRAY_FINISH && state != ParseStateJsonArray::eARRAY_VALUE) {
-        if(error_string.empty())
-            error_string = "not found end of JSON-ARRAY structure or value separator"; //если встретили конец файла
-        else
-            error_string = std::string("unexpected symbol at [")
-                       + std::to_string(counter.getLastLineCounter())
-                       + "][" + std::to_string(counter.getLastSymbolCounter()) + "]: '"
-                       + content[counter.getLastIterator()] + "'. "
-                       + error_string;
-        error_string = "JSON-ARRAY parse error, " + error_string;
-        DEBUG_LOG("ERROR: " << error_string);
+        if(!error())
+            setError(error_template + "not found end of JSON-ARRAY structure or value separator"); //если встретили конец файла
+        DEBUG_LOG("ERROR: " << getError());
         //NOTE: (ElementArray) в случае ошибки парсинга корректно прочитанные значения сохраняются
         //clear();
     }
-
-    setError(error_string);
 }
 
 Config &Config::GetFirstArrayFromThis(Config &config) noexcept

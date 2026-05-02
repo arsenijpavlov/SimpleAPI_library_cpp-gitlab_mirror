@@ -2,13 +2,12 @@
 #define ELEMENT_NULL_H
 
 #include "interface/IElement.h"
-#include "interface/IErrorField.h"
 
 
 namespace simpleapi {
 namespace tools {
 
-class ElementNull : public IElement, public IErrorField {
+class ElementNull : public IElement {
     /* "Пустое значение"
      * JSON, наполнение:
      *      - null (во всех регистрах)

@@ -5,6 +5,7 @@
 #include "../ConfigCommon.h"
 
 #include "IComment.h"
+#include "IErrorField.h"
 
 #include <map>
 #include <vector>
@@ -28,7 +29,7 @@ using shared_VElement       = std::vector<std::shared_ptr<Config>>;
 namespace tools {
 
 //базовый класс, в идеале используется только для ссылки на производный
-class IElement : public IComment {
+class IElement : public IComment, public IErrorField {
 protected:
     ValueType m_type;
     IElement()                                                  noexcept            { m_type = ValueType::eNull; }
