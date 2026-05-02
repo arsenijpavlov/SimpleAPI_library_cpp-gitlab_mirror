@@ -1713,8 +1713,7 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
         if(n_design.with_comments && n_design.temp_type == CommentType::eCommentEnd)
         {
             // запомнить комментарий, если он потом понадобится для одиночного значения
-            // comments.push_back(FromComment(std::move(current_comment), design)); //FIXME: на будущее
-            comments.push_back(tools::FromComment(current_comment, n_design));
+            comments.push_back(tools::FromComment(std::move(current_comment), n_design));
             current_comment.clear();
             n_design.temp_type = CommentType::eNotComment;
             continue;

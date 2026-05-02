@@ -550,6 +550,13 @@ std::string VStringToString(const VString& input_vec, const bool need_quotes) no
 std::string ToComment(const std::string &comment, const CommentDesign &design,
                       const int8_t tabulation_level) noexcept
 {
+    std::string temp = comment;
+    return ToComment(std::move(temp), design, tabulation_level);
+}
+
+std::string ToComment(std::string &&comment, const CommentDesign &design,
+                      const int8_t tabulation_level) noexcept
+{
     using namespace utils;
 
     if(comment.empty()) return "";
@@ -707,8 +714,13 @@ bool DefineCommentSymbols(const char first_sym, const char second_sym,
 
 // NOTE: для всего файла конфига подменяется символ границы только если не задан (первый комментарий с границей)
 // Предполагается, что пользователь сам укажет символы для поиска комментариев, при парсинге будет обновлён CommentDesign
-// FIXME: строку стоит передать через && ?
-std::string FromComment(std::string comment_string, CommentDesign &design) noexcept
+std::string FromComment(const std::string &comment_string, CommentDesign &design) noexcept
+{
+    std::string temp = comment_string;
+    return FromComment(std::move(temp), design);
+}
+
+std::string FromComment(std::string &&comment_string, CommentDesign &design) noexcept
 {
     using namespace utils;
 

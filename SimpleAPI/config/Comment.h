@@ -223,9 +223,12 @@ SeparatedLines SeparateToColumns(const std::string& input_string, const size_t c
 std::string VStringToString(const VString& input_vec, const bool need_quotes = false)           noexcept;
 std::string ToComment(const std::string &comment, const CommentDesign &design,
                 const int8_t tabulation_level = 0)                                              noexcept;
+std::string ToComment(std::string &&comment, const CommentDesign &design,
+                const int8_t tabulation_level = 0)                                              noexcept;
 bool        DefineCommentSymbols(const char first_sym, const char second_sym,
                 CommentDesign& cd)                                                              noexcept;
-std::string FromComment(std::string comment_string, CommentDesign &design)                      noexcept;
+std::string FromComment(const std::string &comment_string, CommentDesign &design)               noexcept;
+std::string FromComment(std::string &&comment_string, CommentDesign &design)                    noexcept;
 
 
 void RemoveComments(std::string& input_string, CommentDesign design = {});
