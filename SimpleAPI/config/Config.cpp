@@ -1767,6 +1767,7 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
         std::string value;
 
         auto ConfirmValue = [&, content](const bool for_penultimate = false) -> bool {
+//            counter.printCoords(); // для отладки
             Config element = CreateElementFromString(std::move(value), ConfigFormat::eJSON,
                                                      result_cfg.getCommentDesign(), start_value_counter);
             if(element.error()) {
@@ -1938,6 +1939,10 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
             }
         }
     }
+    //последний перенос строки ломает счётчик символов
+    if(!lines_vec.empty() && !lines_vec.back().empty() && !lines_vec.back().back().empty()) {
+        lines_vec.back().back().pop_back();
+    }
 
     auto CreateError = [&](const ParserSymbolCounter& counter, std::string message) -> void {
         setError("ElementJson/ElementArray INI parser error[" + std::to_string(counter.getLastLineCounter())
@@ -1956,6 +1961,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
     std::vector<std::string> suffix_comments;
     std::string current_comment;
     std::string temp_string_value;
+    ParserSymbolCounter counter; // проинициализируется при обработке первой строки
 
     Stacker stacker;
     stacker.addSimpleRule('\'');
@@ -1967,17 +1973,165 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
     char ch_current           = 0;
     char ch_next              = 0;
 
+    //отделить ключи от значения
+    auto GetIniKeys = [](std::string& content) -> std::vector<std::string> {
+        std::vector<std::string> keys;
+
+        //находить знаки = и : до тех пор, пока не будут встречены лишние символы
+        //ключ в кавычках не должен влиять на поиск
+        Stacker stacker_lambda;
+        stacker_lambda.addSimpleRule('\'');
+        stacker_lambda.addSimpleRule('"');
+
+        std::string temp;
+        char ch_previous = 0;
+        char ch_current = 0;
+        size_t last_key_pos = 0;
+        for(size_t i = 0; i < content.size(); i++, ch_previous = ch_current) {
+            ch_current = content[i];
+
+            bool parsed = false;
+            if(ch_previous != '\\' && !stacker_lambda.inQuotes()) {
+                switch(ch_current) {
+                case '{':
+                case '}':
+                case '[':
+                case ']':
+                case '(':
+                case ')':
+                case '<':
+                case '>': {
+                    //уже пошёл разбор значения, все ключи найдены
+                    parsed = true;
+                    break;
+                }
+                }
+            }
+            if(parsed) break;
+
+            stacker_lambda.autocheck(ch_current); // для проверки нахождения внутри кавычек
+
+            switch(ch_current) {
+            case ':':
+            case '=': {
+                RemoveIllegalSpaces(temp);
+                keys.push_back(temp);
+                temp.clear();
+                last_key_pos = i;
+                break;
+            }
+            default: temp += ch_current;
+            }
+        }
+        if(keys.empty())
+            keys.push_back("");
+        else
+            content.erase(0, last_key_pos + 1);
+        RemoveIllegalSpaces(content);
+
+        return keys;
+    };
+    auto SplitIniKeyPath = [](const std::string& big_key) -> std::vector<std::string> {
+        VString keys;
+        Stacker inner_stacker;
+        inner_stacker.addSimpleRule('\'');
+        inner_stacker.addSimpleRule('"');
+
+        //находить знаки / и \\ до тех пор, пока не будут встречены лишние символы
+        //ключ в кавычках не должен влиять на поиск
+        std::string temp;
+        char ch_previous = 0;
+        char ch_current = 0;
+        size_t last_key_pos = 0;
+        for(size_t i = 0; i < big_key.size(); i++, ch_previous = ch_current) {
+            ch_current = big_key[i];
+
+            if(ch_previous != '\\') {
+                inner_stacker.autocheck(ch_current);
+            }
+
+            if(inner_stacker.empty()) {
+                switch(ch_current) {
+                case '/':
+                case '\\': {
+                    RemoveIllegalSpaces(temp);
+                    RemoveQuotes(temp);
+                    keys.push_back(temp);
+                    temp.clear();
+                    last_key_pos = i;
+                    break;
+                }
+                default: temp += ch_current;
+                }
+            }
+        }
+        RemoveIllegalSpaces(temp);
+        RemoveQuotes(temp);
+        keys.push_back(temp);
+
+        return keys;
+    };
+    auto ConfirmValue = [&]() -> void {
+        RemoveIllegalSpaces(temp_string_value);
+        if(!temp_string_value.empty())
+        {
+            if(temp_string_value.front() == '[' && temp_string_value.back() == ']')
+            {
+                temp_string_value.erase(0, 1);
+                temp_string_value.pop_back();
+
+                //группы значений могут быть объявлены только для основного Config
+                //NOTE: если группа с таким именем уже существует - дополнить её
+                Config& cfg_main_target = GetFirstJsonFromThis(*main_target);
+                if(!cfg_main_target.containsKey(temp_string_value))
+                    cfg_main_target.push_back(temp_string_value, Config(ValueType::eJson));
+
+                //создать либо дополнить префиксный комментарий
+                if(cfg_main_target[temp_string_value].getPrefixComment().empty())
+                    cfg_main_target[temp_string_value].setPrefixComment(VStringToString(prefix_comments));
+                else
+                    cfg_main_target[temp_string_value].setPrefixComment(cfg_main_target[temp_string_value].getPrefixComment() + "\n"
+                                                                        + VStringToString(prefix_comments));
+                //создать либо дополнить постфиксный комментарий
+                if(cfg_main_target[temp_string_value].getSuffixComment().empty())
+                    cfg_main_target[temp_string_value].setSuffixComment(VStringToString(suffix_comments));
+                else
+                    cfg_main_target[temp_string_value].setSuffixComment(cfg_main_target[temp_string_value].getSuffixComment() + "\n"
+                                                                        + VStringToString(suffix_comments));
+
+                target = &cfg_main_target[temp_string_value];
+            }
+            else if(!temp_string_value.empty())
+            {
+//                counter.printCoords(); //для отладки
+                VString keys = GetIniKeys(temp_string_value);
+                for(auto& k : keys) {
+                    // если ключ многосотавной (вложенные структуры), то значение положить составное (k1->k2->k3=value)
+                    VString keys_path = SplitIniKeyPath(k);
+                    Config temp = CreateElementFromString(std::string(temp_string_value), ConfigFormat::eJSON, design, counter);
+                    Config& pushed_cfg = GetFirstJsonFromThis(*target).push_back_force(keys_path, std::move(temp));
+
+                    // добавить комментарии к добавленному значению
+                    pushed_cfg.setPrefixComment(VStringToString(prefix_comments));
+                    pushed_cfg.setSuffixComment(VStringToString(suffix_comments));
+                }
+            }
+            temp_string_value.clear();
+            prefix_comments.clear();
+            suffix_comments.clear();
+            assignment_counter = 0;
+        }
+    };
+
     size_t k = 0; //вынес для видимости вне for()
     size_t all_lines_counter = 0;
     for(; k < lines_vec.size(); k++) {
         VString& fragments = lines_vec[k];
 
         bool need_to_iterate_k = false;
-        ParserSymbolCounter counter;
 
+        counter = ParserSymbolCounter(all_lines_counter);
         for(size_t i = 0; i < fragments.size(); i++, all_lines_counter++) {
-            counter = ParserSymbolCounter(all_lines_counter); //FIXME: считает строки неправильно??
-
             if(getPrefixComment().empty() && !prefix_comments.empty() && fragments[i].empty()) {
                 setPrefixComment(VStringToString(prefix_comments));
                 prefix_comments.clear();
@@ -2071,160 +2225,12 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
             continue; //значение прочитано не полностью!
         }
 
-        RemoveIllegalSpaces(temp_string_value);
-        if(!temp_string_value.empty())
-        {
-            if(temp_string_value.front() == '[' && temp_string_value.back() == ']')
-            {
-                temp_string_value.erase(0, 1);
-                temp_string_value.pop_back();
-
-                //группы значений могут быть объявлены только для основного Config
-                //NOTE: если группа с таким именем уже существует - дополнить её
-                Config& cfg_main_target = GetFirstJsonFromThis(*main_target);
-                if(!cfg_main_target.containsKey(temp_string_value))
-                    cfg_main_target.push_back(temp_string_value, Config(ValueType::eJson));
-
-                //создать либо дополнить префиксный комментарий
-                if(cfg_main_target[temp_string_value].getPrefixComment().empty())
-                    cfg_main_target[temp_string_value].setPrefixComment(VStringToString(prefix_comments));
-                else
-                    cfg_main_target[temp_string_value].setPrefixComment(cfg_main_target[temp_string_value].getPrefixComment() + "\n"
-                                                                        + VStringToString(prefix_comments));
-                //создать либо дополнить постфиксный комментарий
-                if(cfg_main_target[temp_string_value].getSuffixComment().empty())
-                    cfg_main_target[temp_string_value].setSuffixComment(VStringToString(suffix_comments));
-                else
-                    cfg_main_target[temp_string_value].setSuffixComment(cfg_main_target[temp_string_value].getSuffixComment() + "\n"
-                                                                        + VStringToString(suffix_comments));
-
-                target = &cfg_main_target[temp_string_value];
-            }
-            else if(!temp_string_value.empty())
-            {
-                //отделить ключи от значения
-                auto GetIniKeys = [](std::string& content) -> std::vector<std::string> {
-                    std::vector<std::string> keys;
-
-                    //находить знаки = и : до тех пор, пока не будут встречены лишние символы
-                    //ключ в кавычках не должен влиять на поиск
-                    Stacker stacker_lambda;
-                    stacker_lambda.addSimpleRule('\'');
-                    stacker_lambda.addSimpleRule('"');
-
-                    std::string temp;
-                    char ch_previous = 0;
-                    char ch_current = 0;
-                    size_t last_key_pos = 0;
-                    for(size_t i = 0; i < content.size(); i++, ch_previous = ch_current) {
-                        ch_current = content[i];
-
-                        bool parsed = false;
-                        if(ch_previous != '\\' && !stacker_lambda.inQuotes()) {
-                            switch(ch_current) {
-                            case '{':
-                            case '}':
-                            case '[':
-                            case ']':
-                            case '(':
-                            case ')':
-                            case '<':
-                            case '>': {
-                                //уже пошёл разбор значения, все ключи найдены
-                                parsed = true;
-                                break;
-                            }
-                            }
-                        }
-                        if(parsed) break;
-
-                        stacker_lambda.autocheck(ch_current); // для проверки нахождения внутри кавычек
-
-                        switch(ch_current) {
-                        case ':':
-                        case '=': {
-                            RemoveIllegalSpaces(temp);
-                            keys.push_back(temp);
-                            temp.clear();
-                            last_key_pos = i;
-                            break;
-                        }
-                        default: temp += ch_current;
-                        }
-                    }
-                    if(keys.empty())
-                        keys.push_back("");
-                    else
-                        content.erase(0, last_key_pos + 1);
-                    RemoveIllegalSpaces(content);
-
-                    return keys;
-                };
-                auto SplitIniKeyPath = [](const std::string& big_key) -> std::vector<std::string> {
-                    VString keys;
-                    Stacker inner_stacker;
-                    inner_stacker.addSimpleRule('\'');
-                    inner_stacker.addSimpleRule('"');
-
-                    //находить знаки / и \\ до тех пор, пока не будут встречены лишние символы
-                    //ключ в кавычках не должен влиять на поиск
-                    std::string temp;
-                    char ch_previous = 0;
-                    char ch_current = 0;
-                    size_t last_key_pos = 0;
-                    for(size_t i = 0; i < big_key.size(); i++, ch_previous = ch_current) {
-                        ch_current = big_key[i];
-
-                        if(ch_previous != '\\') {
-                            inner_stacker.autocheck(ch_current);
-                        }
-
-                        if(inner_stacker.empty()) {
-                            switch(ch_current) {
-                            case '/':
-                            case '\\': {
-                                RemoveIllegalSpaces(temp);
-                                RemoveQuotes(temp);
-                                keys.push_back(temp);
-                                temp.clear();
-                                last_key_pos = i;
-                                break;
-                            }
-                            default: temp += ch_current;
-                            }
-                        }
-                    }
-                    RemoveIllegalSpaces(temp);
-                    RemoveQuotes(temp);
-                    keys.push_back(temp);
-
-                    return keys;
-                };
-
-                VString keys = GetIniKeys(temp_string_value);
-                for(auto& k : keys) {
-                    // если ключ многосотавной (вложенные структуры), то значение положить составное (k1->k2->k3=value)
-                    VString keys_path = SplitIniKeyPath(k);
-                    Config temp = CreateElementFromString(std::string(temp_string_value), ConfigFormat::eJSON, design, counter);
-                    Config& pushed_cfg = GetFirstJsonFromThis(*target).push_back_force(keys_path, std::move(temp));
-
-                    // добавить комментарии к добавленному значению
-                    pushed_cfg.setPrefixComment(VStringToString(prefix_comments));
-                    pushed_cfg.setSuffixComment(VStringToString(suffix_comments));
-                }
-            }
-            temp_string_value.clear();
-            prefix_comments.clear();
-            suffix_comments.clear();
-            assignment_counter = 0;
-        }
-
+        ConfirmValue();
         ch_current  = 0; //обнуляем, чтобы следующий фрагмент рассматривался самостоятельно
     }
 
-    if(!temp_string_value.empty()) {
-        CreateError(ParserSymbolCounter(k), "not found end of value: \"" + temp_string_value + "\"");
-    }
+    //если входяшая строка закончилась раньше, чем было определено значение
+    ConfirmValue();
 
     if(!prefix_comments.empty()) {
         setSuffixComment(VStringToString(prefix_comments));
@@ -2384,6 +2390,7 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
     //дублирующийся код чтения значения
     auto ConfirmValue = [&, content](const bool for_penultimate = false) -> bool {
         DEBUG_LOG("ElementJson: current value done: \"" << value << "\"");
+//        counter.printCoords(); // для отладки
 
         Config element = CreateElementFromString(std::move(value), ConfigFormat::eJSON, design, start_value_counter);
         if(element.error()) {
