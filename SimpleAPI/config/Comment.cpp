@@ -539,13 +539,11 @@ std::string VStringToString(const VString& input_vec, const bool need_quotes) no
     return res;
 }
 
-//TODO (проверить): при парсинге многострочных комментариев с окантовкой надо учитывать совпадение по закрывающей части
 /*TODO (проверить): должен ли быть пробел между знаками начала/конца м.комментария и окантовкой?
  *      - при записи пробел не ставится
  *      - при чтении всегда пытается считать два символа начала комментария (в зависимости от заполненности вариантов)
  *      - если второй символ начала комментария пробел - многострочный комментарий начинается с одного символа
 */
-
 // @TEST(COMMENT, tabulation_level)
 std::string ToComment(const std::string &comment, const CommentDesign &design,
                       const int8_t tabulation_level) noexcept
@@ -727,19 +725,45 @@ std::string FromComment(std::string &&comment_string, CommentDesign &design) noe
     if(comment_string.empty())
         return "";
 
-    // определить синтаксические знаки комментария и удалить из входной строки
+    // определить синтаксические знаки комментария и удалить их из входной строки
     {
         char first_ch   = comment_string.empty() ? 0 : comment_string[0];
         char second_ch  = comment_string.size() > 2 ? comment_string[1] : 0;
         DefineCommentSymbols(first_ch, second_ch, design);
 
         RemoveIllegalSpaces(comment_string); //удалить незначащие пробелы
-        //удалить начальные символы
-        comment_string.erase(0, design.temp_schema[1] == 0 ? 1 : 2);
+
         //удалить конечные символы в зависимости от типа комментария - однострочный/многострочный
         if(design.temp_type == CommentType::eOneLineComment) {
+            //удалить начальные символы
+            comment_string.erase(0, design.temp_schema[1] == 0 ? 1 : 2);
+
+            //можно проверить на обязательность замыкающего переноса, но это лишнее для однострочных
             if(comment_string.back() == '\n') comment_string.pop_back();
         } else {
+            // проверка совпадения знаков начала и конца комментария, относительно строки
+            {
+                const bool len_correct = (design.temp_schema[1] == 0 && comment_string.size() > 2)
+                                         || (comment_string.size() > 3);
+                //первый символ может совпасть с последним, если temp_schema[2] != 0
+                const bool sym1_correct = len_correct && design.temp_schema[0] == comment_string.front();
+                //второй и предпоследний символы совпадут всегда
+                const bool sym23_correct = len_correct
+                                          && (design.temp_schema[1] == 0
+                                              || (design.temp_schema[1] == comment_string[1]
+                                                  && design.temp_schema[1] == comment_string[comment_string.size() - 2]));
+                //последний символ уникальный при temp_schema[2] != 0
+                const bool sym4_correct = len_correct
+                                          && ((design.temp_schema[2] == 0
+                                               && comment_string.front() == comment_string[comment_string.size() - 1])
+                                              || (design.temp_schema[2] == comment_string[comment_string.size() - 1]));
+                if(!(len_correct && sym1_correct && sym23_correct && sym4_correct)) {
+                    return ""; //возврат пустой строки, т.к. формально комментарий не найден
+                }
+            }
+            //удалить начальные символы
+            comment_string.erase(0, design.temp_schema[1] == 0 ? 1 : 2);
+
             comment_string.pop_back();
             if(design.temp_schema[1] != 0)
                 comment_string.pop_back(); // второй замыкающий символ для М

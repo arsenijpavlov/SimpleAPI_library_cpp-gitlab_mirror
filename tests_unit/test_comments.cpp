@@ -383,3 +383,20 @@ TEST(COMMENT, content_less_than_column_size) {
     std::string res = ToComment(comment_string, cd);
     EXPECT_EQ(res, res_expected) << res;
 }
+
+TEST(COMMENT, FromComment_incorrect_input) {
+    using namespace simpleapi;
+    using namespace tools;
+
+    CommentDesign cd;
+    std::string result;
+
+    result = FromComment("/* asd *", cd); //начало совпадает, конец - нет
+    EXPECT_TRUE(result.empty());
+
+    result = FromComment("/* asd */", cd); //всё совпадает
+    EXPECT_FALSE(result.empty());
+
+    result = FromComment("asd", cd); //нет обрамления
+    EXPECT_TRUE(result.empty());
+}
