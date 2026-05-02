@@ -312,13 +312,27 @@ TEST(INI, main_parser) {
 
 //TODO: TEST(INI, main_writer) {}
 
-//TODO: TEST(INI, writer_large_strings) {
-//std::string json_string_example2 = std::string(
-//    "/*asd*/\n"
-//    "a = \n\"very\n"
-//    "large\n"
-//    "string\""
-//    );
-// CommentDesign cd;
-// Config cfg = ParseJson(json_string_example2, cd);
-//}
+TEST(INI, writer_large_strings) {
+    using namespace simpleapi;
+    using namespace tools;
+
+    std::string json_string_example2 =
+        "/*asd*/\n"
+        "a = \n\"very\n"
+        "large\n"
+        "string\""
+        ;
+    CommentDesign cd;
+    cd.with_comments = true;
+    Config cfg = ParseJson(json_string_example2, cd);
+
+    std::string expected =
+        "// asd\n"
+        "a = \"very \\\n"
+        "    large \\\n"
+        "    string\"\n"
+        ""
+        ;
+    std::string res = cfg.toString(simpleapi::ConfigFormat::eINI, cd);
+    EXPECT_EQ(res, expected);
+}
