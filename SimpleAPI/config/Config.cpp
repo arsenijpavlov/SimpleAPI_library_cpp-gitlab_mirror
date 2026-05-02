@@ -1810,7 +1810,7 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
                 current_comment.clear();
             if(n_design.with_comments && n_design.temp_type == CommentType::eCommentEnd)
             {
-                comments.push_back(tools::FromComment(current_comment, n_design));
+                comments.push_back(tools::FromComment(std::move(current_comment), n_design));
                 current_comment.clear();
                 n_design.temp_type = CommentType::eNotComment;
                 continue;
@@ -2029,9 +2029,9 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                     //           << (temp_string_value.empty() ? "(prefix)" : "(suffix)")
                     //           << ": \"" << FromComment(current_comment, design) << "\"" << std::endl;
                     if(temp_string_value.empty())
-                        prefix_comments.push_back(FromComment(current_comment, design));
+                        prefix_comments.push_back(FromComment(std::move(current_comment), design));
                     else
-                        suffix_comments.push_back(FromComment(current_comment, design));
+                        suffix_comments.push_back(FromComment(std::move(current_comment), design));
                     current_comment.clear();
                     design.temp_type = CommentType::eNotComment;
                     continue;
@@ -2435,7 +2435,7 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
             current_comment.clear();
         if(design.with_comments && design.temp_type == CommentType::eCommentEnd)
         {
-            comments.push_back(FromComment(current_comment, design));
+            comments.push_back(FromComment(std::move(current_comment), design));
             current_comment.clear();
             design.temp_type = CommentType::eNotComment;
             continue;
@@ -2826,7 +2826,7 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
             current_comment.clear();
         if(design.with_comments && design.temp_type == CommentType::eCommentEnd)
         {
-            comments.push_back(FromComment(current_comment, design));
+            comments.push_back(FromComment(std::move(current_comment), design));
             current_comment.clear();
             design.temp_type = CommentType::eNotComment;
             continue;
