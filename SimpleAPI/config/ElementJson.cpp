@@ -1010,8 +1010,9 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
                 ret += GetPrefixComment(*cfg.second);
                 if(!cfg.first.empty())
                     ret += cfg.first + " = ";
-                ret += cfg.second->toString() + "\n";
+                AppendMultinlineString(cfg.second->toString());
                 ret += GetSuffixComment(*cfg.second);
+                ret += "\n";
             }
             break;
         }
