@@ -552,7 +552,6 @@ public:
     Config& insert_back_force(const VString& keys, const Config& other) noexcept;                                           API_ALL
     Config& insert_back_force(const VString& keys, Config&& other)      noexcept;                                           API_ALL
 
-    //TODO: сделать аналог для массивов/variadic???
     Config& insert_before(const std::string& before_key, const std::string& key, const Config& other);                      API_MAP_CONTAINER
     Config& insert_before(const std::string& before_key, const std::string& key, Config&& other);                           API_MAP_CONTAINER
     Config& insert_after(const std::string& after_key, const std::string& key, const Config& other);                        API_MAP_CONTAINER
