@@ -28,7 +28,7 @@ enum SocketType {
     eUDP,
     eTCP
 };
-std::string to_string(SocketType type) noexcept;
+std::string ToString(SocketType type) noexcept;
 
 struct ChipheringKey {
     std::string key;
@@ -92,22 +92,22 @@ protected:
     std::deque<JsonMessage>     m_map_recv_jsons_buffer;    //buildPackets(), getOutJson()
     //-----------------------------------------
 
-    bool            checkCorrectIp(const std::string& ip_string) noexcept;
+    bool            checkCorrectIp(const std::string& ip_string)                noexcept;
 
-    uint8_t         packHeader(const PacketHeader& ph) noexcept;
-    PacketHeader    unpackHeader(const uint8_t header) noexcept;
-    EECounter&      getOutSeqNumber(const IpPort& ip_port) noexcept;
-    void            appendNewFragment(const PacketMessage& received_pm) noexcept;
-    PacketMessage   buildPacket(MapConnectionsIterator& it) noexcept;
+    uint8_t         packHeader(const PacketHeader& ph)                          noexcept;
+    PacketHeader    unpackHeader(const uint8_t header)                          noexcept;
+    EECounter&      getOutSeqNumber(const IpPort& ip_port)                      noexcept;
+    void            appendNewFragment(const PacketMessage& received_pm)         noexcept;
+    PacketMessage   buildPacket(MapConnectionsIterator& it)                     noexcept;
     MapConnectionsIterator
-                    findOrCreateConnection(const IpPort& remote_ip_port) noexcept;
-    void            updateLastOutputActivityTime(const IpPort& remote_ip_port) noexcept;
+                    findOrCreateConnection(const IpPort& remote_ip_port)        noexcept;
+    void            updateLastOutputActivityTime(const IpPort& remote_ip_port)  noexcept;
 
     void            log(const logs::LEVEL level, const std::string& log_message,
                         const std::string& color_log_message = "") noexcept;
-    void            setSettings(const SocketSettings settings = SocketSettings()) noexcept
-                                                        { m_settings = settings; }
-    SocketSettings  getSettings() noexcept              { return m_settings; }
+    void            setSettings(const SocketSettings settings = SocketSettings())
+                                                                noexcept        { m_settings = settings; }
+    SocketSettings  getSettings()                               noexcept        { return m_settings; }
 
     void            sendFragments(const std::string& remote_ip, const uint16_t remote_port,
                                   const PacketType type, const Packet& packet, const bool need_ack = true) noexcept
@@ -115,36 +115,35 @@ protected:
     virtual void    sendFragments(const IpPort& remote_ip_port, const PacketType type,
                                   const Packet& packet, const bool need_ack = true) noexcept = 0;
 
-    virtual void    tick() noexcept                     = 0;
-    virtual void    sendAutoMsg() noexcept              = 0;
-    virtual Config  recvAutoMsg(int timeout) noexcept   = 0;
-    virtual Config  processingBuiltPacket(const PacketMessage& pm) noexcept = 0;
+    virtual void    tick()                                      noexcept        = 0;
+    virtual void    sendAutoMsg()                               noexcept        = 0;
+    virtual Config  recvAutoMsg(int timeout)                    noexcept        = 0;
+    virtual Config  processingBuiltPacket(const PacketMessage& pm) noexcept     = 0;
     //=====================================
     friend class SocketThread; //для функции tick()
 
 public:
                     Socket() noexcept :
                         m_socket_fd(-1),
-                        m_settings(SocketSettings())    {}
-    virtual         ~Socket() noexcept                  {}
+                        m_settings(SocketSettings())                            {}
+    virtual         ~Socket()                                   noexcept        {}
 
     //-----------------------------------------
-    void            setLogLevel(logs::LEVEL log_level) noexcept
-                                                        { m_settings.setLogLevel(log_level); }
-    IpPort          getLocalIpPort() noexcept           { return IpPort{m_local_ip, m_local_port}; }
-    virtual bool    isConnected(const IpPort& remote_ip_port) noexcept = 0;
-    bool            isServerActive() noexcept           { return m_socket_fd > 0; }
+    void            setLogLevel(logs::LEVEL log_level)          noexcept        { m_settings.setLogLevel(log_level); }
+    IpPort          getLocalIpPort()                            noexcept        { return IpPort{m_local_ip, m_local_port}; }
+    virtual bool    isConnected(const IpPort& remote_ip_port)   noexcept        = 0;
+    bool            isServerActive()                            noexcept        { return m_socket_fd > 0; }
     //-----------------------------------------
-    void            chiphering(Packet& packet) noexcept {}
-    void            dechiphering(Packet& packet) noexcept {}
-    virtual void    startServer() noexcept              = 0;
-    virtual void    stopServer() noexcept               = 0;
-    void            close() noexcept;
+    void            chiphering(Packet& packet)                  noexcept        {}
+    void            dechiphering(Packet& packet)                noexcept        {}
+    virtual void    startServer()                               noexcept        = 0;
+    virtual void    stopServer()                                noexcept        = 0;
+    void            close()                                     noexcept;
     //-----------------------------------------
     bool            sendRawMsg(const PacketMessage &packet_message) noexcept;
     virtual bool    sendRawMsg(const std::string& remote_ip, const uint16_t remote_port,
-                            const Packet& packet) noexcept = 0;
-    virtual PacketMessage recvRawMsg(int timeout) noexcept = 0;
+                            const Packet& packet)               noexcept        = 0;
+    virtual PacketMessage recvRawMsg(int timeout)               noexcept        = 0;
     //-----------------------------------------
 
     //=====================================
@@ -153,18 +152,17 @@ public:
      *  внутри функции проверяется корректность адреса назначения
      *  и вызывается sendFragments() */
     void            sendMsg(const std::string& remote_ip, const uint16_t remote_port,
-                            const Packet& packet) noexcept
-                                                        { sendMsg(IpPort{remote_ip, remote_port}, packet); }
+                            const Packet& packet)               noexcept        { sendMsg(IpPort{remote_ip, remote_port}, packet); }
     void            sendMsg(const std::string& remote_ip, const uint16_t remote_port,
-                            const Config& json) noexcept  { sendMsg(IpPort{remote_ip, remote_port}, json); }
+                            const Config& json)                 noexcept        { sendMsg(IpPort{remote_ip, remote_port}, json); }
     virtual void    sendMsg(const IpPort& remote_ip_port, const Packet& packet) = 0;
-    virtual void    sendMsg(const IpPort& remote_ip_port, const Config& json) = 0;
+    virtual void    sendMsg(const IpPort& remote_ip_port, const Config& json)   = 0;
     //-----------------------------------------
     //Эти функции работают в связке с tick():
     //выдаст пустой пакет, если очередь пуста
-    virtual PacketMessage   getOutPacket() noexcept     = 0;
+    virtual PacketMessage   getOutPacket()                      noexcept        = 0;
     //выдаст пустой json, если очередь пуста
-    virtual JsonMessage     getOutJson() noexcept       = 0;
+    virtual JsonMessage     getOutJson()                        noexcept        = 0;
     //=====================================
 };
 
@@ -179,40 +177,45 @@ class UDPSocket : public Socket {
     void            sendFragments(const IpPort& remote_ip_port, const PacketType type,
                                   const Packet& packet, const bool need_ack = true) noexcept;
 
-    void            tick() noexcept;
-    void            checkConnections() noexcept;//только UDP
-    void            sendAutoMsg() noexcept;
-    Config          recvAutoMsg(int timeout) noexcept;
-    Config          processingBuiltPacket(const PacketMessage& pm) noexcept;
+    void            tick()                                                          noexcept;
+                    //только UDP
+    void            checkConnections()                                              noexcept;
+    void            sendAutoMsg()                                                   noexcept;
+    Config          recvAutoMsg(int timeout)                                        noexcept;
+    Config          processingBuiltPacket(const PacketMessage& pm)                  noexcept;
     //=====================================
 
 public:
-                    UDPSocket(const IpPort& local_ip_port, const SocketSettings& settings = SocketSettings()) noexcept;
-                    UDPSocket(const uint16_t local_port, const std::string& local_ip = "",
-                              const SocketSettings& settings = SocketSettings()) noexcept;
-                    ~UDPSocket() noexcept               { close(); }
-    void            open(const uint16_t local_port, const std::string& local_ip = "") noexcept;
+                    UDPSocket(const IpPort& local_ip_port,
+                              const SocketSettings& settings = SocketSettings())    noexcept;
+                    UDPSocket(const uint16_t local_port,
+                              const std::string& local_ip = "",
+                              const SocketSettings& settings = SocketSettings())    noexcept;
+                    ~UDPSocket()                                                    noexcept    { close(); }
+    void            open(const uint16_t local_port,
+                         const std::string& local_ip = "")                          noexcept;
 
     //-----------------------------------------
-    bool            isConnected(const IpPort& remote_ip_port) noexcept;
+    bool            isConnected(const IpPort& remote_ip_port)                       noexcept;
     //-----------------------------------------
-    void            startServer() noexcept;
-    void            stopServer() noexcept;
+    void            startServer()                                                   noexcept;
+    void            stopServer()                                                    noexcept;
     //-----------------------------------------
     bool            sendRawMsg(const std::string& remote_ip, const uint16_t remote_port,
-                                const Packet& packet) noexcept;
-    PacketMessage   recvRawMsg(int timeout = -1) noexcept;
+                               const Packet& packet)                                noexcept;
+    PacketMessage   recvRawMsg(int timeout = -1)                                    noexcept;
     //-----------------------------------------
 
     //=====================================
     //УПРАВЛЕНИЕ АВТОМАТИЧЕСКИМ СЕРВЕРОМ
-    void            setDeliveryNeed(bool enabled = true) noexcept; //только UDP
+                    //только UDP
+    void            setDeliveryNeed(bool enabled = true)                            noexcept;
 
     void            sendMsg(const IpPort& remote_ip_port, const Packet& packet);
     void            sendMsg(const IpPort& remote_ip_port, const Config& json);
 
-    PacketMessage   getOutPacket() noexcept;
-    JsonMessage     getOutJson() noexcept;
+    PacketMessage   getOutPacket()                                                  noexcept;
+    JsonMessage     getOutJson()                                                    noexcept;
     //=====================================
 };
 

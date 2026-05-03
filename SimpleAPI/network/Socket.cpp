@@ -352,7 +352,7 @@ void Socket::log(const logs::LEVEL level, const std::string& log_message,
         currentCallback(
             timeString
             + logs::columned(std::string("[")
-                                 + to_string(m_socket_type)
+                                 + ToString(m_socket_type)
                                  + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
                                  + "]",
                              m_settings.getNameColumnSize(),
@@ -366,7 +366,7 @@ void Socket::log(const logs::LEVEL level, const std::string& log_message,
         currentColorCallback(
             coloredTimeString
             + logs::columned(level, std::string("[")
-                                        + to_string(m_socket_type)
+                                        + ToString(m_socket_type)
                                         + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
                                         + "]",
                              m_settings.getNameColumnSize(),
@@ -1167,7 +1167,7 @@ JsonMessage UDPSocket::getOutJson() noexcept {
     return jm;
 }
 
-std::string to_string(SocketType type) noexcept {
+std::string ToString(SocketType type) noexcept {
     switch(type){
     case eUDP:      return "UDP";
     case eTCP:      return "TCP";

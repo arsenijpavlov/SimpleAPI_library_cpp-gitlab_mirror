@@ -56,6 +56,7 @@ bool IpPort::from_string(std::string ip_port_string) noexcept {
     //проверка, что есть число в строке, иначе atoi плохо сработает
     //с strtoul() непонятно как работать, он тоже всегда будет возвращать 0 в случае ошибки
     //так хотя бы надёжно
+    //FIXME: переделать на пример из Config, вынести общий код в Utils.h
     switch(port_string[0]) {
     case '0':
     case '1':

@@ -10,13 +10,13 @@ struct IpPort {
     std::string ip;
     uint16_t    port;
 
-    bool operator==(const IpPort& other) const noexcept;
-    bool operator!=(const IpPort& other) const noexcept;
-    bool operator<(const IpPort& other) const noexcept;
-    bool operator>(const IpPort& other) const noexcept;
+    bool operator==(const IpPort& other)            const noexcept;
+    bool operator!=(const IpPort& other)            const noexcept;
+    bool operator<(const IpPort& other)             const noexcept;
+    bool operator>(const IpPort& other)             const noexcept;
 
-    std::string to_string(std::string info = "") const noexcept;
-    bool from_string(std::string ip_port_string) noexcept;
+    std::string to_string(std::string info = "")    const noexcept;
+    bool from_string(std::string ip_port_string)    noexcept;
 };
 
 } // namespace simpleapi
