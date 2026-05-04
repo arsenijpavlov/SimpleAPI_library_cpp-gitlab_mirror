@@ -1203,12 +1203,14 @@ Config& Config::insert_back(const std::string& key, Config&& other) {
     return *this;
 }
 
+//найти первый попавшийся Json и дополнить его новым элементом (на каждом уровне вложенности)
 Config &Config::insert_back_force(const VString &keys, const Config &other) noexcept
 {
     Config temp(other);
     return push_back_force(keys, std::move(temp));
 }
 
+//найти первый попавшийся Json и дополнить его новым элементом (на каждом уровне вложенности)
 Config &Config::insert_back_force(const VString &keys, Config &&other) noexcept
 {
     if(keys.empty()) {
@@ -1222,19 +1224,20 @@ Config &Config::insert_back_force(const VString &keys, Config &&other) noexcept
             if(!get_at(key).isArray()) {
                 Config temp = get_at(key);
                 get_at(key) = Config(ValueType::eArray);
-                get_at(key).push_back(std::move(temp));
+                get_at(key).insert_back(std::move(temp));
             }
 
             //дополнить итоговый массив
-            get_at(key).push_back(std::move(other));
+            get_at(key).insert_back(std::move(other));
             return get_at(key).get_back();
         } else {
             //ключ новый
-            push_back(key, std::move(other));
+            insert_back(key, std::move(other));
             return get_at(key);
         }
     } else {
         //если промежуточный ключ должен быть вставлен на место существующего значения
+        //и если ключ НЕ является контейнером
         // то нужно преобразовать значение в часть массива, а в конец массива добавить новый JSON
 
         const std::string& key = keys[0];
@@ -1242,33 +1245,71 @@ Config &Config::insert_back_force(const VString &keys, Config &&other) noexcept
         new_keys.erase(new_keys.cbegin());
 
         if(containsKey(key)) {
-            Config& target_cfg = get_at(key);
+            //итоговый ключ существует
+            Config* target_cfg = &get_at(key);
 
-            //итоговый ключ существует - нужно преобразовать в array
-            if(!target_cfg.isArray()) {
-                Config temp = target_cfg;
-                target_cfg = Config(ValueType::eArray);
-                target_cfg.push_back(std::move(temp));
-            }
+            //на основе количества оставшихся ключей решить, каким образом дополнить существующий элемент
+            if(new_keys.empty()) {
+                //ключей больше нет - элемент оказался частью массива
 
-            //дополнить итоговый массив новой парой ключ-значение, если такой ключ в массиве ещё не создан
-            Config* p_target_json = nullptr;
-            for(auto& cfg : target_cfg.getRange()) {
-                if(cfg->isJson() && cfg->containsKey(new_keys[0])) {
-                    p_target_json = cfg.get();
+                //если target_cfg не массив - преобразовать в массив
+                if(!target_cfg->isArray()) {
+                    Config temp = *target_cfg;
+                    *target_cfg = Config(ValueType::eArray);
+                    target_cfg->insert_back(std::move(temp));
+                }
+
+                target_cfg->insert_back(std::move(other));
+            } else {
+                //есть ещё один ключ - элемент оказался частью карты ключ-значение
+
+                Config *json = nullptr;
+                switch (target_cfg->getType()) {
+                case ValueType::eArray: {
+                    //пройтись по всем элементам массива и найти первый Json
+                    for(auto& cfg : target_cfg->getRange()) {
+                        if(cfg->isJson()) {
+                            json = cfg.get();
+                            break;
+                        }
+                    }
                     break;
+                }
+                case ValueType::eNull: //сам умеет преобразовать себя в Json
+                case ValueType::eJson: {
+                    json = target_cfg;
+                    break;
+                }
+                default: break;
+                }
+
+                if(!json) {
+                    //преобразовать текущий элемент в массив и дополнить массив элементом Json
+                    Config temp = *target_cfg;
+                    *target_cfg = Config(ValueType::eArray);
+                    target_cfg->insert_back(std::move(temp));
+                    json = &target_cfg->get_back();
+                }
+
+                if(json->containsKey(new_keys[0])) {
+                    //ключ существует, нужно дополнить значение
+                    json = &json->get_at(new_keys[0]);
+                    new_keys.pop_back();
+                    return json->insert_back_force(new_keys, std::move(other));
+                } else {
+                    //FIXME: проваливается тест
+                    json->insert_back(new_keys[0], std::move(other));
+                    new_keys.pop_back();
                 }
             }
 
-            if(p_target_json == nullptr) {
-                target_cfg.push_back(Config(ValueType::eJson));
-                p_target_json = &target_cfg.get_back();
-            }
-
-            return p_target_json->push_back_force(new_keys, std::move(other));
+            if(new_keys.empty())
+                return *this;
+            else
+                return target_cfg->insert_back_force(new_keys, std::move(other));
         } else {
             //ключ новый
-            return push_back(key, Config()).get_at(key).push_back_force(new_keys, std::move(other));
+            return insert_back(key, Config()).get_at(key).insert_back_force(new_keys, std::move(other));
         }
     }
 
@@ -2083,8 +2124,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                 //группы значений могут быть объявлены только для основного Config
                 //NOTE: если группа с таким именем уже существует - дополнить её
                 Config& cfg_main_target = GetFirstJsonFromThis(*main_target);
-                if(!cfg_main_target.containsKey(temp_string_value))
-                    cfg_main_target.push_back(temp_string_value, Config(ValueType::eJson));
+                cfg_main_target.push_back(temp_string_value, Config(ValueType::eJson));
 
                 //создать либо дополнить префиксный комментарий
                 if(cfg_main_target[temp_string_value].getPrefixComment().empty())
@@ -2109,7 +2149,8 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                     // если ключ многосотавной (вложенные структуры), то значение положить составное (k1->k2->k3=value)
                     VString keys_path = SplitIniKeyPath(k);
                     Config temp = CreateElementFromString(std::string(temp_string_value), ConfigFormat::eJSON, design, counter);
-                    Config& pushed_cfg = GetFirstJsonFromThis(*target).push_back_force(keys_path, std::move(temp));
+                    Config& pushed_cfg = GetFirstJsonFromThis(*target)
+                                             .push_back_force(keys_path, std::move(temp));
 
                     // добавить комментарии к добавленному значению
                     pushed_cfg.setPrefixComment(VStringToString(prefix_comments));
