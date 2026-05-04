@@ -1294,13 +1294,16 @@ Config &Config::insert_back_force(const VString &keys, Config &&other) noexcept
                 if(json->containsKey(new_keys[0])) {
                     //ключ существует, нужно дополнить значение
                     json = &json->get_at(new_keys[0]);
-                    new_keys.pop_back();
-                    return json->insert_back_force(new_keys, std::move(other));
                 } else {
-                    //FIXME: проваливается тест
-                    json->insert_back(new_keys[0], std::move(other));
-                    new_keys.pop_back();
+                    //нужно добавить ключ, но json может не быть контейнером
+                    if(!json->isArray()) {
+                        Config temp = *json;
+                        *json = Config(ValueType::eArray);
+                        json->insert_back(std::move(temp));
+                    }
                 }
+                new_keys.pop_back();
+                target_cfg = json;
             }
 
             if(new_keys.empty())
@@ -1309,7 +1312,12 @@ Config &Config::insert_back_force(const VString &keys, Config &&other) noexcept
                 return target_cfg->insert_back_force(new_keys, std::move(other));
         } else {
             //ключ новый
-            return insert_back(key, Config()).get_at(key).insert_back_force(new_keys, std::move(other));
+            //нужно добавить ключ, но json может не быть контейнером
+            ValueType type = getType();
+
+            Config* target_cfg = &insert_back(key, Config());
+            target_cfg = &target_cfg->get_at(key);
+            return target_cfg->insert_back_force(new_keys, std::move(other));
         }
     }
 
