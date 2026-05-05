@@ -574,9 +574,7 @@ Config ElementJson::get_and_pop_at(const std::string &key) noexcept {
 }
 
 void ElementJson::erase_at(const std::string &key) noexcept {
-    auto it = m_values.cbegin();
-
-    while(it != m_values.cend()) {
+    for(auto it = m_values.cbegin(); it != m_values.cend(); it++) {
         if(it->first == key) {
             m_values.erase(it);
             break;

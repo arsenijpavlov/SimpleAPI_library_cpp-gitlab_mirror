@@ -300,7 +300,8 @@ TEST(INI, main_parser) {
 
 }
 
-//TODO: TEST(INI, main_writer) {}
+//TODO: TEST(INI, main_writer_map) {}
+//TODO: TEST(INI, main_writer_array) {}
 
 TEST(INI, writer_large_strings) {
     using namespace simpleapi;
@@ -325,4 +326,24 @@ TEST(INI, writer_large_strings) {
         ;
     std::string res = cfg.toString(simpleapi::ConfigFormat::eINI, cd);
     EXPECT_EQ(res, expected);
+}
+
+TEST(INI, parse_with_json_value) {
+    using namespace simpleapi;
+    using namespace tools;
+
+    std::string input =
+        "[hw_array]\n"
+        "gcom = { hw_id=136 \\\n"
+        " radio_id=[1, 2] \\\n"
+        " radio_id=3 }\n"
+        "\n"
+        ;
+
+    Config cfg = ParseIni(input);
+    ASSERT_TRUE(cfg.containsKey("hw_array"));
+    Config cfg_hw_array = cfg["hw_array"];
+    ASSERT_TRUE(cfg_hw_array.containsKey("gcom"));
+    Config cfg_gcom = cfg_hw_array["gcom"];
+    EXPECT_TRUE(cfg_gcom.isJson());
 }

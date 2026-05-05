@@ -914,3 +914,22 @@ TEST(JSON, parse_error_not_found_stop) {
     ASSERT_TRUE(cfg.error());
     EXPECT_TRUE(cfg.getError().find("not found end of JSON") != std::string::npos);
 }
+
+TEST(JSON, reuse_key) {
+    Config cfg;
+    cfg.push_back("a", "b");
+    cfg.push_back("a", "c");
+
+    EXPECT_EQ(cfg["a"], "c");
+}
+
+TEST(JSON, parse_string) {
+    std::string input = "{ hw_id=136\n"
+            "radio_id=[1, 2] \n"
+            "radio_id=3 }";
+    Config cfg = ParseJson(input);
+
+    ASSERT_TRUE(cfg.isJson());
+    EXPECT_EQ(cfg.size(), 2);
+    EXPECT_EQ(cfg[1], 3);
+}
