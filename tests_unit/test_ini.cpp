@@ -223,28 +223,18 @@ TEST(INI, main_parser) {
 
             ASSERT_TRUE(j.containsKey("key3"));
             {
-                ASSERT_TRUE(j["key3"].isArray());
+                ASSERT_TRUE(j["key3"].isJson());
                 Config ja = j["key3"];
                 {
                     ASSERT_EQ(ja.size(), 2);
 
-                    ASSERT_TRUE(ja[0].isJson());
-                    Config jj = ja[0];
-                    {
-                        ASSERT_EQ(jj.size(), 1);
-                        ASSERT_TRUE(jj.containsKey("inner_key3"));
-                        ASSERT_TRUE(jj["inner_key3"].isString());
-                        EXPECT_EQ(jj["inner_key3"], "a");
-                    }
+                    ASSERT_TRUE(ja.containsKey("inner_key3"));
+                    ASSERT_TRUE(ja["inner_key3"].isString());
+                    EXPECT_EQ(ja["inner_key3"], "a");
 
-                    ASSERT_TRUE(ja[1].isJson());
-                    Config jj2 = ja[1];
-                    {
-                        ASSERT_EQ(jj2.size(), 1);
-                        ASSERT_TRUE(jj2.containsKey("inner_key33"));
-                        ASSERT_TRUE(jj2["inner_key33"].isString());
-                        EXPECT_EQ(jj2["inner_key33"], "b");
-                    }
+                    ASSERT_TRUE(ja.containsKey("inner_key33"));
+                    ASSERT_TRUE(ja["inner_key33"].isString());
+                    EXPECT_EQ(ja["inner_key33"], "b");
                 }
             }
 

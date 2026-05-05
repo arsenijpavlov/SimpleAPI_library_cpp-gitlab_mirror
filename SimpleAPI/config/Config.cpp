@@ -1210,114 +1210,94 @@ Config &Config::insert_back_force(const VString &keys, const Config &other) noex
     return push_back_force(keys, std::move(temp));
 }
 
-//найти первый попавшийся Json и дополнить его новым элементом (на каждом уровне вложенности)
+/* Общая логика работы функции:
+ * если вектор ключей пустой
+ *  - приравнять или дополнить (преобразовав в массив) текущий объект значением other
+ * иначе
+ *  - взять первый ключ из вектора
+ *  - проверить наличие ключа в текущем объекте, если ключ существует
+ *    > если текущий объект не контейнер
+ *      >> преобразовать в массив (т.к. у этого значения нет ключа)
+ *    > если текущий объект массив
+ *      >> найти первый попавшийся Json (создать)
+ *    > дополнить итоговый Json новым ключом
+ *  - если ключ не существовал - добавить новый ключ со значением Null
+ *
+ *  Вернёт последнее изменённое значение (ссылку на other)
+*/
 Config &Config::insert_back_force(const VString &keys, Config &&other) noexcept
 {
     if(keys.empty()) {
-        //текущий объект нужно обновить
-        *this = std::move(other);
-    } else if(keys.size() == 1) {
-        const std::string& key = keys[0];
-
-        if(containsKey(key)) {
-            //итоговый ключ существует - нужно преобразовать в array
-            if(!get_at(key).isArray()) {
-                Config temp = get_at(key);
-                get_at(key) = Config(ValueType::eArray);
-                get_at(key).insert_back(std::move(temp));
-            }
-
-            //дополнить итоговый массив
-            get_at(key).insert_back(std::move(other));
-            return get_at(key).get_back();
-        } else {
-            //ключ новый
-            insert_back(key, std::move(other));
-            return get_at(key);
+        switch (getType()) {
+        case ValueType::eNull: {
+            //значения не было, можно переназначить
+            *this = std::move(other);
+            return *this;
+        }
+        default: {
+            //преобразовать текущее значение в массив и перейти к дополнению массива новым значением
+            Config temp = *this;
+            *this = Config(ValueType::eArray, std::move(temp));
+            //перейти в управление массивом
+        }
+        case ValueType::eArray: {
+            //дополнить массив новым значением
+            insert_back(std::move(other));
+            return get_back();
+        }
         }
     } else {
-        //если промежуточный ключ должен быть вставлен на место существующего значения
-        //и если ключ НЕ является контейнером
-        // то нужно преобразовать значение в часть массива, а в конец массива добавить новый JSON
-
-        const std::string& key = keys[0];
         VString new_keys = keys;
+        std::string key = new_keys[0];
         new_keys.erase(new_keys.cbegin());
 
         if(containsKey(key)) {
-            //итоговый ключ существует
-            Config* target_cfg = &get_at(key);
+            //ключ уже существует, передаём управление дальше в рекурсию
+            return get_at(key).insert_back_force(new_keys, std::move(other));
+        } else {
+            Config* found_json = nullptr;
 
-            //на основе количества оставшихся ключей решить, каким образом дополнить существующий элемент
-            if(new_keys.empty()) {
-                //ключей больше нет - элемент оказался частью массива
-
-                //если target_cfg не массив - преобразовать в массив
-                if(!target_cfg->isArray()) {
-                    Config temp = *target_cfg;
-                    *target_cfg = Config(ValueType::eArray);
-                    target_cfg->insert_back(std::move(temp));
-                }
-
-                target_cfg->insert_back(std::move(other));
-            } else {
-                //есть ещё один ключ - элемент оказался частью карты ключ-значение
-
-                Config *json = nullptr;
-                switch (target_cfg->getType()) {
-                case ValueType::eArray: {
-                    //пройтись по всем элементам массива и найти первый Json
-                    for(auto& cfg : target_cfg->getRange()) {
-                        if(cfg->isJson()) {
-                            json = cfg.get();
-                            break;
-                        }
-                    }
-                    break;
-                }
-                case ValueType::eNull: //сам умеет преобразовать себя в Json
-                case ValueType::eJson: {
-                    json = target_cfg;
-                    break;
-                }
-                default: break;
-                }
-
-                if(!json) {
-                    //преобразовать текущий элемент в массив и дополнить массив элементом Json
-                    Config temp = *target_cfg;
-                    *target_cfg = Config(ValueType::eArray);
-                    target_cfg->insert_back(std::move(temp));
-                    json = &target_cfg->get_back();
-                }
-
-                if(json->containsKey(new_keys[0])) {
-                    //ключ существует, нужно дополнить значение
-                    json = &json->get_at(new_keys[0]);
-                } else {
-                    //нужно добавить ключ, но json может не быть контейнером
-                    if(!json->isArray()) {
-                        Config temp = *json;
-                        *json = Config(ValueType::eArray);
-                        json->insert_back(std::move(temp));
+            //на основе типа текущего значения
+            switch(getType()) {
+            default: {
+                //преобразовать текущее значение в массив
+                Config temp = *this;
+                *this = Config(ValueType::eArray, std::move(temp));
+                //перейти в управление как Array
+            }
+            case ValueType::eArray: {
+                //найти в массиве первый попавшийся Json или дополнить вновь созданным
+                for(auto& cfg : getRange()) {
+                    if(cfg->isJson()) {
+                        found_json = cfg.get();
+                        break;
                     }
                 }
-                new_keys.pop_back();
-                target_cfg = json;
+
+                //дополнить, если Json не найден
+                if(!found_json) {
+                    insert_back(Config(ValueType::eJson));
+                    found_json = &get_back();
+                }
+                break;
+            }
+            case ValueType::eNull: {
+                //значение создаётся с нуля
+                *this = Config(ValueType::eJson);
+                //перейти в управление как Json
+            }
+            case ValueType::eJson: {
+                //текущее значене уже является Json
+                found_json = this;
+                break;
+            }
             }
 
-            if(new_keys.empty())
-                return *this;
-            else
-                return target_cfg->insert_back_force(new_keys, std::move(other));
-        } else {
-            //ключ новый
-            //нужно добавить ключ, но json может не быть контейнером
-            ValueType type = getType();
-
-            Config* target_cfg = &insert_back(key, Config());
-            target_cfg = &target_cfg->get_at(key);
-            return target_cfg->insert_back_force(new_keys, std::move(other));
+            if(!found_json->containsKey(key)) {
+                //дополнить новым ключом
+                found_json->insert_back(key, Config());
+            }
+            return found_json->get_at(key).insert_back_force(new_keys, std::move(other));
         }
     }
 
