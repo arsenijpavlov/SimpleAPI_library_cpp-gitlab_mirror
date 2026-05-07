@@ -29,19 +29,23 @@ if [[ ${upper_dir_name} != "doc" ]]; then
 fi
 
 # В папке doc удалить все файлы, кроме директории исходников документации doc-source
-whitelist=()
-whilelist+="doc-source"
-whilelist+="doxygen"
-whilelist+="user_manuals"
+whitelist=(
+	"doc-source" \
+	"doxygen" \
+	"user_manuals" \
+)
 
 cd ..
 for file in $(ls .)
 do
+	#echo "file: \"${file}\""
 	need_erase=true
 	for white in ${whitelist[@]}
 	do
+		#echo "white: \"${white}\""	
 		if [[ ${file} == ${white} ]]; then
 			need_erase=
+			break
 		fi
 	done
 	
