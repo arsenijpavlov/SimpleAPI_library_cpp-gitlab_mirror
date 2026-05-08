@@ -7,9 +7,5 @@
                  start-page="Introduction.md">
 
     <!-- SCRIPT BEGIN -->
-    <toc-element topic="Introduction.md">
-        <toc-element topic="Config.md"/>
-    </toc-element>
-    <toc-element topic="Config2.md"/>
     <!-- SCRIPT END -->
 </instance-profile>

@@ -1,0 +1,11 @@
+<pdf landscape="true">
+    <cover-page>
+        <title>My Awesome App</title>
+        <description>User Guide</description>
+<!--        <copyright>Awesome Co © 2024</copyright>-->
+    </cover-page>
+    <header>Text in header</header>
+    <footer>Text in footer</footer>
+    <toc-title>Title for Table of Contents page</toc-title>
+    <layout>Windows</layout>
+</pdf>

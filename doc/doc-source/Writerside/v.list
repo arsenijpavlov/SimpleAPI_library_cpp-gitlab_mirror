@@ -2,4 +2,6 @@
 <!DOCTYPE vars SYSTEM "https://resources.jetbrains.com/writerside/1.0/vars.dtd">
 <vars>
     <var name="product" value="Writerside"/>
+    <var name="pdf-toc-depth" value="2"/>
+    <var name="toc-show-structure-depth" value="2"/>
 </vars>
