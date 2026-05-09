@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE instance-profile
+        SYSTEM "https://resources.jetbrains.com/writerside/1.0/product-profile.dtd">
+
+<instance-profile id="SimpleAPI_docs"
+                 name="SimpleAPI docs"
+                 start-page="Introduction.md">
+
+    <!-- SCRIPT BEGIN -->
+	<toc-element topic="Introduction.md"/>
+	<toc-element topic="Config.md">
+		<toc-element topic="YAML.md"/>
+		<toc-element topic="XML.md"/>
+		<toc-element topic="JSON.md"/>
+		<toc-element topic="header.md"/>
+		<toc-element topic="INI.md"/>
+	</toc-element> <!-- end of "Config.md" -->
+	<toc-element topic="Network.md">
+		<toc-element topic="SocketThread.md"/>
+		<toc-element topic="head.md"/>
+		<toc-element topic="Utils.md">
+			<toc-element topic="head15.md"/>
+		</toc-element> <!-- end of "Utils.md" -->
+		<toc-element topic="Sockets.md"/>
+		<toc-element topic="Message.md"/>
+	</toc-element> <!-- end of "Network.md" -->
+    <!-- SCRIPT END -->
+</instance-profile>
