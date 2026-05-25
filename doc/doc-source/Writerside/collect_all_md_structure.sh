@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Описание
+# скрипт подготовит внутреннюю структуру статей для SimpleAPI_docs.tree
+# TODO: скрипт выставит номера в заголовках статей для содержания
+
 # для дебага
 #cp -f "SimpleAPI_docs.tree" "test.tree"
 #out_file="test.tree"
