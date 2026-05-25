@@ -17,7 +17,7 @@ sudo apt install docker.io
 docker create --name writerside_temp jetbrains/writerside-builder:latest
 ```
 
-## Компиляция документации чекрез docker-образ
+## Компиляция документации через docker-образ
 TODO:
 
 ## Извлечение инструмента из docker-образа
