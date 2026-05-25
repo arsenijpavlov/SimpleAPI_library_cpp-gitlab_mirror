@@ -19,9 +19,13 @@ sed -i "/${del_template}/d" "${out_file}"
 temp_file="NEW_CONTENT.txt"
 > "${temp_file}" # обнуляем содержимое временного файла
 
+# переключить настройки Writerside на другую директорию
+target_topics_dir=topics_EN
+sed -i "s/\(^[[:space:]]*<topics dir=\).*\(\/>\)/\1\"${target_topics_dir}\"\2/" writerside.cfg
 # собрать список всех вложенностей: все папки и .md документы
 main_path=${PWD}
-cd topics
+cd ${target_topics_dir}
+
 IFS=$'\n'
 list=$(find . -name "*.md")
 new_list=() #временная переменная для преобразования значений
