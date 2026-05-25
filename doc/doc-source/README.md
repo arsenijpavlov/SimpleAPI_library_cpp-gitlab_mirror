@@ -8,7 +8,7 @@ TODO:
 ## Компиляция документации
 TODO:
 
-# Компиляция через Docker-образ
+# Компиляция через docker-образ
 
 ## Установка образа
 
@@ -17,12 +17,15 @@ sudo apt install docker.io
 docker create --name writerside_temp jetbrains/writerside-builder:latest
 ```
 
+## Компиляция документации чекрез docker-образ
+TODO:
+
 ## Извлечение инструмента из docker-образа
 
 ```bash
 sudo docker cp writerside_temp:/opt/builder ./writerside
 ```
 
-## Компиляция документации
+## Компиляция документации CLI-инструментом из docker-образа
 TODO:
 
