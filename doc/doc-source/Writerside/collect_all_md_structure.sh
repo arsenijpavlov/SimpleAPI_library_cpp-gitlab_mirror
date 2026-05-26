@@ -17,10 +17,11 @@ if [[ ! ${language} ]]; then
 fi
 
 out_file="SimpleAPI_docs.tree"
-del_template="toc-element"
 
 # удалить предыдущую структуру проекта
-sed -i "/${del_template}/d" "${out_file}"
+START_TEMPLATE="SCRIPT BEGIN"
+END_TEMPLATE="SCRIPT END"
+sed -i "/${START_TEMPLATE}/,/${END_TEMPLATE}/ {/${START_TEMPLATE}/b; /${END_TEMPLATE}/b; d; }" "${out_file}"
 
 # создать новую структуру проекта
 temp_file="NEW_CONTENT.txt"
@@ -34,7 +35,7 @@ main_path=${PWD}
 cd ${target_topics_dir}
 
 IFS=$'\n'
-list=$(find . -name "*.md")
+list=$(find . -name "*.md" | LC_ALL=C sort) #сортировка нужна для корректности конечного вывода
 new_list=() #временная переменная для преобразования значений
 for el in ${list[@]}
 do
@@ -105,6 +106,7 @@ function recursive_collection { # $1-level $2-list of elements
 				do
 					new_list+=(${inner#*/}) # сохраняем с изменённым значением
 				done
+				#new_list=$("${new_list[@]}" | sort)
 				
 				#debug_print_list ${new_list[@]}
 				
@@ -138,4 +140,12 @@ recursive_collection "0" "${list[@]}" > "${main_path}/${temp_file}"
 cd "${main_path}"
 sed -i "s/^/\t/g" "${temp_file}" # добавить табуляцию в начале каждой строки файла
 sed -i "/<!-- SCRIPT BEGIN -->/r ${temp_file}" "${out_file}"
+
+#выставить стартовую страницу как первую из списка структуры
+read -r start_page < ${temp_file}
+# достать значение по шаблону *.md, где * относится к имени файла
+start_page=${start_page##*=\"}
+start_page=${start_page%%\"/*}
+sed -i "s/\([[:space:]]*start-page=\"\).*\(\">\)/\1${start_page}\2/" ${out_file}
+
 rm "${temp_file}" # удалить временный файл
