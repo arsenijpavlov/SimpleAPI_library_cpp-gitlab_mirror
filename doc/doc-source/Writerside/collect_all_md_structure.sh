@@ -124,7 +124,7 @@ function recursive_collection { # $1-level $2-list of elements
 					out_list= # обнулить, чтобы не влияло на следующую итерацию
 				else
 					# внутренних элементов нет
-					echo -e "${spaces_template}<toc-element topic=\"${current_file}\"/>"
+					echo -e "${spaces_template}<toc-element topic=\"${current_file}\"> </toc-element>"
 				fi
 			fi
 		done
@@ -145,7 +145,7 @@ sed -i "/<!-- SCRIPT BEGIN -->/r ${temp_file}" "${out_file}"
 read -r start_page < ${temp_file}
 # достать значение по шаблону *.md, где * относится к имени файла
 start_page=${start_page##*=\"}
-start_page=${start_page%%\"/*}
+start_page=${start_page%%\"*}
 sed -i "s/\([[:space:]]*start-page=\"\).*\(\">\)/\1${start_page}\2/" ${out_file}
 
 rm "${temp_file}" # удалить временный файл

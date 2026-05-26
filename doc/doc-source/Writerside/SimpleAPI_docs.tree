@@ -6,25 +6,30 @@
                  name="SimpleAPI docs"
                  start-page="001 Introduction.md">
 
-    <!-- SCRIPT BEGIN -->
-	<toc-element topic="001 Introduction.md"/>
-	<toc-element topic="002.1 Integration with CMake.md"/>
-	<toc-element topic="002.2 Integration with QMake.md"/>
+	<!-- SCRIPT BEGIN -->
+	<toc-element topic="001 Introduction.md"> </toc-element>
+	<toc-element topic="002.1 Integration with CMake.md"> </toc-element>
+	<toc-element topic="002.2 Integration with QMake.md"> </toc-element>
 	<toc-element topic="003 Config.md">
-		<toc-element topic="001 Format JSON.md"/>
-		<toc-element topic="002 Format INI.md"/>
-		<toc-element topic="003 Format XML.md"/>
-		<toc-element topic="004 Format YAML.md"/>
-		<toc-element topic="005 Commenting.md"/>
+		<toc-element topic="001 Format JSON.md"> </toc-element>
+		<toc-element topic="002 Format INI.md"> </toc-element>
+		<toc-element topic="003 Format XML.md"> </toc-element>
+		<toc-element topic="004 Format YAML.md"> </toc-element>
+		<toc-element topic="005 Commenting.md"> </toc-element>
+		<toc-element topic="006 Test.md">
+			<toc-element topic="003.1 Config test.md"> </toc-element>
+		</toc-element> <!-- end of "006 Test.md" -->
 	</toc-element> <!-- end of "003 Config.md" -->
 	<toc-element topic="004 Network.md">
-		<toc-element topic="001 Sockets.md"/>
-		<toc-element topic="002 SocketThread.md"/>
-		<toc-element topic="003 Message.md"/>
-		<toc-element topic="004 Network utils.md"/>
+		<toc-element topic="001 Sockets.md"> </toc-element>
+		<toc-element topic="002 SocketThread.md"> </toc-element>
+		<toc-element topic="003 Message.md"> </toc-element>
+		<toc-element topic="004 Network utils.md"> </toc-element>
 	</toc-element> <!-- end of "004 Network.md" -->
 	<toc-element topic="005 Side utils.md">
-		<toc-element topic="head.md"/>
+		<toc-element topic="head.md"> </toc-element>
 	</toc-element> <!-- end of "005 Side utils.md" -->
-    <!-- SCRIPT END -->
+	<toc-element topic="006 TEST.md"> </toc-element>
+	<toc-element topic="SimpleAPI.md"> </toc-element>
+	<!-- SCRIPT END -->
 </instance-profile>

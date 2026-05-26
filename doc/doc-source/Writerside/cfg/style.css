@@ -1,0 +1,5 @@
+/* включение курсива */
+em, .article__em {
+    font-style: italic !important;
+    font-weight: normal;
+}
