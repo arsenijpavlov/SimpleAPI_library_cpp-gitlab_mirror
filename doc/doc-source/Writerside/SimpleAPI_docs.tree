@@ -4,25 +4,29 @@
 
 <instance-profile id="SimpleAPI_docs"
                  name="SimpleAPI docs"
-                 start-page="Introduction.md">
+                 start-page="001 Introduction.md">
 
     <!-- SCRIPT BEGIN -->
-	<toc-element topic="Introduction.md"/>
-	<toc-element topic="Config.md">
-		<toc-element topic="YAML.md"/>
-		<toc-element topic="XML.md"/>
-		<toc-element topic="JSON.md"/>
-		<toc-element topic="header.md"/>
-		<toc-element topic="INI.md"/>
-	</toc-element> <!-- end of "Config.md" -->
-	<toc-element topic="Network.md">
-		<toc-element topic="SocketThread.md"/>
+	<toc-element topic="001 Introduction.md"/>
+	<toc-element topic="002 Integration.md">
+		<toc-element topic="001 Using with CMake.md"/>
+		<toc-element topic="002 Using with QMake.md"/>
+	</toc-element> <!-- end of "002 Integration.md" -->
+	<toc-element topic="003 Config.md">
+		<toc-element topic="001 Config introduction.md"/>
+		<toc-element topic="002 Format JSON.md"/>
+		<toc-element topic="003 Format INI.md"/>
+		<toc-element topic="004 Format XML.md"/>
+		<toc-element topic="005 Format YAML.md"/>
+	</toc-element> <!-- end of "003 Config.md" -->
+	<toc-element topic="004 Network.md">
+		<toc-element topic="001 Sockets.md"/>
+		<toc-element topic="002 SocketThread.md"/>
+		<toc-element topic="003 Message.md"/>
+		<toc-element topic="004 Network utils.md"/>
+	</toc-element> <!-- end of "004 Network.md" -->
+	<toc-element topic="005 Side utils.md">
 		<toc-element topic="head.md"/>
-		<toc-element topic="Utils.md">
-			<toc-element topic="head15.md"/>
-		</toc-element> <!-- end of "Utils.md" -->
-		<toc-element topic="Sockets.md"/>
-		<toc-element topic="Message.md"/>
-	</toc-element> <!-- end of "Network.md" -->
+	</toc-element> <!-- end of "005 Side utils.md" -->
     <!-- SCRIPT END -->
 </instance-profile>
