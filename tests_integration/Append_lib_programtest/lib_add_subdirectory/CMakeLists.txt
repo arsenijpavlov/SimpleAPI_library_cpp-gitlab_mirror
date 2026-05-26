@@ -17,12 +17,12 @@ else()
     set(SimpleAPI_lib_name SimpleAPId)
 endif()
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../../SimpleAPI ${CMAKE_CURRENT_BINARY_DIR}/${SimpleAPI_lib_name})
+add_subdirectory(${SIMPLE_API_MAIN_DIR}/SimpleAPI ${CMAKE_CURRENT_BINARY_DIR}/${SimpleAPI_lib_name})
 
 add_executable(${PROJECT_NAME})
 target_sources(${PROJECT_NAME} PUBLIC ${${PROJECT_NAME}_sources})
 
 
 target_link_libraries(${PROJECT_NAME} PUBLIC ${SimpleAPI_lib_name})
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../../SimpleAPI)
+target_include_directories(${PROJECT_NAME} PUBLIC ${SIMPLE_API_MAIN_DIR}/SimpleAPI)
 add_dependencies(${PROJECT_NAME} ${SimpleAPI_lib_name})
