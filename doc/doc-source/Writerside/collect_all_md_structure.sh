@@ -4,10 +4,17 @@
 # скрипт подготовит внутреннюю структуру статей для SimpleAPI_docs.tree
 # - структура будет построена на основе сортировки по алфавиту
 # - для создания вложенности нужно создать директорию с тем же именем, что и целевой .md
+# Дополнительным аргументом передаётся выбранный язык локализации. Без значения по умолчанию
 
 # для дебага
 #cp -f "SimpleAPI_docs.tree" "test.tree"
 #out_file="test.tree"
+
+language=${1^^} #два символа (RU/EN and etc.)
+if [[ ! ${language} ]]; then
+	echo "not found language argument"
+	exit
+fi
 
 out_file="SimpleAPI_docs.tree"
 del_template="toc-element"
@@ -20,7 +27,7 @@ temp_file="NEW_CONTENT.txt"
 > "${temp_file}" # обнуляем содержимое временного файла
 
 # переключить настройки Writerside на другую директорию
-target_topics_dir=topics_EN
+target_topics_dir="topics_${language}"
 sed -i "s/\(^[[:space:]]*<topics dir=\).*\(\/>\)/\1\"${target_topics_dir}\"\2/" writerside.cfg
 # собрать список всех вложенностей: все папки и .md документы
 main_path=${PWD}
