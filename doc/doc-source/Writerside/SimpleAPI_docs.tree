@@ -8,16 +8,14 @@
 
     <!-- SCRIPT BEGIN -->
 	<toc-element topic="001 Introduction.md"/>
-	<toc-element topic="002 Integration.md">
-		<toc-element topic="001 Using with CMake.md"/>
-		<toc-element topic="002 Using with QMake.md"/>
-	</toc-element> <!-- end of "002 Integration.md" -->
+	<toc-element topic="002.1 Integration with CMake.md"/>
+	<toc-element topic="002.2 Integration with QMake.md"/>
 	<toc-element topic="003 Config.md">
-		<toc-element topic="001 Config introduction.md"/>
-		<toc-element topic="002 Format JSON.md"/>
-		<toc-element topic="003 Format INI.md"/>
-		<toc-element topic="004 Format XML.md"/>
-		<toc-element topic="005 Format YAML.md"/>
+		<toc-element topic="001 Format JSON.md"/>
+		<toc-element topic="002 Format INI.md"/>
+		<toc-element topic="003 Format XML.md"/>
+		<toc-element topic="004 Format YAML.md"/>
+		<toc-element topic="005 Commenting.md"/>
 	</toc-element> <!-- end of "003 Config.md" -->
 	<toc-element topic="004 Network.md">
 		<toc-element topic="001 Sockets.md"/>
