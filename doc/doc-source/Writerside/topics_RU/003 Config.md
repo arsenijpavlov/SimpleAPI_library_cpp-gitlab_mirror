@@ -33,7 +33,7 @@ Config& setCommentDesign(const CommentDesign &design) noexcept;
 Config& clearCommentDesign() noexcept;
 ```
 
-## Методы работы с комментариями внутри контейнеров (имя функции пишется через знак подчёркивания _)
+## Методы работы с комментариями элементов внутри контейнеров (имя функции пишется через знак подчёркивания _)
 ```c++
 Config& set_comment(const size_t& index, const Comment &content);
 Config& set_comment(const std::string& key, const Comment &content);
