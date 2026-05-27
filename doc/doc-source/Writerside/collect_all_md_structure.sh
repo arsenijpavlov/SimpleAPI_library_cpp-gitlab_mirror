@@ -59,7 +59,14 @@ if [[ ! ${language} ]]; then
 	exit
 fi
 
-out_file="SimpleAPI_docs.tree"
+project_name="SimpleAPI docs"
+out_file="${project_name/ /_}.tree"
+# найти первый подходящий по шаблону файл с расширением .tree и обновить его имя
+for file in $(ls *.tree)
+do
+	mv -v "${file}" "${out_file}"
+	break
+done
 
 # удалить предыдущую структуру проекта
 START_TEMPLATE="SCRIPT BEGIN"
@@ -184,7 +191,13 @@ cd "${main_path}"
 sed -i "s/^/\t/g" "${temp_file}" # добавить табуляцию в начале каждой строки файла
 sed -i "/<!-- SCRIPT BEGIN -->/r ${temp_file}" "${out_file}"
 
-#выставить стартовую страницу как первую из списка структуры
+result_filename="${project_name/ /_}_${language}"
+# указать выбранный язык перевода в названии итогового файла
+sed -i "s/\([[:space:]]*name=\"\).*\(\"\)/\1${result_filename//_/ }\2/" ${out_file}
+sed -i "s/\(<instance-profile id=\"\).*\(\"\)/\1${result_filename}\2/" ${out_file}
+sed -i "s/\([[:space:]]*<instance src=\"\).*\(\"\/>\)/\1${result_filename}.tree\2/" "writerside.cfg"
+
+# выставить стартовую страницу как первую из списка структуры
 read -r start_page < ${temp_file}
 # достать значение по шаблону *.md, где * относится к имени файла
 start_page=${start_page##*=\"}
@@ -192,3 +205,6 @@ start_page=${start_page%%\"*}
 sed -i "s/\([[:space:]]*start-page=\"\).*\(\">\)/\1${start_page}\2/" ${out_file}
 
 rm "${temp_file}" # удалить временный файл
+
+# соотнести выбор языка переваод с итоговым именем файла
+mv -v "${out_file}" "${result_filename}.tree"

@@ -2,8 +2,8 @@
 <!DOCTYPE instance-profile
         SYSTEM "https://resources.jetbrains.com/writerside/1.0/product-profile.dtd">
 
-<instance-profile id="SimpleAPI_docs"
-                 name="SimpleAPI docs"
+<instance-profile id="SimpleAPI_docs_RU"
+                 name="SimpleAPI docs RU"
                  start-page="001-Introduction.md">
 
 	<!-- SCRIPT BEGIN -->
