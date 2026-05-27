@@ -11,6 +11,7 @@
 #out_file="test.tree"
 
 function RenameSpacesToDash {
+	# пробелы и лишние точки в названиях .md документов ломают работу Writerside
 	local IFS=$'\n'
 	local list=$(find . -type d)
 	for el in ${list[@]}
@@ -20,14 +21,17 @@ function RenameSpacesToDash {
 		fi
 		
 		local new_path=${el// /-}
-#		echo "new path name: \"${new_path}\""
-		mkdir -p ${new_path}
+		local first_fragment="${new_path%%/*}"
+		new_path=${new_path#*/}
+		new_path="${first_fragment}/${new_path//./-}"
 		
 		if [[ ${el} == ${new_path} ]]; then
 			continue
 		fi
 	
-		mv ${el}/* ${new_path}
+		echo "new path name: \"${new_path}\""
+		mkdir -p ${new_path}
+		mv "${el}/"* ${new_path}
 		rm -r ${el}
 	done
 	
@@ -35,12 +39,16 @@ function RenameSpacesToDash {
 	for el in ${list[@]}
 	do
 		local new_path=${el// /-}
+		local first_fragment="${new_path%%/*}"
+		new_path=${new_path#*/}
+		new_path=${new_path%.md}
+		new_path="${first_fragment}/${new_path//./-}.md"
 		
 		if [[ ${el} == ${new_path} ]]; then
 			continue
 		fi
 		
-#		echo "new name: \"${new_path}\""
+		echo "new name: \"${new_path}\""
 		mv ${el} ${new_path}
 	done
 }
@@ -68,7 +76,7 @@ sed -i "s/\(^[[:space:]]*<topics dir=\).*\(\/>\)/\1\"${target_topics_dir}\"\2/" 
 # собрать список всех вложенностей: все папки и .md документы
 main_path=${PWD}
 cd ${target_topics_dir}
-$(RenameSpacesToDash)
+RenameSpacesToDash
 
 IFS=$'\n'
 list=$(find . -name "*.md" | LC_ALL=C sort) #сортировка нужна для корректности конечного вывода
@@ -154,9 +162,9 @@ function recursive_collection { # $1-level $2-list of elements
 				
 				if [[ ${out_list} ]]; then
 					# есть внутренние элементы
-					echo -e "${spaces_template}<toc-element topic=\"${current_file}\"/>"
+					echo -e "${spaces_template}<toc-element topic=\"${current_file}\">"
 					echo -e "${out_list}"
-#					echo -e "${spaces_template}</toc-element> <!-- end of \"${current_file}\" -->"
+					echo -e "${spaces_template}</toc-element> <!-- end of \"${current_file}\" -->"
 					out_list= # обнулить, чтобы не влияло на следующую итерацию
 				else
 					# внутренних элементов нет

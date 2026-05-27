@@ -33,7 +33,8 @@ Config& setCommentDesign(const CommentDesign &design) noexcept;
 Config& clearCommentDesign() noexcept;
 ```
 
-## Методы работы с комментариями элементов внутри контейнеров (имя функции пишется через знак подчёркивания _)
+## Методы работы с комментариями элементов внутри контейнеров
+(имя функции пишется через знак подчёркивания _)
 ```c++
 Config& set_comment(const size_t& index, const Comment &content);
 Config& set_comment(const std::string& key, const Comment &content);
@@ -196,7 +197,8 @@ Config& clear() noexcept;
 Config& clearContainer();
 ```
 
-## Методы добавления значений в контейнер (выдаст exception если тип неподходящий)
+## Методы добавления значений в контейнер
+(выдаст exception если тип неподходящий)
 ```c++
 Config& insert_front(const Config& other);
 Config& insert_front(Config&& other);
@@ -290,7 +292,8 @@ Config& append(const Config& config);
 Config& append(Config&& config);
 ```
 
-## Методы удаления значений из контейнеров (выдаст exception если тип неподходящий)
+## Методы удаления значений из контейнеров
+(выдаст exception если тип неподходящий)
 ```c++
 Config& erase_front();
 Config& erase_at(const size_t& index);
@@ -402,7 +405,8 @@ Config& operator[](const std::initializer_list<OnlySizetOrString>& complex_key);
 Config operator[](const std::initializer_list<OnlySizetOrString>& complex_key) const;
 ```
 
-## Методы для работы через итераторы (только индексные массивы):
+## Методы для работы через итераторы
+(только индексные массивы):
 ```c++
 Range getRange();
 const Range getRange() const;
@@ -412,7 +416,8 @@ shared_VElement::iterator array_end();
 shared_VElement::const_iterator array_cend() const;
 ```
 
-## Методы для работы через итераторы (только массивы ключ-значение):
+## Методы для работы через итераторы
+(только массивы ключ-значение):
 ```c++
 MapRange getNamedRange();
 const MapRange getNamedRange() const;
