@@ -19,8 +19,21 @@
 
 ## Установка образа
 
+Установить Docker в систему:
 ```bash
 sudo apt install docker.io
+```
+
+(При необходимости) Изменить путь хранения образов Docker и их данных можно так:
+```bash
+sudo systemctl stop docker.socket
+sudo systemctl stop docker
+sudo echo -e "{\n\t"data-root": "<путь до конечной директории>"\n}" > "/etc/docker/daemon.json"
+sudo systemctl daemon-reload
+sudo systemctl start docker
+``` 
+
+```bash
 docker create --name writerside_temp jetbrains/writerside-builder:latest
 ```
 
