@@ -150,7 +150,6 @@ function recursive_collection { # $1-level $2-list of elements
 				do
 					new_list+=(${inner#*/}) # сохраняем с изменённым значением
 				done
-				#new_list=$("${new_list[@]}" | sort)
 				
 				#debug_print_list ${new_list[@]}
 				
