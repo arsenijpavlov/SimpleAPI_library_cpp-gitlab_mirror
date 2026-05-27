@@ -8,21 +8,22 @@
 
 	<!-- SCRIPT BEGIN -->
 	<toc-element topic="001-Introduction.md"/>
-	<toc-element topic="002-1-Integration-with-CMake.md"/>
-	<toc-element topic="002-2-Integration-with-QMake.md"/>
-	<toc-element topic="003-Config.md">
+	<toc-element topic="002-Dependecies.md"/>
+	<toc-element topic="003-1-Integration-with-CMake.md"/>
+	<toc-element topic="003-2-Integration-with-QMake.md"/>
+	<toc-element topic="004-Config.md">
 		<toc-element topic="001-Format-JSON.md"/>
 		<toc-element topic="002-Format-INI.md"/>
 		<toc-element topic="003-Format-XML.md"/>
 		<toc-element topic="004-Format-YAML.md"/>
 		<toc-element topic="005-Commenting.md"/>
-	</toc-element> <!-- end of "003-Config.md" -->
-	<toc-element topic="004-Network.md">
+	</toc-element> <!-- end of "004-Config.md" -->
+	<toc-element topic="005-Network.md">
 		<toc-element topic="001-Sockets.md"/>
 		<toc-element topic="002-SocketThread.md"/>
 		<toc-element topic="003-Message.md"/>
 		<toc-element topic="004-Network-utils.md"/>
-	</toc-element> <!-- end of "004-Network.md" -->
-	<toc-element topic="005-Side-utils.md"/>
+	</toc-element> <!-- end of "005-Network.md" -->
+	<toc-element topic="006-Side-utils.md"/>
 	<!-- SCRIPT END -->
 </instance-profile>
