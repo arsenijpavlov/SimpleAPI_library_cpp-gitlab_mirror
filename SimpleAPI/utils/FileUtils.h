@@ -1,0 +1,17 @@
+#ifndef FILE_UTILS_H
+#define FILE_UTILS_H
+
+#include <string>
+
+
+namespace simpleapi {
+namespace utils {
+
+//TODO: получение списка всех файлов в указанной директории с возможностью указать маску поиска
+//TODO: рекурсивный поиск всех путей до файлов по указанной маской начиная с указанной директории до глубины N (-1 - бесконечная глубина поиска)
+//TODO: выполнение функции-лямбды для каждого файла из списка (?)
+
+} // namespace utils
+} // namespace simpleapi
+
+#endif // FILE_UTILS_H

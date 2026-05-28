@@ -1,0 +1,3 @@
+lib
+*build*
+CMakeLists.txt.user

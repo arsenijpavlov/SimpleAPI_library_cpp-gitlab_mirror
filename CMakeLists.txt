@@ -1,42 +1,38 @@
 cmake_minimum_required(VERSION 3.5)
 
-if(NOT WIN32)
-  string(ASCII 27 Esc)
-  set(Reset     "${Esc}[m")
-  set(Bold      "${Esc}[1m")
-  set(Red       "${Esc}[31m")
-  set(Green     "${Esc}[32m")
-  set(Yellow    "${Esc}[33m")
-  set(Blue      "${Esc}[34m")
-  set(Magenta   "${Esc}[35m")
-  set(Cyan      "${Esc}[36m")
-  set(White     "${Esc}[37m")
+set(SIMPLE_API_MAIN_DIR ${CMAKE_CURRENT_LIST_DIR})
+set(SIMPLE_API_CMAKE_GENERATED_DIR ${CMAKE_CURRENT_LIST_DIR}/build-cmake-cache)
+
+include(${SIMPLE_API_MAIN_DIR}/utils.cmake)
+
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release")
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL Debug )
-    message("${Yellow}Debug mode enabled${Reset}")
+    message("${Yellow}DEBUG mode enabled${Reset}")
     add_compile_definitions(__DEBUG__)
 endif()
-project(project_SimpleAPI_main LANGUAGES CXX)
-message("${Bold}project: ${Green}project_SimpleAPI_main${Reset}")
 
-#set(CMAKE_CXX_STANDARD 17)
-#set(CMAKE_CXX_STANDARD_REQUIRED ON)
+message("CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
+project(SimpleAPI_project LANGUAGES CXX)
+print_project_name(${PROJECT_NAME})
 
-option(ENABLE_CLIENT "Client for testing enabled" on)
-option(ENABLE_SERVER "Server for testing enabled" off)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+option(ENABLE_TESTS_UNIT        "Google tests enabled"          on)
 
 #library
+#set(SIMPLE_API_STATIC_BUILD on) #API по идее должен мочь меняться на ходу, потому статическая сборка не нужна
 add_subdirectory(SimpleAPI)
 
-#test client
-if(ENABLE_CLIENT)
-    add_subdirectory(Client)
-endif()
-unset(ENABLE_CLIENT CACHE)
 
-#test server
-if(ENABLE_SERVER)
-    add_subdirectory(Server)
+#TESTS =================================================================
+if(ENABLE_TESTS_UNIT)
+    enable_testing()
+    #unit tests
+    add_subdirectory(tests_unit)
 endif()
-unset(ENABLE_SERVER CACHE)
+unset(ENABLE_TESTS_UNIT CACHE)
+#================================================================= TESTS

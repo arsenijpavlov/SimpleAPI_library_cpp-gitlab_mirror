@@ -1,8 +1,13 @@
-#ifndef SIMPLEAPI_H
-#define SIMPLEAPI_H
+#ifndef SIMPLE_API_H
+#define SIMPLE_API_H
 
-#include "Json.h"
+#include "utils/Utils.h"
+#include "utils/Logger.h"
 
-#include "utils.h"
+#include "config/Config.h"
 
-#endif // SIMPLEAPI_H
+#include "network/Socket.h"
+#include "network/SocketThread.h"
+
+
+#endif // SIMPLE_API_H

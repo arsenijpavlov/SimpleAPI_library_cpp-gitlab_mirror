@@ -1,0 +1,182 @@
+#include "SocketThread.h"
+#include <iostream>
+#include <unistd.h>
+
+
+namespace simpleapi {
+
+#define SOCKETS_THREAD_NAME "SERVERS_THREAD"
+
+void SocketThread::run() noexcept {
+    pthread_setname_np(pthread_self(), SOCKETS_THREAD_NAME);
+
+    while(this->isActive()) {
+
+        for(auto it = m_sockets.begin(); it != m_sockets.end(); it++) {
+            Socket* sock = it->second.get();
+
+            sock->tick(); //вся магия там
+        }
+
+        usleep(100);
+    }
+}
+
+void SocketThread::log(const logs::LEVEL level, const std::string log_message,
+                       const std::string color_log_message) noexcept {
+    LoggerSettings::LogCallback currentCallback = nullptr;
+    LoggerSettings::LogCallback currentColorCallback = nullptr;
+    std::string levelSubstring = "";
+    std::string timeString = "";
+    if(m_settings.isLogTimeEnabled())
+        timeString = logs::get_time_string() + " ";
+
+    if(level <= m_settings.getLogLevel()) {
+        switch(level) {
+        case logs::eWARNING:
+            currentCallback         = m_settings.getLogCallback();
+            currentColorCallback    = m_settings.getColorLogCallback();
+            levelSubstring          = ".w";
+            break;
+        case logs::eINFO:
+            currentCallback         = m_settings.getLogCallback();
+            currentColorCallback    = m_settings.getColorLogCallback();
+            levelSubstring          = ".i";
+            break;
+        case logs::eDEBUG:
+        case logs::eDEBUG2:
+        case logs::eDEBUG3:
+            currentCallback         = m_settings.getLogCallback();
+            currentColorCallback    = m_settings.getColorLogCallback();
+            levelSubstring          = ".d";
+            break;
+        case logs::eERROR:
+            currentCallback         = m_settings.getLogErrorCallback();
+            currentColorCallback    = m_settings.getColorLogErrorCallback();
+            levelSubstring          = ".e";
+            break;
+        default:
+            currentCallback         = m_settings.getLogErrorCallback();
+            currentColorCallback    = m_settings.getColorLogErrorCallback();
+            levelSubstring          = ".unknown";
+            break;
+        }
+    }
+
+    //обычный вывод
+    if(currentCallback)
+        currentCallback(
+            timeString
+            + logs::columned(std::string("[") + SOCKETS_THREAD_NAME
+                                 + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
+                                 + "]",
+                             m_settings.getNameColumnSize(),
+                             m_settings.isNameColumnRightAlignEnabled())
+            + " "
+            + log_message
+            + "\n");
+    //цветной вывод
+    if(currentColorCallback)
+        currentColorCallback(
+            timeString
+            + logs::columned(level, std::string("[") + SOCKETS_THREAD_NAME
+                                           + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
+                                           + "]",
+                             m_settings.getNameColumnSize(),
+                             m_settings.isNameColumnRightAlignEnabled())
+            + " "
+            + (color_log_message.empty() ? log_message : color_log_message)
+            + "\n");
+}
+
+bool SocketThread::addSocket(const SocketType type, const IpPort& local_ip_port,
+                             const SocketSettings settings) noexcept {
+    if(type == SocketType::eTCP) {
+        return false; //TODO (потом): TCP пока не готов
+    } else if(type == SocketType::eUDP) {
+        std::shared_ptr<Socket> sock(new UDPSocket(local_ip_port, settings));
+        return m_sockets.insert(std::make_pair(local_ip_port, sock)).second;
+    }
+
+    return false;
+}
+
+bool SocketThread::addSocket(const SocketType type, const uint16_t local_port,
+                             const std::string local_ip, const bool commonSettings) noexcept {
+    if(commonSettings)  return addSocket(type, local_port, local_ip, m_common_socket_settings);
+    else                return addSocket(type, local_port, local_ip, SocketSettings());
+}
+
+bool SocketThread::addSocket(const SocketType type, const IpPort &local_ip_port,
+                             bool commonSettings) noexcept {
+    if(commonSettings)  return addSocket(type, local_ip_port, m_common_socket_settings);
+    else                return addSocket(type, local_ip_port, SocketSettings());
+}
+
+void SocketThread::startSocket(const IpPort& local_ip_Port) noexcept {
+    auto it = m_sockets.find(local_ip_Port);
+    if(it != m_sockets.end())
+        it->second->startServer();
+}
+
+void SocketThread::stopSocket(const IpPort& local_ip_Port) noexcept {
+    auto it = m_sockets.find(local_ip_Port);
+    if(it != m_sockets.end())
+        it->second->stopServer();
+}
+
+void SocketThread::send(const IpPort &source, const IpPort &destination,
+                        const Packet &packet) noexcept {
+    auto it = m_sockets.find(source);
+    if(it != m_sockets.end())
+        it->second->sendMsg(destination, packet);
+}
+
+void SocketThread::send(const IpPort &source, const IpPort &destination,
+                        const Config &json) noexcept {
+    auto it = m_sockets.find(source);
+    if(it != m_sockets.end())
+        it->second->sendMsg(destination, json);
+}
+
+void SocketThread::startThread() noexcept {
+    if(!isActive()) {
+        log(logs::eDEBUG, "starting...");
+        m_active = true;
+
+        m_thread = std::thread(&SocketThread::run, this);
+        log(logs::eINFO, "started");
+    }
+}
+
+void SocketThread::stopThread() noexcept {
+    if(isActive()) {
+        log(logs::eDEBUG, "stop...");
+        m_active = false; //дали сигнал на остановку
+
+        if(m_thread.joinable()) {
+            m_thread.join(); //ждём завершения потока
+            log(logs::eINFO, "stopped");
+        }
+    }
+}
+
+std::shared_ptr<Socket> SocketThread::findSocket(const IpPort &local_ip_Port) noexcept {
+    return m_sockets.find(local_ip_Port)->second;
+}
+
+void SocketThread::setAllSocketsSettings(const SocketSettings settings) noexcept {
+    m_common_socket_settings = settings;
+
+    for(auto it = m_sockets.begin(); it != m_sockets.end(); it++)
+        it->second->setSettings(settings);
+}
+
+void SocketThread::setSocketsSettings(const IpPort& local_ip_port, const SocketSettings settings) noexcept {
+    auto it = m_sockets.find(local_ip_port);
+    if(it != m_sockets.end())
+        it->second->setSettings(settings);
+}
+
+} // namespace simpleapi
+

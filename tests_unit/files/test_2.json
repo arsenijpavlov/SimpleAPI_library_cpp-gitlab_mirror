@@ -1,0 +1,8 @@
+{
+	//"test" : "testString",
+	//"test1" : 115,
+	"test2" : "testS/*\"tring",
+	"test3" : "testS/*\?tring",
+	"test4" : "testS/*\wtring",
+	"test5" : "testS/*\\*tring"
+}
