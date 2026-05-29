@@ -1542,8 +1542,6 @@ std::string Config::toString(const ConfigFormat format, const CommentDesign &des
     CommentDesign n_design = design;
     if(design == CommentDesign{}) { // если переменная не заполнена, используется собственная
         n_design = m_value->getCommentDesign();
-    } else {
-        n_design = design;
     }
 
     switch(getType()){
@@ -1625,9 +1623,8 @@ bool Config::writeFile(const std::string &file_path,  const ConfigFormat format,
     CommentDesign n_design = design;
     if(design == CommentDesign{}) { // если переменная не заполнена, используется собственная
         n_design = m_value->getCommentDesign();
-    } else {
-        n_design = design;
     }
+
     return WriteFile(*this, file_path, format, n_design, custom_tabulation_level);
 }
 
@@ -1638,6 +1635,7 @@ bool Config::writeFileJson(const std::string &file_path, const CommentDesign &de
     if(design == CommentDesign{}) { // если переменная не заполнена, используется соб
         n_design = m_value->getCommentDesign();
     }
+
     return WriteFileJson(*this, file_path, n_design, custom_tabulation_level);
 }
 
@@ -1648,6 +1646,7 @@ bool Config::writeFileIni(const std::string &file_path, const CommentDesign &des
     if(design == CommentDesign{}) { // если переменная не заполнена, используется собственная
         n_design = m_value->getCommentDesign();
     }
+
     return WriteFileIni(*this, file_path, n_design, custom_tabulation_level);
 }
 

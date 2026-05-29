@@ -505,7 +505,7 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
             if(i + 1 < cfg.size())
                 ret += ", ";
         }
-        ret += "]\n";
+        ret += "]";
     };
     auto AppendCollection = [&](const VString& prefixes, Config& cfg) -> void {
         std::vector<std::unique_ptr<KeysBase>> kbss = CollectKeys(cfg, prefixes);
@@ -514,7 +514,7 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
             KeysValues* ptr_cfg       = dynamic_cast<KeysValues*>(kbs.get());
             if(ptr_comment) {
                 //групповой комментарий для INI так и или иначе будет напечатан с новой строки, т.к. потеряется привязанность к группе
-                ret += ToComment(ptr_comment->m_comment_str, cfg.getCommentDesign()) + "\n";
+                ret += ToComment(ptr_comment->m_comment_str, design) + "\n";
             } else if(ptr_cfg) {
                 if(!ptr_cfg->m_ptr_remote_cfg->isContainer())
                     ret += GetPrefixComment(*ptr_cfg->m_ptr_remote_cfg);
@@ -529,7 +529,6 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
 
                 if(!ptr_cfg->m_ptr_remote_cfg->isContainer()) {
                     temp = GetSuffixComment(*ptr_cfg->m_ptr_remote_cfg);
-                    RemoveIllegalSpaces(temp);
                     ret += std::move(temp);
                     ret += "\n";
                 }
@@ -566,13 +565,12 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
                         AppendArrayPrimitives(cfg_inner.first, *cfg_inner.second);
 
                         temp = GetSuffixComment(*cfg_inner.second);
-                        RemoveIllegalSpaces(temp); //необходимо удалить пробелы в начале, т.к. контейнер в INI-формате не имеет рамок
                         ret += std::move(temp);
-                        if(!temp.empty())
-                            ret += "\n";
+                        ret += "\n";
                     } else {
                         //комментарии элемента cfg_inner будут обработаны внутри рекурсивной функции
 
+                        ret += " ";
                         //нужно собрать все элементы массива и упаковать в общее имя с переходом между уровнями
                         AppendCollection({"", cfg_inner.first}, *cfg_inner.second);
                     }
@@ -586,8 +584,7 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
 
                     temp = GetSuffixComment(*cfg_inner.second);
                     ret += std::move(temp);
-                    if(!temp.empty())
-                        ret += "\n";
+                    ret += "\n";
                 } else {
                     ret += GetPrefixComment(*cfg_inner.second);
 
@@ -596,20 +593,16 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
                     ret += cfg_inner.second->toString();
 
                     temp = GetSuffixComment(*cfg_inner.second);
-                    RemoveIllegalSpaces(temp); //необходимо удалить пробелы в начале, т.к. контейнер в INI-формате не имеет рамок
                     ret += std::move(temp);
-                    if(!temp.empty())
-                        ret += "\n";
+                    ret += "\n";
                 }
             } // for()
 
             if(!it_was_array)
             {
                 temp = GetSuffixComment(*cfg);
-                RemoveIllegalSpaces(temp);
                 ret += std::move(temp);
-                if(!temp.empty())
-                    ret += "\n";
+                ret += "\n";
             }
 
             break;
@@ -620,10 +613,8 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
             ret += cfg->toString() + "\n";
 
             temp = GetSuffixComment(*cfg);
-            RemoveIllegalSpaces(temp);
             ret += std::move(temp);
-            if(!temp.empty())
-                ret += "\n";
+            ret += "\n";
             break;
         }
         }

@@ -368,3 +368,56 @@ TEST(INI, custom_test_for_writer) {
         ;
     EXPECT_EQ(example_string, result_string);
 }
+
+TEST(INI, correct_comments_writer) {
+    using namespace simpleapi;
+    Config example_config(ValueType::eJson);
+//    example_config["test1"]     = "test string";
+//    example_config["test2"]     = 157;
+    example_config["test_arr1"] = Config(ValueType::eArray, "test string for array", 1123);
+    example_config["test_arr2"] = Config(ValueType::eArray);
+    example_config["test_arr2"].push_back(Config(ValueType::eJson, "innerJson_el", "some value"));
+//    example_config["test_arr2"].push_back("simple string");
+//    example_config["test_arr2"].push_back(1412.0f);
+    CommentDesign cd;
+    cd.with_comments = true;
+    cd.oneline_comment_variants.push_back({';', 0});
+    example_config["test_arr1"].setSuffixComment("test suffix comment");
+    example_config["test_arr2"].setPrefixComment("test prefix comment");
+
+    std::string result_string = example_config.toString(simpleapi::ConfigFormat::eINI, cd);
+
+    std::string example_string =
+//        "test1 = \"test string\"\n"
+//        "test2 = 157\n"
+        "test_arr1 = [\"test string for array\", 1123] ; test suffix comment\n"
+        "; test prefix comment\n"
+        "test_arr2/innerJson_el = \"some value\"\n"
+//        "test_arr2 = \"simple string\"\n"
+//        "test_arr2 = 1412\n"
+        ;
+
+    EXPECT_EQ(example_string, result_string);
+}
+
+TEST(INI, correct_comments_writer2) {
+    using namespace simpleapi;
+    Config example_config(ValueType::eJson);
+    example_config["test1"]     = "test string";
+    example_config["test2"]     = 157;
+    CommentDesign cd;
+    cd.with_comments = true;
+    cd.oneline_comment_variants.push_back({';', 0});
+    example_config["test1"].setSuffixComment("test suffix comment");
+    example_config["test2"].setPrefixComment("test prefix comment");
+
+    std::string result_string = example_config.toString(simpleapi::ConfigFormat::eINI, cd);
+
+    std::string example_string =
+        "test1 = \"test string\" ; test suffix comment\n"
+        "; test prefix comment\n"
+        "test2 = 157\n"
+        ;
+
+    EXPECT_EQ(example_string, result_string);
+}

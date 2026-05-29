@@ -889,7 +889,7 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
             if(i + 1 < cfg.size())
                 ret += ", ";
         }
-        ret += "]\n";
+        ret += "]";
     };
     auto AppendCollection = [&](const std::string& prefix, Config& cfg) -> void {
         std::vector<std::unique_ptr<KeysBase>> kbss = CollectKeys(cfg, prefix);
@@ -898,7 +898,7 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
             KeysValues* ptr_cfg       = dynamic_cast<KeysValues*>(kbs.get());
             if(ptr_comment) {
                 //групповой комментарий для INI так и или иначе будет напечатан с новой строки, т.к. потеряется привязанность к группе
-                ret += ToComment(ptr_comment->m_comment_str, cfg.getCommentDesign()) + "\n";
+                ret += ToComment(ptr_comment->m_comment_str, design) + "\n";
             } else if(ptr_cfg) {
                 ret += GetPrefixComment(*ptr_cfg->m_ptr_remote_cfg);
                 if(!ptr_cfg->m_key.empty())
@@ -938,10 +938,8 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
                         AppendArrayPrimitives(cfg_inner.first, *cfg_inner.second);
 
                         temp = GetSuffixComment(*cfg_inner.second);
-                        RemoveIllegalSpaces(temp); //необходимо удалить пробелы в начале, т.к. контейнер в INI-формате не имеет рамок
                         ret += std::move(temp);
-                        if(!temp.empty())
-                            ret += "\n";
+                        ret += "\n";
                     } else {
                         //комментарии элемента cfg_inner будут обработаны в рекурсивной функции
                         //нужно собрать все элементы массива и упаковать в общее имя с переходом между уровнями
@@ -974,10 +972,8 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
                 AppendArrayPrimitives(cfg.first, *cfg.second);
 
                 temp = GetSuffixComment(*cfg.second);
-                RemoveIllegalSpaces(temp); //необходимо удалить пробелы в начале, т.к. контейнер в INI-формате не имеет рамок
                 ret += std::move(temp);
-                if(!temp.empty())
-                    ret += "\n";
+                ret += "\n";
             } else {
                 //комментарии элемента cfg будут обработаны в рекурсивной функции
                 //нужно собрать все элементы массива и упаковать в общее имя с переходом между уровнями
