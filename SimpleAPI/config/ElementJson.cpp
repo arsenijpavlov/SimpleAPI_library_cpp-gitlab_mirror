@@ -880,10 +880,10 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
 
         ret += "[";
         for(size_t i = 0; i < cfg.size(); i++) {
-            if(cfg.isString())
+            if(cfg[i].isString())
                 ret += "\"";
             ret += cfg[i].toString();
-            if(cfg.isString())
+            if(cfg[i].isString())
                 ret += "\"";
 
             if(i + 1 < cfg.size())
@@ -987,31 +987,18 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
             break;
         }
         default: {
-            if(cfg.second->isArray()) {
-                //если внутри только примитивы без комментариев - вывести их в одну строку (строки длиной <=50)
-                if(IsArrayWithPrimitives(*cfg.second.get())) {
-                    ret += GetPrefixComment(*cfg.second);
+            ret += GetPrefixComment(*cfg.second);
+            if(!cfg.first.empty())
+                ret += cfg.first + " = ";
 
-                    AppendArrayPrimitives(cfg.first, *cfg.second);
-
-                    temp = GetSuffixComment(*cfg.second);
-                    RemoveIllegalSpaces(temp); //необходимо удалить пробелы в начале, т.к. контейнер в INI-формате не имеет рамок
-                    ret += std::move(temp);
-                    if(!temp.empty())
-                        ret += "\n";
-                } else {
-                    //комментарии элемента cfg будут обработаны в рекурсивной функции
-                    //нужно собрать все элементы массива и упаковать в общее имя с переходом между уровнями
-                    AppendCollection(cfg.first, *cfg.second);
-                }
-            } else {
-                ret += GetPrefixComment(*cfg.second);
-                if(!cfg.first.empty())
-                    ret += cfg.first + " = ";
+            if(cfg.second->isString()) {
                 AppendMultinlineString(cfg.second->toString());
-                ret += GetSuffixComment(*cfg.second);
-                ret += "\n";
+            } else {
+                ret += cfg.second->toString();
             }
+
+            ret += GetSuffixComment(*cfg.second);
+            ret += "\n";
             break;
         }
         }
