@@ -496,10 +496,10 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
 
         ret += "[";
         for(size_t i = 0; i < cfg.size(); i++) {
-            if(cfg.isString())
+            if(cfg[i].isString())
                 ret += "\"";
             ret += cfg[i].toString();
-            if(cfg.isString())
+            if(cfg[i].isString())
                 ret += "\"";
 
             if(i + 1 < cfg.size())

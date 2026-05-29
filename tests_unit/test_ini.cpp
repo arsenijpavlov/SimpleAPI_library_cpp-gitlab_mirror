@@ -347,3 +347,24 @@ TEST(INI, parse_with_json_value) {
     Config cfg_gcom = cfg_hw_array["gcom"];
     EXPECT_TRUE(cfg_gcom.isJson());
 }
+
+TEST(INI, custom_test_for_writer) {
+    using namespace simpleapi;
+    Config example_config(ValueType::eJson);
+    example_config["test1"]    = "test string";
+    example_config["test2"]    = 157;
+    example_config["test_arr"] = Config(ValueType::eArray, "test string for array", 1123);
+    CommentDesign cd;
+//    cd.with_comments = true;
+//    cd.oneline_comment_variants.push_back({';', 0});
+//    example_config["test"].setPrefixComment("пример использования SimpleAPI для записи массива в формате INI");
+
+    std::string result_string = example_config.toString(simpleapi::ConfigFormat::eINI, cd);
+
+    std::string example_string =
+        "test1 = \"test string\"\n"
+        "test2 = 157\n"
+        "test_arr = [\"test string for array\", 1123]\n"
+        ;
+    EXPECT_EQ(example_string, result_string);
+}
