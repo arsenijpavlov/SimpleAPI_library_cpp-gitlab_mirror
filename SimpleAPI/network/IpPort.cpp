@@ -36,13 +36,13 @@ bool IpPort::operator>(const IpPort &other) const noexcept {
     else                    return false;
 }
 
-std::string IpPort::to_string(std::string info) const noexcept {
+std::string IpPort::toString(std::string info) const noexcept {
     return std::string("[")
            + (info.empty() ? "" : info + "_")
            + ip + ":" + std::to_string(port) + "]";
 }
 
-bool IpPort::from_string(std::string ip_port_string) noexcept {
+bool IpPort::setFromString(std::string ip_port_string) noexcept {
     std::string ip_string = ip_port_string.substr(0, ip_port_string.find(':'));
 //    std::cout << "ip_string: \"" << ip_string << "\"" << std::endl;
     std::string port_string = ip_port_string.substr(ip_port_string.find(':') + 1,

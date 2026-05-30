@@ -26,7 +26,7 @@ private:
     RecvJsonMessageCallback     m_recv_json_callback;
     RecvPacketMessageCallback   m_recv_packet_callback;
     ConnectionCallback          m_new_connection_callback;
-    ConnectionCallback          m_connection_reset_callback;
+    ConnectionCallback          m_connection_reset_callback; //обрыв соединения
     bool                        m_chiphering_enabled;
 
 public:
