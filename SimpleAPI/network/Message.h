@@ -97,6 +97,8 @@ class PacketMessage {
 public:
     IpPort          m_ip_port;
     Packet          m_packet;
+
+//TODO: следует отделить методы и поля для пользователя библиотеки от автоматики
     EECounter       m_sn;
     PacketHeader    m_header;
 
@@ -112,6 +114,7 @@ public:
     std::string toString() noexcept;
 };
 
+//TODO: ошибки конвертации не должны вызывать callback для RecvJson
 class JsonMessage {
 public:
     IpPort      m_ip_port;
