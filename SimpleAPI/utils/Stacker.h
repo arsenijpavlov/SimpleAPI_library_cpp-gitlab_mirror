@@ -1,5 +1,4 @@
-#ifndef STACKER_H
-#define STACKER_H
+#pragma once
 
 #include <cstddef>
 #include <vector>
@@ -36,5 +35,3 @@ public:
 
 } // namespace tools
 } // namespace simpleapi
-
-#endif // STACKER_H

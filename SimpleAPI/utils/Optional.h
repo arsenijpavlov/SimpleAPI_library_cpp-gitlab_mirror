@@ -1,5 +1,4 @@
-#ifndef OPTIONAL_H
-#define OPTIONAL_H
+#pragma once
 
 #include <algorithm>
 
@@ -90,5 +89,3 @@ public:
 };
 
 } // namespace simpleapi
-
-#endif // OPTIONAL_H

@@ -1,5 +1,4 @@
-#ifndef LOGGER_SETTINGS_H
-#define LOGGER_SETTINGS_H
+#pragma once
 
 #include "Logger.h"
 #include <functional>
@@ -62,5 +61,3 @@ public:
 };
 
 } // namespace simpleapi
-
-#endif // LOGGER_SETTINGS_H

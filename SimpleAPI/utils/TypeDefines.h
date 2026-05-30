@@ -1,5 +1,4 @@
-#ifndef TYPE_DEFINES_H
-#define TYPE_DEFINES_H
+#pragma once
 
 #include <type_traits>
 
@@ -49,5 +48,3 @@ template<bool... Values>
 struct all_true : std::is_same<bool_pack<Values..., true>, bool_pack<true, Values...>> {};
 
 } // namespace simpleapi
-
-#endif // TYPE_DEFINES_H

@@ -1,5 +1,4 @@
-#ifndef MESSAGE_H
-#define MESSAGE_H
+#pragma once
 
 #include "../utils/EECounter.h"
 #include "../config/Config.h"
@@ -127,5 +126,3 @@ public:
 };
 
 } // namespace simpleapi
-
-#endif // MESSAGE_H

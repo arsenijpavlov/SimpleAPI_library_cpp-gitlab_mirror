@@ -1,5 +1,4 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#pragma once
 
 #include "Comment.h"
 #include "ConfigCommon.h"
@@ -903,8 +902,6 @@ public:
 };
 
 } // namespace simpleapi
-
-#endif //CONFIG_H
 
 //TODO: перейти на pragma once
 //TODO: добавить методы для сортировки контейнеров Config

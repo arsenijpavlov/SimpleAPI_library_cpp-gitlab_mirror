@@ -1,5 +1,4 @@
-#ifndef ELEMENT_BOOL_H
-#define ELEMENT_BOOL_H
+#pragma once
 
 #include "interface/IElement.h"
 
@@ -62,5 +61,3 @@ bool IsElementBool(const Config& cfg)                   noexcept;
 
 } // namespace tools
 } // namespace simpleapi
-
-#endif // ELEMENT_BOOL_H

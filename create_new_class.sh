@@ -19,15 +19,14 @@ if [[ -z $2 ]]; then
 fi
 echo "[$2] class file"
 
-echo "#ifndef ${2^^}_H" > "$path/$2.h"
-echo "#define ${2^^}_H" >> "$path/$2.h"
+# схема с #ifndef HEADER_H создаёт много проблем, когда имена файлов пересекаются с существующими в другом проекте, заменено на #pragma once
+echo "#pragma once" > "$path/$2.h"
 echo "" >> "$path/$2.h"
 echo "" >> "$path/$2.h"
 echo "class $2 {" >> "$path/$2.h"
 echo "" >> "$path/$2.h"
 echo "};" >> "$path/$2.h"
 echo "" >> "$path/$2.h"
-echo "#endif // ${2^^}_H" >> "$path/$2.h"
 
 echo "#include \"$2.h\"" > "$path/$2.cpp"
 echo "" >> "$path/$2.cpp"

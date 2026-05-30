@@ -1,5 +1,4 @@
-#ifndef ELEMENT_NULL_H
-#define ELEMENT_NULL_H
+#pragma once
 
 #include "interface/IElement.h"
 
@@ -62,5 +61,3 @@ bool IsElementNull(const Config& cfg)                   noexcept;
 
 } // namespace tools
 } // namespace simpleapi
-
-#endif // ELEMENT_NULL_H

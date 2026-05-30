@@ -1,5 +1,4 @@
-#ifndef UTILS_H
-#define UTILS_H
+#pragma once
 
 #include <string>
 #include <sstream>
@@ -71,5 +70,3 @@ bool        IsNormalizeEqual(const std::string& str_1, const std::string& str_2)
 
 } // namespace utils
 } // namespace simpleapi
-
-#endif // UTILS_H

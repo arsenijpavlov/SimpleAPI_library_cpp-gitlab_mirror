@@ -1,5 +1,4 @@
-#ifndef IP_PORT_H
-#define IP_PORT_H
+#pragma once
 
 #include <string>
 
@@ -25,5 +24,3 @@ public:
 };
 
 } // namespace simpleapi
-
-#endif // IP_PORT_H

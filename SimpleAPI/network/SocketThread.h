@@ -1,5 +1,4 @@
-#ifndef SOCKET_THREAD_H
-#define SOCKET_THREAD_H
+#pragma once
 
 #include <set>
 #include <thread>
@@ -71,5 +70,3 @@ public:
 };
 
 } // namespace simpleapi
-
-#endif // SOCKET_THREAD_H

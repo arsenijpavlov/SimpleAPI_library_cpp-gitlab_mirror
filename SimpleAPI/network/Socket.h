@@ -1,5 +1,4 @@
-#ifndef SOCKET_H
-#define SOCKET_H
+#pragma once
 
 #include "../utils/EECounter.h"
 #include "../config/Config.h"
@@ -235,5 +234,3 @@ public:
 //};
 
 } // namespace simpleapi
-
-#endif // SOCKET_H

@@ -1,5 +1,4 @@
-#ifndef ONLYSIZETORSTRING_H
-#define ONLYSIZETORSTRING_H
+#pragma once
 
 #include <stdexcept>
 #include <string>
@@ -49,5 +48,3 @@ public:
 };
 
 } // namespace simpleapi
-
-#endif // ONLYSIZETORSTRING_H

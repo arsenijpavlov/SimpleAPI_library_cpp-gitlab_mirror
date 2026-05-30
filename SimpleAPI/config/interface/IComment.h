@@ -1,5 +1,4 @@
-#ifndef I_COMMENT_H
-#define I_COMMENT_H
+#pragma once
 
 #include "../Comment.h"
 
@@ -46,5 +45,3 @@ public:
 
 } // namespace tools
 } // namespace simpleapi
-
-#endif // I_COMMENT_H

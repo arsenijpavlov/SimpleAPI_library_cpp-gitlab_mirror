@@ -1,6 +1,4 @@
-#ifndef SOCKET_SETTINGS_H
-#define SOCKET_SETTINGS_H
-
+#pragma once
 
 #include "../utils/LoggerSettings.h"
 #include "Message.h"
@@ -73,5 +71,3 @@ public:
 };
 
 } // namespace simpleapi
-
-#endif // SOCKET_SETTINGS_H
