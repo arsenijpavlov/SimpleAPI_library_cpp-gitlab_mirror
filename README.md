@@ -1,5 +1,6 @@
 # SimpleAPI library
 
+## RU README
 **SimpleAPI** - это библиотека для разработчиков C++ под Linux. Для совместимости с большинством старых проектов используется стандарт C++11.
 
 Проект предоставляет инструменты для работы с JSON, INI, _XML(TODO)_ и _YAML(TODO)_ с добавлением возможности указания пользовательских комментариев внутри файлов конфигурации. А также некоторые инструменты для быстрого развёртывания UDP сокетных соединений с возможностью фрагментации сообщений и _шифрования(TODO)_.
@@ -14,3 +15,7 @@
 - [сервер UDP](tests_integration/Network/Network_server_programtest/main.cpp)
 - [клиент UDP](tests_integration/Network/Network_client_programtest/main.cpp)
 
+--------
+
+## EN README
+_TODO_

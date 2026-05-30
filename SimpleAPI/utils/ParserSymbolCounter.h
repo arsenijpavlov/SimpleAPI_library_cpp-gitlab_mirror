@@ -1,5 +1,4 @@
-#ifndef PARSER_SYMBOL_COUNTER_H
-#define PARSER_SYMBOL_COUNTER_H
+#pragma once
 
 #include <cstddef>
 
@@ -37,5 +36,3 @@ public:
 };
 
 } // namespace simpleapi
-
-#endif // PARSER_SYMBOL_COUNTER_H

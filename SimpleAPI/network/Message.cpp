@@ -45,7 +45,7 @@ void PacketMessage::clear() noexcept {
 std::string PacketMessage::toString() noexcept {
     std::string out;
 
-    out = m_ip_port.to_string() + " ";
+    out = m_ip_port.toString() + " ";
     out += "[(" + std::to_string(m_packet.size()) + ") " + ToString(m_packet) + "]";
 
     return out;
@@ -64,7 +64,7 @@ void JsonMessage::clear() noexcept {
 std::string JsonMessage::toString() noexcept {
     std::string out;
 
-    out = m_ip_port.to_string() + " ";
+    out = m_ip_port.toString() + " ";
     out += "[(" + std::to_string(m_json.size()) + ")" + m_json.toString() + "]";
 
     return out;

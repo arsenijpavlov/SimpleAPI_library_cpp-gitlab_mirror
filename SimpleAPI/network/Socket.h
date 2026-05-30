@@ -1,5 +1,4 @@
-#ifndef SOCKET_H
-#define SOCKET_H
+#pragma once
 
 #include "../utils/EECounter.h"
 #include "../config/Config.h"
@@ -58,6 +57,7 @@ public:
     {}
 };
 
+// абстрактный базовый класс
 class Socket {
 protected:
     using MapConnectionsIterator = std::map<IpPort, Connection>::iterator;
@@ -172,7 +172,7 @@ class UDPSocket : public Socket {
 
     //=====================================
     //ONLY FOR USE IN SOCKET_THREAD!
-    /* принятый пакет делится на части, пришиваются необходимые заголовки
+    /* принятый пакет делится на части, к ним пришиваются необходимые заголовки
      * и полученные фрагменты прокидываются в очередь на отправку через функцию sendAutoMsg */
     void            sendFragments(const IpPort& remote_ip_port, const PacketType type,
                                   const Packet& packet, const bool need_ack = true) noexcept;
@@ -234,5 +234,3 @@ public:
 //};
 
 } // namespace simpleapi
-
-#endif // SOCKET_H

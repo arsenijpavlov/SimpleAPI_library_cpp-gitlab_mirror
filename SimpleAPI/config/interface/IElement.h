@@ -1,5 +1,4 @@
-#ifndef I_ELEMENT_H
-#define I_ELEMENT_H
+#pragma once
 
 #include "../Comment.h"
 #include "../ConfigCommon.h"
@@ -120,5 +119,3 @@ public:
 
 } // namespace tools
 } // namespace simpleapi
-
-#endif // I_ELEMENT_H

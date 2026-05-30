@@ -1,5 +1,4 @@
-#ifndef FILE_UTILS_H
-#define FILE_UTILS_H
+#pragma once
 
 #include <string>
 
@@ -13,5 +12,3 @@ namespace utils {
 
 } // namespace utils
 } // namespace simpleapi
-
-#endif // FILE_UTILS_H

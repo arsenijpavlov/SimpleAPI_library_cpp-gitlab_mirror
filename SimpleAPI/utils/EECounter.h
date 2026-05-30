@@ -1,6 +1,4 @@
-#ifndef END_TO_END_COUNTER_H
-#define END_TO_END_COUNTER_H
-
+#pragma once
 
 #include <cstdint>
 
@@ -49,5 +47,3 @@ public:
 };
 
 } // namespace simpleapi
-
-#endif // END_TO_END_COUNTER_H

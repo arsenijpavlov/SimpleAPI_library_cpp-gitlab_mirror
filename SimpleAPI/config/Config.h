@@ -1,5 +1,4 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#pragma once
 
 #include "Comment.h"
 #include "ConfigCommon.h"
@@ -904,5 +903,9 @@ public:
 
 } // namespace simpleapi
 
-#endif //CONFIG_H
-
+//TODO: перейти на pragma once
+//TODO: добавить методы для сортировки контейнеров Config
+//TODO: ручное включение автоматического кэширования для больших списков ключ-значение
+//TODO: алогоритм Дефи-Хэлмана для шифрования сокетных каналов
+//TODO: сервер типа "раздатчик новостей", который не проверяет существование удалённого хоста и игнорирует отчёты о доставке
+//TODO: работа с JWT (Json Web Token)

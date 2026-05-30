@@ -1,5 +1,4 @@
-#ifndef I_ERROR_FIELD_H
-#define I_ERROR_FIELD_H
+#pragma once
 
 #include "../../utils/Optional.h"
 #include <string>
@@ -22,5 +21,3 @@ public:
 
 } // namespace tools
 } // namespace simpleapi
-
-#endif // I_ERROR_FIELD_H

@@ -1,5 +1,4 @@
-#ifndef COMMENT_H
-#define COMMENT_H
+#pragma once
 
 #include "ConfigCommon.h"
 #include <string>
@@ -239,5 +238,3 @@ void CheckComments(const char ch_current, const char ch_next,
 
 } // namespace tools
 } // namespace simpleapi
-
-#endif // COMMENT_H

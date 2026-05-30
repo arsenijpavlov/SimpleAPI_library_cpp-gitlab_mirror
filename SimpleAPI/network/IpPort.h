@@ -1,12 +1,12 @@
-#ifndef IP_PORT_H
-#define IP_PORT_H
+#pragma once
 
 #include <string>
 
 
 namespace simpleapi {
 
-struct IpPort {
+class IpPort {
+public:
     std::string ip;
     uint16_t    port;
 
@@ -15,10 +15,12 @@ struct IpPort {
     bool operator<(const IpPort& other)             const noexcept;
     bool operator>(const IpPort& other)             const noexcept;
 
-    std::string to_string(std::string info = "")    const noexcept;
-    bool from_string(std::string ip_port_string)    noexcept;
+    // для вывода в лог с пояснением
+    std::string toString(std::string info = "")    const noexcept;
+
+    // выставить параметры на основе строки формата "X.X.X.X:port"
+    // вернёт true, если получилось выполнить преобразование
+    bool setFromString(std::string ip_port_string)    noexcept;
 };
 
 } // namespace simpleapi
-
-#endif // IP_PORT_H

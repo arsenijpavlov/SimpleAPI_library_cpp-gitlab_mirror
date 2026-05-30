@@ -1,5 +1,4 @@
-#ifndef LOGGER_H
-#define LOGGER_H
+#pragma once
 
 #include <chrono>
 #include <string>
@@ -180,5 +179,3 @@ std::string columned(const LEVEL level, const T& log_message,
 } // namespace logs
 
 } // namespace simpleapi
-
-#endif // LOGGER_H

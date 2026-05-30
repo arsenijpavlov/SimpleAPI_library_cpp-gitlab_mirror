@@ -1,6 +1,4 @@
-#ifndef SOCKET_SETTINGS_H
-#define SOCKET_SETTINGS_H
-
+#pragma once
 
 #include "../utils/LoggerSettings.h"
 #include "Message.h"
@@ -26,7 +24,7 @@ private:
     RecvJsonMessageCallback     m_recv_json_callback;
     RecvPacketMessageCallback   m_recv_packet_callback;
     ConnectionCallback          m_new_connection_callback;
-    ConnectionCallback          m_connection_reset_callback;
+    ConnectionCallback          m_connection_reset_callback; //обрыв соединения
     bool                        m_chiphering_enabled;
 
 public:
@@ -73,5 +71,3 @@ public:
 };
 
 } // namespace simpleapi
-
-#endif // SOCKET_SETTINGS_H

@@ -1,5 +1,4 @@
-#ifndef CONFIG_COMMON_H
-#define CONFIG_COMMON_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -56,5 +55,3 @@ bool CreateEmptyFile(const std::string& file_path, const std::string& start_comm
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= WRITING
 
 } // namespace simpleapi
-
-#endif // CONFIG_COMMON_H

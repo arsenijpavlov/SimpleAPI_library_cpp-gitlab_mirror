@@ -1,5 +1,4 @@
-#ifndef ELEMENT_ARRAY_H
-#define ELEMENT_ARRAY_H
+#pragma once
 
 #include "interface/IElementContainer.h"
 #include <iostream>
@@ -192,5 +191,3 @@ bool IsElementArray(const Config &cfg)                                          
 
 } // namespace tools
 } // namespace simpleapi
-
-#endif // ELEMENT_ARRAY_H

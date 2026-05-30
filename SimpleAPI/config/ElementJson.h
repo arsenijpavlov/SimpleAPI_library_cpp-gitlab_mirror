@@ -1,5 +1,4 @@
-#ifndef ELEMENT_JSON_H
-#define ELEMENT_JSON_H
+#pragma once
 
 #include "../utils/TypeDefines.h"
 #include "ElementArray.h"
@@ -258,5 +257,3 @@ bool IsElementJson(const Config& cfg)                                           
 
 } // namespace tools
 } // namespace simpleapi
-
-#endif // ELEMENT_JSON_H

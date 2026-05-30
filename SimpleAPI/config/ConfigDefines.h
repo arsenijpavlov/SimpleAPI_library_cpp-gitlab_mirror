@@ -1,5 +1,4 @@
-#ifndef CONFIG_DEFINES_H
-#define CONFIG_DEFINES_H
+#pragma once
 
 #include <stdexcept>
 
@@ -93,6 +92,3 @@
 #define __NO_ELEMENTS_EXCEPTION__           if(size() < 1) \
                                                 throw std::invalid_argument("There are no Element(s)");
 //=======================================================================EXEPTIONS
-
-
-#endif // CONFIG_DEFINES_H

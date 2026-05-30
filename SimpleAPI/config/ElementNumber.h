@@ -1,5 +1,4 @@
-#ifndef ELEMENT_NUMBER_H
-#define ELEMENT_NUMBER_H
+#pragma once
 
 #include "interface/IElement.h"
 
@@ -62,5 +61,3 @@ bool IsElementNumber(const Config& cfg)         noexcept;
 
 } // namespace tools
 } // namespace simpleapi
-
-#endif // ELEMENT_NUMBER_H

@@ -1,5 +1,4 @@
-#ifndef I_ELEMENT_CONTAINER_H
-#define I_ELEMENT_CONTAINER_H
+#pragma once
 
 #include "IElement.h"
 
@@ -139,5 +138,3 @@ protected:
 
 } // namespace tools
 } // namespace simpleapi
-
-#endif // I_ELEMENT_CONTAINER_H
