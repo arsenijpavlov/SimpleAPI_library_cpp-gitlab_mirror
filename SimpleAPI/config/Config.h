@@ -422,8 +422,20 @@ public:
     bool            getBool()                                                                   const;                      API_BOOL
     long double&    getNumber();                                                                                            API_NUMBER
     long double     getNumber()                                                                 const;                      API_NUMBER
+    uint8_t         getUInt8()                                                                  const;                      API_NUMBER
+    uint16_t        getUInt16()                                                                 const;                      API_NUMBER
+    uint32_t        getUInt32()                                                                 const;                      API_NUMBER
+    uint64_t        getUInt64()                                                                 const;                      API_NUMBER
+    int8_t          getInt8()                                                                   const;                      API_NUMBER
+    int16_t         getInt16()                                                                  const;                      API_NUMBER
+    int32_t         getInt32()                                                                  const;                      API_NUMBER
+    int64_t         getInt64()                                                                  const;                      API_NUMBER
+    float           getFloat()                                                                  const;                      API_NUMBER
+    double          getDouble()                                                                 const;                      API_NUMBER
+    long double     getLDouble()                                                                const;                      API_NUMBER
     std::string&    getString();                                                                                            API_STRING
     std::string     getString()                                                                 const;                      API_STRING
+
     bool            error()                                                                     const noexcept;             API_CONTAINER
     std::string     getError()                                                                  const noexcept;             API_CONTAINER
 private:
@@ -457,6 +469,17 @@ public:
     bool            get_front_bool()                                                            const;                      API_CONTAINER
     long double&    get_front_number();                                                                                     API_CONTAINER
     long double     get_front_number()                                                          const;                      API_CONTAINER
+    uint8_t         get_front_UInt8()                                                           const;                      API_CONTAINER
+    uint16_t        get_front_UInt16()                                                          const;                      API_CONTAINER
+    uint32_t        get_front_UInt32()                                                          const;                      API_CONTAINER
+    uint64_t        get_front_UInt64()                                                          const;                      API_CONTAINER
+    int8_t          get_front_Int8()                                                            const;                      API_CONTAINER
+    int16_t         get_front_Int16()                                                           const;                      API_CONTAINER
+    int32_t         get_front_Int32()                                                           const;                      API_CONTAINER
+    int64_t         get_front_Int64()                                                           const;                      API_CONTAINER
+    float           get_front_Float()                                                           const;                      API_CONTAINER
+    double          get_front_Double()                                                          const;                      API_CONTAINER
+    long double     get_front_LDouble()                                                         const;                      API_CONTAINER
     std::string&    get_front_string();                                                                                     API_CONTAINER
     std::string     get_front_string()                                                          const;                      API_CONTAINER
 
@@ -466,6 +489,7 @@ public:
     bool            get_bool_at(const std::string& key)                                         const;                      API_MAP_CONTAINER
     bool&           get_bool_at(const std::vector<OnlySizetOrString>& complex_key);                                         API_CONTAINER
     bool            get_bool_at(const std::vector<OnlySizetOrString>& complex_key)              const;                      API_CONTAINER
+
     //фикс для вызова через {}
     bool&           get_bool_at(const std::initializer_list<OnlySizetOrString>& complex_key)
                     { return get_bool_at(std::vector<OnlySizetOrString>(complex_key)); }                                    API_CONTAINER
@@ -473,33 +497,88 @@ public:
                     { return get_bool_at(std::vector<OnlySizetOrString>(complex_key)); }                                    API_CONTAINER
 
     long double&    get_number_at(const size_t& index);                                                                     API_CONTAINER
-    long double     get_number_at(const size_t& index)                                           const;                     API_CONTAINER
+    long double     get_number_at(const size_t& index)                                          const;                      API_CONTAINER
+    uint8_t         get_UInt8_at(const size_t& index)                                           const;                      API_CONTAINER
+    uint16_t        get_UInt16_at(const size_t& index)                                          const;                      API_CONTAINER
+    uint32_t        get_UInt32_at(const size_t& index)                                          const;                      API_CONTAINER
+    uint64_t        get_UInt64_at(const size_t& index)                                          const;                      API_CONTAINER
+    int8_t          get_Int8_at(const size_t& index)                                            const;                      API_CONTAINER
+    int16_t         get_Int16_at(const size_t& index)                                           const;                      API_CONTAINER
+    int32_t         get_Int32_at(const size_t& index)                                           const;                      API_CONTAINER
+    int64_t         get_Int64_at(const size_t& index)                                           const;                      API_CONTAINER
+    float           get_Float_at(const size_t& index)                                           const;                      API_CONTAINER
+    double          get_Double_at(const size_t& index)                                          const;                      API_CONTAINER
+    long double     get_LDouble_at(const size_t& index)                                         const;                      API_CONTAINER
+
     long double&    get_number_at(const std::string& key);                                                                  API_MAP_CONTAINER
     long double     get_number_at(const std::string& key)                                       const;                      API_MAP_CONTAINER
+    uint8_t         get_UInt8_at(const std::string& key)                                        const;                      API_MAP_CONTAINER
+    uint16_t        get_UInt16_at(const std::string& key)                                       const;                      API_MAP_CONTAINER
+    uint32_t        get_UInt32_at(const std::string& key)                                       const;                      API_MAP_CONTAINER
+    uint64_t        get_UInt64_at(const std::string& key)                                       const;                      API_MAP_CONTAINER
+    int8_t          get_Int8_at(const std::string& key)                                         const;                      API_MAP_CONTAINER
+    int16_t         get_Int16_at(const std::string& key)                                        const;                      API_MAP_CONTAINER
+    int32_t         get_Int32_at(const std::string& key)                                        const;                      API_MAP_CONTAINER
+    int64_t         get_Int64_at(const std::string& key)                                        const;                      API_MAP_CONTAINER
+    float           get_Float_at(const std::string& key)                                        const;                      API_MAP_CONTAINER
+    double          get_Double_at(const std::string& key)                                       const;                      API_MAP_CONTAINER
+    long double     get_LDouble_at(const std::string& key)                                      const;                      API_MAP_CONTAINER
+
     long double&    get_number_at(const std::vector<OnlySizetOrString>& complex_key);                                       API_CONTAINER
     long double     get_number_at(const std::vector<OnlySizetOrString>& complex_key)            const;                      API_CONTAINER
+    uint8_t         get_UInt8_at(const std::vector<OnlySizetOrString>& complex_key)             const;                      API_CONTAINER
+    uint16_t        get_UInt16_at(const std::vector<OnlySizetOrString>& complex_key)            const;                      API_CONTAINER
+    uint32_t        get_UInt32_at(const std::vector<OnlySizetOrString>& complex_key)            const;                      API_CONTAINER
+    uint64_t        get_UInt64_at(const std::vector<OnlySizetOrString>& complex_key)            const;                      API_CONTAINER
+    int8_t          get_Int8_at(const std::vector<OnlySizetOrString>& complex_key)              const;                      API_CONTAINER
+    int16_t         get_Int16_at(const std::vector<OnlySizetOrString>& complex_key)             const;                      API_CONTAINER
+    int32_t         get_Int32_at(const std::vector<OnlySizetOrString>& complex_key)             const;                      API_CONTAINER
+    int64_t         get_Int64_at(const std::vector<OnlySizetOrString>& complex_key)             const;                      API_CONTAINER
+    float           get_Float_at(const std::vector<OnlySizetOrString>& complex_key)             const;                      API_CONTAINER
+    double          get_Double_at(const std::vector<OnlySizetOrString>& complex_key)            const;                      API_CONTAINER
+    long double     get_LDouble_at(const std::vector<OnlySizetOrString>& complex_key)           const;                      API_CONTAINER
+
     //фикс для вызова через {}
-    long double&    get_number_at(const std::initializer_list<OnlySizetOrString>& complex_key)
-                    { return get_number_at(std::vector<OnlySizetOrString>(complex_key)); }                                  API_CONTAINER
-    long double     get_number_at(const std::initializer_list<OnlySizetOrString>& complex_key)  const
-                    { return get_number_at(std::vector<OnlySizetOrString>(complex_key)); }                                  API_CONTAINER
+    long double&    get_number_at(const std::initializer_list<OnlySizetOrString>& complex_key);                             API_CONTAINER
+    long double     get_number_at(const std::initializer_list<OnlySizetOrString>& complex_key)  const;                      API_CONTAINER
+    uint8_t         get_UInt8_at(const std::initializer_list<OnlySizetOrString>& complex_key)   const;                      API_CONTAINER
+    uint16_t        get_UInt16_at(const std::initializer_list<OnlySizetOrString>& complex_key)  const;                      API_CONTAINER
+    uint32_t        get_UInt32_at(const std::initializer_list<OnlySizetOrString>& complex_key)  const;                      API_CONTAINER
+    uint64_t        get_UInt64_at(const std::initializer_list<OnlySizetOrString>& complex_key)  const;                      API_CONTAINER
+    int8_t          get_Int8_at(const std::initializer_list<OnlySizetOrString>& complex_key)    const;                      API_CONTAINER
+    int16_t         get_Int16_at(const std::initializer_list<OnlySizetOrString>& complex_key)   const;                      API_CONTAINER
+    int32_t         get_Int32_at(const std::initializer_list<OnlySizetOrString>& complex_key)   const;                      API_CONTAINER
+    int64_t         get_Int64_at(const std::initializer_list<OnlySizetOrString>& complex_key)   const;                      API_CONTAINER
+    float           get_Float_at(const std::initializer_list<OnlySizetOrString>& complex_key)   const;                      API_CONTAINER
+    double          get_Double_at(const std::initializer_list<OnlySizetOrString>& complex_key)  const;                      API_CONTAINER
+    long double     get_LDouble_at(const std::initializer_list<OnlySizetOrString>& complex_key) const;                      API_CONTAINER
 
     std::string&    get_string_at(const size_t& index);                                                                     API_CONTAINER
-    std::string     get_string_at(const size_t& index)                                           const;                     API_CONTAINER
+    std::string     get_string_at(const size_t& index)                                          const;                      API_CONTAINER
     std::string&    get_string_at(const std::string& key);                                                                  API_MAP_CONTAINER
     std::string     get_string_at(const std::string& key)                                       const;                      API_MAP_CONTAINER
     std::string&    get_string_at(const std::vector<OnlySizetOrString>& complex_key);                                       API_CONTAINER
     std::string     get_string_at(const std::vector<OnlySizetOrString>& complex_key)            const;                      API_CONTAINER
+
     //фикс для вызова через {}
-    std::string&    get_string_at(const std::initializer_list<OnlySizetOrString>& complex_key)
-                    { return get_string_at(std::vector<OnlySizetOrString>(complex_key)); }                                  API_CONTAINER
-    std::string     get_string_at(const std::initializer_list<OnlySizetOrString>& complex_key)  const
-                    { return get_string_at(std::vector<OnlySizetOrString>(complex_key)); }                                  API_CONTAINER
+    std::string&    get_string_at(const std::initializer_list<OnlySizetOrString>& complex_key);                             API_CONTAINER
+    std::string     get_string_at(const std::initializer_list<OnlySizetOrString>& complex_key)  const;                      API_CONTAINER
 
     bool&           get_bool_back();                                                                                        API_CONTAINER
     bool            get_bool_back()                                                             const;                      API_CONTAINER
     long double&    get_number_back();                                                                                      API_CONTAINER
     long double     get_number_back()                                                           const;                      API_CONTAINER
+    uint8_t         get_UInt8_back()                                                            const;                      API_CONTAINER
+    uint16_t        get_UInt16_back()                                                           const;                      API_CONTAINER
+    uint32_t        get_UInt32_back()                                                           const;                      API_CONTAINER
+    uint64_t        get_UInt64_back()                                                           const;                      API_CONTAINER
+    int8_t          get_Int8_back()                                                             const;                      API_CONTAINER
+    int16_t         get_Int16_back()                                                            const;                      API_CONTAINER
+    int32_t         get_Int32_back()                                                            const;                      API_CONTAINER
+    int64_t         get_Int64_back()                                                            const;                      API_CONTAINER
+    float           get_Float_back()                                                            const;                      API_CONTAINER
+    double          get_Double_back()                                                           const;                      API_CONTAINER
+    long double     get_LDouble_back()                                                          const;                      API_CONTAINER
     std::string&    get_string_back();                                                                                      API_CONTAINER
     std::string     get_string_back()                                                           const;                      API_CONTAINER
     // ========================================================================================================= Getters
