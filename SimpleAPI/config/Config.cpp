@@ -505,35 +505,68 @@ bool Config::getBool() const {
     return dynamic_cast<const tools::ElementBool*>(m_value)->getValue();
 }
 
-uint8_t&        Config::getUInt8() {}
-uint8_t         Config::getUInt8() const {}
-uint16_t&       Config::getUInt16() {}
-uint16_t        Config::getUInt16() const {}
-uint32_t&       Config::getUInt32() {}
-uint32_t        Config::getUInt32() const {}
-uint64_t&       Config::getUInt64() {}
-uint64_t        Config::getUInt64() const {}
-int8_t&         Config::getInt8() {}
-int8_t          Config::getInt8() const {}
-int16_t&        Config::getInt16() {}
-int16_t         Config::getInt16() const {}
-int32_t&        Config::getInt32() {}
-int32_t         Config::getInt32() const {}
-int64_t&        Config::getInt64() {}
-int64_t         Config::getInt64() const {}
-float&          Config::getFloat() {}
-float           Config::getFloat() const {}
-double&         Config::getDouble() {}
-double          Config::getDouble() const {}
-
-long double &Config::getLDouble() {
+long double& Config::getNumber() {
     __CHECK_TYPE_IS_NUMBER__((*this))
     return dynamic_cast<tools::ElementNumber*>(m_value)->getValue();
 }
 
-long double Config::getLDouble() const {
+long double Config::getNumber() const {
     __CHECK_TYPE_IS_NUMBER__((*this))
     return dynamic_cast<const tools::ElementNumber*>(m_value)->getValue();
+}
+
+uint8_t Config::getUInt8() const {
+    __CHECK_TYPE_IS_NUMBER__((*this))
+    return static_cast<uint8_t>(dynamic_cast<const tools::ElementNumber*>(m_value)->getValue());
+}
+
+uint16_t Config::getUInt16() const {
+    __CHECK_TYPE_IS_NUMBER__((*this))
+    return static_cast<uint16_t>(dynamic_cast<const tools::ElementNumber*>(m_value)->getValue());
+}
+
+uint32_t Config::getUInt32() const {
+    __CHECK_TYPE_IS_NUMBER__((*this))
+    return static_cast<int32_t>(dynamic_cast<const tools::ElementNumber*>(m_value)->getValue());
+}
+
+uint64_t Config::getUInt64() const {
+    __CHECK_TYPE_IS_NUMBER__((*this))
+    return static_cast<uint64_t>(dynamic_cast<const tools::ElementNumber*>(m_value)->getValue());
+}
+
+int8_t Config::getInt8() const {
+    __CHECK_TYPE_IS_NUMBER__((*this))
+    return static_cast<int8_t>(dynamic_cast<const tools::ElementNumber*>(m_value)->getValue());
+}
+
+int16_t Config::getInt16() const {
+    __CHECK_TYPE_IS_NUMBER__((*this))
+    return static_cast<int16_t>(dynamic_cast<const tools::ElementNumber*>(m_value)->getValue());
+}
+
+int32_t Config::getInt32() const {
+    __CHECK_TYPE_IS_NUMBER__((*this))
+    return static_cast<int32_t>(dynamic_cast<const tools::ElementNumber*>(m_value)->getValue());
+}
+
+int64_t Config::getInt64() const {
+    __CHECK_TYPE_IS_NUMBER__((*this))
+    return static_cast<int64_t>(dynamic_cast<const tools::ElementNumber*>(m_value)->getValue());
+}
+
+float Config::getFloat() const {
+    __CHECK_TYPE_IS_NUMBER__((*this))
+    return static_cast<float>(dynamic_cast<const tools::ElementNumber*>(m_value)->getValue());
+}
+
+double Config::getDouble() const {
+    __CHECK_TYPE_IS_NUMBER__((*this))
+    return static_cast<double>(dynamic_cast<const tools::ElementNumber*>(m_value)->getValue());
+}
+
+long double Config::getLDouble() const {
+    return getNumber();
 }
 
 std::string &Config::getString() {
@@ -768,6 +801,102 @@ long double Config::get_front_number() const {
     return dynamic_cast<const tools::ElementNumber*>(config.m_value)->getValue();
 }
 
+uint8_t Config::get_front_UInt8() const {
+    return static_cast<uint8_t>(get_front_number());
+}
+
+uint16_t Config::get_front_UInt16() const {
+    return static_cast<uint16_t>(get_front_number());
+}
+
+uint32_t Config::get_front_UInt32() const {
+    return static_cast<uint32_t>(get_front_number());
+}
+
+uint64_t Config::get_front_UInt64() const {
+    return static_cast<uint64_t>(get_front_number());
+}
+
+int8_t Config::get_front_Int8() const {
+    return static_cast<int8_t>(get_front_number());
+}
+
+int16_t Config::get_front_Int16() const {
+    return static_cast<int16_t>(get_front_number());
+}
+
+int32_t Config::get_front_Int32() const {
+    return static_cast<int32_t>(get_front_number());
+}
+
+int64_t Config::get_front_Int64() const {
+    return static_cast<int64_t>(get_front_number());
+}
+
+float Config::get_front_Float() const {
+    return static_cast<float>(get_front_number());
+}
+
+double Config::get_front_Double() const {
+    return static_cast<double>(get_front_number());
+}
+
+long double Config::get_front_LDouble() const {
+    return get_front_number();
+}
+
+long double &Config::get_number_at(const std::initializer_list<OnlySizetOrString> &complex_key) {
+    return get_number_at(std::vector<OnlySizetOrString>(complex_key));
+}
+
+long double Config::get_number_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return get_number_at(std::vector<OnlySizetOrString>(complex_key));
+}
+
+uint8_t Config::get_UInt8_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<uint8_t>(get_number_at(std::move(complex_key)));
+}
+
+uint16_t Config::get_UInt16_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<uint16_t>(get_number_at(std::move(complex_key)));
+}
+
+uint32_t Config::get_UInt32_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<uint32_t>(get_number_at(std::move(complex_key)));
+}
+
+uint64_t Config::get_UInt64_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<uint64_t>(get_number_at(std::move(complex_key)));
+}
+
+int8_t Config::get_Int8_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<int8_t>(get_number_at(std::move(complex_key)));
+}
+
+int16_t Config::get_Int16_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<int16_t>(get_number_at(std::move(complex_key)));
+}
+
+int32_t Config::get_Int32_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<int32_t>(get_number_at(std::move(complex_key)));
+}
+
+int64_t Config::get_Int64_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<int64_t>(get_number_at(std::move(complex_key)));
+}
+
+float Config::get_Float_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<float>(get_number_at(std::move(complex_key)));
+}
+
+double Config::get_Double_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<double>(get_number_at(std::move(complex_key)));
+}
+
+long double Config::get_LDouble_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return get_number_at(std::move(complex_key));
+}
+
 std::string &Config::get_front_string() {
     Config& config = get_front();
     __CHECK_TYPE_IS_STRING__(config)
@@ -874,6 +1003,50 @@ long double Config::get_number_at(const size_t& index) const {
     return dynamic_cast<const tools::ElementNumber*>(config.m_value)->getValue();
 }
 
+uint8_t Config::get_UInt8_at(const size_t& index) const {
+    return static_cast<uint8_t>(get_number_at(std::move(index)));
+}
+
+uint16_t Config::get_UInt16_at(const size_t& index) const {
+    return static_cast<uint16_t>(get_number_at(std::move(index)));
+}
+
+uint32_t Config::get_UInt32_at(const size_t& index) const {
+    return static_cast<uint32_t>(get_number_at(std::move(index)));
+}
+
+uint64_t Config::get_UInt64_at(const size_t& index) const {
+    return static_cast<uint64_t>(get_number_at(std::move(index)));
+}
+
+int8_t Config::get_Int8_at(const size_t& index) const {
+    return static_cast<int8_t>(get_number_at(std::move(index)));
+}
+
+int16_t Config::get_Int16_at(const size_t& index) const {
+    return static_cast<int16_t>(get_number_at(std::move(index)));
+}
+
+int32_t Config::get_Int32_at(const size_t& index) const {
+    return static_cast<int32_t>(get_number_at(std::move(index)));
+}
+
+int64_t Config::get_Int64_at(const size_t& index) const {
+    return static_cast<int64_t>(get_number_at(std::move(index)));
+}
+
+float Config::get_Float_at(const size_t& index) const {
+    return static_cast<float>(get_number_at(std::move(index)));
+}
+
+double Config::get_Double_at(const size_t& index) const {
+    return static_cast<double>(get_number_at(std::move(index)));
+}
+
+long double Config::get_LDouble_at(const size_t& index) const {
+    return get_number_at(std::move(index));
+}
+
 long double &Config::get_number_at(const std::string& key) {
     const Config& config = get_at(key);
     __CHECK_TYPE_IS_NUMBER__(config)
@@ -886,6 +1059,50 @@ long double Config::get_number_at(const std::string& key) const {
     __CHECK_TYPE_IS_NUMBER__(config)
 
     return dynamic_cast<const tools::ElementNumber*>(config.m_value)->getValue();
+}
+
+uint8_t Config::get_UInt8_at(const std::string& key) const {
+    return static_cast<uint8_t>(get_number_at(std::move(key)));
+}
+
+uint16_t Config::get_UInt16_at(const std::string& key) const {
+    return static_cast<uint16_t>(get_number_at(std::move(key)));
+}
+
+uint32_t Config::get_UInt32_at(const std::string& key) const {
+    return static_cast<uint32_t>(get_number_at(std::move(key)));
+}
+
+uint64_t Config::get_UInt64_at(const std::string& key) const {
+    return static_cast<uint64_t>(get_number_at(std::move(key)));
+}
+
+int8_t Config::get_Int8_at(const std::string& key) const {
+    return static_cast<int8_t>(get_number_at(std::move(key)));
+}
+
+int16_t Config::get_Int16_at(const std::string& key) const {
+    return static_cast<int16_t>(get_number_at(std::move(key)));
+}
+
+int32_t Config::get_Int32_at(const std::string& key) const {
+    return static_cast<int32_t>(get_number_at(std::move(key)));
+}
+
+int64_t Config::get_Int64_at(const std::string& key) const {
+    return static_cast<int64_t>(get_number_at(std::move(key)));
+}
+
+float Config::get_Float_at(const std::string& key) const {
+    return static_cast<float>(get_number_at(std::move(key)));
+}
+
+double Config::get_Double_at(const std::string& key) const {
+    return static_cast<double>(get_number_at(std::move(key)));
+}
+
+long double Config::get_LDouble_at(const std::string& key) const {
+    return get_number_at(std::move(key));
 }
 
 long double &Config::get_number_at(const std::vector<OnlySizetOrString> &complex_key)
@@ -936,6 +1153,50 @@ long double Config::get_number_at(const std::vector<OnlySizetOrString> &complex_
     std::vector<OnlySizetOrString> new_key = complex_key;
     new_key.erase(new_key.cbegin());
     return ret.get_number_at(new_key);
+}
+
+uint8_t Config::get_UInt8_at(const std::vector<OnlySizetOrString> &complex_key) const {
+    return static_cast<uint8_t>(get_number_at(std::move(complex_key)));
+}
+
+uint16_t Config::get_UInt16_at(const std::vector<OnlySizetOrString> &complex_key) const {
+    return static_cast<uint16_t>(get_number_at(std::move(complex_key)));
+}
+
+uint32_t Config::get_UInt32_at(const std::vector<OnlySizetOrString> &complex_key) const {
+    return static_cast<uint32_t>(get_number_at(std::move(complex_key)));
+}
+
+uint64_t Config::get_UInt64_at(const std::vector<OnlySizetOrString> &complex_key) const {
+    return static_cast<uint64_t>(get_number_at(std::move(complex_key)));
+}
+
+int8_t Config::get_Int8_at(const std::vector<OnlySizetOrString> &complex_key) const {
+    return static_cast<int8_t>(get_number_at(std::move(complex_key)));
+}
+
+int16_t Config::get_Int16_at(const std::vector<OnlySizetOrString> &complex_key) const {
+    return static_cast<int16_t>(get_number_at(std::move(complex_key)));
+}
+
+int32_t Config::get_Int32_at(const std::vector<OnlySizetOrString> &complex_key) const {
+    return static_cast<int32_t>(get_number_at(std::move(complex_key)));
+}
+
+int64_t Config::get_Int64_at(const std::vector<OnlySizetOrString> &complex_key) const {
+    return static_cast<int64_t>(get_number_at(std::move(complex_key)));
+}
+
+float Config::get_Float_at(const std::vector<OnlySizetOrString> &complex_key) const {
+    return static_cast<float>(get_number_at(std::move(complex_key)));
+}
+
+double Config::get_Double_at(const std::vector<OnlySizetOrString> &complex_key) const {
+    return static_cast<double>(get_number_at(std::move(complex_key)));
+}
+
+long double Config::get_LDouble_at(const std::vector<OnlySizetOrString> &complex_key) const {
+    return get_number_at(std::move(complex_key));
 }
 
 std::string &Config::get_string_at(const size_t& index) {
@@ -1016,6 +1277,14 @@ std::string Config::get_string_at(const std::vector<OnlySizetOrString> &complex_
     return ret.get_string_at(new_key);
 }
 
+std::string &Config::get_string_at(const std::initializer_list<OnlySizetOrString> &complex_key) {
+    return get_string_at(std::vector<OnlySizetOrString>(complex_key));
+}
+
+std::string Config::get_string_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return get_string_at(std::vector<OnlySizetOrString>(complex_key));
+}
+
 bool &Config::get_bool_back() {
     const Config& config = get_back();
     __CHECK_TYPE_IS_BOOL__(config)
@@ -1042,6 +1311,50 @@ long double Config::get_number_back() const {
     __CHECK_TYPE_IS_NUMBER__(config)
 
     return dynamic_cast<const tools::ElementNumber*>(config.m_value)->getValue();
+}
+
+uint8_t Config::get_UInt8_back() const {
+    return static_cast<uint8_t>(get_number_back());
+}
+
+uint16_t Config::get_UInt16_back() const {
+    return static_cast<uint16_t>(get_number_back());
+}
+
+uint32_t Config::get_UInt32_back() const {
+    return static_cast<uint32_t>(get_number_back());
+}
+
+uint64_t Config::get_UInt64_back() const {
+    return static_cast<uint64_t>(get_number_back());
+}
+
+int8_t Config::get_Int8_back() const {
+    return static_cast<int8_t>(get_number_back());
+}
+
+int16_t Config::get_Int16_back() const {
+    return static_cast<int16_t>(get_number_back());
+}
+
+int32_t Config::get_Int32_back() const {
+    return static_cast<int32_t>(get_number_back());
+}
+
+int64_t Config::get_Int64_back() const {
+    return static_cast<int64_t>(get_number_back());
+}
+
+float Config::get_Float_back() const {
+    return static_cast<float>(get_number_back());
+}
+
+double Config::get_Double_back() const {
+    return static_cast<double>(get_number_back());
+}
+
+long double Config::get_LDouble_back() const {
+    return get_number_back();
 }
 
 std::string &Config::get_string_back() {
