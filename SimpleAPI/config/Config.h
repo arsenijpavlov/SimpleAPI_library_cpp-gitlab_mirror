@@ -420,8 +420,28 @@ public:
     // Getters =========================================================================================================
     bool&           getBool();                                                                                              API_BOOL
     bool            getBool()                                                                   const;                      API_BOOL
-    long double&    getNumber();                                                                                            API_NUMBER
-    long double     getNumber()                                                                 const;                      API_NUMBER
+    uint8_t&        getUInt8();                                                                                             API_NUMBER
+    uint8_t         getUInt8()                                                                  const;                      API_NUMBER
+    uint16_t&       getUInt16();                                                                                            API_NUMBER
+    uint16_t        getUInt16()                                                                 const;                      API_NUMBER
+    uint32_t&       getUInt32();                                                                                            API_NUMBER
+    uint32_t        getUInt32()                                                                 const;                      API_NUMBER
+    uint64_t&       getUInt64();                                                                                            API_NUMBER
+    uint64_t        getUInt64()                                                                 const;                      API_NUMBER
+    int8_t&         getInt8();                                                                                              API_NUMBER
+    int8_t          getInt8()                                                                   const;                      API_NUMBER
+    int16_t&        getInt16();                                                                                             API_NUMBER
+    int16_t         getInt16()                                                                  const;                      API_NUMBER
+    int32_t&        getInt32();                                                                                             API_NUMBER
+    int32_t         getInt32()                                                                  const;                      API_NUMBER
+    int64_t&        getInt64();                                                                                             API_NUMBER
+    int64_t         getInt64()                                                                  const;                      API_NUMBER
+    float&          getFloat();                                                                                             API_NUMBER
+    float           getFloat()                                                                  const;                      API_NUMBER
+    double&         getDouble();                                                                                            API_NUMBER
+    double          getDouble()                                                                 const;                      API_NUMBER
+    long double&    getLDouble();                                                                                           API_NUMBER
+    long double     getLDouble()                                                                const;                      API_NUMBER
     std::string&    getString();                                                                                            API_STRING
     std::string     getString()                                                                 const;                      API_STRING
     bool            error()                                                                     const noexcept;             API_CONTAINER

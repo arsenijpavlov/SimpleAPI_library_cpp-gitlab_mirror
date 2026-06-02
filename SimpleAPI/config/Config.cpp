@@ -505,12 +505,33 @@ bool Config::getBool() const {
     return dynamic_cast<const tools::ElementBool*>(m_value)->getValue();
 }
 
-long double &Config::getNumber() {
+uint8_t&        Config::getUInt8() {}
+uint8_t         Config::getUInt8() const {}
+uint16_t&       Config::getUInt16() {}
+uint16_t        Config::getUInt16() const {}
+uint32_t&       Config::getUInt32() {}
+uint32_t        Config::getUInt32() const {}
+uint64_t&       Config::getUInt64() {}
+uint64_t        Config::getUInt64() const {}
+int8_t&         Config::getInt8() {}
+int8_t          Config::getInt8() const {}
+int16_t&        Config::getInt16() {}
+int16_t         Config::getInt16() const {}
+int32_t&        Config::getInt32() {}
+int32_t         Config::getInt32() const {}
+int64_t&        Config::getInt64() {}
+int64_t         Config::getInt64() const {}
+float&          Config::getFloat() {}
+float           Config::getFloat() const {}
+double&         Config::getDouble() {}
+double          Config::getDouble() const {}
+
+long double &Config::getLDouble() {
     __CHECK_TYPE_IS_NUMBER__((*this))
     return dynamic_cast<tools::ElementNumber*>(m_value)->getValue();
 }
 
-long double Config::getNumber() const {
+long double Config::getLDouble() const {
     __CHECK_TYPE_IS_NUMBER__((*this))
     return dynamic_cast<const tools::ElementNumber*>(m_value)->getValue();
 }
