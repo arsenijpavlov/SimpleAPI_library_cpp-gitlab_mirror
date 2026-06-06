@@ -33,24 +33,24 @@ void SocketThread::log(const logs::LEVEL level, const std::string log_message,
 
     if(level <= m_settings.getLogLevel()) {
         switch(level) {
-        case logs::eWARNING:
+        case logs::LEVEL::eWARNING:
             currentCallback         = m_settings.getLogCallback();
             currentColorCallback    = m_settings.getColorLogCallback();
             levelSubstring          = ".w";
             break;
-        case logs::eINFO:
+        case logs::LEVEL::eINFO:
             currentCallback         = m_settings.getLogCallback();
             currentColorCallback    = m_settings.getColorLogCallback();
             levelSubstring          = ".i";
             break;
-        case logs::eDEBUG:
-        case logs::eDEBUG2:
-        case logs::eDEBUG3:
+        case logs::LEVEL::eDEBUG:
+        case logs::LEVEL::eDEBUG2:
+        case logs::LEVEL::eDEBUG3:
             currentCallback         = m_settings.getLogCallback();
             currentColorCallback    = m_settings.getColorLogCallback();
             levelSubstring          = ".d";
             break;
-        case logs::eERROR:
+        case logs::LEVEL::eERROR:
             currentCallback         = m_settings.getLogErrorCallback();
             currentColorCallback    = m_settings.getColorLogErrorCallback();
             levelSubstring          = ".e";
@@ -141,22 +141,22 @@ void SocketThread::send(const IpPort &source, const IpPort &destination,
 
 void SocketThread::startThread() noexcept {
     if(!isActive()) {
-        log(logs::eDEBUG, "starting...");
+        log(logs::LEVEL::eDEBUG, "starting...");
         m_active = true;
 
         m_thread = std::thread(&SocketThread::run, this);
-        log(logs::eINFO, "started");
+        log(logs::LEVEL::eINFO, "started");
     }
 }
 
 void SocketThread::stopThread() noexcept {
     if(isActive()) {
-        log(logs::eDEBUG, "stop...");
+        log(logs::LEVEL::eDEBUG, "stop...");
         m_active = false; //дали сигнал на остановку
 
         if(m_thread.joinable()) {
             m_thread.join(); //ждём завершения потока
-            log(logs::eINFO, "stopped");
+            log(logs::LEVEL::eINFO, "stopped");
         }
     }
 }
