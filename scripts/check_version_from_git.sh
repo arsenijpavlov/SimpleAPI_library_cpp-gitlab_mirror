@@ -21,7 +21,7 @@ SIMPLE_VERSION_COMMIT="${DEFAULT_VALUE}"
 result=$(git --version) # прячем консольный вывод
 if [[ $? == 0 ]]; then
 	# поиск последнего тега по маске и подсчёт количества коммитов от тега до текущего
-	GIT_OUTPUT=$(git describe --tags --match="v[0-9a-zA-Z\(\).,-]*" --long)
+	GIT_OUTPUT=$(git -C "${CURRENT_DIR}" describe --tags --match="v[0-9a-zA-Z\(\).,-]*" --long)
 	
 	# разделение прошлого вывода на составляющие
 	read -r SIMPLEAPI_VERSION SIMPLEAPI_VERSION_NAME SIMPLEAPI_VERSION_COMMIT < <( echo ${GIT_OUTPUT} \
@@ -30,7 +30,7 @@ if [[ $? == 0 ]]; then
 	SIMPLEAPI_VERSION_NAME=${SIMPLEAPI_VERSION_NAME//_/ }
 	
 	# проверка наличия изменений без фиксации
-	GIT_DIFF_OUTPUT=$(git diff --name-only)
+	GIT_DIFF_OUTPUT=$(git -C "${CURRENT_DIR}" diff --name-only)
 	if [[ ${GIT_DIFF_OUTPUT} ]]; then
 		# есть изменения, надо сделать заполнитель
 		GIT_DIFF_OUTPUT=" (with uncommited changes)"
