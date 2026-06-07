@@ -6,10 +6,10 @@
 # проект библиотеки как define                       #
 # ====================================================
 
-cd $(dirname $(realpath "${0}"))
+CURRENT_DIR=$(dirname $(realpath "${0}"))
 
 FILE_NAME="VersionInfo.h"
-cp -f "TEMPLATE_${FILE_NAME}" "${PWD}/../SimpleAPI/${FILE_NAME}"
+cp -f "${CURRENT_DIR}/TEMPLATE_${FILE_NAME}" "${CURRENT_DIR}/../SimpleAPI/${FILE_NAME}"
 
 # предварительное заполнение переменных
 DEFAULT_VALUE="UNKNOWN(git/.git not found)"
@@ -44,7 +44,7 @@ fi
 
 # применение как define в коде C/C++
 function UpdParameter { # $1 - переменная, $2 - новое значение
-	sed -i "s/^\(#define ${1} [[:space:]]*\).*/\1\"${2}\"/" "${PWD}/../SimpleAPI/${FILE_NAME}"
+	sed -i "s/^\(#define ${1} [[:space:]]*\).*/\1\"${2}\"/" "${CURRENT_DIR}/../SimpleAPI/${FILE_NAME}"
 }
 
 UpdParameter "SIMPLEAPI_VERSION"        "${SIMPLEAPI_VERSION}"
