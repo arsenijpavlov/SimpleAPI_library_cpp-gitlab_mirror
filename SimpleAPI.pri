@@ -21,41 +21,30 @@
     }
 
     # Определить версию библиотеки =========================================
-    # Предварительное заполнение
-    SIMPLEAPI_VERSION = "UNKNOWN(git/.git not found)"
-    SIMPLEAPI_VERSION_NAME = "UNKNOWN(git/.git not found)"
-    SIMPLEAPI_VERSION_COMMIT = "UNKNOWN(git/.git not found)"
+    # TODO: решить через QMAKE_RUN_CXX = ./script.h && ${QMAKE_RUN_CXX}
 
-    # Выяснение версии
-    unix {
-        # проверка, что git установлен в систему
-        system(git --version) {
-            GIT_FIND_MASK = "v[0-9.-a-zA-Z_\(\)]*"
-#            GIT_OUTPUT = $$system(git -C $${PWD} describe --tags --match=\"$${GIT_FIND_MASK}\" --long)
-#            message("GIT_OUTPUT: $${GIT_OUTPUT}")
+    # должно быть совместимо с Qt 4.7 и выше
+    VERSION_INFO_FILE_ABS = "$${PWD}/SimpleAPI/VersionInfo.h"
+    VERSION_INFO_FILE_REL = $$relative_path("$${VERSION_INFO_FILE_ABS}")
 
-            # т.к. старые Qt не умеют работать с regex, используем sed
-            SED_MASK = "^(v[0-9.-]*)[_]*([_a-zA-Z0-9.,-]*)-([0-9]+)-g([a-fA-F0-9]+)"
-            GIT_SED_OUTPUT = $$system(git -C $${PWD} describe --tags --match=\"$${GIT_FIND_MASK}\" --long \
-                                | sed -E \"s/$${SED_MASK}/\1-b\3 \\\"\\2\\\" \\4/\" | sed \"s/-b0//\")
+    version_info_target.target = "$${VERSION_INFO_FILE_REL}"
+    version_info_target.commands = bash \"$${PWD}/scripts/check_version_from_git.sh\"
+    version_info_compiler.input = $$relative_path($${PWD}/scripts/TEMPLATE_VersionInfo.h)
+    version_info_compiler.output = $${VERSION_INFO_FILE_REL}
 
-            message("GIT_SED_OUTPUT: $${GIT_SED_OUTPUT}")
-            VERSION_INFO_LIST = $$split(GIT_SED_OUTPUT, " ")
-            SIMPLEAPI_VERSION = $$member(VERSION_INFO_LIST, 0)
-            SIMPLEAPI_VERSION_NAME = $$member(VERSION_INFO_LIST, 1)
-            SIMPLEAPI_VERSION_NAME = $$replace(SIMPLEAPI_VERSION_NAME, "_", " ")
-            SIMPLEAPI_VERSION_COMMIT = $$member(VERSION_INFO_LIST, 2)
-        }
-    }
+    version_info_target.CONFIG += no_link target_predeps
 
-    message("SIMPLEAPI_VERSION:        $${SIMPLEAPI_VERSION}")
-    message("SIMPLEAPI_VERSION_NAME:   $${SIMPLEAPI_VERSION_NAME}")
-    message("SIMPLEAPI_VERSION_COMMIT: $${SIMPLEAPI_VERSION_COMMIT}")
-    # ========================================= Определить версию библиотеки
+    # возможно, лишняя команда
+    version_info_target.depends = FORCE
 
-    # передача внутренних кавычек иным способом не работает
-    DEFINES += "SIMPLEAPI_VERSION=\\\"$${SIMPLEAPI_VERSION}\\\""
-    DEFINES += "SIMPLEAPI_VERSION_NAME=\\\"$${SIMPLEAPI_VERSION_NAME}\\\""
-    DEFINES += "SIMPLEAPI_VERSION_COMMIT=\\\"$${SIMPLEAPI_VERSION_COMMIT}\\\""
+    # регистрация цели
+#    QMAKE_EXTRA_TARGETS += version_info_target
+    QMAKE_EXTRA_COMPILERS += version_info_target
+
+    # правило выполнения скрипта перед каждой компиляцией
+    QMAKE_DISTCLEAN += $${VERSION_INFO_FILE_REL} # доп. правило при использовании старого Qt
+    PRE_TARGETDEPS += $${VERSION_INFO_FILE_REL}
+
+    INCLUDEPATH += $${SIMPLEAPI_PWD}/SimpleAPI
 }
 
