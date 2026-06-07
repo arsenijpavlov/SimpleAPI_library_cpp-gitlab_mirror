@@ -2,3 +2,5 @@
 *.autosave
 build*
 bin*
+VersionInfo.h
+
