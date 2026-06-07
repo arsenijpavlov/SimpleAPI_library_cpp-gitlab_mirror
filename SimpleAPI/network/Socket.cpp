@@ -11,15 +11,15 @@ namespace simpleapi {
 
 #define FULL_MSG_COLOR          {logs::COLOR::eYELLOW_BG, logs::COLOR::eBLACK_FG, logs::COLOR::eBOLD_TEXT}
 #define GLOBAL_APPEND_MSG_COLOR {logs::COLOR::eBRIGHT_GRAY_BG, logs::COLOR::eBRIGHT_RED_FG}
-#define CRITICAL_MSG_COLOR      {logs::eRED_BG, logs::eWHITE_FG}
-#define OUTPUT_MSG_COLOR        {logs::eBLUE_BG, logs::eWHITE_FG}
-#define INPUT_MSG_COLOR         {logs::eCYAN_BG, logs::eWHITE_FG}
+#define CRITICAL_MSG_COLOR      {logs::COLOR::eRED_BG, logs::COLOR::eWHITE_FG}
+#define OUTPUT_MSG_COLOR        {logs::COLOR::eBLUE_BG, logs::COLOR::eWHITE_FG}
+#define INPUT_MSG_COLOR         {logs::COLOR::eCYAN_BG, logs::COLOR::eWHITE_FG}
 
 bool Socket::checkCorrectIp(const std::string& ip_string) noexcept {
     struct sockaddr_in sock;
     sock.sin_family = AF_INET;
     if(!inet_pton(AF_INET, ip_string.c_str(), &sock.sin_addr.s_addr)) {
-        log(logs::eERROR, "inet_pton() failed, error(" + std::to_string(errno) + ")");
+        log(logs::LEVEL::eERROR, "inet_pton() failed, error(" + std::to_string(errno) + ")");
         return false;
     }
     return true;
@@ -57,17 +57,17 @@ void Socket::appendNewFragment(const PacketMessage& received_pm) noexcept {
 
     it->second.m_last_input_activity = std::chrono::system_clock::now();
 
-    log(logs::eDEBUG3, "buildPacket(), mapConnection size: " + std::to_string(m_map_connections.size()));
+    log(logs::LEVEL::eDEBUG3, "buildPacket(), mapConnection size: " + std::to_string(m_map_connections.size()));
 
     if(received_pm.m_packet.empty()) {
-        log(logs::eDEBUG3, "~buildPacket(), packet empty");
+        log(logs::LEVEL::eDEBUG3, "~buildPacket(), packet empty");
         return;
     }
 
-    log(logs::eDEBUG,
+    log(logs::LEVEL::eDEBUG,
         "received sn=" + std::to_string(received_pm.m_sn.get())
                           + ", expected_sn=" + std::to_string(it->second.m_in_next_sn.get()),
-        logs::to_color_string(logs::eBLUE_FG, "received sn=" + std::to_string(received_pm.m_sn.get())
+        logs::to_color_string(logs::COLOR::eBLUE_FG, "received sn=" + std::to_string(received_pm.m_sn.get())
          + ", expected_sn=" + std::to_string(it->second.m_in_next_sn.get())));
 
     if(it->second.m_in_sn_last_recv < received_pm.m_sn)
@@ -79,26 +79,26 @@ void Socket::appendNewFragment(const PacketMessage& received_pm) noexcept {
         //NOTE: игнор уже пришедших фрагментов произойдёт здесь же
         it->second.m_map_recv_builded_messages.insert(std::make_pair(received_pm.m_sn, received_pm));
         it->second.m_in_next_sn++;
-        log(logs::eDEBUG, "processing build...");
+        log(logs::LEVEL::eDEBUG, "processing build...");
     } else if (received_pm.m_sn < it->second.m_in_next_sn) {
-        log(logs::eDEBUG,
+        log(logs::LEVEL::eDEBUG,
             "IGNORING, fragment has already been received!",
-            logs::to_color_string({logs::eGRAY_BG, logs::eWHITE_FG}, "IGNORING") + ", fragment has already been received!");
+            logs::to_color_string({logs::COLOR::eGRAY_BG, logs::COLOR::eWHITE_FG}, "IGNORING") + ", fragment has already been received!");
 
         //если имеющийся пакет с таким SN отличается по содержанию, то необходимо обновить мапу
         auto it_fragment = it->second.m_map_recv_fragments.find(received_pm.m_sn);
         if(it_fragment != it->second.m_map_recv_fragments.end()) {
             if(it_fragment->second.m_packet != received_pm.m_packet) {
-                log(logs::eDEBUG,
+                log(logs::LEVEL::eDEBUG,
                     "This fragment is different from the existing one, updating map...",
-                    logs::to_color_string(logs::eBRIGHT_YELLOW_BG,
+                    logs::to_color_string(logs::COLOR::eBRIGHT_YELLOW_BG,
                                           "This fragment is different from the existing one, updating map..."));
                 it->second.m_map_recv_fragments.erase(it_fragment);
                 it->second.m_map_recv_fragments.insert(std::make_pair(received_pm.m_sn, received_pm));
             }
         }
     } else {
-        log(logs::eDEBUG, "fragment received, but will be processed later");
+        log(logs::LEVEL::eDEBUG, "fragment received, but will be processed later");
         it->second.m_map_recv_fragments.insert(std::make_pair(received_pm.m_sn, received_pm));
     }
 
@@ -109,7 +109,7 @@ void Socket::appendNewFragment(const PacketMessage& received_pm) noexcept {
         it->second.m_in_next_sn++;
 
         it_pool = it->second.m_map_recv_fragments.erase(it_pool);
-        log(logs::eDEBUG, "buildPacket(), new expected_sn:" + std::to_string(it->second.m_in_next_sn.get()));
+        log(logs::LEVEL::eDEBUG, "buildPacket(), new expected_sn:" + std::to_string(it->second.m_in_next_sn.get()));
         it_pool = it->second.m_map_recv_fragments.find(it->second.m_in_next_sn); //ищем следующий фрагмент очереди
     }
 
@@ -117,13 +117,13 @@ void Socket::appendNewFragment(const PacketMessage& received_pm) noexcept {
     if(it->second.m_in_sn_last_recv.get() > (it->second.m_in_sn_last_recv.size() / 2)
         || it->second.m_in_sn_last_recv.get_glob() > 0
         ) {
-        log(logs::eDEBUG,
+        log(logs::LEVEL::eDEBUG,
             "buildPacket(), rmSn=" + std::to_string(rmSn.get()),
-            logs::to_color_string(logs::eBRIGHT_YELLOW_BG, "buildPacket(), rmSn=" + std::to_string(rmSn.get())));
+            logs::to_color_string(logs::COLOR::eBRIGHT_YELLOW_BG, "buildPacket(), rmSn=" + std::to_string(rmSn.get())));
         it_pool = it->second.m_map_recv_fragments.begin();
         while(it_pool != it->second.m_map_recv_fragments.end()) {
             if(it_pool->first < rmSn) {
-                log(logs::eDEBUG,
+                log(logs::LEVEL::eDEBUG,
                     "buildPacket(), remove wait sn=" + std::to_string(it->second.m_in_next_sn.get()),
                     logs::to_color_string(logs::COLOR::eBRIGHT_YELLOW_BG,
                                           "buildPacket(), remove wait sn="
@@ -138,7 +138,7 @@ void Socket::appendNewFragment(const PacketMessage& received_pm) noexcept {
 }
 
 PacketMessage Socket::buildPacket(MapConnectionsIterator& it) noexcept {
-    log(logs::eDEBUG3, "buildPacket(), prepare to build");
+    log(logs::LEVEL::eDEBUG3, "buildPacket(), prepare to build");
     //попытаться собрать ОДИН пакет
     PacketMessage pm;
     pm.m_is_built_complete  = false;
@@ -156,7 +156,7 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) noexcept {
              it_build != it->second.m_map_recv_builded_messages.end(); it_build++) {
             if(!isFirstCounterSet) {
                 firstCounter = it_build->first;
-                log(logs::eDEBUG, "first sn: " + std::to_string(firstCounter.get()));
+                log(logs::LEVEL::eDEBUG, "first sn: " + std::to_string(firstCounter.get()));
                 isFirstCounterSet = true;
                 isStarted = true;
 
@@ -166,7 +166,7 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) noexcept {
 
             if(it_build->second.m_header.isLastFragment) {
                 lastCounter = it_build->first;
-                log(logs::eDEBUG, "last sn: " + std::to_string(lastCounter.get()));
+                log(logs::LEVEL::eDEBUG, "last sn: " + std::to_string(lastCounter.get()));
                 isFinished = true;
                 break;
             }
@@ -185,20 +185,20 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) noexcept {
             pm.m_is_error = true;
             pm.m_error.sn_finish = lastCounter;
 
-            log(logs::eDEBUG3, "~buildPacket(1), mapConnection size: " + std::to_string(m_map_connections.size()));
+            log(logs::LEVEL::eDEBUG3, "~buildPacket(1), mapConnection size: " + std::to_string(m_map_connections.size()));
             return pm;
         }
 
         //пакет соберётся, копируем в выходной PM.packet
         if(isStarted && isFinished) {
             for(const auto& _it : it->second.m_map_recv_builded_messages) {
-                log(logs::eDEBUG2,
+                log(logs::LEVEL::eDEBUG2,
                     "MAP: current fragment: [0x" + utils::ToHexString(_it.second.m_packet) + "]",
-                    logs::to_color_string(logs::eYELLOW_FG, "MAP: current fragment: [0x" + utils::ToHexString(_it.second.m_packet) + "]"));
+                    logs::to_color_string(logs::COLOR::eYELLOW_FG, "MAP: current fragment: [0x" + utils::ToHexString(_it.second.m_packet) + "]"));
             }
 
             pm.m_sn = firstCounter; //номер первого фрагмента для индикации доставки глобального сообщения
-            log(logs::eDEBUG, "built recv packet: sn=" + std::to_string(pm.m_sn.get()) + ", type=" + ToString(pm.m_header.type));
+            log(logs::LEVEL::eDEBUG, "built recv packet: sn=" + std::to_string(pm.m_sn.get()) + ", type=" + ToString(pm.m_header.type));
             //скопировать и удалить задействованные фрагменты
             bool this_last_fragment = false;
             EECounter counter = firstCounter;
@@ -209,10 +209,10 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) noexcept {
 
                 if(it_build->second.m_sn == lastCounter) {
                     this_last_fragment = true;
-                    log(logs::eDEBUG, "this fragment is last");
+                    log(logs::LEVEL::eDEBUG, "this fragment is last");
                 }
 
-                log(logs::eDEBUG2, "current fragment(sn:" + std::to_string(it_build->first.get())
+                log(logs::LEVEL::eDEBUG2, "current fragment(sn:" + std::to_string(it_build->first.get())
                                       + "): [0x" + utils::ToHexString(it_build->second.m_packet) + "]");
                 std::copy(std::begin(it_build->second.m_packet),
                           std::end(it_build->second.m_packet),
@@ -222,12 +222,12 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) noexcept {
 
                 if(this_last_fragment) break;
             }
-            log(logs::eDEBUG, "result packet: [0x" + utils::ToHexString(pm.m_packet) + "]");
+            log(logs::LEVEL::eDEBUG, "result packet: [0x" + utils::ToHexString(pm.m_packet) + "]");
 
             //дешифрация
             dechiphering(pm.m_packet);
             //проверка контрольной суммы
-            log(logs::eDEBUG2, "before CRC: " + utils::ToHexString(pm.m_packet));
+            log(logs::LEVEL::eDEBUG2, "before CRC: " + utils::ToHexString(pm.m_packet));
             switch(pm.m_header.crcLevel) {
             case eCRC_8:
                 pm.m_is_error = !utils::CheckCrc8(pm.m_packet);
@@ -244,7 +244,7 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) noexcept {
             default:
                 break;
             }
-            log(logs::eDEBUG2, "after CRC: " + utils::ToHexString(pm.m_packet));
+            log(logs::LEVEL::eDEBUG2, "after CRC: " + utils::ToHexString(pm.m_packet));
 
             uint16_t size = (pm.m_packet[0] << 8) + pm.m_packet[1];
             pm.m_packet.erase(pm.m_packet.begin(), pm.m_packet.begin() + 2); //размер поля данных
@@ -253,7 +253,7 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) noexcept {
                 pm.m_is_error = true;
                 pm.m_error.sn_finish = lastCounter;
 
-                log(logs::eERROR, "Bad result packet size: expected " + std::to_string(pm.m_packet.size())
+                log(logs::LEVEL::eERROR, "Bad result packet size: expected " + std::to_string(pm.m_packet.size())
                                       + ", but received " + std::to_string(size));
                 return pm;
             }
@@ -263,7 +263,7 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) noexcept {
         }
     }
 
-    log(logs::eDEBUG3, "~buildPacket(3), mapConnection size: " + std::to_string(m_map_connections.size()));
+    log(logs::LEVEL::eDEBUG3, "~buildPacket(3), mapConnection size: " + std::to_string(m_map_connections.size()));
     return pm;
 }
 
@@ -271,16 +271,16 @@ Socket::MapConnectionsIterator Socket::findOrCreateConnection(const IpPort &remo
     auto it = m_map_connections.find(remote_ip_port);
     if(it != m_map_connections.end()) return it;
 
-    log(logs::eDEBUG,
+    log(logs::LEVEL::eDEBUG,
         "add connection(1): " + remote_ip_port.toString()
             + ", map_size:" + std::to_string(m_map_connections.size()),
-        logs::to_color_string(logs::eBRIGHT_GREEN_BG, "add connection(1): " + remote_ip_port.toString())
+        logs::to_color_string(logs::COLOR::eBRIGHT_GREEN_BG, "add connection(1): " + remote_ip_port.toString())
             + ", " + "map_size:" + std::to_string(m_map_connections.size()));
     return m_map_connections.insert(std::make_pair(remote_ip_port, Connection())).first;
 }
 
 void Socket::updateLastOutputActivityTime(const IpPort& remote_ip_port) noexcept {
-    log(logs::eDEBUG2, "updateLastOutputActivityTime " + remote_ip_port.toString());
+    log(logs::LEVEL::eDEBUG2, "updateLastOutputActivityTime " + remote_ip_port.toString());
 
     auto it = m_map_connections.find(remote_ip_port);
     if(it == m_map_connections.end()) {
@@ -298,44 +298,45 @@ void Socket::log(const logs::LEVEL level, const std::string& log_message,
                  const std::string& color_log_message) noexcept {
     if(level > m_settings.getLogLevel()) return;
 
+    using namespace logs;
     LoggerSettings::LogCallback currentCallback         = nullptr;
     LoggerSettings::LogCallback currentColorCallback    = nullptr;
     std::string levelSubstring      = "";
     std::string timeString          = "";
     std::string coloredTimeString   = "";
     if(m_settings.isLogTimeEnabled()) {
-        timeString = logs::get_time_string() + " ";
+        timeString = get_time_string() + " ";
         if(timeString != m_last_time_string) {
             m_time_color_flag = !m_time_color_flag;
             m_last_time_string = timeString;
         }
 
-        std::vector<logs::COLOR> timeColor = {};
-        if(m_time_color_flag)   timeColor = {logs::eBLACK_BG, logs::eWHITE_FG};
-        else                    timeColor = {logs::eBLACK_BG, logs::eBRIGHT_GRAY_FG};
+        std::vector<Color> timeColor = {};
+        if(m_time_color_flag)   timeColor = {Color(COLOR::eBLACK_BG), Color(COLOR::eWHITE_FG)};
+        else                    timeColor = {Color(COLOR::eBLACK_BG), Color(COLOR::eBRIGHT_GRAY_FG)};
 
-        coloredTimeString = logs::to_color_string(timeColor, logs::get_time_string()) + " ";
+        coloredTimeString = to_color_string(timeColor, get_time_string()) + " ";
     }
 
     switch(level) {
-    case logs::eWARNING:
+    case LEVEL::eWARNING:
         currentCallback         = m_settings.getLogCallback();
         currentColorCallback    = m_settings.getColorLogCallback();
         levelSubstring          = ".w";
         break;
-    case logs::eINFO:
+    case LEVEL::eINFO:
         currentCallback         = m_settings.getLogCallback();
         currentColorCallback    = m_settings.getColorLogCallback();
         levelSubstring          = ".i";
         break;
-    case logs::eDEBUG:
-    case logs::eDEBUG2:
-    case logs::eDEBUG3:
+    case LEVEL::eDEBUG:
+    case LEVEL::eDEBUG2:
+    case LEVEL::eDEBUG3:
         currentCallback         = m_settings.getLogCallback();
         currentColorCallback    = m_settings.getColorLogCallback();
         levelSubstring          = ".d";
         break;
-    case logs::eERROR:
+    case LEVEL::eERROR:
         currentCallback         = m_settings.getLogErrorCallback();
         currentColorCallback    = m_settings.getColorLogErrorCallback();
         levelSubstring          = ".e";
@@ -351,12 +352,12 @@ void Socket::log(const logs::LEVEL level, const std::string& log_message,
     if(currentCallback)
         currentCallback(
             timeString
-            + logs::columned(std::string("[")
-                                 + ToString(m_socket_type)
-                                 + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
-                                 + "]",
-                             m_settings.getNameColumnSize(),
-                             m_settings.isNameColumnRightAlignEnabled())
+            + columned(std::string("[")
+                           + ToString(m_socket_type)
+                           + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
+                           + "]",
+                       m_settings.getNameColumnSize(),
+                       m_settings.isNameColumnRightAlignEnabled())
             + " "
             + log_message
             + "\n"
@@ -365,12 +366,12 @@ void Socket::log(const logs::LEVEL level, const std::string& log_message,
     if(currentColorCallback)
         currentColorCallback(
             coloredTimeString
-            + logs::columned(level, std::string("[")
-                                        + ToString(m_socket_type)
-                                        + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
-                                        + "]",
-                             m_settings.getNameColumnSize(),
-                             m_settings.isNameColumnRightAlignEnabled())
+            + columned(level, std::string("[")
+                                  + ToString(m_socket_type)
+                                  + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
+                                  + "]",
+                       m_settings.getNameColumnSize(),
+                       m_settings.isNameColumnRightAlignEnabled())
             + " "
             + (color_log_message.empty() ? log_message : color_log_message)
             + "\n"
@@ -378,7 +379,7 @@ void Socket::log(const logs::LEVEL level, const std::string& log_message,
 }
 
 bool Socket::sendRawMsg(const PacketMessage &packet_message) noexcept {
-    log(logs::eDEBUG2, std::string("sendRaw ")
+    log(logs::LEVEL::eDEBUG2, std::string("sendRaw ")
                           + "(" + std::to_string(packet_message.m_packet.size()) + ")"
                           + "[0x" + utils::ToHexString(packet_message.m_packet) + "] "
                           + packet_message.m_ip_port.toString("to"));
@@ -388,7 +389,7 @@ bool Socket::sendRawMsg(const PacketMessage &packet_message) noexcept {
 void Socket::close() noexcept {
     if(m_socket_fd) {
         ::close(m_socket_fd);
-        log(logs::eWARNING, "The socket " + IpPort{m_local_ip, m_local_port}.toString() + " has been freed");
+        log(logs::LEVEL::eWARNING, "The socket " + IpPort{m_local_ip, m_local_port}.toString() + " has been freed");
         m_socket_fd = -1;
     }
 }
@@ -398,7 +399,7 @@ void UDPSocket::sendFragments(const IpPort &remote_ip_port, const PacketType typ
     Config json;
     json.parseJson(ConvertFromPacket(packet));
 
-    log(type != eControlType ? logs::eINFO : logs::eDEBUG,
+    log(type != eControlType ? logs::LEVEL::eINFO : logs::LEVEL::eDEBUG,
         "Send: " + ToString(type) + " "
             + (json.isEmpty() ? "[Data:0x" + utils::ToHexString(packet) + "]"
                               : "[Json:" + json.toString() + "]"
@@ -563,7 +564,7 @@ void UDPSocket::sendFragments(const IpPort &remote_ip_port, const PacketType typ
         JsonMessage jm = pm;
         std::string appendString = "";
         appendString = "to map_global_packets, size: " + std::to_string(m_sent_global_packets.size());
-        log(logs::eDEBUG,
+        log(logs::LEVEL::eDEBUG,
             "append ["
                 + (jm.m_json.isEmpty() ? "Data:0x" + utils::ToHexString(pm.m_packet)
                                      : "Json:" + jm.m_json.toString())
@@ -598,7 +599,7 @@ void UDPSocket::tick() noexcept {
             jProc.append(it_json->second);
 
         if(!jProc.isEmpty()) {
-            log(logs::eDEBUG2, "send ack: " + jProc.toString() + b_pm.m_ip_port.toString("to"));
+            log(logs::LEVEL::eDEBUG2, "send ack: " + jProc.toString() + b_pm.m_ip_port.toString("to"));
             sendFragments(it->first, eControlType, ConvertToPacket(jProc.toString()), false);
         }
     }
@@ -613,7 +614,7 @@ void UDPSocket::tick() noexcept {
 }
 
 void UDPSocket::checkConnections() noexcept {
-    log(logs::eDEBUG2, "checkConnections()");
+    log(logs::LEVEL::eDEBUG2, "checkConnections()");
 
     Config jPing(ValueType::eJson, "ping", getLocalIpPort().toString());
 
@@ -632,12 +633,12 @@ void UDPSocket::checkConnections() noexcept {
         auto _inactivity = std::chrono::milliseconds(m_settings.getInactivityTimer());
         auto _halfInactivity = std::chrono::milliseconds(m_settings.getInactivityTimer() / 2);
         //если не было сообщений ОТ адреса дольше this->inactivityTimer/2, то отправить пинг
-        log(logs::eDEBUG3, "checkConnections(), pings");
+        log(logs::LEVEL::eDEBUG3, "checkConnections(), pings");
         if(it->second.m_last_output_activity + _halfInactivity < _now
             && it->second.m_last_input_activity + _halfInactivity < _now
             ) {
-            log(logs::eDEBUG2, "Send ping to " + it->first.toString());
-            log(logs::eDEBUG3, "Expected time: " + logs::get_time_string(it->second.m_last_output_activity + _halfInactivity));
+            log(logs::LEVEL::eDEBUG2, "Send ping to " + it->first.toString());
+            log(logs::LEVEL::eDEBUG3, "Expected time: " + logs::get_time_string(it->second.m_last_output_activity + _halfInactivity));
             sendFragments(it->first, eControlType, ConvertToPacket(jPing.toString()), false);
             it->second.m_last_output_activity = std::chrono::system_clock::now();
             continue;
@@ -645,9 +646,9 @@ void UDPSocket::checkConnections() noexcept {
 
         IpPort _currentIpPort = it->first;
         //если долгое время не было сообщений от абонента, удалить все сообщения до него
-        log(logs::eDEBUG3, "checkConnections(), bad connection");
+        log(logs::LEVEL::eDEBUG3, "checkConnections(), bad connection");
         if(it->second.m_last_input_activity + _inactivity < _now) {
-            log(logs::eWARNING,
+            log(logs::LEVEL::eWARNING,
                 "Connection " + _currentIpPort.toString()
                     + " removed, last activity at "
                     + logs::get_time_string(it->second.m_last_input_activity),
@@ -661,7 +662,7 @@ void UDPSocket::checkConnections() noexcept {
                 m_settings.getConnectionResetCallback()(_currentIpPort);
 
             //удаление всех фрагментов, которые находятся в очереди отправки, с совпадающим адресатом
-            log(logs::eDEBUG3, "checkConnections(), removing fragments");
+            log(logs::LEVEL::eDEBUG3, "checkConnections(), removing fragments");
             for(auto it2 = m_map_auto_sent_packets.begin(); it2 != m_map_auto_sent_packets.end(); it2++) {
                 if(it2->second.m_ip_port == it->first)
                     it2 = m_map_auto_sent_packets.erase(it2);
@@ -671,7 +672,7 @@ void UDPSocket::checkConnections() noexcept {
             }
 
             //перепосылка недоставленных глобальных пакетов ==================================
-            log(logs::eDEBUG3, "checkConnections(), prepare to resend global packets");
+            log(logs::LEVEL::eDEBUG3, "checkConnections(), prepare to resend global packets");
             m_output_threads_mutex.lock();
             for(auto it_global_packet = m_sent_global_packets.begin();
                  it_global_packet != m_sent_global_packets.end(); it_global_packet++
@@ -695,10 +696,10 @@ void UDPSocket::checkConnections() noexcept {
     }
 
     //перепосылка недоставленных глобальных пакетов ==================================
-    log(logs::eDEBUG3, "checkConnections(), send found prepared packets");
+    log(logs::LEVEL::eDEBUG3, "checkConnections(), send found prepared packets");
     for(const prepPacket& current : packetsForSend) {
         if(!current.packet.empty() && current.type != eControlType) {
-            log(logs::eDEBUG, "New try to send global packet " + ToString(current.type)
+            log(logs::LEVEL::eDEBUG, "New try to send global packet " + ToString(current.type)
                                   + " [0x" + utils::ToHexString(current.packet) + "]");
             sendFragments(current.ipPort, current.type, current.packet); //переотправка
         }
@@ -707,7 +708,7 @@ void UDPSocket::checkConnections() noexcept {
 }
 
 void UDPSocket::sendAutoMsg() noexcept {
-    log(logs::eDEBUG2, "sendAutoMsg()");
+    log(logs::LEVEL::eDEBUG2, "sendAutoMsg()");
 
     int counter = 0; //общий счётчик за проход функции
 
@@ -723,7 +724,7 @@ void UDPSocket::sendAutoMsg() noexcept {
         if(tp < std::chrono::system_clock::now()) { //нужно переотправить
             it = m_map_auto_sent_packets.erase(it);
             m_send_packets_buffer.push_front(pm);
-            log(logs::eDEBUG, "New try to send [" + std::to_string(it->second.m_sn.get()) + "] fragment");
+            log(logs::LEVEL::eDEBUG, "New try to send [" + std::to_string(it->second.m_sn.get()) + "] fragment");
 
 //            counter++; скорее всего не нужно
             if(it == m_map_auto_sent_packets.end()) break;
@@ -743,9 +744,9 @@ void UDPSocket::sendAutoMsg() noexcept {
         if(m_settings.isChipheringEnabled()
             && !connection_it->second.m_chip_key.key.empty()
             ) {
-            log(logs::eDEBUG, "send chiphering message...");
+            log(logs::LEVEL::eDEBUG, "send chiphering message...");
             sendFragments(it->m_ip_port, eDataType, it->m_packet);   //внутри используется мьютекс
-//            log(logs::eDEBUG, "chiphering message sent.");      //TEST
+//            log(logs::LEVEL::eDEBUG, "chiphering message sent.");      //TEST
 
             //запоминание отправленных шифрованных пакетов
 
@@ -765,7 +766,7 @@ void UDPSocket::sendAutoMsg() noexcept {
            ) {
         PacketMessage pm = m_send_packets_buffer.front();
         m_send_packets_buffer.pop_front();
-        log(logs::eDEBUG,
+        log(logs::LEVEL::eDEBUG,
             "Sending sn[" + std::to_string(pm.m_sn.get()) + "] fragment, data:[0x"
                 + utils::ToHexString(pm.m_packet) + "] " + pm.m_ip_port.toString("to"),
             logs::to_color_string(OUTPUT_MSG_COLOR,"Sending")
@@ -789,7 +790,7 @@ void UDPSocket::sendAutoMsg() noexcept {
 }
 
 Config UDPSocket::recvAutoMsg(int timeout) noexcept {
-    log(logs::eDEBUG2, "recvAutoMsg()");
+    log(logs::LEVEL::eDEBUG2, "recvAutoMsg()");
 
     Config outputJson;
     PacketMessage pm = recvRawMsg(1);
@@ -805,7 +806,7 @@ Config UDPSocket::recvAutoMsg(int timeout) noexcept {
     pm.m_sn.set_pos(sn);
     pm.m_packet.erase(pm.m_packet.begin(), pm.m_packet.begin() + 3); //удалить первые три байта
 
-    log(logs::eDEBUG2,
+    log(logs::LEVEL::eDEBUG2,
         "Received [" + std::to_string(sn) + "] sn fragment of type "
             + ToString(pm.m_header.type)
             + ", data:[0x"
@@ -820,11 +821,11 @@ Config UDPSocket::recvAutoMsg(int timeout) noexcept {
     auto it = m_map_connections.find(pm.m_ip_port);
     if(it == m_map_connections.end() && pm.m_header.type == eControlType) {
         //если первый пакет от адресата является контрольным и НЕ требует отчёта о доставке
-        log(logs::eDEBUG,
+        log(logs::LEVEL::eDEBUG,
             "Send initial ping for message sn=" + std::to_string(pm.m_sn.get())
                 + " " + pm.m_ip_port.toString(),
             "Send initial ping for message sn=" + std::to_string(pm.m_sn.get())
-                + " " + logs::to_color_string(logs::eRED_BG, pm.m_ip_port.toString()));
+                + " " + logs::to_color_string(logs::COLOR::eRED_BG, pm.m_ip_port.toString()));
         outputJson.push_at("ping", getLocalIpPort().toString());
     }
 
@@ -840,7 +841,7 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
     JsonMessage jm = pm;
 
     if(!pm.m_packet.empty()) {
-        log(pm.m_header.type != eControlType ? logs::eINFO : logs::eDEBUG,
+        log(pm.m_header.type != eControlType ? logs::LEVEL::eINFO : logs::LEVEL::eDEBUG,
             "Built packet: "+ ToString(pm.m_header.type) + " ["
                 + (jm.m_json.isEmpty() ? "Data:0x" + utils::ToHexString(pm.m_packet)
                                      : "Json:" + jm.m_json.toString())
@@ -851,11 +852,11 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                 + "] " + pm.m_ip_port.toString("from"));
 
         //обработка собранного пакета (1 за проход)
-        log(logs::eDEBUG, "pm.m_header.type: " + ToString(pm.m_header.type));
+        log(logs::LEVEL::eDEBUG, "pm.m_header.type: " + ToString(pm.m_header.type));
         if(pm.m_header.type == eControlType) {
             if(jm.m_json.containsKey("ack_sn")) {
                 uint8_t sn = jm.m_json["ack_sn"].getNumber();
-                log(logs::eDEBUG,
+                log(logs::LEVEL::eDEBUG,
                     "erasing sn[" + jm.m_json["ack_sn"].toString() + "]",
                     logs::to_color_string(logs::COLOR::eBRIGHT_MAGENTA_BG,
                                           "erasing sn[" + jm.m_json["ack_sn"].toString() + "]"));
@@ -878,7 +879,7 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                         jm = tempPM;
                         std::string appendString = "";
                         appendString = ", map_global_packets size: " + std::to_string(m_sent_global_packets.size());
-                        log(it->m_header.type != eControlType ? logs::eINFO : logs::eDEBUG,
+                        log(it->m_header.type != eControlType ? logs::LEVEL::eINFO : logs::LEVEL::eDEBUG,
                             "Message delivered ["
                                 + (jm.m_json.isEmpty() ? "Data:0x" + utils::ToHexString(tempPM.m_packet)
                                                      : "Json:" + jm.m_json.toString())
@@ -921,7 +922,7 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                 m_output_threads_mutex.unlock();
 
                 if(!packet.empty() && type != eControlType) {
-                    log(logs::eDEBUG, "New try to send packet fragment " + ToString(type)
+                    log(logs::LEVEL::eDEBUG, "New try to send packet fragment " + ToString(type)
                                           + " [0x" + utils::ToHexString(packet) + "]");
                     sendFragments(ipPort, type, packet); //переотправка
                 }
@@ -933,7 +934,7 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                     switch(it_req.second->getType()) {
                     case ValueType::eString: {
                         if(it_req.second->getString() == "chip_key") {
-                            log(logs::eDEBUG, "append chiphering key");
+                            log(logs::LEVEL::eDEBUG, "append chiphering key");
                             Config jChipKey;
                             jChipKey.push_at("key", "abcdefgjiklmnopqrstuvwxyz0123456789");
                             sendFragments(pm.m_ip_port, eControlType, ConvertToPacket(jChipKey.toString()));
@@ -956,14 +957,14 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
         } else {
             m_input_threads_mutex.lock();
             if(jm.m_json.isEmpty()) {
-                log(logs::eDEBUG2,
+                log(logs::LEVEL::eDEBUG2,
                     "insert packet " + ToString(pm.m_header.type) + " to storage",
-                    logs::to_color_string({logs::eGRAY_BG, logs::eWHITE_FG}, "insert packet " + ToString(pm.m_header.type) + " to storage"));
+                    logs::to_color_string({logs::COLOR::eGRAY_BG, logs::COLOR::eWHITE_FG}, "insert packet " + ToString(pm.m_header.type) + " to storage"));
                 m_map_recv_packets_buffer.push_back(pm);
             } else {
-                log(logs::eDEBUG2,
+                log(logs::LEVEL::eDEBUG2,
                     "insert packet " + ToString(pm.m_header.type) + " to storage",
-                    logs::to_color_string({logs::eGRAY_BG, logs::eWHITE_FG}, "insert packet " + ToString(pm.m_header.type) + " to storage"));
+                    logs::to_color_string({logs::COLOR::eGRAY_BG, logs::COLOR::eWHITE_FG}, "insert packet " + ToString(pm.m_header.type) + " to storage"));
                 m_map_recv_jsons_buffer.push_back(jm);
             }
             m_input_threads_mutex.unlock();
@@ -1003,11 +1004,11 @@ bool UDPSocket::sendRawMsg(const std::string &remote_ip, const uint16_t remote_p
     sock.sin_family = AF_INET;
     sock.sin_port = htons(remote_port);
     if(!inet_pton(AF_INET, remote_ip.c_str(), &sock.sin_addr.s_addr))
-        log(logs::eERROR, "inet_pton() failed, error(" + std::to_string(errno) + ")");
+        log(logs::LEVEL::eERROR, "inet_pton() failed, error(" + std::to_string(errno) + ")");
     int res = sendto(m_socket_fd, (char*)packet.data(), packet.size(), 0,
                      (struct sockaddr*)&sock, sizeof(struct sockaddr_in));
     if(res < 0) {
-        log(logs::eERROR, "sendTo() failed, error(" + std::to_string(errno) + ")");
+        log(logs::LEVEL::eERROR, "sendTo() failed, error(" + std::to_string(errno) + ")");
         return false;
     }
     return res > 0;
@@ -1033,7 +1034,7 @@ PacketMessage UDPSocket::recvRawMsg(int timeout) noexcept {
     recv_num = select(m_socket_fd + 1, &fds, NULL, NULL, (timeout > 0 ? &t : NULL));
     if(recv_num < 0) {
         if(errno != EINTR) /* Interrupted system call */
-            log(logs::eERROR, "select() failed, error(" + std::to_string(errno) + ")");
+            log(logs::LEVEL::eERROR, "select() failed, error(" + std::to_string(errno) + ")");
         return PacketMessage();
     }
     if(recv_num > 0) {
@@ -1043,7 +1044,7 @@ PacketMessage UDPSocket::recvRawMsg(int timeout) noexcept {
     }
 
     if(recv_num < 0) {
-        log(logs::eERROR, "recvfrom() failed, error(" + std::to_string(errno) + ")");
+        log(logs::LEVEL::eERROR, "recvfrom() failed, error(" + std::to_string(errno) + ")");
     } else if(recv_num > 0) {
         char rpacket_ip[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &(sock.sin_addr), (char*)rpacket_ip, INET_ADDRSTRLEN);
@@ -1053,7 +1054,7 @@ PacketMessage UDPSocket::recvRawMsg(int timeout) noexcept {
         rpacket.m_ip_port.port  = ntohs(sock.sin_port);
         rpacket.m_packet        = Packet(buf, buf + recv_num);
 
-        log(logs::eDEBUG2, std::string("recvRaw ")
+        log(logs::LEVEL::eDEBUG2, std::string("recvRaw ")
                               + "(" + std::to_string(rpacket.m_packet.size()) + ")"
                               + "[0x" + utils::ToHexString(rpacket.m_packet) + "] "
                               + rpacket.m_ip_port.toString("from"));
@@ -1081,7 +1082,7 @@ void UDPSocket::open(const uint16_t local_port, const std::string& local_ip) noe
     // create
     m_socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (m_socket_fd < 0)
-        log(logs::eERROR, "socket() failed, error(" + std::to_string(errno) + ")");
+        log(logs::LEVEL::eERROR, "socket() failed, error(" + std::to_string(errno) + ")");
 
     // bind
     struct sockaddr_in sock;
@@ -1091,11 +1092,11 @@ void UDPSocket::open(const uint16_t local_port, const std::string& local_ip) noe
         sock.sin_addr.s_addr = INADDR_ANY;
     else {
         if(!inet_pton(AF_INET, local_ip.c_str(), &sock.sin_addr.s_addr))
-            log(logs::eERROR, "inet_pton() failed, error(" + std::to_string(errno) + ")");
+            log(logs::LEVEL::eERROR, "inet_pton() failed, error(" + std::to_string(errno) + ")");
     }
     int res = bind(m_socket_fd, (struct sockaddr*)&sock, sizeof(sock));
     if(res < 0) {
-        log(logs::eERROR, "bind() failed with localIP(" + local_ip + ")"
+        log(logs::LEVEL::eERROR, "bind() failed with localIP(" + local_ip + ")"
                               + ", port(" + std::to_string(local_port) + "), error("
                               + std::to_string(errno) + ")");
         close();
@@ -1104,7 +1105,7 @@ void UDPSocket::open(const uint16_t local_port, const std::string& local_ip) noe
 
     char str[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &(sock.sin_addr.s_addr), str, INET_ADDRSTRLEN);
-    log(logs::eWARNING, "Socket binded at " + IpPort{str, local_port}.toString());
+    log(logs::LEVEL::eWARNING, "Socket binded at " + IpPort{str, local_port}.toString());
 }
 
 bool UDPSocket::isConnected(const IpPort &remote_ip_port) noexcept {

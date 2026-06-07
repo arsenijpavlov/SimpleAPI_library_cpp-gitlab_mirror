@@ -42,6 +42,41 @@ if(NOT TARGET ${PROJECT_NAME})
         add_library(${PROJECT_NAME} SHARED)
     endif()
 
+    # Определить версию библиотеки =========================================
+    # Предварительное заполнение
+    set(SIMPLEAPI_VERSION "UNKNOWN(git/.git not found)")
+    set(SIMPLEAPI_VERSION_NAME "UNKNOWN(git/.git not found)")
+    set(SIMPLEAPI_VERSION_COMMIT "UNKNOWN(git/.git not found)")
+    # Выяснение версии
+    find_package(Git)
+    if(GIT_FOUND)
+        execute_process(
+            COMMAND "${GIT_EXECUTABLE}" "describe" "--tags" "--match=v[0-9.-a-zA-Z_\(\)]*" "--long"
+            OUTPUT_VARIABLE version_founder
+        )
+
+        string(REGEX MATCH "^(v[0-9.-]*)[_]*([_a-zA-Z0-9.,-]*)-([0-9]+)-g([a-fA-F0-9]+)" MATCHED_TEXT "${version_founder}")
+        if(MATCHED_TEXT)
+            set(SIMPLEAPI_VERSION "\"${CMAKE_MATCH_1}-b${CMAKE_MATCH_3}\"")
+            string(REPLACE "-b0" "" SIMPLEAPI_VERSION "${SIMPLEAPI_VERSION}" )
+
+            set(SIMPLEAPI_VERSION_NAME "\"${CMAKE_MATCH_2}\"")
+            string(REPLACE "_" " " SIMPLEAPI_VERSION_NAME "${SIMPLEAPI_VERSION_NAME}" )
+
+            set(SIMPLEAPI_VERSION_COMMIT "\"${CMAKE_MATCH_4}\"")
+        endif(MATCHED_TEXT)
+    endif()
+    message("SimpleAPI version:        ${SIMPLEAPI_VERSION}")
+    message("SimpleAPI version name:   ${SIMPLEAPI_VERSION_NAME}")
+    message("SimpleAPI version commit: ${SIMPLEAPI_VERSION_COMMIT}")
+    # ========================================= Определить версию библиотеки
+
+    target_compile_definitions(${PROJECT_NAME} PRIVATE
+        SIMPLEAPI_VERSION=${SIMPLEAPI_VERSION}
+        SIMPLEAPI_VERSION_NAME=${SIMPLEAPI_VERSION_NAME}
+        SIMPLEAPI_VERSION_COMMIT=${SIMPLEAPI_VERSION_COMMIT}
+    )
+
     target_sources(${PROJECT_NAME} PRIVATE
         ${${PROJECT_NAME}_sources}
         ${${PROJECT_NAME}_headers}

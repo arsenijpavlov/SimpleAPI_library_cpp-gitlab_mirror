@@ -5,19 +5,21 @@
 #include <unistd.h>
 #include <iostream>
 
-#define MAIN_COLOR logs::eCYAN_FG
-#define NAME_COLUMN_SIZE 16
+#define MAIN_COLOR              { Color(logs::COLOR::eCYAN_FG) }
+#define NAME_COLUMN_SIZE        16
 #define NAME_COLUMN_RIGHT_ALIGN true
 
 using namespace simpleapi;
 
-logs::LEVEL common_log_level = logs::eDEBUG;
+logs::LEVEL common_log_level = logs::LEVEL::eDEBUG;
 void ParseParameters(int argc, char** argv) {
+    using namespace logs;
+
     for(int i = 1; i < argc; i++) {
         std::string str = argv[i];
         std::smatch match_log_level;
         if(std::regex_search(str, match_log_level, std::regex("log_level=([0-9]+)"))) {
-            common_log_level = static_cast<logs::LEVEL>(std::stoi(match_log_level.str(1)));
+            common_log_level = static_cast<LEVEL>(std::stoi(match_log_level.str(1)));
             std::cout << "set LOG LEVEL to " << to_string(common_log_level) << std::endl;
         }
     }
@@ -32,6 +34,8 @@ void signalHandler(int signal) {
 }
 
 void RecvData(PacketMessage pm) {
+    using namespace logs;
+
     std::cout << logs::get_time_string() << " "
               << logs::columned(MAIN_COLOR, "[SERVER]",
                                 NAME_COLUMN_SIZE,
@@ -44,11 +48,13 @@ bool isNeedAck = false;
 Config jsonAck;
 IpPort ipPortAck;
 void RecvJson(JsonMessage jm) {
+    using namespace logs;
+
     std::cout << logs::get_time_string() << " "
               << logs::columned(MAIN_COLOR, "[SERVER]",
                                 NAME_COLUMN_SIZE,
                                 NAME_COLUMN_RIGHT_ALIGN) << " "
-              << logs::to_color_string({logs::COLOR::eGREEN_BG, logs::COLOR::eWHITE_FG},
+              << logs::to_color_string({COLOR::eGREEN_BG, COLOR::eWHITE_FG},
                                        "recv json: " + jm.toString())
               << std::endl;
 

@@ -680,6 +680,8 @@ Config Config::get_at(const size_t& index) const {
 }
 
 Config &Config::get_at(const std::string& key) {
+    try_convert_null_to_json();
+
     __CHECK_TYPE_IS_JSON__((*this))
     return dynamic_cast<tools::ElementJson*>(m_value)->get_at(key);
 }

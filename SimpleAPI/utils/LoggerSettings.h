@@ -25,7 +25,7 @@ protected:
 public:
     LoggerSettings() noexcept :
         m_log_level_print           (true),
-        m_log_level                 (logs::eINFO),
+        m_log_level                 (logs::LEVEL::eINFO),
         m_log_time_print            (false),
         m_name_column_size          (-1),
         m_name_column_right_align   (false),
@@ -43,7 +43,8 @@ public:
     bool isNameColumnRightAlignEnabled() noexcept                   { return m_name_column_right_align; }
 
     void setNameColumnSize(int size = -1) noexcept                  { m_name_column_size = size; }
-    void setLogLevel(logs::LEVEL level = logs::eINFO) noexcept      { m_log_level = level; }
+    void setLogLevel(logs::LEVEL level = logs::LEVEL::eINFO) noexcept
+                                                                    { m_log_level = level; }
     void setLogCallback(LogCallback callback = nullptr) noexcept    { m_log_callback = callback; }
     void setLogErrorCallback(LogCallback callback = nullptr) noexcept
                                                                     { m_log_error_callback = callback; }

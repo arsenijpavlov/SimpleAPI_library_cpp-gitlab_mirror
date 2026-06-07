@@ -445,13 +445,13 @@ private:
 public:
 
     // вложенные контейнеры
-    //TODO: преобразование eNull в eJson и eArray при необходимости
     // @complex_key - список индексов/ключей: {1, "k1", 2} -> el[1]["k1"][2]
     Config&         get_front();                                                                                            API_CONTAINER
     Config          get_front()                                                                 const;                      API_CONTAINER
 
     Config&         get_at(const size_t& index);                                                                            API_CONTAINER
     Config          get_at(const size_t& index)                                                  const;                     API_CONTAINER
+    //NOTE: есть преобразование eNull в eJson и eArray при необходимости (запрос ещё не созданных пекременных) (только для &)
     Config&         get_at(const std::string& key);                                                                         API_MAP_CONTAINER
     Config          get_at(const std::string& key)                                              const;                      API_MAP_CONTAINER
     Config&         get_at(const std::vector<OnlySizetOrString>& complex_key);                                              API_CONTAINER
@@ -809,7 +809,6 @@ public:
     bool            operator<=(const Config& other)         const                   { return size() <= other.size(); }          API_ALL
 
     //контейнеры
-    //TODO: преобразование eNull в eJson и eArray при необходимости
     Config&         operator[](const size_t& index)                                 { return get_at(index); }                   API_CONTAINER
     Config          operator[](const size_t& index)          const                  { return get_at(index); }                   API_CONTAINER
     Config&         operator[](const std::string& key)                              { return get_at(key); }                     API_CONTAINER
