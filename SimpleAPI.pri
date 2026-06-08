@@ -21,30 +21,9 @@
     }
 
     # Определить версию библиотеки =========================================
-    # TODO: решить через QMAKE_RUN_CXX = ./script.h && ${QMAKE_RUN_CXX}
-
-    # должно быть совместимо с Qt 4.7 и выше
-    VERSION_INFO_FILE_ABS = "$${PWD}/SimpleAPI/VersionInfo.h"
-    VERSION_INFO_FILE_REL = $$relative_path("$${VERSION_INFO_FILE_ABS}")
-
-    version_info_target.target = "$${VERSION_INFO_FILE_REL}"
-    version_info_target.commands = bash \"$${PWD}/scripts/check_version_from_git.sh\"
-    version_info_compiler.input = $$relative_path($${PWD}/scripts/TEMPLATE_VersionInfo.h)
-    version_info_compiler.output = $${VERSION_INFO_FILE_REL}
-
-    version_info_target.CONFIG += no_link target_predeps
-
-    # возможно, лишняя команда
-    version_info_target.depends = FORCE
-
-    # регистрация цели
-#    QMAKE_EXTRA_TARGETS += version_info_target
-    QMAKE_EXTRA_COMPILERS += version_info_target
-
-    # правило выполнения скрипта перед каждой компиляцией
-    QMAKE_DISTCLEAN += $${VERSION_INFO_FILE_REL} # доп. правило при использовании старого Qt
-    PRE_TARGETDEPS += $${VERSION_INFO_FILE_REL}
-
-    INCLUDEPATH += $${SIMPLEAPI_PWD}/SimpleAPI
+    # вшиваем запуск генерации информации о версии в каждый вызов компилятора
+    QMAKE_CC = $${SIMPLEAPI_PWD}/scripts/check_version_from_git.sh && $${QMAKE_CC}
+    QMAKE_CXX = $${SIMPLEAPI_PWD}/scripts/check_version_from_git.sh && $${QMAKE_CXX}
+    # ========================================= Определить версию библиотеки
 }
 
