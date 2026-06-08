@@ -5,7 +5,8 @@
 
 namespace simpleapi {
 
-std::vector<std::string> utils::GetAllFilesByMask(const std::string &path_to_dir, const std::string &regex) noexcept
+std::vector<std::string> utils::GetAllFilesByMask(const std::string &path_to_dir, const std::string &regex,
+                                                  const int& max_level) noexcept
 {
     std::vector<std::string> ret;
 
@@ -28,6 +29,8 @@ std::vector<std::string> utils::GetAllFilesByMask(const std::string &path_to_dir
         //пропускаем ссылки на текущую директорию и на предыдущую
         if(name == "." || name == "..")
             continue;
+
+        //TODO: нужны рекурсивные вызовы
 
         //проверка маски по regex
         if(std::regex_match(name, reg) && entry->d_type != DT_DIR)
