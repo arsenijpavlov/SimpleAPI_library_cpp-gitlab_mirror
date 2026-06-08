@@ -9,6 +9,8 @@
 #include "network/Socket.h"
 #include "network/SocketThread.h"
 
+#include "utils/FileUtils.h"
+
 
 namespace simpleapi {
 
