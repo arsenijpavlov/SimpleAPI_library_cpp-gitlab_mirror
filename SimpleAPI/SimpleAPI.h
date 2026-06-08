@@ -18,4 +18,7 @@ std::string GetVersionName();
 std::string GetVersionCommit();
 std::string GetFullVersionInfo();
 
+//TODO: нужно обновление скрипта check_version_from_git.sh для параллельного выполнения в пределах Makefile (QMake)
+//TODO: описать в документации версионирование проекта
+
 } // namespace simpleapi
