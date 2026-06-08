@@ -42,41 +42,6 @@ if(NOT TARGET ${PROJECT_NAME})
         add_library(${PROJECT_NAME} SHARED)
     endif()
 
-    # Определить версию библиотеки =========================================
-    # Предварительное заполнение
-    set(SIMPLEAPI_VERSION "UNKNOWN(git/.git not found)")
-    set(SIMPLEAPI_VERSION_NAME "UNKNOWN(git/.git not found)")
-    set(SIMPLEAPI_VERSION_COMMIT "UNKNOWN(git/.git not found)")
-    # Выяснение версии
-    find_package(Git)
-    if(GIT_FOUND)
-        execute_process(
-            COMMAND "${GIT_EXECUTABLE}" "describe" "--tags" "--match=v[0-9.-a-zA-Z_\(\)]*" "--long"
-            OUTPUT_VARIABLE version_founder
-        )
-
-        string(REGEX MATCH "^(v[0-9.-]*)[_]*([_a-zA-Z0-9.,-]*)-([0-9]+)-g([a-fA-F0-9]+)" MATCHED_TEXT "${version_founder}")
-        if(MATCHED_TEXT)
-            set(SIMPLEAPI_VERSION "\"${CMAKE_MATCH_1}-b${CMAKE_MATCH_3}\"")
-            string(REPLACE "-b0" "" SIMPLEAPI_VERSION "${SIMPLEAPI_VERSION}" )
-
-            set(SIMPLEAPI_VERSION_NAME "\"${CMAKE_MATCH_2}\"")
-            string(REPLACE "_" " " SIMPLEAPI_VERSION_NAME "${SIMPLEAPI_VERSION_NAME}" )
-
-            set(SIMPLEAPI_VERSION_COMMIT "\"${CMAKE_MATCH_4}\"")
-        endif(MATCHED_TEXT)
-    endif()
-    message("SimpleAPI version:        ${SIMPLEAPI_VERSION}")
-    message("SimpleAPI version name:   ${SIMPLEAPI_VERSION_NAME}")
-    message("SimpleAPI version commit: ${SIMPLEAPI_VERSION_COMMIT}")
-    # ========================================= Определить версию библиотеки
-
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
-        SIMPLEAPI_VERSION=${SIMPLEAPI_VERSION}
-        SIMPLEAPI_VERSION_NAME=${SIMPLEAPI_VERSION_NAME}
-        SIMPLEAPI_VERSION_COMMIT=${SIMPLEAPI_VERSION_COMMIT}
-    )
-
     target_sources(${PROJECT_NAME} PRIVATE
         ${${PROJECT_NAME}_sources}
         ${${PROJECT_NAME}_headers}
@@ -90,11 +55,33 @@ if(NOT TARGET ${PROJECT_NAME})
     endif()
 
     # упаковка готовой библиотеки(shared) в конечную директорию
+    # (скрипт запустится ДО связки скомпилированных файлов в бинарник)
     add_custom_command(TARGET ${PROJECT_NAME}
         PRE_LINK
-        COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_LIST_DIR}/../copy_includes.cmake"
+        COMMAND "${CMAKE_COMMAND}" -P "${SIMPLE_API_MAIN_DIR}/copy_includes.cmake"
                     "${CMAKE_CURRENT_LIST_DIR}" "${SIMPLE_API_OUTPUT_INCLUDE_DIR}"
     )
+    # проверка версии по истории коммитов (скрипт надо запустить ДО компиляции файлов)
+    set(VERSION_INFO_FILE "${CMAKE_CURRENT_LIST_DIR}/VersionInfo.h")
+    add_custom_command(
+        OUTPUT "${VERSION_INFO_FILE}"
+        COMMAND bash "${SIMPLE_API_MAIN_DIR}/scripts/check_version_from_git.sh"
+        # правило для перезапуска скрипта при любых изменениях указанных файлов
+        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/TEMPLATE_VersionInfo.h"
+                "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/check_version_from_git.sh"
+    )
+    # подцель для генерации VersionInfo.h
+    add_custom_target("always_rebuild_${PROJECT_NAME}")
+    add_dependencies(${PROJECT_NAME} "always_rebuild_${PROJECT_NAME}")
+    add_custom_command(
+        OUTPUT "${VERSION_INFO_FILE}"
+        DEPENDS "always_rebuild_${PROJECT_NAME}"
+        APPEND
+    )
+    # для CMake отмечаем, что файл появится перед компиляцией (убирает ошибку)
+    set_source_files_properties("${VERSION_INFO_FILE}" PROPERTIES GENERATED TRUE)
+    # добавляем зависимость сборки от файла, генерируемого внешним скриптом
+    target_sources(${PROJECT_NAME} PRIVATE "${VERSION_INFO_FILE}")
 
     #----------------------------
     #TODO: ВРЕМЕННОЕ ХРАНЕНИЕ
