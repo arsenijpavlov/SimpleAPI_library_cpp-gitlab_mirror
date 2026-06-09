@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -15,8 +16,6 @@ namespace utils {
 */
 std::vector<std::string> GetAllFilesByMask(const std::string& path_to_dir, const std::string& regex,
                                            const int& max_level = 0) noexcept;
-
-//TODO: выполнение функции-лямбды для каждого файла из списка (?)
 
 } // namespace utils
 } // namespace simpleapi
