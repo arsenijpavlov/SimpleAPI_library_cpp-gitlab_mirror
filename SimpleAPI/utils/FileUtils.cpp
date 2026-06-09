@@ -5,23 +5,16 @@
 
 namespace simpleapi {
 
-std::vector<std::string> utils::GetAllFilesByMask(const std::string &path_to_dir, const std::string &regex,
-                                                  const int& max_level) noexcept
+void RecursiveCheckFiles(std::vector<std::string>& list, const std::string& dir_path,
+                         const std::regex& regex, int level) noexcept
 {
-    std::vector<std::string> ret;
-
-    //проверка валидности пути (если передан путь до файла, то взять директорию файла за основу поиска)
-
     struct dirent *entry;
-    DIR *dir = opendir(path_to_dir.c_str());
+    DIR *dir = opendir(dir_path.c_str());
     if(dir == nullptr) {
         //путь не существует, файлов тем более не найдено
-        return {};
+        return;
     }
 
-    std::regex reg(regex);
-
-    //для каждого файла в папке проверить маску (одно вхождение в рамках этой функции)
     //p.s. readdir(dir) поочерёдно даст порабоать с каждым файлом/директорией по текущему пути
     while((entry = readdir(dir)) != nullptr) {
         std::string name = entry->d_name;
@@ -30,12 +23,29 @@ std::vector<std::string> utils::GetAllFilesByMask(const std::string &path_to_dir
         if(name == "." || name == "..")
             continue;
 
-        //TODO: нужны рекурсивные вызовы
-
-        //проверка маски по regex
-        if(std::regex_match(name, reg) && entry->d_type != DT_DIR)
-            ret.push_back(path_to_dir + "/" + name);
+        if(entry->d_type == DT_DIR) {
+            if(level == -1 || level > 0) {
+                std::string new_path = dir_path + "/" + entry->d_name;
+                int new_level = (level == -1) ? level : level - 1;
+                RecursiveCheckFiles(list, new_path, regex, new_level);
+            }
+        } else {
+            //проверка маски по regex
+            if(std::regex_match(name, regex))
+                list.push_back(dir_path + "/" + name);
+        }
     }
+}
+
+std::vector<std::string> utils::GetAllFilesByMask(const std::string &path_to_dir, const std::string &regex,
+                                                  const int& max_level) noexcept
+{
+    std::vector<std::string> ret;
+    std::regex reg(regex);
+
+    //проверка валидности пути (если передан путь до файла, то взять директорию файла за основу поиска)
+    //для каждого файла в папке проверить маску (одно вхождение в рамках этой функции)
+    RecursiveCheckFiles(ret, path_to_dir, reg, max_level);
 
     return ret;
 }
