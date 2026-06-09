@@ -61,22 +61,15 @@ if(NOT TARGET ${PROJECT_NAME})
         COMMAND "${CMAKE_COMMAND}" -P "${SIMPLE_API_MAIN_DIR}/copy_includes.cmake"
                     "${CMAKE_CURRENT_LIST_DIR}" "${SIMPLE_API_OUTPUT_INCLUDE_DIR}"
     )
+
+    # на момент работы с кодом файл должен существовать (в коммит не попадает)
+    execute_process(COMMAND bash "${SIMPLE_API_MAIN_DIR}/scripts/check_version_from_git.sh")
+
     # проверка версии по истории коммитов (скрипт надо запустить ДО компиляции файлов)
     set(VERSION_INFO_FILE "${CMAKE_CURRENT_LIST_DIR}/VersionInfo.h")
-    add_custom_command(
-        OUTPUT "${VERSION_INFO_FILE}"
-        COMMAND bash "${SIMPLE_API_MAIN_DIR}/scripts/check_version_from_git.sh"
-        # правило для перезапуска скрипта при любых изменениях указанных файлов
-        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/TEMPLATE_VersionInfo.h"
-                "${CMAKE_CURRENT_SOURCE_DIR}/../scripts/check_version_from_git.sh"
-    )
-    # подцель для генерации VersionInfo.h
-    add_custom_target("always_rebuild_${PROJECT_NAME}")
-    add_dependencies(${PROJECT_NAME} "always_rebuild_${PROJECT_NAME}")
-    add_custom_command(
-        OUTPUT "${VERSION_INFO_FILE}"
-        DEPENDS "always_rebuild_${PROJECT_NAME}"
-        APPEND
+    add_custom_command(TARGET ${PROJECT_NAME}
+        PRE_LINK
+        COMMAND "${CMAKE_COMMAND}" -P "${SIMPLE_API_MAIN_DIR}/generate_version_info.cmake"
     )
     # для CMake отмечаем, что файл появится перед компиляцией (убирает ошибку)
     set_source_files_properties("${VERSION_INFO_FILE}" PROPERTIES GENERATED TRUE)
