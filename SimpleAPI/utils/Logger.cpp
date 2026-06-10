@@ -21,44 +21,44 @@ const std::string to_string(const LEVEL level) noexcept {
 
 const std::string to_string(const COLOR color) noexcept {
     switch(color) {
-    case COLOR::eRESET_TEXT:           return "[RESET_TEXT]";
-    case COLOR::eBOLD_TEXT:            return "[BOLD_TEXT]";
-    case COLOR::eLOW_LIGHT_TEXT:       return "[LOW_LIGHT_TEXT]";
-    case COLOR::eITALIC_TEXT:          return "[ITALIC_TEXT]";
-    case COLOR::eUNDERLINED_TEXT:      return "[UNDERLINED_TEXT]";
-    case COLOR::eBLACK_FG:             return "[BLACK_FG]";
-    case COLOR::eGRAY_FG:              return "[GRAY_FG]";
-    case COLOR::eWHITE_FG:             return "[WHITE_FG]";
-    case COLOR::eRED_FG:               return "[RED_FG]";
-    case COLOR::eGREEN_FG:             return "[GREEN_FG]";
-    case COLOR::eYELLOW_FG:            return "[YELLOW_FG]";
-    case COLOR::eBLUE_FG:              return "[BLUE_FG]";
-    case COLOR::eMAGENTA_FG:           return "[MAGENTA_FG]";
-    case COLOR::eCYAN_FG:              return "[CYAN_FG]";
-    case COLOR::eBRIGHT_GRAY_FG:       return "[BRIGHT_GRAY_FG]";
-    case COLOR::eBRIGHT_RED_FG:        return "[BRIGHT_RED_FG]";
-    case COLOR::eBRIGHT_GREEN_FG:      return "[BRIGHT_GREEN_FG]";
-    case COLOR::eBRIGHT_YELLOW_FG:     return "[BRIGHT_YELLOW_FG]";
-    case COLOR::eBRIGHT_BLUE_FG:       return "[BRIGHT_BLUE_FG]";
-    case COLOR::eBRIGHT_MAGENTA_FG:    return "[BRIGHT_MAGENTA_FG]";
-    case COLOR::eBRIGHT_CYAN_FG:       return "[BRIGHT_CYAN_FG]";
-    case COLOR::eBLACK_BG:             return "[BLACK_BG]";
-    case COLOR::eGRAY_BG:              return "[GRAY_BG]";
-    case COLOR::eWHITE_BG:             return "[WHITE_BG]";
-    case COLOR::eRED_BG:               return "[RED_BG]";
-    case COLOR::eGREEN_BG:             return "[GREEN_BG]";
-    case COLOR::eYELLOW_BG:            return "[YELLOW_BG]";
-    case COLOR::eBLUE_BG:              return "[BLUE_BG]";
-    case COLOR::eMAGENTA_BG:           return "[MAGENTA_BG]";
-    case COLOR::eCYAN_BG:              return "[CYAN_BG]";
-    case COLOR::eBRIGHT_GRAY_BG:       return "[BRIGHT_GRAY_BG]";
-    case COLOR::eBRIGHT_RED_BG:        return "[BRIGHT_RED_BG]";
-    case COLOR::eBRIGHT_GREEN_BG:      return "[BRIGHT_GREEN_BG]";
-    case COLOR::eBRIGHT_YELLOW_BG:     return "[BRIGHT_YELLOW_BG]";
-    case COLOR::eBRIGHT_BLUE_BG:       return "[BRIGHT_BLUE_BG]";
-    case COLOR::eBRIGHT_MAGENTA_BG:    return "[BRIGHT_MAGENTA_BG]";
-    case COLOR::eBRIGHT_CYAN_BG:       return "[BRIGHT_CYAN_BG]";
-    default:                    return std::string("\e[") + std::to_string(static_cast<uint8_t>(color)) + "m";
+    case COLOR::eRESET_TEXT:        return "[RESET_TEXT]";
+    case COLOR::eBOLD_TEXT:         return "[BOLD_TEXT]";
+    case COLOR::eLOW_LIGHT_TEXT:    return "[LOW_LIGHT_TEXT]";
+    case COLOR::eITALIC_TEXT:       return "[ITALIC_TEXT]";
+    case COLOR::eUNDERLINED_TEXT:   return "[UNDERLINED_TEXT]";
+    case COLOR::eBLACK_FG:          return "[BLACK_FG]";
+    case COLOR::eGRAY_FG:           return "[GRAY_FG]";
+    case COLOR::eWHITE_FG:          return "[WHITE_FG]";
+    case COLOR::eRED_FG:            return "[RED_FG]";
+    case COLOR::eGREEN_FG:          return "[GREEN_FG]";
+    case COLOR::eYELLOW_FG:         return "[YELLOW_FG]";
+    case COLOR::eBLUE_FG:           return "[BLUE_FG]";
+    case COLOR::eMAGENTA_FG:        return "[MAGENTA_FG]";
+    case COLOR::eCYAN_FG:           return "[CYAN_FG]";
+    case COLOR::eBRIGHT_GRAY_FG:    return "[BRIGHT_GRAY_FG]";
+    case COLOR::eBRIGHT_RED_FG:     return "[BRIGHT_RED_FG]";
+    case COLOR::eBRIGHT_GREEN_FG:   return "[BRIGHT_GREEN_FG]";
+    case COLOR::eBRIGHT_YELLOW_FG:  return "[BRIGHT_YELLOW_FG]";
+    case COLOR::eBRIGHT_BLUE_FG:    return "[BRIGHT_BLUE_FG]";
+    case COLOR::eBRIGHT_MAGENTA_FG: return "[BRIGHT_MAGENTA_FG]";
+    case COLOR::eBRIGHT_CYAN_FG:    return "[BRIGHT_CYAN_FG]";
+    case COLOR::eBLACK_BG:          return "[BLACK_BG]";
+    case COLOR::eGRAY_BG:           return "[GRAY_BG]";
+    case COLOR::eWHITE_BG:          return "[WHITE_BG]";
+    case COLOR::eRED_BG:            return "[RED_BG]";
+    case COLOR::eGREEN_BG:          return "[GREEN_BG]";
+    case COLOR::eYELLOW_BG:         return "[YELLOW_BG]";
+    case COLOR::eBLUE_BG:           return "[BLUE_BG]";
+    case COLOR::eMAGENTA_BG:        return "[MAGENTA_BG]";
+    case COLOR::eCYAN_BG:           return "[CYAN_BG]";
+    case COLOR::eBRIGHT_GRAY_BG:    return "[BRIGHT_GRAY_BG]";
+    case COLOR::eBRIGHT_RED_BG:     return "[BRIGHT_RED_BG]";
+    case COLOR::eBRIGHT_GREEN_BG:   return "[BRIGHT_GREEN_BG]";
+    case COLOR::eBRIGHT_YELLOW_BG:  return "[BRIGHT_YELLOW_BG]";
+    case COLOR::eBRIGHT_BLUE_BG:    return "[BRIGHT_BLUE_BG]";
+    case COLOR::eBRIGHT_MAGENTA_BG: return "[BRIGHT_MAGENTA_BG]";
+    case COLOR::eBRIGHT_CYAN_BG:    return "[BRIGHT_CYAN_BG]";
+    default:                        return std::string("\e[") + std::to_string(static_cast<uint8_t>(color)) + "m";
     }
 }
 
@@ -85,7 +85,7 @@ std::string to_color_string(const std::vector<Color>& colors, const std::string&
     for(const Color& clr : colors) {
         result_string += clr.getColorString();
     }
-    result_string += log_message + to_string(COLOR::eRESET_TEXT);
+    result_string += log_message + Color(COLOR::eRESET_TEXT).getColorString();
     return result_string;
 }
 
