@@ -58,7 +58,7 @@ if(NOT TARGET ${PROJECT_NAME})
     # (скрипт запустится ДО связки скомпилированных файлов в бинарник)
     add_custom_command(TARGET ${PROJECT_NAME}
         PRE_LINK
-        COMMAND "${CMAKE_COMMAND}" -P "${SIMPLE_API_MAIN_DIR}/copy_includes.cmake"
+        COMMAND "${CMAKE_COMMAND}" -P "${SIMPLE_API_MAIN_DIR}/cmake/copy_includes.cmake"
                     "${CMAKE_CURRENT_LIST_DIR}" "${SIMPLE_API_OUTPUT_INCLUDE_DIR}"
     )
 
@@ -69,7 +69,7 @@ if(NOT TARGET ${PROJECT_NAME})
     set(VERSION_INFO_FILE "${CMAKE_CURRENT_LIST_DIR}/VersionInfo.h")
     add_custom_command(TARGET ${PROJECT_NAME}
         PRE_LINK
-        COMMAND "${CMAKE_COMMAND}" -P "${SIMPLE_API_MAIN_DIR}/generate_version_info.cmake"
+        COMMAND "${CMAKE_COMMAND}" -P "${SIMPLE_API_MAIN_DIR}/cmake/generate_version_info.cmake"
     )
     # для CMake отмечаем, что файл появится перед компиляцией (убирает ошибку)
     set_source_files_properties("${VERSION_INFO_FILE}" PROPERTIES GENERATED TRUE)
