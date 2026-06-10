@@ -98,7 +98,7 @@ public:
     IpPort          m_ip_port;
     Packet          m_packet;
 
-//TODO: следует отделить методы и поля для пользователя библиотеки от автоматики
+private:
     EECounter       m_sn;
     PacketHeader    m_header;
 
@@ -108,13 +108,16 @@ public:
     bool            m_is_built_complete;
     PacketRange     m_range;
 
+    friend class Socket;
+    //FIXME: следует сделать доступ через методы базового класса Socket
+    friend class UDPSocket; //т.к. friend не распространяется на потомков
+
     PacketMessage() noexcept : m_sn(0)              { clear(); }
 
     void clear() noexcept;
     std::string toString() noexcept;
 };
 
-//TODO: ошибки конвертации не должны вызывать callback для RecvJson
 class JsonMessage {
 public:
     IpPort      m_ip_port;

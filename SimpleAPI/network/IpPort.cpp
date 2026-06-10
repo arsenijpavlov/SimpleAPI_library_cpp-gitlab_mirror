@@ -2,7 +2,6 @@
 
 #include <arpa/inet.h>
 #include <iostream>
-#include <netinet/in.h>
 
 
 namespace simpleapi {

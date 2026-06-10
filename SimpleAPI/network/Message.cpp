@@ -54,6 +54,9 @@ std::string PacketMessage::toString() noexcept {
 JsonMessage::JsonMessage(const PacketMessage &pm) noexcept {
     m_ip_port = pm.m_ip_port;
     m_json.parseJson(ConvertFromPacket(pm.m_packet));
+    //ошибки конвертации не должны вызывать callback для RecvJson
+    if(m_json.error())
+        m_json.clear();
 }
 
 void JsonMessage::clear() noexcept {
