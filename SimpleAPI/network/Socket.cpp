@@ -637,7 +637,7 @@ void UDPSocket::tick() noexcept {
 void UDPSocket::checkConnections() noexcept {
     using namespace logs;
 
-    log(LEVEL::eDEBUG2, "checkConnections()");
+    log(LEVEL::eDEBUG3, "checkConnections()");
 
     Config jPing(ValueType::eJson, "ping", getLocalIpPort().toString());
 
@@ -733,7 +733,7 @@ void UDPSocket::checkConnections() noexcept {
 void UDPSocket::sendAutoMsg() noexcept {
     using namespace logs;
 
-    log(LEVEL::eDEBUG2, "sendAutoMsg()");
+    log(LEVEL::eDEBUG3, "sendAutoMsg()");
 
     int counter = 0; //общий счётчик за проход функции
 
@@ -817,7 +817,7 @@ void UDPSocket::sendAutoMsg() noexcept {
 Config UDPSocket::recvAutoMsg(int timeout) noexcept {
     using namespace logs;
 
-    log(LEVEL::eDEBUG2, "recvAutoMsg()");
+    log(LEVEL::eDEBUG3, "recvAutoMsg()");
 
     Config outputJson;
     PacketMessage pm = recvRawMsg(1);
