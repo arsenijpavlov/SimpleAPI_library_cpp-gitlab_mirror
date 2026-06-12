@@ -14,6 +14,8 @@ namespace simpleapi {
 #define CRITICAL_MSG_COLOR      {logs::COLOR::eRED_BG, logs::COLOR::eWHITE_FG}
 #define OUTPUT_MSG_COLOR        {logs::COLOR::eBLUE_BG, logs::COLOR::eWHITE_FG}
 #define INPUT_MSG_COLOR         {logs::COLOR::eCYAN_BG, logs::COLOR::eWHITE_FG}
+#define OUTPUT_FRAGMENT_COLOR   {logs::COLOR::eBLUE_FG, logs::COLOR::eBRIGHT_GRAY_BG}
+#define INPUT_FRAGMENT_COLOR    {logs::COLOR::eBLUE_FG, logs::COLOR::eBRIGHT_GRAY_BG}
 
 bool Socket::checkCorrectIp(const std::string& ip_string) noexcept {
     struct sockaddr_in sock;
@@ -67,7 +69,7 @@ void Socket::appendNewFragment(const PacketMessage& received_pm) noexcept {
     log(logs::LEVEL::eDEBUG,
         "received sn=" + std::to_string(received_pm.m_sn.get())
                           + ", expected_sn=" + std::to_string(it->second.m_in_next_sn.get()),
-        logs::to_color_string(logs::COLOR::eBLUE_FG, "received sn=" + std::to_string(received_pm.m_sn.get())
+        logs::to_color_string(INPUT_FRAGMENT_COLOR, "received sn=" + std::to_string(received_pm.m_sn.get())
          + ", expected_sn=" + std::to_string(it->second.m_in_next_sn.get())));
 
     if(it->second.m_in_sn_last_recv < received_pm.m_sn)
@@ -271,10 +273,11 @@ Socket::MapConnectionsIterator Socket::findOrCreateConnection(const IpPort &remo
     auto it = m_map_connections.find(remote_ip_port);
     if(it != m_map_connections.end()) return it;
 
-    log(logs::LEVEL::eDEBUG,
+    using namespace logs;
+    log(LEVEL::eDEBUG,
         "add connection(1): " + remote_ip_port.toString()
             + ", map_size:" + std::to_string(m_map_connections.size()),
-        logs::to_color_string(logs::COLOR::eBRIGHT_GREEN_BG, "add connection(1): " + remote_ip_port.toString())
+        to_color_string({COLOR::eBRIGHT_GRAY_BG, COLOR::eBRIGHT_RED_FG}, "add connection(1): " + remote_ip_port.toString())
             + ", " + "map_size:" + std::to_string(m_map_connections.size()));
     return m_map_connections.insert(std::make_pair(remote_ip_port, Connection())).first;
 }
@@ -767,9 +770,9 @@ void UDPSocket::sendAutoMsg() noexcept {
         PacketMessage pm = m_send_packets_buffer.front();
         m_send_packets_buffer.pop_front();
         log(logs::LEVEL::eDEBUG,
-            "Sending sn[" + std::to_string(pm.m_sn.get()) + "] fragment, data:[0x"
+            "sending sn[" + std::to_string(pm.m_sn.get()) + "] fragment, data:[0x"
                 + utils::ToHexString(pm.m_packet) + "] " + pm.m_ip_port.toString("to"),
-            logs::to_color_string(OUTPUT_MSG_COLOR,"Sending")
+            logs::to_color_string(OUTPUT_FRAGMENT_COLOR,"sending")
                 + " sn[" + std::to_string(pm.m_sn.get()) + "] fragment, data:[0x"
                 + utils::ToHexString(pm.m_packet) + "] " + pm.m_ip_port.toString("to"));
 
@@ -807,11 +810,11 @@ Config UDPSocket::recvAutoMsg(int timeout) noexcept {
     pm.m_packet.erase(pm.m_packet.begin(), pm.m_packet.begin() + 3); //удалить первые три байта
 
     log(logs::LEVEL::eDEBUG2,
-        "Received [" + std::to_string(sn) + "] sn fragment of type "
+        "received [" + std::to_string(sn) + "] sn fragment of type "
             + ToString(pm.m_header.type)
             + ", data:[0x"
             + utils::ToHexString(pm.m_packet) + "] " + pm.m_ip_port.toString("from"),
-        logs::to_color_string(INPUT_MSG_COLOR, "Received")
+        logs::to_color_string(INPUT_FRAGMENT_COLOR, "received")
             + " [" + std::to_string(sn) + "] sn fragment of type "
             + ToString(pm.m_header.type)
             + ", data:[0x"
@@ -838,6 +841,7 @@ Config UDPSocket::recvAutoMsg(int timeout) noexcept {
 }
 
 Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
+    using namespace logs;
     JsonMessage jm = pm;
 
     if(!pm.m_packet.empty()) {
@@ -856,10 +860,10 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
         if(pm.m_header.type == eControlType) {
             if(jm.m_json.containsKey("ack_sn")) {
                 uint8_t sn = jm.m_json["ack_sn"].getNumber();
-                log(logs::LEVEL::eDEBUG,
+                std::vector<Color> colors = {COLOR::eBRIGHT_GRAY_BG};
+                log(LEVEL::eDEBUG,
                     "erasing sn[" + jm.m_json["ack_sn"].toString() + "]",
-                    logs::to_color_string(logs::COLOR::eBRIGHT_MAGENTA_BG,
-                                          "erasing sn[" + jm.m_json["ack_sn"].toString() + "]"));
+                    to_color_string(colors, "erasing sn[" + jm.m_json["ack_sn"].toString() + "]"));
                 for(auto it = m_map_auto_sent_packets.begin(); it != m_map_auto_sent_packets.end(); it++) {
                     if(it->second.m_sn.get() == sn) {
                         m_map_auto_sent_packets.erase(it->first);
@@ -879,14 +883,14 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                         jm = tempPM;
                         std::string appendString = "";
                         appendString = ", map_global_packets size: " + std::to_string(m_sent_global_packets.size());
-                        log(it->m_header.type != eControlType ? logs::LEVEL::eINFO : logs::LEVEL::eDEBUG,
+                        log(it->m_header.type != eControlType ? LEVEL::eINFO : LEVEL::eDEBUG,
                             "Message delivered ["
                                 + (jm.m_json.isEmpty() ? "Data:0x" + utils::ToHexString(tempPM.m_packet)
                                                      : "Json:" + jm.m_json.toString())
                                 + "]" + appendString,
                             "Message delivered ["
-                                + (jm.m_json.isEmpty() ? "Data:" + logs::to_color_string(FULL_MSG_COLOR, "0x" + utils::ToHexString(tempPM.m_packet))
-                                                       : "Json:" + logs::to_color_string(FULL_MSG_COLOR, jm.m_json.toString()))
+                                + (jm.m_json.isEmpty() ? "Data:" + to_color_string(FULL_MSG_COLOR, "0x" + utils::ToHexString(tempPM.m_packet))
+                                                       : "Json:" + to_color_string(FULL_MSG_COLOR, jm.m_json.toString()))
                                 + "]" + appendString);
                         it = m_sent_global_packets.erase(it);
                         break;
@@ -922,8 +926,8 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                 m_output_threads_mutex.unlock();
 
                 if(!packet.empty() && type != eControlType) {
-                    log(logs::LEVEL::eDEBUG, "New try to send packet fragment " + ToString(type)
-                                          + " [0x" + utils::ToHexString(packet) + "]");
+                    log(LEVEL::eDEBUG, "New try to send packet fragment " + ToString(type)
+                                           + " [0x" + utils::ToHexString(packet) + "]");
                     sendFragments(ipPort, type, packet); //переотправка
                 }
             }
@@ -959,12 +963,12 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
             if(jm.m_json.isEmpty()) {
                 log(logs::LEVEL::eDEBUG2,
                     "insert packet " + ToString(pm.m_header.type) + " to storage",
-                    logs::to_color_string({logs::COLOR::eGRAY_BG, logs::COLOR::eWHITE_FG}, "insert packet " + ToString(pm.m_header.type) + " to storage"));
+                    to_color_string({COLOR::eGRAY_BG, COLOR::eWHITE_FG}, "insert packet " + ToString(pm.m_header.type) + " to storage"));
                 m_map_recv_packets_buffer.push_back(pm);
             } else {
                 log(logs::LEVEL::eDEBUG2,
                     "insert packet " + ToString(pm.m_header.type) + " to storage",
-                    logs::to_color_string({logs::COLOR::eGRAY_BG, logs::COLOR::eWHITE_FG}, "insert packet " + ToString(pm.m_header.type) + " to storage"));
+                    to_color_string({COLOR::eGRAY_BG, COLOR::eWHITE_FG}, "insert packet " + ToString(pm.m_header.type) + " to storage"));
                 m_map_recv_jsons_buffer.push_back(jm);
             }
             m_input_threads_mutex.unlock();
