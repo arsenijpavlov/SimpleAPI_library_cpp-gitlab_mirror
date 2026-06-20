@@ -78,7 +78,9 @@ std::string to_color_string(const LEVEL level, const std::string& log_message) n
 }
 
 std::string to_color_string(const Color color, const std::string &log_message) noexcept
-{ return to_color_string(std::vector<Color>{color}, log_message); }
+{
+    return to_color_string(std::vector<Color>{color}, log_message);
+}
 
 std::string to_color_string(const std::vector<Color>& colors, const std::string& log_message) noexcept {
     std::string result_string = "";

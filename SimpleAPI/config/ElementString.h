@@ -14,7 +14,7 @@ protected:
 public:
     ElementString()                                 noexcept : m_value()                { init(); }
     explicit ElementString(const std::string& s)    noexcept : m_value(s)               { init(); }
-    explicit ElementString(std::string&& s)         noexcept : m_value(std::move(s))    { init(); }
+    explicit ElementString(std::string&& s)         noexcept;
     ~ElementString()                                noexcept                            {}
 
     // Setters =========================================================================================================

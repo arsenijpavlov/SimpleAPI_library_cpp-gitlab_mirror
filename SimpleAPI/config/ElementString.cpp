@@ -1,14 +1,16 @@
 #include "ElementString.h"
 
 #include "Config.h"
-#include "ConfigDefines.h"
-
-#include "../utils/Utils.h"
 #include <algorithm>
 
 
 namespace simpleapi {
 namespace tools {
+
+ElementString::ElementString(std::string &&s) noexcept    {
+    init();
+    m_value = std::move(s);
+}
 
 void ElementString::clear() noexcept {
     clearComment();

@@ -11,7 +11,7 @@
 
 using namespace simpleapi;
 
-logs::LEVEL common_log_level = logs::LEVEL::eDEBUG;
+logs::LEVEL common_log_level = logs::LEVEL::eDEBUG2;
 void ParseParameters(int argc, char** argv) {
     using namespace logs;
 

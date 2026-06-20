@@ -752,7 +752,35 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
             ret += utils::RemoveStartTabulations(temp);
         } else {
             if(!m_values[i].second->isString()) {
-                ret += temp;
+                //в числах могут быть бесконечности
+                if(m_values[i].second->isNumber()) {
+                    if(std::any_of(temp.begin(), temp.end(),
+                                    [](char c) {
+                                        switch(c) {
+                                            case '0':
+                                            case '1':
+                                            case '2':
+                                            case '3':
+                                            case '4':
+                                            case '5':
+                                            case '6':
+                                            case '7':
+                                            case '8':
+                                            case '9':
+                                            case '-':   return false;
+                                            default:    return true;
+                                        }
+                                    }
+                                    )
+                        )
+                    {
+                        ret += "\"" + temp + "\"";
+                    } else {
+                        ret += temp;
+                    }
+                } else {
+                    ret += temp;
+                }
             } else {
                 SeparatedLines sl = SeparateWithoutColumned(temp);
                 size_t len_of_key = utils::GetStringCharCount(m_values[i].first) + /*кавычки*/2 + /*двоеточие и пробел*/2;
