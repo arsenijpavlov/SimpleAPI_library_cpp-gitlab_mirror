@@ -1,11 +1,19 @@
 #include "ElementNumber.h"
 
 #include "Config.h"
+#include <cmath>
+#include <iomanip>
+#include <limits>
 #include <regex>
 
 
 namespace simpleapi {
 namespace tools {
+
+ElementNumber::ElementNumber(long double &&num) noexcept   {
+    init();
+    m_value = std::move(num);
+}
 
 void ElementNumber::clear() noexcept {
     clearComment();
@@ -23,7 +31,30 @@ bool ElementNumber::isEqual(const IElement &other, const bool compare_comments,
 
 std::string ElementNumber::toString() const noexcept
 {
-    return utils::ToString(m_value);
+    if(std::isnan(m_value)) return "NaN";
+    if(std::isinf(m_value)) return (m_value > 0) ? "inf" : "-inf";
+
+    std::ostringstream oss;
+    oss.imbue(std::locale::classic()); //запрещаем любой разделитель, кроме точки
+
+    // рассчитываем минимальное количество символов для дробной части
+    // (рассчитывается обратное преобразование в число)
+    for(uint8_t i = 0; i <= std::numeric_limits<long double>::max_digits10; i++) {
+        oss.str(""); // сбрасываем результирующую строку
+        oss.clear(); // сбрасываем флаги
+
+        oss << std::fixed << std::setprecision(i) << m_value;
+
+        try {
+        if(m_value == std::stold(oss.str()))
+            break;
+        } catch (...) {
+            // ошибки в парсинге приводят к пустой строке
+            oss.str(""); // сбрасываем результирующую строку
+        }
+    }
+
+    return oss.str();
 }
 
 //----------------------------------------------------------------------------------------------------------------------

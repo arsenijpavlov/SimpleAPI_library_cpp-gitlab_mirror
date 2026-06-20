@@ -933,3 +933,42 @@ TEST(JSON, parse_string) {
     EXPECT_EQ(cfg.size(), 2);
     EXPECT_EQ(cfg[1], 3);
 }
+
+TEST(JSON, big_integral_number_to_string) {
+    Config cfg;
+    cfg.push_back("a", 123456789012345);
+
+    EXPECT_EQ(cfg["a"].toString(), "123456789012345");
+}
+
+TEST(JSON, big_float_number_to_string) {
+    Config cfg;
+    cfg.push_back("a", 123456789012345.4000002L);
+
+    // ввиду особенностей хранения больших дробных чисел, часть вводимой информации может оказаться избыточной
+    // в конечном итоге в перменную числа запишется только некоторая часть дроби - знаки после .4 пропадут уже при хранении такого числа
+    EXPECT_EQ(cfg["a"].toString(), "123456789012345.4");
+}
+
+TEST(JSON, parse_write_infinity) {
+    Config cfg;
+    cfg.parseJson("{\"a\" : \"inf\" }");
+
+    EXPECT_EQ(cfg["a"].toString(), "inf");
+}
+
+TEST(JSON, parse_write_negative_infinity) {
+    Config cfg;
+    cfg.parseJson("{\"a\" : \"-inf\" }");
+
+    EXPECT_EQ(cfg["a"].toString(), "-inf");
+}
+
+TEST(JSON, write_infinities) {
+    Config cfg;
+    cfg["a"] = std::numeric_limits<long double>::infinity();
+    cfg["b"] = -std::numeric_limits<long double>::infinity();
+    std::string test = cfg.toString();
+
+    EXPECT_EQ(test, "{\"a\":\"inf\",\"b\":\"-inf\"}");
+}
