@@ -3,6 +3,7 @@
 #include <set>
 #include <thread>
 #include "Socket.h"
+#include <mutex>
 
 
 namespace simpleapi {
@@ -11,6 +12,7 @@ class SocketThread {
     std::thread     m_thread;
     bool            m_active;
     SocketSettings  m_common_socket_settings;
+    std::mutex      m_sockets_mutex;
     std::map<IpPort, std::shared_ptr<Socket>> m_sockets;
 public:
     LoggerSettings  m_settings;
@@ -46,9 +48,8 @@ public:
     bool addSocket(const SocketType type, const IpPort& local_ip_port,
                    bool common_settings = false) noexcept;
 
-    void closeSocket(const IpPort& local_ip_port) noexcept
-                                                    { m_sockets.erase(local_ip_port); }
-    void closeAllSockets() noexcept                 { m_sockets.erase(m_sockets.begin(), m_sockets.cend()); }
+    void closeSocket(const IpPort& local_ip_port) noexcept;
+    void closeAllSockets() noexcept;
 
     void startSocket(const IpPort& local_ip_port) noexcept;
     void stopSocket(const IpPort& local_ip_port) noexcept;
