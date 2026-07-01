@@ -2,6 +2,7 @@
 
 #include <arpa/inet.h>
 #include <iostream>
+#include <cstdlib>
 
 
 namespace simpleapi {

@@ -3,7 +3,7 @@
 #include "ConfigCommon.h"
 #include <string>
 #include <vector>
-#include <bits/shared_ptr.h>
+#include <memory>
 
 
 namespace simpleapi {

@@ -123,7 +123,7 @@ std::vector<std::unique_ptr<IElementContainer::KeysBase>> IElementContainer::Col
             ret.push_back(std::unique_ptr<KeysComments>(new KeysComments(cfg.getPrefixComment())));
 
         for(auto& pair : cfg.getNamedRange()) {
-            auto temp = CollectKeys(*pair.second, {prefix, pair.first});
+            auto temp = CollectKeys(*pair.second, VString{prefix, pair.first});
             ret.insert(ret.end(),
                        std::make_move_iterator(temp.begin()),
                        std::make_move_iterator(temp.end()));
