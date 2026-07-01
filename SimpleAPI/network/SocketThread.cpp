@@ -11,11 +11,14 @@ void SocketThread::run() noexcept {
     pthread_setname_np(pthread_self(), SOCKETS_THREAD_NAME);
 
     while(this->isActive()) {
+        /*MUTEX*/ {
+            std::lock_guard<std::mutex> lg(m_sockets_mutex);
 
-        for(auto it = m_sockets.begin(); it != m_sockets.end(); it++) {
-            Socket* sock = it->second.get();
+            for(auto it = m_sockets.begin(); it != m_sockets.end(); it++) {
+                Socket* sock = it->second.get();
 
-            sock->tick(); //вся магия там
+                sock->tick(); //вся магия там
+            }
         }
 
         usleep(100);
@@ -95,6 +98,8 @@ bool SocketThread::addSocket(const SocketType type, const IpPort& local_ip_port,
         return false; //TODO (потом): TCP пока не готов
     } else if(type == SocketType::eUDP) {
         std::shared_ptr<Socket> sock(new UDPSocket(local_ip_port, settings));
+        std::lock_guard<std::mutex> lg(m_sockets_mutex);
+
         return m_sockets.insert(std::make_pair(local_ip_port, sock)).second;
     }
 
@@ -113,27 +118,49 @@ bool SocketThread::addSocket(const SocketType type, const IpPort &local_ip_port,
     else                return addSocket(type, local_ip_port, SocketSettings());
 }
 
+void SocketThread::closeSocket(const IpPort &local_ip_port) noexcept {
+    std::lock_guard<std::mutex> lg(m_sockets_mutex);
+
+    m_sockets.erase(local_ip_port);
+}
+
+void SocketThread::closeAllSockets() noexcept {
+    std::lock_guard<std::mutex> lg(m_sockets_mutex);
+
+    m_sockets.erase(m_sockets.begin(), m_sockets.cend());
+}
+
 void SocketThread::startSocket(const IpPort& local_ip_Port) noexcept {
+    std::lock_guard<std::mutex> lg(m_sockets_mutex);
+
     auto it = m_sockets.find(local_ip_Port);
     if(it != m_sockets.end())
         it->second->startServer();
 }
 
 void SocketThread::stopSocket(const IpPort& local_ip_Port) noexcept {
+    std::lock_guard<std::mutex> lg(m_sockets_mutex);
+
     auto it = m_sockets.find(local_ip_Port);
     if(it != m_sockets.end())
         it->second->stopServer();
 }
 
 void SocketThread::send(const IpPort &source, const IpPort &destination,
-                        const Packet &packet) noexcept {
+                        const Packet &packet) noexcept
+{
+    std::lock_guard<std::mutex> lg(m_sockets_mutex);
+
     auto it = m_sockets.find(source);
     if(it != m_sockets.end())
         it->second->sendMsg(destination, packet);
 }
 
 void SocketThread::send(const IpPort &source, const IpPort &destination,
-                        const Config &json) noexcept {
+                        const Config &json) noexcept
+{
+    std::lock_guard<std::mutex> lg(m_sockets_mutex);
+
     auto it = m_sockets.find(source);
     if(it != m_sockets.end())
         it->second->sendMsg(destination, json);
@@ -162,10 +189,13 @@ void SocketThread::stopThread() noexcept {
 }
 
 std::shared_ptr<Socket> SocketThread::findSocket(const IpPort &local_ip_Port) noexcept {
+    std::lock_guard<std::mutex> lg(m_sockets_mutex);
+
     return m_sockets.find(local_ip_Port)->second;
 }
 
 void SocketThread::setAllSocketsSettings(const SocketSettings settings) noexcept {
+    std::lock_guard<std::mutex> lg(m_sockets_mutex);
     m_common_socket_settings = settings;
 
     for(auto it = m_sockets.begin(); it != m_sockets.end(); it++)
@@ -173,6 +203,8 @@ void SocketThread::setAllSocketsSettings(const SocketSettings settings) noexcept
 }
 
 void SocketThread::setSocketsSettings(const IpPort& local_ip_port, const SocketSettings settings) noexcept {
+    std::lock_guard<std::mutex> lg(m_sockets_mutex);
+
     auto it = m_sockets.find(local_ip_port);
     if(it != m_sockets.end())
         it->second->setSettings(settings);

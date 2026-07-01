@@ -14,6 +14,7 @@
 #include <limits>
 #include <regex>
 #include <fstream>
+#include <errno.h>
 
 
 namespace simpleapi {
@@ -1689,11 +1690,11 @@ Config &Config::append(Config &&config) {
 
         switch(getType()) {
         case ValueType::eArray: {
-            dynamic_cast<tools::ElementArray*>(m_value)->append(std::move(dynamic_cast<tools::ElementArray&&>(std::move(*config.m_value))));
+            dynamic_cast<tools::ElementArray*>(m_value)->append(dynamic_cast<tools::ElementArray&&>(*config.m_value));
             break;
         }
         case ValueType::eJson: {
-            dynamic_cast<tools::ElementJson*>(m_value)->append(std::move(dynamic_cast<tools::ElementJson&&>(std::move(*config.m_value))));
+            dynamic_cast<tools::ElementJson*>(m_value)->append(dynamic_cast<tools::ElementJson&&>(*config.m_value));
             break;
         }
         default: throw std::invalid_argument("Config::append(): unexpected type of config: " + ToString(config.getType()));

@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <iomanip>
+#include <cstdlib>
 
 
 namespace simpleapi {
