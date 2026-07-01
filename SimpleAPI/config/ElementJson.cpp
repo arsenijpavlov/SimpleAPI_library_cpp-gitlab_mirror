@@ -767,7 +767,8 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
                                             case '7':
                                             case '8':
                                             case '9':
-                                            case '-':   return false;
+                                            case '-':
+                                            case '.':   return false;
                                             default:    return true;
                                         }
                                     }
