@@ -55,6 +55,7 @@ sudo apt-get install pkg-config # Ubuntu
 ```cmake
 set(SIMPLE_API_MAIN_DIR ${CMAKE_CURRENT_LIST_DIR}/../..) # указать путь до базовой директории библиотеки
 include(${SIMPLE_API_MAIN_DIR}/utils.cmake) # для доступа к макросам библиотеки
+list(APPEND CMAKE_MODULE_PATH "${SIMPLE_API_MAIN_DIR}/cmake/find_package/") # для поиска модулей Find*.cmake
 
 # код для создания таргета основного приложения
 add_executable(...)
