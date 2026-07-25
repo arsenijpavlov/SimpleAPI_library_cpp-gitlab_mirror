@@ -9,13 +9,13 @@
 
 namespace simpleapi {
 
-#define FULL_MSG_COLOR          {COLOR::eYELLOW_BG, COLOR::eBLACK_FG, COLOR::eBOLD_TEXT}
-#define GLOBAL_APPEND_MSG_COLOR {COLOR::eBRIGHT_GRAY_BG, COLOR::eBRIGHT_RED_FG}
-#define CRITICAL_MSG_COLOR      {COLOR::eRED_BG, COLOR::eWHITE_FG}
-#define OUTPUT_MSG_COLOR        {COLOR::eBLUE_BG, COLOR::eWHITE_FG}
-#define INPUT_MSG_COLOR         {COLOR::eCYAN_BG, COLOR::eWHITE_FG}
-#define OUTPUT_FRAGMENT_COLOR   {COLOR::eBLUE_FG, COLOR::eBRIGHT_GRAY_BG}
-#define INPUT_FRAGMENT_COLOR    {COLOR::eBLUE_FG, COLOR::eBRIGHT_GRAY_BG}
+#define FULL_MSG_COLOR          { COLOR::eYELLOW_BG,         COLOR::eBLACK_FG, COLOR::eBOLD_TEXT }
+#define GLOBAL_APPEND_MSG_COLOR { COLOR::eBRIGHT_GRAY_BG,    COLOR::eBRIGHT_RED_FG }
+#define CRITICAL_MSG_COLOR      { COLOR::eRED_BG,            COLOR::eWHITE_FG }
+#define OUTPUT_MSG_COLOR        { COLOR::eBLUE_BG,           COLOR::eWHITE_FG }
+#define INPUT_MSG_COLOR         { COLOR::eCYAN_BG,           COLOR::eWHITE_FG }
+#define OUTPUT_FRAGMENT_COLOR   { COLOR::eBLUE_FG,           COLOR::eBRIGHT_GRAY_BG }
+#define INPUT_FRAGMENT_COLOR    { COLOR::eBLUE_FG,           COLOR::eBRIGHT_GRAY_BG }
 
 bool Socket::checkCorrectIp(const std::string& ip_string) noexcept {
     using namespace logs;
