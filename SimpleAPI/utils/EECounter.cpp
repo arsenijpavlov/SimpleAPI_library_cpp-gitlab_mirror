@@ -10,14 +10,14 @@ namespace simpleapi {
 
 
 EECounter::EECounter(uint64_t size) noexcept {
-    m_max_size = size;
-    m_pos = 0;
+    m_max_size   = size;
+    m_pos        = 0;
     m_global_pos = 0;
 }
 
 EECounter::EECounter(const EECounter &other) noexcept {
-    m_max_size = other.m_max_size;
-    m_pos = other.m_pos;
+    m_max_size   = other.m_max_size;
+    m_pos        = other.m_pos;
     m_global_pos = other.m_global_pos;
 }
 

@@ -18,7 +18,7 @@ public:
 private:
     ApiVersion                  m_api_version;
     CRC                         m_crc_level;
-    long                        m_inactivity_timer;
+    long                        m_inactivity_timer; // пингование
     uint16_t                    m_max_length;
     int                         m_max_msgs_sent_on_tick;
     RecvJsonMessageCallback     m_recv_json_callback;

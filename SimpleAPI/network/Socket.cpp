@@ -9,13 +9,13 @@
 
 namespace simpleapi {
 
-#define FULL_MSG_COLOR          {COLOR::eYELLOW_BG, COLOR::eBLACK_FG, COLOR::eBOLD_TEXT}
-#define GLOBAL_APPEND_MSG_COLOR {COLOR::eBRIGHT_GRAY_BG, COLOR::eBRIGHT_RED_FG}
-#define CRITICAL_MSG_COLOR      {COLOR::eRED_BG, COLOR::eWHITE_FG}
-#define OUTPUT_MSG_COLOR        {COLOR::eBLUE_BG, COLOR::eWHITE_FG}
-#define INPUT_MSG_COLOR         {COLOR::eCYAN_BG, COLOR::eWHITE_FG}
-#define OUTPUT_FRAGMENT_COLOR   {COLOR::eBLUE_FG, COLOR::eBRIGHT_GRAY_BG}
-#define INPUT_FRAGMENT_COLOR    {COLOR::eBLUE_FG, COLOR::eBRIGHT_GRAY_BG}
+#define FULL_MSG_COLOR          { COLOR::eYELLOW_BG,         COLOR::eBLACK_FG, COLOR::eBOLD_TEXT }
+#define GLOBAL_APPEND_MSG_COLOR { COLOR::eBRIGHT_GRAY_BG,    COLOR::eBRIGHT_RED_FG }
+#define CRITICAL_MSG_COLOR      { COLOR::eRED_BG,            COLOR::eWHITE_FG }
+#define OUTPUT_MSG_COLOR        { COLOR::eBLUE_BG,           COLOR::eWHITE_FG }
+#define INPUT_MSG_COLOR         { COLOR::eCYAN_BG,           COLOR::eWHITE_FG }
+#define OUTPUT_FRAGMENT_COLOR   { COLOR::eBLUE_FG,           COLOR::eBRIGHT_GRAY_BG }
+#define INPUT_FRAGMENT_COLOR    { COLOR::eBLUE_FG,           COLOR::eBRIGHT_GRAY_BG }
 
 bool Socket::checkCorrectIp(const std::string& ip_string) noexcept {
     using namespace logs;
@@ -56,40 +56,44 @@ EECounter& Socket::getOutSeqNumber(const IpPort& ip_port) noexcept {
     return it->second.m_out_sn;
 }
 
-void Socket::appendNewFragment(const PacketMessage& received_pm) noexcept {
+void Socket::appendNewFragment(const PacketMessage& received_pm, Config& output_message) noexcept
+{
     using namespace logs;
 
     auto it = findOrCreateConnection(received_pm.m_ip_port);
 
     it->second.m_last_input_activity = std::chrono::system_clock::now();
 
-    log(LEVEL::eDEBUG3, "buildPacket(), mapConnection size: " + std::to_string(m_map_connections.size()));
+    log(LEVEL::eDEBUG3, "appendNewFragment(), mapConnection size: " + std::to_string(m_map_connections.size()));
 
     if(received_pm.m_packet.empty()) {
-        log(LEVEL::eDEBUG3, "~buildPacket(), packet empty");
+        log(LEVEL::eDEBUG3, "~appendNewFragment(), packet empty");
         return;
     }
 
     log(LEVEL::eDEBUG,
-        "received sn=" + std::to_string(received_pm.m_sn.get())
-                          + ", expected_sn=" + std::to_string(it->second.m_in_next_sn.get()),
-        to_color_string(INPUT_FRAGMENT_COLOR, "received sn=" + std::to_string(received_pm.m_sn.get())
-         + ", expected_sn=" + std::to_string(it->second.m_in_next_sn.get())));
+        "received sn [" + std::to_string(received_pm.m_sn.get()) + "]"
+                          + ", expected_sn [" + std::to_string(it->second.m_in_next_sn.get()) + "]",
+        to_color_string(INPUT_FRAGMENT_COLOR,
+                        "received sn [" + std::to_string(received_pm.m_sn.get()) + "]"
+                            + ", expected_sn [" + std::to_string(it->second.m_in_next_sn.get()) + "]"));
 
     if(it->second.m_in_sn_last_recv < received_pm.m_sn)
         it->second.m_in_sn_last_recv = received_pm.m_sn;
     //всё, что пришло до этого - удалится
     EECounter rmSn = it->second.m_in_sn_last_recv - (it->second.m_in_sn_last_recv.size() / 2); //размер окна - половина диапазонаe
 
+    // если пришедший счётчик совпал с ожидаемым
     if(received_pm.m_sn == it->second.m_in_next_sn) {
         //NOTE: игнор уже пришедших фрагментов произойдёт здесь же
         it->second.m_map_recv_builded_messages.insert(std::make_pair(received_pm.m_sn, received_pm));
         it->second.m_in_next_sn++;
         log(LEVEL::eDEBUG, "processing build...");
-    } else if (received_pm.m_sn < it->second.m_in_next_sn) {
+    } else if (received_pm.m_sn < it->second.m_in_next_sn) { // пришедший счётчик уже был, игнорирование
         log(LEVEL::eDEBUG,
             "IGNORING, fragment has already been received!",
-            to_color_string({COLOR::eGRAY_BG, COLOR::eWHITE_FG}, "IGNORING") + ", fragment has already been received!");
+            to_color_string({COLOR::eGRAY_BG, COLOR::eWHITE_FG},
+                            "IGNORING") + ", fragment has already been received!");
 
         //если имеющийся пакет с таким SN отличается по содержанию, то необходимо обновить мапу
         auto it_fragment = it->second.m_map_recv_fragments.find(received_pm.m_sn);
@@ -98,14 +102,77 @@ void Socket::appendNewFragment(const PacketMessage& received_pm) noexcept {
                 log(LEVEL::eDEBUG,
                     "This fragment is different from the existing one, updating map...",
                     to_color_string(COLOR::eBRIGHT_YELLOW_BG,
-                                          "This fragment is different from the existing one, updating map..."));
+                                    "This fragment is different from the existing one, updating map..."));
                 it->second.m_map_recv_fragments.erase(it_fragment);
                 it->second.m_map_recv_fragments.insert(std::make_pair(received_pm.m_sn, received_pm));
             }
         }
-    } else {
+    } else { // пришедший счётчик больше ожидаемого, сборка пакета откладывается; посылается NACK
+        // предварительная очистка списка отправленных индексов NACK
+        {
+            auto time_now = std::chrono::system_clock::now();
+
+            // удаляются все SN до текущего ожидаемого
+            for(auto it_nack = it->second.m_sended_nacks.begin(); it_nack != it->second.m_sended_nacks.end(); it_nack++)
+            {
+                if(it_nack->second != it->second.m_in_next_sn.get())
+                    it_nack = it->second.m_sended_nacks.erase(it_nack);
+
+                if(it_nack->second == it->second.m_in_next_sn.get())
+                    break; //текущий ожидаемый SN удаляется только при превышении таймера
+
+                // защита от пропуска конца массива при удалении итератора
+                if(it_nack == it->second.m_sended_nacks.end()) break;
+            }
+
+            // удаляются все записи с превышением таймера на 1 секунду (ошибка доставки)
+            // NOTE: вынесено во второй цикл во избежание ненужных коллизий
+            for(auto it_nack = it->second.m_sended_nacks.begin(); it_nack != it->second.m_sended_nacks.end(); it_nack++)
+            {
+                if(time_now - it_nack->first > std::chrono::seconds(1))
+                    it_nack = it->second.m_sended_nacks.erase(it_nack);
+
+                // защита от пропуска конца массива при удалении итератора
+                if(it_nack == it->second.m_sended_nacks.end()) break;
+            }
+        }
+
         log(LEVEL::eDEBUG, "fragment received, but will be processed later");
         it->second.m_map_recv_fragments.insert(std::make_pair(received_pm.m_sn, received_pm));
+
+        // подготовка к отправке NACK
+        if(!output_message.containsKey("nack_sn"))
+            output_message.push_back("nack_sn", Config(ValueType::eArray));
+
+        // нужно собрать NACK на каждый из неполученных фрагментов
+        /* счётчик добавляется:
+         * - только если он отсутствует в it->second.m_sended_nacks
+         * - строго в диапазоне it->second.m_in_next_sn <= X < received_pm.m_sn
+        */
+        for(EECounter temp_counter = it->second.m_in_next_sn;
+             temp_counter.get() != received_pm.m_sn.get();
+             temp_counter.add())
+        {
+            bool already_in = false;
+            // первичный ключ - временнАя метка, поэтому поиск ручной через цикл for
+            for(auto& it_nack : it->second.m_sended_nacks)
+            {
+                if(it_nack.second == temp_counter.get())
+                {
+                    already_in = true;
+                    break;
+                }
+            }
+            if(!already_in)
+            {
+                output_message["nack_sn"].push_back(temp_counter.get());
+                log(LEVEL::eDEBUG,
+                    "appendNewFragment(), append NACK for sn [" + std::to_string(it->second.m_in_next_sn.get()) + "]",
+                    to_color_string(COLOR::eBRIGHT_YELLOW_BG,
+                                    "appendNewFragment(), append NACK for sn ["
+                                        + std::to_string(it->second.m_in_next_sn.get()) + "]"));
+            }
+        }
     }
 
     //пройтись по poolRecvMessages и добрать по порядку к mapRecvBuildedMessages
@@ -115,7 +182,7 @@ void Socket::appendNewFragment(const PacketMessage& received_pm) noexcept {
         it->second.m_in_next_sn++;
 
         it_pool = it->second.m_map_recv_fragments.erase(it_pool);
-        log(LEVEL::eDEBUG, "buildPacket(), new expected_sn:" + std::to_string(it->second.m_in_next_sn.get()));
+        log(LEVEL::eDEBUG, "appendNewFragment(), new expected_sn:" + std::to_string(it->second.m_in_next_sn.get()));
         it_pool = it->second.m_map_recv_fragments.find(it->second.m_in_next_sn); //ищем следующий фрагмент очереди
     }
 
@@ -124,16 +191,17 @@ void Socket::appendNewFragment(const PacketMessage& received_pm) noexcept {
         || it->second.m_in_sn_last_recv.get_glob() > 0
         ) {
         log(LEVEL::eDEBUG,
-            "buildPacket(), rmSn=" + std::to_string(rmSn.get()),
-            to_color_string(COLOR::eBRIGHT_YELLOW_BG, "buildPacket(), rmSn=" + std::to_string(rmSn.get())));
+            "appendNewFragment(), (window) rm sn [" + std::to_string(rmSn.get()) + "]",
+            to_color_string(COLOR::eBRIGHT_YELLOW_BG,
+                            "appendNewFragment(), (window) rm sn [" + std::to_string(rmSn.get()) + "]"));
         it_pool = it->second.m_map_recv_fragments.begin();
         while(it_pool != it->second.m_map_recv_fragments.end()) {
             if(it_pool->first < rmSn) {
                 log(LEVEL::eDEBUG,
-                    "buildPacket(), remove wait sn=" + std::to_string(it->second.m_in_next_sn.get()),
+                    "appendNewFragment(), remove wait sn [" + std::to_string(it->second.m_in_next_sn.get()) + "]",
                     to_color_string(COLOR::eBRIGHT_YELLOW_BG,
-                                          "buildPacket(), remove wait sn="
-                                              + std::to_string(it->second.m_in_next_sn.get())));
+                                    "appendNewFragment(), remove wait sn ["
+                                        + std::to_string(it->second.m_in_next_sn.get()) + "]"));
 
                 it_pool = it->second.m_map_recv_fragments.erase(it_pool);
                 if(it_pool == it->second.m_map_recv_fragments.end()) break;
@@ -206,7 +274,7 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) noexcept {
             }
 
             pm.m_sn = firstCounter; //номер первого фрагмента для индикации доставки глобального сообщения
-            log(LEVEL::eDEBUG, "built recv packet: sn=" + std::to_string(pm.m_sn.get()) + ", type=" + ToString(pm.m_header.type));
+            log(LEVEL::eDEBUG, "built recv packet: sn [" + std::to_string(pm.m_sn.get()) + "], type " + ToString(pm.m_header.type));
             //скопировать и удалить задействованные фрагменты
             bool this_last_fragment = false;
             EECounter counter = firstCounter;
@@ -655,6 +723,7 @@ void UDPSocket::checkConnections() noexcept {
         auto _now = std::chrono::system_clock::now();
         auto _inactivity = std::chrono::milliseconds(m_settings.getInactivityTimer());
         auto _halfInactivity = std::chrono::milliseconds(m_settings.getInactivityTimer() / 2);
+
         //если не было сообщений ОТ адреса дольше this->inactivityTimer/2, то отправить пинг
         log(LEVEL::eDEBUG3, "checkConnections(), pings");
         if(it->second.m_last_output_activity + _halfInactivity < _now
@@ -744,12 +813,12 @@ void UDPSocket::sendAutoMsg() noexcept {
                                                   || (m_settings.getMaxMsgsSentOnTick() < 0));
          it++) {
         time_point_default tp = it->first;
-        tp += std::chrono::milliseconds(m_settings.getInactivityTimer());
+        tp += std::chrono::seconds(1); // одной секунды более чем достаточно для отправки сообщения и получения ответа
         PacketMessage pm = it->second;
         if(tp < std::chrono::system_clock::now()) { //нужно переотправить
             it = m_map_auto_sent_packets.erase(it);
             m_send_packets_buffer.push_front(pm);
-            log(LEVEL::eDEBUG, "New try to send [" + std::to_string(it->second.m_sn.get()) + "] fragment");
+            log(LEVEL::eDEBUG, "Sending timeout, new try to send [" + std::to_string(pm.m_sn.get()) + "] fragment");
 
 //            counter++; скорее всего не нужно
             if(it == m_map_auto_sent_packets.end()) break;
@@ -792,10 +861,10 @@ void UDPSocket::sendAutoMsg() noexcept {
         PacketMessage pm = m_send_packets_buffer.front();
         m_send_packets_buffer.pop_front();
         log(LEVEL::eDEBUG,
-            "sending sn[" + std::to_string(pm.m_sn.get()) + "] fragment, data:[0x"
+            "sending sn [" + std::to_string(pm.m_sn.get()) + "] fragment, data:[0x"
                 + utils::ToHexString(pm.m_packet) + "] " + pm.m_ip_port.toString("to"),
             to_color_string(OUTPUT_FRAGMENT_COLOR,"sending")
-                + " sn[" + std::to_string(pm.m_sn.get()) + "] fragment, data:[0x"
+                + " sn [" + std::to_string(pm.m_sn.get()) + "] fragment, data:[0x"
                 + utils::ToHexString(pm.m_packet) + "] " + pm.m_ip_port.toString("to"));
 
         Socket::sendRawMsg(pm); //отправили
@@ -828,6 +897,7 @@ Config UDPSocket::recvAutoMsg(int timeout) noexcept {
     if(pm.m_packet.size() < 3) return outputJson;
     uint8_t glob_sn = pm.m_packet[1];
     uint8_t sn      = pm.m_packet[2];
+
     pm.m_sn = EECounter(255);
     pm.m_sn.set_glob_pos(glob_sn);
     pm.m_sn.set_pos(sn);
@@ -849,21 +919,22 @@ Config UDPSocket::recvAutoMsg(int timeout) noexcept {
     if(it == m_map_connections.end() && pm.m_header.type == eControlType) {
         //если первый пакет от адресата является контрольным и НЕ требует отчёта о доставке
         log(LEVEL::eDEBUG,
-            "Send initial ping for message sn=" + std::to_string(pm.m_sn.get())
-                + " " + pm.m_ip_port.toString(),
-            "Send initial ping for message sn=" + std::to_string(pm.m_sn.get())
-                + " " + to_color_string(COLOR::eRED_BG, pm.m_ip_port.toString()));
+            "Send initial ping for message sn [" + std::to_string(pm.m_sn.get()) + "] "
+                + pm.m_ip_port.toString(),
+            "Send initial ping for message sn [" + std::to_string(pm.m_sn.get()) + "] "
+                + to_color_string(COLOR::eRED_BG, pm.m_ip_port.toString()));
         outputJson.push_at("ping", getLocalIpPort().toString());
     }
 
     if(pm.m_header.type != eControlType)
-        outputJson.push_at("ack_sn", (double)pm.m_sn.get());
+        outputJson.push_at("ack_sn", Config(ValueType::eArray, (double)pm.m_sn.get()));
 
-    appendNewFragment(pm);
+    appendNewFragment(pm, outputJson);
 
     return outputJson;
 }
 
+// метод выполнется на стороне приёма пакетов
 Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
     using namespace logs;
     JsonMessage jm = pm;
@@ -882,19 +953,28 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
         //обработка собранного пакета (1 за проход)
         log(LEVEL::eDEBUG, "pm.m_header.type: " + ToString(pm.m_header.type));
         if(pm.m_header.type == eControlType) {
-            if(jm.m_json.containsKey("ack_sn")) {
-                uint8_t sn = jm.m_json["ack_sn"].getNumber();
+            // отчёт о доставке фрагментов
+            if(jm.m_json.containsKey("ack_sn") && jm.m_json["ack_sn"].isArray()) {
                 std::vector<Color> colors = {COLOR::eBRIGHT_GRAY_BG};
-                log(LEVEL::eDEBUG,
-                    "erasing sn[" + jm.m_json["ack_sn"].toString() + "]",
-                    to_color_string(colors, "erasing sn[" + jm.m_json["ack_sn"].toString() + "]"));
-                for(auto it = m_map_auto_sent_packets.begin(); it != m_map_auto_sent_packets.end(); it++) {
-                    if(it->second.m_sn.get() == sn) {
-                        m_map_auto_sent_packets.erase(it->first);
-                        break;
+
+                // ack_sn - массив чисел
+                for(auto it = m_map_auto_sent_packets.begin(); it != m_map_auto_sent_packets.end(); it++)
+                {
+                    uint8_t sn = it->second.m_sn.get();
+                    if(jm.m_json["ack_sn"].containsValue(sn))
+                    {
+                        log(LEVEL::eDEBUG,
+                            "Received ACK, erasing sn [" + std::to_string(sn) + "]",
+                            to_color_string(colors, "Received ACK, erasing sn [" + std::to_string(sn) + "]"));
+                        it = m_map_auto_sent_packets.erase(it);
                     }
+
+                    // защита от пропуска конца массива при удалении итератора
+                    if(it == m_map_auto_sent_packets.end()) break;
                 }
             }
+
+            // все фрагменты пакета доставлены, нужно очистить буфер
             if(jm.m_json.containsKey("ack_all_packet")) {
                 uint8_t first_sn = jm.m_json["ack_all_packet"].getNumber(); //номер первого фрагмента сообщения
 
@@ -922,6 +1002,27 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                 }
                 m_output_threads_mutex.unlock();
             }
+
+            // перепосылка недоставленных фрагментов
+            if(jm.m_json.containsKey("nack_sn") && jm.m_json["nack_sn"].isArray()) {
+                m_output_threads_mutex.lock();
+                for(auto it = m_map_auto_sent_packets.begin(); it != m_map_auto_sent_packets.end(); it++)
+                {
+                    PacketMessage pm = it->second;
+                    uint8_t sn       = pm.m_sn.get();
+                    if(jm.m_json["nack_sn"].containsValue(sn)) { //нужно переотправить
+                        it = m_map_auto_sent_packets.erase(it); // удаляем фрагмент из таблицы ожидания для переотправки
+                        m_send_packets_buffer.push_front(pm);
+                        log(LEVEL::eDEBUG, "Received NACK, new try to send [" + std::to_string(sn) + "] fragment");
+                    }
+
+                    // защита от пропуска конца массива при удалении итератора
+                    if(it == m_map_auto_sent_packets.end()) break;
+                }
+                m_output_threads_mutex.unlock();
+            }
+
+            // возникла ошибка при декодировании собранного сообщения (все фрагменты), нужно переупаковать и отправить фрагменты сообщения заново
             if(jm.m_json.containsKey("packet_error_last_sn")) {
                 uint8_t last_err_sn = jm.m_json["packet_error_last_sn"].getNumber(); //номер первого фрагмента сообщения
 
@@ -929,6 +1030,8 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                 for(auto it = m_map_auto_sent_packets.begin(); it != m_map_auto_sent_packets.end(); it++) {
                     if(it->second.m_sn <= last_err_sn) {
                         it = m_map_auto_sent_packets.erase(it);
+
+                        // защита от пропуска конца массива при удалении итератора
                         if(it == m_map_auto_sent_packets.end()) break;
                     }
                 }
@@ -943,7 +1046,7 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                         packet  = it->m_packet;
                         type    = it->m_header.type;
                         ipPort  = it->m_ip_port;
-                        it = m_sent_global_packets.erase(it);
+                        it      = m_sent_global_packets.erase(it);
                         break;
                     }
                 }
@@ -955,6 +1058,8 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                     sendFragments(ipPort, type, packet); //переотправка
                 }
             }
+
+            // другая сторона запрашивает какой-либо из параметров
             if(jm.m_json.containsKey("get")) {
                 //get = element of Config-Array
                 Config requests = jm.m_json["get"];
@@ -978,11 +1083,14 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                     }
                 }
             }
+
+            // другая сторона отправила открытую часть ключа шифрования
             if(jm.m_json.containsKey("key")) {
                 auto connection_it = findOrCreateConnection(pm.m_ip_port);
                 connection_it->second.m_chip_key.key = jm.m_json["key"].getString();
             }
         } else {
+            // обработка пользовательского пакета
             m_input_threads_mutex.lock();
             if(jm.m_json.isEmpty()) {
                 log(LEVEL::eDEBUG2,

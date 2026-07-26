@@ -47,6 +47,10 @@ public:
     std::map<EECounter, PacketMessage> m_map_recv_fragments;        //фрагменты сообщений (в беспорядке)
     std::map<EECounter, PacketMessage> m_map_recv_builded_messages; //собранные по очереди фрагменты сообщений
 
+    // храним список отправленных индексов NACK, чтобы не было дублей
+    // NOTE: если прошло больше 1 секунды, то NACK дублируется
+    std::map<time_point_default, uint8_t> m_sended_nacks;
+
     Connection() noexcept :
         m_last_output_activity(std::chrono::system_clock::now()),
         m_last_input_activity(std::chrono::system_clock::now()),
@@ -97,7 +101,7 @@ protected:
     uint8_t         packHeader(const PacketHeader& ph)                          noexcept;
     PacketHeader    unpackHeader(const uint8_t header)                          noexcept;
     EECounter&      getOutSeqNumber(const IpPort& ip_port)                      noexcept;
-    void            appendNewFragment(const PacketMessage& received_pm)         noexcept;
+    void            appendNewFragment(const PacketMessage& received_pm, Config& output_message) noexcept;
     PacketMessage   buildPacket(MapConnectionsIterator& it)                     noexcept;
     MapConnectionsIterator
                     findOrCreateConnection(const IpPort& remote_ip_port)        noexcept;
