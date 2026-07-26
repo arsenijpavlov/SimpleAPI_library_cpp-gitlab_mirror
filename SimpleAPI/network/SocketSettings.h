@@ -18,7 +18,7 @@ public:
 private:
     ApiVersion                  m_api_version;
     CRC                         m_crc_level;
-    long                        m_inactivity_timer;
+    long                        m_inactivity_timer; // пингование
     uint16_t                    m_max_length;
     int                         m_max_msgs_sent_on_tick;
     RecvJsonMessageCallback     m_recv_json_callback;
@@ -31,7 +31,7 @@ public:
     SocketSettings() noexcept :
         m_api_version               (GetLastApiVersion()),
         m_crc_level                 (CRC::eCRC_OFF),
-        m_inactivity_timer          (10000),
+        m_inactivity_timer          (1000),
         m_max_length                (1500),
         m_max_msgs_sent_on_tick     (-1),
         m_recv_json_callback        (nullptr),

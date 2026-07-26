@@ -655,6 +655,7 @@ void UDPSocket::checkConnections() noexcept {
         auto _now = std::chrono::system_clock::now();
         auto _inactivity = std::chrono::milliseconds(m_settings.getInactivityTimer());
         auto _halfInactivity = std::chrono::milliseconds(m_settings.getInactivityTimer() / 2);
+
         //если не было сообщений ОТ адреса дольше this->inactivityTimer/2, то отправить пинг
         log(LEVEL::eDEBUG3, "checkConnections(), pings");
         if(it->second.m_last_output_activity + _halfInactivity < _now
@@ -744,12 +745,12 @@ void UDPSocket::sendAutoMsg() noexcept {
                                                   || (m_settings.getMaxMsgsSentOnTick() < 0));
          it++) {
         time_point_default tp = it->first;
-        tp += std::chrono::milliseconds(m_settings.getInactivityTimer());
+        tp += std::chrono::seconds(1); // одной секунды более чем достаточно для отправки сообщения и получения ответа
         PacketMessage pm = it->second;
         if(tp < std::chrono::system_clock::now()) { //нужно переотправить
             it = m_map_auto_sent_packets.erase(it);
             m_send_packets_buffer.push_front(pm);
-            log(LEVEL::eDEBUG, "New try to send [" + std::to_string(it->second.m_sn.get()) + "] fragment");
+            log(LEVEL::eDEBUG, "New try to send [" + std::to_string(pm.m_sn.get()) + "] fragment");
 
 //            counter++; скорее всего не нужно
             if(it == m_map_auto_sent_packets.end()) break;
