@@ -725,6 +725,7 @@ void UDPSocket::checkConnections() noexcept {
         auto _halfInactivity = std::chrono::milliseconds(m_settings.getInactivityTimer() / 2);
 
         //если не было сообщений ОТ адреса дольше this->inactivityTimer/2, то отправить пинг
+        //TODO: либо последняя отправка ДО адреса была дольше этого времени
         log(LEVEL::eDEBUG3, "checkConnections(), pings");
         if(it->second.m_last_output_activity + _halfInactivity < _now
             && it->second.m_last_input_activity + _halfInactivity < _now
