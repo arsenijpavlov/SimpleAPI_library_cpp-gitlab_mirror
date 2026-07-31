@@ -43,7 +43,7 @@ bool WriteStringToFile(const std::string& file_path, std::string&& content) noex
 
 
 void Config::release() noexcept {
-    if(!m_value)
+    if(m_value)
     {
         delete m_value;
         m_value = nullptr;
