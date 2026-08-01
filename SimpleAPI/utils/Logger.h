@@ -70,22 +70,22 @@ enum class ColorType {
 class Color {
     std::string m_color_string;
 public:
-    //NOTE: \033 то же самое, что и \e
+    //NOTE: \033 то же самое, что и \e, но \033 поддерживается большим количеством платформ
     Color(const ColorType color_type, const uint8_t color_as_num) {
-        m_color_string = std::string("\e[")
+        m_color_string = std::string("\033[")
                          + std::to_string(static_cast<uint8_t>(color_type)) + ";5;"
                          + std::to_string(static_cast<uint8_t>(color_as_num))
                          + "m";
     }
     Color(const COLOR color_as_define) {
-        m_color_string = std::string("\e[")
+        m_color_string = std::string("\033[")
                          + std::to_string(static_cast<uint8_t>(color_as_define))
                          + "m";
     }
     Color(const ColorType color_type, const uint8_t pigment_R,
           const uint8_t pigment_G, const uint8_t pigment_B)
     {
-        m_color_string = std::string("\e[")
+        m_color_string = std::string("\033[")
                          + std::to_string(static_cast<uint8_t>(color_type)) + ";2;"
                          + std::to_string(static_cast<uint8_t>(pigment_R)) + ";"
                          + std::to_string(static_cast<uint8_t>(pigment_G)) + ";"

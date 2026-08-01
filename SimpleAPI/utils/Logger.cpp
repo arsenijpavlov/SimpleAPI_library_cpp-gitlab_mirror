@@ -59,7 +59,7 @@ const std::string to_string(const COLOR color) noexcept {
     case COLOR::eBRIGHT_BLUE_BG:    return "[BRIGHT_BLUE_BG]";
     case COLOR::eBRIGHT_MAGENTA_BG: return "[BRIGHT_MAGENTA_BG]";
     case COLOR::eBRIGHT_CYAN_BG:    return "[BRIGHT_CYAN_BG]";
-    default:                        return std::string("\e[") + std::to_string(static_cast<uint8_t>(color)) + "m";
+    default:                        return std::string("\033[") + std::to_string(static_cast<uint8_t>(color)) + "m";
     }
 }
 
