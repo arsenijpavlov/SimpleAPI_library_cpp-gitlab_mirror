@@ -15,8 +15,9 @@ public:
     EECounter(uint64_t size)                            noexcept;
     EECounter(const EECounter& other)                   noexcept;
 
-    void        set_pos(const uint64_t& pos)            noexcept;
-    void        set_glob_pos(const uint64_t& glob_pos)  noexcept;
+    void        set_pos(uint64_t pos)                   noexcept;
+    void        set_pos(uint64_t glob_pos, uint64_t pos)noexcept;
+    void        set_glob_pos(uint64_t glob_pos)         noexcept;
 
     bool        operator==(const EECounter& other)      const;
     bool        operator!=(const EECounter& other)      const;
@@ -40,8 +41,10 @@ public:
     uint64_t    get_add()                               noexcept;
     uint64_t    get_next()                              noexcept;
     uint64_t    get_glob()                              const noexcept  { return m_global_pos; }
+
     void        add(uint64_t step = 1)                  noexcept;
     void        sub(uint64_t step = 1)                  noexcept;
+
     uint64_t    size()                                  noexcept        { return m_max_size; }
     void        reset()                                 noexcept;
 };

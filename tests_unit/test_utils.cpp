@@ -38,25 +38,46 @@ TEST(UTILS, string_len) {
     EXPECT_EQ(1, utils::GetStringCharCount(example));
 }
 
+TEST(UTILS, EndToEndCounter_set_overflowing) {
+    using namespace simpleapi;
+    EECounter ee(256);
+
+    ee.set_pos(300);
+    EXPECT_EQ(ee.get(), 44);
+
+    ee.reset();
+    ee.set_glob_pos(300);
+    EXPECT_EQ(ee.get_glob(), 44);
+
+    ee.reset();
+    ee.set_pos(300, 300);
+    EXPECT_EQ(ee.get_glob(), 45);
+    EXPECT_EQ(ee.get(), 44);
+}
+
 TEST(UTILS, EndToEndCounter_add_overflowing) {
     using namespace simpleapi;
     EECounter ee(256);
 
-    // add
     ee.add(256);
-    EXPECT_EQ(ee.get(), 1);
+    EXPECT_EQ(ee.get(), 0);
 
+    ee.reset();
     ee.set_pos(255);
     ee.add(1);
-    EXPECT_EQ(ee.get(), 1);
+    EXPECT_EQ(ee.get(), 0);
+}
 
-    // sub
+TEST(UTILS, EndToEndCounter_sub_overflowing) {
+    using namespace simpleapi;
+    EECounter ee(256);
+
     ee.set_pos(0);
     ee.sub(256);
-    EXPECT_EQ(ee.get(), 255);
+    EXPECT_EQ(ee.get(), 0);
 
+    ee.reset();
     ee.set_pos(255);
     ee.sub(256);
-    EXPECT_EQ(ee.get(), 254);
-
+    EXPECT_EQ(ee.get(), 255);
 }

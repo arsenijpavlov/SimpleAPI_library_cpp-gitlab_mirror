@@ -10,7 +10,7 @@ namespace simpleapi {
 
 
 EECounter::EECounter(uint64_t size) noexcept {
-    m_max_size   = size - 1; // чтобы счёт был от 0 до N-1
+    m_max_size   = size;
     m_pos        = 0;
     m_global_pos = 0;
 }
@@ -21,14 +21,42 @@ EECounter::EECounter(const EECounter &other) noexcept {
     m_global_pos = other.m_global_pos;
 }
 
-// TODO: нужна защита от переполнения
-void EECounter::set_pos(const uint64_t &pos) noexcept {
+// @TEST(UTILS, EndToEndCounter_set_overflowing)
+void EECounter::set_pos(uint64_t pos) noexcept {
+    while(pos > m_max_size) {
+        pos -= m_max_size;
+        if(m_global_pos == m_max_size - 1)
+            m_global_pos = 0;
+        else
+            ++m_global_pos;
+    }
     m_pos = pos;
 }
 
-// TODO: нужна защита от переполнения
-void EECounter::set_glob_pos(const uint64_t &glob_m_pos) noexcept {
-    m_global_pos = glob_m_pos;
+// @TEST(UTILS, EndToEndCounter_set_overflowing)
+void EECounter::set_pos(uint64_t glob_pos, uint64_t pos) noexcept
+{
+    while(glob_pos > m_max_size)
+        glob_pos -= m_max_size;
+
+    m_global_pos = glob_pos;
+
+    while(pos > m_max_size) {
+        pos -= m_max_size;
+        if(m_global_pos == m_max_size - 1)
+            m_global_pos = 0;
+        else
+            ++m_global_pos;
+    }
+    m_pos = pos;
+}
+
+// @TEST(UTILS, EndToEndCounter_set_overflowing)
+void EECounter::set_glob_pos(uint64_t glob_pos) noexcept {
+    while(glob_pos > m_max_size)
+        glob_pos -= m_max_size;
+
+    m_global_pos = glob_pos;
 }
 
 bool EECounter::operator==(const EECounter &other) const {
@@ -134,58 +162,77 @@ uint64_t EECounter::get_next() noexcept {
     return (++saved).get();
 }
 
+// TODO: написать тест
 EECounter EECounter::operator+(const EECounter& other) {
     __INCOMPATIBLE_SIZE_EXCEPTION__
 
     EECounter saved(*this);
-    saved.m_global_pos += other.m_pos;
+
+    saved.m_global_pos += other.get_glob();
+    while(saved.m_global_pos > saved.m_max_size)
+        saved.m_global_pos -= saved.m_max_size;
+
     saved.m_pos += other.m_pos;
-    if(saved.m_pos > saved.m_max_size) {
+    while(saved.m_pos > saved.m_max_size)
+    {
+        saved.m_pos -= saved.m_max_size;
         saved.m_global_pos++;
-        saved.m_pos = saved.m_pos - saved.m_max_size;
+        if(saved.m_global_pos == saved.m_max_size)
+            saved.m_global_pos = 0;
     }
 
     return saved;
 }
 
+// TODO: написать тест
 EECounter EECounter::operator-(const EECounter& other) {
     __INCOMPATIBLE_SIZE_EXCEPTION__
 
     EECounter saved(*this);
-    saved.m_global_pos -= other.m_pos;
-    if(other.m_pos >= saved.m_pos) {
-        saved.m_global_pos--;
-        saved.m_pos -= other.m_pos - saved.m_max_size;
+
+    if(saved.m_global_pos < other.m_global_pos)
+        saved.m_global_pos = (saved.m_global_pos + saved.m_max_size) - other.m_global_pos;
+    else {
+        saved.m_global_pos -= other.m_global_pos;
+    }
+
+    if(other.m_pos < saved.m_pos) {
+        saved.m_pos = (saved.m_pos + saved.m_max_size) - other.m_pos;
+
+        --saved.m_global_pos;
+        if(saved.m_global_pos == 0)
+            saved.m_global_pos = saved.m_max_size - 1;
     } else
         saved.m_pos -= other.m_pos;
 
     return saved;
 }
 
+// @TEST(UTILS, EndToEndCounter_sub_overflowing)
 void EECounter::add(uint64_t step) noexcept {
-    while(step > m_max_size) {
+    while(step >= m_max_size) {
         step -= m_max_size;
-        if(m_global_pos == m_max_size - 1)
+
+        ++m_global_pos;
+        if(m_global_pos == m_max_size)
             m_global_pos = 0;
-        else
-            ++m_global_pos;
     }
     m_pos += step;
-    if(m_pos > m_max_size)
+    if(m_pos >= m_max_size)
         m_pos -= m_max_size;
 }
 
+// @TEST(UTILS, EndToEndCounter_sub_overflowing)
 void EECounter::sub(uint64_t step) noexcept {
-    while(step > m_max_size)
+    while(step >= m_max_size)
     {
         step -= m_max_size;
+        --m_global_pos;
         if(m_global_pos == 0)
             m_global_pos = m_max_size - 1;
-        else
-            --m_global_pos;
     }
     if(m_pos < step)
-        m_pos = m_pos + m_max_size + 1 - step;
+        m_pos = m_pos + m_max_size - step;
     else
         m_pos -= step;
 }
