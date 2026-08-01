@@ -715,16 +715,17 @@ void UDPSocket::checkConnections() noexcept {
 
         auto _now = std::chrono::system_clock::now();
         auto _inactivity = std::chrono::milliseconds(m_settings.getInactivityTimer());
-        auto _halfInactivity = std::chrono::milliseconds(m_settings.getInactivityTimer() / 2);
+        auto _one_third_inactivity = std::chrono::milliseconds(m_settings.getInactivityTimer() / 3);
 
         // если не было сообщений ОТ адреса дольше this->inactivityTimer/2, то отправить пинг
         // либо последняя отправка ДО адреса была дольше этого времени
         log(LEVEL::eDEBUG3, "checkConnections(), pings");
-        if(it->second.m_last_output_activity + _halfInactivity < _now
-            || it->second.m_last_input_activity + _halfInactivity < _now
-            ) {
+        if(it->second.m_last_output_activity + _one_third_inactivity < _now
+             && it->second.m_last_input_activity + _one_third_inactivity < _now
+            )
+        {
             log(LEVEL::eDEBUG2, "Send ping to " + it->first.toString());
-            log(LEVEL::eDEBUG3, "Expected time: " + get_time_string(it->second.m_last_output_activity + _halfInactivity));
+            log(LEVEL::eDEBUG3, "Expected time: " + get_time_string(it->second.m_last_output_activity + _one_third_inactivity));
             sendFragments(it->first, eControlType, ConvertToPacket(jPing.toString()), false);
             it->second.m_last_output_activity = std::chrono::system_clock::now();
             continue;
@@ -733,7 +734,8 @@ void UDPSocket::checkConnections() noexcept {
         IpPort _currentIpPort = it->first;
         //если долгое время не было сообщений от абонента, удалить все сообщения до него
         log(LEVEL::eDEBUG3, "checkConnections(), bad connection");
-        if(it->second.m_last_input_activity + _inactivity < _now) {
+        if(it->second.m_last_input_activity + _inactivity < _now)
+        {
             log(LEVEL::eWARNING,
                 to_color_string(CRITICAL_MSG_COLOR, "Connection " + _currentIpPort.toString()
                  + " removed, last activity at "
