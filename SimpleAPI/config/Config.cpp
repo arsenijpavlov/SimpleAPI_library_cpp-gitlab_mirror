@@ -1954,6 +1954,12 @@ bool Config::readFileIni(const std::string &file_path, const CommentDesign &desi
     return false;
 }
 
+bool Config::readFileXml(const std::string &file_path, const CommentDesign &design) noexcept
+{
+    //TODO: Config::readFileXml()
+    return false;
+}
+
 bool Config::writeFile(const std::string &file_path,  const ConfigFormat format,
                        const CommentDesign &design,
                        const int8_t custom_tabulation_level) noexcept
@@ -1986,6 +1992,16 @@ bool Config::writeFileIni(const std::string &file_path, const CommentDesign &des
     }
 
     return WriteFileIni(*this, file_path, n_design, custom_tabulation_level);
+}
+
+bool Config::writeFileXml(const std::string &file_path, const CommentDesign &design, const int8_t custom_tabulation_level) noexcept
+{
+    CommentDesign n_design = design;
+    if(design == CommentDesign{}) { // если переменная не заполнена, используется собственная
+        n_design = m_value->getCommentDesign();
+    }
+
+    return WriteFileXml(*this, file_path, n_design, custom_tabulation_level);
 }
 
 bool Config::parse(const std::string &content, const ConfigFormat format,
@@ -3596,6 +3612,12 @@ Config ReadFileIni(const std::string &file_path, const CommentDesign &design) no
     return out;
 }
 
+Config ReadFileXml(const std::string &file_path, const CommentDesign &design) noexcept
+{
+    //TODO: ReadFileXml()
+    return {};
+}
+
 //NOTE: eONLY_VALUE выводит переменную в формате JSON без пробелов и комментариев
 bool WriteFile(const Config& config, const std::string& file_path,
                const ConfigFormat format, const CommentDesign &design,
@@ -3614,6 +3636,12 @@ bool WriteFileIni(const Config& config, const std::string& file_path,
                   const CommentDesign &design, const uint8_t custom_tabulation_level) noexcept
 {
     return WriteStringToFile(file_path, config.toString(ConfigFormat::eINI, design, custom_tabulation_level));
+}
+
+bool WriteFileXml(const Config& config, const std::string& file_path,
+                  const CommentDesign &design, const uint8_t custom_tabulation_level) noexcept
+{
+    return WriteStringToFile(file_path, config.toString(ConfigFormat::eXML, design, custom_tabulation_level));
 }
 
 Config Parse(const std::string &content, const ConfigFormat format,
@@ -3656,6 +3684,12 @@ Config ParseIni(const std::string &content, const CommentDesign &design) noexcep
 
     ret.parseIni(content, n_design);
     return ret;
+}
+
+Config ParseXml(const std::string &content, const CommentDesign &design) noexcept
+{
+    //TODO: ParseXml()
+    return {};
 }
 
 } // namespace simpleapi

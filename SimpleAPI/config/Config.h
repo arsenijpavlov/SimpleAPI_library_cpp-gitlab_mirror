@@ -48,6 +48,7 @@ Config ReadFile(const std::string& file_path, const ConfigFormat format,
                 const CommentDesign &design = {})                                                       noexcept;
 Config ReadFileJson(const std::string& file_path, const CommentDesign &design = {})                     noexcept;
 Config ReadFileIni(const std::string& file_path, const CommentDesign &design = {})                      noexcept;
+Config ReadFileXml(const std::string& file_path, const CommentDesign &design = {})                      noexcept;
 
 //return - удалось записать файл или нет
 bool WriteFile(const Config& config, const std::string& file_path,
@@ -57,11 +58,14 @@ bool WriteFileJson(const Config& config, const std::string& file_path,
                    const CommentDesign &design = {}, const uint8_t custom_tabulation_level = 0)         noexcept;
 bool WriteFileIni(const Config& config, const std::string& file_path,
                   const CommentDesign &design = {}, const uint8_t custom_tabulation_level = 0)          noexcept;
+bool WriteFileXml(const Config& config, const std::string& file_path,
+                  const CommentDesign &design = {}, const uint8_t custom_tabulation_level = 0)          noexcept;
 
 Config Parse(const std::string& content, const ConfigFormat format,
              const CommentDesign &design = {})                                                          noexcept;
 Config ParseJson(const std::string& content, const CommentDesign &design = {})                          noexcept;
 Config ParseIni(const std::string& content, const CommentDesign &design = {})                           noexcept;
+Config ParseXml(const std::string& content, const CommentDesign &design = {})                           noexcept;
 
 class Config {
 private:
@@ -788,7 +792,7 @@ public:
     bool            operator==(const Config& other)         const                   { return isEqual(other); }                  API_ALL
     bool            operator==(const tools::IElement& other)const                   { return isEqual(other); }                  API_ALL
     bool            operator==(const bool other)            const                   { return isEqual(other); }                  API_ALL
-    bool            operator==(std::nullptr_t)            const                     { return isNull(); }                        API_ALL
+    bool            operator==(std::nullptr_t)              const                   { return isNull(); }                        API_ALL
                     __ONLY_NUMBER_TYPES__(T)
     bool            operator==(const T& other)              const                   { return isEqual(static_cast<const long double&>(other)); }     API_ALL
                     __ONLY_STRING_TYPES__(T)
@@ -797,7 +801,7 @@ public:
     bool            operator!=(const Config& other)         const                   { return !isEqual(other); }                 API_ALL
     bool            operator!=(const tools::IElement& other)const                   { return !isEqual(other); }                 API_ALL
     bool            operator!=(const bool other)            const                   { return !isEqual(other); }                 API_ALL
-    bool            operator!=(std::nullptr_t)            const                     { return !isNull(); }                       API_ALL
+    bool            operator!=(std::nullptr_t)              const                   { return !isNull(); }                       API_ALL
                     __ONLY_NUMBER_TYPES__(T)
     bool            operator!=(const T& other)              const                   { return !isEqual(static_cast<const long double&>(other)); }    API_ALL
     bool            operator!=(const std::string& other)    const                   { return !isEqual(other); }                 API_ALL
@@ -810,7 +814,7 @@ public:
 
     //контейнеры
     Config&         operator[](const size_t& index)                                 { return get_at(index); }                   API_CONTAINER
-    Config          operator[](const size_t& index)          const                  { return get_at(index); }                   API_CONTAINER
+    Config          operator[](const size_t& index)         const                   { return get_at(index); }                   API_CONTAINER
     Config&         operator[](const std::string& key)                              { return get_at(key); }                     API_CONTAINER
     Config          operator[](const std::string& key)      const                   { return get_at(key); }                     API_CONTAINER
 
@@ -906,6 +910,7 @@ public:
                              const CommentDesign &design = {})                                      noexcept;                   API_ALL
     bool            readFileJson(const std::string& file_path, const CommentDesign &design = {})    noexcept;                   API_ALL
     bool            readFileIni(const std::string& file_path, const CommentDesign &design = {})     noexcept;                   API_ALL
+    bool            readFileXml(const std::string& file_path, const CommentDesign &design = {})     noexcept;                   API_ALL
 
     //return - удалось записать файл или нет
     bool            writeFile(const std::string& file_path, const ConfigFormat format,
@@ -914,6 +919,8 @@ public:
     bool            writeFileJson(const std::string& file_path, const CommentDesign &design = {},
                      const int8_t custom_tabulation_level = 0)                                      noexcept;                   API_ALL
     bool            writeFileIni(const std::string& file_path, const CommentDesign &design = {},
+                     const int8_t custom_tabulation_level = 0)                                      noexcept;                   API_ALL
+    bool            writeFileXml(const std::string& file_path, const CommentDesign &design = {},
                      const int8_t custom_tabulation_level = 0)                                      noexcept;                   API_ALL
     // ============================================================================================================ File
 
@@ -963,6 +970,7 @@ public:
                            const CommentDesign &design)                                                     noexcept;
     friend Config ReadFileJson(const std::string& file_path, const CommentDesign &design)                   noexcept;
     friend Config ReadFileIni(const std::string& file_path, const CommentDesign &design)                    noexcept;
+    friend Config ReadFileXml(const std::string& file_path, const CommentDesign &design)                    noexcept;
 
     //return - удалось записать файл или нет
     friend bool WriteFile(const Config& config, const std::string& file_path,
@@ -972,11 +980,14 @@ public:
                               const CommentDesign &design, const uint8_t custom_tabulation_level)           noexcept;
     friend bool WriteFileIni(const Config& config, const std::string& file_path,
                              const CommentDesign &design, const uint8_t custom_tabulation_level)            noexcept;
+    friend bool WriteFileXml(const Config& config, const std::string& file_path,
+                             const CommentDesign &design, const uint8_t custom_tabulation_level)            noexcept;
 
     friend Config Parse(const std::string& content, const ConfigFormat format,
                         const CommentDesign &design)                                                        noexcept;
     friend Config ParseJson(const std::string& content, const CommentDesign &design)                        noexcept;
     friend Config ParseIni(const std::string& content, const CommentDesign &design)                         noexcept;
+    friend Config ParseXml(const std::string& content, const CommentDesign &design)                         noexcept;
 };
 
 } // namespace simpleapi
