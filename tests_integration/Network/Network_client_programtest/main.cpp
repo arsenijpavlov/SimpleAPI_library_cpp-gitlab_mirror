@@ -70,7 +70,9 @@ int main(int argc, char** argv) {
     settings.setRecvPacketCallback(RecvData);
     settings.setRecvJsonCallback(RecvJson);
     settings.setColorLogCallback(Log);
+//    settings.setLogCallback(Log);
     settings.setColorLogErrorCallback(LogError);
+//    settings.setLogErrorCallback(LogError);
     settings.enableLogTime(true);
     settings.enablePrintLogLevel(false);
     settings.setNameColumnSize(NAME_COLUMN_SIZE);
@@ -80,10 +82,10 @@ int main(int argc, char** argv) {
 
     SocketThread st(eUDP, server, settings);
     st.m_settings.setLogLevel(common_log_level);
-//    st.m_settings.setLogCallback(Log);
     st.m_settings.enableLogTime(true);
     st.m_settings.enablePrintLogLevel(false);
     st.m_settings.setColorLogCallback(Log);
+//    st.m_settings.setLogCallback(Log);
     st.m_settings.setNameColumnSize(NAME_COLUMN_SIZE);
     st.m_settings.enableNameColumnRightAlign(NAME_COLUMN_RIGHT_ALIGN);
 //    st.findSocket(server)->m_settings.setMaxLength(5);

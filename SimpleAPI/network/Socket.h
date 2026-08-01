@@ -111,8 +111,7 @@ protected:
                     findOrCreateConnection(const IpPort& remote_ip_port)        noexcept;
     void            updateLastOutputActivityTime(const IpPort& remote_ip_port)  noexcept;
 
-    void            log(const logs::LEVEL level, const std::string& log_message,
-                        const std::string& color_log_message = "") noexcept;
+    void            log(const logs::LEVEL level, std::string log_message = "")  noexcept;
     void            setSettings(const SocketSettings settings = SocketSettings())
                                                                 noexcept        { m_settings = settings; }
     SocketSettings  getSettings()                               noexcept        { return m_settings; }

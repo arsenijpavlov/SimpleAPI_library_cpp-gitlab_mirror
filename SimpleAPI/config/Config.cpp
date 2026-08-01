@@ -43,7 +43,7 @@ bool WriteStringToFile(const std::string& file_path, std::string&& content) noex
 
 
 void Config::release() noexcept {
-    if(!m_value)
+    if(m_value)
     {
         delete m_value;
         m_value = nullptr;
@@ -3489,7 +3489,7 @@ Config CreateElementFromString(std::string &&value_string, const ConfigFormat fo
         char last = value_string.back();
         /*NUMBER*/ {
             try {
-                std::regex reg("^[+-]?[0-9]*[.]?[0-9]*[eE]?[+-]?[0-9]*[fF]?$");
+                static std::regex reg("^[+-]?[0-9]*[.]?[0-9]*[eE]?[+-]?[0-9]*[fF]?$");
                 if(std::regex_match(value_string, reg))
                     return Config(std::stold(value_string));
             } catch (...) {}
