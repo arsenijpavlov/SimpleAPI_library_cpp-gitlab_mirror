@@ -123,10 +123,6 @@ EECounter &EECounter::operator=(const EECounter &other) noexcept {
     return *this;
 }
 
-uint64_t EECounter::get() const noexcept {
-    return m_pos;
-}
-
 uint64_t EECounter::get_add() noexcept {
     EECounter saved(*this);
     add();
@@ -136,10 +132,6 @@ uint64_t EECounter::get_add() noexcept {
 uint64_t EECounter::get_next() noexcept {
     EECounter saved(*this);
     return (++saved).get();
-}
-
-uint64_t EECounter::get_glob() noexcept {
-    return m_global_pos;
 }
 
 EECounter EECounter::operator+(const EECounter& other) {
