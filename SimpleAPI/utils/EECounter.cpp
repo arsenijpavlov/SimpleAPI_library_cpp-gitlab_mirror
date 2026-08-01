@@ -10,7 +10,7 @@ namespace simpleapi {
 
 
 EECounter::EECounter(uint64_t size) noexcept {
-    m_max_size   = size;
+    m_max_size   = size - 1; // чтобы счёт был от 0 до N-1
     m_pos        = 0;
     m_global_pos = 0;
 }
@@ -21,10 +21,12 @@ EECounter::EECounter(const EECounter &other) noexcept {
     m_global_pos = other.m_global_pos;
 }
 
+// TODO: нужна защита от переполнения
 void EECounter::set_pos(const uint64_t &pos) noexcept {
     m_pos = pos;
 }
 
+// TODO: нужна защита от переполнения
 void EECounter::set_glob_pos(const uint64_t &glob_m_pos) noexcept {
     m_global_pos = glob_m_pos;
 }
@@ -101,13 +103,13 @@ EECounter EECounter::operator--(int) noexcept {
     return saved;
 }
 
-EECounter EECounter::operator+(uint64_t step) noexcept {
+EECounter EECounter::operator+(const uint64_t& step) noexcept {
     EECounter saved(*this);
     saved.add(step);
     return saved;
 }
 
-EECounter EECounter::operator-(uint64_t step) noexcept {
+EECounter EECounter::operator-(const uint64_t& step) noexcept {
     EECounter saved(*this);
     saved.sub(step);
     return saved;
@@ -169,21 +171,35 @@ EECounter EECounter::operator-(const EECounter& other) {
 }
 
 void EECounter::add(uint64_t step) noexcept {
-    m_pos += step;
-    if(m_pos > m_max_size) {
-        m_pos = m_max_size - m_pos;
-        m_global_pos++;
+    while(step > m_max_size) {
+        step -= m_max_size;
+        if(m_global_pos == m_max_size - 1)
+            m_global_pos = 0;
+        else
+            ++m_global_pos;
     }
+    m_pos += step;
+    if(m_pos > m_max_size)
+        m_pos -= m_max_size;
 }
 
 void EECounter::sub(uint64_t step) noexcept {
-    m_pos += step;
-    if(m_pos > m_max_size)
-        m_pos = m_max_size - m_pos;
+    while(step > m_max_size)
+    {
+        step -= m_max_size;
+        if(m_global_pos == 0)
+            m_global_pos = m_max_size - 1;
+        else
+            --m_global_pos;
+    }
+    if(m_pos < step)
+        m_pos = m_pos + m_max_size + 1 - step;
+    else
+        m_pos -= step;
 }
 
 void EECounter::reset() noexcept {
-    m_pos = 0;
+    m_pos        = 0;
     m_global_pos = 0;
 }
 

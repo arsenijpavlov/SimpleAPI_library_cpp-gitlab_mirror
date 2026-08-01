@@ -29,8 +29,8 @@ public:
     EECounter&  operator--()                            noexcept;
     EECounter   operator++(int)                         noexcept;
     EECounter   operator--(int)                         noexcept;
-    EECounter   operator+(const uint64_t step)          noexcept;
-    EECounter   operator-(const uint64_t step)          noexcept;
+    EECounter   operator+(const uint64_t& step)         noexcept;
+    EECounter   operator-(const uint64_t& step)         noexcept;
     EECounter   operator+(const EECounter& other);
     EECounter   operator-(const EECounter& other);
 
@@ -42,7 +42,7 @@ public:
     uint64_t    get_glob()                              noexcept;
     void        add(uint64_t step = 1)                  noexcept;
     void        sub(uint64_t step = 1)                  noexcept;
-    uint64_t    size()                                  noexcept { return m_max_size; }
+    uint64_t    size()                                  noexcept        { return m_max_size; }
     void        reset()                                 noexcept;
 };
 
