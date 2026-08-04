@@ -321,8 +321,8 @@ public:
     Config&         deletePrefixComment()                           noexcept;                                               API_ALL
     Config&         deleteSuffixComment()                           noexcept;                                               API_ALL
 
-    CommentDesign&  getCommentDesign()                              noexcept        { return m_value->getCommentDesign(); } API_ALL
-    CommentDesign   getCommentDesign()                              const noexcept  { return m_value->getCommentDesign(); } API_ALL
+    CommentDesign&  getCommentDesign()                              noexcept;                                               API_ALL
+    const CommentDesign &getCommentDesign()                         const noexcept;                                         API_ALL
     Config&         setCommentDesign(const CommentDesign &design)   noexcept;                                               API_ALL
     Config&         clearCommentDesign()                            noexcept;                                               API_ALL
 

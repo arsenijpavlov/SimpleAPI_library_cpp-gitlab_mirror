@@ -83,6 +83,9 @@ Comment::~Comment() noexcept {
     del();
 }
 
+// инициализация статической константы
+const CommentDesign Comment::k_default_design{};
+
 bool Comment::isEmpty() const noexcept {
     if(m_prefix && !m_prefix->empty()) return false;
     if(m_suffix && !m_suffix->empty()) return false;
@@ -200,8 +203,8 @@ CommentDesign &Comment::commentDesign() noexcept {
     return *m_comment_design;
 }
 
-CommentDesign Comment::commentDesign() const noexcept {
-    if(!m_comment_design) return {};
+const CommentDesign &Comment::commentDesign() const noexcept {
+    if(!m_comment_design) return k_default_design;
     return *m_comment_design;
 }
 

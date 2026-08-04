@@ -110,6 +110,16 @@ Config &Config::deleteSuffixComment() noexcept {
     return *this;
 }
 
+CommentDesign &Config::getCommentDesign() noexcept
+{
+    return m_value->getCommentDesign();
+}
+
+const CommentDesign &Config::getCommentDesign() const noexcept
+{
+    return m_value ? m_value->getCommentDesign() : Comment::k_default_design;
+}
+
 Config &Config::setCommentDesign(const CommentDesign &design) noexcept {
     if(m_value)
         m_value->setCommentDesign(design);
