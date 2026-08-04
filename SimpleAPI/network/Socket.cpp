@@ -482,6 +482,7 @@ void UDPSocket::sendFragments(const IpPort &remote_ip_port, const PacketType typ
                               const Packet &packet, const bool need_ack) noexcept {
     using namespace logs;
 
+    // FIXME: излишний парсинг только для логирования
     Config json;
     json.parseJson(ConvertFromPacket(packet));
 
