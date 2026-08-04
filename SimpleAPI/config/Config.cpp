@@ -2151,7 +2151,8 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
         auto ConfirmValue = [&, content](const bool for_penultimate = false) -> bool {
 //            counter.printCoords(); // для отладки
             Config element = CreateElementFromString(std::move(value), ConfigFormat::eJSON,
-                                                     result_cfg.getCommentDesign(), start_value_counter);
+                                         static_cast<const Config&>(result_cfg).getCommentDesign(),
+                                         start_value_counter);
             if(element.error()) {
                 //если случилась ошибка при внутренней конвертации прочитанного значения,
                 // то эта ошибка становится основной ошибкой парсинга
@@ -3458,7 +3459,7 @@ Config &Config::GetFirstJsonFromThis(Config &config) noexcept
 
 //функция должна быть вызвана исключительно для обработки строки значения, комменты не учитывает
 Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
-                               CommentDesign &design, ParserSymbolCounter& start_iterator) noexcept
+                               const CommentDesign &design, ParserSymbolCounter& start_iterator) noexcept
 {
     using namespace utils;
     using namespace tools;

@@ -42,7 +42,7 @@ struct is_valid_config_type {
 
 //ПРЕДВАРИТЕЛЬНЫЕ ОБЪЯВЛЕНИЯ
 Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
-                               CommentDesign &design, ParserSymbolCounter& start_iterator)              noexcept;
+                               const CommentDesign &design, ParserSymbolCounter& start_iterator)        noexcept;
 
 Config ReadFile(const std::string& file_path, const ConfigFormat format,
                 const CommentDesign &design = {})                                                       noexcept;
@@ -964,7 +964,7 @@ private:
 public:
     // вернёт текст ошибки, указывающий на тип некорректно прочитанного значения
     friend Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
-                                          CommentDesign &design, ParserSymbolCounter& start_iterator)       noexcept;
+                                          const CommentDesign &design, ParserSymbolCounter& start_iterator) noexcept;
 
     friend Config ReadFile(const std::string& file_path, const ConfigFormat format,
                            const CommentDesign &design)                                                     noexcept;
