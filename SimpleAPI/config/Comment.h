@@ -200,7 +200,7 @@ public:
     //-----------------------------------------------------------------------------
 
     bool        operator==(const Comment& other)                                                const noexcept;
-    bool        operator!=(const Comment& other)                                                const noexcept  { return !(*this == other); }
+    bool        operator!=(const Comment& other)                                                const noexcept;
     Comment&    operator=(const Comment& other)                                                 noexcept;
     Comment&    operator=(const Comment&& other)                                                noexcept;
     Comment&    operator=(const std::string& prefix_comment)                                    noexcept;

@@ -268,6 +268,10 @@ bool Comment::operator==(const Comment& other) const noexcept {
     return true;
 }
 
+bool Comment::operator!=(const Comment &other) const noexcept {
+    return !(*this == other);
+}
+
 Comment& Comment::operator=(const Comment& other) noexcept {
     if(this != &other) {
         set(other);
@@ -517,6 +521,7 @@ SeparatedLines SeparateToColumns(const std::string& input_string, const size_t c
     return {res, max_len};
 }
 
+// TODO: нужно перенести в утилиты
 // Вспомогательная функция для вывода массива строк в лог
 std::string VStringToString(const VString& input_vec, const bool need_quotes) noexcept {
     if(input_vec.empty())
