@@ -443,9 +443,9 @@ public:
     bool            error()                                                                     const noexcept;             API_CONTAINER
     std::string     getError()                                                                  const noexcept;             API_CONTAINER
 private:
-    void            setError();                                                                                             API_CONTAINER
-    void            setError(const std::string& error_string);                                                              API_CONTAINER
-    void            setError(std::string&& error_string);                                                                   API_CONTAINER
+    void            setError()                                                                  noexcept;                   API_CONTAINER
+    void            setError(const std::string& error_string)                                   noexcept;                   API_CONTAINER
+    void            setError(std::string&& error_string)                                        noexcept;                   API_CONTAINER
 public:
 
     // вложенные контейнеры

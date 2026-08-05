@@ -609,34 +609,31 @@ std::string Config::getError() const noexcept {
     return ptr->getError();
 }
 
-void Config::setError()
+void Config::setError() noexcept
 {
     using namespace tools;
 
-    IErrorField* ptr = dynamic_cast<IErrorField*>(m_value);
-    if(ptr == nullptr)
-        throw std::logic_error("this type does not support of \"error\" field");
-    return ptr->setError();
+    if(!m_value)
+        *this = setValue();
+    return m_value->setError();
 }
 
-void Config::setError(const std::string &error_string)
+void Config::setError(const std::string &error_string) noexcept
 {
     using namespace tools;
 
-    IErrorField* ptr = dynamic_cast<IErrorField*>(m_value);
-    if(ptr == nullptr)
-        throw std::logic_error("this type does not support of \"error\" field");
-    return ptr->setError(error_string);
+    if(!m_value)
+        *this = setValue();
+    return m_value->setError(error_string);
 }
 
-void Config::setError(std::string &&error_string)
+void Config::setError(std::string &&error_string) noexcept
 {
     using namespace tools;
 
-    IErrorField* ptr = dynamic_cast<IErrorField*>(m_value);
-    if(ptr == nullptr)
-        throw std::logic_error("this type does not support of \"error\" field");
-    return ptr->setError(std::move(error_string));
+    if(!m_value)
+        *this = setValue();
+    return m_value->setError(std::move(error_string));
 }
 
 Config &Config::get_front() {
