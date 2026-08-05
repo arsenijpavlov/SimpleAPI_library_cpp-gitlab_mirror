@@ -2263,7 +2263,6 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
 
     setValue(Config(ValueType::eJson)); // clear() не нужен, т.к. объект только создан
     setCommentDesign(input_design);
-    CommentDesign& design = getCommentDesign();
 
     VString lines;
     // разбить content на строки
@@ -2497,7 +2496,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                 for(auto& k : keys) {
                     // если ключ многосотавной (вложенные структуры), то значение положить составное (k1->k2->k3=value)
                     VString keys_path = SplitIniKeyPath(k);
-                    Config temp = CreateElementFromString(std::string(temp_string_value), ConfigFormat::eJSON, design, counter);
+                    Config temp = CreateElementFromString(std::string(temp_string_value), ConfigFormat::eJSON, getCommentDesign(), counter);
                     Config& pushed_cfg = GetFirstJsonFromThis(*target)
                                              .push_back_force(keys_path, std::move(temp));
 
@@ -2553,30 +2552,30 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                 //поиск комментариев ===================================================
                 //вернёт комментарий без обрамления
                 try {
-                    CheckComments(ch_current, ch_next, j, design, current_comment, stacker.empty());
+                    CheckComments(ch_current, ch_next, j, getCommentDesign(), current_comment, stacker.empty());
                 } catch(std::exception& e) {
                     //не хватило символов для прочтения комментария
                     CreateError(counter, e.what());
                     break;
                 }
 
-                if(!design.with_comments)
+                if(!getCommentDesign().with_comments)
                     current_comment.clear();
-                if(design.with_comments && design.temp_type == CommentType::eCommentEnd)
+                if(getCommentDesign().with_comments && getCommentDesign().temp_type == CommentType::eCommentEnd)
                 {
                     // для отладки
                     // std::cout << "comment (value_size:" << temp_string_value.size() << ")"
                     //           << (temp_string_value.empty() ? "(prefix)" : "(suffix)")
                     //           << ": \"" << FromComment(current_comment, design) << "\"" << std::endl;
                     if(temp_string_value.empty())
-                        prefix_comments.push_back(FromComment(std::move(current_comment), design));
+                        prefix_comments.push_back(FromComment(std::move(current_comment), getCommentDesign()));
                     else
-                        suffix_comments.push_back(FromComment(std::move(current_comment), design));
+                        suffix_comments.push_back(FromComment(std::move(current_comment), getCommentDesign()));
                     current_comment.clear();
-                    design.temp_type = CommentType::eNotComment;
+                    getCommentDesign().temp_type = CommentType::eNotComment;
                     continue;
                 }
-                if(design.temp_type != CommentType::eNotComment)
+                if(getCommentDesign().temp_type != CommentType::eNotComment)
                     continue;
                 //=================================================== поиск комментариев
 
@@ -2610,7 +2609,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
         }
 
         //значение корректно?
-        if(!stacker.empty() || design.temp_type != CommentType::eNotComment)
+        if(!stacker.empty() || getCommentDesign().temp_type != CommentType::eNotComment)
         {
             continue; //значение прочитано не полностью!
         }
@@ -2682,8 +2681,7 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
     RemoveIllegalSpaces(content);
     if(content.empty()) return;
 
-    CommentDesign& design = getCommentDesign();
-    design.temp_type      = CommentType::eNotComment;
+    getCommentDesign().temp_type    = CommentType::eNotComment;
 
     ParseStateJson state            = ParseStateJson::eJSON_START;
     std::string key                 = "";
@@ -2722,14 +2720,18 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
     };
 
     auto AppendMainPreviewComment = [&]() {
-        if(!comments.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
+        if(!comments.empty() && (getCommentDesign().temp_type == CommentType::eCommentEnd
+                                  || getCommentDesign().temp_type == CommentType::eNotComment))
+        {
             setPrefixComment(VStringToString(comments));
             DEBUG_LOG("ElementJson: PreviewComment: " << "\"" << getPrefixComment() << "\"");
             comments.clear();
         }
     };
     auto AppendMainSuffixComment = [&]() {
-        if(!comments.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
+        if(!comments.empty() && (getCommentDesign().temp_type == CommentType::eCommentEnd
+                                  || getCommentDesign().temp_type == CommentType::eNotComment))
+        {
             setSuffixComment(VStringToString(comments));
             DEBUG_LOG("ElementJson: SuffixComment: " << "\"" << getSuffixComment() << "\"");
             comments.clear();
@@ -2744,7 +2746,8 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
     auto AppendElementPrefixComment = [&](){
         if(!comments.empty()
             && !isEmpty()
-            && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment))
+            && (getCommentDesign().temp_type == CommentType::eCommentEnd
+                || getCommentDesign().temp_type == CommentType::eNotComment))
         {
             get_back().setPrefixComment(VStringToString(comments));
             DEBUG_LOG("ElementJson: inner Element add PreviewComment: " << "\"" << get_back().getPrefixComment() << "\"");
@@ -2754,7 +2757,8 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
     auto AppendElementSuffixComment = [&](const bool for_penultimate = false){
         if(!comments.empty()
             && !isEmpty()
-            && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment))
+            && (getCommentDesign().temp_type == CommentType::eCommentEnd
+                || getCommentDesign().temp_type == CommentType::eNotComment))
         {
             if(for_penultimate) {
                 if(get_at(size() - 2).getSuffixComment().empty())
@@ -2782,13 +2786,13 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
         DEBUG_LOG("ElementJson: current value done: \"" << value << "\"");
 //        counter.printCoords(); // для отладки
 
-        Config element = CreateElementFromString(std::move(value), ConfigFormat::eJSON, design, start_value_counter);
+        Config element = CreateElementFromString(std::move(value), ConfigFormat::eJSON, getCommentDesign(), start_value_counter);
         if(element.error()) {
             //контейнеры имеют добавляются если успешно прочитано хотя бы одно значение
             if(element.isArray() && !element.isEmpty()) {
                 push_back(std::move(key), std::move(element));
-                if(get_back().getCommentDesign().opt_multiline_column_size > design.opt_multiline_column_size)
-                    design.opt_multiline_column_size = get_back().getCommentDesign().opt_multiline_column_size;
+                if(get_back().getCommentDesign().opt_multiline_column_size > getCommentDesign().opt_multiline_column_size)
+                    getCommentDesign().opt_multiline_column_size = get_back().getCommentDesign().opt_multiline_column_size;
             }
 
             //если случилась ошибка при внутренней конвертации прочитанного значения,
@@ -2799,8 +2803,8 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
         }
 
         push_back(std::move(key), std::move(element));
-        if(get_back().getCommentDesign().opt_multiline_column_size > design.opt_multiline_column_size)
-            design.opt_multiline_column_size = get_back().getCommentDesign().opt_multiline_column_size;
+        if(get_back().getCommentDesign().opt_multiline_column_size > getCommentDesign().opt_multiline_column_size)
+            getCommentDesign().opt_multiline_column_size = get_back().getCommentDesign().opt_multiline_column_size;
         key.clear();
         value.clear();
 
@@ -2817,23 +2821,23 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
         //поиск комментариев ===================================================
         //вернёт комментарий без обрамления
         try {
-            CheckComments(ch_current, ch_next, i, design, current_comment, stacker.empty());
+            CheckComments(ch_current, ch_next, i, getCommentDesign(), current_comment, stacker.empty());
         } catch(std::exception& e) {
             //не хватило символов для прочтения комментария
             CreateError(counter, e.what());
             break;
         }
 
-        if(!design.with_comments)
+        if(!getCommentDesign().with_comments)
             current_comment.clear();
-        if(design.with_comments && design.temp_type == CommentType::eCommentEnd)
+        if(getCommentDesign().with_comments && getCommentDesign().temp_type == CommentType::eCommentEnd)
         {
-            comments.push_back(FromComment(std::move(current_comment), design));
+            comments.push_back(FromComment(std::move(current_comment), getCommentDesign()));
             current_comment.clear();
-            design.temp_type = CommentType::eNotComment;
+            getCommentDesign().temp_type = CommentType::eNotComment;
             continue;
         }
-        if(design.temp_type != CommentType::eNotComment)
+        if(getCommentDesign().temp_type != CommentType::eNotComment)
             continue;
         //=================================================== поиск комментариев
 
@@ -3041,8 +3045,8 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
     if(!value.empty()
         && state == ParseStateJson::eJSON_VALUE)
     {
-        if(design.temp_type == CommentType::eOneLineComment)
-            design.temp_type = CommentType::eNotComment; //сбрасываем для корректной обработки oneline comment
+        if(getCommentDesign().temp_type == CommentType::eOneLineComment)
+            getCommentDesign().temp_type = CommentType::eNotComment; //сбрасываем для корректной обработки oneline comment
 
         ConfirmValue();
 
@@ -3104,8 +3108,7 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
     RemoveIllegalSpaces(content);
     if(content.empty()) return;
 
-    CommentDesign& design = getCommentDesign();
-    design.temp_type = CommentType::eNotComment;
+    getCommentDesign().temp_type = CommentType::eNotComment;
 
     ParseStateJsonArray state       = ParseStateJsonArray::eARRAY_START;
     std::string key                 = "";
@@ -3144,14 +3147,18 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
     };
 
     auto AppendMainPreviewComment = [&]() {
-        if(!comments.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
+        if(!comments.empty() && (getCommentDesign().temp_type == CommentType::eCommentEnd
+                                  || getCommentDesign().temp_type == CommentType::eNotComment))
+        {
             setPrefixComment(VStringToString(comments));
             DEBUG_LOG("ElementArray: PreviewComment: " << "\"" << getPrefixComment() << "\"");
             comments.clear();
         }
     };
     auto AppendMainSuffixComment = [&]() {
-        if(!comments.empty() && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment)) {
+        if(!comments.empty() && (getCommentDesign().temp_type == CommentType::eCommentEnd
+                                  || getCommentDesign().temp_type == CommentType::eNotComment))
+        {
             setSuffixComment(VStringToString(comments));
             DEBUG_LOG("ElementArray: SuffixComment: " << "\"" << getSuffixComment() << "\"");
             comments.clear();
@@ -3166,7 +3173,8 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
     auto AppendElementPrefixComment = [&](){
         if(!comments.empty()
             && !isEmpty()
-            && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment))
+            && (getCommentDesign().temp_type == CommentType::eCommentEnd
+                || getCommentDesign().temp_type == CommentType::eNotComment))
         {
             get_back().setPrefixComment(VStringToString(comments));
             DEBUG_LOG("ElementArray: inner Element add PreviewComment: " << "\"" << get_back().getPrefixComment() << "\"");
@@ -3176,7 +3184,8 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
     auto AppendElementSuffixComment = [&](const bool for_penultimate = false){
         if(!comments.empty()
             && size() > (for_penultimate ? 2 : 1)
-            && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment))
+            && (getCommentDesign().temp_type == CommentType::eCommentEnd
+                || getCommentDesign().temp_type == CommentType::eNotComment))
         {
             if(for_penultimate) {
                 if(get_at(size() - 2).getSuffixComment().empty())
@@ -3208,23 +3217,23 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
         //поиск комментариев ===================================================
         //вернёт комментарий без обрамления
         try {
-            CheckComments(ch_current, ch_next, i, design, current_comment, stacker.empty());
+            CheckComments(ch_current, ch_next, i, getCommentDesign(), current_comment, stacker.empty());
         } catch(std::exception& e) {
             //не хватило символов для прочтения комментария
             CreateError(counter, e.what());
             break;
         }
 
-        if(!design.with_comments)
+        if(!getCommentDesign().with_comments)
             current_comment.clear();
-        if(design.with_comments && design.temp_type == CommentType::eCommentEnd)
+        if(getCommentDesign().with_comments && getCommentDesign().temp_type == CommentType::eCommentEnd)
         {
-            comments.push_back(FromComment(std::move(current_comment), design));
+            comments.push_back(FromComment(std::move(current_comment), getCommentDesign()));
             current_comment.clear();
-            design.temp_type = CommentType::eNotComment;
+            getCommentDesign().temp_type = CommentType::eNotComment;
             continue;
         }
-        if(design.temp_type != CommentType::eNotComment)
+        if(getCommentDesign().temp_type != CommentType::eNotComment)
             continue;
         //=================================================== поиск комментариев
 
@@ -3311,7 +3320,7 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
             {
                 DEBUG_LOG("ElementArray: current value done: \"" << value << "\"");
 
-                Config element = CreateElementFromString(std::move(value), ConfigFormat::eJSON, design, start_value_counter);
+                Config element = CreateElementFromString(std::move(value), ConfigFormat::eJSON, getCommentDesign(), start_value_counter);
                 if(element.error()) {
                     //если случилась ошибка при внутренней конвертации прочитанного значения,
                     // то эта ошибка становится основной ошибкой парсинга
@@ -3321,8 +3330,8 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
                 }
 
                 push_back(std::move(element));
-                if(get_back().getCommentDesign().opt_multiline_column_size > design.opt_multiline_column_size)
-                    design.opt_multiline_column_size = get_back().getCommentDesign().opt_multiline_column_size;
+                if(get_back().getCommentDesign().opt_multiline_column_size > getCommentDesign().opt_multiline_column_size)
+                    getCommentDesign().opt_multiline_column_size = get_back().getCommentDesign().opt_multiline_column_size;
                 key.clear();
                 value.clear();
 
@@ -3332,7 +3341,7 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
                     if(!comments.empty()
                         && size() > 1
                         && get_at(size() - 2).getSuffixComment().empty()
-                        && (design.temp_type == CommentType::eCommentEnd || design.temp_type == CommentType::eNotComment))
+                        && (getCommentDesign().temp_type == CommentType::eCommentEnd || getCommentDesign().temp_type == CommentType::eNotComment))
                     {
                         get_at(size() - 2).setSuffixComment(comments[0]);
                         DEBUG_LOG("ElementJson: inner Element add SuffixComment: " << "\"" << get_at(size() - 2).getSuffixComment() << "\"");
@@ -3397,7 +3406,6 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
         AppendMainSuffixComment();
     }
 
-    setCommentDesign(design);
     if(state != ParseStateJsonArray::eARRAY_FINISH && state != ParseStateJsonArray::eARRAY_VALUE) {
         if(!error())
             setError(error_template + "not found end of JSON-ARRAY structure or value separator"); //если встретили конец файла
