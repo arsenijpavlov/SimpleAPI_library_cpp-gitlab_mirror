@@ -36,7 +36,7 @@ public:
     void            deleteSuffixComment()                       noexcept            { m_comment.delSuffix(); }
 
     CommentDesign&  getCommentDesign()                          noexcept            { return m_comment.commentDesign(); }
-    CommentDesign   getCommentDesign()                          const noexcept      { return m_comment.commentDesign(); }
+    const CommentDesign& getCommentDesign()                     const noexcept      { return m_comment.commentDesign(); }
     void            setCommentDesign(const CommentDesign &design)
                                                                 noexcept            { m_comment.setDesign(design); }
     void            clearCommentDesign()                        noexcept            { m_comment.clearDesign(); }

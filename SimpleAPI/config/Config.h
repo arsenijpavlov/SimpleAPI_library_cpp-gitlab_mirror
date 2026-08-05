@@ -42,12 +42,13 @@ struct is_valid_config_type {
 
 //ПРЕДВАРИТЕЛЬНЫЕ ОБЪЯВЛЕНИЯ
 Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
-                               CommentDesign &design, ParserSymbolCounter& start_iterator)              noexcept;
+                               const CommentDesign &design, ParserSymbolCounter& start_iterator)        noexcept;
 
 Config ReadFile(const std::string& file_path, const ConfigFormat format,
                 const CommentDesign &design = {})                                                       noexcept;
 Config ReadFileJson(const std::string& file_path, const CommentDesign &design = {})                     noexcept;
 Config ReadFileIni(const std::string& file_path, const CommentDesign &design = {})                      noexcept;
+Config ReadFileXml(const std::string& file_path, const CommentDesign &design = {})                      noexcept;
 
 //return - удалось записать файл или нет
 bool WriteFile(const Config& config, const std::string& file_path,
@@ -57,11 +58,14 @@ bool WriteFileJson(const Config& config, const std::string& file_path,
                    const CommentDesign &design = {}, const uint8_t custom_tabulation_level = 0)         noexcept;
 bool WriteFileIni(const Config& config, const std::string& file_path,
                   const CommentDesign &design = {}, const uint8_t custom_tabulation_level = 0)          noexcept;
+bool WriteFileXml(const Config& config, const std::string& file_path,
+                  const CommentDesign &design = {}, const uint8_t custom_tabulation_level = 0)          noexcept;
 
 Config Parse(const std::string& content, const ConfigFormat format,
              const CommentDesign &design = {})                                                          noexcept;
 Config ParseJson(const std::string& content, const CommentDesign &design = {})                          noexcept;
 Config ParseIni(const std::string& content, const CommentDesign &design = {})                           noexcept;
+Config ParseXml(const std::string& content, const CommentDesign &design = {})                           noexcept;
 
 class Config {
 private:
@@ -317,8 +321,8 @@ public:
     Config&         deletePrefixComment()                           noexcept;                                               API_ALL
     Config&         deleteSuffixComment()                           noexcept;                                               API_ALL
 
-    CommentDesign&  getCommentDesign()                              noexcept        { return m_value->getCommentDesign(); } API_ALL
-    CommentDesign   getCommentDesign()                              const noexcept  { return m_value->getCommentDesign(); } API_ALL
+    CommentDesign&  getCommentDesign()                              noexcept;                                               API_ALL
+    const CommentDesign &getCommentDesign()                         const noexcept;                                         API_ALL
     Config&         setCommentDesign(const CommentDesign &design)   noexcept;                                               API_ALL
     Config&         clearCommentDesign()                            noexcept;                                               API_ALL
 
@@ -439,9 +443,9 @@ public:
     bool            error()                                                                     const noexcept;             API_CONTAINER
     std::string     getError()                                                                  const noexcept;             API_CONTAINER
 private:
-    void            setError();                                                                                             API_CONTAINER
-    void            setError(const std::string& error_string);                                                              API_CONTAINER
-    void            setError(std::string&& error_string);                                                                   API_CONTAINER
+    void            setError()                                                                  noexcept;                   API_CONTAINER
+    void            setError(const std::string& error_string)                                   noexcept;                   API_CONTAINER
+    void            setError(std::string&& error_string)                                        noexcept;                   API_CONTAINER
 public:
 
     // вложенные контейнеры
@@ -788,7 +792,7 @@ public:
     bool            operator==(const Config& other)         const                   { return isEqual(other); }                  API_ALL
     bool            operator==(const tools::IElement& other)const                   { return isEqual(other); }                  API_ALL
     bool            operator==(const bool other)            const                   { return isEqual(other); }                  API_ALL
-    bool            operator==(std::nullptr_t)            const                     { return isNull(); }                        API_ALL
+    bool            operator==(std::nullptr_t)              const                   { return isNull(); }                        API_ALL
                     __ONLY_NUMBER_TYPES__(T)
     bool            operator==(const T& other)              const                   { return isEqual(static_cast<const long double&>(other)); }     API_ALL
                     __ONLY_STRING_TYPES__(T)
@@ -797,7 +801,7 @@ public:
     bool            operator!=(const Config& other)         const                   { return !isEqual(other); }                 API_ALL
     bool            operator!=(const tools::IElement& other)const                   { return !isEqual(other); }                 API_ALL
     bool            operator!=(const bool other)            const                   { return !isEqual(other); }                 API_ALL
-    bool            operator!=(std::nullptr_t)            const                     { return !isNull(); }                       API_ALL
+    bool            operator!=(std::nullptr_t)              const                   { return !isNull(); }                       API_ALL
                     __ONLY_NUMBER_TYPES__(T)
     bool            operator!=(const T& other)              const                   { return !isEqual(static_cast<const long double&>(other)); }    API_ALL
     bool            operator!=(const std::string& other)    const                   { return !isEqual(other); }                 API_ALL
@@ -810,7 +814,7 @@ public:
 
     //контейнеры
     Config&         operator[](const size_t& index)                                 { return get_at(index); }                   API_CONTAINER
-    Config          operator[](const size_t& index)          const                  { return get_at(index); }                   API_CONTAINER
+    Config          operator[](const size_t& index)         const                   { return get_at(index); }                   API_CONTAINER
     Config&         operator[](const std::string& key)                              { return get_at(key); }                     API_CONTAINER
     Config          operator[](const std::string& key)      const                   { return get_at(key); }                     API_CONTAINER
 
@@ -906,6 +910,7 @@ public:
                              const CommentDesign &design = {})                                      noexcept;                   API_ALL
     bool            readFileJson(const std::string& file_path, const CommentDesign &design = {})    noexcept;                   API_ALL
     bool            readFileIni(const std::string& file_path, const CommentDesign &design = {})     noexcept;                   API_ALL
+    bool            readFileXml(const std::string& file_path, const CommentDesign &design = {})     noexcept;                   API_ALL
 
     //return - удалось записать файл или нет
     bool            writeFile(const std::string& file_path, const ConfigFormat format,
@@ -914,6 +919,8 @@ public:
     bool            writeFileJson(const std::string& file_path, const CommentDesign &design = {},
                      const int8_t custom_tabulation_level = 0)                                      noexcept;                   API_ALL
     bool            writeFileIni(const std::string& file_path, const CommentDesign &design = {},
+                     const int8_t custom_tabulation_level = 0)                                      noexcept;                   API_ALL
+    bool            writeFileXml(const std::string& file_path, const CommentDesign &design = {},
                      const int8_t custom_tabulation_level = 0)                                      noexcept;                   API_ALL
     // ============================================================================================================ File
 
@@ -957,12 +964,13 @@ private:
 public:
     // вернёт текст ошибки, указывающий на тип некорректно прочитанного значения
     friend Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
-                                          CommentDesign &design, ParserSymbolCounter& start_iterator)       noexcept;
+                                          const CommentDesign &design, ParserSymbolCounter& start_iterator) noexcept;
 
     friend Config ReadFile(const std::string& file_path, const ConfigFormat format,
                            const CommentDesign &design)                                                     noexcept;
     friend Config ReadFileJson(const std::string& file_path, const CommentDesign &design)                   noexcept;
     friend Config ReadFileIni(const std::string& file_path, const CommentDesign &design)                    noexcept;
+    friend Config ReadFileXml(const std::string& file_path, const CommentDesign &design)                    noexcept;
 
     //return - удалось записать файл или нет
     friend bool WriteFile(const Config& config, const std::string& file_path,
@@ -972,11 +980,14 @@ public:
                               const CommentDesign &design, const uint8_t custom_tabulation_level)           noexcept;
     friend bool WriteFileIni(const Config& config, const std::string& file_path,
                              const CommentDesign &design, const uint8_t custom_tabulation_level)            noexcept;
+    friend bool WriteFileXml(const Config& config, const std::string& file_path,
+                             const CommentDesign &design, const uint8_t custom_tabulation_level)            noexcept;
 
     friend Config Parse(const std::string& content, const ConfigFormat format,
                         const CommentDesign &design)                                                        noexcept;
     friend Config ParseJson(const std::string& content, const CommentDesign &design)                        noexcept;
     friend Config ParseIni(const std::string& content, const CommentDesign &design)                         noexcept;
+    friend Config ParseXml(const std::string& content, const CommentDesign &design)                         noexcept;
 };
 
 } // namespace simpleapi

@@ -83,6 +83,9 @@ Comment::~Comment() noexcept {
     del();
 }
 
+// инициализация статической константы
+const CommentDesign Comment::k_default_design{};
+
 bool Comment::isEmpty() const noexcept {
     if(m_prefix && !m_prefix->empty()) return false;
     if(m_suffix && !m_suffix->empty()) return false;
@@ -200,8 +203,8 @@ CommentDesign &Comment::commentDesign() noexcept {
     return *m_comment_design;
 }
 
-CommentDesign Comment::commentDesign() const noexcept {
-    if(!m_comment_design) return {};
+const CommentDesign &Comment::commentDesign() const noexcept {
+    if(!m_comment_design) return k_default_design;
     return *m_comment_design;
 }
 
@@ -266,6 +269,10 @@ bool Comment::operator==(const Comment& other) const noexcept {
     }
 
     return true;
+}
+
+bool Comment::operator!=(const Comment &other) const noexcept {
+    return !(*this == other);
 }
 
 Comment& Comment::operator=(const Comment& other) noexcept {
@@ -517,6 +524,7 @@ SeparatedLines SeparateToColumns(const std::string& input_string, const size_t c
     return {res, max_len};
 }
 
+// TODO: нужно перенести в утилиты
 // Вспомогательная функция для вывода массива строк в лог
 std::string VStringToString(const VString& input_vec, const bool need_quotes) noexcept {
     if(input_vec.empty())

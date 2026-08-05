@@ -127,12 +127,12 @@ public:
         move_from(std::move(other));
     }
 
-    CommentDesign operator=(const CommentDesign& other) noexcept {
+    CommentDesign& operator=(const CommentDesign& other) noexcept {
         copy_from(other);
         return *this;
     }
 
-    CommentDesign operator=(CommentDesign&& other) noexcept {
+    CommentDesign& operator=(CommentDesign&& other) noexcept {
         move_from(std::move(other));
         return *this;
     }
@@ -146,6 +146,7 @@ public:
     // 0 - завершающий символ повторяет первый
     static std::array<char, 3> GetDefaultMultilineCommentVariant()  noexcept { return {'/', '*', 0}; }
 };
+
 
 class Comment {
 private:
@@ -164,6 +165,8 @@ public:
     Comment(const std::string& comment_before, const std::string& comment_after = "")           noexcept;
     ~Comment()                                                                                  noexcept;
 
+    // TODO: возможно, следует перенести куда-то
+    static const CommentDesign k_default_design; // единоразовое резервирование памяти для всей программы
 public:
     bool isEmpty()                                                                              const noexcept;
 
@@ -191,8 +194,8 @@ public:
 
     //Оформление комментариев при выводе в файл -----------------------------------
     //NOTE: выделит память, если nullptr
-    CommentDesign&  commentDesign()                                                             noexcept;
-    CommentDesign   commentDesign()                                                             const noexcept;
+    CommentDesign&       commentDesign()                                                        noexcept;
+    const CommentDesign& commentDesign()                                                        const noexcept;
 
     void setDesign(const CommentDesign &design)                                                 noexcept;
     //он же освободит память
@@ -200,7 +203,7 @@ public:
     //-----------------------------------------------------------------------------
 
     bool        operator==(const Comment& other)                                                const noexcept;
-    bool        operator!=(const Comment& other)                                                const noexcept  { return !(*this == other); }
+    bool        operator!=(const Comment& other)                                                const noexcept;
     Comment&    operator=(const Comment& other)                                                 noexcept;
     Comment&    operator=(const Comment&& other)                                                noexcept;
     Comment&    operator=(const std::string& prefix_comment)                                    noexcept;
