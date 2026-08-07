@@ -8,11 +8,13 @@
 
 namespace simpleapi {
 
+//TODO: закрыть доступ до фактических сокетов от пространства пользователя - всё через обёртку
 class SocketThread {
+    std::mutex      m_sockets_mutex;
+
     std::thread     m_thread;
     bool            m_active;
     SocketSettings  m_common_socket_settings;
-    std::mutex      m_sockets_mutex;
     std::map<IpPort, std::shared_ptr<Socket>> m_sockets;
 public:
     LoggerSettings  m_settings;
