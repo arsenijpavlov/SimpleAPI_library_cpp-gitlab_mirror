@@ -618,7 +618,6 @@ void UDPSocket::sendFragments(const IpPort &remote_ip_port, const PacketType typ
     }
 
     //помещаем получившиеся фрагменты в очередь на отправку
-    m_output_threads_mutex.lock();
     if(type == eControlType) {
         /*обратный порядок упаковки, чтобы раздробленное контрольное сообщение ушло
          * в правильном порядке, но с приоритетом */
@@ -655,7 +654,6 @@ void UDPSocket::sendFragments(const IpPort &remote_ip_port, const PacketType typ
                                      : "Json:" + jm.m_json.toString())
                 + "] " + appendString);
     }
-    m_output_threads_mutex.unlock();
 }
 
 void UDPSocket::tick() noexcept {
@@ -759,7 +757,6 @@ void UDPSocket::checkConnections() noexcept {
 
             //перепосылка недоставленных глобальных пакетов ==================================
             log(LEVEL::eDEBUG3, "checkConnections(), prepare to resend global packets");
-            m_output_threads_mutex.lock();
             for(auto it_global_packet = m_sent_global_packets.begin();
                  it_global_packet != m_sent_global_packets.end(); it_global_packet++
                  ) {
@@ -773,7 +770,6 @@ void UDPSocket::checkConnections() noexcept {
                     if(it_global_packet == m_sent_global_packets.end()) break;
                 }
             }
-            m_output_threads_mutex.unlock();
 
             //если дошли до конца диапазона
             if(it == m_map_connections.end()) break;
@@ -801,7 +797,6 @@ void UDPSocket::sendAutoMsg() noexcept {
     int counter = 0; //общий счётчик за проход функции
 
     //перепосылка недоставленных пакетов =============================================
-    m_output_threads_mutex.lock();
     for(auto it = m_map_auto_sent_packets.begin();
          it != m_map_auto_sent_packets.end() && ((counter < m_settings.getMaxMsgsSentOnTick())
                                                   || (m_settings.getMaxMsgsSentOnTick() < 0));
@@ -818,11 +813,9 @@ void UDPSocket::sendAutoMsg() noexcept {
             if(it == m_map_auto_sent_packets.end()) break;
         }
     }
-    m_output_threads_mutex.unlock();
     //================================================================================
 
     //отправка шифрованных пакетов если есть ключ=====================================
-    m_output_threads_chip_mutex.lock();
     for(auto it = m_packets_wait_chip_key.begin();
          it != m_packets_wait_chip_key.end();
          it++
@@ -844,11 +837,9 @@ void UDPSocket::sendAutoMsg() noexcept {
 
         if(it == m_packets_wait_chip_key.end()) break;
     }
-    m_output_threads_chip_mutex.unlock();
     //================================================================================
 
     //постепенная отправка пакетов в сокет ===========================================
-    m_output_threads_mutex.lock();
     while(!m_send_packets_buffer.empty()
            && ((counter < m_settings.getMaxMsgsSentOnTick()) || (m_settings.getMaxMsgsSentOnTick() < 0))
            ) {
@@ -870,7 +861,6 @@ void UDPSocket::sendAutoMsg() noexcept {
 
         counter++;
     }
-    m_output_threads_mutex.unlock();
     //================================================================================
 
 }
@@ -958,7 +948,6 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
             if(jm.m_json.containsKey("ack_all_packet")) {
                 uint8_t first_sn = jm.m_json["ack_all_packet"].getNumber(); //номер первого фрагмента сообщения
 
-                m_output_threads_mutex.lock();
                 for(auto it = m_sent_global_packets.begin(); it != m_sent_global_packets.end(); it++) {
                     if(it->m_range.start.get() == first_sn) {
                         PacketMessage tempPM;
@@ -976,12 +965,10 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                         break;
                     }
                 }
-                m_output_threads_mutex.unlock();
             }
 
             // перепосылка недоставленных фрагментов
             if(jm.m_json.containsKey("nack_sn") && jm.m_json["nack_sn"].isArray()) {
-                m_output_threads_mutex.lock();
                 for(auto it = m_map_auto_sent_packets.begin(); it != m_map_auto_sent_packets.end(); it++)
                 {
                     PacketMessage pm = it->second;
@@ -995,7 +982,6 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                     // защита от пропуска конца массива при удалении итератора
                     if(it == m_map_auto_sent_packets.end()) break;
                 }
-                m_output_threads_mutex.unlock();
             }
 
             // возникла ошибка при декодировании собранного сообщения (все фрагменты), нужно переупаковать и отправить фрагменты сообщения заново
@@ -1016,7 +1002,6 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                 Packet packet;
                 IpPort ipPort;
                 PacketType type = eControlType; //заглушка от warning
-                m_output_threads_mutex.lock();
                 for(auto it = m_sent_global_packets.begin(); it != m_sent_global_packets.end(); it++) {
                     if(it->m_range.finish.get() == last_err_sn) {
                         packet  = it->m_packet;
@@ -1026,7 +1011,6 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                         break;
                     }
                 }
-                m_output_threads_mutex.unlock();
 
                 if(!packet.empty() && type != eControlType) {
                     log(LEVEL::eDEBUG, "New try to send packet fragment " + ToString(type)
@@ -1067,7 +1051,6 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
             }
         } else {
             // обработка пользовательского пакета
-            m_input_threads_mutex.lock();
             if(jm.m_json.isEmpty()) {
                 log(LEVEL::eDEBUG2,
                     to_color_string({COLOR::eGRAY_BG, COLOR::eWHITE_FG},
@@ -1079,7 +1062,6 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
                                     "insert packet " + ToString(pm.m_header.type) + " to storage"));
                 m_map_recv_jsons_buffer.push_back(jm);
             }
-            m_input_threads_mutex.unlock();
         }
     }
 
@@ -1248,12 +1230,10 @@ void UDPSocket::sendMsg(const IpPort& remote_ip_port, const Packet& packet) {
         sendFragments(remote_ip_port, eControlType, ConvertToPacket(jRequest.toString()));
 
         //положить текущее сообщение в очередь шифрованных сообщений на отправку
-        m_output_threads_chip_mutex.lock();
         PacketMessage pm;
         pm.m_packet = std::move(packet);
         pm.m_ip_port = std::move(remote_ip_port);
         m_packets_wait_chip_key.push_back(pm);
-        m_output_threads_chip_mutex.unlock();
         //продолжение алогоритма в sendAutoMsg...
     }
 }
@@ -1263,25 +1243,21 @@ void UDPSocket::sendMsg(const IpPort& remote_ip_port, const Config& json) {
 }
 
 PacketMessage UDPSocket::getOutPacket() noexcept {
-    m_input_threads_mutex.lock();
     PacketMessage pm;
     if(m_map_recv_packets_buffer.size() > 0) {
         pm = m_map_recv_packets_buffer.front();
         m_map_recv_packets_buffer.pop_front();
     }
-    m_input_threads_mutex.unlock();
 
     return pm;
 }
 
 JsonMessage UDPSocket::getOutJson() noexcept {
-    m_input_threads_mutex.lock();
     JsonMessage jm;
     if(m_map_recv_jsons_buffer.size() > 0) {
         jm = m_map_recv_jsons_buffer.front();
         m_map_recv_jsons_buffer.pop_front();
     }
-    m_input_threads_mutex.unlock();
 
     return jm;
 }
