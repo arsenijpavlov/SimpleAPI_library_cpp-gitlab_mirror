@@ -8,16 +8,9 @@ void UDPSocket::sendFragments(const IpPort &remote_ip_port, const PacketType typ
                               const Packet &packet, const bool need_ack) noexcept {
     using namespace logs;
 
-    // FIXME: излишний парсинг только для логирования
-    Config json;
-    json.parseJson(ConvertFromPacket(packet));
-
     log(type != eControlType ? LEVEL::eINFO : LEVEL::eDEBUG,
-        "Send: " + ToString(type) + " "
-            + (json.isEmpty() ? "[Data:" + to_color_string(SIMPLEAPI_NETWORK_FULL_MSG_COLOR, "0x" + utils::ToHexString(packet)) + "]"
-                              : "[Json:" + to_color_string(SIMPLEAPI_NETWORK_FULL_MSG_COLOR, json.toString()) + "]"
-                                    + " / [Data:" + to_color_string(SIMPLEAPI_NETWORK_FULL_MSG_COLOR, "0x" + utils::ToHexString(packet)) + "]"
-               ) + " "
+        "Send: " + ToString(type)
+            + " [Data:" + to_color_string(SIMPLEAPI_NETWORK_FULL_MSG_COLOR, "0x" + utils::ToHexString(packet)) + "] "
             + remote_ip_port.toString("to"));
 
     uint8_t techInformationSize = 1;//1B: заголовок
@@ -92,9 +85,8 @@ void UDPSocket::sendFragments(const IpPort &remote_ip_port, const PacketType typ
             firstSn = fragment_sn;
 
         EECounter saved = fragment_sn;
-        //упаковываем фрагмент
         Packet buf;
-        {
+        /* упаковываем фрагмент */ {
             //высчитываем размер данных
             uint16_t leftSize = innerData.size() - currentPos;
             currentFragmentSize = leftSize > availableSize ? availableSize : leftSize;
@@ -242,7 +234,7 @@ void UDPSocket::checkConnections() noexcept {
         auto _inactivity = std::chrono::milliseconds(m_settings.getInactivityTimer());
         auto _one_third_inactivity = std::chrono::milliseconds(m_settings.getInactivityTimer() / 3);
 
-        // если не было сообщений ОТ адреса дольше this->inactivityTimer/2, то отправить пинг
+        // если не было сообщений ОТ адреса дольше this->inactivityTimer/3, то отправить пинг
         // либо последняя отправка ДО адреса была дольше этого времени
         log(LEVEL::eDEBUG_3, "checkConnections(), pings");
         if(it->second.m_last_output_activity + _one_third_inactivity < _now
