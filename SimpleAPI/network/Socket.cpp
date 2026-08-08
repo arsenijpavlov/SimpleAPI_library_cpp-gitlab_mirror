@@ -58,10 +58,10 @@ void Socket::appendNewFragment(const PacketMessage& received_pm, Config& output_
 
     it->second.m_last_input_activity = std::chrono::system_clock::now();
 
-    log(LEVEL::eDEBUG3, "appendNewFragment(), mapConnection size: " + std::to_string(m_map_connections.size()));
+    log(LEVEL::eDEBUG_3, "appendNewFragment(), mapConnection size: " + std::to_string(m_map_connections.size()));
 
     if(received_pm.m_packet.empty()) {
-        log(LEVEL::eDEBUG3, "~appendNewFragment(), packet empty");
+        log(LEVEL::eDEBUG_3, "~appendNewFragment(), packet empty");
         return;
     }
 
@@ -198,7 +198,7 @@ void Socket::appendNewFragment(const PacketMessage& received_pm, Config& output_
 PacketMessage Socket::buildPacket(MapConnectionsIterator& it) noexcept {
     using namespace logs;
 
-    log(LEVEL::eDEBUG3, "buildPacket(), prepare to build");
+    log(LEVEL::eDEBUG_3, "buildPacket(), prepare to build");
     //попытаться собрать ОДИН пакет
     PacketMessage pm;
     pm.m_is_built_complete  = false;
@@ -245,14 +245,14 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) noexcept {
             pm.m_is_error = true;
             pm.m_error.sn_finish = lastCounter;
 
-            log(LEVEL::eDEBUG3, "~buildPacket(1), mapConnection size: " + std::to_string(m_map_connections.size()));
+            log(LEVEL::eDEBUG_3, "~buildPacket(1), mapConnection size: " + std::to_string(m_map_connections.size()));
             return pm;
         }
 
         //пакет соберётся, копируем в выходной PM.packet
         if(isStarted && isFinished) {
             for(const auto& _it : it->second.m_map_recv_builded_messages) {
-                log(LEVEL::eDEBUG2,
+                log(LEVEL::eDEBUG_2,
                     to_color_string(COLOR::eYELLOW_FG,
                                     "MAP: current fragment: [0x" + utils::ToHexString(_it.second.m_packet) + "]"));
             }
@@ -272,7 +272,7 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) noexcept {
                     log(LEVEL::eDEBUG, "this fragment is last");
                 }
 
-                log(LEVEL::eDEBUG2, "current fragment(sn:" + std::to_string(it_build->first.get())
+                log(LEVEL::eDEBUG_2, "current fragment(sn:" + std::to_string(it_build->first.get())
                                       + "): [0x" + utils::ToHexString(it_build->second.m_packet) + "]");
                 std::copy(std::begin(it_build->second.m_packet),
                           std::end(it_build->second.m_packet),
@@ -287,7 +287,7 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) noexcept {
             //дешифрация
             dechiphering(pm.m_packet);
             //проверка контрольной суммы
-            log(LEVEL::eDEBUG2, "before CRC: " + utils::ToHexString(pm.m_packet));
+            log(LEVEL::eDEBUG_2, "before CRC: " + utils::ToHexString(pm.m_packet));
             switch(pm.m_header.crcLevel) {
             case eCRC_8:
                 pm.m_is_error = !utils::CheckCrc8(pm.m_packet);
@@ -304,7 +304,7 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) noexcept {
             default:
                 break;
             }
-            log(LEVEL::eDEBUG2, "after CRC: " + utils::ToHexString(pm.m_packet));
+            log(LEVEL::eDEBUG_2, "after CRC: " + utils::ToHexString(pm.m_packet));
 
             uint16_t size = (pm.m_packet[0] << 8) + pm.m_packet[1];
             pm.m_packet.erase(pm.m_packet.begin(), pm.m_packet.begin() + 2); //размер поля данных
@@ -323,7 +323,7 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) noexcept {
         }
     }
 
-    log(LEVEL::eDEBUG3, "~buildPacket(3), mapConnection size: " + std::to_string(m_map_connections.size()));
+    log(LEVEL::eDEBUG_3, "~buildPacket(3), mapConnection size: " + std::to_string(m_map_connections.size()));
     return pm;
 }
 
@@ -341,7 +341,7 @@ Socket::MapConnectionsIterator Socket::findOrCreateConnection(const IpPort &remo
 void Socket::updateLastOutputActivityTime(const IpPort& remote_ip_port) noexcept {
     using namespace logs;
 
-    log(LEVEL::eDEBUG2, "updateLastOutputActivityTime " + remote_ip_port.toString());
+    log(LEVEL::eDEBUG_2, "updateLastOutputActivityTime " + remote_ip_port.toString());
 
     auto it = m_map_connections.find(remote_ip_port);
     if(it == m_map_connections.end()) {
@@ -392,8 +392,8 @@ void Socket::log(const logs::LEVEL level, std::string log_message) noexcept {
         levelSubstring          = ".i";
         break;
     case LEVEL::eDEBUG:
-    case LEVEL::eDEBUG2:
-    case LEVEL::eDEBUG3:
+    case LEVEL::eDEBUG_2:
+    case LEVEL::eDEBUG_3:
         currentCallback         = m_settings.getLogCallback();
         currentColorCallback    = m_settings.getColorLogCallback();
         levelSubstring          = ".d";
@@ -445,7 +445,7 @@ void Socket::log(const logs::LEVEL level, std::string log_message) noexcept {
 bool Socket::sendRawMsg(const PacketMessage &packet_message) noexcept {
     using namespace logs;
 
-    log(LEVEL::eDEBUG2, std::string("sendRaw ")
+    log(LEVEL::eDEBUG_2, std::string("sendRaw ")
                           + "(" + std::to_string(packet_message.m_packet.size()) + ")"
                           + "[0x" + utils::ToHexString(packet_message.m_packet) + "] "
                           + packet_message.m_ip_port.toString("to"));

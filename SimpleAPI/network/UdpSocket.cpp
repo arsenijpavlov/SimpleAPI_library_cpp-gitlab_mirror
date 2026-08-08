@@ -206,7 +206,7 @@ void UDPSocket::tick() noexcept {
             jProc.append(it_json->second);
 
         if(!jProc.isEmpty()) {
-            log(LEVEL::eDEBUG2, "send ack: " + jProc.toString() + it->first.toString("to"));
+            log(LEVEL::eDEBUG_2, "send ack: " + jProc.toString() + it->first.toString("to"));
             sendFragments(it->first, eControlType, ConvertToPacket(jProc.toString()), false);
         }
     }
@@ -223,7 +223,7 @@ void UDPSocket::tick() noexcept {
 void UDPSocket::checkConnections() noexcept {
     using namespace logs;
 
-    log(LEVEL::eDEBUG3, "checkConnections()");
+    log(LEVEL::eDEBUG_3, "checkConnections()");
 
     Config jPing(ValueType::eJson, "ping", getLocalIpPort().toString());
 
@@ -244,13 +244,13 @@ void UDPSocket::checkConnections() noexcept {
 
         // если не было сообщений ОТ адреса дольше this->inactivityTimer/2, то отправить пинг
         // либо последняя отправка ДО адреса была дольше этого времени
-        log(LEVEL::eDEBUG3, "checkConnections(), pings");
+        log(LEVEL::eDEBUG_3, "checkConnections(), pings");
         if(it->second.m_last_output_activity + _one_third_inactivity < _now
             && it->second.m_last_input_activity + _one_third_inactivity < _now
             )
         {
-            log(LEVEL::eDEBUG2, "Send ping to " + it->first.toString());
-            log(LEVEL::eDEBUG3, "Expected time: " + get_time_string(it->second.m_last_output_activity + _one_third_inactivity));
+            log(LEVEL::eDEBUG_2, "Send ping to " + it->first.toString());
+            log(LEVEL::eDEBUG_3, "Expected time: " + get_time_string(it->second.m_last_output_activity + _one_third_inactivity));
             sendFragments(it->first, eControlType, ConvertToPacket(jPing.toString()), false);
             it->second.m_last_output_activity = std::chrono::system_clock::now();
             continue;
@@ -258,7 +258,7 @@ void UDPSocket::checkConnections() noexcept {
 
         IpPort _currentIpPort = it->first;
         //если долгое время не было сообщений от абонента, удалить все сообщения до него
-        log(LEVEL::eDEBUG3, "checkConnections(), bad connection");
+        log(LEVEL::eDEBUG_3, "checkConnections(), bad connection");
         if(it->second.m_last_input_activity + _inactivity < _now)
         {
             log(LEVEL::eWARNING,
@@ -272,7 +272,7 @@ void UDPSocket::checkConnections() noexcept {
                 m_settings.getConnectionResetCallback()(_currentIpPort);
 
             //удаление всех фрагментов, которые находятся в очереди отправки, с совпадающим адресатом
-            log(LEVEL::eDEBUG3, "checkConnections(), removing fragments");
+            log(LEVEL::eDEBUG_3, "checkConnections(), removing fragments");
             for(auto it2 = m_map_auto_sent_packets.begin(); it2 != m_map_auto_sent_packets.end(); it2++) {
                 if(it2->second.m_ip_port == it->first)
                     it2 = m_map_auto_sent_packets.erase(it2);
@@ -282,7 +282,7 @@ void UDPSocket::checkConnections() noexcept {
             }
 
             //перепосылка недоставленных глобальных пакетов ==================================
-            log(LEVEL::eDEBUG3, "checkConnections(), prepare to resend global packets");
+            log(LEVEL::eDEBUG_3, "checkConnections(), prepare to resend global packets");
             for(auto it_global_packet = m_sent_global_packets.begin();
                  it_global_packet != m_sent_global_packets.end(); it_global_packet++
                  ) {
@@ -304,7 +304,7 @@ void UDPSocket::checkConnections() noexcept {
     }
 
     //перепосылка недоставленных глобальных пакетов ==================================
-    log(LEVEL::eDEBUG3, "checkConnections(), send found prepared packets");
+    log(LEVEL::eDEBUG_3, "checkConnections(), send found prepared packets");
     for(const prepPacket& current : packetsForSend) {
         if(!current.packet.empty() && current.type != eControlType) {
             log(LEVEL::eDEBUG, "New try to send global packet " + ToString(current.type)
@@ -318,7 +318,7 @@ void UDPSocket::checkConnections() noexcept {
 void UDPSocket::sendAutoMsg() noexcept {
     using namespace logs;
 
-    log(LEVEL::eDEBUG3, "sendAutoMsg()");
+    log(LEVEL::eDEBUG_3, "sendAutoMsg()");
 
     int counter = 0; //общий счётчик за проход функции
 
@@ -394,7 +394,7 @@ void UDPSocket::sendAutoMsg() noexcept {
 Config UDPSocket::recvAutoMsg(int timeout) noexcept {
     using namespace logs;
 
-    log(LEVEL::eDEBUG3, "recvAutoMsg()");
+    log(LEVEL::eDEBUG_3, "recvAutoMsg()");
 
     Config outputJson;
     PacketMessage pm = recvRawMsg(1);
@@ -411,7 +411,7 @@ Config UDPSocket::recvAutoMsg(int timeout) noexcept {
     pm.m_sn.set_pos(sn);
     pm.m_packet.erase(pm.m_packet.begin(), pm.m_packet.begin() + 3); //удалить первые три байта
 
-    log(LEVEL::eDEBUG2,
+    log(LEVEL::eDEBUG_2,
         to_color_string(SIMPLEAPI_NETWORK_INPUT_FRAGMENT_COLOR, "received")
             + " [" + std::to_string(sn) + "] sn fragment of type "
             + ToString(pm.m_header.type)
@@ -578,12 +578,12 @@ Config UDPSocket::processingBuiltPacket(const PacketMessage &pm) noexcept {
         } else {
             // обработка пользовательского пакета
             if(jm.m_json.isEmpty()) {
-                log(LEVEL::eDEBUG2,
+                log(LEVEL::eDEBUG_2,
                     to_color_string({COLOR::eGRAY_BG, COLOR::eWHITE_FG},
                                     "insert packet " + ToString(pm.m_header.type) + " to storage"));
                 m_map_recv_packets_buffer.push_back(pm);
             } else {
-                log(LEVEL::eDEBUG2,
+                log(LEVEL::eDEBUG_2,
                     to_color_string({COLOR::eGRAY_BG, COLOR::eWHITE_FG},
                                     "insert packet " + ToString(pm.m_header.type) + " to storage"));
                 m_map_recv_jsons_buffer.push_back(jm);
@@ -678,7 +678,7 @@ PacketMessage UDPSocket::recvRawMsg(int timeout) noexcept {
         rpacket.m_ip_port.port  = ntohs(sock.sin_port);
         rpacket.m_packet        = Packet(buf, buf + recv_num);
 
-        log(LEVEL::eDEBUG2, std::string("recvRaw ")
+        log(LEVEL::eDEBUG_2, std::string("recvRaw ")
                                 + "(" + std::to_string(rpacket.m_packet.size()) + ")"
                                 + "[0x" + utils::ToHexString(rpacket.m_packet) + "] "
                                 + rpacket.m_ip_port.toString("from"));
