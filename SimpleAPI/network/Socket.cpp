@@ -23,7 +23,8 @@ bool Socket::checkCorrectIp(const std::string& ip_string) noexcept {
     return true;
 }
 
-uint8_t Socket::packHeader(const PacketHeader& pm) noexcept {
+uint8_t Socket::packHeader(const PacketHeader& pm) noexcept
+{
     return (pm.type << 7)
            | (pm.version << 5)
            | (pm.isFirstFragment << 4)
@@ -32,7 +33,8 @@ uint8_t Socket::packHeader(const PacketHeader& pm) noexcept {
            | pm.crcLevel;
 }
 
-PacketHeader Socket::unpackHeader(uint8_t header) noexcept {
+PacketHeader Socket::unpackHeader(uint8_t header) noexcept
+{
     PacketHeader ph;
     ph.type             = (PacketType)(header >> 7); //1
     ph.version          = (ApiVersion)((header >> 5) & 0x3); //2
@@ -44,7 +46,8 @@ PacketHeader Socket::unpackHeader(uint8_t header) noexcept {
     return ph;
 }
 
-EECounter& Socket::getOutSeqNumber(const IpPort& ip_port) noexcept {
+EECounter& Socket::getOutSeqNumber(const IpPort& ip_port) noexcept
+{
     auto it = findOrCreateConnection(ip_port);
 
     return it->second.m_out_sn;
@@ -221,7 +224,7 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) noexcept {
                 isStarted = true;
 
                 pm.m_ip_port = it_build->second.m_ip_port;
-                pm.m_header = it_build->second.m_header;
+                pm.m_header  = it_build->second.m_header;
             }
 
             if(it_build->second.m_header.isLastFragment) {
@@ -242,7 +245,7 @@ PacketMessage Socket::buildPacket(MapConnectionsIterator& it) noexcept {
                 it_build = it->second.m_map_recv_builded_messages.erase(it_build);
                 it_build++;
             }
-            pm.m_is_error = true;
+            pm.m_is_error        = true;
             pm.m_error.sn_finish = lastCounter;
 
             log(LEVEL::eDEBUG_3, "~buildPacket(1), mapConnection size: " + std::to_string(m_map_connections.size()));
