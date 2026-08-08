@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Socket.h"
 
 namespace simpleapi {
 

@@ -421,10 +421,7 @@ void Socket::log(const logs::LEVEL level, std::string log_message) noexcept {
                                   + "]",
                        m_settings.getNameColumnSize(),
                        m_settings.isNameColumnRightAlignEnabled())
-            + " "
-            + (log_message.empty() ? log_message : log_message)
-            + "\n"
-            );
+            + " " + log_message + "\n");
     }
 
     // обычный вывод
@@ -441,10 +438,7 @@ void Socket::log(const logs::LEVEL level, std::string log_message) noexcept {
                            + "]",
                        m_settings.getNameColumnSize(),
                        m_settings.isNameColumnRightAlignEnabled())
-            + " "
-            + log_message
-            + "\n"
-            );
+            + " " + log_message + "\n");
     }
 }
 
