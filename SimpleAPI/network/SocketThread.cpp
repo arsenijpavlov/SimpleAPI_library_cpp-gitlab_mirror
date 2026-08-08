@@ -1,4 +1,6 @@
 #include "SocketThread.h"
+#include "TcpSocket.h"
+#include "UdpSocket.h"
 #include <iostream>
 #include <unistd.h>
 

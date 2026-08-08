@@ -18,7 +18,15 @@
 
 namespace simpleapi {
 
-#define MAX_PACKET_LENGTH 65535
+#define SIMPLEAPI_NETWORK_FULL_MSG_COLOR            { COLOR::eYELLOW_BG,         COLOR::eBLACK_FG, COLOR::eBOLD_TEXT }
+#define SIMPLEAPI_NETWORK_GLOBAL_APPEND_MSG_COLOR   { COLOR::eBRIGHT_GRAY_BG,    COLOR::eBRIGHT_RED_FG }
+#define SIMPLEAPI_NETWORK_CRITICAL_MSG_COLOR        { COLOR::eRED_BG,            COLOR::eWHITE_FG }
+#define SIMPLEAPI_NETWORK_OUTPUT_MSG_COLOR          { COLOR::eBLUE_BG,           COLOR::eWHITE_FG }
+#define SIMPLEAPI_NETWORK_INPUT_MSG_COLOR           { COLOR::eCYAN_BG,           COLOR::eWHITE_FG }
+#define SIMPLEAPI_NETWORK_OUTPUT_FRAGMENT_COLOR     { COLOR::eBLUE_FG,           COLOR::eBRIGHT_GRAY_BG }
+#define SIMPLEAPI_NETWORK_INPUT_FRAGMENT_COLOR      { COLOR::eBLUE_FG,           COLOR::eBRIGHT_GRAY_BG }
+
+#define SIMPLEAPI_NETWORK_MAX_PACKET_LENGTH         65535
 
 using time_point_default = std::chrono::system_clock::time_point;
 
@@ -169,72 +177,5 @@ public:
     virtual JsonMessage     getOutJson()                        noexcept        = 0;
     //=====================================
 };
-
-class UDPSocket : public Socket {
-    //работа через tick()
-    std::map<time_point_default, PacketMessage> m_map_auto_sent_packets; //только UDP, уже отправленные фрагменты
-
-    //=====================================
-    //ONLY FOR USE IN SOCKET_THREAD!
-    /* принятый пакет делится на части, к ним пришиваются необходимые заголовки
-     * и полученные фрагменты прокидываются в очередь на отправку через функцию sendAutoMsg */
-    void            sendFragments(const IpPort& remote_ip_port, const PacketType type,
-                                  const Packet& packet, const bool need_ack = true) noexcept;
-
-    void            tick()                                                          noexcept;
-                    //только UDP
-    void            checkConnections()                                              noexcept;
-    void            sendAutoMsg()                                                   noexcept;
-    Config          recvAutoMsg(int timeout)                                        noexcept;
-    Config          processingBuiltPacket(const PacketMessage& pm)                  noexcept;
-    //=====================================
-
-public:
-                    UDPSocket(const IpPort& local_ip_port,
-                              const SocketSettings& settings = SocketSettings())    noexcept;
-                    UDPSocket(const uint16_t local_port,
-                              const std::string& local_ip = "",
-                              const SocketSettings& settings = SocketSettings())    noexcept;
-                    ~UDPSocket()                                                    noexcept    { close(); }
-    void            open(const uint16_t local_port,
-                         const std::string& local_ip = "")                          noexcept;
-
-    //-----------------------------------------
-    bool            isConnected(const IpPort& remote_ip_port)                       noexcept;
-    //-----------------------------------------
-    void            startServer()                                                   noexcept;
-    void            stopServer()                                                    noexcept;
-    //-----------------------------------------
-    bool            sendRawMsg(const std::string& remote_ip, const uint16_t remote_port,
-                               const Packet& packet)                                noexcept;
-    PacketMessage   recvRawMsg(int timeout = -1)                                    noexcept;
-    //-----------------------------------------
-
-    //=====================================
-    //УПРАВЛЕНИЕ АВТОМАТИЧЕСКИМ СЕРВЕРОМ
-                    //только UDP
-    void            setDeliveryNeed(bool enabled = true)                            noexcept;
-
-    void            sendMsg(const IpPort& remote_ip_port, const Packet& packet);
-    void            sendMsg(const IpPort& remote_ip_port, const Config& json);
-
-    PacketMessage   getOutPacket()                                                  noexcept;
-    JsonMessage     getOutJson()                                                    noexcept;
-    //=====================================
-};
-
-//class TCPSocket : public Socket
-//{
-//public:
-//    //crc, localIP, localPort, remoteIP, remotePort
-//    TCPSocket(CRC crc = eCRC_OFF);
-//    ~TCPSocket(){};
-//};
-
-//class TCPServer : public TCPSocket
-//{
-//public:
-//    ~TCPServer(){};
-//};
 
 } // namespace simpleapi
