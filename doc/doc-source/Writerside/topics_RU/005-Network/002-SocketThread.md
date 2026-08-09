@@ -28,6 +28,8 @@
 - (при автоматизации) указать функцию для callback-вызова для вывода цветных логов, `void setColorLogCallback(LogCallback callback = nullptr) noexcept`
 - (при автоматизации) указать функцию для callback-вызова для вывода цветных логов ошибок, `void setColorLogErrorCallback(LogCallback callback = nullptr) noexcept`
 
+*Обратите внимание, что все callback-функции будут вызваны из потока SocketThread. Вся потоконезависимая часть программы реализуется самим пользователем библиотеки.*
+
 Пример кода в минимальном виде:
 ```c++
 #include "SimpleAPI.h"
