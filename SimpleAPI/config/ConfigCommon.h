@@ -28,9 +28,9 @@ enum class ValueType {
     eNumber,
     eString,
     eArray,
-    eJson
-//    eYaml,
-//    eXml
+    eJson,
+    eYaml,
+    eXml
 };
  std::string ToString(const ValueType type)                                                                 noexcept;
 //=================================================================================== Value type

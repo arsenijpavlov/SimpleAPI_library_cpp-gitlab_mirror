@@ -16,6 +16,8 @@ std::string ToString(const ValueType type) noexcept {
     case ValueType::eString:    return "String";    break;
     case ValueType::eJson:      return "Json";      break;
     case ValueType::eArray:     return "Array";     break;
+    case ValueType::eYaml:      return "Yaml";      break;
+    case ValueType::eXml:       return "Xml";       break;
     default:                    return "null";      break;
     }
 }
