@@ -8,6 +8,8 @@
 #include "config/Config.h"
 
 #include "network/Socket.h"
+#include "network/TcpSocket.h"
+#include "network/UdpSocket.h"
 #include "network/SocketThread.h"
 
 #include "utils/FileUtils.h"

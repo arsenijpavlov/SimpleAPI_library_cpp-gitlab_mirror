@@ -1,5 +1,8 @@
 #include "SocketThread.h"
+#include "TcpSocket.h"
+#include "UdpSocket.h"
 #include <iostream>
+#include <regex>
 #include <unistd.h>
 
 
@@ -25,8 +28,7 @@ void SocketThread::run() noexcept {
     }
 }
 
-void SocketThread::log(const logs::LEVEL level, const std::string log_message,
-                       const std::string color_log_message) noexcept {
+void SocketThread::log(const logs::LEVEL level, std::string log_message) noexcept {
     LoggerSettings::LogCallback currentCallback = nullptr;
     LoggerSettings::LogCallback currentColorCallback = nullptr;
     std::string levelSubstring = "";
@@ -47,8 +49,8 @@ void SocketThread::log(const logs::LEVEL level, const std::string log_message,
             levelSubstring          = ".i";
             break;
         case logs::LEVEL::eDEBUG:
-        case logs::LEVEL::eDEBUG2:
-        case logs::LEVEL::eDEBUG3:
+        case logs::LEVEL::eDEBUG_2:
+        case logs::LEVEL::eDEBUG_3:
             currentCallback         = m_settings.getLogCallback();
             currentColorCallback    = m_settings.getColorLogCallback();
             levelSubstring          = ".d";
@@ -66,8 +68,23 @@ void SocketThread::log(const logs::LEVEL level, const std::string log_message,
         }
     }
 
+    //цветной вывод
+    if(currentColorCallback)
+        currentColorCallback(
+            timeString
+            + logs::columned(level, std::string("[") + SOCKETS_THREAD_NAME
+                                        + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
+                                        + "]",
+                             m_settings.getNameColumnSize(),
+                             m_settings.isNameColumnRightAlignEnabled())
+            + " " + log_message + "\n");
+
     //обычный вывод
-    if(currentCallback)
+    if(currentCallback) {
+        /* перед выводом удаляются все команды форматирования */ {
+            static std::regex reg("\\x1B\[[0-9;]*m");
+            log_message = std::regex_replace(log_message, reg, "");
+        }
         currentCallback(
             timeString
             + logs::columned(std::string("[") + SOCKETS_THREAD_NAME
@@ -75,21 +92,15 @@ void SocketThread::log(const logs::LEVEL level, const std::string log_message,
                                  + "]",
                              m_settings.getNameColumnSize(),
                              m_settings.isNameColumnRightAlignEnabled())
-            + " "
-            + log_message
-            + "\n");
-    //цветной вывод
-    if(currentColorCallback)
-        currentColorCallback(
-            timeString
-            + logs::columned(level, std::string("[") + SOCKETS_THREAD_NAME
-                                           + (m_settings.isPrintLogLevelEnabled() ? levelSubstring : "")
-                                           + "]",
-                             m_settings.getNameColumnSize(),
-                             m_settings.isNameColumnRightAlignEnabled())
-            + " "
-            + (color_log_message.empty() ? log_message : color_log_message)
-            + "\n");
+            + " " + log_message + "\n");
+    }
+}
+
+bool SocketThread::addSocket(const SocketType type, const uint16_t local_port,
+               const std::string& local_ip,
+               const SocketSettings settings) noexcept
+{
+    return addSocket(type, IpPort{local_ip, local_port}, settings);
 }
 
 bool SocketThread::addSocket(const SocketType type, const IpPort& local_ip_port,

@@ -14,8 +14,8 @@ const std::string to_string(const LEVEL level) noexcept {
     case LEVEL::eWARNING:   return "[WARNING]";
     case LEVEL::eINFO:      return "[INFO]";
     case LEVEL::eDEBUG:     return "[DEBUG]";
-    case LEVEL::eDEBUG2:    return "[DEBUG2]";
-    case LEVEL::eDEBUG3:    return "[DEBUG3]";
+    case LEVEL::eDEBUG_2:   return "[DEBUG_2]";
+    case LEVEL::eDEBUG_3:   return "[DEBUG_3]";
     default:                return "[UNKNOWN]";
     }
 }
@@ -70,8 +70,8 @@ std::string to_color_string(const LEVEL level, const std::string& log_message) n
     case LEVEL::eWARNING:   color = COLOR::eYELLOW_FG;  break;
     case LEVEL::eINFO:      color = COLOR::eGREEN_FG;   break;
     case LEVEL::eDEBUG:     color = COLOR::eGRAY_FG;    break;
-    case LEVEL::eDEBUG2:    color = COLOR::eGRAY_FG;    break;
-    case LEVEL::eDEBUG3:    color = COLOR::eGRAY_FG;    break;
+    case LEVEL::eDEBUG_2:   color = COLOR::eGRAY_FG;    break;
+    case LEVEL::eDEBUG_3:   color = COLOR::eGRAY_FG;    break;
     default:                color = COLOR::eRED_FG;     break;
     }
 

@@ -101,8 +101,8 @@ enum class LEVEL {
     eWARNING,
     eINFO,
     eDEBUG,
-    eDEBUG2,
-    eDEBUG3
+    eDEBUG_2,
+    eDEBUG_3
 };
 const std::string to_string(const LEVEL level) noexcept;
 

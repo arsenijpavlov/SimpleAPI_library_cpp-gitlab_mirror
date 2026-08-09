@@ -6,12 +6,12 @@
 #include <iostream>
 
 #define MAIN_COLOR              { Color(logs::COLOR::eCYAN_FG) }
-#define NAME_COLUMN_SIZE        16
+#define NAME_COLUMN_SIZE        18
 #define NAME_COLUMN_RIGHT_ALIGN true
 
 using namespace simpleapi;
 
-logs::LEVEL common_log_level = logs::LEVEL::eDEBUG2;
+logs::LEVEL common_log_level = logs::LEVEL::eDEBUG_2;
 void ParseParameters(int argc, char** argv) {
     using namespace logs;
 
@@ -70,7 +70,7 @@ void Log(std::string msg) {
     std::cout << msg;
 }
 void LogError(std::string msg) {
-    std::cout << msg;
+    std::cerr << msg;
 }
 
 int main(int argc, char** argv) {
@@ -87,12 +87,12 @@ int main(int argc, char** argv) {
     settings.enableNameColumnRightAlign(NAME_COLUMN_RIGHT_ALIGN);
     settings.setLogLevel(common_log_level);
     settings.enableLogTime(true);
-    settings.enablePrintLogLevel(false);
+    settings.enablePrintLogLevel(true);
 
     SocketThread st(eUDP, server, settings);
     st.m_settings.setLogLevel(common_log_level);
     st.m_settings.enableLogTime(true);
-    st.m_settings.enablePrintLogLevel(false);
+    st.m_settings.enablePrintLogLevel(true);
     st.m_settings.setNameColumnSize(NAME_COLUMN_SIZE);
     st.m_settings.enableNameColumnRightAlign(NAME_COLUMN_RIGHT_ALIGN);
 //    st.m_settings.setLogCallback(Log);
