@@ -64,13 +64,20 @@ public:
     void send(const IpPort& source, const IpPort& destination, const Packet& packet)    noexcept;
     void send(const IpPort& source, const IpPort& destination, const Config& json)      noexcept;
 
+    // методы для отправки в сокет данных без упаковки в протокол SimpleAPI
+//TODO:    void sendRaw(const IpPort& source, const IpPort& destination, const Packet& packet)    noexcept;
+//TODO:    void sendRaw(const IpPort& source, const IpPort& destination, const Config& json)      noexcept;
+//TODO: на стороне приёма тоже должны быть такие нюансы
+
     bool isActive()                                                                     noexcept { return m_active; }
     void startThread()                                                                  noexcept;
     //вызывается в деструкторе, останавливает поток
     void stopThread()                                                                   noexcept;
 
+private:
     //NOTE: nullptr если не найден или создать новый сервер во избежание ошибок?
     std::shared_ptr<Socket> findSocket(const IpPort& local_ip_port)                     noexcept;
+public:
 
     //общие настройки для всех сокетов
     void setAllSocketsSettings(const SocketSettings settings = SocketSettings())        noexcept;
