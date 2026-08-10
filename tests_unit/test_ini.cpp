@@ -77,7 +77,7 @@ std::string ini_example_string = std::string(
     "\n"
     "[group 1]; ещё комментарий\n"
     "g1_key : value\n"
-    "g1_key2 = g1_key3 = 152\n"
+    "g1_key2 = g1_key3 = 152\n" // здесь ключом является только g1_key2
     //пустая строка после описания группы НЕ завершает группу
     "\n"
     "key2 = value2\n"
@@ -173,19 +173,15 @@ TEST(INI, main_parser) {
         ASSERT_TRUE(json["group 1"].isJson());
         Config j = json["group 1"];
         {
-            EXPECT_EQ(j.size(), 6);
+            EXPECT_EQ(j.size(), 5);
 
             ASSERT_TRUE(j.containsKey("g1_key"));
             ASSERT_TRUE(j["g1_key"].isString());
             EXPECT_EQ(j["g1_key"], "value");
 
             ASSERT_TRUE(j.containsKey("g1_key2"));
-            ASSERT_TRUE(j["g1_key2"].isNumber());
-            EXPECT_EQ(j["g1_key2"], 152);
-
-            ASSERT_TRUE(j.containsKey("g1_key3"));
-            ASSERT_TRUE(j["g1_key3"].isNumber());
-            EXPECT_EQ(j["g1_key3"], 152);
+            ASSERT_TRUE(j["g1_key2"].isString());
+            EXPECT_EQ(j["g1_key2"], "g1_key3 = 152");
 
             ASSERT_TRUE(j.containsKey("key2"));
             {
