@@ -2400,16 +2400,18 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
 
             stacker_lambda.autocheck(ch_current); // для проверки нахождения внутри кавычек
 
-            switch(ch_current) {
-            case ':':
-            case '=': {
-                RemoveIllegalSpaces(temp);
-                keys.push_back(temp);
-                temp.clear();
-                last_key_pos = i;
-                break;
-            }
-            default: temp += ch_current;
+            if(!stacker_lambda.inQuotes()) {
+                switch(ch_current) {
+                case ':':
+                case '=': {
+                    RemoveIllegalSpaces(temp);
+                    keys.push_back(temp);
+                    temp.clear();
+                    last_key_pos = i;
+                    break;
+                }
+                default: temp += ch_current;
+                }
             }
         }
         if(keys.empty())
