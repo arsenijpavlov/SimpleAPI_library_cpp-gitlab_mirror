@@ -447,3 +447,13 @@ TEST(INI, parse_infinities) {
     EXPECT_TRUE(cfg["b"].isNumber());
     EXPECT_EQ(cfg["b"], d2);
 }
+
+TEST(INI, parse_MAC_address) {
+    using namespace simpleapi;
+    Config cfg;
+    cfg.parseIni("MAC = \"11:22:33:44:55:66\"\n");
+    EXPECT_EQ(cfg.size(), 1);
+
+    cfg.parseIni("MAC = 11:22:33:44:55:66\n");
+    EXPECT_EQ(cfg.size(), 1);
+}
