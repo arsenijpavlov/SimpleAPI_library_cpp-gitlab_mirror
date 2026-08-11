@@ -846,7 +846,7 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
 }
 
 // TODO: нужно сделать выравнивание на первом уровне ключей (второй уровень в рамках группы)
-// FIXME: главная группа с нулевым именем [] не должна выводиться как группа - сразу перечисление значений
+// NOTE: главная группа с нулевым именем [] не должна выводиться как группа - сразу перечисление значений
 // WARNING: метод не рекурсивный для контейнеров!
 std::string ElementJson::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
@@ -955,9 +955,13 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
             if(!ret.empty())
                 ret += '\n';
             ret += GetPrefixComment(*cfg.second);
-            ret += "[" + cfg.first + "]";
-            ret += GetSuffixComment(*cfg.second);
-            ret += "\n";
+            if(!cfg.first.empty())
+            {
+                // пустое имя группы зарезервировано для главной группы и не выводится
+                ret += "[" + cfg.first + "]";
+                ret += GetSuffixComment(*cfg.second);
+                ret += "\n";
+            }
 
             for(const auto& cfg_inner : cfg.second->getNamedRange()) {
                 if(cfg_inner.second->isContainer()) {

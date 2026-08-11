@@ -453,3 +453,24 @@ TEST(INI, parse_MAC_address) {
     cfg.parseIni("MAC = 11:22:33:44:55:66\n");
     EXPECT_EQ(cfg.size(), 1);
 }
+
+TEST(INI, write_groups) {
+    using namespace simpleapi;
+
+    Config cfg;
+    cfg[""]["a"] = 1;
+    cfg[""]["b"] = 2;
+    cfg["group 2"]["a"] = 3;
+    cfg["group 2"]["b"] = 4;
+
+    const std::string expected_result =
+        "a = 1\n"
+        "b = 2\n"
+        "\n"
+        "[group 2]\n"
+        "a = 3\n"
+        "b = 4\n";
+
+    EXPECT_EQ(cfg.toString(simpleapi::ConfigFormat::eINI), expected_result);
+}
+
