@@ -846,6 +846,7 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
 }
 
 // TODO: нужно сделать выравнивание на первом уровне ключей (второй уровень в рамках группы)
+// FIXME: главная группа с нулевым именем [] не должна выводиться как группа - сразу перечисление значений
 // WARNING: метод не рекурсивный для контейнеров!
 std::string ElementJson::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
