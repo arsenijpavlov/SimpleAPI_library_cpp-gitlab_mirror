@@ -960,6 +960,12 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
             max_length = cfg.first.size();
         }
     }
+    // проверка ограничений
+    if(m_writer_stile.max_key_length != -1
+        && m_writer_stile.max_key_length < max_length)
+    {
+        max_length = m_writer_stile.max_key_length;
+    }
 
     for(const auto& cfg : m_values) {
         switch(cfg.second->getType()) {
@@ -978,6 +984,7 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
             // TODO: должна ли эта логика распространяться на подгруппы?
             // в рамках группы рассчитать для одиночных элементов (не структур) максимальную длину имени
             // при записи дополнять нулями до максимальной длины
+            // в этом случае придётся на все внутренние контейнеры передать m_writer_stile
 //            uint16_t max_length_inner = 0;
 //            for(const auto& cfg_inner : cfg.second->getNamedRange()) {
 //                if(!cfg_inner.second->isContainer() && cfg_inner.first.size() > max_length_inner) {

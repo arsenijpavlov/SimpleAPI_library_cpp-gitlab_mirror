@@ -902,6 +902,9 @@ public:
     //для совместимости с STL
     friend std::ostream& operator<<(std::ostream& os, const Config& config)                         noexcept;                   API_ALL
     friend std::ostream& operator<<(std::ostream& os, const tools::IElement& config)                noexcept;                   API_ALL
+    WriterStile&    writerStile()                                                                   noexcept                    API_ALL
+                    { return m_value->m_writer_stile; }
+
     // ========================================================================================================== String
 
     // File ============================================================================================================
