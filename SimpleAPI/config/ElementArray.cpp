@@ -429,8 +429,10 @@ std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t
     return ret;
 }
 
-//метод не рекурсивный для контейнеров!
-//NOTE: потому что нельзя мешать пользователю прострелить себе колено (не предполагается к использованию)
+
+// TODO: нужно сделать выравнивание на первом уровне ключей (второй уровень в рамках группы)
+// WARNING: метод не рекурсивный для контейнеров!
+// NOTE: потому что нельзя мешать пользователю прострелить себе колено (не предполагается к использованию)
 std::string ElementArray::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     std::string ret;
