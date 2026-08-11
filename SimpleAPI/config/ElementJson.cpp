@@ -4,6 +4,7 @@
 #include <algorithm>
 #include "../utils/Utils.h"
 #include "ConfigDefines.h"
+#include "../utils/Logger.h"
 
 
 namespace simpleapi {
@@ -845,9 +846,11 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
     return ret;
 }
 
-// TODO: нужно сделать выравнивание на первом уровне ключей (второй уровень в рамках группы)
+// NOTE: метод не рекурсивный для контейнеров!
 // NOTE: главная группа с нулевым именем [] не должна выводиться как группа - сразу перечисление значений
-// WARNING: метод не рекурсивный для контейнеров!
+// NOTE: выравнивание на первом уровне ключей (второй уровень в рамках группы)
+// @TEST(INI, writer_groups)
+// @TEST(INI, writer_different_len_of_keys_alignment)
 std::string ElementJson::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     std::string ret;
@@ -949,6 +952,15 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
         ret += ToComment(getPrefixComment(), design) + "\n\n\n";
     }
 
+    // в рамках группы рассчитать для одиночных элементов (не структур) максимальную длину имени
+    // при записи дополнять нулями до максимальной длины
+    uint16_t max_length = 0;
+    for(const auto& cfg : m_values) {
+        if(!cfg.second->isContainer() && cfg.first.size() > max_length) {
+            max_length = cfg.first.size();
+        }
+    }
+
     for(const auto& cfg : m_values) {
         switch(cfg.second->getType()) {
         case ValueType::eJson: {
@@ -962,6 +974,16 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
                 ret += GetSuffixComment(*cfg.second);
                 ret += "\n";
             }
+
+            // TODO: должна ли эта логика распространяться на подгруппы?
+            // в рамках группы рассчитать для одиночных элементов (не структур) максимальную длину имени
+            // при записи дополнять нулями до максимальной длины
+//            uint16_t max_length_inner = 0;
+//            for(const auto& cfg_inner : cfg.second->getNamedRange()) {
+//                if(!cfg_inner.second->isContainer() && cfg_inner.first.size() > max_length_inner) {
+//                    max_length_inner = cfg_inner.first.size();
+//                }
+//            }
 
             for(const auto& cfg_inner : cfg.second->getNamedRange()) {
                 if(cfg_inner.second->isContainer()) {
@@ -983,6 +1005,7 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
                 } else if(cfg_inner.second->isString()) {
                     ret += GetPrefixComment(*cfg_inner.second);
                     if(!cfg_inner.first.empty())
+//                        ret += logs::columned(cfg_inner.first, max_length_inner) + " = ";
                         ret += cfg_inner.first + " = ";
                     AppendMultinlineString(cfg_inner.second->toString());
                     ret += GetSuffixComment(*cfg_inner.second);
@@ -990,6 +1013,7 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
                 } else {
                     ret += GetPrefixComment(*cfg_inner.second);
                     if(!cfg_inner.first.empty())
+//                        ret += logs::columned(cfg_inner.first, max_length_inner) + " = ";
                         ret += cfg_inner.first + " = ";
                     ret += cfg_inner.second->toString();
                     ret += GetSuffixComment(*cfg_inner.second);
@@ -1020,7 +1044,7 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
         default: {
             ret += GetPrefixComment(*cfg.second);
             if(!cfg.first.empty())
-                ret += cfg.first + " = ";
+                ret += logs::columned(cfg.first, max_length) + " = ";
 
             if(cfg.second->isString()) {
                 AppendMultinlineString(cfg.second->toString());

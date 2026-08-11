@@ -454,7 +454,7 @@ TEST(INI, parse_MAC_address) {
     EXPECT_EQ(cfg.size(), 1);
 }
 
-TEST(INI, write_groups) {
+TEST(INI, writer_groups) {
     using namespace simpleapi;
 
     Config cfg;
@@ -474,3 +474,17 @@ TEST(INI, write_groups) {
     EXPECT_EQ(cfg.toString(simpleapi::ConfigFormat::eINI), expected_result);
 }
 
+TEST(INI, writer_different_len_of_keys_alignment) {
+    using namespace simpleapi;
+    Config cfg;
+    cfg["a"]   = 1;
+    cfg["aa"]  = 2;
+    cfg["aaa"] = 3;
+
+    const std::string expected_result =
+        "a   = 1\n"
+        "aa  = 2\n"
+        "aaa = 3\n";
+
+    EXPECT_EQ(cfg.toString(simpleapi::ConfigFormat::eINI), expected_result);
+}
