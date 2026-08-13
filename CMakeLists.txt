@@ -23,6 +23,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(ENABLE_TESTS_UNIT        "Google tests enabled"          on)
 
+add_custom_target(project_docs SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/README.md
+    ${CMAKE_CURRENT_SOURCE_DIR}/changelog.txt
+)
+
 #library
 #set(SIMPLE_API_STATIC_BUILD on) #API по идее должен мочь меняться на ходу, потому статическая сборка не нужна
 add_subdirectory(SimpleAPI)
