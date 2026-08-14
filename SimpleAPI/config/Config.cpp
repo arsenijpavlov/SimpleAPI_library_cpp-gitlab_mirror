@@ -2619,7 +2619,8 @@ bool Config::parseYaml(const std::string &content, const CommentDesign &design) 
 bool Config::parseXml(const std::string &content, const CommentDesign &design) noexcept
 {
     //TODO: Config::parseXml()
-    return false;
+
+    return !error();
 }
 
 std::string Config::to_string(const ParseStateJson state) noexcept {
@@ -3685,8 +3686,15 @@ Config ParseIni(const std::string &content, const CommentDesign &design) noexcep
 
 Config ParseXml(const std::string &content, const CommentDesign &design) noexcept
 {
-    //TODO: ParseXml()
-    return {};
+    Config ret(ValueType::eXml);
+
+    CommentDesign n_design = design;
+    if(design == CommentDesign{}) { // если переменная не заполнена, используется соб
+        n_design = ret.getCommentDesign();
+    }
+
+    ret.parseXml(content, n_design);
+    return ret;
 }
 
 } // namespace simpleapi
