@@ -453,3 +453,44 @@ TEST(INI, parse_MAC_address) {
     cfg.parseIni("MAC = 11:22:33:44:55:66\n");
     EXPECT_EQ(cfg.size(), 1);
 }
+
+TEST(INI, writer_groups) {
+    using namespace simpleapi;
+
+    Config cfg;
+    cfg[""]["a"] = 1;
+    cfg[""]["b"] = 2;
+    cfg["group 2"]["a"] = 3;
+    cfg["group 2"]["b"] = 4;
+
+    const std::string expected_result =
+        "a = 1\n"
+        "b = 2\n"
+        "\n"
+        "[group 2]\n"
+        "a = 3\n"
+        "b = 4\n";
+
+    EXPECT_EQ(cfg.toString(simpleapi::ConfigFormat::eINI), expected_result);
+}
+
+TEST(INI, writer_different_len_of_keys_alignment) {
+    using namespace simpleapi;
+    Config cfg;
+    cfg["a"]   = 1;
+    cfg["aa"]  = 2;
+    cfg["aaa"] = 3;
+
+    std::string expected_result =
+        "a   = 1\n"
+        "aa  = 2\n"
+        "aaa = 3\n";
+    EXPECT_EQ(cfg.toString(simpleapi::ConfigFormat::eINI), expected_result);
+
+    cfg.writerStile().max_key_length = 2; // ограничит максимальное выравнивание ключей
+    expected_result =
+        "a  = 1\n"
+        "aa = 2\n"
+        "aaa = 3\n";
+    EXPECT_EQ(cfg.toString(simpleapi::ConfigFormat::eINI), expected_result);
+}

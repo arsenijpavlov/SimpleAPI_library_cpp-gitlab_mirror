@@ -4,6 +4,7 @@
 #include <algorithm>
 #include "../utils/Utils.h"
 #include "ConfigDefines.h"
+#include "../utils/Logger.h"
 
 
 namespace simpleapi {
@@ -845,7 +846,11 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
     return ret;
 }
 
-//метод не рекурсивный для контейнеров!
+// NOTE: метод не рекурсивный для контейнеров!
+// NOTE: главная группа с нулевым именем [] не должна выводиться как группа - сразу перечисление значений
+// NOTE: выравнивание на первом уровне ключей (второй уровень в рамках группы)
+// @TEST(INI, writer_groups)
+// @TEST(INI, writer_different_len_of_keys_alignment)
 std::string ElementJson::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     std::string ret;
@@ -922,16 +927,79 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
     };
     auto AppendCollection = [&](const std::string& prefix, Config& cfg) -> void {
         std::vector<std::unique_ptr<KeysBase>> kbss = CollectKeys(cfg, prefix);
+
+        /* для реализации выравнивания знаков '=' нужно в рамках общей длины XXX/K рассчитать максимум длины K
+         *  XXX - весь дополнительный контекст пути
+         */
+        {
+            size_t max_key_length = 0; // максимум текущей группы
+            size_t index_start    = 0; // начальный индекс текущей группы (финишный по текущей позиции)
+            uint16_t current_group_name_size = 0;
+            for(size_t i = 0; i < kbss.size(); i++) {
+                KeysValues* k_ptr = dynamic_cast<KeysValues*>(kbss[i].get());
+                if (k_ptr) {
+                    // проверить текущую длину XXX
+                    std::string& current_full_key = k_ptr->m_key;
+                    size_t XXX_size = current_full_key.rfind('/');
+                    XXX_size        = XXX_size != std::string::npos ? XXX_size : 0;
+
+                    auto Format = [&kbss, &max_key_length, &XXX_size]
+                        (size_t i_start, size_t i_finish) -> void
+                    {
+                        for(size_t i = i_start; i <= i_finish; i++) {
+                            KeysValues* k_ptr = dynamic_cast<KeysValues*>(kbss[i].get());
+                            if(k_ptr)
+                            {
+                                std::string& key = k_ptr->m_key;
+                                key              = logs::columned(key, XXX_size + max_key_length);
+                            }
+                        }
+                    };
+
+                    // если изменилась, значит мы перешли к следующей группе объектов
+                    if(XXX_size != current_group_name_size)
+                    {
+                        // нужно пройтись по диапазону заново и выровнять по max_length
+                        // если группа состоит из одного элемента - игнорить
+                        Format(index_start, i);
+
+                        max_key_length          = 0; // обнуляем для следующей группы
+                        index_start             = i;
+                        current_group_name_size = XXX_size; // обновляем размер текущей группы
+                    }
+
+                    // вычисляем максимум
+                    if(max_key_length < current_full_key.size() - XXX_size)
+                    {
+                        if(m_writer_stile.max_key_length == -1
+                            || (current_full_key.size() - XXX_size) <= m_writer_stile.max_key_length)
+                        {
+                            max_key_length = current_full_key.size() - XXX_size;
+                        }
+                    }
+
+                    // встретили последний элемент - проходимся по последнему необработанному диапазону
+                    if(i + 1 >= kbss.size()) {
+                        Format(index_start, i);
+                    }
+                }
+            }
+        }
+
         for(auto& kbs : kbss) {
             KeysComments* ptr_comment = dynamic_cast<KeysComments*>(kbs.get());
             KeysValues* ptr_cfg       = dynamic_cast<KeysValues*>(kbs.get());
-            if(ptr_comment) {
+            if(ptr_comment)
+            {
                 //групповой комментарий для INI так и или иначе будет напечатан с новой строки, т.к. потеряется привязанность к группе
                 ret += ToComment(ptr_comment->m_comment_str, design) + "\n";
-            } else if(ptr_cfg) {
+            }
+            else if(ptr_cfg)
+            {
                 ret += GetPrefixComment(*ptr_cfg->m_ptr_remote_cfg);
-                if(!ptr_cfg->m_key.empty())
+                if(!ptr_cfg->m_key.empty()) {
                     ret += ptr_cfg->m_key + " = ";
+                }
                 if(ptr_cfg->m_ptr_remote_cfg->isString()) {
                     AppendMultinlineString(ptr_cfg->m_ptr_remote_cfg->toString());
                 } else {
@@ -947,18 +1015,55 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
         ret += ToComment(getPrefixComment(), design) + "\n\n\n";
     }
 
+    // в рамках группы рассчитать для одиночных элементов (не структур) максимальную длину имени
+    // при записи дополнять пробелами до максимальной длины
+    uint16_t max_length = 0;
+    for(const auto& cfg : m_values) {
+        if(!cfg.second->isContainer() && cfg.first.size() > max_length) {
+            max_length = cfg.first.size();
+        }
+    }
+    // проверка ограничений
+    if(m_writer_stile.max_key_length != -1
+        && m_writer_stile.max_key_length < max_length)
+    {
+        max_length = m_writer_stile.max_key_length;
+    }
+
     for(const auto& cfg : m_values) {
         switch(cfg.second->getType()) {
         case ValueType::eJson: {
             if(!ret.empty())
                 ret += '\n';
             ret += GetPrefixComment(*cfg.second);
-            ret += "[" + cfg.first + "]";
-            ret += GetSuffixComment(*cfg.second);
-            ret += "\n";
+            if(!(cfg.second.get() == m_values.cbegin()->second.get() && cfg.first.empty()))
+            {
+                // пустое имя группы зарезервировано для главной группы и не выводится
+                ret += "[" + cfg.first + "]";
+                ret += GetSuffixComment(*cfg.second);
+                ret += "\n";
+            }
+
+            // в рамках группы рассчитать для одиночных элементов (не структур) максимальную длину имени
+            // при записи дополнять пробелами до максимальной длины
+            uint16_t max_length_inner = 0;
+            for(const auto& cfg_inner : cfg.second->getNamedRange()) {
+                if(!cfg_inner.second->isContainer() && cfg_inner.first.size() > max_length_inner) {
+                    max_length_inner = cfg_inner.first.size();
+                }
+            }
+            // проверка ограничений
+            if(m_writer_stile.max_key_length != -1
+                && m_writer_stile.max_key_length < max_length_inner)
+            {
+                max_length_inner = m_writer_stile.max_key_length;
+            }
 
             for(const auto& cfg_inner : cfg.second->getNamedRange()) {
                 if(cfg_inner.second->isContainer()) {
+                    // передаём параметр во внутренние структуры
+                    cfg_inner.second->writerStile() = m_writer_stile;
+
                     if(IsArrayWithPrimitives(*cfg_inner.second))
                     {
                         ret += GetPrefixComment(*cfg_inner.second);
@@ -977,14 +1082,14 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
                 } else if(cfg_inner.second->isString()) {
                     ret += GetPrefixComment(*cfg_inner.second);
                     if(!cfg_inner.first.empty())
-                        ret += cfg_inner.first + " = ";
+                        ret += logs::columned(cfg_inner.first, max_length_inner) + " = ";
                     AppendMultinlineString(cfg_inner.second->toString());
                     ret += GetSuffixComment(*cfg_inner.second);
                     ret += "\n";
                 } else {
                     ret += GetPrefixComment(*cfg_inner.second);
                     if(!cfg_inner.first.empty())
-                        ret += cfg_inner.first + " = ";
+                        ret += logs::columned(cfg_inner.first, max_length_inner) + " = ";
                     ret += cfg_inner.second->toString();
                     ret += GetSuffixComment(*cfg_inner.second);
                     ret += "\n";
@@ -1004,6 +1109,9 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
                 ret += std::move(temp);
                 ret += "\n";
             } else {
+                // передаём параметр во внутренние структуры
+                cfg.second->writerStile() = m_writer_stile;
+
                 //комментарии элемента cfg будут обработаны в рекурсивной функции
                 //нужно собрать все элементы массива и упаковать в общее имя с переходом между уровнями
                 AppendCollection(cfg.first, *cfg.second);
@@ -1014,7 +1122,7 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
         default: {
             ret += GetPrefixComment(*cfg.second);
             if(!cfg.first.empty())
-                ret += cfg.first + " = ";
+                ret += logs::columned(cfg.first, max_length) + " = ";
 
             if(cfg.second->isString()) {
                 AppendMultinlineString(cfg.second->toString());

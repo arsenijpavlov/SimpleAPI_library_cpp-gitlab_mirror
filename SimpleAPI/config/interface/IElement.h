@@ -24,11 +24,23 @@ using shared_VPairElement   = std::vector<shared_JPair>;
 using VElement              = std::vector<Config>;
 using shared_VElement       = std::vector<std::shared_ptr<Config>>;
 
+// TODO: нужна документация
+// при попытке записи Config в строку/файл - структура продублируется для всех дочерних контейнеров
+struct WriterStile {
+    // отвечает за выравнивание знаков '=' при записи конфига в строкиу/файл (INI, YAML(?))
+    // -1 -> сбросить ограничение; "Я САМЫЙ УМНЫЙ" (с)
+    int max_key_length;
+
+    WriterStile() : max_key_length(20) {}
+};
 
 namespace tools {
 
 //базовый класс, в идеале используется только для ссылки на производный
 class IElement : public IComment, public IErrorField {
+public:
+    WriterStile m_writer_stile;
+
 protected:
     ValueType m_type;
     IElement()                                                  noexcept            { m_type = ValueType::eNull; }

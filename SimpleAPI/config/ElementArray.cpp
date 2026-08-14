@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include "../utils/Utils.h"
+#include "../utils/Logger.h"
 
 //предобъявление
 #include "Config.h"
@@ -429,8 +430,10 @@ std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t
     return ret;
 }
 
-//метод не рекурсивный для контейнеров!
-//NOTE: потому что нельзя мешать пользователю прострелить себе колено (не предполагается к использованию)
+
+// NOTE: метод не рекурсивный для контейнеров!
+// NOTE: выравнивание на первом уровне ключей (второй уровень в рамках группы)
+// NOTE: потому что нельзя мешать пользователю прострелить себе колено (не предполагается к использованию)
 std::string ElementArray::toIniString(const CommentDesign &design, const int8_t custom_tabulation_level) const noexcept
 {
     std::string ret;
@@ -509,6 +512,65 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
     };
     auto AppendCollection = [&](const VString& prefixes, Config& cfg) -> void {
         std::vector<std::unique_ptr<KeysBase>> kbss = CollectKeys(cfg, prefixes);
+
+        /* для реализации выравнивания знаков '=' нужно в рамках общей длины XXX/K рассчитать максимум длины K
+         *  XXX - весь дополнительный контекст пути
+         */
+        {
+            size_t max_key_length = 0; // максимум текущей группы
+            size_t index_start    = 0; // начальный индекс текущей группы (финишный по текущей позиции)
+            uint16_t current_group_name_size = 0;
+            for(size_t i = 0; i < kbss.size(); i++) {
+                KeysValues* k_ptr = dynamic_cast<KeysValues*>(kbss[i].get());
+                if (k_ptr) {
+                    // проверить текущую длину XXX
+                    std::string& current_full_key = k_ptr->m_key;
+                    size_t XXX_size = current_full_key.rfind('/');
+                    XXX_size        = XXX_size != std::string::npos ? XXX_size : 0;
+
+                    auto Format = [&kbss, &max_key_length, &XXX_size]
+                        (size_t i_start, size_t i_finish) -> void
+                    {
+                        for(size_t i = i_start; i <= i_finish; i++) {
+                            KeysValues* k_ptr = dynamic_cast<KeysValues*>(kbss[i].get());
+                            if(k_ptr)
+                            {
+                                std::string& key = k_ptr->m_key;
+                                key              = logs::columned(key, XXX_size + max_key_length);
+                            }
+                        }
+                    };
+
+                    // если изменилась, значит мы перешли к следующей группе объектов
+                    if(XXX_size != current_group_name_size)
+                    {
+                        // нужно пройтись по диапазону заново и выровнять по max_length
+                        // если группа состоит из одного элемента - игнорить
+                        Format(index_start, i);
+
+                        max_key_length          = 0; // обнуляем для следующей группы
+                        index_start             = i;
+                        current_group_name_size = XXX_size; // обновляем размер текущей группы
+                    }
+
+                    // вычисляем максимум
+                    if(max_key_length < current_full_key.size() - XXX_size)
+                    {
+                        if(m_writer_stile.max_key_length == -1
+                            || (current_full_key.size() - XXX_size) <= m_writer_stile.max_key_length)
+                        {
+                            max_key_length = current_full_key.size() - XXX_size;
+                        }
+                    }
+
+                    // встретили последний элемент - проходимся по последнему необработанному диапазону
+                    if(i + 1 >= kbss.size()) {
+                        Format(index_start, i);
+                    }
+                }
+            }
+        }
+
         for(auto& kbs : kbss) {
             KeysComments* ptr_comment = dynamic_cast<KeysComments*>(kbs.get());
             KeysValues* ptr_cfg       = dynamic_cast<KeysValues*>(kbs.get());
@@ -554,6 +616,21 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
 
             ret += ""; //контейнер в главном списке не может содержать ключа
 
+            // в рамках группы рассчитать для одиночных элементов (не структур) максимальную длину имени
+            // при записи дополнять пробелами до максимальной длины
+            uint16_t max_length_inner = 0;
+            for(const auto& cfg_inner : cfg->getNamedRange()) {
+                if(!cfg_inner.second->isContainer() && cfg_inner.first.size() > max_length_inner) {
+                    max_length_inner = cfg_inner.first.size();
+                }
+            }
+            // проверка ограничений
+            if(m_writer_stile.max_key_length != -1
+                && m_writer_stile.max_key_length < max_length_inner)
+            {
+                max_length_inner = m_writer_stile.max_key_length;
+            }
+
             for(const auto& cfg_inner : cfg->getNamedRange()) {
                 if(cfg_inner.second->isContainer()) {
 
@@ -579,7 +656,7 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
                     ret += GetPrefixComment(*cfg_inner.second);
 
                     if(!cfg_inner.first.empty())
-                        ret += cfg_inner.first + " = ";
+                        ret += logs::columned(cfg_inner.first, max_length_inner) + " = ";
                     AppendMultinlineString(cfg_inner.second->toString());
 
                     temp = GetSuffixComment(*cfg_inner.second);
@@ -589,7 +666,7 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
                     ret += GetPrefixComment(*cfg_inner.second);
 
                     if(!cfg_inner.first.empty())
-                        ret += cfg_inner.first + " = ";
+                        ret += logs::columned(cfg_inner.first, max_length_inner) + " = ";
                     ret += cfg_inner.second->toString();
 
                     temp = GetSuffixComment(*cfg_inner.second);
