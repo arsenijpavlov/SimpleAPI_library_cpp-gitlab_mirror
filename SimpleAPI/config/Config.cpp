@@ -2731,9 +2731,11 @@ bool Config::parseXml(const std::string &content, const CommentDesign &design) n
 
 
     Stacker stacker;
-    stacker.addSimpleRule('\''); // используются только для атрибутов
-    stacker.addSimpleRule('"');  // используются только для атрибутов
     stacker.addDoubleRule('<', '>');
+    // используются только для атрибутов, внутри значений игнорируем для валидации при парсинге элемента
+    stacker.addSimpleRule('\'');
+    stacker.addSimpleRule('"');
+
     char ch_previous = 0;
     char ch_current  = 0;
     char ch_next     = 0;
@@ -2752,6 +2754,7 @@ bool Config::parseXml(const std::string &content, const CommentDesign &design) n
     std::string current_tag, value;
     VString attributes;
     std::string temp;
+    ParseStateXml state = ParseStateXml::eXML_FORMAT;
     for(size_t i = 0; i < content.size(); i++)
     {
         ch_previous = i == 0 ? 0 : content[i - 1];
@@ -2795,49 +2798,70 @@ bool Config::parseXml(const std::string &content, const CommentDesign &design) n
             break;
         }
 
-        temp += ch_current;
-        if(stacker.empty()) {
-//            std::cout << "temp: \"" << temp << "\"" << std::endl;
-            if(current_tag.empty()) {
-                current_tag = temp;
-                // проверяем тег на самозакрытие
-                bool tag_selfclosed = current_tag.find("/>") != std::string::npos;
-                if(tag_selfclosed) {
-                    std::cout << "tag is selfclosed: \"" << temp << "\"" << std::endl;
-                }
+        // ищем вхождение в описание тега
+        // считываем имя тега (наличие пробелов перед именем - критичная ошибка (оригинальных парсеров))
+        // если встретили пробел ПОСЛЕ ИМЕНИ ТЕГА - ожидаем атрибуты или закрывающую треугольную скобку
+        // атрибуты всегда по маске КЛЮЧ="ЗНАЧЕНИЕ", кавычки обязательны для оригинальных парсеров
+        // если тег не самозакрывающий, то всё до маски </ИМЯ_ТЕГА[:SPACES:]*> считаем внутренним значением и передаём другому парсеру
 
-                // разбираем тег на состовляющие (тег + атрибуты); пробелы - разделитель
-                {
-                    std::string s = current_tag;
-                    s.erase(0, 1); // удаляем символ '<'
-                    s.pop_back();  // удаляем символ '>'
-                    if(tag_selfclosed)
-                        s.pop_back();  // удаляем символ '/'
-                    RemoveIllegalSpaces(s);
+        switch(state) {
+        case ParseStateXml::eXML_FORMAT: {
+            // раздел необязательный
+            // если формат отличается от utf-8 - вернуть как ошибку парсинга
+            break;
+        }
+        case ParseStateXml::eXML_PROLOGUE: {
+            // раздел необязательный
+            // здесь могут быть настройки валидации полей и т.п.
+            break;
+        }
+        case ParseStateXml::eXML_TAG_START: {
+            // запрещены пробелы между < и именем тега (игнорировать в рамках этого парсера)
+            // первым символом имени тега может быть только буква или знак подчёркивания '_'
 
-                    SplittedLines sl = SplitWithoutColumned(s);
+            // выдержка из ИИ Google:
+            // 1) Запрет на «xml»: Имя тега не может начинаться с букв xml, XML, Xml и любых других комбинаций регистров.
+            //    Это сочетание зарезервировано.
+            // 2) Первый символ: Имя может начинаться только с буквы (любого алфавита, включая кириллицу) или знака
+            //    подчеркивания _.
+            // 3) Запрет на цифры в начале: Имя не может начинаться с цифры, точки или дефиса.
+            // 4) Разрешенные символы внутри: После первого символа можно использовать буквы, цифры, дефисы -, знаки
+            //    подчеркивания _ и точки ..
+            // 5) Запрет на пробелы: Внутри имени тега нельзя ставить пробелы.
+            // 6) Проблема с двоеточием: Символ : технически разрешен, но зарезервирован для пространств имен (namespaces).
+            //    Использовать его просто так в именах тегов нельзя.
 
-                    current_tag = sl.lines.front();
-                }
-            } else {
-                // проверяем значение на закрытие тега
-                if(temp.find("</") != std::string::npos) {
-                    std::cout << "found closer for tag: \"" << temp << "\"" << std::endl;
-                } else {
-                    value += temp;
-                }
-            }
-            temp.clear();
-        } else {
-            // если стакер не пустой, значит идёт обработка либо тега, либо внутреннего значения
-            if(current_tag.empty()) {
-                // валидируем содержимое тега
-            } else if(value.empty()) {
-                // запоминаем внутреннее значение
-//                value += temp;
-            } else {
-                // здесь ищем закрывающий тег
-            }
+            // если после пробела есть сочетание "/>", тогда тег считается самозокрытым - внутреннего значения нет
+            // если после пробела идёт знак >, тогда атрибутов нет
+            //   в остальном случае нужно перейти к парсингу атрибутов
+            break;
+        }
+        case ParseStateXml::eXML_ATTRIBUTES: {
+            // всегда валидировать по маске ключ=значение, где значение обязательно в кавычках (одинарных или двойных)
+
+            // (то же поведение, что и без атрибутов) // TODO: может добавить state eXML_TAG_START_ENDING
+            // если после пробела есть сочетание "/>", тогда тег считается самозокрытым - внутреннего значения нет
+            // если после пробела идёт знак >, тогда атрибутов нет
+            break;
+        }
+        case ParseStateXml::eXML_INNER_VALUE: {
+            // раздел необязательный
+            // может содержать несколько значений, как XML-элементов, так и обычных строк
+            //    для строк кавычки не валидируются
+            break;
+        }
+        case ParseStateXml::eXML_TAG_FINISH: {
+            // XML-элемент считается закрытым, если есть совпадение маски "</[:SPACES:]TAG_NAME*[:SPACES:]*>"
+            //    пробелы перед именем тега оригинальным парсером считаются критической ошибкой
+            break;
+        }
+        case ParseStateXml::eXML_EPILOGUE: {
+            // раздел необязательный
+            break;
+        }
+        case ParseStateXml::eXML_ERROR: {
+            break;
+        }
         }
     }
     std::cout << "tag: \"" << current_tag << "\"" << std::endl;
@@ -2850,16 +2874,16 @@ bool Config::parseXml(const std::string &content, const CommentDesign &design) n
     return !error();
 }
 
-std::string Config::to_string(const ParseStateJson state) noexcept {
+std::string Config::ToString(const ParseStateJson state) noexcept {
     switch (state) {
-    case ParseStateJson::eJSON_START:               return "[JSON_START]";
-    case ParseStateJson::eJSON_KEY:                 return "[JSON_KEY]";
-    case ParseStateJson::eJSON_KEY_VALUE_SEPARATOR: return "[JSON_KEY_VALUE_SEPARATOR]";
-    case ParseStateJson::eJSON_VALUE:               return "[JSON_VALUE]";
-    case ParseStateJson::eJSON_SEPARATOR:           return "[JSON_SEPARATOR]";
-    case ParseStateJson::eJSON_FINISH:              return "[JSON_FINISH]";
-    case ParseStateJson::eJSON_ERROR_STATE:
-    default:                                        return "[JSON_ERROR_STATE]";
+        case ParseStateJson::eJSON_START:               return "[JSON_START]";
+        case ParseStateJson::eJSON_KEY:                 return "[JSON_KEY]";
+        case ParseStateJson::eJSON_KEY_VALUE_SEPARATOR: return "[JSON_KEY_VALUE_SEPARATOR]";
+        case ParseStateJson::eJSON_VALUE:               return "[JSON_VALUE]";
+        case ParseStateJson::eJSON_SEPARATOR:           return "[JSON_SEPARATOR]";
+        case ParseStateJson::eJSON_FINISH:              return "[JSON_FINISH]";
+        case ParseStateJson::eJSON_ERROR_STATE:
+        default:                                        return "[JSON_ERROR_STATE]";
     }
 }
 
@@ -3280,14 +3304,14 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
     }
 }
 
-std::string Config::to_string(const ParseStateJsonArray state) noexcept {
+std::string Config::ToString(const ParseStateJsonArray state) noexcept {
     switch (state) {
-    case ParseStateJsonArray::eARRAY_START:         return "[ARRAY_START]";
-    case ParseStateJsonArray::eARRAY_VALUE:         return "[ARRAY_VALUE]";
-    case ParseStateJsonArray::eARRAY_SEPARATOR:     return "[ARRAY_SEPARATOR]";
-    case ParseStateJsonArray::eARRAY_FINISH:        return "[ARRAY_FINISH]";
-    case ParseStateJsonArray::eARRAY_ERROR_STATE:
-    default:                                        return "[ARRAY_ERROR_STATE]";
+        case ParseStateJsonArray::eARRAY_START:         return "[ARRAY_START]";
+        case ParseStateJsonArray::eARRAY_VALUE:         return "[ARRAY_VALUE]";
+        case ParseStateJsonArray::eARRAY_SEPARATOR:     return "[ARRAY_SEPARATOR]";
+        case ParseStateJsonArray::eARRAY_FINISH:        return "[ARRAY_FINISH]";
+        case ParseStateJsonArray::eARRAY_ERROR_STATE:
+        default:                                        return "[ARRAY_ERROR_STATE]";
     }
 }
 
@@ -3678,6 +3702,21 @@ Config &Config::GetFirstJsonFromThis(Config &config) noexcept
         config.push_back(Config(ValueType::eJson));
         return config.get_back();
     }
+    }
+}
+
+std::string simpleapi::Config::ToString(const ParseStateXml state) noexcept
+{
+    switch (state) {
+        case ParseStateXml::eXML_FORMAT:        return "[XML_FORMAT]";
+        case ParseStateXml::eXML_PROLOGUE:      return "[XML_PROLOGUE]";
+        case ParseStateXml::eXML_TAG_START:     return "[XML_TAG_START]";
+        case ParseStateXml::eXML_ATTRIBUTES:    return "[XML_ATTRIBUTES]";
+        case ParseStateXml::eXML_INNER_VALUE:   return "[XML_INNER_VALUE]";
+        case ParseStateXml::eXML_TAG_FINISH:    return "[XML_TAG_FINISH]";
+        case ParseStateXml::eXML_EPILOGUE:      return "[XML_EPILOGUE]";
+        case ParseStateXml::eXML_ERROR:
+        default:                                return "[XML_ERROR]";
     }
 }
 
