@@ -2619,7 +2619,233 @@ bool Config::parseYaml(const std::string &content, const CommentDesign &design) 
 
 bool Config::parseXml(const std::string &content, const CommentDesign &design) noexcept
 {
-    //TODO: Config::parseXml()
+    using namespace utils;
+    using namespace tools;
+
+    setValue(Config(ValueType::eXml)); // clear() не нужен, т.к. объект только создан
+    setCommentDesign(design);
+
+    std::vector<std::string> prefix_comments;
+    std::vector<std::string> suffix_comments;
+    VString comments; // обработанные комментарии
+    std::string current_comment;
+    std::string temp_string_value;
+    ParserSymbolCounter counter; // проинициализируется при обработке первой строки
+
+    const std::string error_template = "XML parser error";
+    auto CreateError = [&](const ParserSymbolCounter& counter, std::string message) -> void {
+        setError("XML parser error[" + std::to_string(counter.getLastLineCounter())
+                 + "][" + std::to_string(counter.getLastSymbolCounter())
+                 + "]: " + message + "!");
+    };
+    auto CreateErrorLine = [&](const ParserSymbolCounter& counter, std::string message) -> void {
+        setError("XML parser error at line [" + std::to_string(counter.getLastLineCounter())
+                 + "]: " + message + "!");
+    };
+    auto CreateErrorUnexpected = [&](const ParserSymbolCounter& counter, char ch, std::string message = "") -> void {
+        setError(error_template + ": unexpected symbol '" + ch + "' at ["
+                 + std::to_string(counter.getLastLineCounter())
+                 + "][" + std::to_string(counter.getLastSymbolCounter())
+                 + "]" + (message.empty() ? "" : ": " + message + "!"));
+    };
+
+    auto ConfirmValue = [&, content](const bool for_penultimate = false) -> bool {
+        // counter.printCoords(); // для отладки
+//        Config element = CreateElementFromString(std::move(value), ConfigFormat::eJSON,
+//                                                 static_cast<const Config&>(result_cfg).getCommentDesign(),
+//                                                 start_value_counter);
+//        if(element.error()) {
+//            //если случилась ошибка при внутренней конвертации прочитанного значения,
+//            // то эта ошибка становится основной ошибкой парсинга
+//            CreateError(counter, element.getError());
+            return false;
+//        }
+
+//        result_cfg = Config(std::move(element));
+//        if(result_cfg.getCommentDesign().opt_multiline_column_size > n_design.opt_multiline_column_size)
+//            n_design.opt_multiline_column_size = result_cfg.getCommentDesign().opt_multiline_column_size;
+
+//        return true;
+    };
+
+    auto AppendMainPreviewComment = [&]() {
+        if(!comments.empty() && (getCommentDesign().temp_type == CommentType::eCommentEnd
+                                  || getCommentDesign().temp_type == CommentType::eNotComment))
+        {
+            setPrefixComment(VStringToString(comments));
+            DEBUG_LOG("ElementJson: PreviewComment: " << "\"" << getPrefixComment() << "\"");
+            comments.clear();
+        }
+    };
+    auto AppendMainSuffixComment = [&]() {
+        if(!comments.empty() && (getCommentDesign().temp_type == CommentType::eCommentEnd
+                                  || getCommentDesign().temp_type == CommentType::eNotComment))
+        {
+            setSuffixComment(VStringToString(comments));
+            DEBUG_LOG("ElementJson: SuffixComment: " << "\"" << getSuffixComment() << "\"");
+            comments.clear();
+        }
+    };
+// FIXME:    /* Логика работы комментариев:
+// FIXME:     * - комментарий после значения применяется только при начале на той же строке,
+// FIXME:     * что и разделитель этого значения
+// FIXME:     * - все остальные комментарии добавляются перед следующим значением
+// FIXME:     */
+    auto AppendElementPrefixComment = [&](){
+        if(!comments.empty()
+            && !isEmpty()
+            && (getCommentDesign().temp_type == CommentType::eCommentEnd
+                || getCommentDesign().temp_type == CommentType::eNotComment))
+        {
+            get_back().setPrefixComment(VStringToString(comments));
+            DEBUG_LOG("ElementJson: inner Element add PreviewComment: " << "\"" << get_back().getPrefixComment() << "\"");
+            comments.clear();
+        }
+    };
+    auto AppendElementSuffixComment = [&](const bool for_penultimate = false){
+        if(!comments.empty()
+            && !isEmpty()
+            && (getCommentDesign().temp_type == CommentType::eCommentEnd
+                || getCommentDesign().temp_type == CommentType::eNotComment))
+        {
+            if(for_penultimate) {
+                if(get_at(size() - 2).getSuffixComment().empty())
+                {
+                    get_at(size() - 2).setSuffixComment(comments[0]);
+                    DEBUG_LOG("ElementJson: inner Element(penultimate) add SuffixComment: " << "\""
+                              << get_at(size() - 2).getSuffixComment() << "\"");
+                }
+                comments.erase(comments.cbegin());
+            } else {
+                if(get_back().getSuffixComment().empty())
+                {
+                    get_back().setSuffixComment(comments.back());
+                    DEBUG_LOG("ElementJson: inner Element(back) add SuffixComment: " << "\""
+                              << get_back().getSuffixComment() << "\"");
+                }
+                comments.pop_back();
+            }
+
+        }
+    };
+
+
+    Stacker stacker;
+    stacker.addSimpleRule('\''); // используются только для атрибутов
+    stacker.addSimpleRule('"');  // используются только для атрибутов
+    stacker.addDoubleRule('<', '>');
+    char ch_previous = 0;
+    char ch_current  = 0;
+    char ch_next     = 0;
+
+    /* Логика парсера:
+     * - есть открывающий ТЕГ <X>
+     * - есть закрывающий ТЕГ </X>
+     * - если ТЕГ не имеет ВЛОЖЕННОГО СОДЕРЖИМОГО, тогда открывающий ТЕГ является закрывающим <X/>
+     * - комментарии имеют свой протокольный синтаксис <!-- COMMENT -->
+     *   - SimpleAPI считывает ЛЮБЫЕ комментарии согласно протоколу XML и правилам CommentDesign (p.s. запись только по протоколу)
+     * - тег может содержать АТРИБУТЫ
+     * - на верхнем уровне может быть максимум один ТЕГ
+     * - перед ТЕГом верхнего уровня могут быть только ПРОЛОГ и КОММЕНТАРИИ
+     * - после ТЕГа верхнего уровня могут быть только ЭПИЛОГ и КОММЕНТАРИИ
+     */
+    std::string current_tag, value;
+    VString attributes;
+    std::string temp;
+    for(size_t i = 0; i < content.size(); i++)
+    {
+        ch_previous = i == 0 ? 0 : content[i - 1];
+        ch_current  = content[i];
+        ch_next     = i < content.size() ? content[i + 1] : 0;
+
+        counter.check(i, ch_current);
+
+        /*
+        //поиск комментариев ===================================================
+        //вернёт комментарий без обрамления
+//        try {
+//            CheckComments(ch_current, ch_next, i, getCommentDesign(), current_comment, stacker.empty());
+//        } catch(std::exception& e) {
+//            //не хватило символов для прочтения комментария
+//            CreateError(counter, e.what());
+//            break;
+//        }
+
+//        if(!getCommentDesign().with_comments)
+//            current_comment.clear();
+//        if(getCommentDesign().with_comments && getCommentDesign().temp_type == CommentType::eCommentEnd)
+//        {
+//            comments.push_back(FromComment(std::move(current_comment), getCommentDesign()));
+//            current_comment.clear();
+//            getCommentDesign().temp_type = CommentType::eNotComment;
+//            continue;
+//        }
+//        if(getCommentDesign().temp_type != CommentType::eNotComment)
+//            continue;
+        //=================================================== поиск комментариев
+        */
+
+        // найти символ вхождения <
+        // прочитать ВЕСЬ ТЕГ до символа выхода >
+        // определить тип ОТКРЫВАЮЩИЙ или САМОЗАКРЫВАЮЩИЙСЯ по последнему символу содержимого
+
+        if(!stacker.autocheck(ch_current))
+        {
+            CreateErrorUnexpected(counter, ch_current);
+            break;
+        }
+
+        temp += ch_current;
+        if(stacker.empty()) {
+//            std::cout << "temp: \"" << temp << "\"" << std::endl;
+            if(current_tag.empty()) {
+                current_tag = temp;
+                // проверяем тег на самозакрытие
+                bool tag_selfclosed = current_tag.find("/>") != std::string::npos;
+                if(tag_selfclosed) {
+                    std::cout << "tag is selfclosed: \"" << temp << "\"" << std::endl;
+                }
+
+                // разбираем тег на состовляющие (тег + атрибуты); пробелы - разделитель
+                {
+                    std::string s = current_tag;
+                    s.erase(0, 1); // удаляем символ '<'
+                    s.pop_back();  // удаляем символ '>'
+                    if(tag_selfclosed)
+                        s.pop_back();  // удаляем символ '/'
+                    RemoveIllegalSpaces(s);
+
+                    SplittedLines sl = SplitWithoutColumned(s);
+
+                    current_tag = sl.lines.front();
+                }
+            } else {
+                // проверяем значение на закрытие тега
+                if(temp.find("</") != std::string::npos) {
+                    std::cout << "found closer for tag: \"" << temp << "\"" << std::endl;
+                } else {
+                    value += temp;
+                }
+            }
+            temp.clear();
+        } else {
+            // если стакер не пустой, значит идёт обработка либо тега, либо внутреннего значения
+            if(current_tag.empty()) {
+                // валидируем содержимое тега
+            } else if(value.empty()) {
+                // запоминаем внутреннее значение
+//                value += temp;
+            } else {
+                // здесь ищем закрывающий тег
+            }
+        }
+    }
+    std::cout << "tag: \"" << current_tag << "\"" << std::endl;
+    std::cout << "value: \"" << value << "\"" << std::endl;
+
+    // наличие ошибки строго обнуляет структуру документа
+    if(error())
+        clear();
 
     return !error();
 }
