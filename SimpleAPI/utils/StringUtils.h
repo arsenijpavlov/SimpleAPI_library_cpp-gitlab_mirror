@@ -27,5 +27,8 @@ SplittedLines SplitWithoutColumned(const std::string& input_string)             
 SplittedLines SplitToColumns(const std::string& input_string, const size_t column_size) noexcept;
 std::string VStringToString(const VString& input_vec, const bool need_quotes = false)   noexcept;
 
+SplittedLines SplitString(const std::string input_string, char split_char,
+                          bool with_empty_strings = true)                               noexcept;
+
 } // namespace utils
 } // namespace simpleapi

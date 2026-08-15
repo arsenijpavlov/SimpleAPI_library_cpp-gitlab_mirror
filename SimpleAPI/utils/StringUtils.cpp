@@ -257,5 +257,31 @@ std::string VStringToString(const VString& input_vec, const bool need_quotes) no
     return res;
 }
 
+SplittedLines SplitString(const std::string input_string, char split_char,
+                          bool with_empty_strings) noexcept
+{
+    SplittedLines sl;
+    sl.max_length = 0;
+
+    size_t last_pos = 0;
+    size_t next_pos = 0;
+    do {
+        next_pos = input_string.find(split_char, last_pos);
+
+        size_t new_len = next_pos - last_pos;
+        if(with_empty_strings || new_len > 0)
+        {
+            sl.lines.push_back(input_string.substr(last_pos, new_len));
+            if(sl.max_length < new_len) {
+                sl.max_length = new_len;
+            }
+        }
+
+        last_pos = next_pos + /*знак-разделитель*/1;
+    } while (next_pos != std::string::npos);
+
+    return sl;
+}
+
 } // namespace utils
 } // namespace simpleapi
