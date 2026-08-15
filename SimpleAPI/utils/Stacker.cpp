@@ -55,6 +55,19 @@ bool Stacker::addSimpleRule(char ch) noexcept
     return true;
 }
 
+// вернёт true, если правило было найдено и удалено
+bool simpleapi::tools::Stacker::deleteSimpleRule(char ch) noexcept
+{
+    for(auto it = m_rules.begin(); it != m_rules.begin(); it++) {
+        if(it->first == ch) {
+            m_rules.erase(it);
+            return true;
+        }
+    }
+
+    return false;
+}
+
 // вернёт false, если указанное правило уже существует (с учётом одинарного правила)
 bool Stacker::addDoubleRule(char ch1, char ch2) noexcept
 {
@@ -64,6 +77,19 @@ bool Stacker::addDoubleRule(char ch1, char ch2) noexcept
 
     m_rules.push_back({ch1, ch2});
     return true;
+}
+
+// вернёт true, если правило было найдено и удалено
+bool simpleapi::tools::Stacker::deleteDoubleRule(char ch1, char ch2) noexcept
+{
+    for(auto it = m_rules.begin(); it != m_rules.begin(); it++) {
+        if(it->first == ch1 && it->second == ch2) {
+            m_rules.erase(it);
+            return true;
+        }
+    }
+
+    return false;
 }
 
 // вернёт true, если есть непарная кавычка
