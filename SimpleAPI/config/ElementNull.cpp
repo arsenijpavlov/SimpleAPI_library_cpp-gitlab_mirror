@@ -2,6 +2,7 @@
 
 #include "Config.h"
 #include "../utils/Utils.h"
+#include "../utils/StringUtils.h"
 
 #include <algorithm>
 
@@ -22,7 +23,7 @@ bool ElementNull::isEqual(const IElement &other, const bool compare_comments,
 
 bool IsElementNull(const std::string &str) noexcept {
     std::string temp = str;
-    RemoveIllegalSpaces(temp);
+    utils::RemoveIllegalSpaces(temp);
     std::transform(temp.begin(), temp.end(), temp.begin(),
                    [](unsigned char c){ return std::tolower(c); });
 

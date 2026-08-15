@@ -1,7 +1,4 @@
 #include "ConfigCommon.h"
-#include "ConfigDefines.h"
-
-#include "../utils/Utils.h"
 
 #include <fstream>
 #include <regex>
@@ -19,45 +16,6 @@ std::string ToString(const ValueType type) noexcept {
     case ValueType::eYaml:      return "Yaml";      break;
     case ValueType::eXml:       return "Xml";       break;
     default:                    return "null";      break;
-    }
-}
-
-void RemoveFrontTabsIllegalSpaces(std::string &string, const int8_t tabulation_level) noexcept {
-    using namespace utils;
-    if(string.empty()) return;
-
-    for(uint8_t i = tabulation_level; i > 0 && CharInString(*string.begin(), "\t"); --i)
-        string = string.erase(0, 1);
-}
-
-void RemoveFrontIllegalSpaces(std::string &string) noexcept {
-    using namespace utils;
-    if(string.empty()) return;
-
-    while(CharInString(*string.begin(), __SPACES__))
-        string = string.erase(0, 1);
-}
-
-void RemoveEndIllegalSpaces(std::string &string) noexcept {
-    using namespace utils;
-    if(string.empty()) return;
-
-    while(CharInString(string.back(), __SPACES__))
-        string.pop_back();
-}
-
-void RemoveIllegalSpaces(std::string &string) noexcept {
-    RemoveFrontIllegalSpaces(string);
-    RemoveEndIllegalSpaces(string);
-}
-
-void RemoveQuotes(std::string &string) noexcept {
-    bool b_is_eq = !string.empty()
-                   && (string.front() == '"' || string.front() == '\'')
-                   && string.front() == string.back();
-    if(b_is_eq) {
-        string.erase(0, 1);
-        string.pop_back();
     }
 }
 

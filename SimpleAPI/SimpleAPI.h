@@ -2,6 +2,7 @@
 
 #include "VersionInfo.h"
 #include "utils/Utils.h"
+#include "utils/StringUtils.h"
 #include "utils/Timer.h"
 #include "utils/Logger.h"
 

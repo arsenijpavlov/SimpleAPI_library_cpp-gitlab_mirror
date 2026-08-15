@@ -10,6 +10,7 @@
 //#include "ElementYaml.h"
 //#include "ElementXml.h"
 #include "../utils/Stacker.h"
+#include "../utils/StringUtils.h"
 
 #include <limits>
 #include <regex>
@@ -2137,7 +2138,7 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
 
     Config& result_cfg = *this;
 
-    std::string prefix_comment = tools::VStringToString(comments);
+    std::string prefix_comment = utils::VStringToString(comments);
 
     if(is_full_json) {
         // нужно парсить как полноценный Json документ
@@ -2243,7 +2244,7 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
         } // loop for()
 
         if(!error()) {
-            result_cfg.setSuffixComment(tools::VStringToString(comments));
+            result_cfg.setSuffixComment(utils::VStringToString(comments));
         } else {
             std::string error_msg = getError();
             result_cfg.setValue(); //значение не распознано, выставить в null
@@ -2309,7 +2310,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                     }
                     lines_vec.back().back().push_back('\n'); //нужно для последующей конкатенации строк в одну большую
 
-                    RemoveFrontIllegalSpaces(lines.front());
+                    utils::RemoveFrontIllegalSpaces(lines.front());
                     lines_vec.back().push_back(lines.front());
                     lines.erase(lines.cbegin());
                 }
@@ -2385,7 +2386,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                 switch(ch_current) {
                     case ':':
                     case '=': {
-                        RemoveIllegalSpaces(temp);
+                        utils::RemoveIllegalSpaces(temp);
                         key = temp;
                         temp.clear();
                         last_key_pos = i;
@@ -2399,7 +2400,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
         }
         if(!key.empty())
             content.erase(0, last_key_pos + 1);
-        RemoveIllegalSpaces(content);
+        utils::RemoveIllegalSpaces(content);
 
         return key;
     };
@@ -2426,8 +2427,8 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                 switch(ch_current) {
                 case '/':
                 case '\\': {
-                    RemoveIllegalSpaces(temp);
-                    RemoveQuotes(temp);
+                    utils::RemoveIllegalSpaces(temp);
+                    utils::RemoveQuotes(temp);
                     keys.push_back(temp);
                     temp.clear();
                     last_key_pos = i;
@@ -2437,14 +2438,14 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                 }
             }
         }
-        RemoveIllegalSpaces(temp);
-        RemoveQuotes(temp);
+        utils::RemoveIllegalSpaces(temp);
+        utils::RemoveQuotes(temp);
         keys.push_back(temp);
 
         return keys;
     };
     auto ConfirmValue = [&]() -> void {
-        RemoveIllegalSpaces(temp_string_value);
+        utils::RemoveIllegalSpaces(temp_string_value);
         if(!temp_string_value.empty())
         {
             if(temp_string_value.front() == '[' && temp_string_value.back() == ']')
@@ -2459,16 +2460,16 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
 
                 //создать либо дополнить префиксный комментарий
                 if(cfg_main_target[temp_string_value].getPrefixComment().empty())
-                    cfg_main_target[temp_string_value].setPrefixComment(VStringToString(prefix_comments));
+                    cfg_main_target[temp_string_value].setPrefixComment(utils::VStringToString(prefix_comments));
                 else
                     cfg_main_target[temp_string_value].setPrefixComment(cfg_main_target[temp_string_value].getPrefixComment() + "\n"
-                                                                        + VStringToString(prefix_comments));
+                                                                        + utils::VStringToString(prefix_comments));
                 //создать либо дополнить постфиксный комментарий
                 if(cfg_main_target[temp_string_value].getSuffixComment().empty())
-                    cfg_main_target[temp_string_value].setSuffixComment(VStringToString(suffix_comments));
+                    cfg_main_target[temp_string_value].setSuffixComment(utils::VStringToString(suffix_comments));
                 else
                     cfg_main_target[temp_string_value].setSuffixComment(cfg_main_target[temp_string_value].getSuffixComment() + "\n"
-                                                                        + VStringToString(suffix_comments));
+                                                                        + utils::VStringToString(suffix_comments));
 
                 target = &cfg_main_target[temp_string_value];
             }
@@ -2483,8 +2484,8 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                                          .push_back_force(keys_path, std::move(temp));
 
                 // добавить комментарии к добавленному значению
-                pushed_cfg.setPrefixComment(VStringToString(prefix_comments));
-                pushed_cfg.setSuffixComment(VStringToString(suffix_comments));
+                pushed_cfg.setPrefixComment(utils::VStringToString(prefix_comments));
+                pushed_cfg.setSuffixComment(utils::VStringToString(suffix_comments));
             }
             temp_string_value.clear();
             prefix_comments.clear();
@@ -2503,7 +2504,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
         counter = ParserSymbolCounter(all_lines_counter);
         for(size_t i = 0; i < fragments.size(); i++, all_lines_counter++) {
             if(getPrefixComment().empty() && !prefix_comments.empty() && fragments[i].empty()) {
-                setPrefixComment(VStringToString(prefix_comments));
+                setPrefixComment(utils::VStringToString(prefix_comments));
                 prefix_comments.clear();
             }
 
@@ -2603,7 +2604,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
     ConfirmValue();
 
     if(!prefix_comments.empty()) {
-        setSuffixComment(VStringToString(prefix_comments));
+        setSuffixComment(utils::VStringToString(prefix_comments));
         prefix_comments.clear();
     }
 

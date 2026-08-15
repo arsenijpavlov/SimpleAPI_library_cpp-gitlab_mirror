@@ -2,6 +2,7 @@
 
 #include "Config.h"
 #include <algorithm>
+#include "../utils/StringUtils.h"
 
 
 namespace simpleapi {
@@ -32,7 +33,7 @@ bool IsElementBool(const std::string &str) noexcept {
     std::string temp = str;
 
     //удалить пробелы в начале и конце строки
-    RemoveIllegalSpaces(temp);
+    utils::RemoveIllegalSpaces(temp);
     std::transform(temp.begin(), temp.end(), temp.begin(),
                    [](unsigned char c){ return std::tolower(c); });
 
