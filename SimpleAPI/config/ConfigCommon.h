@@ -32,7 +32,7 @@ enum class ValueType {
     eYaml,
     eXml
 };
- std::string ToString(const ValueType type)                                                                 noexcept;
+std::string ToString(const ValueType type)                                                                 noexcept;
 //=================================================================================== Value type
 
 
