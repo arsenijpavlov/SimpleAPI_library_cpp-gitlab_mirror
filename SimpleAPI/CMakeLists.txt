@@ -63,7 +63,7 @@ if(NOT TARGET ${PROJECT_NAME})
     )
 
     # на момент работы с кодом файл должен существовать (в коммит не попадает)
-    execute_process(COMMAND bash "${SIMPLE_API_MAIN_DIR}/scripts/check_version_from_git.sh")
+    execute_process(COMMAND bash "${SIMPLE_API_MAIN_DIR}/scripts/check_version_from_git.sh need_print_echo")
 
     # проверка версии по истории коммитов (скрипт надо запустить ДО компиляции файлов)
     set(VERSION_INFO_FILE "${CMAKE_CURRENT_LIST_DIR}/VersionInfo.h")
