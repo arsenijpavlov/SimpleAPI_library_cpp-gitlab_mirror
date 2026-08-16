@@ -975,6 +975,7 @@ private:
         eXML_ERROR
     };
     static std::string ToString(const ParseStateXml state)                                          noexcept;
+    static void     UpdateState(ParseStateXml& state, const ParseStateXml new_state)                noexcept;
 
 public:
     // вернёт текст ошибки, указывающий на тип некорректно прочитанного значения

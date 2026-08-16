@@ -8,7 +8,7 @@
 #include "ElementArray.h"
 #include "ElementJson.h"
 //#include "ElementYaml.h"
-//#include "ElementXml.h"
+#include "ElementXml.h"
 #include "../utils/Stacker.h"
 #include "../utils/StringUtils.h"
 
@@ -1705,7 +1705,7 @@ Config &Config::append(Config &&config) {
             dynamic_cast<tools::ElementJson*>(m_value)->append(dynamic_cast<tools::ElementJson&&>(*config.m_value));
             break;
         }
-        default: throw std::invalid_argument("Config::append(): unexpected type of config: " + ToString(config.getType()));
+        default: throw std::invalid_argument("Config::append(): unexpected type of config: " + simpleapi::ToString(config.getType()));
         }
     } else {
         setValue(config);
@@ -1828,6 +1828,9 @@ bool Config::containsValue(const Config &config) const noexcept {
                                 return std::any_of(getNamedRange().cbegin(), getNamedRange().cend(),
                                     [&config](const std::pair<std::string, std::shared_ptr<Config>>& pair)
                                     { return *pair.second == config; });
+    case ValueType::eYaml:      // FIXME: return isYaml();
+    case ValueType::eXml:       // FIXME: return isXml();
+        break;
     }
 
     return false;
@@ -2889,7 +2892,7 @@ std::string Config::ToString(const ParseStateJson state) noexcept {
 
 void Config::UpdateState(ParseStateJson &state, const ParseStateJson new_state) noexcept {
     state = new_state;
-    DEBUG_LOG("Parse Json, upd state: " << to_string(state));
+    DEBUG_LOG("Parse Json, upd state: " << ToString(state));
 }
 
 void Config::parseFullJsonDoc(std::string &&content) noexcept
@@ -3317,7 +3320,7 @@ std::string Config::ToString(const ParseStateJsonArray state) noexcept {
 
 void Config::UpdateState(ParseStateJsonArray& state, const ParseStateJsonArray new_state) noexcept {
     state = new_state;
-    DEBUG_LOG("Parse Array, upd state: " << to_string(state) << std::endl);
+    DEBUG_LOG("Parse Array, upd state: " << ToString(state) << std::endl);
 }
 
 void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
