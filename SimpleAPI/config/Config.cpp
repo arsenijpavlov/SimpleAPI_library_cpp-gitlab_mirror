@@ -1828,8 +1828,8 @@ bool Config::containsValue(const Config &config) const noexcept {
                                 return std::any_of(getNamedRange().cbegin(), getNamedRange().cend(),
                                     [&config](const std::pair<std::string, std::shared_ptr<Config>>& pair)
                                     { return *pair.second == config; });
-    case ValueType::eYaml:      // FIXME: return isYaml();
-    case ValueType::eXml:       // FIXME: return isXml();
+    case ValueType::eYaml:      // FIXME: return containsValue() in YAML;
+    case ValueType::eXml:       // FIXME: return containsValue() in XML;
         break;
     }
 
