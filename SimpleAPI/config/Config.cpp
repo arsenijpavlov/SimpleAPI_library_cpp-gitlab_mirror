@@ -2622,6 +2622,7 @@ bool Config::parseYaml(const std::string &content, const CommentDesign &design) 
 
 bool Config::parseXml(const std::string &content, const CommentDesign &design) noexcept
 {
+    // NOTE: актуальный RFC https://www.rfc-editor.org/info/rfc7303/
     using namespace utils;
     using namespace tools;
 
@@ -2768,6 +2769,7 @@ bool Config::parseXml(const std::string &content, const CommentDesign &design) n
 
         /*
         //поиск комментариев ===================================================
+        // TODO: нужно также учитывать стиль этого протокола: <!-- COMMENT -->
         //вернёт комментарий без обрамления
 //        try {
 //            CheckComments(ch_current, ch_next, i, getCommentDesign(), current_comment, stacker.empty());
@@ -2811,12 +2813,104 @@ bool Config::parseXml(const std::string &content, const CommentDesign &design) n
         case ParseStateXml::eXML_FORMAT: {
             // раздел необязательный
             // если формат отличается от utf-8 - вернуть как ошибку парсинга
-            break;
+
+            // пробелы и пустые символы ничего не значат - пропускаем
+            if(temp_string_value.empty() && utils::CharInString(ch_current, __SPACES__))
+                continue;
+
+            if(temp_string_value.empty())
+            {
+                if(ch_current == '<') {
+                    temp_string_value += ch_current;
+
+                    switch(ch_next) {
+                    case '?': {
+                        // это действительно строка определения формата
+                        break;
+                    }
+                    case '!': {
+                        UpdateState(state, ParseStateXml::eXML_PROLOGUE);
+                        break;
+                    }
+                    default: {
+                        UpdateState(state, ParseStateXml::eXML_TAG_START);
+                        break;
+                    }
+                    }
+                } else {
+                    CreateErrorUnexpected(counter, ch_current);
+                }
+            } else {
+                // значение уже начало заполняться
+                temp_string_value += ch_current;
+
+                // маска проверки: <?xml X="Y" Z="A" ?>
+
+                if(ch_current == '>') {
+                    // закончили распознавать строку формата, меняем состояние на ожидание пролога
+                    // NOTE: строка формата всегда одна и всегда в начале документа
+
+                    std::cout << "format string: \"" << temp_string_value << "\"" << std::endl;
+                    /* TODO: валидация внутренних параметров */ {
+                        temp_string_value.clear();
+                    }
+
+                    UpdateState(state, ParseStateXml::eXML_PROLOGUE);
+                }
+            }
+
+            break; // выход из switch
         }
         case ParseStateXml::eXML_PROLOGUE: {
             // раздел необязательный
             // здесь могут быть настройки валидации полей и т.п.
-            break;
+
+            // пробелы и пустые символы ничего не значат - пропускаем
+            if(temp_string_value.empty() && utils::CharInString(ch_current, __SPACES__))
+                continue;
+
+            if(temp_string_value.empty())
+            {
+                if(ch_current == '<') {
+                    temp_string_value += ch_current;
+
+                    switch(ch_next) {
+                    case '?': {
+                        auto temp_counter = counter;
+                        temp_counter.check(i+1, ch_next);
+                        CreateErrorUnexpected(counter, ch_next, "unexpected instruction of XML");
+                        break;
+                    }
+                    case '!': {
+                        // это действительно строка описания типов и структур
+                        break;
+                    }
+                    default: {
+                        UpdateState(state, ParseStateXml::eXML_TAG_START);
+                        break;
+                    }
+                    }
+                } else {
+                    CreateErrorUnexpected(counter, ch_current);
+                }
+            } else {
+                // значение уже начало заполняться
+                temp_string_value += ch_current;
+
+                // маска проверки: <!TYPE_OF_VALUE X="Y" Z="A" >
+
+                if(ch_current == '>') {
+                    // закончили распознавать строку описания
+                    // состояние не меняем - пролог может содержать сколько угодно описаний
+
+                    std::cout << "prolog string: \"" << temp_string_value << "\"" << std::endl;
+                    /* TODO: валидация внутренних параметров */ {
+                        temp_string_value.clear();
+                    }
+                }
+            }
+
+            break; // выход из switch
         }
         case ParseStateXml::eXML_TAG_START: {
             // запрещены пробелы между < и именем тега (игнорировать в рамках этого парсера)
@@ -2866,6 +2960,9 @@ bool Config::parseXml(const std::string &content, const CommentDesign &design) n
             break;
         }
         }
+
+        if(error())
+            break;
     }
     std::cout << "tag: \"" << current_tag << "\"" << std::endl;
     std::cout << "value: \"" << value << "\"" << std::endl;
@@ -3720,7 +3817,13 @@ std::string simpleapi::Config::ToString(const ParseStateXml state) noexcept
         case ParseStateXml::eXML_EPILOGUE:      return "[XML_EPILOGUE]";
         case ParseStateXml::eXML_ERROR:
         default:                                return "[XML_ERROR]";
-    }
+        }
+}
+
+void Config::UpdateState(ParseStateXml &state, const ParseStateXml new_state) noexcept
+{
+    state = new_state;
+    DEBUG_LOG("Parse XML, upd state: " << ToString(state) << std::endl);
 }
 
 //функция должна быть вызвана исключительно для обработки строки значения, комменты не учитывает
