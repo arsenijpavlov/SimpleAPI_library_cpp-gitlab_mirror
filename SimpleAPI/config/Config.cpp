@@ -2755,6 +2755,7 @@ bool Config::parseXml(const std::string &content, const CommentDesign &design) n
     std::string current_tag, value;
     VString attributes;
     std::string temp;
+    bool b_tag_closer_is_found = false;
     ParseStateXml state = ParseStateXml::eXML_FORMAT;
     for(size_t i = 0; i < content.size(); i++)
     {
@@ -2920,6 +2921,8 @@ bool Config::parseXml(const std::string &content, const CommentDesign &design) n
                 } else {
                     // тег прочитан запоминаем
                     current_tag = temp_string_value;
+                    if(current_tag.front() == '<')
+                        current_tag.erase(0, 1); // удаляем обрамление
 
 //                    std::cout << "tag: \"" << temp_string_value << "\"" << std::endl;
                     temp_string_value.clear();
@@ -2953,7 +2956,7 @@ bool Config::parseXml(const std::string &content, const CommentDesign &design) n
             if(temp_string_value.empty())
             {
                 if(ch_current == '<') {
-                    temp_string_value += ch_current;
+//                    temp_string_value += ch_current;
 
                     switch(ch_next) {
                     case '?': {
@@ -2986,11 +2989,11 @@ bool Config::parseXml(const std::string &content, const CommentDesign &design) n
                 if(utils::CharInString(ch_current, "/>")) {
                     // две ситуации: либо "/>", либо ">"
                     if(ch_current == '/') {
-                        current_tag += "/>";
+//                        current_tag += "/>";
                         // тег самозакрытый, внутреннего значения не будет; на верхнем уровне может быть только один тег
                         UpdateState(state, ParseStateXml::eXML_EPILOGUE);
                     } else {
-                        current_tag += ">";
+//                        current_tag += ">";
                         UpdateState(state, ParseStateXml::eXML_INNER_VALUE);
                     }
 
@@ -3042,11 +3045,11 @@ bool Config::parseXml(const std::string &content, const CommentDesign &design) n
             {
                 // две ситуации: либо "/>", либо ">"
                 if(ch_current == '/') {
-                    current_tag += "/>";
+//                    current_tag += "/>";
                     // тег самозакрытый, внутреннего значения не будет; на верхнем уровне может быть только один тег
                     UpdateState(state, ParseStateXml::eXML_EPILOGUE);
                 } else {
-                    current_tag += ">";
+//                    current_tag += ">";
                     UpdateState(state, ParseStateXml::eXML_INNER_VALUE);
                 }
 
@@ -3059,7 +3062,7 @@ bool Config::parseXml(const std::string &content, const CommentDesign &design) n
 //                    std::cout << "attribute: \"" << attributes.back() << "\"" << std::endl;
                 }
 
-                // удаляем правило проверки кавычек
+                // удаляем правила проверки кавычек
                 stacker.deleteSimpleRule('"');
                 stacker.deleteSimpleRule('\'');
 
@@ -3081,13 +3084,47 @@ bool Config::parseXml(const std::string &content, const CommentDesign &design) n
             // раздел необязательный
             // может содержать несколько значений, как XML-элементов, так и обычных строк
             //    для строк кавычки не валидируются
+
+            // пробелы и пустые символы ничего не значат - пропускаем
+            if(temp_string_value.empty() && utils::CharInString(ch_current, __SPACES__))
+                continue;
+
+            // добавляем значение, пока не встретили закрывающий тег
+            temp_string_value += ch_current;
+            if(ch_current == '<' && ch_next == '/') {
+                b_tag_closer_is_found = true;
+            }
+            // нашли закрывающую скобку
+            if(b_tag_closer_is_found && ch_current == '>') {
+                b_tag_closer_is_found = false; // сбрасываем флаг
+
+                // проверяем, что тег соответствует искомому
+                size_t start_pos = temp_string_value.rfind("</");
+                // на std::string::npos не проверяю в целях экономии (мы ж именно по этому флагу сюда зашли)
+                std::string temp_tag_closer = temp_string_value.substr(start_pos);
+
+                temp_tag_closer.erase(0, 2);
+                temp_tag_closer.pop_back();
+                std::cout << "closer: " << temp_tag_closer << std::endl;
+                if(temp_tag_closer == current_tag) {
+                    value = temp_string_value.erase(start_pos);
+                    temp_string_value.clear();
+
+                    // TODO: value нужно передать на следующий парсер
+                    {}
+
+                    UpdateState(state, ParseStateXml::eXML_EPILOGUE);
+                }
+            }
+
             break; // выход из switch
         }
-        case ParseStateXml::eXML_TAG_FINISH: {
-            // XML-элемент считается закрытым, если есть совпадение маски "</[:SPACES:]TAG_NAME*[:SPACES:]*>"
-            //    пробелы перед именем тега оригинальным парсером считаются критической ошибкой
-            break; // выход из switch
-        }
+        // этот case пропускаю, т.к. можно облегчить логику поиска за счёт уже прочитанного значения
+//        case ParseStateXml::eXML_TAG_FINISH: {
+//            // XML-элемент считается закрытым, если есть совпадение маски "</[:SPACES:]TAG_NAME*[:SPACES:]*>"
+//            //    пробелы перед именем тега оригинальным парсером считаются критической ошибкой
+//            break; // выход из switch
+//        }
         case ParseStateXml::eXML_EPILOGUE: {
             // раздел необязательный
             break; // выход из switch
@@ -3104,6 +3141,7 @@ bool Config::parseXml(const std::string &content, const CommentDesign &design) n
     std::cout << "tag name: " << current_tag << std::endl;
     for(const auto& attribute : attributes)
         std::cout << "attribute: " << attribute << std::endl;
+    std::cout << "value: " << value << std::endl;
     std::cout << "last state: " << ToString(state) << std::endl;
 
     // наличие ошибки строго обнуляет структуру документа
