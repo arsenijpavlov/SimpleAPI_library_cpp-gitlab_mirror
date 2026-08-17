@@ -2736,9 +2736,6 @@ bool Config::parseXml(const std::string &content, const CommentDesign &design) n
 
     Stacker stacker;
     stacker.addDoubleRule('<', '>');
-    // используются только для атрибутов, внутри значений игнорируем для валидации при парсинге элемента
-    stacker.addSimpleRule('\'');
-    stacker.addSimpleRule('"');
 
     char ch_previous = 0;
     char ch_current  = 0;
@@ -2916,6 +2913,27 @@ bool Config::parseXml(const std::string &content, const CommentDesign &design) n
             // запрещены пробелы между < и именем тега (игнорировать в рамках этого парсера)
             // первым символом имени тега может быть только буква или знак подчёркивания '_'
 
+            // пробелы и пустые символы ничего не значат - пропускаем
+            if(utils::CharInString(ch_current, __SPACES__)) {
+                if(temp_string_value.empty()) {
+                    continue; // дожидаемся значения
+                } else {
+                    // тег прочитан запоминаем
+                    current_tag = temp_string_value;
+
+//                    std::cout << "tag: \"" << temp_string_value << "\"" << std::endl;
+                    temp_string_value.clear();
+
+                    // был встречен пробел после тега - ожидаем атрибуты
+                    UpdateState(state, ParseStateXml::eXML_ATTRIBUTES);
+                    // только в рамках атрибутов работает проверка на кавычки
+                    stacker.addSimpleRule('\'');
+                    stacker.addSimpleRule('"');
+
+                    break; // выход из switch
+                }
+            }
+
             // выдержка из ИИ Google:
             // 1) Запрет на «xml»: Имя тега не может начинаться с букв xml, XML, Xml и любых других комбинаций регистров.
             //    Это сочетание зарезервировано.
@@ -2931,41 +2949,162 @@ bool Config::parseXml(const std::string &content, const CommentDesign &design) n
             // если после пробела есть сочетание "/>", тогда тег считается самозокрытым - внутреннего значения нет
             // если после пробела идёт знак >, тогда атрибутов нет
             //   в остальном случае нужно перейти к парсингу атрибутов
-            break;
+
+            if(temp_string_value.empty())
+            {
+                if(ch_current == '<') {
+                    temp_string_value += ch_current;
+
+                    switch(ch_next) {
+                    case '?': {
+                        auto temp_counter = counter;
+                        temp_counter.check(i+1, ch_next);
+                        CreateErrorUnexpected(counter, ch_next, "unexpected instruction of XML");
+                        break;
+                    }
+                    case '!': {
+                        auto temp_counter = counter;
+                        temp_counter.check(i+1, ch_next);
+                        CreateErrorUnexpected(counter, ch_next, "unexpected instruction of XML");
+                        break;
+                    }
+                    default: {
+                        // начинаем чтение имени тега
+                        break;
+                    }
+                    }
+                } else {
+                    CreateErrorUnexpected(counter, ch_current);
+                }
+            } else {
+                // TODO: валидация добавляемого имени
+                {}
+
+                // маска проверки: <NAME_OF_TAG >
+                // атрибуты будут прочтены отдельно при наличии пробела после имени
+
+                if(utils::CharInString(ch_current, "/>")) {
+                    // две ситуации: либо "/>", либо ">"
+                    if(ch_current == '/') {
+                        current_tag += "/>";
+                        // тег самозакрытый, внутреннего значения не будет; на верхнем уровне может быть только один тег
+                        UpdateState(state, ParseStateXml::eXML_EPILOGUE);
+                    } else {
+                        current_tag += ">";
+                        UpdateState(state, ParseStateXml::eXML_INNER_VALUE);
+                    }
+
+                    // закончили распознавать строку описания
+                    // состояние не меняем - пролог может содержать сколько угодно описаний
+
+//                    std::cout << "tag name: \"" << temp_string_value << "\"" << std::endl;
+                    temp_string_value.clear();
+                } else {
+                    // значение уже начало заполняться
+                    temp_string_value += ch_current;
+                }
+            }
+
+            break; // выход из switch
         }
         case ParseStateXml::eXML_ATTRIBUTES: {
             // всегда валидировать по маске ключ=значение, где значение обязательно в кавычках (одинарных или двойных)
 
+            // пока кавычки - только запоминаем значение
+            if(stacker.inQuotes()) {
+                temp_string_value += ch_current;
+                break; // выход из switch
+            }
+
+            // пробелы и пустые символы ничего не значат - пропускаем
+            if(utils::CharInString(ch_current, __SPACES__)) {
+                if(temp_string_value.empty()) {
+                    continue; // дожидаемся значения
+                } else {
+                    // атрибут прочитан запоминаем
+                    if(!temp_string_value.empty())
+                    {
+                        attributes.push_back(temp_string_value);
+                        temp_string_value.clear();
+
+//                        std::cout << "attribute: \"" << attributes.back() << "\"" << std::endl;
+                    }
+
+                    break; // выход из switch
+                }
+            }
+
             // (то же поведение, что и без атрибутов) // TODO: может добавить state eXML_TAG_START_ENDING
             // если после пробела есть сочетание "/>", тогда тег считается самозокрытым - внутреннего значения нет
             // если после пробела идёт знак >, тогда атрибутов нет
-            break;
+
+            if(utils::CharInString(ch_current, "/>"))
+            {
+                // две ситуации: либо "/>", либо ">"
+                if(ch_current == '/') {
+                    current_tag += "/>";
+                    // тег самозакрытый, внутреннего значения не будет; на верхнем уровне может быть только один тег
+                    UpdateState(state, ParseStateXml::eXML_EPILOGUE);
+                } else {
+                    current_tag += ">";
+                    UpdateState(state, ParseStateXml::eXML_INNER_VALUE);
+                }
+
+                // атрибут прочитан запоминаем
+                if(!temp_string_value.empty())
+                {
+                    attributes.push_back(temp_string_value);
+                    temp_string_value.clear();
+
+//                    std::cout << "attribute: \"" << attributes.back() << "\"" << std::endl;
+                }
+
+                // удаляем правило проверки кавычек
+                stacker.deleteSimpleRule('"');
+                stacker.deleteSimpleRule('\'');
+
+                break; // выход из switch
+            } else {
+                // TODO: валидация добавляемого имени
+                {}
+
+                // значение уже начало заполняться
+                temp_string_value += ch_current;
+
+                // маска проверки: <NAME_OF_TAG >
+                // атрибуты будут прочтены отдельно при наличии пробела после имени
+            }
+
+            break; // выход из switch
         }
         case ParseStateXml::eXML_INNER_VALUE: {
             // раздел необязательный
             // может содержать несколько значений, как XML-элементов, так и обычных строк
             //    для строк кавычки не валидируются
-            break;
+            break; // выход из switch
         }
         case ParseStateXml::eXML_TAG_FINISH: {
             // XML-элемент считается закрытым, если есть совпадение маски "</[:SPACES:]TAG_NAME*[:SPACES:]*>"
             //    пробелы перед именем тега оригинальным парсером считаются критической ошибкой
-            break;
+            break; // выход из switch
         }
         case ParseStateXml::eXML_EPILOGUE: {
             // раздел необязательный
-            break;
+            break; // выход из switch
         }
         case ParseStateXml::eXML_ERROR: {
-            break;
+            break; // выход из switch
         }
-        }
+        } // ~switch()
 
         if(error())
-            break;
-    }
-    std::cout << "tag: \"" << current_tag << "\"" << std::endl;
-    std::cout << "value: \"" << value << "\"" << std::endl;
+            break; // выход из for()
+    } // ~for()
+
+    std::cout << "tag name: " << current_tag << std::endl;
+    for(const auto& attribute : attributes)
+        std::cout << "attribute: " << attribute << std::endl;
+    std::cout << "last state: " << ToString(state) << std::endl;
 
     // наличие ошибки строго обнуляет структуру документа
     if(error())
