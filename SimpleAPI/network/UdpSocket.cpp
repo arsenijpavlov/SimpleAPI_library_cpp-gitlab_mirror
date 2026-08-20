@@ -691,6 +691,7 @@ void UDPSocket::stopServer() noexcept {
         close();
 }
 
+// FIXME: возвращать bool
 void UDPSocket::open(const uint16_t local_port, const std::string& local_ip) noexcept {
     using namespace logs;
 
