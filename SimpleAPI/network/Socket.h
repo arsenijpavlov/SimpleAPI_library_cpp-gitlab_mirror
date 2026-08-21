@@ -148,7 +148,7 @@ public:
     //-----------------------------------------
     void            chiphering(Packet& packet)                  noexcept        {}
     void            dechiphering(Packet& packet)                noexcept        {}
-    virtual void    startServer()                               noexcept        = 0;
+    virtual bool    startServer()                               noexcept        = 0;
     virtual void    stopServer()                                noexcept        = 0;
     void            close()                                     noexcept;
     //-----------------------------------------

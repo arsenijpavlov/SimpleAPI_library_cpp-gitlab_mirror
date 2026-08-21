@@ -681,9 +681,10 @@ PacketMessage UDPSocket::recvRawMsg(int timeout) noexcept {
     return {};
 }
 
-void UDPSocket::startServer() noexcept {
+bool UDPSocket::startServer() noexcept {
     if(!isServerActive())
-        open(m_local_port, m_local_ip);
+        return open(m_local_port, m_local_ip);
+    return false;
 }
 
 void UDPSocket::stopServer() noexcept {
@@ -691,8 +692,7 @@ void UDPSocket::stopServer() noexcept {
         close();
 }
 
-// FIXME: возвращать bool
-void UDPSocket::open(const uint16_t local_port, const std::string& local_ip) noexcept {
+bool UDPSocket::open(const uint16_t local_port, const std::string& local_ip) noexcept {
     using namespace logs;
 
     m_local_ip      = local_ip;
@@ -700,8 +700,10 @@ void UDPSocket::open(const uint16_t local_port, const std::string& local_ip) noe
 
     // create
     m_socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
-    if (m_socket_fd < 0)
+    if (m_socket_fd < 0) {
         log(LEVEL::eERROR, "socket() failed, error(" + std::to_string(errno) + ")");
+        return false;
+    }
 
     // bind
     struct sockaddr_in sock;
@@ -710,8 +712,10 @@ void UDPSocket::open(const uint16_t local_port, const std::string& local_ip) noe
     if(local_ip.empty())
         sock.sin_addr.s_addr = INADDR_ANY;
     else {
-        if(!inet_pton(AF_INET, local_ip.c_str(), &sock.sin_addr.s_addr))
+        if(!inet_pton(AF_INET, local_ip.c_str(), &sock.sin_addr.s_addr)) {
             log(LEVEL::eERROR, "inet_pton() failed, error(" + std::to_string(errno) + ")");
+            return false;
+        }
     }
     int res = bind(m_socket_fd, (struct sockaddr*)&sock, sizeof(sock));
     if(res < 0) {
@@ -719,12 +723,13 @@ void UDPSocket::open(const uint16_t local_port, const std::string& local_ip) noe
                                + ", port(" + std::to_string(local_port) + "), error("
                                + std::to_string(errno) + ")");
         close();
-        return;
+        return false;
     }
 
     char str[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &(sock.sin_addr.s_addr), str, INET_ADDRSTRLEN);
     log(LEVEL::eWARNING, "Socket binded at " + IpPort{str, local_port}.toString());
+    return true;
 }
 
 bool UDPSocket::isConnected(const IpPort &remote_ip_port) noexcept {

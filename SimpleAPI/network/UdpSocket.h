@@ -31,13 +31,13 @@ public:
               const std::string& local_ip = "",
               const SocketSettings& settings = SocketSettings())    noexcept;
     ~UDPSocket()                                                    noexcept    { close(); }
-    void            open(const uint16_t local_port,
-              const std::string& local_ip = "")                          noexcept;
+    bool            open(const uint16_t local_port,
+                         const std::string& local_ip = "")                          noexcept;
 
     //-----------------------------------------
     bool            isConnected(const IpPort& remote_ip_port)                       noexcept;
     //-----------------------------------------
-    void            startServer()                                                   noexcept;
+    bool            startServer()                                                   noexcept;
     void            stopServer()                                                    noexcept;
     //-----------------------------------------
     bool            sendRawMsg(const std::string& remote_ip, const uint16_t remote_port,

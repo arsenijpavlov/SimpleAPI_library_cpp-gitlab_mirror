@@ -58,7 +58,7 @@ public:
     void closeSocket(const IpPort& local_ip_port)                                       noexcept;
     void closeAllSockets()                                                              noexcept;
 
-    void startSocket(const IpPort& local_ip_port)                                       noexcept;
+    bool startSocket(const IpPort& local_ip_port)                                       noexcept;
     void stopSocket(const IpPort& local_ip_port)                                        noexcept;
 
     void send(const IpPort& source, const IpPort& destination, const Packet& packet)    noexcept;
