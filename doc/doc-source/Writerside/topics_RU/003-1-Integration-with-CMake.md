@@ -23,7 +23,7 @@ make -j$(nproc)
 ```cmake
 set(SIMPLE_API_MAIN_DIR ${CMAKE_CURRENT_LIST_DIR}/../..) # указать путь до базовой директории библиотеки
 include(${SIMPLE_API_MAIN_DIR}/utils.cmake) # для доступа к макросам библиотеки
-...
+
 # код для определения типа сборки
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     set(SimpleAPI_lib_name SimpleAPI)
@@ -35,7 +35,6 @@ add_subdirectory(${SIMPLE_API_MAIN_DIR}/SimpleAPI ${CMAKE_CURRENT_BINARY_DIR}/${
 
 # код для создания таргета основного приложения
 add_executable(...)
-...
 
 # предполагается, что имя таргета совпадает с именем проекта (PROJECT_NAME)
 # добавление зависимости от библиотеки для созданного таргета
@@ -48,7 +47,7 @@ add_dependencies(${PROJECT_NAME} ${SimpleAPI_lib_name})
 
 Для использования этого варианта должна быть установлена библиотека `pkg-config`:
 ```bash
-sudo apt-get install pkg-config # Ubuntu
+sudo apt-get install pkg-config # пример для Ubuntu
 ```
 
 Пример кода CMake
@@ -59,7 +58,6 @@ list(APPEND CMAKE_MODULE_PATH "${SIMPLE_API_MAIN_DIR}/cmake/find_package/") # д
 
 # код для создания таргета основного приложения
 add_executable(...)
-...
 
 # предполагается, что имя таргета совпадает с именем проекта (PROJECT_NAME)
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
@@ -80,5 +78,3 @@ else()
     endif(SimpleAPId_FOUND)
 endif()
 ```
-
-

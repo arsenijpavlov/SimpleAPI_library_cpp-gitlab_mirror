@@ -32,17 +32,9 @@ enum class ValueType {
     eYaml,
     eXml
 };
- std::string ToString(const ValueType type)                                                                 noexcept;
+std::string ToString(const ValueType type)                                                                 noexcept;
 //=================================================================================== Value type
 
-
-//удалить пробелы в начале и конце строки
-void RemoveFrontTabsIllegalSpaces(std::string& string, const int8_t tabulation_level)                       noexcept;
-void RemoveFrontIllegalSpaces(std::string& string)                                                          noexcept;
-void RemoveEndIllegalSpaces(std::string& string)                                                            noexcept;
-void RemoveIllegalSpaces(std::string& string)                                                               noexcept;
-
-void RemoveQuotes(std::string& string)                                                                      noexcept;
 
 //READING -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 bool GetAllStringsFromFile(const std::string& path, std::string& dest_string,

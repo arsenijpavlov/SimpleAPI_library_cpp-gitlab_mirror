@@ -141,12 +141,13 @@ void SocketThread::closeAllSockets() noexcept {
     m_sockets.erase(m_sockets.begin(), m_sockets.cend());
 }
 
-void SocketThread::startSocket(const IpPort& local_ip_Port) noexcept {
+bool SocketThread::startSocket(const IpPort& local_ip_Port) noexcept {
     std::lock_guard<std::mutex> lg(m_sockets_mutex);
 
     auto it = m_sockets.find(local_ip_Port);
     if(it != m_sockets.end())
-        it->second->startServer();
+        return it->second->startServer();
+    return false;
 }
 
 void SocketThread::stopSocket(const IpPort& local_ip_Port) noexcept {

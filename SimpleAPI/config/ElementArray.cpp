@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include "../utils/Utils.h"
+#include "../utils/StringUtils.h"
 #include "../utils/Logger.h"
 
 //предобъявление
@@ -371,14 +372,14 @@ std::string ElementArray::toJsonString(const CommentDesign &design, const int8_t
             if(!m_values[i]->isString()) {
                 ret += temp;
             } else {
-                SeparatedLines sl = SeparateWithoutColumned(temp);
+                utils::SplittedLines sl = utils::SplitWithoutColumned(temp);
                 // все строки кроме первой выровнять по первой строке
                 for(size_t j = 1; j < sl.lines.size(); j++) {
                     sl.lines[j] = utils::RepeatSymToStr('\t', custom_tabulation_level + 1) + sl.lines[j];
                 }
 
                 ret += "\"";
-                ret += VStringToString(sl.lines);
+                ret += utils::VStringToString(sl.lines);
                 ret += "\"";
             }
         }
@@ -446,7 +447,7 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
         if(cfg.getSuffixComment().empty())
             return "";
 
-        SeparatedLines sl = SeparateWithoutColumned(ToComment(cfg.getSuffixComment(), design));
+        utils::SplittedLines sl = utils::SplitWithoutColumned(ToComment(cfg.getSuffixComment(), design));
         //начиная со второй, все строки дополнить пробелами в начале по длине
         // последней строки +1(отделение комментария от значения)
         size_t pos = ret.rfind('\n');
@@ -459,7 +460,7 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
             }
         }
 
-        return (cfg.getSuffixComment().empty()) ? "" : " " + VStringToString(sl.lines);
+        return (cfg.getSuffixComment().empty()) ? "" : " " + utils::VStringToString(sl.lines);
     };
     auto IsArrayWithPrimitives = [](const Config cfg) -> bool {
         if(!cfg.isIndexContainer())
@@ -480,7 +481,7 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
         ret += "\"";
         std::string temp_str = str;
         if(temp_str.find('\n') != std::string::npos) {
-            SeparatedLines sl = tools::SeparateWithoutColumned(temp_str);
+            utils::SplittedLines sl = utils::SplitWithoutColumned(temp_str);
             for(size_t i = 0; i < sl.lines.size(); i++) {
                 ret += (i == 0 ? "" : "    ");
                 if(i + 1 < sl.lines.size())

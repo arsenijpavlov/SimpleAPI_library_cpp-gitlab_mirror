@@ -5,6 +5,7 @@ namespace simpleapi {
 namespace tools {
 
 
+// вернёт false, если встречено закрывающее правило, но не было соответствующего открывающего
 bool Stacker::autocheck(char ch) noexcept
 {
     for(const auto rule : m_rules) {
@@ -43,6 +44,7 @@ bool Stacker::autocheck(char ch) noexcept
     return true;
 }
 
+// вернёт false, если указанное правило уже существует (с учётом двойного правила)
 bool Stacker::addSimpleRule(char ch) noexcept
 {
     for(const auto it : m_rules) {
@@ -53,6 +55,20 @@ bool Stacker::addSimpleRule(char ch) noexcept
     return true;
 }
 
+// вернёт true, если правило было найдено и удалено
+bool simpleapi::tools::Stacker::deleteSimpleRule(char ch) noexcept
+{
+    for(auto it = m_rules.begin(); it != m_rules.begin(); it++) {
+        if(it->first == ch) {
+            m_rules.erase(it);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// вернёт false, если указанное правило уже существует (с учётом одинарного правила)
 bool Stacker::addDoubleRule(char ch1, char ch2) noexcept
 {
     for(const auto it : m_rules) {
@@ -63,6 +79,20 @@ bool Stacker::addDoubleRule(char ch1, char ch2) noexcept
     return true;
 }
 
+// вернёт true, если правило было найдено и удалено
+bool simpleapi::tools::Stacker::deleteDoubleRule(char ch1, char ch2) noexcept
+{
+    for(auto it = m_rules.begin(); it != m_rules.begin(); it++) {
+        if(it->first == ch1 && it->second == ch2) {
+            m_rules.erase(it);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// вернёт true, если есть непарная кавычка
 bool Stacker::inQuotes() const noexcept
 {
     //на основе правил определить тип кавычки (при наличии) и проверить её наличие в стеке

@@ -37,9 +37,11 @@ if [[ $? == 0 ]]; then
 		SIMPLEAPI_VERSION="${SIMPLEAPI_VERSION}${GIT_DIFF_OUTPUT}"
 	fi
 
-	echo "SIMPLEAPI_VERSION:        \"${SIMPLEAPI_VERSION}\""
-	echo "SIMPLEAPI_VERSION_NAME:   \"${SIMPLEAPI_VERSION_NAME}\""
-	echo "SIMPLEAPI_VERSION_COMMIT: \"${SIMPLEAPI_VERSION_COMMIT}\""
+	if [[ "$1" == "need_print_echo" ]]; then
+		echo "SIMPLEAPI_VERSION:        \"${SIMPLEAPI_VERSION}\""
+		echo "SIMPLEAPI_VERSION_NAME:   \"${SIMPLEAPI_VERSION_NAME}\""
+		echo "SIMPLEAPI_VERSION_COMMIT: \"${SIMPLEAPI_VERSION_COMMIT}\""
+	fi
 fi
 
 # применение как define в коде C/C++

@@ -88,7 +88,7 @@ TEST(COMMENT, multiline_chopper) {
     cd.opt_multiline_border = '#';
     cd.opt_multiline_column_size = 20;
 
-    const SeparatedLines sl = SeparateToColumns("very large strings... String very long drive", cd.opt_multiline_column_size);
+    const utils::SplittedLines sl = utils::SplitToColumns("very large strings... String very long drive", cd.opt_multiline_column_size);
     EXPECT_EQ(sl.lines[0], "very large");
     EXPECT_EQ(sl.lines[1], "strings... String");
     EXPECT_EQ(sl.lines[2], "very long drive");
@@ -143,9 +143,9 @@ TEST(COMMENT, SeparateToColumn_1) {
                         "a, , , , , , , , , ,"
                         "a, , , , , , , , , ,"; // (без переносов строк)
 
-    VString vs = SeparateToColumns(input, cd.opt_multiline_column_size).lines;
+    VString vs = utils::SplitToColumns(input, cd.opt_multiline_column_size).lines;
 
-    std::string result = VStringToString(vs);
+    std::string result = utils::VStringToString(vs);
     input = "a, , , , , , , , , ,\n"
             "a, , , , , , , , , ,\n"
             "a, , , , , , , , , ,\n"
@@ -162,8 +162,8 @@ TEST(COMMENT, SeparateToColumn_2) {
     cd.opt_multiline_column_size = 8;
 
     std::string input = "abc123, ab.cdef@hijk";
-    VString vs = SeparateToColumns(input, cd.opt_multiline_column_size).lines;
-    std::string result = VStringToString(vs);
+    VString vs = utils::SplitToColumns(input, cd.opt_multiline_column_size).lines;
+    std::string result = utils::VStringToString(vs);
     input = "abc123,\n"
             "ab.\n"
             "cdef@\n"
@@ -189,8 +189,8 @@ TEST(COMMENT, SeparateToColumn_3) {
                         "192.168.0.1 "
                         "11.1.a.b.c "
                         "192.168:0.1";
-    VString vs = SeparateToColumns(input, cd.opt_multiline_column_size).lines;
-    std::string result = VStringToString(vs);
+    VString vs = utils::SplitToColumns(input, cd.opt_multiline_column_size).lines;
+    std::string result = utils::VStringToString(vs);
     input = "1234.5678\n"
             "1234, 5678\n"
             "1234, 567\n"
@@ -215,8 +215,8 @@ TEST(COMMENT, SeparateToColumn_4) {
 
     std::string input = "abc-cd "
                         "abc - cd";
-    VString vs = SeparateToColumns(input, cd.opt_multiline_column_size).lines;
-    std::string result = VStringToString(vs);
+    VString vs = utils::SplitToColumns(input, cd.opt_multiline_column_size).lines;
+    std::string result = utils::VStringToString(vs);
     input = "abc-\n"
             "cd\n"
             "abc\n"
@@ -236,8 +236,8 @@ TEST(COMMENT, SeparateToColumn_5) {
     //  два переноса строки подряд быть не должно
 
     std::string input = "json first element\n comment";
-    VString vs = SeparateToColumns(input, cd.opt_multiline_column_size).lines;
-    std::string result = VStringToString(vs);
+    VString vs = utils::SplitToColumns(input, cd.opt_multiline_column_size).lines;
+    std::string result = utils::VStringToString(vs);
     input = "json first element\n"
             "comment";
 

@@ -6,10 +6,16 @@
 namespace simpleapi {
 namespace tools {
 
+enum class XmlVersion {
+    eXML_1_0,
+    eXML_1_1
+};
+
 class ElementXml : public IElementContainer {
 protected:
     VString m_attributes; // FIXME: Может имеет смысл сразу сделать как список конфигов? Но тогда будет весить больше
     shared_VElement m_values;
+    XmlVersion m_version;
 
 public:
     ElementXml() noexcept { init(); }

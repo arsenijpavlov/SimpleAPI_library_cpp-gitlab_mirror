@@ -12,6 +12,7 @@ CONFIG += c++11 cmdline
 
 include(SimpleAPI_library/SimpleAPI.pri) # добавление SimpleAPI как источник исходников
 
+# продолжение описания исходников основного приложения
 SOURCES += \
         main.cpp
 ```

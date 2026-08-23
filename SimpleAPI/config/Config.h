@@ -946,7 +946,7 @@ private:
         eJSON_FINISH,
         eJSON_ERROR_STATE
     };
-    static std::string to_string(const ParseStateJson state)                                        noexcept;
+    static std::string ToString(const ParseStateJson state)                                         noexcept;
     static void     UpdateState(ParseStateJson& state, const ParseStateJson new_state)              noexcept;
     void            parseFullJsonDoc(std::string&& content)                                         noexcept;
 
@@ -957,12 +957,25 @@ private:
         eARRAY_FINISH,
         eARRAY_ERROR_STATE
     };
-    static std::string to_string(const ParseStateJsonArray state)                                   noexcept;
+    static std::string ToString(const ParseStateJsonArray state)                                    noexcept;
     static void     UpdateState(ParseStateJsonArray& state, const ParseStateJsonArray new_state)    noexcept;
     void            parseFullJsonArrayDoc(std::string&& content)                                    noexcept;
 
     static Config&  GetFirstArrayFromThis(Config& config)                                           noexcept;
     static Config&  GetFirstJsonFromThis(Config& config)                                            noexcept;
+
+    enum class ParseStateXml {
+        eXML_FORMAT,
+        eXML_PROLOGUE,
+        eXML_TAG_START,
+        eXML_ATTRIBUTES,
+        eXML_INNER_VALUE,
+        eXML_TAG_FINISH,
+        eXML_EPILOGUE,
+        eXML_ERROR
+    };
+    static std::string ToString(const ParseStateXml state)                                          noexcept;
+    static void     UpdateState(ParseStateXml& state, const ParseStateXml new_state)                noexcept;
 
 public:
     // вернёт текст ошибки, указывающий на тип некорректно прочитанного значения

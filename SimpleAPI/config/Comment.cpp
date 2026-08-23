@@ -1,8 +1,8 @@
 #include "Comment.h"
 
 #include "../utils/Utils.h"
+#include "../utils/StringUtils.h"
 #include "../utils/Logger.h" //для cout (debug)
-#include "ConfigDefines.h"
 #include <algorithm>
 
 
@@ -132,7 +132,7 @@ void Comment::setPrefix(const std::string &comment) noexcept {
     }
 
     std::string new_comment = comment;
-    RemoveIllegalSpaces(new_comment);
+    utils::RemoveIllegalSpaces(new_comment);
 
     if(!m_prefix)
         m_prefix = new std::string(new_comment);
@@ -147,7 +147,7 @@ void Comment::setSuffix(const std::string &comment) noexcept {
     }
 
     std::string new_comment = comment;
-    RemoveIllegalSpaces(new_comment);
+    utils::RemoveIllegalSpaces(new_comment);
 
     if(m_suffix == nullptr)
         m_suffix = new std::string(new_comment);
@@ -339,214 +339,6 @@ std::string GetMultilineCommentStopStr(const CommentDesign &design) noexcept {
     return ss.str();
 }
 
-// Обрежет входную строку на список строк. Учитываются только пользовательские переносы строк
-SeparatedLines SeparateWithoutColumned(const std::string& input_string) noexcept {
-    SeparatedLines sl;
-    std::string temp;
-    for(char c : input_string) {
-        if(c == '\n') {
-            sl.lines.push_back(temp);
-            temp.clear();
-            continue;
-        }
-        temp.push_back(c);
-    }
-    if(!temp.empty())
-        sl.lines.push_back(temp);
-
-    for(auto& s : sl.lines)
-        RemoveIllegalSpaces(s);
-
-    //определить максимальную длину строки (будет иметь влияние только при border!=0)
-    sl.max_length = 0;
-    for(auto& s : sl.lines)
-        if(sl.max_length < utils::GetStringCharCount(s, true))
-            sl.max_length = utils::GetStringCharCount(s, true);
-
-    return sl;
-}
-
-/* Обрезать строку на подстроки с заданной шириной
- * - если хотя бы одна строка неделима и превышеает предел,
- *   то остальные строки должны быть выровнены по новому пределу
- * - многоточие считается частью слова, не переносится на другую строку
- * - пользовательские переносы строк должны быть сохранены
-*/
-//INFO: можно оптимизировать
-SeparatedLines SeparateToColumns(const std::string& input_string, const size_t column_size) noexcept {
-    VString words;
-    std::string temp;
-
-    const size_t input_visible_len = utils::GetStringCharCount(input_string, true);
-    bool is_oneline = input_string.find('\n') == std::string::npos;
-
-    if(is_oneline && (column_size == 0 || input_visible_len <= column_size))
-    {
-        return SeparatedLines{{input_string}, input_visible_len};
-    }
-
-    // разбиение на самостоятельные слова/объекты
-    bool need_add = false;
-    for(size_t i = 0; i < input_string.size(); i++) {
-        if(need_add) {
-            if(!temp.empty()) {
-                // пробелы выставляются только в этом блоке
-                if(utils::CharInString(temp.back(), __COMMENT_SEPARATOR_SYMBOLS__))
-                    temp += " ";
-                // если последний знак тире, и предпоследний знак пробел, то пробел в конце нужен
-                if(temp.size() > 2 && temp[temp.size()-1] == '-' && temp[temp.size()-2] == ' ')
-                    temp += " ";
-
-                words.push_back(temp);
-                temp.clear();
-            }
-            need_add = false;
-        }
-
-        // пользовательские переносы строк сохраняются
-        temp += input_string[i];
-        if(temp == " ") temp.clear();
-
-        // работа с числами и точками; значения вида "1.2.a" тоже попадают в эту категорию
-        if(utils::CharInString(input_string[i], "0123456789")) {
-            // добавляем числа, буквы, точки, дефисы и двоеточия пока не встретится любой другой
-            while(i + 1 < input_string.size()
-                   && !utils::CharInString(input_string[i+1], __SPACES__ __COMMENT_SEPARATOR_SYMBOLS_FOR_NUMBER__))
-            {
-                ++i;
-                temp += input_string[i];
-            }
-        }
-
-        if(utils::CharInString(input_string[i], __COMMENT_SEPARATOR_SYMBOLS__
-                                                __COMMENT_OTHERS_SPEC_SYMBOLS__
-                                                __SPACES__))
-        {
-            need_add = true;
-
-            // если следующий символ пробел - сохранить его в этом же слове
-            if(i + 1 < input_string.size() && utils::CharInString(input_string[i+1], " \t")) {
-                temp += input_string[i+1];
-                i++;
-            }
-            // два пробела подряд должны быть заменены на один (табуляции не учитываются)
-            if(input_string[i] == ' ' && temp.back() == ' ') {
-                while(i + 1 < input_string.size() && input_string[i+1] == ' ') {
-                    ++i;
-                }
-            }
-
-            // пропуск многоточий (... !!! ??? ?!) как единого знака
-            if(input_string[i] == '.'
-                     && i + 2 < input_string.size()
-                     && input_string[i+1] == '.'
-                     && input_string[i+2] == '.')
-            {
-                i += 2;
-                temp += "..";
-            }
-            else if(input_string[i] == '!'
-                     && i + 2 < input_string.size()
-                     && input_string[i+1] == '!'
-                     && input_string[i+2] == '!')
-            {
-                i += 2;
-                temp += "!!";
-            }
-            else if(input_string[i] == '?'
-                     && i + 2 < input_string.size()
-                     && input_string[i+1] == '?'
-                     && input_string[i+2] == '?')
-            {
-                i += 2;
-                temp += "??";
-            }
-            else if(input_string[i] == '?'
-                       && i + 1 < input_string.size()
-                       && input_string[i+1] == '!')
-            {
-                ++i;
-                temp += "!";
-            }
-        }
-    }
-    // завершающее присвоение
-    if(!temp.empty()) {
-        words.push_back(temp);
-    }
-
-    // упаковка по столбцам (если не влезает, то переработать по минимальной)
-    size_t max_len = column_size;
-    for(const auto& word : words) {
-        if(max_len < utils::GetStringCharCount(word, true))
-            max_len = utils::GetStringCharCount(word, true);
-    }
-    VString res;
-    temp.clear();
-    size_t current_line_size = 0;
-    for(/*const*/ auto& word : words) {
-        const size_t append_word_size = word.empty() ? 0
-                                                     : utils::GetStringCharCount(word, true);
-        // пробел в конце не должен учитываться в длине добавляемого слова
-        bool space_at_back_of_word = word.back() == ' ';
-
-        // отсечь строку, если добавление следующего слова превысит максимальную длину
-        //  первая строка списка не может быть пустой!
-        if( (!res.empty() || !temp.empty())
-            && ( (!temp.empty() && temp.back() == '\n')
-                || current_line_size + (append_word_size - space_at_back_of_word) > max_len
-                || word == "\n") )
-        {
-            RemoveIllegalSpaces(temp); // пробел в конце здесь уже ничего не значит
-            if(temp.back() == '\n')
-                temp.pop_back();
-            res.push_back(temp);
-            temp.clear();
-            current_line_size = 0;
-        }
-
-        if(word != "\n") {
-            // если пробел был нужен (пользователь указал в тексте комментария),
-            // то он уже есть вслед за словом
-            temp += word;
-        }
-        current_line_size += append_word_size;
-    }
-    // завершающее присвоение
-    if(!temp.empty()) {
-        res.push_back(temp);
-    }
-
-    // по завершении, все лишние пробелы в конце каждой строки удаляются
-    for(auto &s : res)
-        RemoveIllegalSpaces(s);
-
-    return {res, max_len};
-}
-
-// TODO: нужно перенести в утилиты
-// Вспомогательная функция для вывода массива строк в лог
-std::string VStringToString(const VString& input_vec, const bool need_quotes) noexcept {
-    if(input_vec.empty())
-        return "";
-
-    std::string res;
-
-    for(const auto& s : input_vec) {
-        if(need_quotes)
-            res += "\"";
-        res += s;
-        if(need_quotes)
-            res += "\"";
-        res += "\n";
-    }
-    //последний перенос лишний
-    if(!res.empty())
-        res.pop_back();
-
-    return res;
-}
-
 /* должен ли быть пробел между знаками начала/конца м.комментария и окантовкой?
  *      - при записи пробел не ставится
  *      - при чтении всегда пытается считать два символа начала комментария (в зависимости от заполненности вариантов)
@@ -590,11 +382,11 @@ std::string ToComment(std::string &&comment, const CommentDesign &design,
         last_pos = next_pos + /*знак переноса*/1;
     } while(next_pos != std::string::npos && all_strings_less_than_column_size);
 
-    SeparatedLines sl;
+    SplittedLines sl;
     if(design.opt_multiline_column_size == 0 || (all_strings_less_than_column_size && design.opt_multiline_border == 0)) {
-        sl = SeparateWithoutColumned(current_string);
+        sl = SplitWithoutColumned(current_string);
     } else {
-        sl = SeparateToColumns(current_string, design.opt_multiline_column_size);
+        sl = SplitToColumns(current_string, design.opt_multiline_column_size);
     }
 
     VString& result_lines = sl.lines;

@@ -1,7 +1,10 @@
 #include "IElementContainer.h"
 #include "../Config.h"
+#include "../../utils/StringUtils.h"
 
-using namespace simpleapi::tools;
+
+namespace simpleapi {
+namespace tools {
 
 IElementContainer::KeysComments::KeysComments(const KeysComments &other) noexcept
 {
@@ -115,7 +118,7 @@ std::vector<std::unique_ptr<IElementContainer::KeysBase>> IElementContainer::Col
         if(!prefix.empty())
             prefix.pop_back();
     }
-    RemoveIllegalSpaces(prefix);
+    utils::RemoveIllegalSpaces(prefix);
 
     switch(cfg.getType()) {
     case ValueType::eJson: {
@@ -158,3 +161,6 @@ std::vector<std::unique_ptr<IElementContainer::KeysBase>> IElementContainer::Col
 
     return ret;
 }
+
+} // namespace tools
+} // namespace simpleapi

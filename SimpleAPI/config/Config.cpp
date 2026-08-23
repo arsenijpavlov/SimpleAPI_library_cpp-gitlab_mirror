@@ -8,8 +8,9 @@
 #include "ElementArray.h"
 #include "ElementJson.h"
 //#include "ElementYaml.h"
-//#include "ElementXml.h"
+#include "ElementXml.h"
 #include "../utils/Stacker.h"
+#include "../utils/StringUtils.h"
 
 #include <limits>
 #include <regex>
@@ -1704,7 +1705,7 @@ Config &Config::append(Config &&config) {
             dynamic_cast<tools::ElementJson*>(m_value)->append(dynamic_cast<tools::ElementJson&&>(*config.m_value));
             break;
         }
-        default: throw std::invalid_argument("Config::append(): unexpected type of config: " + ToString(config.getType()));
+        default: throw std::invalid_argument("Config::append(): unexpected type of config: " + simpleapi::ToString(config.getType()));
         }
     } else {
         setValue(config);
@@ -1827,6 +1828,9 @@ bool Config::containsValue(const Config &config) const noexcept {
                                 return std::any_of(getNamedRange().cbegin(), getNamedRange().cend(),
                                     [&config](const std::pair<std::string, std::shared_ptr<Config>>& pair)
                                     { return *pair.second == config; });
+    case ValueType::eYaml:      // FIXME: return containsValue() in YAML;
+    case ValueType::eXml:       // FIXME: return containsValue() in XML;
+        break;
     }
 
     return false;
@@ -2137,7 +2141,7 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
 
     Config& result_cfg = *this;
 
-    std::string prefix_comment = tools::VStringToString(comments);
+    std::string prefix_comment = utils::VStringToString(comments);
 
     if(is_full_json) {
         // нужно парсить как полноценный Json документ
@@ -2243,7 +2247,7 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
         } // loop for()
 
         if(!error()) {
-            result_cfg.setSuffixComment(tools::VStringToString(comments));
+            result_cfg.setSuffixComment(utils::VStringToString(comments));
         } else {
             std::string error_msg = getError();
             result_cfg.setValue(); //значение не распознано, выставить в null
@@ -2309,7 +2313,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                     }
                     lines_vec.back().back().push_back('\n'); //нужно для последующей конкатенации строк в одну большую
 
-                    RemoveFrontIllegalSpaces(lines.front());
+                    utils::RemoveFrontIllegalSpaces(lines.front());
                     lines_vec.back().push_back(lines.front());
                     lines.erase(lines.cbegin());
                 }
@@ -2385,7 +2389,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                 switch(ch_current) {
                     case ':':
                     case '=': {
-                        RemoveIllegalSpaces(temp);
+                        utils::RemoveIllegalSpaces(temp);
                         key = temp;
                         temp.clear();
                         last_key_pos = i;
@@ -2399,7 +2403,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
         }
         if(!key.empty())
             content.erase(0, last_key_pos + 1);
-        RemoveIllegalSpaces(content);
+        utils::RemoveIllegalSpaces(content);
 
         return key;
     };
@@ -2426,8 +2430,8 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                 switch(ch_current) {
                 case '/':
                 case '\\': {
-                    RemoveIllegalSpaces(temp);
-                    RemoveQuotes(temp);
+                    utils::RemoveIllegalSpaces(temp);
+                    utils::RemoveQuotes(temp);
                     keys.push_back(temp);
                     temp.clear();
                     last_key_pos = i;
@@ -2437,14 +2441,14 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                 }
             }
         }
-        RemoveIllegalSpaces(temp);
-        RemoveQuotes(temp);
+        utils::RemoveIllegalSpaces(temp);
+        utils::RemoveQuotes(temp);
         keys.push_back(temp);
 
         return keys;
     };
     auto ConfirmValue = [&]() -> void {
-        RemoveIllegalSpaces(temp_string_value);
+        utils::RemoveIllegalSpaces(temp_string_value);
         if(!temp_string_value.empty())
         {
             if(temp_string_value.front() == '[' && temp_string_value.back() == ']')
@@ -2459,16 +2463,16 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
 
                 //создать либо дополнить префиксный комментарий
                 if(cfg_main_target[temp_string_value].getPrefixComment().empty())
-                    cfg_main_target[temp_string_value].setPrefixComment(VStringToString(prefix_comments));
+                    cfg_main_target[temp_string_value].setPrefixComment(utils::VStringToString(prefix_comments));
                 else
                     cfg_main_target[temp_string_value].setPrefixComment(cfg_main_target[temp_string_value].getPrefixComment() + "\n"
-                                                                        + VStringToString(prefix_comments));
+                                                                        + utils::VStringToString(prefix_comments));
                 //создать либо дополнить постфиксный комментарий
                 if(cfg_main_target[temp_string_value].getSuffixComment().empty())
-                    cfg_main_target[temp_string_value].setSuffixComment(VStringToString(suffix_comments));
+                    cfg_main_target[temp_string_value].setSuffixComment(utils::VStringToString(suffix_comments));
                 else
                     cfg_main_target[temp_string_value].setSuffixComment(cfg_main_target[temp_string_value].getSuffixComment() + "\n"
-                                                                        + VStringToString(suffix_comments));
+                                                                        + utils::VStringToString(suffix_comments));
 
                 target = &cfg_main_target[temp_string_value];
             }
@@ -2483,8 +2487,8 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                                          .push_back_force(keys_path, std::move(temp));
 
                 // добавить комментарии к добавленному значению
-                pushed_cfg.setPrefixComment(VStringToString(prefix_comments));
-                pushed_cfg.setSuffixComment(VStringToString(suffix_comments));
+                pushed_cfg.setPrefixComment(utils::VStringToString(prefix_comments));
+                pushed_cfg.setSuffixComment(utils::VStringToString(suffix_comments));
             }
             temp_string_value.clear();
             prefix_comments.clear();
@@ -2503,7 +2507,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
         counter = ParserSymbolCounter(all_lines_counter);
         for(size_t i = 0; i < fragments.size(); i++, all_lines_counter++) {
             if(getPrefixComment().empty() && !prefix_comments.empty() && fragments[i].empty()) {
-                setPrefixComment(VStringToString(prefix_comments));
+                setPrefixComment(utils::VStringToString(prefix_comments));
                 prefix_comments.clear();
             }
 
@@ -2603,7 +2607,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
     ConfirmValue();
 
     if(!prefix_comments.empty()) {
-        setSuffixComment(VStringToString(prefix_comments));
+        setSuffixComment(utils::VStringToString(prefix_comments));
         prefix_comments.clear();
     }
 
@@ -2618,26 +2622,551 @@ bool Config::parseYaml(const std::string &content, const CommentDesign &design) 
 
 bool Config::parseXml(const std::string &content, const CommentDesign &design) noexcept
 {
-    //TODO: Config::parseXml()
-    return false;
+    // NOTE: актуальный RFC https://www.rfc-editor.org/info/rfc7303/
+    using namespace utils;
+    using namespace tools;
+
+    setValue(Config(ValueType::eXml)); // clear() не нужен, т.к. объект только создан
+    setCommentDesign(design);
+
+    std::vector<std::string> prefix_comments;
+    std::vector<std::string> suffix_comments;
+    VString comments; // обработанные комментарии
+    std::string current_comment;
+    std::string temp_string_value;
+    ParserSymbolCounter counter; // проинициализируется при обработке первой строки
+
+    const std::string error_template = "XML parser error";
+    auto CreateError = [&](const ParserSymbolCounter& counter, std::string message) -> void {
+        setError("XML parser error[" + std::to_string(counter.getLastLineCounter())
+                 + "][" + std::to_string(counter.getLastSymbolCounter())
+                 + "]: " + message + "!");
+    };
+    auto CreateErrorLine = [&](const ParserSymbolCounter& counter, std::string message) -> void {
+        setError("XML parser error at line [" + std::to_string(counter.getLastLineCounter())
+                 + "]: " + message + "!");
+    };
+    auto CreateErrorUnexpected = [&](const ParserSymbolCounter& counter, char ch, std::string message = "") -> void {
+        setError(error_template + ": unexpected symbol '" + ch + "' at ["
+                 + std::to_string(counter.getLastLineCounter())
+                 + "][" + std::to_string(counter.getLastSymbolCounter())
+                 + "]" + (message.empty() ? "" : ": " + message + "!"));
+    };
+
+    auto ConfirmValue = [&, content](const bool for_penultimate = false) -> bool {
+        // counter.printCoords(); // для отладки
+//        Config element = CreateElementFromString(std::move(value), ConfigFormat::eJSON,
+//                                                 static_cast<const Config&>(result_cfg).getCommentDesign(),
+//                                                 start_value_counter);
+//        if(element.error()) {
+//            //если случилась ошибка при внутренней конвертации прочитанного значения,
+//            // то эта ошибка становится основной ошибкой парсинга
+//            CreateError(counter, element.getError());
+            return false;
+//        }
+
+//        result_cfg = Config(std::move(element));
+//        if(result_cfg.getCommentDesign().opt_multiline_column_size > n_design.opt_multiline_column_size)
+//            n_design.opt_multiline_column_size = result_cfg.getCommentDesign().opt_multiline_column_size;
+
+//        return true;
+    };
+
+    auto AppendMainPreviewComment = [&]() {
+        if(!comments.empty() && (getCommentDesign().temp_type == CommentType::eCommentEnd
+                                  || getCommentDesign().temp_type == CommentType::eNotComment))
+        {
+            setPrefixComment(VStringToString(comments));
+            DEBUG_LOG("ElementJson: PreviewComment: " << "\"" << getPrefixComment() << "\"");
+            comments.clear();
+        }
+    };
+    auto AppendMainSuffixComment = [&]() {
+        if(!comments.empty() && (getCommentDesign().temp_type == CommentType::eCommentEnd
+                                  || getCommentDesign().temp_type == CommentType::eNotComment))
+        {
+            setSuffixComment(VStringToString(comments));
+            DEBUG_LOG("ElementJson: SuffixComment: " << "\"" << getSuffixComment() << "\"");
+            comments.clear();
+        }
+    };
+// FIXME:    /* Логика работы комментариев:
+// FIXME:     * - комментарий после значения применяется только при начале на той же строке,
+// FIXME:     * что и разделитель этого значения
+// FIXME:     * - все остальные комментарии добавляются перед следующим значением
+// FIXME:     */
+    auto AppendElementPrefixComment = [&](){
+        if(!comments.empty()
+            && !isEmpty()
+            && (getCommentDesign().temp_type == CommentType::eCommentEnd
+                || getCommentDesign().temp_type == CommentType::eNotComment))
+        {
+            get_back().setPrefixComment(VStringToString(comments));
+            DEBUG_LOG("ElementJson: inner Element add PreviewComment: " << "\"" << get_back().getPrefixComment() << "\"");
+            comments.clear();
+        }
+    };
+    auto AppendElementSuffixComment = [&](const bool for_penultimate = false){
+        if(!comments.empty()
+            && !isEmpty()
+            && (getCommentDesign().temp_type == CommentType::eCommentEnd
+                || getCommentDesign().temp_type == CommentType::eNotComment))
+        {
+            if(for_penultimate) {
+                if(get_at(size() - 2).getSuffixComment().empty())
+                {
+                    get_at(size() - 2).setSuffixComment(comments[0]);
+                    DEBUG_LOG("ElementJson: inner Element(penultimate) add SuffixComment: " << "\""
+                              << get_at(size() - 2).getSuffixComment() << "\"");
+                }
+                comments.erase(comments.cbegin());
+            } else {
+                if(get_back().getSuffixComment().empty())
+                {
+                    get_back().setSuffixComment(comments.back());
+                    DEBUG_LOG("ElementJson: inner Element(back) add SuffixComment: " << "\""
+                              << get_back().getSuffixComment() << "\"");
+                }
+                comments.pop_back();
+            }
+
+        }
+    };
+
+
+    Stacker stacker;
+    stacker.addDoubleRule('<', '>');
+
+    char ch_previous = 0;
+    char ch_current  = 0;
+    char ch_next     = 0;
+
+    /* Логика парсера:
+     * - есть открывающий ТЕГ <X>
+     * - есть закрывающий ТЕГ </X>
+     * - если ТЕГ не имеет ВЛОЖЕННОГО СОДЕРЖИМОГО, тогда открывающий ТЕГ является закрывающим <X/>
+     * - комментарии имеют свой протокольный синтаксис <!-- COMMENT -->
+     *   - SimpleAPI считывает ЛЮБЫЕ комментарии согласно протоколу XML и правилам CommentDesign (p.s. запись только по протоколу)
+     * - тег может содержать АТРИБУТЫ
+     * - на верхнем уровне может быть максимум один ТЕГ
+     * - перед ТЕГом верхнего уровня могут быть только ПРОЛОГ и КОММЕНТАРИИ
+     * - после ТЕГа верхнего уровня могут быть только ЭПИЛОГ и КОММЕНТАРИИ
+     */
+    std::string current_tag, value;
+    VString attributes;
+    std::string temp;
+    bool b_tag_closer_is_found = false;
+    ParseStateXml state = ParseStateXml::eXML_FORMAT;
+    for(size_t i = 0; i < content.size(); i++)
+    {
+        ch_previous = i == 0 ? 0 : content[i - 1];
+        ch_current  = content[i];
+        ch_next     = i < content.size() ? content[i + 1] : 0;
+
+        counter.check(i, ch_current);
+
+        /*
+        //поиск комментариев ===================================================
+        // TODO: нужно также учитывать стиль этого протокола: <!-- COMMENT -->
+        //вернёт комментарий без обрамления
+//        try {
+//            CheckComments(ch_current, ch_next, i, getCommentDesign(), current_comment, stacker.empty());
+//        } catch(std::exception& e) {
+//            //не хватило символов для прочтения комментария
+//            CreateError(counter, e.what());
+//            break;
+//        }
+
+//        if(!getCommentDesign().with_comments)
+//            current_comment.clear();
+//        if(getCommentDesign().with_comments && getCommentDesign().temp_type == CommentType::eCommentEnd)
+//        {
+//            comments.push_back(FromComment(std::move(current_comment), getCommentDesign()));
+//            current_comment.clear();
+//            getCommentDesign().temp_type = CommentType::eNotComment;
+//            continue;
+//        }
+//        if(getCommentDesign().temp_type != CommentType::eNotComment)
+//            continue;
+        //=================================================== поиск комментариев
+        */
+
+        // найти символ вхождения <
+        // прочитать ВЕСЬ ТЕГ до символа выхода >
+        // определить тип ОТКРЫВАЮЩИЙ или САМОЗАКРЫВАЮЩИЙСЯ по последнему символу содержимого
+
+        if(!stacker.autocheck(ch_current))
+        {
+            CreateErrorUnexpected(counter, ch_current);
+            break;
+        }
+
+        // ищем вхождение в описание тега
+        // считываем имя тега (наличие пробелов перед именем - критичная ошибка (оригинальных парсеров))
+        // если встретили пробел ПОСЛЕ ИМЕНИ ТЕГА - ожидаем атрибуты или закрывающую треугольную скобку
+        // атрибуты всегда по маске КЛЮЧ="ЗНАЧЕНИЕ", кавычки обязательны для оригинальных парсеров
+        // если тег не самозакрывающий, то всё до маски </ИМЯ_ТЕГА[:SPACES:]*> считаем внутренним значением и передаём другому парсеру
+
+        switch(state) {
+        case ParseStateXml::eXML_FORMAT: {
+            // раздел необязательный
+            // если формат отличается от utf-8 - вернуть как ошибку парсинга
+
+            // пробелы и пустые символы ничего не значат - пропускаем
+            if(temp_string_value.empty() && utils::CharInString(ch_current, __SPACES__))
+                continue;
+
+            if(temp_string_value.empty())
+            {
+                if(ch_current == '<') {
+                    temp_string_value += ch_current;
+
+                    switch(ch_next) {
+                    case '?': {
+                        // это действительно строка определения формата
+                        break;
+                    }
+                    case '!': {
+                        UpdateState(state, ParseStateXml::eXML_PROLOGUE);
+                        break;
+                    }
+                    default: {
+                        UpdateState(state, ParseStateXml::eXML_TAG_START);
+                        break;
+                    }
+                    }
+                } else {
+                    CreateErrorUnexpected(counter, ch_current);
+                }
+            } else {
+                // значение уже начало заполняться
+                temp_string_value += ch_current;
+
+                // маска проверки: <?xml X="Y" Z="A" ?>
+
+                if(ch_current == '>') {
+                    // закончили распознавать строку формата, меняем состояние на ожидание пролога
+                    // NOTE: строка формата всегда одна и всегда в начале документа
+
+                    std::cout << "format string: \"" << temp_string_value << "\"" << std::endl;
+                    /* TODO: валидация внутренних параметров */ {
+                        temp_string_value.clear();
+                    }
+
+                    UpdateState(state, ParseStateXml::eXML_PROLOGUE);
+                }
+            }
+
+            break; // выход из switch
+        }
+        case ParseStateXml::eXML_PROLOGUE: {
+            // раздел необязательный
+            // здесь могут быть настройки валидации полей и т.п.
+
+            // пробелы и пустые символы ничего не значат - пропускаем
+            if(temp_string_value.empty() && utils::CharInString(ch_current, __SPACES__))
+                continue;
+
+            if(temp_string_value.empty())
+            {
+                if(ch_current == '<') {
+                    temp_string_value += ch_current;
+
+                    switch(ch_next) {
+                    case '?': {
+                        auto temp_counter = counter;
+                        temp_counter.check(i+1, ch_next);
+                        CreateErrorUnexpected(counter, ch_next, "unexpected instruction of XML");
+                        break;
+                    }
+                    case '!': {
+                        // это действительно строка описания типов и структур
+                        break;
+                    }
+                    default: {
+                        UpdateState(state, ParseStateXml::eXML_TAG_START);
+                        break;
+                    }
+                    }
+                } else {
+                    CreateErrorUnexpected(counter, ch_current);
+                }
+            } else {
+                // значение уже начало заполняться
+                temp_string_value += ch_current;
+
+                // маска проверки: <!TYPE_OF_VALUE X="Y" Z="A" >
+
+                if(ch_current == '>') {
+                    // закончили распознавать строку описания
+                    // состояние не меняем - пролог может содержать сколько угодно описаний
+
+                    std::cout << "prolog string: \"" << temp_string_value << "\"" << std::endl;
+                    /* TODO: валидация внутренних параметров */ {
+                        temp_string_value.clear();
+                    }
+                }
+            }
+
+            break; // выход из switch
+        }
+        case ParseStateXml::eXML_TAG_START: {
+            // запрещены пробелы между < и именем тега (игнорировать в рамках этого парсера)
+            // первым символом имени тега может быть только буква или знак подчёркивания '_'
+
+            // пробелы и пустые символы ничего не значат - пропускаем
+            if(utils::CharInString(ch_current, __SPACES__)) {
+                if(temp_string_value.empty()) {
+                    continue; // дожидаемся значения
+                } else {
+                    // тег прочитан запоминаем
+                    current_tag = temp_string_value;
+                    if(current_tag.front() == '<')
+                        current_tag.erase(0, 1); // удаляем обрамление
+
+//                    std::cout << "tag: \"" << temp_string_value << "\"" << std::endl;
+                    temp_string_value.clear();
+
+                    // был встречен пробел после тега - ожидаем атрибуты
+                    UpdateState(state, ParseStateXml::eXML_ATTRIBUTES);
+                    // только в рамках атрибутов работает проверка на кавычки
+                    stacker.addSimpleRule('\'');
+                    stacker.addSimpleRule('"');
+
+                    break; // выход из switch
+                }
+            }
+
+            // выдержка из ИИ Google:
+            // 1) Запрет на «xml»: Имя тега не может начинаться с букв xml, XML, Xml и любых других комбинаций регистров.
+            //    Это сочетание зарезервировано.
+            // 2) Первый символ: Имя может начинаться только с буквы (любого алфавита, включая кириллицу) или знака
+            //    подчеркивания _.
+            // 3) Запрет на цифры в начале: Имя не может начинаться с цифры, точки или дефиса.
+            // 4) Разрешенные символы внутри: После первого символа можно использовать буквы, цифры, дефисы -, знаки
+            //    подчеркивания _ и точки ..
+            // 5) Запрет на пробелы: Внутри имени тега нельзя ставить пробелы.
+            // 6) Проблема с двоеточием: Символ : технически разрешен, но зарезервирован для пространств имен (namespaces).
+            //    Использовать его просто так в именах тегов нельзя.
+
+            // если после пробела есть сочетание "/>", тогда тег считается самозокрытым - внутреннего значения нет
+            // если после пробела идёт знак >, тогда атрибутов нет
+            //   в остальном случае нужно перейти к парсингу атрибутов
+
+            if(temp_string_value.empty())
+            {
+                if(ch_current == '<') {
+//                    temp_string_value += ch_current;
+
+                    switch(ch_next) {
+                    case '?': {
+                        auto temp_counter = counter;
+                        temp_counter.check(i+1, ch_next);
+                        CreateErrorUnexpected(counter, ch_next, "unexpected instruction of XML");
+                        break;
+                    }
+                    case '!': {
+                        auto temp_counter = counter;
+                        temp_counter.check(i+1, ch_next);
+                        CreateErrorUnexpected(counter, ch_next, "unexpected instruction of XML");
+                        break;
+                    }
+                    default: {
+                        // начинаем чтение имени тега
+                        break;
+                    }
+                    }
+                } else {
+                    CreateErrorUnexpected(counter, ch_current);
+                }
+            } else {
+                // TODO: валидация добавляемого имени
+                {}
+
+                // маска проверки: <NAME_OF_TAG >
+                // атрибуты будут прочтены отдельно при наличии пробела после имени
+
+                if(utils::CharInString(ch_current, "/>")) {
+                    // две ситуации: либо "/>", либо ">"
+                    if(ch_current == '/') {
+//                        current_tag += "/>";
+                        // тег самозакрытый, внутреннего значения не будет; на верхнем уровне может быть только один тег
+                        UpdateState(state, ParseStateXml::eXML_EPILOGUE);
+                    } else {
+//                        current_tag += ">";
+                        UpdateState(state, ParseStateXml::eXML_INNER_VALUE);
+                    }
+
+                    // закончили распознавать строку описания
+                    // состояние не меняем - пролог может содержать сколько угодно описаний
+
+//                    std::cout << "tag name: \"" << temp_string_value << "\"" << std::endl;
+                    temp_string_value.clear();
+                } else {
+                    // значение уже начало заполняться
+                    temp_string_value += ch_current;
+                }
+            }
+
+            break; // выход из switch
+        }
+        case ParseStateXml::eXML_ATTRIBUTES: {
+            // всегда валидировать по маске ключ=значение, где значение обязательно в кавычках (одинарных или двойных)
+
+            // пока кавычки - только запоминаем значение
+            if(stacker.inQuotes()) {
+                temp_string_value += ch_current;
+                break; // выход из switch
+            }
+
+            // пробелы и пустые символы ничего не значат - пропускаем
+            if(utils::CharInString(ch_current, __SPACES__)) {
+                if(temp_string_value.empty()) {
+                    continue; // дожидаемся значения
+                } else {
+                    // атрибут прочитан запоминаем
+                    if(!temp_string_value.empty())
+                    {
+                        attributes.push_back(temp_string_value);
+                        temp_string_value.clear();
+
+//                        std::cout << "attribute: \"" << attributes.back() << "\"" << std::endl;
+                    }
+
+                    break; // выход из switch
+                }
+            }
+
+            // (то же поведение, что и без атрибутов) // TODO: может добавить state eXML_TAG_START_ENDING
+            // если после пробела есть сочетание "/>", тогда тег считается самозокрытым - внутреннего значения нет
+            // если после пробела идёт знак >, тогда атрибутов нет
+
+            if(utils::CharInString(ch_current, "/>"))
+            {
+                // две ситуации: либо "/>", либо ">"
+                if(ch_current == '/') {
+//                    current_tag += "/>";
+                    // тег самозакрытый, внутреннего значения не будет; на верхнем уровне может быть только один тег
+                    UpdateState(state, ParseStateXml::eXML_EPILOGUE);
+                } else {
+//                    current_tag += ">";
+                    UpdateState(state, ParseStateXml::eXML_INNER_VALUE);
+                }
+
+                // атрибут прочитан запоминаем
+                if(!temp_string_value.empty())
+                {
+                    attributes.push_back(temp_string_value);
+                    temp_string_value.clear();
+
+//                    std::cout << "attribute: \"" << attributes.back() << "\"" << std::endl;
+                }
+
+                // удаляем правила проверки кавычек
+                stacker.deleteSimpleRule('"');
+                stacker.deleteSimpleRule('\'');
+
+                break; // выход из switch
+            } else {
+                // TODO: валидация добавляемого имени
+                {}
+
+                // значение уже начало заполняться
+                temp_string_value += ch_current;
+
+                // маска проверки: <NAME_OF_TAG >
+                // атрибуты будут прочтены отдельно при наличии пробела после имени
+            }
+
+            break; // выход из switch
+        }
+        case ParseStateXml::eXML_INNER_VALUE: {
+            // раздел необязательный
+            // может содержать несколько значений, как XML-элементов, так и обычных строк
+            //    для строк кавычки не валидируются
+
+            // пробелы и пустые символы ничего не значат - пропускаем
+            if(temp_string_value.empty() && utils::CharInString(ch_current, __SPACES__))
+                continue;
+
+            // добавляем значение, пока не встретили закрывающий тег
+            temp_string_value += ch_current;
+            if(ch_current == '<' && ch_next == '/') {
+                b_tag_closer_is_found = true;
+            }
+            // нашли закрывающую скобку
+            if(b_tag_closer_is_found && ch_current == '>') {
+                b_tag_closer_is_found = false; // сбрасываем флаг
+
+                // проверяем, что тег соответствует искомому
+                size_t start_pos = temp_string_value.rfind("</");
+                // на std::string::npos не проверяю в целях экономии (мы ж именно по этому флагу сюда зашли)
+                std::string temp_tag_closer = temp_string_value.substr(start_pos);
+
+                temp_tag_closer.erase(0, 2);
+                temp_tag_closer.pop_back();
+                std::cout << "closer: " << temp_tag_closer << std::endl;
+                if(temp_tag_closer == current_tag) {
+                    value = temp_string_value.erase(start_pos);
+                    temp_string_value.clear();
+
+                    // TODO: value нужно передать на следующий парсер
+                    {}
+
+                    UpdateState(state, ParseStateXml::eXML_EPILOGUE);
+                }
+            }
+
+            break; // выход из switch
+        }
+        // этот case пропускаю, т.к. можно облегчить логику поиска за счёт уже прочитанного значения
+//        case ParseStateXml::eXML_TAG_FINISH: {
+//            // XML-элемент считается закрытым, если есть совпадение маски "</[:SPACES:]TAG_NAME*[:SPACES:]*>"
+//            //    пробелы перед именем тега оригинальным парсером считаются критической ошибкой
+//            break; // выход из switch
+//        }
+        case ParseStateXml::eXML_EPILOGUE: {
+            // раздел необязательный
+            break; // выход из switch
+        }
+        case ParseStateXml::eXML_ERROR: {
+            break; // выход из switch
+        }
+        } // ~switch()
+
+        if(error())
+            break; // выход из for()
+    } // ~for()
+
+    std::cout << "tag name: " << current_tag << std::endl;
+    for(const auto& attribute : attributes)
+        std::cout << "attribute: " << attribute << std::endl;
+    std::cout << "value: " << value << std::endl;
+    std::cout << "last state: " << ToString(state) << std::endl;
+
+    // наличие ошибки строго обнуляет структуру документа
+    if(error())
+        clear();
+
+    return !error();
 }
 
-std::string Config::to_string(const ParseStateJson state) noexcept {
+std::string Config::ToString(const ParseStateJson state) noexcept {
     switch (state) {
-    case ParseStateJson::eJSON_START:               return "[JSON_START]";
-    case ParseStateJson::eJSON_KEY:                 return "[JSON_KEY]";
-    case ParseStateJson::eJSON_KEY_VALUE_SEPARATOR: return "[JSON_KEY_VALUE_SEPARATOR]";
-    case ParseStateJson::eJSON_VALUE:               return "[JSON_VALUE]";
-    case ParseStateJson::eJSON_SEPARATOR:           return "[JSON_SEPARATOR]";
-    case ParseStateJson::eJSON_FINISH:              return "[JSON_FINISH]";
-    case ParseStateJson::eJSON_ERROR_STATE:
-    default:                                        return "[JSON_ERROR_STATE]";
+        case ParseStateJson::eJSON_START:               return "[JSON_START]";
+        case ParseStateJson::eJSON_KEY:                 return "[JSON_KEY]";
+        case ParseStateJson::eJSON_KEY_VALUE_SEPARATOR: return "[JSON_KEY_VALUE_SEPARATOR]";
+        case ParseStateJson::eJSON_VALUE:               return "[JSON_VALUE]";
+        case ParseStateJson::eJSON_SEPARATOR:           return "[JSON_SEPARATOR]";
+        case ParseStateJson::eJSON_FINISH:              return "[JSON_FINISH]";
+        case ParseStateJson::eJSON_ERROR_STATE:
+        default:                                        return "[JSON_ERROR_STATE]";
     }
 }
 
 void Config::UpdateState(ParseStateJson &state, const ParseStateJson new_state) noexcept {
     state = new_state;
-    DEBUG_LOG("Parse Json, upd state: " << to_string(state));
+    DEBUG_LOG("Parse Json, upd state: " << ToString(state));
 }
 
 void Config::parseFullJsonDoc(std::string &&content) noexcept
@@ -3052,20 +3581,20 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
     }
 }
 
-std::string Config::to_string(const ParseStateJsonArray state) noexcept {
+std::string Config::ToString(const ParseStateJsonArray state) noexcept {
     switch (state) {
-    case ParseStateJsonArray::eARRAY_START:         return "[ARRAY_START]";
-    case ParseStateJsonArray::eARRAY_VALUE:         return "[ARRAY_VALUE]";
-    case ParseStateJsonArray::eARRAY_SEPARATOR:     return "[ARRAY_SEPARATOR]";
-    case ParseStateJsonArray::eARRAY_FINISH:        return "[ARRAY_FINISH]";
-    case ParseStateJsonArray::eARRAY_ERROR_STATE:
-    default:                                        return "[ARRAY_ERROR_STATE]";
+        case ParseStateJsonArray::eARRAY_START:         return "[ARRAY_START]";
+        case ParseStateJsonArray::eARRAY_VALUE:         return "[ARRAY_VALUE]";
+        case ParseStateJsonArray::eARRAY_SEPARATOR:     return "[ARRAY_SEPARATOR]";
+        case ParseStateJsonArray::eARRAY_FINISH:        return "[ARRAY_FINISH]";
+        case ParseStateJsonArray::eARRAY_ERROR_STATE:
+        default:                                        return "[ARRAY_ERROR_STATE]";
     }
 }
 
 void Config::UpdateState(ParseStateJsonArray& state, const ParseStateJsonArray new_state) noexcept {
     state = new_state;
-    DEBUG_LOG("Parse Array, upd state: " << to_string(state) << std::endl);
+    DEBUG_LOG("Parse Array, upd state: " << ToString(state) << std::endl);
 }
 
 void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
@@ -3453,6 +3982,27 @@ Config &Config::GetFirstJsonFromThis(Config &config) noexcept
     }
 }
 
+std::string simpleapi::Config::ToString(const ParseStateXml state) noexcept
+{
+    switch (state) {
+        case ParseStateXml::eXML_FORMAT:        return "[XML_FORMAT]";
+        case ParseStateXml::eXML_PROLOGUE:      return "[XML_PROLOGUE]";
+        case ParseStateXml::eXML_TAG_START:     return "[XML_TAG_START]";
+        case ParseStateXml::eXML_ATTRIBUTES:    return "[XML_ATTRIBUTES]";
+        case ParseStateXml::eXML_INNER_VALUE:   return "[XML_INNER_VALUE]";
+        case ParseStateXml::eXML_TAG_FINISH:    return "[XML_TAG_FINISH]";
+        case ParseStateXml::eXML_EPILOGUE:      return "[XML_EPILOGUE]";
+        case ParseStateXml::eXML_ERROR:
+        default:                                return "[XML_ERROR]";
+        }
+}
+
+void Config::UpdateState(ParseStateXml &state, const ParseStateXml new_state) noexcept
+{
+    state = new_state;
+    DEBUG_LOG("Parse XML, upd state: " << ToString(state) << std::endl);
+}
+
 //функция должна быть вызвана исключительно для обработки строки значения, комменты не учитывает
 Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
                                const CommentDesign &design, ParserSymbolCounter& start_iterator) noexcept
@@ -3685,8 +4235,15 @@ Config ParseIni(const std::string &content, const CommentDesign &design) noexcep
 
 Config ParseXml(const std::string &content, const CommentDesign &design) noexcept
 {
-    //TODO: ParseXml()
-    return {};
+    Config ret(ValueType::eXml);
+
+    CommentDesign n_design = design;
+    if(design == CommentDesign{}) { // если переменная не заполнена, используется соб
+        n_design = ret.getCommentDesign();
+    }
+
+    ret.parseXml(content, n_design);
+    return ret;
 }
 
 } // namespace simpleapi

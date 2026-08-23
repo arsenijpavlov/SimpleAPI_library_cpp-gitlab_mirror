@@ -510,6 +510,7 @@ uint8_t LineOfOneSymbol(std::string &input_str) noexcept
     return ex;
 }
 
+// FIXME: дублёр функции FromHexString()?
 std::vector<uint8_t> FromHexStringToHex(const std::string &str) noexcept {
     auto func = [](char ch) {
         switch(ch) {
