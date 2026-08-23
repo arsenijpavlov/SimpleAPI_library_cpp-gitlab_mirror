@@ -23,9 +23,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(ENABLE_TESTS_UNIT        "Google tests enabled"          on)
 
+file(GLOB_RECURSE SIMPLEAPI_USER_DOCS "doc/doc-source/*.md")
 add_custom_target(project_docs SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/README.md
     ${CMAKE_CURRENT_SOURCE_DIR}/changelog.txt
+    ${CMAKE_CURRENT_SOURCE_DIR}/todo-list.txt # список идей, который пока не к чему привязать
+    ${SIMPLEAPI_USER_DOCS}
 )
 
 #library
