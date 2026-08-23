@@ -1,36 +1,40 @@
 # 5.2. Поток для автоматизации работы сокетов
 
 Класс `SocketThread` предназначен для вынесения всех сокетных соединений в отдельный поток с автоматизацией работы с сокетами.
-Главное преимущество этого класса заключается в том, что достаточно один раз объявить добавление к объекту `SocketThread` нового экземпляра сокета и дальнейшее взаимодействие с сокетами будет происходить по логике функций обратного вызова (Callback).
 
-Улучшения автоматизации:
+Главное преимущество этого класса заключается в том, что достаточно один раз объявить добавление к объекту `SocketThread` нового экземпляра сокета и дальнейшее взаимодействие с сокетами будет происходить по логике функций обратного вызова (callback).
+
+## Улучшения по сравнению с ручными сокетами
 - автоматическая фрагментация пакетов при отправке и их дефрагментация при получении
 - если полученный пакет без ошибок сконвертировался в Json, то будет вызван callback для полученного Json-пакета
 - автоматическая проверка наличия соединения (пинги раз в несколько секунд)
 - уведомления о новых соединениях, входящих пакетах/Json-документах и разрывах соединений при долгом отсутствии активности адресата
 
+## Основные параметры автоматизированных сокетов
 При использовании такого подхода, `SocketSettings` позволяет настроить ещё и такие параметры:
-- (при автоматизации) указать размер одного фрагмента, `void setMaxLength(uint16_t max_length = 1500) noexcept`
-- (при автоматизации) указать количество отправляемых фрагментов за один проход цикла, `void setMaxMsgsSentOnTick(int max_msgs_sent_on_tick = -1/*все разом*/) noexcept`
-- (при автоматизации) указать функцию для callback-вызова при приходе нового пакета, `void setRecvPacketCallback(RecvPacketMessageCallback callback = nullptr) noexcept`
-- (при автоматизации) указать функцию для callback-вызова при приходе нового JSON-пакета, `void setRecvJsonCallback(RecvJsonMessageCallback callback = nullptr) noexcept`
-- (при автоматизации) указать функцию для callback-вызова при создании нового входящего соединения, `void setNewConnectionCallback(ConnectionCallback callback = nullptr) noexcept`
-- (при автоматизации) указать функцию для callback-вызова при дисконнекте соединения (провал проверки соединения), `void setConnectionResetCallback(ConnectionCallback callback = nullptr) noexcept`
+- указать размер одного фрагмента, `void setMaxLength(uint16_t max_length = 1500) noexcept`
+- указать количество отправляемых фрагментов за один проход цикла, `void setMaxMsgsSentOnTick(int max_msgs_sent_on_tick = -1/*все разом*/) noexcept`
+- указать функцию для callback-вызова при приходе нового пакета, `void setRecvPacketCallback(RecvPacketMessageCallback callback = nullptr) noexcept`
+- указать функцию для callback-вызова при приходе нового JSON-пакета, `void setRecvJsonCallback(RecvJsonMessageCallback callback = nullptr) noexcept`
+- указать функцию для callback-вызова при создании нового входящего соединения, `void setNewConnectionCallback(ConnectionCallback callback = nullptr) noexcept`
+- указать функцию для callback-вызова при дисконнекте соединения (провал проверки соединения), `void setConnectionResetCallback(ConnectionCallback callback = nullptr) noexcept`
 
+## Логирование автоматизированных сокетов
 Так как `SocketThread` является классом-наследником от `LoggerSetting`, то следует здесь же объяснить уже его возможности:
-- (при автоматизации) включить вывод логов, `void enablePrintLogLevel(bool enabled = false) noexcept`
-- (при автоматизации) включить вывод времени лога при выводе, `void enableLogTime(bool enabled = false) noexcept`
-- (при автоматизации) включить привязку колонок при выводе к правому краю, `void enableNameColumnRightAlign(bool enabled = false) noexcept`
-- (при автоматизации) указать стандартную ширину заголовка колонки при выводе, `void setNameColumnSize(int size = -1) noexcept`
-- (при автоматизации) указать уровень детализации логов, `void setLogLevel(logs::LEVEL level = logs::eINFO) noexcept`
-- (при автоматизации) указать функцию для callback-вызова для вывода логов, `void setLogCallback(LogCallback callback = nullptr) noexcept`
-- (при автоматизации) указать функцию для callback-вызова для вывода логов ошибок, `void setLogErrorCallback(LogCallback callback = nullptr) noexcept`
-- (при автоматизации) указать функцию для callback-вызова для вывода цветных логов, `void setColorLogCallback(LogCallback callback = nullptr) noexcept`
-- (при автоматизации) указать функцию для callback-вызова для вывода цветных логов ошибок, `void setColorLogErrorCallback(LogCallback callback = nullptr) noexcept`
+- включить вывод логов, `void enablePrintLogLevel(bool enabled = false) noexcept`
+- включить вывод времени лога при выводе, `void enableLogTime(bool enabled = false) noexcept`
+- включить привязку колонок при выводе к правому краю, `void enableNameColumnRightAlign(bool enabled = false) noexcept`
+- указать стандартную ширину заголовка колонки при выводе, `void setNameColumnSize(int size = -1) noexcept`
+- указать уровень детализации логов, `void setLogLevel(logs::LEVEL level = logs::eINFO) noexcept`
+- указать функцию для callback-вызова для вывода логов, `void setLogCallback(LogCallback callback = nullptr) noexcept`
+- указать функцию для callback-вызова для вывода логов ошибок, `void setLogErrorCallback(LogCallback callback = nullptr) noexcept`
+- указать функцию для callback-вызова для вывода цветных логов, `void setColorLogCallback(LogCallback callback = nullptr) noexcept`
+- указать функцию для callback-вызова для вывода цветных логов ошибок, `void setColorLogErrorCallback(LogCallback callback = nullptr) noexcept`
 
+## Безопасность потоков
 *Обратите внимание, что все callback-функции будут вызваны из потока SocketThread. Вся потоконезависимая часть программы реализуется самим пользователем библиотеки.*
 
-Пример кода в минимальном виде:
+## Пример кода использования SocketThread (в минимальном виде):
 ```c++
 #include "SimpleAPI.h"
 
@@ -106,6 +110,3 @@ int main()
     }
 }
 ```
-
-`ВАЖНО`: callback-функции будут вызваны в потоке SocketThread.
-Вам нужно вручную самим чтение/запись объектов внутри callback-функции, например, через атомарность или мьютексы.
