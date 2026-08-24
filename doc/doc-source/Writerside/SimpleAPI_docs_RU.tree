@@ -8,7 +8,7 @@
 
 	<!-- SCRIPT BEGIN -->
 	<toc-element topic="001-Introduction.md"/>
-	<toc-element topic="002-Dependecies.md"/>
+	<toc-element topic="002-Dependencies.md"/>
 	<toc-element topic="003-1-Integration-with-CMake.md"/>
 	<toc-element topic="003-2-Integration-with-QMake.md"/>
 	<toc-element topic="003-3-DEB-packet.md"/>
@@ -18,8 +18,14 @@
 		<toc-element topic="003-Format-XML.md"/>
 		<toc-element topic="004-Format-YAML.md"/>
 	</toc-element> <!-- end of "004-Config.md" -->
-	<toc-element topic="005-Comments.md"/>
-	<toc-element topic="006-Network.md"/>
+	<toc-element topic="005-Comments-in-Config.md"/>
+	<toc-element topic="006-Network.md">
+		<toc-element topic="001-Sockets.md"/>
+		<toc-element topic="002-SocketThread.md"/>
+		<toc-element topic="003-API-v1.md"/>
+		<toc-element topic="003-Message.md"/>
+		<toc-element topic="004-Network-utils.md"/>
+	</toc-element> <!-- end of "006-Network.md" -->
 	<toc-element topic="007-Side-utils.md"/>
 	<!-- SCRIPT END -->
 </instance-profile>
