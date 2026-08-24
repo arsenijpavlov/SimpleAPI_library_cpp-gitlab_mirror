@@ -856,15 +856,19 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
 {
     std::string ret;
     std::string temp;
+    CommentDesign inner_design = design;
 
     auto GetPrefixComment = [&design](const Config cfg) -> std::string {
         return (cfg.getPrefixComment().empty()) ? "" : (ToComment(cfg.getPrefixComment(), design) + "\n");
     };
-    auto GetSuffixComment = [&design, &ret](const Config cfg) -> std::string {
+    auto GetSuffixComment = [&design, &ret, &inner_design](const Config cfg) -> std::string {
         if(cfg.getSuffixComment().empty())
             return "";
 
-        utils::SplittedLines sl = utils::SplitWithoutColumned(ToComment(cfg.getSuffixComment(), design));
+        // ширина колонки многострочного комментария после значения не влияет на вывод
+        inner_design.opt_multiline_column_size = 0;
+
+        utils::SplittedLines sl = utils::SplitWithoutColumned(ToComment(cfg.getSuffixComment(), inner_design, -1));
         //начиная со второй, все строки дополнить пробелами в начале по длине
         // последней строки +1(отделение комментария от значения)
         size_t pos = ret.rfind('\n');
