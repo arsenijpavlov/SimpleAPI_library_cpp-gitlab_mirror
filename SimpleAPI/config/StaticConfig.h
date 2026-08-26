@@ -108,5 +108,15 @@ struct ConfigTypeTraits<T, typename std::enable_if<!is_config_struct<T>::value>:
         }                                                       \
     };
 
+
+// EXAMPLE OF USAGE -------------------------------------------
+//    #define STRUCT_FIELDS(X)       \
+//        X(int, integer, 2)         \
+//        X(uint8_t, u_integer, 3)   \
+//        X(std::string, str, "asd")
+//
+//    REGISTER_CONFIG(TestConfig, STRUCT_FIELDS)
+// EXAMPLE OF USAGE -------------------------------------------
+
 } // namespace tools
 } // namespace simpleapi
