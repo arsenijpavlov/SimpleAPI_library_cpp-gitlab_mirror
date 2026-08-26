@@ -451,7 +451,7 @@ public:
     __ONLY_STRING_TYPES__(T)
     T get() const
     {
-        __CHECK_TYPE_IS_NUMBER__((*this))
+        __CHECK_TYPE_IS_STRING__((*this))
         return static_cast<T>(getString());
     }
     // bool
@@ -466,12 +466,38 @@ public:
     __ONLY_ALLOWED_TYPES__(T)
     T get(const std::string& key) const
     {
-        return static_cast<T>(get_number_at(key));
+        // TODO:
+//        switch(getType()) {
+//            case ValueType::eNull:
+//            case ValueType::eBool:
+//            case ValueType::eNumber:
+//            case ValueType::eString:
+//            case ValueType::eArray:
+//            case ValueType::eJson:
+//            case ValueType::eYaml:
+//            case ValueType::eXml:
+//                break;
+//        }
+
+        return static_cast<T>(get_at(key));
     }
     __ONLY_ALLOWED_TYPES__(T)
     T get(const size_t& index) const
     {
-        return static_cast<T>(get_number_at(index));
+        // TODO:
+//        switch(getType()) {
+//            case ValueType::eNull:
+//            case ValueType::eBool:
+//            case ValueType::eNumber:
+//            case ValueType::eString:
+//            case ValueType::eArray:
+//            case ValueType::eJson:
+//            case ValueType::eYaml:
+//            case ValueType::eXml:
+//                break;
+//        }
+
+        return static_cast<T>(get_at(index));
     }
 
     bool            error()                                                                     const noexcept;             API_CONTAINER
