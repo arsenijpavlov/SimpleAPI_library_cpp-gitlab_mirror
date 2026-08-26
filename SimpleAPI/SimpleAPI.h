@@ -7,6 +7,7 @@
 #include "utils/Logger.h"
 
 #include "config/Config.h"
+#include "config/StaticConfig.h"
 
 #include "network/Socket.h"
 #include "network/TcpSocket.h"

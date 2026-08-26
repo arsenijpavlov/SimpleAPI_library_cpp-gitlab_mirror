@@ -2,6 +2,7 @@
 
 #include "Comment.h"
 #include "ConfigCommon.h"
+#include "ConfigDefines.h"
 #include "../utils/TypeDefines.h"
 #include "ElementArray.h"
 #include "ElementBool.h"
@@ -439,6 +440,39 @@ public:
     long double     getLDouble()                                                                const;                      API_NUMBER
     std::string&    getString();                                                                                            API_STRING
     std::string     getString()                                                                 const;                      API_STRING
+
+    // преобразования к указанному типу
+    __ONLY_NUMBER_TYPES__(T)
+    T get() const
+    {
+        __CHECK_TYPE_IS_NUMBER__((*this))
+        return static_cast<T>(getNumber());
+    }
+    __ONLY_STRING_TYPES__(T)
+    T get() const
+    {
+        __CHECK_TYPE_IS_NUMBER__((*this))
+        return static_cast<T>(getString());
+    }
+    // bool
+    template<typename T, typename std::is_same<typename std::decay<T>::type, bool>::value>
+    bool get() const
+    {
+        __CHECK_TYPE_IS_BOOL__((*this))
+        return getBool();
+    }
+
+    // преобразования к указанному типу (из контейнеров)
+    __ONLY_ALLOWED_TYPES__(T)
+    T get(const std::string& key) const
+    {
+        return static_cast<T>(get_number_at(key));
+    }
+    __ONLY_ALLOWED_TYPES__(T)
+    T get(const size_t& index) const
+    {
+        return static_cast<T>(get_number_at(index));
+    }
 
     bool            error()                                                                     const noexcept;             API_CONTAINER
     std::string     getError()                                                                  const noexcept;             API_CONTAINER
