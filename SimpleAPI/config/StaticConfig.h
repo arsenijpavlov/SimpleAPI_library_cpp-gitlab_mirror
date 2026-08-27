@@ -41,7 +41,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_config_struct<T>::value>::
         std::cout << "(load) is struct: " << typeid(T).name() << std::endl;
     }
 
-    static Config save()
+    static void save()
     {
         std::cout << "(save) is struct: " << typeid(T).name() << std::endl;
     }
