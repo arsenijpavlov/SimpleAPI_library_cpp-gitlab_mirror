@@ -31,12 +31,16 @@ public:
 //   получим ::value == false для SFINAE, если указанных методов не существует (нельзя вызвать)
 template <typename T>
 class is_container {
-    // метод для SFINAE проверки наличия метода loadConfig у класса U
-    template <typename U> static char test(decltype(std::declval<U>().begin()));
+    // очистка типа от const и ссылок
+    using CleanT = typename std::decay<T>::type;
+
+    // метод для SFINAE проверки наличия метода begin() у класса U
+    template <typename U> static char test(decltype(std::declval<U>().begin())*);
     // метод для разрешения конфликта для поля value
     template <typename U> static long test(...);
 public:
-    static const bool value = sizeof(test<T>(0)) == sizeof(char);
+    static const bool value = (sizeof(test<CleanT>(0)) == sizeof(char))
+                              && !std::is_same<CleanT, std::string>::value;
 };
 
 // базовое объявление шаблона (сформирует ошибку компиляции для типов, которые не объявлены)
@@ -45,7 +49,9 @@ struct ConfigTypeTraits;
 
 // правило для определения структур
 template<typename T>
-struct ConfigTypeTraits<T, typename std::enable_if<is_config_struct<T>::value>::type> {
+struct ConfigTypeTraits<T, typename std::enable_if<is_config_struct<T>::value
+                                                   && !is_container<T>::value>::type>
+{
     static void load(const Config& config, const std::string& key, T& field)
     {
         field.loadConfig(config[key]);
@@ -57,31 +63,60 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_config_struct<T>::value>::
     }
 };
 
-// правило для определения типов-контейнеров
-//template<typename T>
-//struct ConfigTypeTraits<T, typename std::enable_if<is_container<T>::value>::type> {
-//    static void load(const Config& config, const std::string& key, T& field)
-//    {
-//        std::cout << "(load) is container: " << typeid(T).name() << std::endl;
-//    }
-
-//    static void save(Config& config, const std::string& key, const T& field)
-//    {
-//        std::cout << "(save) is container: " << typeid(T).name() << std::endl;
-//    }
-//};
-
-// правило для определения одиночных типов
+// правило для определения типов-контейнеров (vector, queue и т.д.)
+// std::string не считать за контейнер
 template<typename T>
-struct ConfigTypeTraits<T, typename std::enable_if<!is_config_struct<T>::value>::type> {
+struct ConfigTypeTraits<T, typename std::enable_if<is_container<T>::value>::type>
+{
     static void load(const Config& config, const std::string& key, T& field)
     {
-        field = config.get<T>(key);
+        field.clear();
+
+        if(config.containsKey(key)) {
+            const Config& inner_cfg = config[key];
+            for(const auto& item : inner_cfg.getRange()) {
+                using Type = typename T::value_type;
+                // рекурсивно вызываем traits(признаки) для каждого из элементов
+                Type item_value;
+                ConfigTypeTraits<Type>::load((*item.get()), "", item_value);
+
+                field.push_back(item_value);
+            }
+        }
     }
 
     static void save(Config& config, const std::string& key, const T& field)
     {
-        config[key] = field;
+        size_t index = 0;
+        for(const auto& item : field) {
+            using Type = typename T::value_type;
+
+            Config temp;
+            ConfigTypeTraits<Type>::save(temp, "", item);
+            config[key].push_back(temp);
+        }
+    }
+};
+
+// правило для определения одиночных типов
+template<typename T>
+struct ConfigTypeTraits<T, typename std::enable_if<!is_config_struct<T>::value
+                                                   && !is_container<T>::value>::type>
+{
+    static void load(const Config& config, const std::string& key, T& field)
+    {
+        if(!key.empty())
+            field = config[key].get<T>();
+        else
+            field = config.get<T>();
+    }
+
+    static void save(Config& config, const std::string& key, const T& field)
+    {
+        if(!key.empty())
+            config[key] = field;
+        else
+            config = field;
     }
 };
 
