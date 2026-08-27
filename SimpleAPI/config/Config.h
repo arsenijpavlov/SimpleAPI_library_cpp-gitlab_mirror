@@ -543,6 +543,8 @@ public:
     float           get_front_Float()                                                           const;                      API_CONTAINER
     double          get_front_Double()                                                          const;                      API_CONTAINER
     long double     get_front_LDouble()                                                         const;                      API_CONTAINER
+    char&           get_front_char();                                                                                       API_CONTAINER
+    char            get_front_char()                                                            const;                      API_CONTAINER
     std::string&    get_front_string();                                                                                     API_CONTAINER
     std::string     get_front_string()                                                          const;                      API_CONTAINER
 

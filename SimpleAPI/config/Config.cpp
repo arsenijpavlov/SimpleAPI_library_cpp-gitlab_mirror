@@ -908,6 +908,30 @@ long double Config::get_front_LDouble() const {
     return get_front_number();
 }
 
+char &Config::get_front_char()
+{
+    ...
+}
+
+char Config::get_front_char() const
+{
+    ...
+}
+
+std::string &Config::get_front_string() {
+    Config& config = get_front();
+    __CHECK_TYPE_IS_STRING__(config)
+
+    return dynamic_cast<tools::ElementString*>(config.m_value)->getValue();
+}
+
+std::string Config::get_front_string() const {
+    const Config& config = get_front();
+    __CHECK_TYPE_IS_STRING__(config)
+
+    return dynamic_cast<const tools::ElementString*>(config.m_value)->getValue();
+}
+
 long double &Config::get_number_at(const std::initializer_list<OnlySizetOrString> &complex_key) {
     return get_number_at(std::vector<OnlySizetOrString>(complex_key));
 }
@@ -958,20 +982,6 @@ double Config::get_Double_at(const std::initializer_list<OnlySizetOrString> &com
 
 long double Config::get_LDouble_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
     return get_number_at(std::move(complex_key));
-}
-
-std::string &Config::get_front_string() {
-    Config& config = get_front();
-    __CHECK_TYPE_IS_STRING__(config)
-
-    return dynamic_cast<tools::ElementString*>(config.m_value)->getValue();
-}
-
-std::string Config::get_front_string() const {
-    const Config& config = get_front();
-    __CHECK_TYPE_IS_STRING__(config)
-
-    return dynamic_cast<const tools::ElementString*>(config.m_value)->getValue();
 }
 
 bool &Config::get_bool_at(const size_t& index) {
