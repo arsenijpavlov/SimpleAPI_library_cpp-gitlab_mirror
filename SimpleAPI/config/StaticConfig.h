@@ -126,16 +126,14 @@ struct ConfigTypeTraits<T, typename std::enable_if<!is_config_struct<T>::value
     static void save(Config& config, const std::string& key, const T& field,
                      const std::string& prefix_comment, const std::string& suffix_comment)
     {
-//        if(!key.empty())
-//        {
             config[key] = field;
             config[key].setComment(prefix_comment, suffix_comment);
-//        }
-//        else
-//        {
-//            config = field;
-//            config.setComment(prefix_comment, suffix_comment);
-//        }
+    }
+    static void save(Config& config, const T& field,
+                     const std::string& prefix_comment, const std::string& suffix_comment)
+    {
+            config = field;
+            config.setComment(prefix_comment, suffix_comment);
     }
 };
 
