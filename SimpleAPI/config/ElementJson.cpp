@@ -939,8 +939,8 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
         /* для реализации выравнивания знаков '=' нужно в рамках общей длины XXX/K рассчитать максимум длины K
          *  XXX - весь дополнительный контекст пути
          */
+        size_t max_key_length = 0; // максимум текущей группы
         {
-            size_t max_key_length = 0; // максимум текущей группы
             size_t index_start    = 0; // начальный индекс текущей группы (финишный по текущей позиции)
             uint16_t current_group_name_size = 0;
             for(size_t i = 0; i < kbss.size(); i++) {
@@ -1002,11 +1002,11 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
                 //групповой комментарий для INI так и или иначе будет напечатан с новой строки, т.к. потеряется привязанность к группе
                 ret += ToComment(ptr_comment->m_comment_str, design) + "\n";
             }
-            else if(ptr_cfg)
+            if(ptr_cfg)
             {
                 ret += GetPrefixComment(*ptr_cfg->m_ptr_remote_cfg);
                 if(!ptr_cfg->m_key.empty()) {
-                    ret += ptr_cfg->m_key + " = ";
+                    ret += logs::columned(ptr_cfg->m_key, max_key_length + utils::GetStringCharCount(prefix)) + " = ";
                 }
                 if(ptr_cfg->m_ptr_remote_cfg->isString()  || ptr_cfg->m_ptr_remote_cfg->isChar()) {
                     AppendMultinlineString(ptr_cfg->m_ptr_remote_cfg->toString());
