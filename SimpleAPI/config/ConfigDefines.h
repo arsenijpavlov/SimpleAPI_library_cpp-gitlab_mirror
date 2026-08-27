@@ -19,7 +19,8 @@
 //==========================================================================VALUES
 
 //EXEPTIONS=======================================================================
-#define __INCORRECT_TYPE_EXCEPTION__(str)   throw std::invalid_argument(std::string("This Element is not a ") + #str + " type");
+#define __INCORRECT_TYPE_EXCEPTION__(str)       throw std::invalid_argument(std::string("This Element is not a ") + #str + " type");
+#define __INCORRECT_NOT_TYPE_EXCEPTION__(str)   throw std::invalid_argument(std::string("This Element must be a ") + #str + " type");
 
 #define __CHECK_TYPE_NOT_NULL_ACTION__(object)      if(!object.isNull())
 #define __CHECK_TYPE_NOT_BOOL_ACTION__(object)      if(!object.isBool())
@@ -35,11 +36,14 @@
 #define __CHECK_TYPE_IS_ARRAY__(object)     __CHECK_TYPE_NOT_ARRAY_ACTION__(object)     __INCORRECT_TYPE_EXCEPTION__("ARRAY")
 #define __CHECK_TYPE_IS_JSON__(object)      __CHECK_TYPE_NOT_JSON_ACTION__(object)      __INCORRECT_TYPE_EXCEPTION__("JSON")
 
-#define __CHECK_TYPE_IS_CONTAINER__(object) if(!object.isContainer())       __INCORRECT_TYPE_EXCEPTION__("container")
+#define __CHECK_TYPE_IS_CONTAINER__(object)     if(!object.isContainer())       __INCORRECT_TYPE_EXCEPTION__("container")
+#define __CHECK_TYPE_IS_NOT_CONTAINER__(object) if(object.isContainer())        __INCORRECT_NOT_TYPE_EXCEPTION__("not container")
 #define __CHECK_TYPE_IS_INDEX_CONTAINER__(object) \
-                                            if(!object.isIndexContainer())  __INCORRECT_TYPE_EXCEPTION__("index container")
+                                                if(!object.isIndexContainer())  __INCORRECT_TYPE_EXCEPTION__("index container")
 #define __CHECK_TYPE_IS_MAP_CONTAINER__(object) \
-                                            if(!object.isMapContainer())    __INCORRECT_TYPE_EXCEPTION__("map<key,value>")
+                                                if(!object.isMapContainer())    __INCORRECT_TYPE_EXCEPTION__("map<key,value>")
+#define __CHECK_TYPE_IS_NOT_MAP_CONTAINER__(object) \
+                                                if(object.isMapContainer())     __INCORRECT_NOT_TYPE_EXCEPTION__("not map<key,value>")
 
 #define __CHECK_TYPE_IS_NOT_NULL__(object)  if(object.isNull()) \
                                                 throw std::invalid_argument("This element is a NULL type");

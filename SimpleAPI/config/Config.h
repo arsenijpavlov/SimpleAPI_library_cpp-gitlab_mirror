@@ -466,38 +466,24 @@ public:
     __ONLY_ALLOWED_TYPES__(T)
     T get(const std::string& key) const
     {
-        // TODO:
-//        switch(getType()) {
-//            case ValueType::eNull:
-//            case ValueType::eBool:
-//            case ValueType::eNumber:
-//            case ValueType::eString:
-//            case ValueType::eArray:
-//            case ValueType::eJson:
-//            case ValueType::eYaml:
-//            case ValueType::eXml:
-//                break;
-//        }
+        __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
 
-        return static_cast<T>(get_at(key));
+        const Config& inner = get_at(key);
+        __CHECK_TYPE_IS_NOT_NULL__((inner))
+        __CHECK_TYPE_IS_CONTAINER__((inner))
+
+        return inner.get<T>();
     }
     __ONLY_ALLOWED_TYPES__(T)
     T get(const size_t& index) const
     {
-        // TODO:
-//        switch(getType()) {
-//            case ValueType::eNull:
-//            case ValueType::eBool:
-//            case ValueType::eNumber:
-//            case ValueType::eString:
-//            case ValueType::eArray:
-//            case ValueType::eJson:
-//            case ValueType::eYaml:
-//            case ValueType::eXml:
-//                break;
-//        }
+        __CHECK_TYPE_IS_CONTAINER__((*this))
 
-        return static_cast<T>(get_at(index));
+        const Config& inner = get_at(index);
+        __CHECK_TYPE_IS_NOT_NULL__((inner))
+        __CHECK_TYPE_IS_CONTAINER__((inner))
+
+        return inner.get<T>();
     }
 
     bool            error()                                                                     const noexcept;             API_CONTAINER
