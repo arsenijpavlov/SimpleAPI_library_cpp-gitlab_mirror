@@ -64,6 +64,12 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_config_struct<T>::value
         config[key] = field.saveConfig();
         config[key].setComment(prefix_comment, suffix_comment);
     }
+    static void save(Config& config, const T& field,
+                     const std::string& prefix_comment, const std::string& suffix_comment)
+    {
+        config = field.saveConfig();
+        config.setComment(prefix_comment, suffix_comment);
+    }
 };
 
 // правило для определения типов-контейнеров (vector, queue и т.д.)
@@ -73,12 +79,12 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container<T>::value>::type
 {
     static void load(const Config& config, const std::string& key, T& field)
     {
+        using Type = typename T::value_type;
         field.clear();
 
         if(config.containsKey(key)) {
             const Config& inner_cfg = config[key];
             for(const auto& item : inner_cfg.getRange()) {
-                using Type = typename T::value_type;
                 // рекурсивно вызываем traits(признаки) для каждого из элементов
                 Type item_value;
                 ConfigTypeTraits<Type>::load((*item.get()), "", item_value);
@@ -92,12 +98,11 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container<T>::value>::type
     static void save(Config& config, const std::string& key, const T& field,
                      const std::string& prefix_comment, const std::string& suffix_comment)
     {
-        size_t index = 0;
+        using Type = typename T::value_type;
+        Config temp;
         for(const auto& item : field) {
-            using Type = typename T::value_type;
-
-            Config temp;
-            ConfigTypeTraits<Type>::save(temp, "", item, "", "");
+            // ключ дальше нельзя передатть - создаст новую вложенность
+            ConfigTypeTraits<Type>::save(temp, item, "", "");
             config[key].push_back(temp);
             config[key].setComment(prefix_comment, suffix_comment);
         }
@@ -111,26 +116,26 @@ struct ConfigTypeTraits<T, typename std::enable_if<!is_config_struct<T>::value
 {
     static void load(const Config& config, const std::string& key, T& field)
     {
-        if(!key.empty())
+//        if(!key.empty())
             field = config[key].get<T>();
-        else
-            field = config.get<T>();
+//        else
+//            field = config.get<T>();
     }
 
     // комментарии учитываются только при записи
     static void save(Config& config, const std::string& key, const T& field,
                      const std::string& prefix_comment, const std::string& suffix_comment)
     {
-        if(!key.empty())
-        {
+//        if(!key.empty())
+//        {
             config[key] = field;
             config[key].setComment(prefix_comment, suffix_comment);
-        }
-        else
-        {
-            config = field;
-            config.setComment(prefix_comment, suffix_comment);
-        }
+//        }
+//        else
+//        {
+//            config = field;
+//            config.setComment(prefix_comment, suffix_comment);
+//        }
     }
 };
 
