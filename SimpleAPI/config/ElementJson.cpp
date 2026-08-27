@@ -753,7 +753,7 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
         if(m_values[i].second->isContainer()) {
             ret += utils::RemoveStartTabulations(temp);
         } else {
-            if(!m_values[i].second->isString()) {
+            if(!m_values[i].second->isString() && !m_values[i].second->isChar()) {
                 //в числах могут быть бесконечности
                 if(m_values[i].second->isNumber()) {
                     if(std::any_of(temp.begin(), temp.end(),
@@ -888,8 +888,9 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
             if(cfg_inner->isContainer()
                 || !cfg_inner->getPrefixComment().empty()
                 || !cfg_inner->getSuffixComment().empty()
-                || (cfg_inner->isString() && (cfg_inner->getString().find('\n') != std::string::npos
-                                              || cfg_inner->getString().size() > 50)))
+                || ((cfg_inner->isString() || cfg_inner->isChar())
+                    && (cfg_inner->getString().find('\n') != std::string::npos
+                        || cfg_inner->getString().size() > 50)))
             {
                 return false;
             }
@@ -919,10 +920,10 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
 
         ret += "[";
         for(size_t i = 0; i < cfg.size(); i++) {
-            if(cfg[i].isString())
+            if(cfg[i].isString() || cfg[i].isChar())
                 ret += "\"";
             ret += cfg[i].toString();
-            if(cfg[i].isString())
+            if(cfg[i].isString() || cfg[i].isChar())
                 ret += "\"";
 
             if(i + 1 < cfg.size())
@@ -1005,7 +1006,7 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
                 if(!ptr_cfg->m_key.empty()) {
                     ret += ptr_cfg->m_key + " = ";
                 }
-                if(ptr_cfg->m_ptr_remote_cfg->isString()) {
+                if(ptr_cfg->m_ptr_remote_cfg->isString()  || ptr_cfg->m_ptr_remote_cfg->isChar()) {
                     AppendMultinlineString(ptr_cfg->m_ptr_remote_cfg->toString());
                 } else {
                     ret += ptr_cfg->m_ptr_remote_cfg->toString();
@@ -1084,7 +1085,7 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
                         //нужно собрать все элементы массива и упаковать в общее имя с переходом между уровнями
                         AppendCollection(cfg_inner.first, *cfg_inner.second);
                     }
-                } else if(cfg_inner.second->isString()) {
+                } else if(cfg_inner.second->isString() || cfg_inner.second->isChar()) {
                     ret += GetPrefixComment(*cfg_inner.second);
                     if(!cfg_inner.first.empty())
                         ret += logs::columned(cfg_inner.first, max_length_inner) + " = ";
@@ -1129,7 +1130,7 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
             if(!cfg.first.empty())
                 ret += logs::columned(cfg.first, max_length) + " = ";
 
-            if(cfg.second->isString()) {
+            if(cfg.second->isString() || cfg.second->isChar()) {
                 AppendMultinlineString(cfg.second->toString());
             } else {
                 ret += cfg.second->toString();

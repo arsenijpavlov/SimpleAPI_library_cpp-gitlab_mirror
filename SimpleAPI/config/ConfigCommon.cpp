@@ -10,6 +10,7 @@ std::string ToString(const ValueType type) noexcept {
     switch(type) {
     case ValueType::eNumber:    return "Number";    break;
     case ValueType::eBool:      return "Bool";      break;
+    case ValueType::eChar:      return "Char";      break;
     case ValueType::eString:    return "String";    break;
     case ValueType::eJson:      return "Json";      break;
     case ValueType::eArray:     return "Array";     break;

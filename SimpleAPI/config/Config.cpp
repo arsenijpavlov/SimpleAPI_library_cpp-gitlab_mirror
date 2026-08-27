@@ -4,6 +4,7 @@
 #include "ElementNull.h"
 #include "ElementBool.h"
 #include "ElementNumber.h"
+#include "ElementChar.h"
 #include "ElementString.h"
 #include "ElementArray.h"
 #include "ElementJson.h"
@@ -345,6 +346,7 @@ Config &Config::setValue(const Config &other) noexcept {
         }
         case ValueType::eBool:      { setValue(dynamic_cast<const ElementBool*>(other.m_value)->getValue());    break;  }
         case ValueType::eNumber:    { setValue(dynamic_cast<const ElementNumber*>(other.m_value)->getValue());  break;  }
+        case ValueType::eChar:      { setValue(dynamic_cast<const ElementChar*>(other.m_value)->getValue());    break;  }
         case ValueType::eString:    { setValue(dynamic_cast<const ElementString*>(other.m_value)->getValue());  break;  }
         case ValueType::eArray:     { setValue(dynamic_cast<const ElementArray&>(*other.m_value));              break;  }
         case ValueType::eJson:      { setValue(dynamic_cast<const ElementJson&>(*other.m_value));               break;  }
@@ -385,6 +387,7 @@ Config &Config::setValue(const tools::IElement &other) noexcept {
     case ValueType::eNull:      { setValue();                                                       break;  }
     case ValueType::eBool:      { setValue(dynamic_cast<const ElementBool*>(&other)->getValue());   break;  }
     case ValueType::eNumber:    { setValue(dynamic_cast<const ElementNumber*>(&other)->getValue()); break;  }
+    case ValueType::eChar:      { setValue(dynamic_cast<const ElementChar*>(&other)->getValue());   break;  }
     case ValueType::eString:    { setValue(dynamic_cast<const ElementString*>(&other)->getValue()); break;  }
     case ValueType::eArray:     { setValue(dynamic_cast<const ElementArray&>(other));               break;  }
     case ValueType::eJson:      { setValue(dynamic_cast<const ElementJson&>(other));                break;  }
@@ -407,6 +410,7 @@ Config &Config::setValue(tools::IElement &&other) noexcept {
     case ValueType::eNull:      { setValue();                                                                   break;  }
     case ValueType::eBool:      { setValue(dynamic_cast<const ElementBool*>(&other)->getValue());               break;  }
     case ValueType::eNumber:    { setValue(std::move(dynamic_cast<const ElementNumber*>(&other)->getValue()));  break;  }
+    case ValueType::eChar:      { setValue(std::move(dynamic_cast<const ElementChar*>(&other)->getValue()));    break;  }
     case ValueType::eString:    { setValue(std::move(dynamic_cast<const ElementString*>(&other)->getValue()));  break;  }
     case ValueType::eArray:     { setValue(std::move(dynamic_cast<ElementArray&&>(other)));                     break;  }
     case ValueType::eJson:      { setValue(std::move(dynamic_cast<ElementJson&&>(other)));                      break;  }
@@ -433,6 +437,13 @@ Config &Config::setValue(const long double &other) noexcept {
 Config &Config::setValue(long double &&other) noexcept {
     release();
     m_value = new tools::ElementNumber(std::move(other));
+    return *this;
+}
+
+Config &Config::setValue(char other) noexcept
+{
+    release();
+    m_value = new tools::ElementChar(other);
     return *this;
 }
 
@@ -590,6 +601,46 @@ std::string &Config::getString() {
 std::string Config::getString() const {
     __CHECK_TYPE_IS_STRING__((*this))
     return dynamic_cast<const tools::ElementString*>(m_value)->getValue();
+}
+
+char &Config::getChar()
+{
+    __CHECK_TYPE_IS_CHAR_OR_STRING__((*this))
+
+    switch(getType()) {
+        case ValueType::eChar: {
+            return dynamic_cast<tools::ElementChar*>(m_value)->getValue();
+        }
+        case ValueType::eString: {
+            std::string& str = dynamic_cast<tools::ElementString*>(m_value)->getValue();
+            if(str.empty()) str.append(0);
+            return str.at(0);
+        }
+        default: break;
+    }
+
+    // до этой строки никогда не доходим (расчёт на __CHECK... проверки)
+    return dynamic_cast<tools::ElementChar*>(m_value)->getValue();
+}
+
+char Config::getChar() const
+{
+    __CHECK_TYPE_IS_CHAR_OR_STRING__((*this))
+
+    switch(getType()) {
+    case ValueType::eChar: {
+            return dynamic_cast<const tools::ElementChar*>(m_value)->getValue();
+    }
+    case ValueType::eString: {
+            std::string str = dynamic_cast<const tools::ElementString*>(m_value)->getValue();
+            if(str.empty()) return 0;
+            return str.at(0);
+    }
+    default: break;
+    }
+
+    // до этой строки никогда не доходим (расчёт на __CHECK... проверки)
+    return dynamic_cast<const tools::ElementChar*>(m_value)->getValue();
 }
 
 bool Config::error() const noexcept {
@@ -1794,9 +1845,17 @@ bool Config::isEqual(const tools::IElement &other, const bool compare_comments,
     return m_value->isEqual(other, compare_comments, map_sort_important);
 }
 
-bool Config::isEqual(const bool other) const noexcept {
+bool Config::isEqual(bool other) const noexcept {
     __CHECK_TYPE_NOT_BOOL_ACTION__((*this))
         return false;
+
+    return dynamic_cast<const tools::ElementBool*>(m_value)->getValue() == other;
+}
+
+bool Config::isEqual(char other) const noexcept
+{
+    __CHECK_TYPE_NOT_CHAR_ACTION__((*this))
+    return false;
 
     return dynamic_cast<const tools::ElementBool*>(m_value)->getValue() == other;
 }
@@ -1820,6 +1879,7 @@ bool Config::containsValue(const Config &config) const noexcept {
     case ValueType::eNull:      return true;
     case ValueType::eBool:      return config.isBool() && getBool() == config.getBool();
     case ValueType::eNumber:    return config.isNumber() && getNumber() == config.getNumber();
+    case ValueType::eChar:      return config.isChar() && getChar() == config.getChar();
     case ValueType::eString:    return config.isString() && getString() == config.getString();
     case ValueType::eArray:     return std::any_of(getRange().cbegin(), getRange().cend(),
                                     [&config](const std::shared_ptr<Config>& value)
@@ -3132,6 +3192,7 @@ bool Config::parseXml(const std::string &content, const CommentDesign &design) n
         case ParseStateXml::eXML_ERROR: {
             break; // выход из switch
         }
+        default: break; // выход из switch
         } // ~switch()
 
         if(error())
@@ -4108,10 +4169,11 @@ Config CreateElementFromString(std::string &&value_string, const ConfigFormat fo
     // в теории, всё, что не распарсилось в другие значения, - должно считаться строкой
     //удаление кавычек (при наличии)
     RemoveQuotes(value_string);
-    /*STRING*/ {
+    /*CHAR*/ if(value_string.size() == 1) {
         return Config(value_string);
     }
 
+    /*STRING*/
     return Config(value_string);
 }
 

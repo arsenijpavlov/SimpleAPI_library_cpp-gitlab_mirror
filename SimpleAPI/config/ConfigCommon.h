@@ -26,6 +26,7 @@ enum class ValueType {
     eNull,
     eBool,
     eNumber,
+    eChar,
     eString,
     eArray,
     eJson,

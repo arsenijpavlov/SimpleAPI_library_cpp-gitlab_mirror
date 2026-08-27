@@ -27,12 +27,12 @@ template<typename ARG, \
                                                 || std::is_same<        typename std::remove_cv<typename std::remove_reference<ARG>::type>::type, bool>::value \
                            >::type* = nullptr>
 
-
 #define __ONLY_STRING_TYPES__(ARG) \
 template<typename ARG, \
                        typename std::enable_if< \
-                                                    std::is_convertible<    typename std::decay<ARG>::type, std::string>::value || \
-                                                    std::is_same<           typename std::decay<ARG>::type, const char*>::value , \
+                                                    (std::is_convertible<   typename std::decay<ARG>::type, std::string>::value   \
+                                                    || std::is_same<        typename std::decay<ARG>::type, const char*>::value ) \
+                                                    && !std::is_same<       typename std::decay<ARG>::type, char>::value,          \
                                                 int \
                            >::type* = nullptr>
 
@@ -41,6 +41,7 @@ template<typename ARG, \
                        typename std::enable_if< \
                                                 std::is_arithmetic<     typename std::decay<ARG>::type>::value \
                                                 && !std::is_same<       typename std::decay<ARG>::type, bool>::value \
+                                                && !std::is_same<       typename std::decay<ARG>::type, char>::value \
                            >::type* = nullptr>
 
 template<bool...> struct bool_pack;

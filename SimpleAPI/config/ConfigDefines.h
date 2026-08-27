@@ -25,14 +25,20 @@
 #define __CHECK_TYPE_NOT_NULL_ACTION__(object)      if(!object.isNull())
 #define __CHECK_TYPE_NOT_BOOL_ACTION__(object)      if(!object.isBool())
 #define __CHECK_TYPE_NOT_NUMBER_ACTION__(object)    if(!object.isNumber())
+#define __CHECK_TYPE_NOT_CHAR_ACTION__(object)      if(!object.isChar())
 #define __CHECK_TYPE_NOT_STRING_ACTION__(object)    if(!object.isString())
+#define __CHECK_TYPE_NOT_CHAR_OR_STRING_ACTION__(object) \
+                                                    if(!object.isString() && !object.isChar())
 #define __CHECK_TYPE_NOT_ARRAY_ACTION__(object)     if(!object.isArray())
 #define __CHECK_TYPE_NOT_JSON_ACTION__(object)      if(!object.isJson())
 
 #define __CHECK_TYPE_IS_NULL__(object)      __CHECK_TYPE_NOT_NULL_ACTION__(object)      __INCORRECT_TYPE_EXCEPTION__("NULL")
 #define __CHECK_TYPE_IS_BOOL__(object)      __CHECK_TYPE_NOT_BOOL_ACTION__(object)      __INCORRECT_TYPE_EXCEPTION__("BOOL")
 #define __CHECK_TYPE_IS_NUMBER__(object)    __CHECK_TYPE_NOT_NUMBER_ACTION__(object)    __INCORRECT_TYPE_EXCEPTION__("NUMBER")
+#define __CHECK_TYPE_IS_CHAR__(object)      __CHECK_TYPE_NOT_CHAR_ACTION__(object)      __INCORRECT_TYPE_EXCEPTION__("CHAR")
 #define __CHECK_TYPE_IS_STRING__(object)    __CHECK_TYPE_NOT_STRING_ACTION__(object)    __INCORRECT_TYPE_EXCEPTION__("STRING")
+#define __CHECK_TYPE_IS_CHAR_OR_STRING__(object) \
+                                            __CHECK_TYPE_NOT_CHAR_OR_STRING_ACTION__(object) __INCORRECT_TYPE_EXCEPTION__("CHAR or STRING")
 #define __CHECK_TYPE_IS_ARRAY__(object)     __CHECK_TYPE_NOT_ARRAY_ACTION__(object)     __INCORRECT_TYPE_EXCEPTION__("ARRAY")
 #define __CHECK_TYPE_IS_JSON__(object)      __CHECK_TYPE_NOT_JSON_ACTION__(object)      __INCORRECT_TYPE_EXCEPTION__("JSON")
 
