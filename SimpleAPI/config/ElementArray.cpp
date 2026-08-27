@@ -442,10 +442,11 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
     CommentDesign inner_design = design;
 
     auto GetPrefixComment = [&design](const Config cfg) -> std::string {
-        return (cfg.getPrefixComment().empty()) ? "" : (ToComment(cfg.getPrefixComment(), design) + "\n");
+        return (!design.with_comments || cfg.getPrefixComment().empty()) ? ""
+                                                                         : (ToComment(cfg.getPrefixComment(), design) + "\n");
     };
     auto GetSuffixComment = [&design, &ret, &inner_design](const Config cfg) -> std::string {
-        if(cfg.getSuffixComment().empty())
+        if(!design.with_comments || cfg.getSuffixComment().empty())
             return "";
 
         // ширина колонки многострочного комментария после значения не влияет на вывод
@@ -580,7 +581,7 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
         for(auto& kbs : kbss) {
             KeysComments* ptr_comment = dynamic_cast<KeysComments*>(kbs.get());
             KeysValues* ptr_cfg       = dynamic_cast<KeysValues*>(kbs.get());
-            if(ptr_comment) {
+            if(design.with_comments && ptr_comment) {
                 //групповой комментарий для INI так и или иначе будет напечатан с новой строки, т.к. потеряется привязанность к группе
                 ret += ToComment(ptr_comment->m_comment_str, design) + "\n";
             } else if(ptr_cfg) {
@@ -604,7 +605,7 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
         }
     };
 
-    if(!getPrefixComment().empty()) {
+    if(design.with_comments && !getPrefixComment().empty()) {
         ret += ToComment(getPrefixComment(), design) + "\n\n\n";
     }
 
@@ -703,7 +704,7 @@ std::string ElementArray::toIniString(const CommentDesign &design, const int8_t 
         }
     } // loop for()
 
-    if(!getSuffixComment().empty()) {
+    if(design.with_comments && !getSuffixComment().empty()) {
         ret += "\n\n" + ToComment(getSuffixComment(), design);
     }
 
