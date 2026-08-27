@@ -9,12 +9,22 @@ namespace tools {
 //   получим ::value == false для SFINAE, если указанных методов не существует (нельзя вызвать)
 template <typename T>
 class is_config_struct {
+    // очистка типа от const и ссылок
+    using CleanT = typename std::decay<T>::type;
+
     // метод для SFINAE проверки наличия метода loadConfig у класса U
-    template <typename U> static char test(decltype(&U::loadConfig()));
+    template <typename U>
+    static char test(
+        decltype(
+            std::declval<U>().loadConfig(
+                std::declval<const Config&>()
+            )
+        )*
+    );
     // метод для разрешения конфликта для поля value
     template <typename U> static long test(...);
 public:
-    static const bool value = sizeof(test<T>(0)) == sizeof(char);
+    static const bool value = sizeof(test<CleanT>(0)) == sizeof(char);
 };
 
 // проверка: является ли тип контейнером (имеет метод begin())
@@ -36,30 +46,30 @@ struct ConfigTypeTraits;
 // правило для определения структур
 template<typename T>
 struct ConfigTypeTraits<T, typename std::enable_if<is_config_struct<T>::value>::type> {
-    static void load()
+    static void load(const Config& config, const std::string& key, T& field)
     {
-        std::cout << "(load) is struct: " << typeid(T).name() << std::endl;
+        field.loadConfig(config[key]);
     }
 
-    static void save()
+    static void save(Config& config, const std::string& key, const T& field)
     {
-        std::cout << "(save) is struct: " << typeid(T).name() << std::endl;
+        config[key] = field.saveConfig();
     }
 };
 
 // правило для определения типов-контейнеров
-template<typename T>
-struct ConfigTypeTraits<T, typename std::enable_if<is_container<T>::value>::type> {
-    static void load()
-    {
-        std::cout << "(load) is container: " << typeid(T).name() << std::endl;
-    }
+//template<typename T>
+//struct ConfigTypeTraits<T, typename std::enable_if<is_container<T>::value>::type> {
+//    static void load(const Config& config, const std::string& key, T& field)
+//    {
+//        std::cout << "(load) is container: " << typeid(T).name() << std::endl;
+//    }
 
-    static void save()
-    {
-        std::cout << "(save) is container: " << typeid(T).name() << std::endl;
-    }
-};
+//    static void save(Config& config, const std::string& key, const T& field)
+//    {
+//        std::cout << "(save) is container: " << typeid(T).name() << std::endl;
+//    }
+//};
 
 // правило для определения одиночных типов
 template<typename T>
