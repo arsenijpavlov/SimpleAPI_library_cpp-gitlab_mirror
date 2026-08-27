@@ -57,14 +57,17 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_config_struct<T>::value
         field.loadConfig(config[key]);
     }
 
-    static void save(Config& config, const std::string& key, const T& field)
+    // комментарии учитываются только при записи
+    static void save(Config& config, const std::string& key, const T& field,
+                     const std::string& prefix_comment, const std::string& suffix_comment)
     {
         config[key] = field.saveConfig();
+        config[key].setComment(prefix_comment, suffix_comment);
     }
 };
 
 // правило для определения типов-контейнеров (vector, queue и т.д.)
-// std::string не считать за контейнер
+// std::string не считается за контейнер и обрабатывается как цельный элемент
 template<typename T>
 struct ConfigTypeTraits<T, typename std::enable_if<is_container<T>::value>::type>
 {
@@ -85,15 +88,18 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container<T>::value>::type
         }
     }
 
-    static void save(Config& config, const std::string& key, const T& field)
+    // комментарии учитываются только при записи
+    static void save(Config& config, const std::string& key, const T& field,
+                     const std::string& prefix_comment, const std::string& suffix_comment)
     {
         size_t index = 0;
         for(const auto& item : field) {
             using Type = typename T::value_type;
 
             Config temp;
-            ConfigTypeTraits<Type>::save(temp, "", item);
+            ConfigTypeTraits<Type>::save(temp, "", item, "", "");
             config[key].push_back(temp);
+            config[key].setComment(prefix_comment, suffix_comment);
         }
     }
 };
@@ -111,44 +117,94 @@ struct ConfigTypeTraits<T, typename std::enable_if<!is_config_struct<T>::value
             field = config.get<T>();
     }
 
-    static void save(Config& config, const std::string& key, const T& field)
+    // комментарии учитываются только при записи
+    static void save(Config& config, const std::string& key, const T& field,
+                     const std::string& prefix_comment, const std::string& suffix_comment)
     {
         if(!key.empty())
+        {
             config[key] = field;
+            config[key].setComment(prefix_comment, suffix_comment);
+        }
         else
+        {
             config = field;
+            config.setComment(prefix_comment, suffix_comment);
+        }
     }
 };
 
-#define DECLARE_FIELD(type, name, default_value) \
+
+// NOTE: приставка SAPI_ - сокращение от SimpleAPI_ для избежания совпадений с пользовательским пространством
+
+// макрос-счётчик аргументов в других макросах
+#define SAPI_GETTER_MACRO(_1, _2, _3, _4, _5, NAME, ...) NAME
+
+// объявления
+#define SAPI_DECLARE_FIELD_3(type, name, default_value) \
     type name;
+#define SAPI_DECLARE_FIELD_4(type, name, default_value, prefix_comment) \
+    type name;
+#define SAPI_DECLARE_FIELD_5(type, name, default_value, prefix_comment, suffix_comment) \
+    type name;
+// обёртка
+#define SAPI_DECLARE_FIELD(...) \
+    SAPI_GETTER_MACRO(__VA_ARGS__, SAPI_DECLARE_FIELD_5, SAPI_DECLARE_FIELD_4, SAPI_DECLARE_FIELD_3)(__VA_ARGS__)
 
-#define INIT_FIELD(type, name, default_value) \
-    this->name = default_value;
+// инициализаторы
+#define SAPI_INIT_FIELD_3(type, name, default_value) \
+    name = default_value;
+#define SAPI_INIT_FIELD_4(type, name, default_value, prefix_comment) \
+    name = default_value;
+#define SAPI_INIT_FIELD_5(type, name, default_value, prefix_comment, suffix_comment) \
+    name = default_value;
+// обёртка
+#define SAPI_INIT_FIELD(...) \
+    SAPI_GETTER_MACRO(__VA_ARGS__, SAPI_INIT_FIELD_5, SAPI_INIT_FIELD_4, SAPI_INIT_FIELD_3)(__VA_ARGS__)
 
-#define LOAD_FIELD(type, name, default_value)                                         \
-    if(load_conf.containsKey(#name)) {                                                \
-        simpleapi::tools::ConfigTypeTraits<type>::load(load_conf, #name, this->name); \
+// загрузчики
+#define SAPI_LOAD_FIELD_3(type, name, default_value)                                 \
+    if(load_conf.containsKey(#name)) {                                               \
+        simpleapi::tools::ConfigTypeTraits<type>::load(load_conf, #name, name);      \
     }
+#define SAPI_LOAD_FIELD_4(type, name, default_value, prefix_comment)                 \
+    if(load_conf.containsKey(#name)) {                                               \
+        simpleapi::tools::ConfigTypeTraits<type>::load(load_conf, #name, name);      \
+    }
+#define SAPI_LOAD_FIELD_5(type, name, default_value, prefix_comment, suffix_comment) \
+    if(load_conf.containsKey(#name)) {                                               \
+        simpleapi::tools::ConfigTypeTraits<type>::load(load_conf, #name, name);      \
+    }
+// обёртка
+#define SAPI_LOAD_FIELD(...) \
+    SAPI_GETTER_MACRO(__VA_ARGS__, SAPI_LOAD_FIELD_5, SAPI_LOAD_FIELD_4, SAPI_LOAD_FIELD_3)(__VA_ARGS__)
 
-#define SAVE_FIELD(type, name, default_value) \
-    simpleapi::tools::ConfigTypeTraits<type>::save(save_conf, #name, this->name);
+// записыватели
+#define SAPI_SAVE_FIELD_3(type, name, default_value)                                                       \
+    simpleapi::tools::ConfigTypeTraits<type>::save(save_conf, #name, name, "", "");
+#define SAPI_SAVE_FIELD_4(type, name, default_value, prefix_comment)                                       \
+    simpleapi::tools::ConfigTypeTraits<type>::save(save_conf, #name, name, prefix_comment, "");
+#define SAPI_SAVE_FIELD_5(type, name, default_value, prefix_comment, suffix_comment)                       \
+    simpleapi::tools::ConfigTypeTraits<type>::save(save_conf, #name, name, prefix_comment, suffix_comment);
+// обёртка
+#define SAPI_SAVE_FIELD(...) \
+    SAPI_GETTER_MACRO(__VA_ARGS__, SAPI_SAVE_FIELD_5, SAPI_SAVE_FIELD_4, SAPI_SAVE_FIELD_3)(__VA_ARGS__)
 
-#define REGISTER_CONFIG(StructName, FIELDS_MACRO)               \
+#define SAPI_REGISTER_CONFIG(StructName, SAPI_FIELDS_MACRO)     \
     struct StructName {                                         \
-        FIELDS_MACRO(DECLARE_FIELD)                             \
+        SAPI_FIELDS_MACRO(SAPI_DECLARE_FIELD)                   \
                                                                 \
         StructName() {                                          \
-            FIELDS_MACRO(INIT_FIELD)                            \
+            SAPI_FIELDS_MACRO(SAPI_INIT_FIELD)                  \
         }                                                       \
                                                                 \
         void loadConfig(const simpleapi::Config& load_conf) {   \
-            FIELDS_MACRO(LOAD_FIELD)                            \
+            SAPI_FIELDS_MACRO(SAPI_LOAD_FIELD)                  \
         }                                                       \
                                                                 \
         simpleapi::Config saveConfig() const {                  \
             simpleapi::Config save_conf;                        \
-            FIELDS_MACRO(SAVE_FIELD)                            \
+            SAPI_FIELDS_MACRO(SAPI_SAVE_FIELD)                  \
             return save_conf;                                   \
         }                                                       \
     };
@@ -160,7 +216,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<!is_config_struct<T>::value
 //        X(uint8_t, u_integer, 3)   \
 //        X(std::string, str, "asd")
 //
-//    REGISTER_CONFIG(TestConfig, STRUCT_FIELDS)
+//    SAPI_REGISTER_CONFIG(TestConfig, STRUCT_FIELDS)
 // EXAMPLE OF USAGE -------------------------------------------
 
 } // namespace tools
