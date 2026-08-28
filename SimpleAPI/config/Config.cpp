@@ -4,8 +4,6 @@
 #include "ElementNull.h"
 #include "ElementBool.h"
 #include "ElementNumber.h"
-#include "ElementChar.h"
-#include "ElementString.h"
 #include "ElementArray.h"
 #include "ElementJson.h"
 //#include "ElementYaml.h"
@@ -910,12 +908,18 @@ long double Config::get_front_LDouble() const {
 
 char &Config::get_front_char()
 {
-    ...
+    Config& config = get_front();
+    __CHECK_TYPE_IS_CHAR__(config)
+
+    return dynamic_cast<tools::ElementChar*>(config.m_value)->getValue();
 }
 
 char Config::get_front_char() const
 {
-    ...
+    const Config& config = get_front();
+    __CHECK_TYPE_IS_CHAR__(config)
+
+    return dynamic_cast<const tools::ElementChar*>(config.m_value)->getValue();
 }
 
 std::string &Config::get_front_string() {
@@ -930,58 +934,6 @@ std::string Config::get_front_string() const {
     __CHECK_TYPE_IS_STRING__(config)
 
     return dynamic_cast<const tools::ElementString*>(config.m_value)->getValue();
-}
-
-long double &Config::get_number_at(const std::initializer_list<OnlySizetOrString> &complex_key) {
-    return get_number_at(std::vector<OnlySizetOrString>(complex_key));
-}
-
-long double Config::get_number_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
-    return get_number_at(std::vector<OnlySizetOrString>(complex_key));
-}
-
-uint8_t Config::get_UInt8_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
-    return static_cast<uint8_t>(get_number_at(std::move(complex_key)));
-}
-
-uint16_t Config::get_UInt16_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
-    return static_cast<uint16_t>(get_number_at(std::move(complex_key)));
-}
-
-uint32_t Config::get_UInt32_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
-    return static_cast<uint32_t>(get_number_at(std::move(complex_key)));
-}
-
-uint64_t Config::get_UInt64_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
-    return static_cast<uint64_t>(get_number_at(std::move(complex_key)));
-}
-
-int8_t Config::get_Int8_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
-    return static_cast<int8_t>(get_number_at(std::move(complex_key)));
-}
-
-int16_t Config::get_Int16_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
-    return static_cast<int16_t>(get_number_at(std::move(complex_key)));
-}
-
-int32_t Config::get_Int32_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
-    return static_cast<int32_t>(get_number_at(std::move(complex_key)));
-}
-
-int64_t Config::get_Int64_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
-    return static_cast<int64_t>(get_number_at(std::move(complex_key)));
-}
-
-float Config::get_Float_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
-    return static_cast<float>(get_number_at(std::move(complex_key)));
-}
-
-double Config::get_Double_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
-    return static_cast<double>(get_number_at(std::move(complex_key)));
-}
-
-long double Config::get_LDouble_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
-    return get_number_at(std::move(complex_key));
 }
 
 bool &Config::get_bool_at(const size_t& index) {
@@ -1272,6 +1224,150 @@ long double Config::get_LDouble_at(const std::vector<OnlySizetOrString> &complex
     return get_number_at(std::move(complex_key));
 }
 
+long double &Config::get_number_at(const std::initializer_list<OnlySizetOrString> &complex_key) {
+    return get_number_at(std::vector<OnlySizetOrString>(complex_key));
+}
+
+long double Config::get_number_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return get_number_at(std::vector<OnlySizetOrString>(complex_key));
+}
+
+uint8_t Config::get_UInt8_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<uint8_t>(get_number_at(std::move(complex_key)));
+}
+
+uint16_t Config::get_UInt16_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<uint16_t>(get_number_at(std::move(complex_key)));
+}
+
+uint32_t Config::get_UInt32_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<uint32_t>(get_number_at(std::move(complex_key)));
+}
+
+uint64_t Config::get_UInt64_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<uint64_t>(get_number_at(std::move(complex_key)));
+}
+
+int8_t Config::get_Int8_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<int8_t>(get_number_at(std::move(complex_key)));
+}
+
+int16_t Config::get_Int16_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<int16_t>(get_number_at(std::move(complex_key)));
+}
+
+int32_t Config::get_Int32_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<int32_t>(get_number_at(std::move(complex_key)));
+}
+
+int64_t Config::get_Int64_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<int64_t>(get_number_at(std::move(complex_key)));
+}
+
+float Config::get_Float_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<float>(get_number_at(std::move(complex_key)));
+}
+
+double Config::get_Double_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<double>(get_number_at(std::move(complex_key)));
+}
+
+long double Config::get_LDouble_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return get_number_at(std::move(complex_key));
+}
+
+char &Config::get_char_at(const size_t &index)
+{
+    const Config& config = get_at(index);
+    __CHECK_TYPE_IS_CHAR__(config)
+
+    return dynamic_cast<tools::ElementChar*>(config.m_value)->getValue();
+}
+
+char Config::get_char_at(const size_t &index) const
+{
+    const Config& config = get_at(index);
+    __CHECK_TYPE_IS_CHAR__(config)
+
+    return dynamic_cast<const tools::ElementChar*>(config.m_value)->getValue();
+}
+
+char &Config::get_char_at(const std::string &key)
+{
+    const Config& config = get_at(key);
+    __CHECK_TYPE_IS_CHAR__(config)
+
+    return dynamic_cast<tools::ElementChar*>(config.m_value)->getValue();
+}
+
+char Config::get_char_at(const std::string &key) const
+{
+    const Config& config = get_at(key);
+    __CHECK_TYPE_IS_CHAR__(config)
+
+    return dynamic_cast<const tools::ElementChar*>(config.m_value)->getValue();
+}
+
+char &Config::get_char_at(const std::vector<OnlySizetOrString> &complex_key)
+{
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    if(complex_key.size() == 0)
+        throw std::invalid_argument("get_char_at({}) - try a get incorrect index/key (no value)");
+
+    //определить тип значения первого индекса/ключа
+    Config* ret;
+    switch (complex_key[0].getType()) {
+    case OnlySizetOrString::Type::type_string:  ret = &get_at(complex_key[0].getStringValue()); break;
+    case OnlySizetOrString::Type::type_sizet:   ret = &get_at(complex_key[0].getIndexValue());  break;
+    default:
+        //это значение пользователь библиотеки не увидит
+        throw std::invalid_argument("incorrect complex_key type");
+    }
+
+    if(complex_key.size() == 1)
+        return (*ret).getChar();
+
+    //создать следующую итерацию списка
+    std::vector<OnlySizetOrString> new_key = complex_key;
+    new_key.erase(new_key.cbegin());
+    return ret->get_char_at(new_key);
+}
+
+char Config::get_char_at(const std::vector<OnlySizetOrString> &complex_key) const
+{
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    if(complex_key.size() == 0)
+        throw std::invalid_argument("get_char_at({}) - try a get incorrect index/key (no value)");
+
+    //определить тип значения первого индекса/ключа
+    Config ret;
+    switch (complex_key[0].getType()) {
+    case OnlySizetOrString::Type::type_string:  ret = get_at(complex_key[0].getStringValue());  break;
+    case OnlySizetOrString::Type::type_sizet:   ret = get_at(complex_key[0].getIndexValue());   break;
+    default:
+        //это значение пользователь библиотеки не увидит
+        throw std::invalid_argument("incorrect complex_key type");
+    }
+
+    if(complex_key.size() == 1)
+        return ret.getChar();
+
+    //создать следующую итерацию списка
+    std::vector<OnlySizetOrString> new_key = complex_key;
+    new_key.erase(new_key.cbegin());
+    return ret.get_char_at(new_key);
+}
+
+char &Config::get_char_at(const std::initializer_list<OnlySizetOrString> &complex_key)
+{
+    return get_char_at(std::vector<OnlySizetOrString>(complex_key));
+}
+
+char Config::get_char_at(const std::initializer_list<OnlySizetOrString> &complex_key) const
+{
+    return get_char_at(std::vector<OnlySizetOrString>(complex_key));
+}
+
 std::string &Config::get_string_at(const size_t& index) {
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_STRING__(config)
@@ -1428,6 +1524,22 @@ double Config::get_Double_back() const {
 
 long double Config::get_LDouble_back() const {
     return get_number_back();
+}
+
+char &Config::get_char_back()
+{
+    const Config& config = get_back();
+    __CHECK_TYPE_IS_CHAR__(config)
+
+    return dynamic_cast<tools::ElementChar*>(config.m_value)->getValue();
+}
+
+char Config::get_char_back() const
+{
+    const Config& config = get_back();
+    __CHECK_TYPE_IS_CHAR__(config)
+
+    return dynamic_cast<const tools::ElementChar*>(config.m_value)->getValue();
 }
 
 std::string &Config::get_string_back() {

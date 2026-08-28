@@ -6,6 +6,7 @@
 #include "../utils/TypeDefines.h"
 #include "ElementArray.h"
 #include "ElementBool.h"
+#include "ElementChar.h"
 #include "ElementJson.h"
 #include "ElementNumber.h"
 #include "ElementString.h"
@@ -109,6 +110,10 @@ public:
             m_value = new ElementNumber();
             break;
         }
+        case ValueType::eChar: {
+            m_value = new ElementChar();
+            break;
+        }
         case ValueType::eString: {
             m_value = new ElementString();
             break;
@@ -164,6 +169,18 @@ public:
                 setValue(vec[0]);
             else
                 m_value = new ElementNumber();
+            break;
+        }
+        case ValueType::eChar: {
+            if(sizeof...(values) > 1)
+                throw std::invalid_argument("one argument maximum required (type String)");
+            if(!vec[0].isString())
+                throw std::invalid_argument("incorrect format (type Char)");
+
+            if(sizeof...(values) == 1)
+                setValue(vec[0]);
+            else
+                m_value = new ElementChar();
             break;
         }
         case ValueType::eString: {
@@ -236,6 +253,18 @@ public:
                 setValue(std::move(vec[0]));
             else
                 m_value = new ElementNumber();
+            break;
+        }
+        case ValueType::eChar: {
+            if(sizeof...(values) > 1)
+                throw std::invalid_argument("one argument maximum required (type String)");
+            if(!vec[0].isString())
+                throw std::invalid_argument("incorrect format (type String)");
+
+            if(sizeof...(values) == 1)
+                setValue(vec[0]);
+            else
+                m_value = new ElementChar();
             break;
         }
         case ValueType::eString: {
@@ -618,6 +647,17 @@ public:
     double          get_Double_at(const std::initializer_list<OnlySizetOrString>& complex_key)  const;                      API_CONTAINER
     long double     get_LDouble_at(const std::initializer_list<OnlySizetOrString>& complex_key) const;                      API_CONTAINER
 
+    char&           get_char_at(const size_t& index);                                                                       API_CONTAINER
+    char            get_char_at(const size_t& index)                                            const;                      API_CONTAINER
+    char&           get_char_at(const std::string& key);                                                                    API_MAP_CONTAINER
+    char            get_char_at(const std::string& key)                                         const;                      API_MAP_CONTAINER
+    char&           get_char_at(const std::vector<OnlySizetOrString>& complex_key);                                         API_CONTAINER
+    char            get_char_at(const std::vector<OnlySizetOrString>& complex_key)              const;                      API_CONTAINER
+
+    //фикс для вызова через {}
+    char&           get_char_at(const std::initializer_list<OnlySizetOrString>& complex_key);                               API_CONTAINER
+    char            get_char_at(const std::initializer_list<OnlySizetOrString>& complex_key)    const;                      API_CONTAINER
+
     std::string&    get_string_at(const size_t& index);                                                                     API_CONTAINER
     std::string     get_string_at(const size_t& index)                                          const;                      API_CONTAINER
     std::string&    get_string_at(const std::string& key);                                                                  API_MAP_CONTAINER
@@ -644,6 +684,8 @@ public:
     float           get_Float_back()                                                            const;                      API_CONTAINER
     double          get_Double_back()                                                           const;                      API_CONTAINER
     long double     get_LDouble_back()                                                          const;                      API_CONTAINER
+    char&           get_char_back();                                                                                        API_CONTAINER
+    char            get_char_back()                                                             const;                      API_CONTAINER
     std::string&    get_string_back();                                                                                      API_CONTAINER
     std::string     get_string_back()                                                           const;                      API_CONTAINER
     // ========================================================================================================= Getters
