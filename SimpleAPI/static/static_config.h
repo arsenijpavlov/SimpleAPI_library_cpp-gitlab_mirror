@@ -98,6 +98,30 @@
  * - базовая структура не может состоять из примитива Config,
  *      то есть пользователю нужно использовать стандартное "val = config;" без преобразований
  * - Config верхнего уровня обязан состоять из объекта Config, который сам по себе является ассоциативным массивом
+ * - допустимые типы:
+ *      - самостоятельный тип-примитив T
+ *      - самостоятельный тип-структура T
+ *      - индексные контейнеры:
+ *          - std::vector<T>
+ *          - std::list<T>
+ *          - std::forward_list<T>
+ *          - std::array<T, size>
+ *          - std::set<T>
+ *          - std::bitset<T>
+ *          - std::multiset<T>
+ *          - std::basic_string             - сейчас нет реализации (имеет ли смысл?)
+ *          - std::unordered_set<T>
+ *          - std::unordered_multiset<T>
+ *      - очереди:
+ *          - std::stack<T>
+ *          - std::queue<T>
+ *          - std::deque<T>
+ *          - std::priority_queue<T>
+ *      - ассоциативные контейнеры:
+ *          - std::map<K, T>
+ *          - std::unordered_map<K, T>
+ *          - std::multimap<K, T>           - сейчас нет реализации (Config не может содержать дублей ключей)
+ *          - std::unordered_multimap<K, T> - сейчас нет реализации (Config не может содержать дублей ключей)
 */
 #define SAPI_REGISTER_CONFIG(StructName, SAPI_FIELDS_MACRO)     \
     struct StructName {                                         \
