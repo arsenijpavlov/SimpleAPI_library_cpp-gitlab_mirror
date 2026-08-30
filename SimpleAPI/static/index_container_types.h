@@ -14,7 +14,7 @@ namespace tools {
 // правило для определения типов-контейнеров (vector, queue и т.д.)
 // std::string не считается за контейнер и обрабатывается как цельный элемент
 template<typename T>
-struct ConfigTypeTraits<T, typename std::enable_if<is_container<T>::value>::type>
+struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_vector<T>::value>::type>
 {
     static bool load(const Config& config, const std::string& key, T& field)
     {
@@ -22,16 +22,17 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container<T>::value>::type
         std::cout << "\tconfig1[" << key << "] type " << ToString(config[key].getType()) << std::endl;
 
         using Type = typename T::value_type;
-        field.clear();
 
         const Config& ck = config[key];
-        for(const auto& item : ck.getRange()) {
+        field.resize(config[key].size());
+        size_t counter = 0;
+        for(auto& item : field) {
             // рекурсивно вызываем traits(признаки) для каждого из элементов
             Type item_value;
-            if(!ConfigTypeTraits<Type>::loadWithoutKey((*item.get()), item_value))
+            if(!ConfigTypeTraits<Type>::loadWithoutKey(ck[counter++], item_value))
                 return false;
 
-            field.push_back(item_value);
+            item = item_value;
         }
 
         return true;
