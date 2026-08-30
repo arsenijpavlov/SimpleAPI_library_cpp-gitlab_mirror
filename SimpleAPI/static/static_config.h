@@ -18,6 +18,7 @@
 #include "struct_types.h"              // IWYU pragma: keep
 #include "container_types_as_vector.h" // IWYU pragma: keep
 #include "container_types_as_set.h"    // IWYU pragma: keep
+#include "container_types_as_array.h"  // IWYU pragma: keep
 #include "map_container_types.h"       // IWYU pragma: keep
 #include <functional>
 

@@ -47,10 +47,14 @@ class is_container_as_vector {
     // метод для SFINAE проверки
     template <typename Dummy = CleanT,
               typename = typename std::enable_if<
-                 std::is_same<Dummy, std::vector<typename Dummy::value_type, typename Dummy::allocator_type>>::value
-                 || std::is_same<Dummy, std::list<typename Dummy::value_type, typename Dummy::allocator_type>>::value
-                 || std::is_same<Dummy, std::forward_list<typename Dummy::value_type, typename Dummy::allocator_type>>::value
-                 || std::is_same<Dummy, std::deque<typename Dummy::value_type, typename Dummy::allocator_type>>::value
+                 std::is_same<Dummy, std::vector<typename Dummy::value_type,
+                                                 typename Dummy::allocator_type>>::value
+                 || std::is_same<Dummy, std::list<typename Dummy::value_type,
+                                                  typename Dummy::allocator_type>>::value
+                 || std::is_same<Dummy, std::forward_list<typename Dummy::value_type,
+                                                          typename Dummy::allocator_type>>::value
+                 || std::is_same<Dummy, std::deque<typename Dummy::value_type,
+                                                   typename Dummy::allocator_type>>::value
                  >::type
              >
     static char test(int);
@@ -119,9 +123,12 @@ class is_container_as_queue {
     // метод для SFINAE проверки
     template <typename Dummy = CleanT,
               typename = typename std::enable_if<
-                 std::is_same<Dummy, std::queue<typename Dummy::value_type, typename Dummy::allocator_type>>::value
-                 || std::is_same<Dummy, std::priority_queue<typename Dummy::value_type, typename Dummy::allocator_type>>::value
-                 || std::is_same<Dummy, std::stack<typename Dummy::value_type, typename Dummy::allocator_type>>::value
+                 std::is_same<Dummy, std::queue<typename Dummy::value_type,
+                                                typename Dummy::allocator_type>>::value
+                 || std::is_same<Dummy, std::priority_queue<typename Dummy::value_type,
+                                                            typename Dummy::allocator_type>>::value
+                 || std::is_same<Dummy, std::stack<typename Dummy::value_type,
+                                                   typename Dummy::allocator_type>>::value
                  >::type
              >
     static char test(int);
@@ -132,7 +139,25 @@ public:
     static const bool value = (sizeof(test<CleanT>(0)) == sizeof(char));
 };
 //----------------
-// TODO: std::array<T,N>
+template <typename T>
+class is_container_as_array {
+    // очистка типа от const и ссылок
+    using CleanT = typename std::decay<T>::type;
+
+    // метод для SFINAE проверки
+    template <typename Dummy = CleanT,
+             typename = typename std::enable_if<
+                 std::is_same<Dummy, std::array<typename Dummy::value_type,
+                                                std::tuple_size<Dummy>::value>>::value
+                 >::type
+             >
+    static char test(int);
+    // метод для разрешения конфликта для поля value
+    template <typename U>
+    static long test(...);
+public:
+    static const bool value = (sizeof(test<CleanT>(0)) == sizeof(char));
+};
 //----------------
 // TODO: std::bitset<N>
 //----------------

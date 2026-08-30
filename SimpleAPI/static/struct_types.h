@@ -16,6 +16,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_config_struct<T>::value
                                                    && !is_container_as_set<T>::value
                                                    && !is_container_as_unordered_set<T>::value
                                                    && !is_container_as_queue<T>::value
+                                                   && !is_container_as_array<T>::value
                                                    >::type>
 {
     static bool load(const Config& config, const std::string& key, T& field)
