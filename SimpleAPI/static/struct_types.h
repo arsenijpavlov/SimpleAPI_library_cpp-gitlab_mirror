@@ -19,6 +19,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_config_struct<T>::value
                                                    && !is_container_as_queue<T>::value
                                                    && !is_container_as_priority_queue<T>::value
                                                    && !is_container_as_stack<T>::value
+                                                   && !is_container_as_bitset<T>::value
                                                    >::type>
 {
     static bool load(const Config& config, const std::string& key, T& field)

@@ -4,7 +4,7 @@
 4) для ручной сортировки нужно вызвать метод `Config::sort()`
 5) расписать тесты сравнения eChar и eString
 6) нужна документация для технологии StaticConfig
-7) StaticConfig для std::array<>
-8) StaticConfig для std::map<>
-9) StaticConfig для std::pair<>
+7) StaticConfig для std::map<>
+8) StaticConfig для std::pair<>
+9) Config: const getBool() должен преобразовывать значение к bool из Bool и Number
 10)
