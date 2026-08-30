@@ -30,20 +30,25 @@ public:
 };
 // ----------------------------------------------------------------------------
 
-// проверка: является ли тип контейнером (имеет метод begin())
+// проверка: является ли тип STL контейнером определённого формата
 //   получим ::value == false для SFINAE, если указанных методов не существует (нельзя вызвать)
 template <typename T>
 class is_container {
     // очистка типа от const и ссылок
     using CleanT = typename std::decay<T>::type;
 
-    // метод для SFINAE проверки наличия метода begin() у класса U
-    template <typename U> static char test(decltype(std::declval<U>().begin())*);
+    // метод для SFINAE проверки
+    template <typename Dummy = CleanT,
+              typename = typename std::enable_if<
+                 std::is_same<Dummy,
+                              std::vector<typename Dummy::value_type, typename Dummy::allocator_type>
+                              >::value>::type>
+    static char test(int);
     // метод для разрешения конфликта для поля value
-    template <typename U> static long test(...);
+    template <typename U>
+    static long test(...);
 public:
-    static const bool value = (sizeof(test<CleanT>(0)) == sizeof(char))
-                              && !std::is_same<CleanT, std::string>::value;
+    static const bool value = (sizeof(test<CleanT>(0)) == sizeof(char));
 };
 // ----------------------------------------------------------------------------
 

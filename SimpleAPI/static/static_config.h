@@ -109,7 +109,6 @@
  *          - std::set<T>
  *          - std::bitset<T>
  *          - std::multiset<T>
- *          - std::basic_string             - сейчас нет реализации (имеет ли смысл?)
  *          - std::unordered_set<T>
  *          - std::unordered_multiset<T>
  *      - очереди:
@@ -122,6 +121,8 @@
  *          - std::unordered_map<K, T>
  *          - std::multimap<K, T>           - сейчас нет реализации (Config не может содержать дублей ключей)
  *          - std::unordered_multimap<K, T> - сейчас нет реализации (Config не может содержать дублей ключей)
+ * - игнорируемые типы:
+ *      - std::basic_string - библиотека строго UTF-8, запрещаем пользователю выстрелить себе в ногу
 */
 #define SAPI_REGISTER_CONFIG(StructName, SAPI_FIELDS_MACRO)     \
     struct StructName {                                         \
