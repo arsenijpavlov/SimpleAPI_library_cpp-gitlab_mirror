@@ -1,6 +1,13 @@
 #pragma once
 
+#include <deque>
+#include <forward_list>
+#include <list>
+#include <queue>
+#include <set>
+#include <stack>
 #include <type_traits>
+#include <unordered_set>
 #include "../config/Config.h"
 
 
@@ -33,16 +40,19 @@ public:
 // проверка: является ли тип STL контейнером определённого формата
 //   получим ::value == false для SFINAE, если указанных методов не существует (нельзя вызвать)
 template <typename T>
-class is_container {
+class is_container_as_vector {
     // очистка типа от const и ссылок
     using CleanT = typename std::decay<T>::type;
 
     // метод для SFINAE проверки
     template <typename Dummy = CleanT,
               typename = typename std::enable_if<
-                 std::is_same<Dummy,
-                              std::vector<typename Dummy::value_type, typename Dummy::allocator_type>
-                              >::value>::type>
+                 std::is_same<Dummy, std::vector<typename Dummy::value_type, typename Dummy::allocator_type>>::value
+                 || std::is_same<Dummy, std::list<typename Dummy::value_type, typename Dummy::allocator_type>>::value
+                 || std::is_same<Dummy, std::forward_list<typename Dummy::value_type, typename Dummy::allocator_type>>::value
+                 || std::is_same<Dummy, std::deque<typename Dummy::value_type, typename Dummy::allocator_type>>::value
+                 >::type
+             >
     static char test(int);
     // метод для разрешения конфликта для поля value
     template <typename U>
@@ -50,6 +60,55 @@ class is_container {
 public:
     static const bool value = (sizeof(test<CleanT>(0)) == sizeof(char));
 };
+//----------------
+template <typename T>
+class is_container_as_set {
+    // очистка типа от const и ссылок
+    using CleanT = typename std::decay<T>::type;
+
+    // метод для SFINAE проверки
+    template <typename Dummy = CleanT,
+              typename = typename std::enable_if<
+                 std::is_same<Dummy, std::set<typename Dummy::value_type, typename Dummy::allocator_type>>::value
+                 || std::is_same<Dummy, std::multiset<typename Dummy::value_type, typename Dummy::allocator_type>>::value
+                 || std::is_same<Dummy, std::unordered_set<typename Dummy::value_type, typename Dummy::allocator_type>>::value
+                 || std::is_same<Dummy, std::unordered_multiset<typename Dummy::value_type, typename Dummy::allocator_type>>::value
+                 >::type
+             >
+    static char test(int);
+    // метод для разрешения конфликта для поля value
+    template <typename U>
+    static long test(...);
+public:
+    static const bool value = (sizeof(test<CleanT>(0)) == sizeof(char));
+};
+//----------------
+template <typename T>
+class is_container_as_queue {
+    // очистка типа от const и ссылок
+    using CleanT = typename std::decay<T>::type;
+
+    // метод для SFINAE проверки
+    template <typename Dummy = CleanT,
+              typename = typename std::enable_if<
+                 std::is_same<Dummy, std::queue<typename Dummy::value_type, typename Dummy::allocator_type>>::value
+                 || std::is_same<Dummy, std::priority_queue<typename Dummy::value_type, typename Dummy::allocator_type>>::value
+                 || std::is_same<Dummy, std::stack<typename Dummy::value_type, typename Dummy::allocator_type>>::value
+                 >::type
+             >
+    static char test(int);
+    // метод для разрешения конфликта для поля value
+    template <typename U>
+    static long test(...);
+public:
+    static const bool value = (sizeof(test<CleanT>(0)) == sizeof(char));
+};
+//----------------
+// TODO: std::array<T,N>
+//----------------
+// TODO: std::bitset<N>
+//----------------
+// TODO: std::map<T,U>
 // ----------------------------------------------------------------------------
 
 // проверка: является ли лямбда валидной
