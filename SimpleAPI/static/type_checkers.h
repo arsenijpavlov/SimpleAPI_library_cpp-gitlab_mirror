@@ -124,11 +124,48 @@ class is_container_as_queue {
     template <typename Dummy = CleanT,
               typename = typename std::enable_if<
                  std::is_same<Dummy, std::queue<typename Dummy::value_type,
-                                                typename Dummy::allocator_type>>::value
-                 || std::is_same<Dummy, std::priority_queue<typename Dummy::value_type,
-                                                            typename Dummy::allocator_type>>::value
-                 || std::is_same<Dummy, std::stack<typename Dummy::value_type,
-                                                   typename Dummy::allocator_type>>::value
+                                                typename Dummy::container_type>>::value
+                 >::type
+             >
+    static char test(int);
+    // метод для разрешения конфликта для поля value
+    template <typename U>
+    static long test(...);
+public:
+    static const bool value = (sizeof(test<CleanT>(0)) == sizeof(char));
+};
+//----------------
+template <typename T>
+class is_container_as_priority_queue {
+    // очистка типа от const и ссылок
+    using CleanT = typename std::decay<T>::type;
+
+    // метод для SFINAE проверки
+    template <typename Dummy = CleanT,
+              typename = typename std::enable_if<
+                 std::is_same<Dummy, std::priority_queue<typename Dummy::value_type,
+                                                         typename Dummy::container_type,
+                                                         typename Dummy::value_compare>>::value
+                 >::type
+             >
+    static char test(int);
+    // метод для разрешения конфликта для поля value
+    template <typename U>
+    static long test(...);
+public:
+    static const bool value = (sizeof(test<CleanT>(0)) == sizeof(char));
+};
+//----------------
+template <typename T>
+class is_container_as_stack {
+    // очистка типа от const и ссылок
+    using CleanT = typename std::decay<T>::type;
+
+    // метод для SFINAE проверки
+    template <typename Dummy = CleanT,
+             typename = typename std::enable_if<
+                 std::is_same<Dummy, std::stack<typename Dummy::value_type,
+                                                   typename Dummy::container_type>>::value
                  >::type
              >
     static char test(int);
