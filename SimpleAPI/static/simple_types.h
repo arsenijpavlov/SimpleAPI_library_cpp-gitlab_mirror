@@ -67,7 +67,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<!is_config_struct<T>::value
                                const std::string& prefix_comment = "",
                                const std::string& suffix_comment = "")
     {
-        std::cout << "save simple without key" << std::endl;
+        std::cout << "[debug] save simple without key" << std::endl;
 
         config = field;
         config.setComment(prefix_comment, suffix_comment);
