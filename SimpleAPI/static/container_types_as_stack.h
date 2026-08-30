@@ -77,14 +77,19 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_stack<T>::val
         using Type = typename T::value_type;
 
         T temp_value = field; // итераторов нет, поэтому работаем со времянкой
+        std::vector<Type> temp_vec; // список сохраняется "наоборот", поэтому задействуем времянку
+        temp_vec.resize(field.size());
 
+        size_t counter = 0;
         while(!temp_value.empty()) {
-            Type item = temp_value.top();
+            temp_vec[temp_vec.size() - (counter++) - 1] = temp_value.top();
+            temp_value.pop();
+        }
+        for(const auto& value : temp_vec) {
             // ключ дальше нельзя передать - создаст новую вложенность
             Config temp;
-            ConfigTypeTraits<Type>::saveWithoutKey(temp, item);
+            ConfigTypeTraits<Type>::saveWithoutKey(temp, value);
             config[key].push_back(temp);
-            temp_value.pop();
         }
         config[key].setComment(prefix_comment, suffix_comment);
     }
