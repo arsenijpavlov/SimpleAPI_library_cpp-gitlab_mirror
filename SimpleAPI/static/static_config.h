@@ -12,12 +12,13 @@
 */
 
 // NOTE: "IWYU pragma: keep" спрячет лишнее предупреждение от clangd
-#include "../config/Config.h"      // IWYU pragma: keep
-#include "type_checkers.h"         // IWYU pragma: keep
-#include "simple_types.h"          // IWYU pragma: keep
-#include "struct_types.h"          // IWYU pragma: keep
-#include "index_container_types.h" // IWYU pragma: keep
-#include "map_container_types.h"   // IWYU pragma: keep
+#include "../config/Config.h"          // IWYU pragma: keep
+#include "type_checkers.h"             // IWYU pragma: keep
+#include "simple_types.h"              // IWYU pragma: keep
+#include "struct_types.h"              // IWYU pragma: keep
+#include "container_types_as_vector.h" // IWYU pragma: keep
+#include "container_types_as_set.h"    // IWYU pragma: keep
+#include "map_container_types.h"       // IWYU pragma: keep
 #include <functional>
 
 

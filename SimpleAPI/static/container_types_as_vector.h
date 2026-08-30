@@ -18,20 +18,20 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_vector<T>::va
 {
     static bool load(const Config& config, const std::string& key, T& field)
     {
-        std::cout << "[debug] load container key=\"" << key << "\"" << std::endl;
+        std::cout << "[debug] load container(as vector) key=\"" << key << "\"" << std::endl;
 
         using Type = typename T::value_type;
 
         const Config& ck = config[key];
-        field.resize(config[key].size());
+        field.resize(ck.size());
         size_t counter = 0;
         for(auto& item : field) {
             // рекурсивно вызываем traits(признаки) для каждого из элементов
-            Type item_value;
-            if(!ConfigTypeTraits<Type>::loadWithoutKey(ck[counter++], item_value))
+            Type item_temp_value;
+            if(!ConfigTypeTraits<Type>::loadWithoutKey(ck[counter++], item_temp_value))
                 return false;
 
-            item = item_value;
+            item = item_temp_value;
         }
 
         return true;
@@ -41,19 +41,21 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_vector<T>::va
              typename std::enable_if<is_variadic_lambda_callable<Lambda, const T&, Args...>::value, int>::type = 0>
     static bool load(const Config& config, const std::string& key, T& field, Lambda lambda, Args&&... args)
     {
-        std::cout << "[debug] load container key=\"" << key << "\"" << std::endl;
+        std::cout << "[debug] load container(as vector) key=\"" << key << "\"" << std::endl;
 
         using Type = typename T::value_type;
-        field.clear();
 
+        const Config& ck = config[key];
         T temp_value;
-        for(const auto& item : config[key].getRange()) {
+        temp_value.resize(ck.size());
+        size_t counter = 0;
+        for(auto& item : temp_value) {
             // рекурсивно вызываем traits(признаки) для каждого из элементов
-            Type item_value;
-            if(!ConfigTypeTraits<Type>::load((*item.get()), "", item_value))
+            Type item_temp_value;
+            if(!ConfigTypeTraits<Type>::loadWithoutKey(ck[counter++], item_temp_value))
                 return false;
 
-            temp_value.push_back(item_value);
+            item = item_temp_value;
         }
 
         if(lambda(temp_value, std::forward<Args>(args)...))
@@ -69,7 +71,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_vector<T>::va
                      const std::string& prefix_comment = "",
                      const std::string& suffix_comment = "")
     {
-        std::cout << "[debug] save container key=\"" << key << "\"" << std::endl;
+        std::cout << "[debug] save container(as vector) key=\"" << key << "\"" << std::endl;
 
         using Type = typename T::value_type;
 
