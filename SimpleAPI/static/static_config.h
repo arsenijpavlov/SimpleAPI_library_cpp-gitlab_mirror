@@ -110,9 +110,9 @@
  *          - std::vector<T>
  *          - std::list<T>
  *          - std::forward_list<T>
- *          - std::array<T, size>
+ *          - (FIXME) std::array<T, size>
+ *          - (FIXME) std::bitset<T>
  *          - std::set<T>
- *          - std::bitset<T>
  *          - std::multiset<T>
  *          - std::unordered_set<T>
  *          - std::unordered_multiset<T>
@@ -122,10 +122,10 @@
  *          - std::deque<T>
  *          - std::priority_queue<T>
  *      - ассоциативные контейнеры:
- *          - std::map<K, T>
- *          - std::unordered_map<K, T>
- *          - std::multimap<K, T>           - сейчас нет реализации (Config не может содержать дублей ключей)
- *          - std::unordered_multimap<K, T> - сейчас нет реализации (Config не может содержать дублей ключей)
+ *          - (TODO) std::map<K, T>
+ *          - (TODO) std::unordered_map<K, T>
+ *          - (TODO) std::multimap<K, T>           - сейчас нет реализации (Config не может содержать дублей ключей)
+ *          - (TODO) std::unordered_multimap<K, T> - сейчас нет реализации (Config не может содержать дублей ключей)
  * - игнорируемые типы:
  *      - std::basic_string - библиотека строго UTF-8, запрещаем пользователю выстрелить себе в ногу
 */
