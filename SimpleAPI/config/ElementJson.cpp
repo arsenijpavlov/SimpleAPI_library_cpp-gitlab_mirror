@@ -1056,7 +1056,8 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
             // при записи дополнять пробелами до максимальной длины
             uint16_t max_length_inner = 0;
             for(const auto& cfg_inner : cfg.second->getNamedRange()) {
-                if(!cfg_inner.second->isContainer() && cfg_inner.first.size() > max_length_inner) {
+                if((!cfg_inner.second->isContainer() || IsArrayWithPrimitives(*cfg_inner.second))
+                    && cfg_inner.first.size() > max_length_inner) {
                     max_length_inner = cfg_inner.first.size();
                 }
             }
@@ -1077,7 +1078,7 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
                         ret += GetPrefixComment(*cfg_inner.second);
 
                         //если внутри только примитивы без комментариев - вывести их в одну строку (строки длиной <=50)
-                        AppendArrayPrimitives(cfg_inner.first, *cfg_inner.second);
+                        AppendArrayPrimitives(logs::columned(cfg_inner.first, max_length_inner), *cfg_inner.second);
 
                         temp = GetSuffixComment(*cfg_inner.second);
                         ret += std::move(temp);
@@ -1111,7 +1112,7 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
             if(IsArrayWithPrimitives(*cfg.second.get())) {
                 ret += GetPrefixComment(*cfg.second);
 
-                AppendArrayPrimitives(cfg.first, *cfg.second);
+                AppendArrayPrimitives(logs::columned(cfg.first, max_length), *cfg.second);
 
                 temp = GetSuffixComment(*cfg.second);
                 ret += std::move(temp);
