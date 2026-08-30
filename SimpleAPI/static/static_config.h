@@ -79,16 +79,16 @@
 
 // записыватели
 #define SAPI_SAVE_FIELD_3(type, name, default_value)                                                                    \
-    std::cout << "save() config type " << ToString(save_conf.getType()) << ", key: \"" << #name << "\"" << std::endl;   \
+    std::cout << "[debug] save() config type " << ToString(save_conf.getType()) << ", key: \"" << #name << "\"" << std::endl;   \
     simpleapi::tools::ConfigTypeTraits<type>::save(save_conf, #name, name);
 #define SAPI_SAVE_FIELD_4(type, name, default_value, lambda)                                                            \
-    std::cout << "save() config type " << ToString(save_conf.getType()) << ", key: \"" << #name << "\"" << std::endl;   \
+    std::cout << "[debug] save() config type " << ToString(save_conf.getType()) << ", key: \"" << #name << "\"" << std::endl;   \
     simpleapi::tools::ConfigTypeTraits<type>::save(save_conf, #name, name);
 #define SAPI_SAVE_FIELD_5(type, name, default_value, lambda, prefix_comment)                                            \
-    std::cout << "save() config type " << ToString(save_conf.getType()) << ", key: \"" << #name << "\"" << std::endl;   \
+    std::cout << "[debug] save() config type " << ToString(save_conf.getType()) << ", key: \"" << #name << "\"" << std::endl;   \
     simpleapi::tools::ConfigTypeTraits<type>::save(save_conf, #name, name, prefix_comment);
 #define SAPI_SAVE_FIELD_6(type, name, default_value, lambda, prefix_comment, suffix_comment)                            \
-    std::cout << "save() config type " << ToString(save_conf.getType()) << ", key: \"" << #name << "\"" << std::endl;   \
+    std::cout << "[debug] save() config type " << ToString(save_conf.getType()) << ", key: \"" << #name << "\"" << std::endl;   \
     simpleapi::tools::ConfigTypeTraits<type>::save(save_conf, #name, name, prefix_comment, suffix_comment);
 // обёртка
 #define SAPI_SAVE_FIELD(...) \

@@ -18,8 +18,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_vector<T>::va
 {
     static bool load(const Config& config, const std::string& key, T& field)
     {
-        std::cout << "load container" << std::endl;
-        std::cout << "\tconfig1[" << key << "] type " << ToString(config[key].getType()) << std::endl;
+        std::cout << "[debug] load container key=\"" << key << "\"" << std::endl;
 
         using Type = typename T::value_type;
 
@@ -42,8 +41,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_vector<T>::va
              typename std::enable_if<is_variadic_lambda_callable<Lambda, const T&, Args...>::value, int>::type = 0>
     static bool load(const Config& config, const std::string& key, T& field, Lambda lambda, Args&&... args)
     {
-        std::cout << "load container" << std::endl;
-        std::cout << "\tconfig2[" << key << "] type " << ToString(config[key].getType()) << std::endl;
+        std::cout << "[debug] load container key=\"" << key << "\"" << std::endl;
 
         using Type = typename T::value_type;
         field.clear();
@@ -71,8 +69,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_vector<T>::va
                      const std::string& prefix_comment = "",
                      const std::string& suffix_comment = "")
     {
-        std::cout << "save container" << std::endl;
-        std::cout << "\tconfig type " << ToString(config.getType()) << ", key: \"" << key << "\"" << std::endl;
+        std::cout << "[debug] save container key=\"" << key << "\"" << std::endl;
 
         using Type = typename T::value_type;
 
