@@ -13,10 +13,15 @@ namespace tools {
 // правило для определения одиночных типов
 template<typename T>
 struct ConfigTypeTraits<T, typename std::enable_if<!is_config_struct<T>::value
-                                                   && !is_container<T>::value>::type>
+                                                   && !is_container_as_vector<T>::value
+                                                   && !is_container_as_set<T>::value
+                                                   && !is_container_as_queue<T>::value
+                                                   >::type>
 {
     static bool load(const Config& config, const std::string& key, T& field)
     {
+        std::cout << "[debug] load simple key=\"" << key << "\"" << std::endl;
+
         field = config[key].get<T>();
         return true;
     }
@@ -25,6 +30,8 @@ struct ConfigTypeTraits<T, typename std::enable_if<!is_config_struct<T>::value
              typename std::enable_if<is_variadic_lambda_callable<Lambda, const T&, Args...>::value, int>::type = 0>
     static bool load(const Config& config, const std::string& key, T& field, Lambda lambda, Args&&... args)
     {
+        std::cout << "[debug] load simple key=\"" << key << "\"" << std::endl;
+
         T temp_value = config[key].get<T>();
 
         if(lambda(field, std::forward<Args>(args)...))
@@ -46,8 +53,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<!is_config_struct<T>::value
                      const std::string& prefix_comment = "",
                      const std::string& suffix_comment = "")
     {
-        std::cout << "save simple field" << std::endl;
-        std::cout << "\tconfig type " << ToString(config.getType()) << ", key: \"" << key << "\"" << std::endl;
+        std::cout << "[debug] save simple key=\"" << key << "\"" << std::endl;
 
         config[key] = field;
         config[key].setComment(prefix_comment, suffix_comment);
@@ -57,8 +63,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<!is_config_struct<T>::value
                                const std::string& prefix_comment = "",
                                const std::string& suffix_comment = "")
     {
-        std::cout << "save simple field" << std::endl;
-        std::cout << "\tconfig type " << ToString(config.getType()) << std::endl;
+        std::cout << "save simple without key" << std::endl;
 
         config = field;
         config.setComment(prefix_comment, suffix_comment);

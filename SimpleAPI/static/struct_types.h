@@ -12,12 +12,14 @@ namespace tools {
 // правило для определения структур
 template<typename T>
 struct ConfigTypeTraits<T, typename std::enable_if<is_config_struct<T>::value
-                                                   && !is_container<T>::value>::type>
+                                                   && !is_container_as_vector<T>::value
+                                                   && !is_container_as_set<T>::value
+                                                   && !is_container_as_queue<T>::value
+                                                   >::type>
 {
     static bool load(const Config& config, const std::string& key, T& field)
     {
-        std::cout << "load struct" << std::endl;
-        std::cout << "\tconfig[" << key << "] type " << ToString(config[key].getType()) << std::endl;
+        std::cout << "[debug] load structure key=\"" << key << "\"" << std::endl;
 
         field.loadConfig(config[key]);
         return true;
@@ -27,8 +29,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_config_struct<T>::value
              typename std::enable_if<is_variadic_lambda_callable<Lambda, const T&, Args...>::value, int>::type = 0>
     static bool load(const Config& config, const std::string& key, T& field, Lambda lambda, Args&&... args)
     {
-        std::cout << "load struct" << std::endl;
-        std::cout << "\tconfig[" << key << "] type " << ToString(config[key].getType()) << std::endl;
+        std::cout << "[debug] load structure key=\"" << key << "\"" << std::endl;
 
         T temp_value;
         bool ret = temp_value.loadConfig(config[key]);
@@ -46,8 +47,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_config_struct<T>::value
                      const std::string& prefix_comment = "",
                      const std::string& suffix_comment = "")
     {
-        std::cout << "save structure" << std::endl;
-        std::cout << "\tconfig type " << ToString(config.getType()) << ", key: \"" << key << "\"" << std::endl;
+        std::cout << "[debug] save structure key=\"" << key << "\"" << std::endl;
 
         if(config.isMapContainer())
         {
