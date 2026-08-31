@@ -99,9 +99,9 @@ class is_container_as_unordered_set {
     template <typename Dummy = CleanT,
               typename = typename std::enable_if<
                  std::is_same<Dummy, std::unordered_set<typename Dummy::value_type,
-                                                           typename Dummy::hasher,
-                                                           typename Dummy::key_equal,
-                                                           typename Dummy::allocator_type>>::value
+                                                        typename Dummy::hasher,
+                                                        typename Dummy::key_equal,
+                                                        typename Dummy::allocator_type>>::value
                  || std::is_same<Dummy, std::unordered_multiset<typename Dummy::value_type,
                                                                 typename Dummy::hasher,
                                                                 typename Dummy::key_equal,
@@ -166,7 +166,7 @@ class is_container_as_stack {
     template <typename Dummy = CleanT,
              typename = typename std::enable_if<
                  std::is_same<Dummy, std::stack<typename Dummy::value_type,
-                                                   typename Dummy::container_type>>::value
+                                                typename Dummy::container_type>>::value
                  >::type
              >
     static char test(int);
@@ -216,7 +216,27 @@ public:
     static const bool value = (sizeof(test<CleanT>(0)) == sizeof(char));
 };
 //----------------
-// TODO: std::map<T,U>
+template <typename T>
+class is_container_as_map {
+    // очистка типа от const и ссылок
+    using CleanT = typename std::decay<T>::type;
+
+    // метод для SFINAE проверки
+    template <typename Dummy = CleanT,
+             typename = typename std::enable_if<
+                 std::is_same<Dummy, std::map<typename Dummy::key_type,
+                                              typename Dummy::mapped_type,
+                                              typename Dummy::key_compare,
+                                              typename Dummy::allocator_type>>::value
+                 >::type
+             >
+    static char test(int);
+    // метод для разрешения конфликта для поля value
+    template <typename U>
+    static long test(...);
+public:
+    static const bool value = (sizeof(test<CleanT>(0)) == sizeof(char));
+};
 // ----------------------------------------------------------------------------
 
 // проверка: является ли лямбда валидной

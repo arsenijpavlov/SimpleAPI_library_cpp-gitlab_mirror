@@ -19,11 +19,16 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_bitset<T>::va
     static bool load(const Config& config, const std::string& key, T& field)
     {
         std::cout << "[debug] load container(as bitset) key=\"" << key << "\"" << std::endl;
-        // TODO: если в Config меньше элементов, чем N
 
         const Config& ck = config[key];
         for(size_t i = 0; i < field.size(); i++) {
-            field[i] = ck[i].get<bool>();
+            if(ck.size() > i)
+            {
+                field[i] = ck[i].get<bool>();
+            } else {
+                // массив меньше, заполняем дефолтом для этого типа
+                field[i] = false;
+            }
         }
 
         return true;
@@ -34,12 +39,17 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_bitset<T>::va
     static bool load(const Config& config, const std::string& key, T& field, Lambda lambda, Args&&... args)
     {
         std::cout << "[debug] load container(as bitset) key=\"" << key << "\"" << std::endl;
-        // TODO: если в Config меньше элементов, чем N
 
         const Config& ck = config[key];
         std::bitset<field.size()> temp_value;
         for(size_t i = 0; i < field.size(); i++) {
-            temp_value[i] = ck[i].get<bool>();
+            if(ck.size() > i)
+            {
+                temp_value[i] = ck[i].get<bool>();
+            } else {
+                // массив меньше, заполняем дефолтом для этого типа
+                temp_value[i] = false;
+            }
         }
 
         if(lambda(temp_value, std::forward<Args>(args)...))

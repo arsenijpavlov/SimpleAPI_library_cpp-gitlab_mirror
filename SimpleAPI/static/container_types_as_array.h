@@ -19,7 +19,6 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_array<T>::val
     static bool load(const Config& config, const std::string& key, T& field)
     {
         std::cout << "[debug] load container(as array) key=\"" << key << "\"" << std::endl;
-        // TODO: если в Config меньше элементов, чем N
 
         using Type = typename T::value_type;
         size_t array_size = std::tuple_size<T>::value;
@@ -29,8 +28,15 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_array<T>::val
         for(auto& item : field) {
             // рекурсивно вызываем traits(признаки) для каждого из элементов
             Type item_temp_value;
-            if(!ConfigTypeTraits<Type>::loadWithoutKey(ck[counter++], item_temp_value))
-                return false;
+            if(ck.size() > counter)
+            {
+                if(!ConfigTypeTraits<Type>::loadWithoutKey(ck[counter], item_temp_value))
+                    return false;
+            } else {
+                // массив меньше, заполняем дефолтом для этого типа
+                item_temp_value = Type();
+            }
+            counter++;
 
             item = item_temp_value;
         }
@@ -43,7 +49,6 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_array<T>::val
     static bool load(const Config& config, const std::string& key, T& field, Lambda lambda, Args&&... args)
     {
         std::cout << "[debug] load container(as array) key=\"" << key << "\"" << std::endl;
-        // TODO: если в Config меньше элементов, чем N
 
         using Type = typename T::value_type;
         size_t array_size = std::tuple_size<Type>::value;
@@ -54,8 +59,15 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_array<T>::val
         for(auto& item : temp_value) {
             // рекурсивно вызываем traits(признаки) для каждого из элементов
             Type item_temp_value;
-            if(!ConfigTypeTraits<Type>::loadWithoutKey(ck[counter++], item_temp_value))
+            if(ck.size() > counter)
+            {
+                if(!ConfigTypeTraits<Type>::loadWithoutKey(ck[counter], item_temp_value))
                 return false;
+            } else {
+                // массив меньше, заполняем дефолтом для этого типа
+                item_temp_value = Type();
+            }
+            counter++;
 
             item = item_temp_value;
         }
