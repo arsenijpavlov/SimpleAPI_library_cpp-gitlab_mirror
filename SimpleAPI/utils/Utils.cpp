@@ -582,6 +582,30 @@ bool IsNormalizeEqual(const std::string &str_1, const std::string &str_2) noexce
     return true;
 }
 
+bool CreateBoolFromString(const std::string &input)
+{
+    std::string temp;
+    if(input.size() == 4 || input.size() == 5) {
+        for(auto ch : input)
+            temp += std::tolower(ch);
+        if(temp == "true")  return true;
+        if(temp == "false") return false;
+        temp.clear();
+    }
+    if(input.size() == 1) {
+        switch(std::tolower(input[0])) {
+        //case 't': // NOTE: может запуать пользователя, убрал
+        case '+':   return true;
+        //case 'f': // NOTE: может запуать пользователя, убрал
+        case '-':   return false;
+        default: break;
+        }
+    }
+
+    throw std::invalid_argument("input param is not a bool as string");
+    // return false;
+}
+
 } // namespace utils
 } // namespace simpleapi
 

@@ -4214,22 +4214,10 @@ Config CreateElementFromString(std::string &&value_string, const ConfigFormat fo
             }
         }
         /*BOOL*/ {
-            if(value_string.size() == 4 || value_string.size() == 5) {
-                for(auto ch : value_string)
-                    Append(ch);
-                if(temp == "true")  return Config(true);
-                if(temp == "false") return Config(false);
-                temp.clear();
-            }
-            if(value_string.size() == 1) {
-                switch(std::tolower(value_string[0])) {
-                //case 't': // NOTE: может запуать пользователя, убрал
-                case '+': return Config(true);
-                //case 'f': // NOTE: может запуать пользователя, убрал
-                case '-': return Config(false);
-                default: break;
-                }
-            }
+            try {
+                return Config(utils::CreateBoolFromString(value_string));
+            } catch(...) {}
+            temp.clear();
         }
         char first = value_string.front();
         char last = value_string.back();
