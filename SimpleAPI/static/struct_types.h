@@ -22,6 +22,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_config_struct<T>::value
                                                    && !is_container_as_bitset<T>::value
                                                    && !is_container_as_map<T>::value
                                                    && !is_container_as_unordered_map<T>::value
+                                                   && !std::is_enum<T>::value
                                                    >::type>
 {
     static bool load(const Config& config, const std::string& key, T& field)
