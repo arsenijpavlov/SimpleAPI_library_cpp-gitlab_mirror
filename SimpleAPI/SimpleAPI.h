@@ -3,7 +3,7 @@
 // NOTE: "IWYU pragma: keep" спрячет лишнее предупреждение от clangd
 #include "VersionInfo.h"                // IWYU pragma: keep
 #include "utils/Utils.h"                // IWYU pragma: keep
-#include "utils/StringUtils.h"          // IWYU pragma: keep
+#include "utils/string_utils.h"         // IWYU pragma: keep
 #include "utils/Timer.h"                // IWYU pragma: keep
 #include "utils/Logger.h"               // IWYU pragma: keep
 

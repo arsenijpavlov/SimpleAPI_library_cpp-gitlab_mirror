@@ -6,6 +6,7 @@
 #include <string>
 #include <type_traits>
 #include "../config/Config.h"
+#include "../utils/number_utils.h"
 
 
 namespace simpleapi {
@@ -14,7 +15,8 @@ namespace tools {
 // правило для определения типов-контейнеров (vector, queue и т.д.)
 // std::string не считается за контейнер и обрабатывается как цельный элемент
 template<typename T>
-struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_map<T>::value>::type>
+struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_map<T>::value
+                                                   || is_container_as_unordered_map<T>::value>::type>
 {
     using KeyType   = typename T::key_type;
     using ValueType = typename T::value_type;
@@ -22,13 +24,83 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_map<T>::value
     // явно запрещаем любые неподдерживаемые форматы ключа
     static_assert(std::is_arithmetic<typename T::key_type>::value
                       || std::is_convertible<KeyType, std::string>::value,
-                  "SimpleAPI error: in map containers, the key must be in numeric or string format");
+                  "SimpleAPI error: in map containers, the key must be in numeric, bool or string format");
 
     //---------------
-    // локальные обработчики-валидаторы для KeyType
+    // локальные обработчики-валидаторы для KeyType (геттеры из KeyType в Config)
     template <typename K>
-    static typename std::enable_if<std::is_same<K, std::string>::value, std::string>::type
-    extract_key(const K& key) { return key; }
+    static typename std::enable_if<std::is_same<K, std::string>::value,
+                                   std::string>::type
+    extract_key(const K& key)
+    {
+        return key;
+    }
+    template <typename K>
+    static typename std::enable_if<std::is_integral<K>::value && !std::is_same<K, bool>::value,
+                                   std::string>::type
+    extract_key(const K& key)
+    {
+        return utils::ToString(key);
+    }
+    template <typename K>
+    static typename std::enable_if<std::is_floating_point<K>::value,
+                                   std::string>::type
+    extract_key(const K& key)
+    {
+        return utils::ToString(key);
+    }
+    template <typename K>
+    static typename std::enable_if<std::is_same<K, bool>::value,
+                                   std::string>::type
+    extract_key(const K& key)
+    {
+        return utils::ToString(key);
+    }
+    //---------------
+    // локальные парсеры для KeyType (сеттеры из Config в KeyType)
+    template <typename K>
+    static typename std::enable_if<std::is_same<K, std::string>::value,
+                                   K>::type
+    parse_key(const std::string& key_str)
+    {
+        return key_str;
+    }
+    template <typename K>
+    static typename std::enable_if<std::is_integral<K>::value && !std::is_same<K, bool>::value,
+                                   K>::type
+    parse_key(const std::string& key_str)
+    {
+        try {
+            return static_cast<K>(utils::CreateLLongFromString(key_str));
+        } catch(...)
+        {
+            return 0; // невалидный ввод не должен ломать работу программы
+        }
+    }
+    template <typename K>
+    static typename std::enable_if<std::is_floating_point<K>::value,
+                                   K>::type
+    parse_key(const std::string& key_str)
+    {
+        try {
+            return static_cast<K>(utils::CreateLDoubleFromString(key_str));
+        } catch(...)
+        {
+            return 0.f; // невалидный ввод не должен ломать работу программы
+        }
+    }
+    template <typename K>
+    static typename std::enable_if<std::is_same<K, bool>::value,
+                                   K>::type
+    parse_key(const std::string& key_str)
+    {
+        try {
+            return utils::CreateBoolFromString(key_str);
+        } catch(...)
+        {
+            return false; // невалидный ввод не должен ломать работу программы
+        }
+    }
     //---------------
 
     static bool load(const Config& config, const std::string& key, T& field)
@@ -38,17 +110,16 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_map<T>::value
         using Type = typename T::mapped_type;
 
         field.clear();
+        const Config& ck = config[key];
+        size_t counter = 0;
+        for(auto& c : ck.getNamedRange()) {
+            // рекурсивно вызываем traits(признаки) для каждого из элементов
+            Type item_temp_value;
+            if(!ConfigTypeTraits<Type>::loadWithoutKey((*c.second.get()), item_temp_value))
+                return false;
 
-        // const Config& ck = config[key];
-        // size_t counter = 0;
-        // for(auto& item : field) {
-        //     // рекурсивно вызываем traits(признаки) для каждого из элементов
-        //     Type item_temp_value;
-        //     if(!ConfigTypeTraits<Type>::loadWithoutKey(ck[counter++], item_temp_value))
-        //         return false;
-
-        //     item = item_temp_value;
-        // }
+            field.insert(std::make_pair(parse_key<KeyType>(c.first), item_temp_value));
+        }
 
         return true;
     }
@@ -61,23 +132,23 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_map<T>::value
 
         using Type = typename T::mapped_type;
 
-        // const Config& ck = config[key];
-        // size_t counter = 0;
-        // T temp_value;
-        // for(auto& item : temp_value) {
-        //     // рекурсивно вызываем traits(признаки) для каждого из элементов
-        //     Type item_temp_value;
-        //     if(!ConfigTypeTraits<Type>::loadWithoutKey(ck[counter++], item_temp_value))
-        //         return false;
+        const Config& ck = config[key];
+        size_t counter = 0;
+        T temp_value;
+        for(auto& c : ck.getNamedRange()) {
+            // рекурсивно вызываем traits(признаки) для каждого из элементов
+            Type item_temp_value;
+            if(!ConfigTypeTraits<Type>::loadWithoutKey((*c.second.get()), item_temp_value))
+                return false;
 
-        //     item = item_temp_value;
-        // }
+            temp_value.insert(std::make_pair(parse_key<KeyType>(c.first), item_temp_value));
+        }
 
-        // if(lambda(temp_value, std::forward<Args>(args)...))
-        // {
-        //     field = temp_value;
-        //     return true;
-        // }
+        if(lambda(temp_value, std::forward<Args>(args)...))
+        {
+            field = temp_value;
+            return true;
+        }
         return false;
     }
 
@@ -94,7 +165,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_map<T>::value
             // ключ дальше нельзя передать - создаст новую вложенность
             Config temp;
             ConfigTypeTraits<Type>::saveWithoutKey(temp, item.second);
-            config[key].push_back(item.first, temp);
+            config[key].push_back(extract_key(item.first), temp);
         }
         config[key].setComment(prefix_comment, suffix_comment);
     }
