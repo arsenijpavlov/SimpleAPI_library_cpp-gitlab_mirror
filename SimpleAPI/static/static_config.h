@@ -22,7 +22,7 @@
 #include "container_types_as_bitset.h" // IWYU pragma: keep
 #include "container_types_as_queue.h"  // IWYU pragma: keep
 #include "container_types_as_stack.h"  // IWYU pragma: keep
-#include "map_container_types.h"       // IWYU pragma: keep
+#include "container_types_as_map.h"    // IWYU pragma: keep
 #include <functional>
 
 

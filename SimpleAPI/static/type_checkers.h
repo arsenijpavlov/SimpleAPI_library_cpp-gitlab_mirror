@@ -8,6 +8,7 @@
 #include <set>
 #include <stack>
 #include <type_traits>
+#include <unordered_map>
 #include <unordered_set>
 #include "../config/Config.h"
 
@@ -228,6 +229,38 @@ class is_container_as_map {
                                               typename Dummy::mapped_type,
                                               typename Dummy::key_compare,
                                               typename Dummy::allocator_type>>::value
+                 || std::is_same<Dummy, std::multimap<typename Dummy::key_type,
+                                                      typename Dummy::mapped_type,
+                                                      typename Dummy::key_compare,
+                                                      typename Dummy::allocator_type>>::value
+                 >::type
+             >
+    static char test(int);
+    // метод для разрешения конфликта для поля value
+    template <typename U>
+    static long test(...);
+public:
+    static const bool value = (sizeof(test<CleanT>(0)) == sizeof(char));
+};
+//----------------
+template <typename T>
+class is_container_as_unordered_map {
+    // очистка типа от const и ссылок
+    using CleanT = typename std::decay<T>::type;
+
+    // метод для SFINAE проверки
+    template <typename Dummy = CleanT,
+             typename = typename std::enable_if<
+                 std::is_same<Dummy, std::unordered_map<typename Dummy::key_type,
+                                                        typename Dummy::mapped_type,
+                                                        typename Dummy::hasher,
+                                                        typename Dummy::key_equal,
+                                                        typename Dummy::allocator_type>>::value
+                 || std::is_same<Dummy, std::unordered_multimap<typename Dummy::key_type,
+                                                                typename Dummy::mapped_type,
+                                                                typename Dummy::hasher,
+                                                                typename Dummy::key_equal,
+                                                                typename Dummy::allocator_type>>::value
                  >::type
              >
     static char test(int);
