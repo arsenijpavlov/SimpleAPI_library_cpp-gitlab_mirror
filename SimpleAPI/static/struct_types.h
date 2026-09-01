@@ -29,21 +29,12 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_config_struct<T>::value
     {
         std::cout << "[debug] load structure key=\"" << key << "\"" << std::endl;
 
-        using Type = typename T::value_type;
-        // field.loadConfig(config[key]);
-
-        field.clear();
-        const Config& ck = config[key];
-        size_t counter = 0;
-        for(auto& c : ck.getNamedRange()) {
-            // рекурсивно вызываем traits(признаки) для каждого из элементов
-            Type item_temp_value;
-            if(!ConfigTypeTraits<Type>::loadWithoutKey((*c.second.get()), item_temp_value))
+        if(config.isMapContainer() && config.containsKey(key)) {
+            const Config& ck = config[key];
+            T temp_value;
+            if(!temp_value.loadConfig(ck))
                 return false;
-
-            field.insert(std::make_pair((c.first), item_temp_value));
         }
-
         return true;
     }
 
@@ -53,15 +44,20 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_config_struct<T>::value
     {
         std::cout << "[debug] load structure key=\"" << key << "\"" << std::endl;
 
-        T temp_value;
-        bool ret = temp_value.loadConfig(config[key]);
-        if(ret && lambda(field, std::forward<Args>(args)...))
-        {
-            field = temp_value;
-            return true;
-        }
+        if(config.isMapContainer() && config.containsKey(key)) {
+            const Config& ck = config[key];
+            T temp_value;
+            if(!temp_value.loadConfig(ck))
+                return false;
 
-        return false;
+            if(lambda(temp_value, std::forward<Args>(args)...))
+            {
+                field = temp_value;
+                return true;
+            }
+            return false;
+        }
+        return true; // ключа не существует, игнорим проверки
     }
 
     // комментарии учитываются только при записи

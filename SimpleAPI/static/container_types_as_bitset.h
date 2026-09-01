@@ -20,14 +20,16 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_bitset<T>::va
     {
         std::cout << "[debug] load container(as bitset) key=\"" << key << "\"" << std::endl;
 
-        const Config& ck = config[key];
-        for(size_t i = 0; i < field.size(); i++) {
-            if(ck.size() > i)
-            {
-                field[i] = ck[i].get<bool>();
-            } else {
-                // массив меньше, заполняем дефолтом для этого типа
-                field[i] = false;
+        if(config.isMapContainer() && config.containsKey(key)) {
+            const Config& ck = config[key];
+            for(size_t i = 0; i < field.size(); i++) {
+                if(ck.size() > i)
+                {
+                    field[i] = ck[i].get<bool>();
+                } else {
+                    // массив меньше, заполняем дефолтом для этого типа
+                    field[i] = false;
+                }
             }
         }
 
@@ -40,24 +42,28 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_bitset<T>::va
     {
         std::cout << "[debug] load container(as bitset) key=\"" << key << "\"" << std::endl;
 
-        const Config& ck = config[key];
-        std::bitset<field.size()> temp_value;
-        for(size_t i = 0; i < field.size(); i++) {
-            if(ck.size() > i)
-            {
-                temp_value[i] = ck[i].get<bool>();
-            } else {
-                // массив меньше, заполняем дефолтом для этого типа
-                temp_value[i] = false;
+        if(config.isMapContainer() && config.containsKey(key)) {
+            const Config& ck = config[key];
+            std::bitset<field.size()> temp_value;
+            for(size_t i = 0; i < field.size(); i++) {
+                if(ck.size() > i)
+                {
+                    temp_value[i] = ck[i].get<bool>();
+                } else {
+                    // массив меньше, заполняем дефолтом для этого типа
+                    temp_value[i] = false;
+                }
             }
+
+            if(lambda(temp_value, std::forward<Args>(args)...))
+            {
+                field = temp_value;
+                return true;
+            }
+            return false;
         }
 
-        if(lambda(temp_value, std::forward<Args>(args)...))
-        {
-            field = temp_value;
-            return true;
-        }
-        return false;
+        return true; // ключа не существует, игнорим проверки
     }
 
     // комментарии учитываются только при записи

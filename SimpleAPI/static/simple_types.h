@@ -30,8 +30,11 @@ struct ConfigTypeTraits<T, typename std::enable_if<!is_config_struct<T>::value
     {
         std::cout << "[debug] load simple key=\"" << key << "\"" << std::endl;
 
-        field = config[key].get<T>();
-        return true;
+        if(config.isMapContainer() && config.containsKey(key)) {
+            field = config[key].get<T>();
+        }
+
+        return true; // ключа не существует, игнорим проверки
     }
 
     template<typename Lambda, typename... Args,
@@ -40,14 +43,18 @@ struct ConfigTypeTraits<T, typename std::enable_if<!is_config_struct<T>::value
     {
         std::cout << "[debug] load simple key=\"" << key << "\"" << std::endl;
 
-        T temp_value = config[key].get<T>();
+        if(config.isMapContainer() && config.containsKey(key)) {
+            T temp_value = config[key].get<T>();
 
-        if(lambda(field, std::forward<Args>(args)...))
-        {
-            field = temp_value;
-            return true;
+            if(lambda(temp_value, std::forward<Args>(args)...))
+            {
+                field = temp_value;
+                return true;
+            }
+            return false;
         }
-        return false;
+
+        return true; // ключа не существует, игнорим проверки
     }
 
     static bool loadWithoutKey(const Config& config, T& field)

@@ -22,16 +22,18 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_vector<T>::va
 
         using Type = typename T::value_type;
 
-        const Config& ck = config[key];
-        field.resize(ck.size());
-        size_t counter = 0;
-        for(auto& item : field) {
-            // рекурсивно вызываем traits(признаки) для каждого из элементов
-            Type item_temp_value;
-            if(!ConfigTypeTraits<Type>::loadWithoutKey(ck[counter++], item_temp_value))
-                return false;
+        if(config.isMapContainer() && config.containsKey(key)) {
+            const Config& ck = config[key];
+            field.resize(ck.size());
+            size_t counter = 0;
+            for(auto& item : field) {
+                // рекурсивно вызываем traits(признаки) для каждого из элементов
+                Type item_temp_value;
+                if(!ConfigTypeTraits<Type>::loadWithoutKey(ck[counter++], item_temp_value))
+                    return false;
 
-            item = item_temp_value;
+                item = item_temp_value;
+            }
         }
 
         return true;
@@ -45,25 +47,29 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_vector<T>::va
 
         using Type = typename T::value_type;
 
-        const Config& ck = config[key];
-        T temp_value;
-        temp_value.resize(ck.size());
-        size_t counter = 0;
-        for(auto& item : temp_value) {
-            // рекурсивно вызываем traits(признаки) для каждого из элементов
-            Type item_temp_value;
-            if(!ConfigTypeTraits<Type>::loadWithoutKey(ck[counter++], item_temp_value))
-                return false;
+        if(config.isMapContainer() && config.containsKey(key)) {
+            const Config& ck = config[key];
+            T temp_value;
+            temp_value.resize(ck.size());
+            size_t counter = 0;
+            for(auto& item : temp_value) {
+                // рекурсивно вызываем traits(признаки) для каждого из элементов
+                Type item_temp_value;
+                if(!ConfigTypeTraits<Type>::loadWithoutKey(ck[counter++], item_temp_value))
+                    return false;
 
-            item = item_temp_value;
+                item = item_temp_value;
+            }
+
+            if(lambda(temp_value, std::forward<Args>(args)...))
+            {
+                field = temp_value;
+                return true;
+            }
+            return false;
         }
 
-        if(lambda(temp_value, std::forward<Args>(args)...))
-        {
-            field = temp_value;
-            return true;
-        }
-        return false;
+        return true; // ключа не существует, игнорим проверки
     }
 
     // комментарии учитываются только при записи

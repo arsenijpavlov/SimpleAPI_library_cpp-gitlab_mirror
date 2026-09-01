@@ -20,9 +20,12 @@ struct ConfigTypeTraits<T, typename std::enable_if<std::is_enum<T>::value>::type
     {
         std::cout << "[debug] load enum key=\"" << key << "\"" << std::endl;
 
-        EnumFromString(config[key].getString(), field);
+        if(config.isMapContainer() && config.containsKey(key)) {
+            EnumFromString(config[key].getString(), field);
+            return field != T::_UNDEFINED_STATE_;
+        }
 
-        return field != T::_UNDEFINED_STATE_;
+        return true; // ключа не существует, игнорим проверки
     }
 
     template<typename Lambda, typename... Args,
@@ -31,15 +34,19 @@ struct ConfigTypeTraits<T, typename std::enable_if<std::is_enum<T>::value>::type
     {
         std::cout << "[debug] load enum key=\"" << key << "\"" << std::endl;
 
-        T temp_value;
-        EnumFromString(config[key].getString(), temp_value);
+        if(config.isMapContainer() && config.containsKey(key)) {
+            T temp_value;
+            EnumFromString(config[key].getString(), temp_value);
 
-        if(lambda(temp_value, std::forward<Args>(args)...))
-        {
-            field = temp_value;
-            return field != T::_UNDEFINED_STATE_;;
+            if(lambda(temp_value, std::forward<Args>(args)...))
+            {
+                field = temp_value;
+                return field != T::_UNDEFINED_STATE_;;
+            }
+            return false;
         }
-        return false;
+
+        return true; // ключа не существует, игнорим проверки
     }
 
     // комментарии учитываются только при записи

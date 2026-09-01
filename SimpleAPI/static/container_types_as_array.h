@@ -23,22 +23,24 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_array<T>::val
         using Type = typename T::value_type;
         size_t array_size = std::tuple_size<T>::value;
 
-        const Config& ck = config[key];
-        size_t counter = 0;
-        for(auto& item : field) {
-            // рекурсивно вызываем traits(признаки) для каждого из элементов
-            Type item_temp_value;
-            if(ck.size() > counter)
-            {
-                if(!ConfigTypeTraits<Type>::loadWithoutKey(ck[counter], item_temp_value))
-                    return false;
-            } else {
-                // массив меньше, заполняем дефолтом для этого типа
-                item_temp_value = Type();
-            }
-            counter++;
+        if(config.isMapContainer() && config.containsKey(key)) {
+            const Config& ck = config[key];
+            size_t counter = 0;
+            for(auto& item : field) {
+                // рекурсивно вызываем traits(признаки) для каждого из элементов
+                Type item_temp_value;
+                if(ck.size() > counter)
+                {
+                    if(!ConfigTypeTraits<Type>::loadWithoutKey(ck[counter], item_temp_value))
+                        return false;
+                } else {
+                    // массив меньше, заполняем дефолтом для этого типа
+                    item_temp_value = Type();
+                }
+                counter++;
 
-            item = item_temp_value;
+                item = item_temp_value;
+            }
         }
 
         return true;
@@ -53,31 +55,35 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_array<T>::val
         using Type = typename T::value_type;
         size_t array_size = std::tuple_size<Type>::value;
 
-        const Config& ck = config[key];
-        size_t counter = 0;
-        T temp_value;
-        for(auto& item : temp_value) {
-            // рекурсивно вызываем traits(признаки) для каждого из элементов
-            Type item_temp_value;
-            if(ck.size() > counter)
-            {
-                if(!ConfigTypeTraits<Type>::loadWithoutKey(ck[counter], item_temp_value))
-                return false;
-            } else {
-                // массив меньше, заполняем дефолтом для этого типа
-                item_temp_value = Type();
+        if(config.isMapContainer() && config.containsKey(key)) {
+            const Config& ck = config[key];
+            size_t counter = 0;
+            T temp_value;
+            for(auto& item : temp_value) {
+                // рекурсивно вызываем traits(признаки) для каждого из элементов
+                Type item_temp_value;
+                if(ck.size() > counter)
+                {
+                    if(!ConfigTypeTraits<Type>::loadWithoutKey(ck[counter], item_temp_value))
+                        return false;
+                } else {
+                    // массив меньше, заполняем дефолтом для этого типа
+                    item_temp_value = Type();
+                }
+                counter++;
+
+                item = item_temp_value;
             }
-            counter++;
 
-            item = item_temp_value;
+            if(lambda(temp_value, std::forward<Args>(args)...))
+            {
+                field = temp_value;
+                return true;
+            }
+            return false;
         }
 
-        if(lambda(temp_value, std::forward<Args>(args)...))
-        {
-            field = temp_value;
-            return true;
-        }
-        return false;
+        return true; // ключа не существует, игнорим проверки
     }
 
     // комментарии учитываются только при записи

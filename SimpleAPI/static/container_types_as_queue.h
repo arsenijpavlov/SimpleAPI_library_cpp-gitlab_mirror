@@ -22,18 +22,20 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_queue<T>::val
 
         using Type = typename T::value_type;
 
-        const Config& ck = config[key];
-        T temp_value; // метода clear() нет, поэтому работаем со времянкой
-        size_t counter = 0;
-        for(const auto& c : ck.getRange()) {
-            // рекурсивно вызываем traits(признаки) для каждого из элементов
-            Type item_value;
-            if(!ConfigTypeTraits<Type>::loadWithoutKey((*c.get()), item_value))
-                return false;
+        if(config.isMapContainer() && config.containsKey(key)) {
+            const Config& ck = config[key];
+            T temp_value; // метода clear() нет, поэтому работаем со времянкой
+            size_t counter = 0;
+            for(const auto& c : ck.getRange()) {
+                // рекурсивно вызываем traits(признаки) для каждого из элементов
+                Type item_value;
+                if(!ConfigTypeTraits<Type>::loadWithoutKey((*c.get()), item_value))
+                    return false;
 
-            temp_value.push(item_value);
+                temp_value.push(item_value);
+            }
+            field.swap(temp_value);
         }
-        field.swap(temp_value);
 
         return true;
     }
@@ -46,24 +48,28 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_queue<T>::val
 
         using Type = typename T::value_type;
 
-        const Config& ck = config[key];
-        T temp_value; // метода clear() нет, поэтому работаем со времянкой
-        size_t counter = 0;
-        for(const auto& c : ck.getRange()) {
-            // рекурсивно вызываем traits(признаки) для каждого из элементов
-            Type item_value;
-            if(!ConfigTypeTraits<Type>::loadWithoutKey((*c.get()), item_value))
-                return false;
+        if(config.isMapContainer() && config.containsKey(key)) {
+            const Config& ck = config[key];
+            T temp_value; // метода clear() нет, поэтому работаем со времянкой
+            size_t counter = 0;
+            for(const auto& c : ck.getRange()) {
+                // рекурсивно вызываем traits(признаки) для каждого из элементов
+                Type item_value;
+                if(!ConfigTypeTraits<Type>::loadWithoutKey((*c.get()), item_value))
+                    return false;
 
-            temp_value.push(item_value);
+                temp_value.push(item_value);
+            }
+
+            if(lambda(temp_value, std::forward<Args>(args)...))
+            {
+                field.swap(temp_value);
+                return true;
+            }
+            return false;
         }
 
-        if(lambda(temp_value, std::forward<Args>(args)...))
-        {
-            field.swap(temp_value);
-            return true;
-        }
-        return false;
+        return true; // ключа не существует, игнорим проверки
     }
 
     // комментарии учитываются только при записи

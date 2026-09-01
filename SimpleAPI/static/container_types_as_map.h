@@ -109,16 +109,18 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_map<T>::value
 
         using Type = typename T::mapped_type;
 
-        field.clear();
-        const Config& ck = config[key];
-        size_t counter = 0;
-        for(auto& c : ck.getNamedRange()) {
-            // рекурсивно вызываем traits(признаки) для каждого из элементов
-            Type item_temp_value;
-            if(!ConfigTypeTraits<Type>::loadWithoutKey((*c.second.get()), item_temp_value))
-                return false;
+        if(config.isMapContainer() && config.containsKey(key)) {
+            field.clear();
+            const Config& ck = config[key];
+            size_t counter = 0;
+            for(auto& c : ck.getNamedRange()) {
+                // рекурсивно вызываем traits(признаки) для каждого из элементов
+                Type item_temp_value;
+                if(!ConfigTypeTraits<Type>::loadWithoutKey((*c.second.get()), item_temp_value))
+                    return false;
 
-            field.insert(std::make_pair(parse_key<KeyType>(c.first), item_temp_value));
+                field.insert(std::make_pair(parse_key<KeyType>(c.first), item_temp_value));
+            }
         }
 
         return true;
@@ -132,24 +134,28 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_map<T>::value
 
         using Type = typename T::mapped_type;
 
-        const Config& ck = config[key];
-        size_t counter = 0;
-        T temp_value;
-        for(auto& c : ck.getNamedRange()) {
-            // рекурсивно вызываем traits(признаки) для каждого из элементов
-            Type item_temp_value;
-            if(!ConfigTypeTraits<Type>::loadWithoutKey((*c.second.get()), item_temp_value))
-                return false;
+        if(config.isMapContainer() && config.containsKey(key)) {
+            const Config& ck = config[key];
+            size_t counter = 0;
+            T temp_value;
+            for(auto& c : ck.getNamedRange()) {
+                // рекурсивно вызываем traits(признаки) для каждого из элементов
+                Type item_temp_value;
+                if(!ConfigTypeTraits<Type>::loadWithoutKey((*c.second.get()), item_temp_value))
+                    return false;
 
-            temp_value.insert(std::make_pair(parse_key<KeyType>(c.first), item_temp_value));
+                temp_value.insert(std::make_pair(parse_key<KeyType>(c.first), item_temp_value));
+            }
+
+            if(lambda(temp_value, std::forward<Args>(args)...))
+            {
+                field = temp_value;
+                return true;
+            }
+            return false;
         }
 
-        if(lambda(temp_value, std::forward<Args>(args)...))
-        {
-            field = temp_value;
-            return true;
-        }
-        return false;
+        return true; // ключа не существует, игнорим проверки
     }
 
     // комментарии учитываются только при записи

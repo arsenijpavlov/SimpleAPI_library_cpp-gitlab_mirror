@@ -63,41 +63,25 @@
 
 // загрузчики
 #define SAPI_LOAD_FIELD_3(type, name, default_value)                                         \
-    if(load_conf.isMapContainer() && load_conf.containsKey(#name)) {                         \
-        if(!simpleapi::tools::ConfigTypeTraits<type>::load(load_conf, #name, name))          \
-            return false;                                                                    \
-    }
+    simpleapi::tools::ConfigTypeTraits<type>::load(load_conf, #name, name);
 #define SAPI_LOAD_FIELD_4(type, name, default_value, lambda)                                 \
-    if(load_conf.isMapContainer() && load_conf.containsKey(#name)) {                         \
-        if(!simpleapi::tools::ConfigTypeTraits<type>::load(load_conf, #name, name, lambda))  \
-            return false;                                                                    \
-    }
+    simpleapi::tools::ConfigTypeTraits<type>::load(load_conf, #name, name, lambda);
 #define SAPI_LOAD_FIELD_5(type, name, default_value, lambda, prefix_comment)                 \
-    if(load_conf.isMapContainer() && load_conf.containsKey(#name)) {                         \
-        if(!simpleapi::tools::ConfigTypeTraits<type>::load(load_conf, #name, name, lambda))  \
-            return false;                                                                    \
-    }
+    simpleapi::tools::ConfigTypeTraits<type>::load(load_conf, #name, name, lambda);
 #define SAPI_LOAD_FIELD_6(type, name, default_value, lambda, prefix_comment, suffix_comment) \
-    if(load_conf.isMapContainer() && load_conf.containsKey(#name)) {                         \
-        if(!simpleapi::tools::ConfigTypeTraits<type>::load(load_conf, #name, name, lambda))  \
-            return false;                                                                    \
-    }
+    simpleapi::tools::ConfigTypeTraits<type>::load(load_conf, #name, name, lambda);
 // обёртка
 #define SAPI_LOAD_FIELD(...) \
     SAPI_GETTER_MACRO_6(__VA_ARGS__, SAPI_LOAD_FIELD_6, SAPI_LOAD_FIELD_5, SAPI_LOAD_FIELD_4, SAPI_LOAD_FIELD_3)(__VA_ARGS__)
 
 // записыватели
 #define SAPI_SAVE_FIELD_3(type, name, default_value)                                                                    \
-    std::cout << "[debug] save() config type " << ToString(save_conf.getType()) << ", key: \"" << #name << "\"" << std::endl;   \
     simpleapi::tools::ConfigTypeTraits<type>::save(save_conf, #name, name);
 #define SAPI_SAVE_FIELD_4(type, name, default_value, lambda)                                                            \
-    std::cout << "[debug] save() config type " << ToString(save_conf.getType()) << ", key: \"" << #name << "\"" << std::endl;   \
     simpleapi::tools::ConfigTypeTraits<type>::save(save_conf, #name, name);
 #define SAPI_SAVE_FIELD_5(type, name, default_value, lambda, prefix_comment)                                            \
-    std::cout << "[debug] save() config type " << ToString(save_conf.getType()) << ", key: \"" << #name << "\"" << std::endl;   \
     simpleapi::tools::ConfigTypeTraits<type>::save(save_conf, #name, name, prefix_comment);
 #define SAPI_SAVE_FIELD_6(type, name, default_value, lambda, prefix_comment, suffix_comment)                            \
-    std::cout << "[debug] save() config type " << ToString(save_conf.getType()) << ", key: \"" << #name << "\"" << std::endl;   \
     simpleapi::tools::ConfigTypeTraits<type>::save(save_conf, #name, name, prefix_comment, suffix_comment);
 // обёртка
 #define SAPI_SAVE_FIELD(...) \
@@ -119,9 +103,9 @@
     SAPI_GETTER_MACRO_2(__VA_ARGS__, SAPI_ENUM_TO_STRING_2, SAPI_ENUM_TO_STRING_1)(__VA_ARGS__)
 
 #define SAPI_ENUM_FROM_STRING_1(element)                                         \
-    if(str == #element) out_value = _CURRENT_ENUM_NAME_::element;
+    if(str == #element) out_value = _CURRENT_ENUM_NAME_::element; return;
 #define SAPI_ENUM_FROM_STRING_2(element, value)                                  \
-    if(str == #element) out_value = _CURRENT_ENUM_NAME_::element;
+    if(str == #element) out_value = _CURRENT_ENUM_NAME_::element; return;
 #define SAPI_ENUM_FROM_STRING(...)                                               \
     SAPI_GETTER_MACRO_2(__VA_ARGS__, SAPI_ENUM_FROM_STRING_2, SAPI_ENUM_FROM_STRING_1)(__VA_ARGS__)
 
