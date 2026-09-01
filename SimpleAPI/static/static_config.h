@@ -23,13 +23,17 @@
 #include "container_types_as_queue.h"  // IWYU pragma: keep
 #include "container_types_as_stack.h"  // IWYU pragma: keep
 #include "container_types_as_map.h"    // IWYU pragma: keep
+#include "enum_types.h"                // IWYU pragma: keep
 #include <functional>                  // IWYU pragma: keep
 
 
 // NOTE: приставка SAPI_ - сокращение от SimpleAPI_ для избежания совпадений с пользовательским пространством
 
-// макрос-счётчик аргументов в других макросах
-#define SAPI_GETTER_MACRO(_1, _2, _3, _4, _5, _6, NAME, ...) NAME
+// макросы-счётчики аргументов в других макросах
+#define SAPI_GETTER_MACRO_2(_1, _2, NAME, ...)                 NAME
+#define SAPI_GETTER_MACRO_3(_1, _2, _3, NAME, ...)             NAME
+#define SAPI_GETTER_MACRO_6(_1, _2, _3, _4, _5, _6, NAME, ...) NAME
+
 
 // объявления
 #define SAPI_DECLARE_FIELD_3(type, name, default_value)                                         \
@@ -42,7 +46,7 @@
     type name;
 // обёртка
 #define SAPI_DECLARE_FIELD(...) \
-    SAPI_GETTER_MACRO(__VA_ARGS__, SAPI_DECLARE_FIELD_6, SAPI_DECLARE_FIELD_5, SAPI_DECLARE_FIELD_4, SAPI_DECLARE_FIELD_3)(__VA_ARGS__)
+    SAPI_GETTER_MACRO_6(__VA_ARGS__, SAPI_DECLARE_FIELD_6, SAPI_DECLARE_FIELD_5, SAPI_DECLARE_FIELD_4, SAPI_DECLARE_FIELD_3)(__VA_ARGS__)
 
 // инициализаторы
 #define SAPI_INIT_FIELD_3(type, name, default_value)                                         \
@@ -55,7 +59,7 @@
     name = default_value;
 // обёртка
 #define SAPI_INIT_FIELD(...) \
-    SAPI_GETTER_MACRO(__VA_ARGS__, SAPI_INIT_FIELD_6, SAPI_INIT_FIELD_5, SAPI_INIT_FIELD_4, SAPI_INIT_FIELD_3)(__VA_ARGS__)
+    SAPI_GETTER_MACRO_6(__VA_ARGS__, SAPI_INIT_FIELD_6, SAPI_INIT_FIELD_5, SAPI_INIT_FIELD_4, SAPI_INIT_FIELD_3)(__VA_ARGS__)
 
 // загрузчики
 #define SAPI_LOAD_FIELD_3(type, name, default_value)                                         \
@@ -80,7 +84,7 @@
     }
 // обёртка
 #define SAPI_LOAD_FIELD(...) \
-    SAPI_GETTER_MACRO(__VA_ARGS__, SAPI_LOAD_FIELD_6, SAPI_LOAD_FIELD_5, SAPI_LOAD_FIELD_4, SAPI_LOAD_FIELD_3)(__VA_ARGS__)
+    SAPI_GETTER_MACRO_6(__VA_ARGS__, SAPI_LOAD_FIELD_6, SAPI_LOAD_FIELD_5, SAPI_LOAD_FIELD_4, SAPI_LOAD_FIELD_3)(__VA_ARGS__)
 
 // записыватели
 #define SAPI_SAVE_FIELD_3(type, name, default_value)                                                                    \
@@ -97,8 +101,75 @@
     simpleapi::tools::ConfigTypeTraits<type>::save(save_conf, #name, name, prefix_comment, suffix_comment);
 // обёртка
 #define SAPI_SAVE_FIELD(...) \
-    SAPI_GETTER_MACRO(__VA_ARGS__, SAPI_SAVE_FIELD_6, SAPI_SAVE_FIELD_5, SAPI_SAVE_FIELD_4, SAPI_SAVE_FIELD_3)(__VA_ARGS__)
+    SAPI_GETTER_MACRO_6(__VA_ARGS__, SAPI_SAVE_FIELD_6, SAPI_SAVE_FIELD_5, SAPI_SAVE_FIELD_4, SAPI_SAVE_FIELD_3)(__VA_ARGS__)
 
+// enum
+#define SAPI_ENUM_ELEMENT_1(element)                                             \
+    element,
+#define SAPI_ENUM_ELEMENT_2(element, value)                                      \
+    element = value,
+#define SAPI_ENUM_ELEMENT(...)                                                   \
+    SAPI_GETTER_MACRO_2(__VA_ARGS__, SAPI_ENUM_ELEMENT_2, SAPI_ENUM_ELEMENT_1)(__VA_ARGS__)
+
+#define SAPI_ENUM_TO_STRING_1(element)                                           \
+    case _CURRENT_ENUM_NAME_::element: return #element;
+#define SAPI_ENUM_TO_STRING_2(element, value)                                    \
+    case _CURRENT_ENUM_NAME_::element: return #element;
+#define SAPI_ENUM_TO_STRING(...)                                                 \
+    SAPI_GETTER_MACRO_2(__VA_ARGS__, SAPI_ENUM_TO_STRING_2, SAPI_ENUM_TO_STRING_1)(__VA_ARGS__)
+
+#define SAPI_ENUM_FROM_STRING_1(element)                                         \
+    if(str == #element) out_value = _CURRENT_ENUM_NAME_::element;
+#define SAPI_ENUM_FROM_STRING_2(element, value)                                  \
+    if(str == #element) out_value = _CURRENT_ENUM_NAME_::element;
+#define SAPI_ENUM_FROM_STRING(...)                                               \
+    SAPI_GETTER_MACRO_2(__VA_ARGS__, SAPI_ENUM_FROM_STRING_2, SAPI_ENUM_FROM_STRING_1)(__VA_ARGS__)
+
+// вариант описания enum без указания базового класса
+#define SAPI_REGISTER_ENUM_2(EnumName, LIST)                                     \
+    enum class EnumName {                                                        \
+        LIST(SAPI_ENUM_ELEMENT)                                                  \
+        _UNDEFINED_STATE_                                                        \
+    };                                                                           \
+    inline std::string ToString(const EnumName& value) noexcept {                \
+        using _CURRENT_ENUM_NAME_ = EnumName;                                    \
+        switch(value) {                                                          \
+            LIST(SAPI_ENUM_TO_STRING)                                            \
+            default: break;                                                      \
+        }                                                                        \
+        return "UNKNOWN";                                                        \
+    }                                                                            \
+    inline void EnumFromString(const std::string& str, EnumName& out_value) {    \
+        using _CURRENT_ENUM_NAME_ = EnumName;                                    \
+        LIST(SAPI_ENUM_FROM_STRING)                                              \
+        out_value = EnumName::_UNDEFINED_STATE_;                                 \
+    }
+
+// вариант описания enum через указание базового класса
+#define SAPI_REGISTER_ENUM_3(EnumName, LIST, UnderlyingType)                     \
+    enum class EnumName : UnderlyingType {                                       \
+        LIST(SAPI_ENUM_ELEMENT)                                                  \
+        _UNDEFINED_STATE_                                                        \
+    };                                                                           \
+    inline std::string ToString(const EnumName& value) noexcept {                \
+        using _CURRENT_ENUM_NAME_ = EnumName;                                    \
+        switch(value) {                                                          \
+            LIST(SAPI_ENUM_TO_STRING)                                            \
+            default: break;                                                      \
+        }                                                                        \
+        return "UNKNOWN";                                                        \
+    }                                                                            \
+    inline void EnumFromString(const std::string& str, EnumName& out_value) {    \
+        using _CURRENT_ENUM_NAME_ = EnumName;                                    \
+        LIST(SAPI_ENUM_FROM_STRING)                                              \
+        out_value = EnumName::_UNDEFINED_STATE_;                                 \
+    }
+
+#define SAPI_REGISTER_ENUM(...) \
+    SAPI_GETTER_MACRO_3(__VA_ARGS__, SAPI_REGISTER_ENUM_3, SAPI_REGISTER_ENUM_2)(__VA_ARGS__)
+
+// ====================================================================================================================
+// ==================================================== USER SPACE ====================================================
 /* Ограничения:
  * - базовая структура не может состоять из примитива Config,
  *      то есть пользователю нужно использовать стандартное "val = config;" без преобразований
@@ -110,8 +181,8 @@
  *          - std::vector<T>
  *          - std::list<T>
  *          - std::forward_list<T>
- *          - (FIXME) std::array<T, size>
- *          - (FIXME) std::bitset<T>
+ *          - std::array<T, size>
+ *          - std::bitset<T>
  *          - std::set<T>
  *          - std::multiset<T>
  *          - std::unordered_set<T>
@@ -122,11 +193,11 @@
  *          - std::deque<T>
  *          - std::priority_queue<T>
  *      - ассоциативные контейнеры:
- *          - (TODO) std::map<K, T>
- *          - (TODO) std::unordered_map<K, T>
- *          - (TODO) std::multimap<K, T>           - сейчас нет реализации (Config не может содержать дублей ключей)
- *          - (TODO) std::unordered_multimap<K, T> - сейчас нет реализации (Config не может содержать дублей ключей)
- * - игнорируемые типы:
+ *          - std::map<K, T>
+ *          - std::unordered_map<K, T>
+ *          - std::multimap<K, T>           - сейчас нет реализации (Config не может содержать дублей ключей)
+ *          - std::unordered_multimap<K, T> - сейчас нет реализации (Config не может содержать дублей ключей)
+ * - запрещённые типы контейнеров:
  *      - std::basic_string - библиотека строго UTF-8, запрещаем пользователю выстрелить себе в ногу
 */
 #define SAPI_REGISTER_CONFIG(StructName, SAPI_FIELDS_MACRO)     \
@@ -154,6 +225,12 @@
 //        X(int, integer, 2)         \
 //        X(uint8_t, u_integer, 3, []{ return (u_integer != 5); }) \
 //        X(std::string, str, "asd")
-//
 //    SAPI_REGISTER_CONFIG(TestConfig, STRUCT_FIELDS)
+// ------------------------------------------------------------
+// enum:
+//  #define MY_ENUM_FIELDS(X) \
+//      X(eFirst, 0) \
+//      X(eSecond, 5) \
+//      X(eThird, 10)
+//    SAPI_REGISTER_ENUM(MyEnum, MY_ENUM_FIELDS)
 // EXAMPLE OF USAGE -------------------------------------------
