@@ -29,7 +29,21 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_config_struct<T>::value
     {
         std::cout << "[debug] load structure key=\"" << key << "\"" << std::endl;
 
-        field.loadConfig(config[key]);
+        using Type = typename T::value_type;
+        // field.loadConfig(config[key]);
+
+        field.clear();
+        const Config& ck = config[key];
+        size_t counter = 0;
+        for(auto& c : ck.getNamedRange()) {
+            // рекурсивно вызываем traits(признаки) для каждого из элементов
+            Type item_temp_value;
+            if(!ConfigTypeTraits<Type>::loadWithoutKey((*c.second.get()), item_temp_value))
+                return false;
+
+            field.insert(std::make_pair((c.first), item_temp_value));
+        }
+
         return true;
     }
 
