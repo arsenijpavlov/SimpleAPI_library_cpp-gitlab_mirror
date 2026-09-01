@@ -2,7 +2,7 @@
 
 // NOTE: "IWYU pragma: keep" спрячет лишнее предупреждение от clangd
 #include "base.h"              // IWYU pragma: keep
-#include "type_checkers.h"
+#include "type_checkers.h"     // IWYU pragma: keep
 #include <string>
 #include <type_traits>
 #include "../config/Config.h"
@@ -20,28 +20,9 @@ struct ConfigTypeTraits<T, typename std::enable_if<std::is_enum<T>::value>::type
     {
         std::cout << "[debug] load enum key=\"" << key << "\"" << std::endl;
 
-        using Type = typename T::value_type;
-        size_t array_size = std::tuple_size<T>::value;
+        EnumFromString(config[key].getString(), field);
 
-        const Config& ck = config[key];
-        size_t counter = 0;
-        for(auto& item : field) {
-            // рекурсивно вызываем traits(признаки) для каждого из элементов
-            Type item_temp_value;
-            if(ck.size() > counter)
-            {
-                if(!ConfigTypeTraits<Type>::loadWithoutKey(ck[counter], item_temp_value))
-                    return false;
-            } else {
-                // массив меньше, заполняем дефолтом для этого типа
-                item_temp_value = Type();
-            }
-            counter++;
-
-            item = item_temp_value;
-        }
-
-        return true;
+        return field != T::_UNDEFINED_STATE_;
     }
 
     template<typename Lambda, typename... Args,
@@ -50,32 +31,13 @@ struct ConfigTypeTraits<T, typename std::enable_if<std::is_enum<T>::value>::type
     {
         std::cout << "[debug] load enum key=\"" << key << "\"" << std::endl;
 
-        using Type = typename T::value_type;
-        size_t array_size = std::tuple_size<Type>::value;
-
-        const Config& ck = config[key];
-        size_t counter = 0;
         T temp_value;
-        for(auto& item : temp_value) {
-            // рекурсивно вызываем traits(признаки) для каждого из элементов
-            Type item_temp_value;
-            if(ck.size() > counter)
-            {
-                if(!ConfigTypeTraits<Type>::loadWithoutKey(ck[counter], item_temp_value))
-                return false;
-            } else {
-                // массив меньше, заполняем дефолтом для этого типа
-                item_temp_value = Type();
-            }
-            counter++;
-
-            item = item_temp_value;
-        }
+        EnumFromString(config[key].getString(), temp_value);
 
         if(lambda(temp_value, std::forward<Args>(args)...))
         {
             field = temp_value;
-            return true;
+            return field != T::_UNDEFINED_STATE_;;
         }
         return false;
     }
@@ -87,14 +49,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<std::is_enum<T>::value>::type
     {
         std::cout << "[debug] save enum key=\"" << key << "\"" << std::endl;
 
-        using Type = typename T::value_type;
-
-        for(const auto& item : field) {
-            // ключ дальше нельзя передать - создаст новую вложенность
-            Config temp;
-            ConfigTypeTraits<Type>::saveWithoutKey(temp, item);
-            config[key].push_back(temp);
-        }
+        config[key] = ToString(field);
         config[key].setComment(prefix_comment, suffix_comment);
     }
 };
