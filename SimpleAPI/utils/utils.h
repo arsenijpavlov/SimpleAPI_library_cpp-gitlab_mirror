@@ -13,7 +13,6 @@
 
 
 namespace simpleapi {
-
 namespace utils {
 
 bool        IsNumber(const std::string& str, bool use_point = true)                     noexcept;

@@ -47,7 +47,7 @@ static std::string ToString(const T& value) noexcept
 {
     std::ostringstream oss;
     oss.imbue(std::locale::classic()); //запрещаем любой разделитель, кроме точки
-    oss << value;
+    oss << std::dec << +value;
 
     return oss.str();
 }

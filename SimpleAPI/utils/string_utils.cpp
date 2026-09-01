@@ -1,5 +1,5 @@
 #include "string_utils.h"
-#include "Utils.h"
+#include "utils.h"
 #include "../config/ConfigDefines.h"
 
 namespace simpleapi {

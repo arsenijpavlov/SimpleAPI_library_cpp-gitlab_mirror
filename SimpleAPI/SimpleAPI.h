@@ -2,7 +2,7 @@
 
 // NOTE: "IWYU pragma: keep" спрячет лишнее предупреждение от clangd
 #include "VersionInfo.h"                // IWYU pragma: keep
-#include "utils/Utils.h"                // IWYU pragma: keep
+#include "utils/utils.h"                // IWYU pragma: keep
 #include "utils/string_utils.h"         // IWYU pragma: keep
 #include "utils/Timer.h"                // IWYU pragma: keep
 #include "utils/Logger.h"               // IWYU pragma: keep
@@ -15,7 +15,7 @@
 #include "network/UdpSocket.h"          // IWYU pragma: keep
 #include "network/SocketThread.h"       // IWYU pragma: keep
 
-#include "utils/FileUtils.h"            // IWYU pragma: keep
+#include "utils/file_utils.h"           // IWYU pragma: keep
 
 
 namespace simpleapi {
