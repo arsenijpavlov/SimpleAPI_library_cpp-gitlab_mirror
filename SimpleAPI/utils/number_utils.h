@@ -52,5 +52,9 @@ static std::string ToString(const T& value) noexcept
     return oss.str();
 }
 
+bool        CreateBoolFromString(const std::string& input);
+long long   CreateLLongFromString(const std::string& input);
+long double CreateLDoubleFromString(const std::string& input);
+
 } // namespace utils
 } // namespace simpleapi

@@ -4,7 +4,8 @@
 4) для ручной сортировки нужно вызвать метод `Config::sort()`
 5) расписать тесты сравнения eChar и eString
 6) нужна документация для технологии StaticConfig
-7) StaticConfig для std::map<>
-8) StaticConfig для std::pair<>
-9) Config: const getBool() должен преобразовывать значение к bool из Bool и Number
-10)
+7) StaticConfig для std::pair<>
+8) Config: const getBool() должен преобразовывать значение к bool из Bool и Number
+9) Проверка действенности шифрования через картинку (должен быть абсолютный шум на выходе)
+10) добавить GetStringAs*() ?
+11)

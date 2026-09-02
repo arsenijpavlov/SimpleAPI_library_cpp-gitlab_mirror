@@ -66,9 +66,5 @@ std::vector<uint8_t> FromHexStringToHex(const std::string& str)                 
 std::string GetNormalizeString(const std::string& input)                                noexcept;
 bool        IsNormalizeEqual(const std::string& str_1, const std::string& str_2)        noexcept;
 
-bool        CreateBoolFromString(const std::string& input);
-long long   CreateLLongFromString(const std::string& input);
-long double CreateLDoubleFromString(const std::string& input);
-
 } // namespace utils
 } // namespace simpleapi
