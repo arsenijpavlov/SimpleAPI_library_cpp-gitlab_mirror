@@ -109,6 +109,13 @@
 #define SAPI_ENUM_FROM_STRING(...)                                               \
     SAPI_GETTER_MACRO_2(__VA_ARGS__, SAPI_ENUM_FROM_STRING_2, SAPI_ENUM_FROM_STRING_1)(__VA_ARGS__)
 
+#define SAPI_ENUM_POSSIBLE_VARIANTS_1(element)                                         \
+    ret += std::string(#element) + ", ";
+#define SAPI_ENUM_POSSIBLE_VARIANTS_2(element, value)                                  \
+    ret += std::string(#element) + ", ";
+#define SAPI_ENUM_POSSIBLE_VARIANTS(...)                                               \
+    SAPI_GETTER_MACRO_2(__VA_ARGS__, SAPI_ENUM_POSSIBLE_VARIANTS_2, SAPI_ENUM_POSSIBLE_VARIANTS_1)(__VA_ARGS__)
+
 // вариант описания enum без указания базового класса
 #define SAPI_REGISTER_ENUM_2(EnumName, LIST)                                     \
     enum class EnumName {                                                        \
@@ -127,6 +134,12 @@
         using _CURRENT_ENUM_NAME_ = EnumName;                                    \
         LIST(SAPI_ENUM_FROM_STRING)                                              \
         out_value = EnumName::_UNDEFINED_STATE_;                                 \
+    }                                                                            \
+    inline std::string EnumPossibleVariants(const EnumName value) {              \
+        std::string ret;                                                         \
+        LIST(SAPI_ENUM_POSSIBLE_VARIANTS)                                        \
+        if(!ret.empty()) ret.pop_back(); ret.pop_back(); /* удаляем ", " */      \
+        return ret;                                                              \
     }
 
 // вариант описания enum через указание базового класса
@@ -147,7 +160,14 @@
         using _CURRENT_ENUM_NAME_ = EnumName;                                    \
         LIST(SAPI_ENUM_FROM_STRING)                                              \
         out_value = EnumName::_UNDEFINED_STATE_;                                 \
+    }                                                                            \
+    inline std::string EnumPossibleVariants(const EnumName value) {              \
+            std::string ret;                                                     \
+            LIST(SAPI_ENUM_POSSIBLE_VARIANTS)                                    \
+            if(!ret.empty()) ret.pop_back(); ret.pop_back(); /* удаляем ", " */  \
+            return ret;                                                          \
     }
+
 
 #define SAPI_REGISTER_ENUM(...) \
     SAPI_GETTER_MACRO_3(__VA_ARGS__, SAPI_REGISTER_ENUM_3, SAPI_REGISTER_ENUM_2)(__VA_ARGS__)
