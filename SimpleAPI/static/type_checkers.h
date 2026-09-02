@@ -287,11 +287,13 @@ class is_variadic_lambda_callable {
         CleanT
         >::type;
 
+    // метод для SFINAE проверки наличия лямбы как nullptr
+    template <typename U>
+    static char test(typename std::enable_if<std::is_same<U, std::nullptr_t>::value>::type*);
     // метод для SFINAE проверки наличия валидной лямбы у класса U
     template <typename U>
     static char test(typename std::enable_if<
-                     !std::is_same<U, std::nullptr_t>::value
-                     && std::is_convertible<decltype(std::declval<U>()(std::declval<Args>()...)), bool>::value
+                     std::is_convertible<decltype(std::declval<U>()(std::declval<Args>()...)), bool>::value
                      >::type*);
     // метод для разрешения конфликта для поля value
     template <typename U> static long test(...);
@@ -300,6 +302,10 @@ public:
 };
 // ---------------
 // описания перегрузок для лямбд/std::function() для вызова как через объект, так и через указатель на него
+template <typename T, typename... Args>
+static bool ExecuteValidator(const T&, std::nullptr_t, Args&&...) noexcept {
+    return true;
+}
 template <typename T, typename ValidatorT, typename ... Args>
 static bool ExecuteValidator(const T& value, ValidatorT validator, Args&&... args,
                              typename std::enable_if<std::is_pointer<ValidatorT>::value>::type* = 0)
