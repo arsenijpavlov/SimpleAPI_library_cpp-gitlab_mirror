@@ -32,7 +32,7 @@
 ### Суть:
 Указывает количество символов в строке формата UTF-8. Опционально можно узнать количество видимых символов.
 
-## 5. GetStringCharCount
+## 5. GetNormalizeString
 ### Сигнатура:
 `std::string GetNormalizeString(const std::string &input) noexcept`
 
@@ -89,3 +89,30 @@
 ### Суть:
 Выдаёт список всех файлов в указанной директории с возможностью указать regex-маску поиска. Выполняет рекурсивный поиск всех путей до файлов по указанной маске, начиная с указанной директории до глубины N (-1 - бесконечная глубина поиска).
 
+## 12. ToString()
+### Сигнатура:
+`std::string ToString(const T& value) noexcept`
+
+### Суть:
+Перевод чисел, bool, внутренних типов библиотеки в строковое представление.
+
+## 13. CreateBoolFromString()
+### Сигнатура:
+`bool CreateBoolFromString(const std::string& input);`
+
+### Суть:
+Создаст значение bool из строкового представления.
+
+## 14. CreateLLongFromString()
+### Сигнатура:
+`long long CreateLLongFromString(const std::string& input);`
+
+### Суть:
+Создаст значение long long из строкового представления.
+
+## 15. CreateLDoubleFromString()
+### Сигнатура:
+`long doblue CreateLDoubleFromString(const std::string& input);`
+
+### Суть:
+Создаст значение long double из строкового представления.
