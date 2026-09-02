@@ -23,9 +23,10 @@
 		<toc-element topic="001-Sockets.md"/>
 		<toc-element topic="002-SocketThread.md"/>
 		<toc-element topic="003-API-v1.md"/>
-		<toc-element topic="003-Message.md"/>
-		<toc-element topic="004-Network-utils.md"/>
+		<toc-element topic="004-Message.md"/>
+		<toc-element topic="005-Network-utils.md"/>
 	</toc-element> <!-- end of "006-Network.md" -->
 	<toc-element topic="007-Side-utils.md"/>
+	<toc-element topic="008-Static-Config.md"/>
 	<!-- SCRIPT END -->
 </instance-profile>

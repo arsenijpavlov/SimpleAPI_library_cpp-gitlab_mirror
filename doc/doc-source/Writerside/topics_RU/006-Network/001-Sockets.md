@@ -1,4 +1,4 @@
-# 5.1. Сокеты
+# 6.1. Сокеты
 
 Сокеты в SimpleAPI представлены классом `Socket`, в конструкторе которого нужно указать его тип `SocketType`.
 На данный момент это типы `SocketType::eUDP` и `SocketType::eTCP`(_TODO_).
@@ -8,7 +8,7 @@
 
 Детально настроить логику внутреннего поведения функций внутри этих классов можно с помощью вспомогательного класса `SocketSettings`.
 SocketSettings даёт возможность выставить и получить информацию о следующих параметрах:
-- включить и выключить шифрование на сокетном канале (_TODO_), `void enableChiphering(bool enabled = 0) noexcept`
+- включить и выключить шифрование на сокетном канале (_TODO_), `void enableChiphering(bool enabled = false) noexcept`
 - проверить активность шифрования на сокетном канале, `bool isChipheringEnabled() noexcept`
 - выставить таймер неактивности, `void setInactivityTimer(long milliseconds = 10000) noexcept`
 - выбрать уровень проверки целостности выкл/8B/16B/32B, `void setCrcLevel(CRC crc_level = CRC::eCRC_OFF) noexcept`
