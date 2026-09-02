@@ -103,9 +103,9 @@
     SAPI_GETTER_MACRO_2(__VA_ARGS__, SAPI_ENUM_TO_STRING_2, SAPI_ENUM_TO_STRING_1)(__VA_ARGS__)
 
 #define SAPI_ENUM_FROM_STRING_1(element)                                         \
-    if(str == #element) out_value = _CURRENT_ENUM_NAME_::element; return;
+    if(str == #element) { out_value = _CURRENT_ENUM_NAME_::element; return; }
 #define SAPI_ENUM_FROM_STRING_2(element, value)                                  \
-    if(str == #element) out_value = _CURRENT_ENUM_NAME_::element; return;
+    if(str == #element) { out_value = _CURRENT_ENUM_NAME_::element; return; }
 #define SAPI_ENUM_FROM_STRING(...)                                               \
     SAPI_GETTER_MACRO_2(__VA_ARGS__, SAPI_ENUM_FROM_STRING_2, SAPI_ENUM_FROM_STRING_1)(__VA_ARGS__)
 
