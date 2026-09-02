@@ -21,8 +21,13 @@ struct ConfigTypeTraits<T, typename std::enable_if<std::is_enum<T>::value>::type
         std::cout << "[debug] load enum key=\"" << key << "\"" << std::endl;
 
         if(config.isMapContainer() && config.containsKey(key)) {
+            T temp_value;
             EnumFromString(config[key].getString(), field);
-            return field != T::_UNDEFINED_STATE_;
+            if(temp_value == T::_UNDEFINED_STATE_) {
+                return false;
+            }
+            field = temp_value;
+            return true;
         }
 
         return true; // ключа не существует, игнорим проверки
@@ -41,7 +46,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<std::is_enum<T>::value>::type
             if(ExecuteValidator(temp_value, lambda, std::forward<Args>(args)...))
             {
                 field = temp_value;
-                return field != T::_UNDEFINED_STATE_;;
+                return field != T::_UNDEFINED_STATE_;
             }
             return false;
         }
