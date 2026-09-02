@@ -63,13 +63,13 @@
 
 // загрузчики
 #define SAPI_LOAD_FIELD_3(type, name, default_value)                                         \
-    simpleapi::tools::ConfigTypeTraits<type>::load(load_conf, #name, name);
+    if(!simpleapi::tools::ConfigTypeTraits<type>::load(load_conf, #name, name)) return false;
 #define SAPI_LOAD_FIELD_4(type, name, default_value, lambda)                                 \
-    simpleapi::tools::ConfigTypeTraits<type>::load(load_conf, #name, name, lambda);
+    if(!simpleapi::tools::ConfigTypeTraits<type>::load(load_conf, #name, name, lambda)) return false;
 #define SAPI_LOAD_FIELD_5(type, name, default_value, lambda, prefix_comment)                 \
-    simpleapi::tools::ConfigTypeTraits<type>::load(load_conf, #name, name, lambda);
+    if(!simpleapi::tools::ConfigTypeTraits<type>::load(load_conf, #name, name, lambda)) return false;
 #define SAPI_LOAD_FIELD_6(type, name, default_value, lambda, prefix_comment, suffix_comment) \
-    simpleapi::tools::ConfigTypeTraits<type>::load(load_conf, #name, name, lambda);
+    if(!simpleapi::tools::ConfigTypeTraits<type>::load(load_conf, #name, name, lambda)) return false;
 // обёртка
 #define SAPI_LOAD_FIELD(...) \
     SAPI_GETTER_MACRO_6(__VA_ARGS__, SAPI_LOAD_FIELD_6, SAPI_LOAD_FIELD_5, SAPI_LOAD_FIELD_4, SAPI_LOAD_FIELD_3)(__VA_ARGS__)
