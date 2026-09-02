@@ -46,7 +46,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<!is_config_struct<T>::value
         if(config.isMapContainer() && config.containsKey(key)) {
             T temp_value = config[key].get<T>();
 
-            if(lambda(temp_value, std::forward<Args>(args)...))
+            if(ExecuteValidator(temp_value, lambda, std::forward<Args>(args)...))
             {
                 field = temp_value;
                 return true;

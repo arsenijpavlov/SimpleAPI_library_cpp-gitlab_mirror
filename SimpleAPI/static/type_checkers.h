@@ -279,16 +279,49 @@ class is_variadic_lambda_callable {
     // очистка типа от const и ссылок
     using CleanT = typename std::decay<T>::type;
 
+    // если это указатель, снимаем указатель
+    // иначе оставляем как есть
+    using CallableT = typename std::conditional<
+        std::is_pointer<CleanT>::value,
+        typename std::remove_pointer<CleanT>::type,
+        CleanT
+        >::type;
+
     // метод для SFINAE проверки наличия валидной лямбы у класса U
     template <typename U>
     static char test(typename std::enable_if<
-                     std::is_convertible<decltype(std::declval<U>()(std::declval<Args>()...)), bool>::value>
-                     ::type*);
+                     !std::is_same<U, std::nullptr_t>::value
+                     && std::is_convertible<decltype(std::declval<U>()(std::declval<Args>()...)), bool>::value
+                     >::type*);
     // метод для разрешения конфликта для поля value
     template <typename U> static long test(...);
 public:
-    static const bool value = (sizeof(test<CleanT>(0)) == sizeof(char));
+    static const bool value = (sizeof(test<CallableT>(0)) == sizeof(char));
 };
+// ---------------
+// описания перегрузок для лямбд/std::function() для вызова как через объект, так и через указатель на него
+template <typename T, typename ValidatorT, typename ... Args>
+static bool ExecuteValidator(const T& value, ValidatorT validator, Args&&... args,
+                             typename std::enable_if<std::is_pointer<ValidatorT>::value>::type* = 0)
+{
+    // если это указатель на функцию/лямбду (или nullptr)
+    if (validator != nullptr) {
+        if (!(*validator)(value, std::forward<Args>(args)...)) { // разыменовываем указатель перед вызовом
+            return false;
+        }
+    }
+    return true;
+}
+template <typename T, typename ValidatorT, typename ... Args>
+static bool ExecuteValidator(const T& value, const ValidatorT& validator, Args&&... args,
+                             typename std::enable_if<!std::is_pointer<ValidatorT>::value>::type* = 0)
+{
+    // если это прямая лямбда или функтор
+    if (!validator(value, std::forward<Args>(args)...)) {
+        return false;
+    }
+    return true;
+}
 // ----------------------------------------------------------------------------
 
 } // namespace tools

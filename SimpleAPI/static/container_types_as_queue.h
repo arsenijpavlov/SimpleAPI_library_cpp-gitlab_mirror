@@ -61,7 +61,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_queue<T>::val
                 temp_value.push(item_value);
             }
 
-            if(lambda(temp_value, std::forward<Args>(args)...))
+            if(ExecuteValidator(temp_value, lambda, std::forward<Args>(args)...))
             {
                 field.swap(temp_value);
                 return true;

@@ -147,7 +147,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_map<T>::value
                 temp_value.insert(std::make_pair(parse_key<KeyType>(c.first), item_temp_value));
             }
 
-            if(lambda(temp_value, std::forward<Args>(args)...))
+            if(ExecuteValidator(temp_value, lambda, std::forward<Args>(args)...))
             {
                 field = temp_value;
                 return true;

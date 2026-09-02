@@ -38,7 +38,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<std::is_enum<T>::value>::type
             T temp_value;
             EnumFromString(config[key].getString(), temp_value);
 
-            if(lambda(temp_value, std::forward<Args>(args)...))
+            if(ExecuteValidator(temp_value, lambda, std::forward<Args>(args)...))
             {
                 field = temp_value;
                 return field != T::_UNDEFINED_STATE_;;

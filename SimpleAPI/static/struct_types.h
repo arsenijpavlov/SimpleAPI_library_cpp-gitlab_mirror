@@ -2,7 +2,7 @@
 
 // NOTE: "IWYU pragma: keep" спрячет лишнее предупреждение от clangd
 #include "base.h"           // IWYU pragma: keep
-#include "type_checkers.h"
+#include "type_checkers.h"  // IWYU pragma: keep
 #include <type_traits>
 
 
@@ -50,7 +50,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_config_struct<T>::value
             if(!temp_value.loadConfig(ck))
                 return false;
 
-            if(lambda(temp_value, std::forward<Args>(args)...))
+            if(ExecuteValidator(temp_value, lambda, std::forward<Args>(args)...))
             {
                 field = temp_value;
                 return true;
