@@ -10,6 +10,7 @@
 #include "ElementXml.h"
 #include "../utils/Stacker.h"
 #include "../utils/string_utils.h"
+#include "../utils/number_utils.h"
 
 #include <limits>
 #include <regex>
