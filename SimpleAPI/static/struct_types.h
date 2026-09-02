@@ -27,7 +27,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_config_struct<T>::value
 {
     static bool load(const Config& config, const std::string& key, T& field)
     {
-        std::cout << "[debug] load structure key=\"" << key << "\"" << std::endl;
+        // std::cout << "[debug] load structure key=\"" << key << "\"" << std::endl;
 
         if(config.isMapContainer() && config.containsKey(key)) {
             const Config& ck = config[key];
@@ -42,7 +42,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_config_struct<T>::value
              typename std::enable_if<is_variadic_lambda_callable<Lambda, const T&, Args...>::value, int>::type = 0>
     static bool load(const Config& config, const std::string& key, T& field, Lambda lambda, Args&&... args)
     {
-        std::cout << "[debug] load structure key=\"" << key << "\"" << std::endl;
+        // std::cout << "[debug] load structure key=\"" << key << "\"" << std::endl;
 
         if(config.isMapContainer() && config.containsKey(key)) {
             const Config& ck = config[key];
@@ -65,7 +65,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_config_struct<T>::value
                      const std::string& prefix_comment = "",
                      const std::string& suffix_comment = "")
     {
-        std::cout << "[debug] save structure key=\"" << key << "\"" << std::endl;
+        // std::cout << "[debug] save structure key=\"" << key << "\"" << std::endl;
 
         if(config.isMapContainer())
         {

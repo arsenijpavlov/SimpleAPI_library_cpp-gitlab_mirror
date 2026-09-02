@@ -105,7 +105,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_map<T>::value
 
     static bool load(const Config& config, const std::string& key, T& field)
     {
-        std::cout << "[debug] load container(as map) key=\"" << key << "\"" << std::endl;
+        // std::cout << "[debug] load container(as map) key=\"" << key << "\"" << std::endl;
 
         using Type = typename T::mapped_type;
 
@@ -130,7 +130,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_map<T>::value
              typename std::enable_if<is_variadic_lambda_callable<Lambda, const T&, Args...>::value, int>::type = 0>
     static bool load(const Config& config, const std::string& key, T& field, Lambda lambda, Args&&... args)
     {
-        std::cout << "[debug] load container(as map) key=\"" << key << "\"" << std::endl;
+        // std::cout << "[debug] load container(as map) key=\"" << key << "\"" << std::endl;
 
         using Type = typename T::mapped_type;
 
@@ -163,7 +163,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_map<T>::value
                      const std::string& prefix_comment = "",
                      const std::string& suffix_comment = "")
     {
-        std::cout << "[debug] save container(as map) key=\"" << key << "\"" << std::endl;
+        // std::cout << "[debug] save container(as map) key=\"" << key << "\"" << std::endl;
 
         using Type = typename T::mapped_type;
 

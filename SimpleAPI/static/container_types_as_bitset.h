@@ -18,7 +18,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_bitset<T>::va
 {
     static bool load(const Config& config, const std::string& key, T& field)
     {
-        std::cout << "[debug] load container(as bitset) key=\"" << key << "\"" << std::endl;
+        // std::cout << "[debug] load container(as bitset) key=\"" << key << "\"" << std::endl;
 
         if(config.isMapContainer() && config.containsKey(key)) {
             const Config& ck = config[key];
@@ -40,7 +40,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_bitset<T>::va
              typename std::enable_if<is_variadic_lambda_callable<Lambda, const T&, Args...>::value, int>::type = 0>
     static bool load(const Config& config, const std::string& key, T& field, Lambda lambda, Args&&... args)
     {
-        std::cout << "[debug] load container(as bitset) key=\"" << key << "\"" << std::endl;
+        // std::cout << "[debug] load container(as bitset) key=\"" << key << "\"" << std::endl;
 
         if(config.isMapContainer() && config.containsKey(key)) {
             const Config& ck = config[key];
@@ -71,7 +71,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_bitset<T>::va
                      const std::string& prefix_comment = "",
                      const std::string& suffix_comment = "")
     {
-        std::cout << "[debug] save container(as bitset) key=\"" << key << "\"" << std::endl;
+        // std::cout << "[debug] save container(as bitset) key=\"" << key << "\"" << std::endl;
 
         for(size_t i = 0; i < field.size(); i++) {
             // ключ дальше нельзя передать - создаст новую вложенность

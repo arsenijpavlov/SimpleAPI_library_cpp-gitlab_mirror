@@ -28,7 +28,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<!is_config_struct<T>::value
 {
     static bool load(const Config& config, const std::string& key, T& field)
     {
-        std::cout << "[debug] load simple key=\"" << key << "\"" << std::endl;
+        // std::cout << "[debug] load simple key=\"" << key << "\"" << std::endl;
 
         if(config.isMapContainer() && config.containsKey(key)) {
             field = config[key].get<T>();
@@ -41,7 +41,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<!is_config_struct<T>::value
              typename std::enable_if<is_variadic_lambda_callable<Lambda, const T&, Args...>::value, int>::type = 0>
     static bool load(const Config& config, const std::string& key, T& field, Lambda lambda, Args&&... args)
     {
-        std::cout << "[debug] load simple key=\"" << key << "\"" << std::endl;
+        // std::cout << "[debug] load simple key=\"" << key << "\"" << std::endl;
 
         if(config.isMapContainer() && config.containsKey(key)) {
             T temp_value = config[key].get<T>();
@@ -68,7 +68,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<!is_config_struct<T>::value
                      const std::string& prefix_comment = "",
                      const std::string& suffix_comment = "")
     {
-        std::cout << "[debug] save simple key=\"" << key << "\"" << std::endl;
+        // std::cout << "[debug] save simple key=\"" << key << "\"" << std::endl;
 
         config[key] = field;
         config[key].setComment(prefix_comment, suffix_comment);
@@ -78,7 +78,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<!is_config_struct<T>::value
                                const std::string& prefix_comment = "",
                                const std::string& suffix_comment = "")
     {
-        std::cout << "[debug] save simple without key" << std::endl;
+        // std::cout << "[debug] save simple without key" << std::endl;
 
         config = field;
         config.setComment(prefix_comment, suffix_comment);
