@@ -2,7 +2,7 @@
 
 #include "Config.h"
 #include <algorithm>
-#include "../utils/StringUtils.h"
+#include "../utils/string_utils.h"
 
 
 namespace simpleapi {
@@ -22,8 +22,9 @@ bool ElementBool::isEqual(const IElement &other, const bool compare_comments,
     return b1 && b2;
 }
 
-std::string ElementBool::toString(bool value) noexcept {
-    return (value ? "true" : "false");
+std::string ElementBool::toString() const noexcept
+{
+    return utils::ToString(m_value);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

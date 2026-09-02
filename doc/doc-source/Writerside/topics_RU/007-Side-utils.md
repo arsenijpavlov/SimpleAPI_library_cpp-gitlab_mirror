@@ -1,4 +1,4 @@
-# 6. Дополнительные функции-утилиты
+# 7. Дополнительные функции-утилиты
 
 В ходе разработки библиотеки было сформировано множество полезных функций, которые могут показаться полезными пользователю. Данная статья рассказывает о некоторых из них.
 
@@ -32,7 +32,7 @@
 ### Суть:
 Указывает количество символов в строке формата UTF-8. Опционально можно узнать количество видимых символов.
 
-## 5. GetStringCharCount
+## 5. GetNormalizeString
 ### Сигнатура:
 `std::string GetNormalizeString(const std::string &input) noexcept`
 
@@ -81,3 +81,38 @@
 
 ### Суть:
 Разделяет строку на подстроки с указанным символом-разделителем.
+
+## 11. GetAllFilesByMask
+### Сигнатура:
+`std::vector<std::string> GetAllFilesByMask(const std::string& path_to_dir, const std::string& regex, const int& max_level = 0) noexcept`
+
+### Суть:
+Выдаёт список всех файлов в указанной директории с возможностью указать regex-маску поиска. Выполняет рекурсивный поиск всех путей до файлов по указанной маске, начиная с указанной директории до глубины N (-1 - бесконечная глубина поиска).
+
+## 12. ToString()
+### Сигнатура:
+`std::string ToString(const T& value) noexcept`
+
+### Суть:
+Перевод чисел, bool, внутренних типов библиотеки в строковое представление.
+
+## 13. CreateBoolFromString()
+### Сигнатура:
+`bool CreateBoolFromString(const std::string& input);`
+
+### Суть:
+Создаст значение bool из строкового представления.
+
+## 14. CreateLLongFromString()
+### Сигнатура:
+`long long CreateLLongFromString(const std::string& input);`
+
+### Суть:
+Создаст значение long long из строкового представления.
+
+## 15. CreateLDoubleFromString()
+### Сигнатура:
+`long double CreateLDoubleFromString(const std::string& input);`
+
+### Суть:
+Создаст значение long double из строкового представления.

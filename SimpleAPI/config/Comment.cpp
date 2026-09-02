@@ -1,7 +1,7 @@
 #include "Comment.h"
 
-#include "../utils/Utils.h"
-#include "../utils/StringUtils.h"
+#include "../utils/utils.h"
+#include "../utils/string_utils.h"
 #include "../utils/Logger.h" //для cout (debug)
 #include <algorithm>
 

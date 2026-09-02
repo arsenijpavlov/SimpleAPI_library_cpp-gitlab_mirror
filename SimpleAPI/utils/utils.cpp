@@ -1,4 +1,4 @@
-#include "Utils.h"
+#include "utils.h"
 
 #include <iostream>
 #include <regex>
@@ -45,10 +45,8 @@ char GetLastNotSpaceChar(const std::string& str) noexcept
     return 0;
 }
 
-std::string ToString(const long double& d) noexcept {
-    std::ostringstream str;
-    str << d;
-    return str.str();
+std::string ToString(bool value) noexcept {
+    return (value ? "true" : "false");
 }
 
 bool IsBool(std::string& str) noexcept {
@@ -59,11 +57,6 @@ bool IsBool(std::string& str) noexcept {
 bool ToBool(const std::string& str) noexcept {
     if(str == "true")   return true;
     else                return false;
-}
-
-std::string ToString(const bool b) noexcept {
-    if(b) return "true";
-    else  return "false";
 }
 
 bool OnlySpaces(const std::string& str) noexcept {

@@ -2,9 +2,11 @@
 
 #include "Comment.h"
 #include "ConfigCommon.h"
+#include "ConfigDefines.h"
 #include "../utils/TypeDefines.h"
 #include "ElementArray.h"
 #include "ElementBool.h"
+#include "ElementChar.h"
 #include "ElementJson.h"
 #include "ElementNumber.h"
 #include "ElementString.h"
@@ -83,6 +85,7 @@ public:
     __ONLY_NUMBER_TYPES__(T)
     explicit Config(T&& other)                      noexcept : m_value(nullptr)     { setValue(static_cast<long double>(other)); }
 
+    explicit Config(char other)                     noexcept : m_value(nullptr)     { setValue(other); }
     // NOTE: с explicit Config(const char*) не работает
     __ONLY_STRING_TYPES__(T)
     /*explicit*/ Config(const T& other)             noexcept : m_value(nullptr)     { setValue(std::string(other)); }
@@ -105,6 +108,10 @@ public:
         }
         case ValueType::eNumber: {
             m_value = new ElementNumber();
+            break;
+        }
+        case ValueType::eChar: {
+            m_value = new ElementChar();
             break;
         }
         case ValueType::eString: {
@@ -162,6 +169,18 @@ public:
                 setValue(vec[0]);
             else
                 m_value = new ElementNumber();
+            break;
+        }
+        case ValueType::eChar: {
+            if(sizeof...(values) > 1)
+                throw std::invalid_argument("one argument maximum required (type String)");
+            if(!vec[0].isString())
+                throw std::invalid_argument("incorrect format (type Char)");
+
+            if(sizeof...(values) == 1)
+                setValue(vec[0]);
+            else
+                m_value = new ElementChar();
             break;
         }
         case ValueType::eString: {
@@ -236,6 +255,18 @@ public:
                 m_value = new ElementNumber();
             break;
         }
+        case ValueType::eChar: {
+            if(sizeof...(values) > 1)
+                throw std::invalid_argument("one argument maximum required (type String)");
+            if(!vec[0].isString())
+                throw std::invalid_argument("incorrect format (type String)");
+
+            if(sizeof...(values) == 1)
+                setValue(vec[0]);
+            else
+                m_value = new ElementChar();
+            break;
+        }
         case ValueType::eString: {
             if(sizeof...(values) > 1)
                 throw std::invalid_argument("one argument maximum required (type String)");
@@ -294,6 +325,7 @@ public:
     #define API_ALL
     #define API_BOOL
     #define API_NUMBER
+    #define API_CHAR
     #define API_STRING
     #define API_CONTAINER
     #define API_INDEX_ARRAY
@@ -396,6 +428,7 @@ public:
                     __ONLY_NUMBER_TYPES__(T)
     Config&         setValue(T&& other)         noexcept    { return setValue(static_cast<long double>(std::move(other))); }API_ALL
 
+    Config&         setValue(char other)                            noexcept;                                               API_ALL
     Config&         setValue(const std::string& other)              noexcept;                                               API_ALL
     Config&         setValue(std::string&& other)                   noexcept;                                               API_ALL
                     __ONLY_STRING_TYPES__(T)
@@ -439,6 +472,61 @@ public:
     long double     getLDouble()                                                                const;                      API_NUMBER
     std::string&    getString();                                                                                            API_STRING
     std::string     getString()                                                                 const;                      API_STRING
+    char&           getChar();                                                                                              API_STRING API_CHAR
+    char            getChar()                                                                   const;                      API_STRING API_CHAR
+
+    // преобразования к указанному типу-примитиву
+    // bool
+    template<typename T, typename std::enable_if<std::is_same<T, bool>::value, int>::type = 0>
+    bool get() const
+    {
+        __CHECK_TYPE_IS_BOOL__((*this))
+        return getBool();
+    }
+    __ONLY_NUMBER_TYPES__(T)
+    T get() const
+    {
+        __CHECK_TYPE_IS_NUMBER__((*this))
+        return static_cast<T>(getNumber());
+    }
+    // char
+    template<typename T, typename std::enable_if<std::is_same<T, char>::value, int>::type = 0>
+    char get() const
+    {
+        __CHECK_TYPE_IS_CHAR_OR_STRING__((*this))
+        return getChar();
+    }
+    __ONLY_STRING_TYPES__(T)
+    T get() const
+    {
+        // строка из одного символа - тоже строка
+        __CHECK_TYPE_IS_CHAR_OR_STRING__((*this))
+        return static_cast<T>(getString());
+    }
+
+    // преобразования к указанному типу (из контейнеров)
+    __ONLY_ALLOWED_TYPES__(T)
+    T get(const std::string& key) const
+    {
+        __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
+
+        const Config& inner = get_at(key);
+        __CHECK_TYPE_IS_NOT_NULL__((inner))
+        __CHECK_TYPE_IS_CONTAINER__((inner))
+
+        return inner.get<T>();
+    }
+    __ONLY_ALLOWED_TYPES__(T)
+    T get(const size_t& index) const
+    {
+        __CHECK_TYPE_IS_CONTAINER__((*this))
+
+        const Config& inner = get_at(index);
+        __CHECK_TYPE_IS_NOT_NULL__((inner))
+        __CHECK_TYPE_IS_CONTAINER__((inner))
+
+        return inner.get<T>();
+    }
 
     bool            error()                                                                     const noexcept;             API_CONTAINER
     std::string     getError()                                                                  const noexcept;             API_CONTAINER
@@ -484,6 +572,8 @@ public:
     float           get_front_Float()                                                           const;                      API_CONTAINER
     double          get_front_Double()                                                          const;                      API_CONTAINER
     long double     get_front_LDouble()                                                         const;                      API_CONTAINER
+    char&           get_front_char();                                                                                       API_CONTAINER
+    char            get_front_char()                                                            const;                      API_CONTAINER
     std::string&    get_front_string();                                                                                     API_CONTAINER
     std::string     get_front_string()                                                          const;                      API_CONTAINER
 
@@ -557,6 +647,17 @@ public:
     double          get_Double_at(const std::initializer_list<OnlySizetOrString>& complex_key)  const;                      API_CONTAINER
     long double     get_LDouble_at(const std::initializer_list<OnlySizetOrString>& complex_key) const;                      API_CONTAINER
 
+    char&           get_char_at(const size_t& index);                                                                       API_CONTAINER
+    char            get_char_at(const size_t& index)                                            const;                      API_CONTAINER
+    char&           get_char_at(const std::string& key);                                                                    API_MAP_CONTAINER
+    char            get_char_at(const std::string& key)                                         const;                      API_MAP_CONTAINER
+    char&           get_char_at(const std::vector<OnlySizetOrString>& complex_key);                                         API_CONTAINER
+    char            get_char_at(const std::vector<OnlySizetOrString>& complex_key)              const;                      API_CONTAINER
+
+    //фикс для вызова через {}
+    char&           get_char_at(const std::initializer_list<OnlySizetOrString>& complex_key);                               API_CONTAINER
+    char            get_char_at(const std::initializer_list<OnlySizetOrString>& complex_key)    const;                      API_CONTAINER
+
     std::string&    get_string_at(const size_t& index);                                                                     API_CONTAINER
     std::string     get_string_at(const size_t& index)                                          const;                      API_CONTAINER
     std::string&    get_string_at(const std::string& key);                                                                  API_MAP_CONTAINER
@@ -583,6 +684,8 @@ public:
     float           get_Float_back()                                                            const;                      API_CONTAINER
     double          get_Double_back()                                                           const;                      API_CONTAINER
     long double     get_LDouble_back()                                                          const;                      API_CONTAINER
+    char&           get_char_back();                                                                                        API_CONTAINER
+    char            get_char_back()                                                             const;                      API_CONTAINER
     std::string&    get_string_back();                                                                                      API_CONTAINER
     std::string     get_string_back()                                                           const;                      API_CONTAINER
     // ========================================================================================================= Getters
@@ -677,9 +780,9 @@ public:
             __ONLY_ALLOWED_TYPES__(T)
     Config& push_front(const std::string& key, T&& other)               { return insert_front(key, std::move(Config(other))); } API_MAP_CONTAINER
             __ONLY_ALLOWED_TYPES__(T)
-    Config& push_at(const size_t& index, const T& other)                 { return insert_at(index, Config(other)); }            API_CONTAINER
+    Config& push_at(const size_t& index, const T& other)                { return insert_at(index, Config(other)); }            API_CONTAINER
             __ONLY_ALLOWED_TYPES__(T)
-    Config& push_at(const size_t& index, T&& other)                      { return insert_at(index, std::move(Config(other))); } API_CONTAINER
+    Config& push_at(const size_t& index, T&& other)                     { return insert_at(index, std::move(Config(other))); } API_CONTAINER
             __ONLY_ALLOWED_TYPES__(T)
     Config& push_at(const std::string& key, const T& other)             { return insert_at(key, Config(other)); }               API_MAP_CONTAINER
             __ONLY_ALLOWED_TYPES__(T)
@@ -737,6 +840,7 @@ public:
     bool            isBool()                                const noexcept          { return getType() == ValueType::eBool; }   API_ALL
                     // @TEST(ELEMENT, create_number)
     bool            isNumber()                              const noexcept          { return getType() == ValueType::eNumber; } API_ALL
+    bool            isChar()                                const noexcept          { return getType() == ValueType::eChar; }   API_ALL
                     // @TEST(ELEMENT, create_string)
     bool            isString()                              const noexcept          { return getType() == ValueType::eString; } API_ALL
                     // @TEST(ELEMENT, create_array)
@@ -753,8 +857,9 @@ public:
                             const bool map_sort_important = false) const noexcept   { return isEqual(*other.m_value, compare_comments, map_sort_important); }
     bool            isEqual(const tools::IElement& other, const bool compare_comments = false,
                             const bool map_sort_important = false) const noexcept;                                              API_ALL
-    bool            isEqual(const bool other)               const noexcept;                                                     API_ALL
+    bool            isEqual(bool other)                     const noexcept;                                                     API_ALL
     bool            isEqual(std::nullptr_t)                 const noexcept          { return isNull(); }                        API_ALL
+    bool            isEqual(char other)                     const noexcept;                                                     API_ALL
     bool            isEqual(const long double& other)       const noexcept;                                                     API_ALL
     bool            isEqual(const std::string& other)       const noexcept;                                                     API_ALL
 
@@ -777,10 +882,11 @@ public:
     Config&         operator=(const tools::IElement& other) noexcept                { return setValue(other); }                 API_ALL
     Config&         operator=(tools::IElement&& other)      noexcept                { return setValue(std::move(other)); }      API_ALL
     Config&         operator=(std::nullptr_t)               noexcept                { return setValue(); }                      API_ALL
-    Config&         operator=(const bool other)             noexcept                { return setValue(other); }                 API_ALL
+    Config&         operator=(bool other)                   noexcept                { return setValue(other); }                 API_ALL
                     __ONLY_NUMBER_TYPES__(T)
     Config&         operator=(const T& other)               noexcept                { return setValue(static_cast<const long double&>(other)); }    API_ALL
     Config&         operator=(long double&& other)          noexcept                { return setValue(std::move(other)); }      API_ALL
+    Config&         operator=(char other)                   noexcept                { return setValue(other); }                 API_ALL
                     __ONLY_STRING_TYPES__(T)
     Config&         operator=(const T& other)               noexcept                { return setValue(other); }                 API_ALL
                     __ONLY_STRING_TYPES__(T)
@@ -791,19 +897,21 @@ public:
      */
     bool            operator==(const Config& other)         const                   { return isEqual(other); }                  API_ALL
     bool            operator==(const tools::IElement& other)const                   { return isEqual(other); }                  API_ALL
-    bool            operator==(const bool other)            const                   { return isEqual(other); }                  API_ALL
+    bool            operator==(bool other)                  const                   { return isEqual(other); }                  API_ALL
     bool            operator==(std::nullptr_t)              const                   { return isNull(); }                        API_ALL
                     __ONLY_NUMBER_TYPES__(T)
     bool            operator==(const T& other)              const                   { return isEqual(static_cast<const long double&>(other)); }     API_ALL
+    bool            operator==(char other)                  const                   { return isEqual(other); }                  API_ALL
                     __ONLY_STRING_TYPES__(T)
     bool            operator==(const T& other)              const                   { return isEqual(std::string(other)); }     API_ALL
 
     bool            operator!=(const Config& other)         const                   { return !isEqual(other); }                 API_ALL
     bool            operator!=(const tools::IElement& other)const                   { return !isEqual(other); }                 API_ALL
-    bool            operator!=(const bool other)            const                   { return !isEqual(other); }                 API_ALL
+    bool            operator!=(bool other)                  const                   { return !isEqual(other); }                 API_ALL
     bool            operator!=(std::nullptr_t)              const                   { return !isNull(); }                       API_ALL
                     __ONLY_NUMBER_TYPES__(T)
     bool            operator!=(const T& other)              const                   { return !isEqual(static_cast<const long double&>(other)); }    API_ALL
+    bool            operator!=(char other)                  const                   { return !isEqual(other); }                 API_ALL
     bool            operator!=(const std::string& other)    const                   { return !isEqual(other); }                 API_ALL
 
     //числа, контейнеры(размер), строки(длина в видимых символах)

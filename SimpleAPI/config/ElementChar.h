@@ -2,46 +2,45 @@
 
 #include "interface/IElement.h"
 
-
 namespace simpleapi {
 namespace tools {
 
-class ElementBool : public IElement {
+class ElementChar : public IElement {
 protected:
-    bool m_value;
+    char m_value;
 
 public:
-    ElementBool()                       noexcept : m_value(false)                       { init(); }
-    explicit ElementBool(const bool b)  noexcept : m_value(b)                           { init(); }
-    ~ElementBool()                      noexcept                                        {}
+    ElementChar()                                           noexcept : m_value()        { init(); }
+    explicit ElementChar(char ch)                           noexcept : m_value(ch)      { init(); }
+    ~ElementChar()                                          noexcept                    {}
 
     // Setters =========================================================================================================
 private:
-    void        init()                                      noexcept                    { m_type = ValueType::eBool; }
+    void            init()                                  noexcept                    { m_type = ValueType::eChar; }
 public:
     // ========================================================================================================= Setters
 
     // Getters =========================================================================================================
-    bool&       getValue()                                                              { return m_value; }
-    bool        getValue()                                  const                       { return m_value; }
+    char&           getValue()                                                          { return m_value; }
+    char            getValue()                              const                       { return m_value; }
     // ========================================================================================================= Getters
 
     // Modify ==========================================================================================================
-    void        clear()                                     noexcept        override;
+    void            clear()                                 noexcept        override;
     // ========================================================================================================== Modify
 
     // Info ============================================================================================================
-    bool        isEqual(const IElement &other, const bool compare_comments,
-                        const bool map_sort_important)      const noexcept  override;
-    size_t      size()                                      const noexcept  override    { return 1; }
+    //длина в видимых символах
+    bool            isEqual(const IElement &other, const bool compare_comments,
+                            const bool map_sort_important)  const noexcept  override;
+    size_t          size()                                  const noexcept  override    { return 1; }
     // ============================================================================================================ Info
 
     // Operators =======================================================================================================
     // ======================================================================================================= Operators
 
     // String ==========================================================================================================
-    //вывод без комментариев, "tabulation_level == -1" => запись в одну строку
-    std::string toString()                                  const noexcept  override;
+    std::string     toString()                              const noexcept  override    { return std::string(1, m_value); }
     // ========================================================================================================== String
 
     // File ============================================================================================================
@@ -51,12 +50,8 @@ public:
     // ========================================================================================================== Parser
 
     // Iterators =======================================================================================================
-    // ======================================================================================================= Iterators
+    // ======================================================================================================= Iteratorse
 };
-
-bool IsElementBool(const std::string& str)              noexcept;
-bool IsElementBool(const IElement& e)                   noexcept;
-bool IsElementBool(const Config& cfg)                   noexcept;
 
 } // namespace tools
 } // namespace simpleapi

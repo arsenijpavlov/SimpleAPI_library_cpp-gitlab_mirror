@@ -1,19 +1,21 @@
 #pragma once
 
-#include "VersionInfo.h"
-#include "utils/Utils.h"
-#include "utils/StringUtils.h"
-#include "utils/Timer.h"
-#include "utils/Logger.h"
+// NOTE: "IWYU pragma: keep" спрячет лишнее предупреждение от clangd
+#include "VersionInfo.h"                // IWYU pragma: keep
+#include "utils/utils.h"                // IWYU pragma: keep
+#include "utils/string_utils.h"         // IWYU pragma: keep
+#include "utils/Timer.h"                // IWYU pragma: keep
+#include "utils/Logger.h"               // IWYU pragma: keep
 
-#include "config/Config.h"
+#include "config/Config.h"              // IWYU pragma: keep
+#include "static/static_config.h"       // IWYU pragma: keep
 
-#include "network/Socket.h"
-#include "network/TcpSocket.h"
-#include "network/UdpSocket.h"
-#include "network/SocketThread.h"
+#include "network/Socket.h"             // IWYU pragma: keep
+#include "network/TcpSocket.h"          // IWYU pragma: keep
+#include "network/UdpSocket.h"          // IWYU pragma: keep
+#include "network/SocketThread.h"       // IWYU pragma: keep
 
-#include "utils/FileUtils.h"
+#include "utils/file_utils.h"           // IWYU pragma: keep
 
 
 namespace simpleapi {

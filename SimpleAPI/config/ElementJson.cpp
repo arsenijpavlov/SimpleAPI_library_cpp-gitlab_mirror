@@ -2,8 +2,8 @@
 
 #include "Config.h"
 #include <algorithm>
-#include "../utils/Utils.h"
-#include "../utils/StringUtils.h"
+#include "../utils/utils.h"
+#include "../utils/string_utils.h"
 #include "ConfigDefines.h"
 #include "../utils/Logger.h"
 
@@ -753,7 +753,7 @@ std::string ElementJson::toJsonString(const CommentDesign &design, const int8_t 
         if(m_values[i].second->isContainer()) {
             ret += utils::RemoveStartTabulations(temp);
         } else {
-            if(!m_values[i].second->isString()) {
+            if(!m_values[i].second->isString() && !m_values[i].second->isChar()) {
                 //в числах могут быть бесконечности
                 if(m_values[i].second->isNumber()) {
                     if(std::any_of(temp.begin(), temp.end(),
@@ -856,15 +856,21 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
 {
     std::string ret;
     std::string temp;
+    CommentDesign inner_design = design;
 
     auto GetPrefixComment = [&design](const Config cfg) -> std::string {
-        return (cfg.getPrefixComment().empty()) ? "" : (ToComment(cfg.getPrefixComment(), design) + "\n");
+        if(!design.with_comments || cfg.getPrefixComment().empty())
+            return "";
+        return ToComment(cfg.getPrefixComment(), design) + "\n";
     };
-    auto GetSuffixComment = [&design, &ret](const Config cfg) -> std::string {
-        if(cfg.getSuffixComment().empty())
+    auto GetSuffixComment = [&design, &ret, &inner_design](const Config cfg) -> std::string {
+        if(!design.with_comments || cfg.getSuffixComment().empty())
             return "";
 
-        utils::SplittedLines sl = utils::SplitWithoutColumned(ToComment(cfg.getSuffixComment(), design));
+        // ширина колонки многострочного комментария после значения не влияет на вывод
+        inner_design.opt_multiline_column_size = 0;
+
+        utils::SplittedLines sl = utils::SplitWithoutColumned(ToComment(cfg.getSuffixComment(), inner_design, -1));
         //начиная со второй, все строки дополнить пробелами в начале по длине
         // последней строки +1(отделение комментария от значения)
         size_t pos = ret.rfind('\n');
@@ -884,8 +890,9 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
             if(cfg_inner->isContainer()
                 || !cfg_inner->getPrefixComment().empty()
                 || !cfg_inner->getSuffixComment().empty()
-                || (cfg_inner->isString() && (cfg_inner->getString().find('\n') != std::string::npos
-                                              || cfg_inner->getString().size() > 50)))
+                || ((cfg_inner->isString() || cfg_inner->isChar())
+                    && (cfg_inner->getString().find('\n') != std::string::npos
+                        || cfg_inner->getString().size() > 50)))
             {
                 return false;
             }
@@ -915,10 +922,10 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
 
         ret += "[";
         for(size_t i = 0; i < cfg.size(); i++) {
-            if(cfg[i].isString())
+            if(cfg[i].isString() || cfg[i].isChar())
                 ret += "\"";
             ret += cfg[i].toString();
-            if(cfg[i].isString())
+            if(cfg[i].isString() || cfg[i].isChar())
                 ret += "\"";
 
             if(i + 1 < cfg.size())
@@ -932,8 +939,8 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
         /* для реализации выравнивания знаков '=' нужно в рамках общей длины XXX/K рассчитать максимум длины K
          *  XXX - весь дополнительный контекст пути
          */
+        size_t max_key_length = 0; // максимум текущей группы
         {
-            size_t max_key_length = 0; // максимум текущей группы
             size_t index_start    = 0; // начальный индекс текущей группы (финишный по текущей позиции)
             uint16_t current_group_name_size = 0;
             for(size_t i = 0; i < kbss.size(); i++) {
@@ -990,18 +997,18 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
         for(auto& kbs : kbss) {
             KeysComments* ptr_comment = dynamic_cast<KeysComments*>(kbs.get());
             KeysValues* ptr_cfg       = dynamic_cast<KeysValues*>(kbs.get());
-            if(ptr_comment)
+            if(design.with_comments && ptr_comment)
             {
                 //групповой комментарий для INI так и или иначе будет напечатан с новой строки, т.к. потеряется привязанность к группе
                 ret += ToComment(ptr_comment->m_comment_str, design) + "\n";
             }
-            else if(ptr_cfg)
+            if(ptr_cfg)
             {
                 ret += GetPrefixComment(*ptr_cfg->m_ptr_remote_cfg);
                 if(!ptr_cfg->m_key.empty()) {
-                    ret += ptr_cfg->m_key + " = ";
+                    ret += logs::columned(ptr_cfg->m_key, max_key_length + utils::GetStringCharCount(prefix)) + " = ";
                 }
-                if(ptr_cfg->m_ptr_remote_cfg->isString()) {
+                if(ptr_cfg->m_ptr_remote_cfg->isString()  || ptr_cfg->m_ptr_remote_cfg->isChar()) {
                     AppendMultinlineString(ptr_cfg->m_ptr_remote_cfg->toString());
                 } else {
                     ret += ptr_cfg->m_ptr_remote_cfg->toString();
@@ -1012,7 +1019,7 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
         }
     };
 
-    if(!getPrefixComment().empty()) {
+    if(design.with_comments && !getPrefixComment().empty()) {
         ret += ToComment(getPrefixComment(), design) + "\n\n\n";
     }
 
@@ -1049,7 +1056,8 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
             // при записи дополнять пробелами до максимальной длины
             uint16_t max_length_inner = 0;
             for(const auto& cfg_inner : cfg.second->getNamedRange()) {
-                if(!cfg_inner.second->isContainer() && cfg_inner.first.size() > max_length_inner) {
+                if((!cfg_inner.second->isContainer() || IsArrayWithPrimitives(*cfg_inner.second))
+                    && cfg_inner.first.size() > max_length_inner) {
                     max_length_inner = cfg_inner.first.size();
                 }
             }
@@ -1070,7 +1078,7 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
                         ret += GetPrefixComment(*cfg_inner.second);
 
                         //если внутри только примитивы без комментариев - вывести их в одну строку (строки длиной <=50)
-                        AppendArrayPrimitives(cfg_inner.first, *cfg_inner.second);
+                        AppendArrayPrimitives(logs::columned(cfg_inner.first, max_length_inner), *cfg_inner.second);
 
                         temp = GetSuffixComment(*cfg_inner.second);
                         ret += std::move(temp);
@@ -1080,7 +1088,7 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
                         //нужно собрать все элементы массива и упаковать в общее имя с переходом между уровнями
                         AppendCollection(cfg_inner.first, *cfg_inner.second);
                     }
-                } else if(cfg_inner.second->isString()) {
+                } else if(cfg_inner.second->isString() || cfg_inner.second->isChar()) {
                     ret += GetPrefixComment(*cfg_inner.second);
                     if(!cfg_inner.first.empty())
                         ret += logs::columned(cfg_inner.first, max_length_inner) + " = ";
@@ -1104,7 +1112,7 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
             if(IsArrayWithPrimitives(*cfg.second.get())) {
                 ret += GetPrefixComment(*cfg.second);
 
-                AppendArrayPrimitives(cfg.first, *cfg.second);
+                AppendArrayPrimitives(logs::columned(cfg.first, max_length), *cfg.second);
 
                 temp = GetSuffixComment(*cfg.second);
                 ret += std::move(temp);
@@ -1125,7 +1133,7 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
             if(!cfg.first.empty())
                 ret += logs::columned(cfg.first, max_length) + " = ";
 
-            if(cfg.second->isString()) {
+            if(cfg.second->isString() || cfg.second->isChar()) {
                 AppendMultinlineString(cfg.second->toString());
             } else {
                 ret += cfg.second->toString();
@@ -1138,7 +1146,7 @@ std::string ElementJson::toIniString(const CommentDesign &design, const int8_t c
         }
     } // loop for()
 
-    if(!getSuffixComment().empty()) {
+    if(design.with_comments && !getSuffixComment().empty()) {
         ret += "\n\n" + ToComment(getSuffixComment(), design);
     }
 

@@ -4,13 +4,13 @@
 #include "ElementNull.h"
 #include "ElementBool.h"
 #include "ElementNumber.h"
-#include "ElementString.h"
 #include "ElementArray.h"
 #include "ElementJson.h"
 //#include "ElementYaml.h"
 #include "ElementXml.h"
 #include "../utils/Stacker.h"
-#include "../utils/StringUtils.h"
+#include "../utils/string_utils.h"
+#include "../utils/number_utils.h"
 
 #include <limits>
 #include <regex>
@@ -345,6 +345,7 @@ Config &Config::setValue(const Config &other) noexcept {
         }
         case ValueType::eBool:      { setValue(dynamic_cast<const ElementBool*>(other.m_value)->getValue());    break;  }
         case ValueType::eNumber:    { setValue(dynamic_cast<const ElementNumber*>(other.m_value)->getValue());  break;  }
+        case ValueType::eChar:      { setValue(dynamic_cast<const ElementChar*>(other.m_value)->getValue());    break;  }
         case ValueType::eString:    { setValue(dynamic_cast<const ElementString*>(other.m_value)->getValue());  break;  }
         case ValueType::eArray:     { setValue(dynamic_cast<const ElementArray&>(*other.m_value));              break;  }
         case ValueType::eJson:      { setValue(dynamic_cast<const ElementJson&>(*other.m_value));               break;  }
@@ -385,6 +386,7 @@ Config &Config::setValue(const tools::IElement &other) noexcept {
     case ValueType::eNull:      { setValue();                                                       break;  }
     case ValueType::eBool:      { setValue(dynamic_cast<const ElementBool*>(&other)->getValue());   break;  }
     case ValueType::eNumber:    { setValue(dynamic_cast<const ElementNumber*>(&other)->getValue()); break;  }
+    case ValueType::eChar:      { setValue(dynamic_cast<const ElementChar*>(&other)->getValue());   break;  }
     case ValueType::eString:    { setValue(dynamic_cast<const ElementString*>(&other)->getValue()); break;  }
     case ValueType::eArray:     { setValue(dynamic_cast<const ElementArray&>(other));               break;  }
     case ValueType::eJson:      { setValue(dynamic_cast<const ElementJson&>(other));                break;  }
@@ -407,6 +409,7 @@ Config &Config::setValue(tools::IElement &&other) noexcept {
     case ValueType::eNull:      { setValue();                                                                   break;  }
     case ValueType::eBool:      { setValue(dynamic_cast<const ElementBool*>(&other)->getValue());               break;  }
     case ValueType::eNumber:    { setValue(std::move(dynamic_cast<const ElementNumber*>(&other)->getValue()));  break;  }
+    case ValueType::eChar:      { setValue(std::move(dynamic_cast<const ElementChar*>(&other)->getValue()));    break;  }
     case ValueType::eString:    { setValue(std::move(dynamic_cast<const ElementString*>(&other)->getValue()));  break;  }
     case ValueType::eArray:     { setValue(std::move(dynamic_cast<ElementArray&&>(other)));                     break;  }
     case ValueType::eJson:      { setValue(std::move(dynamic_cast<ElementJson&&>(other)));                      break;  }
@@ -433,6 +436,13 @@ Config &Config::setValue(const long double &other) noexcept {
 Config &Config::setValue(long double &&other) noexcept {
     release();
     m_value = new tools::ElementNumber(std::move(other));
+    return *this;
+}
+
+Config &Config::setValue(char other) noexcept
+{
+    release();
+    m_value = new tools::ElementChar(other);
     return *this;
 }
 
@@ -590,6 +600,46 @@ std::string &Config::getString() {
 std::string Config::getString() const {
     __CHECK_TYPE_IS_STRING__((*this))
     return dynamic_cast<const tools::ElementString*>(m_value)->getValue();
+}
+
+char &Config::getChar()
+{
+    __CHECK_TYPE_IS_CHAR_OR_STRING__((*this))
+
+    switch(getType()) {
+        case ValueType::eChar: {
+            return dynamic_cast<tools::ElementChar*>(m_value)->getValue();
+        }
+        case ValueType::eString: {
+            std::string& str = dynamic_cast<tools::ElementString*>(m_value)->getValue();
+            if(str.empty()) str.append(0);
+            return str.at(0);
+        }
+        default: break;
+    }
+
+    // до этой строки никогда не доходим (расчёт на __CHECK... проверки)
+    return dynamic_cast<tools::ElementChar*>(m_value)->getValue();
+}
+
+char Config::getChar() const
+{
+    __CHECK_TYPE_IS_CHAR_OR_STRING__((*this))
+
+    switch(getType()) {
+    case ValueType::eChar: {
+            return dynamic_cast<const tools::ElementChar*>(m_value)->getValue();
+    }
+    case ValueType::eString: {
+            std::string str = dynamic_cast<const tools::ElementString*>(m_value)->getValue();
+            if(str.empty()) return 0;
+            return str.at(0);
+    }
+    default: break;
+    }
+
+    // до этой строки никогда не доходим (расчёт на __CHECK... проверки)
+    return dynamic_cast<const tools::ElementChar*>(m_value)->getValue();
 }
 
 bool Config::error() const noexcept {
@@ -857,56 +907,20 @@ long double Config::get_front_LDouble() const {
     return get_front_number();
 }
 
-long double &Config::get_number_at(const std::initializer_list<OnlySizetOrString> &complex_key) {
-    return get_number_at(std::vector<OnlySizetOrString>(complex_key));
+char &Config::get_front_char()
+{
+    Config& config = get_front();
+    __CHECK_TYPE_IS_CHAR__(config)
+
+    return dynamic_cast<tools::ElementChar*>(config.m_value)->getValue();
 }
 
-long double Config::get_number_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
-    return get_number_at(std::vector<OnlySizetOrString>(complex_key));
-}
+char Config::get_front_char() const
+{
+    const Config& config = get_front();
+    __CHECK_TYPE_IS_CHAR__(config)
 
-uint8_t Config::get_UInt8_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
-    return static_cast<uint8_t>(get_number_at(std::move(complex_key)));
-}
-
-uint16_t Config::get_UInt16_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
-    return static_cast<uint16_t>(get_number_at(std::move(complex_key)));
-}
-
-uint32_t Config::get_UInt32_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
-    return static_cast<uint32_t>(get_number_at(std::move(complex_key)));
-}
-
-uint64_t Config::get_UInt64_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
-    return static_cast<uint64_t>(get_number_at(std::move(complex_key)));
-}
-
-int8_t Config::get_Int8_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
-    return static_cast<int8_t>(get_number_at(std::move(complex_key)));
-}
-
-int16_t Config::get_Int16_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
-    return static_cast<int16_t>(get_number_at(std::move(complex_key)));
-}
-
-int32_t Config::get_Int32_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
-    return static_cast<int32_t>(get_number_at(std::move(complex_key)));
-}
-
-int64_t Config::get_Int64_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
-    return static_cast<int64_t>(get_number_at(std::move(complex_key)));
-}
-
-float Config::get_Float_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
-    return static_cast<float>(get_number_at(std::move(complex_key)));
-}
-
-double Config::get_Double_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
-    return static_cast<double>(get_number_at(std::move(complex_key)));
-}
-
-long double Config::get_LDouble_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
-    return get_number_at(std::move(complex_key));
+    return dynamic_cast<const tools::ElementChar*>(config.m_value)->getValue();
 }
 
 std::string &Config::get_front_string() {
@@ -1211,6 +1225,150 @@ long double Config::get_LDouble_at(const std::vector<OnlySizetOrString> &complex
     return get_number_at(std::move(complex_key));
 }
 
+long double &Config::get_number_at(const std::initializer_list<OnlySizetOrString> &complex_key) {
+    return get_number_at(std::vector<OnlySizetOrString>(complex_key));
+}
+
+long double Config::get_number_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return get_number_at(std::vector<OnlySizetOrString>(complex_key));
+}
+
+uint8_t Config::get_UInt8_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<uint8_t>(get_number_at(std::move(complex_key)));
+}
+
+uint16_t Config::get_UInt16_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<uint16_t>(get_number_at(std::move(complex_key)));
+}
+
+uint32_t Config::get_UInt32_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<uint32_t>(get_number_at(std::move(complex_key)));
+}
+
+uint64_t Config::get_UInt64_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<uint64_t>(get_number_at(std::move(complex_key)));
+}
+
+int8_t Config::get_Int8_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<int8_t>(get_number_at(std::move(complex_key)));
+}
+
+int16_t Config::get_Int16_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<int16_t>(get_number_at(std::move(complex_key)));
+}
+
+int32_t Config::get_Int32_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<int32_t>(get_number_at(std::move(complex_key)));
+}
+
+int64_t Config::get_Int64_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<int64_t>(get_number_at(std::move(complex_key)));
+}
+
+float Config::get_Float_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<float>(get_number_at(std::move(complex_key)));
+}
+
+double Config::get_Double_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return static_cast<double>(get_number_at(std::move(complex_key)));
+}
+
+long double Config::get_LDouble_at(const std::initializer_list<OnlySizetOrString> &complex_key) const {
+    return get_number_at(std::move(complex_key));
+}
+
+char &Config::get_char_at(const size_t &index)
+{
+    const Config& config = get_at(index);
+    __CHECK_TYPE_IS_CHAR__(config)
+
+    return dynamic_cast<tools::ElementChar*>(config.m_value)->getValue();
+}
+
+char Config::get_char_at(const size_t &index) const
+{
+    const Config& config = get_at(index);
+    __CHECK_TYPE_IS_CHAR__(config)
+
+    return dynamic_cast<const tools::ElementChar*>(config.m_value)->getValue();
+}
+
+char &Config::get_char_at(const std::string &key)
+{
+    const Config& config = get_at(key);
+    __CHECK_TYPE_IS_CHAR__(config)
+
+    return dynamic_cast<tools::ElementChar*>(config.m_value)->getValue();
+}
+
+char Config::get_char_at(const std::string &key) const
+{
+    const Config& config = get_at(key);
+    __CHECK_TYPE_IS_CHAR__(config)
+
+    return dynamic_cast<const tools::ElementChar*>(config.m_value)->getValue();
+}
+
+char &Config::get_char_at(const std::vector<OnlySizetOrString> &complex_key)
+{
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    if(complex_key.size() == 0)
+        throw std::invalid_argument("get_char_at({}) - try a get incorrect index/key (no value)");
+
+    //определить тип значения первого индекса/ключа
+    Config* ret;
+    switch (complex_key[0].getType()) {
+    case OnlySizetOrString::Type::type_string:  ret = &get_at(complex_key[0].getStringValue()); break;
+    case OnlySizetOrString::Type::type_sizet:   ret = &get_at(complex_key[0].getIndexValue());  break;
+    default:
+        //это значение пользователь библиотеки не увидит
+        throw std::invalid_argument("incorrect complex_key type");
+    }
+
+    if(complex_key.size() == 1)
+        return (*ret).getChar();
+
+    //создать следующую итерацию списка
+    std::vector<OnlySizetOrString> new_key = complex_key;
+    new_key.erase(new_key.cbegin());
+    return ret->get_char_at(new_key);
+}
+
+char Config::get_char_at(const std::vector<OnlySizetOrString> &complex_key) const
+{
+    __CHECK_TYPE_IS_CONTAINER__((*this))
+    if(complex_key.size() == 0)
+        throw std::invalid_argument("get_char_at({}) - try a get incorrect index/key (no value)");
+
+    //определить тип значения первого индекса/ключа
+    Config ret;
+    switch (complex_key[0].getType()) {
+    case OnlySizetOrString::Type::type_string:  ret = get_at(complex_key[0].getStringValue());  break;
+    case OnlySizetOrString::Type::type_sizet:   ret = get_at(complex_key[0].getIndexValue());   break;
+    default:
+        //это значение пользователь библиотеки не увидит
+        throw std::invalid_argument("incorrect complex_key type");
+    }
+
+    if(complex_key.size() == 1)
+        return ret.getChar();
+
+    //создать следующую итерацию списка
+    std::vector<OnlySizetOrString> new_key = complex_key;
+    new_key.erase(new_key.cbegin());
+    return ret.get_char_at(new_key);
+}
+
+char &Config::get_char_at(const std::initializer_list<OnlySizetOrString> &complex_key)
+{
+    return get_char_at(std::vector<OnlySizetOrString>(complex_key));
+}
+
+char Config::get_char_at(const std::initializer_list<OnlySizetOrString> &complex_key) const
+{
+    return get_char_at(std::vector<OnlySizetOrString>(complex_key));
+}
+
 std::string &Config::get_string_at(const size_t& index) {
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_STRING__(config)
@@ -1367,6 +1525,22 @@ double Config::get_Double_back() const {
 
 long double Config::get_LDouble_back() const {
     return get_number_back();
+}
+
+char &Config::get_char_back()
+{
+    const Config& config = get_back();
+    __CHECK_TYPE_IS_CHAR__(config)
+
+    return dynamic_cast<tools::ElementChar*>(config.m_value)->getValue();
+}
+
+char Config::get_char_back() const
+{
+    const Config& config = get_back();
+    __CHECK_TYPE_IS_CHAR__(config)
+
+    return dynamic_cast<const tools::ElementChar*>(config.m_value)->getValue();
 }
 
 std::string &Config::get_string_back() {
@@ -1794,9 +1968,17 @@ bool Config::isEqual(const tools::IElement &other, const bool compare_comments,
     return m_value->isEqual(other, compare_comments, map_sort_important);
 }
 
-bool Config::isEqual(const bool other) const noexcept {
+bool Config::isEqual(bool other) const noexcept {
     __CHECK_TYPE_NOT_BOOL_ACTION__((*this))
         return false;
+
+    return dynamic_cast<const tools::ElementBool*>(m_value)->getValue() == other;
+}
+
+bool Config::isEqual(char other) const noexcept
+{
+    __CHECK_TYPE_NOT_CHAR_ACTION__((*this))
+    return false;
 
     return dynamic_cast<const tools::ElementBool*>(m_value)->getValue() == other;
 }
@@ -1820,6 +2002,7 @@ bool Config::containsValue(const Config &config) const noexcept {
     case ValueType::eNull:      return true;
     case ValueType::eBool:      return config.isBool() && getBool() == config.getBool();
     case ValueType::eNumber:    return config.isNumber() && getNumber() == config.getNumber();
+    case ValueType::eChar:      return config.isChar() && getChar() == config.getChar();
     case ValueType::eString:    return config.isString() && getString() == config.getString();
     case ValueType::eArray:     return std::any_of(getRange().cbegin(), getRange().cend(),
                                     [&config](const std::shared_ptr<Config>& value)
@@ -3132,6 +3315,7 @@ bool Config::parseXml(const std::string &content, const CommentDesign &design) n
         case ParseStateXml::eXML_ERROR: {
             break; // выход из switch
         }
+        default: break; // выход из switch
         } // ~switch()
 
         if(error())
@@ -4031,22 +4215,10 @@ Config CreateElementFromString(std::string &&value_string, const ConfigFormat fo
             }
         }
         /*BOOL*/ {
-            if(value_string.size() == 4 || value_string.size() == 5) {
-                for(auto ch : value_string)
-                    Append(ch);
-                if(temp == "true")  return Config(true);
-                if(temp == "false") return Config(false);
-                temp.clear();
-            }
-            if(value_string.size() == 1) {
-                switch(std::tolower(value_string[0])) {
-                //case 't': // NOTE: может запуать пользователя, убрал
-                case '+': return Config(true);
-                //case 'f': // NOTE: может запуать пользователя, убрал
-                case '-': return Config(false);
-                default: break;
-                }
-            }
+            try {
+                return Config(utils::CreateBoolFromString(value_string));
+            } catch(...) {}
+            temp.clear();
         }
         char first = value_string.front();
         char last = value_string.back();
@@ -4108,10 +4280,11 @@ Config CreateElementFromString(std::string &&value_string, const ConfigFormat fo
     // в теории, всё, что не распарсилось в другие значения, - должно считаться строкой
     //удаление кавычек (при наличии)
     RemoveQuotes(value_string);
-    /*STRING*/ {
+    /*CHAR*/ if(value_string.size() == 1) {
         return Config(value_string);
     }
 
+    /*STRING*/
     return Config(value_string);
 }
 
