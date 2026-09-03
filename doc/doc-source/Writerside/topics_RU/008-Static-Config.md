@@ -148,3 +148,50 @@ try {
 } catch (...) {}
 ```
 
+
+### Пример использования внешней переменной в лямбде
+Стандарт C++11 не позволяет передавать владение глобальным объектом внутрь лямбды.
+Зато позволяет её явное использование.
+
+```c++
+#include <...> // включение необходимых библиотек на усмотрение разработчика
+
+std::string my_global_string;
+
+// объявляем Static Config структуру
+#define FIELDS(X)                                                       \
+    X(std::vector<int>, vec, std::vector<int>,                          \
+        [](const std::vector<int>& v) -> bool {                         \
+            bool b = v.size() >= 10;                                    \
+            if(b) {                                                     \
+                return true; /*успех валидации*/                        \
+            }                                                           \
+            /* заполняем строку ошибки */                               \
+            my_global_string = "В поле \"vec\" слишком мало элементов!" \
+            return false; /* выходим с ошибкой валидации */             \
+        } )
+
+SAPI_REGISTER_CONFIG(MyStruct, FIELDS)
+
+int main() {
+    using simpleapi;
+    // считываем конфигурацию
+    Config cfg = ReadIniFile("path/to/my/conf.ini");
+    
+    // заполняем статическую структуру на основе динамической
+    MyStruct ms;
+    try {
+        if(!ms.loadConfig(cfg))
+        {
+            // при загрузке произошла ошибка валидации, выводим наше сообщение
+            std::cout << "MyStruct loading error.";
+            if(!my_global_string.empty())
+                std::cout << " " << my_global_string;
+            std::cout << std::endl;
+            return 1;
+        }
+    } catch(...) {}
+    
+    return 0;
+}
+```
