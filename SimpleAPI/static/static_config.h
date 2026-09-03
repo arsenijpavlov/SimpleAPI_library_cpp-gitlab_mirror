@@ -120,55 +120,65 @@
 // ====================================================================================================================
 // ==================================================== USER SPACE ====================================================
 // вариант описания enum без указания базового класса
-#define SAPI_REGISTER_ENUM_2(EnumName, LIST)                                     \
-    enum class EnumName {                                                        \
-        LIST(SAPI_ENUM_ELEMENT)                                                  \
-        _UNDEFINED_STATE_                                                        \
-    };                                                                           \
-    inline std::string ToString(const EnumName& value) noexcept {                \
-        using _CURRENT_ENUM_NAME_ = EnumName;                                    \
-        switch(value) {                                                          \
-            LIST(SAPI_ENUM_TO_STRING)                                            \
-            default: break;                                                      \
-        }                                                                        \
-        return "UNKNOWN";                                                        \
-    }                                                                            \
-    inline void EnumFromString(const std::string& str, EnumName& out_value) {    \
-        using _CURRENT_ENUM_NAME_ = EnumName;                                    \
-        LIST(SAPI_ENUM_FROM_STRING)                                              \
-        out_value = EnumName::_UNDEFINED_STATE_;                                 \
-    }                                                                            \
-    inline std::string EnumPossibleVariants(const EnumName value) {              \
-        std::string ret;                                                         \
-        LIST(SAPI_ENUM_POSSIBLE_VARIANTS)                                        \
-        if(!ret.empty()) ret.pop_back(); ret.pop_back(); /* удаляем ", " */      \
-        return ret;                                                              \
+#define SAPI_REGISTER_ENUM_2(EnumName, LIST)                                  \
+    enum class EnumName {                                                     \
+        LIST(SAPI_ENUM_ELEMENT)                                               \
+        _UNDEFINED_STATE_                                                     \
+    };                                                                        \
+    inline std::string ToString(const EnumName& value) noexcept {             \
+        using _CURRENT_ENUM_NAME_ = EnumName;                                 \
+        switch(value) {                                                       \
+            LIST(SAPI_ENUM_TO_STRING)                                         \
+            default: break;                                                   \
+        }                                                                     \
+        return "UNKNOWN";                                                     \
+    }                                                                         \
+    inline void EnumFromString(const std::string& str, EnumName& out_value) { \
+        using _CURRENT_ENUM_NAME_ = EnumName;                                 \
+        LIST(SAPI_ENUM_FROM_STRING)                                           \
+        out_value = EnumName::_UNDEFINED_STATE_;                              \
+    }                                                                         \
+    inline std::string EnumPossibleVariants(const EnumName value) {           \
+        (void)value; /*hide warning unused parameter*/                        \
+        std::string ret;                                                      \
+        LIST(SAPI_ENUM_POSSIBLE_VARIANTS)                                     \
+        if(!ret.empty() && ret.size() > 1) /* удаляем ", " */                 \
+        {                                                                     \
+            ret.pop_back();                                                   \
+            ret.pop_back();                                                   \
+        }                                                                     \
+        return ret;                                                           \
     }
 
 // вариант описания enum через указание базового класса
-#define SAPI_REGISTER_ENUM_3(EnumName, LIST, UnderlyingType)                     \
-    enum class EnumName : UnderlyingType {                                       \
-        LIST(SAPI_ENUM_ELEMENT)                                                  \
-        _UNDEFINED_STATE_                                                        \
-    };                                                                           \
-    inline std::string ToString(const EnumName& value) noexcept {                \
-        using _CURRENT_ENUM_NAME_ = EnumName;                                    \
-        switch(value) {                                                          \
-            LIST(SAPI_ENUM_TO_STRING)                                            \
-            default: break;                                                      \
-        }                                                                        \
-        return "UNKNOWN";                                                        \
-    }                                                                            \
-    inline void EnumFromString(const std::string& str, EnumName& out_value) {    \
-        using _CURRENT_ENUM_NAME_ = EnumName;                                    \
-        LIST(SAPI_ENUM_FROM_STRING)                                              \
-        out_value = EnumName::_UNDEFINED_STATE_;                                 \
-    }                                                                            \
-    inline std::string EnumPossibleVariants(const EnumName value) {              \
-            std::string ret;                                                     \
-            LIST(SAPI_ENUM_POSSIBLE_VARIANTS)                                    \
-            if(!ret.empty()) ret.pop_back(); ret.pop_back(); /* удаляем ", " */  \
-            return ret;                                                          \
+#define SAPI_REGISTER_ENUM_3(EnumName, LIST, UnderlyingType)                  \
+    enum class EnumName : UnderlyingType {                                    \
+        LIST(SAPI_ENUM_ELEMENT)                                               \
+        _UNDEFINED_STATE_                                                     \
+    };                                                                        \
+    inline std::string ToString(const EnumName& value) noexcept {             \
+        using _CURRENT_ENUM_NAME_ = EnumName;                                 \
+        switch(value) {                                                       \
+            LIST(SAPI_ENUM_TO_STRING)                                         \
+            default: break;                                                   \
+        }                                                                     \
+        return "UNKNOWN";                                                     \
+    }                                                                         \
+    inline void EnumFromString(const std::string& str, EnumName& out_value) { \
+        using _CURRENT_ENUM_NAME_ = EnumName;                                 \
+        LIST(SAPI_ENUM_FROM_STRING)                                           \
+        out_value = EnumName::_UNDEFINED_STATE_;                              \
+    }                                                                         \
+    inline std::string EnumPossibleVariants(const EnumName value) {           \
+        (void)value; /*hide warning unused parameter*/                        \
+        std::string ret;                                                      \
+        LIST(SAPI_ENUM_POSSIBLE_VARIANTS)                                     \
+        if(!ret.empty() && ret.size() > 1) /* удаляем ", " */                 \
+        {                                                                     \
+            ret.pop_back();                                                   \
+            ret.pop_back();                                                   \
+        }                                                                     \
+        return ret;                                                           \
     }
 
 #define SAPI_REGISTER_ENUM(...) \
