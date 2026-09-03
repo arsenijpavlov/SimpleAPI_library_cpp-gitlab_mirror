@@ -1,8 +1,8 @@
 #pragma once
 
 // NOTE: "IWYU pragma: keep" спрячет лишнее предупреждение от clangd
-#include "base.h"              // IWYU pragma: keep
-#include "type_checkers.h"
+#include "base.h"          // IWYU pragma: keep
+#include "type_checkers.h" // IWYU pragma: keep
 #include <string>
 #include <type_traits>
 #include "../config/Config.h"
@@ -116,8 +116,10 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_map<T>::value
             for(auto& c : ck.getNamedRange()) {
                 // рекурсивно вызываем traits(признаки) для каждого из элементов
                 Type item_temp_value;
-                if(!ConfigTypeTraits<Type>::loadWithoutKey((*c.second.get()), item_temp_value))
+
+                if(!Loader((*c.second.get()), item_temp_value)) {
                     return false;
+                }
 
                 field.insert(std::make_pair(parse_key<KeyType>(c.first), item_temp_value));
             }
@@ -141,8 +143,10 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_map<T>::value
             for(auto& c : ck.getNamedRange()) {
                 // рекурсивно вызываем traits(признаки) для каждого из элементов
                 Type item_temp_value;
-                if(!ConfigTypeTraits<Type>::loadWithoutKey((*c.second.get()), item_temp_value))
+
+                if(!Loader((*c.second.get()), item_temp_value)) {
                     return false;
+                }
 
                 temp_value.insert(std::make_pair(parse_key<KeyType>(c.first), item_temp_value));
             }
@@ -169,8 +173,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_map<T>::value
 
         for(const auto& item : field) {
             // ключ дальше нельзя передать - создаст новую вложенность
-            Config temp;
-            ConfigTypeTraits<Type>::saveWithoutKey(temp, item.second);
+            Config temp = Saver(item.second, prefix_comment, suffix_comment);
             config[key].push_back(extract_key(item.first), temp);
         }
         config[key].setComment(prefix_comment, suffix_comment);

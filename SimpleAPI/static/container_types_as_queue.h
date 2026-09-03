@@ -1,8 +1,8 @@
 #pragma once
 
 // NOTE: "IWYU pragma: keep" спрячет лишнее предупреждение от clangd
-#include "base.h"              // IWYU pragma: keep
-#include "type_checkers.h"
+#include "base.h"          // IWYU pragma: keep
+#include "type_checkers.h" // IWYU pragma: keep
 #include <string>
 #include <type_traits>
 #include "../config/Config.h"
@@ -28,11 +28,13 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_queue<T>::val
             size_t counter = 0;
             for(const auto& c : ck.getRange()) {
                 // рекурсивно вызываем traits(признаки) для каждого из элементов
-                Type item_value;
-                if(!ConfigTypeTraits<Type>::loadWithoutKey((*c.get()), item_value))
-                    return false;
+                Type item_temp_value;
 
-                temp_value.push(item_value);
+                if(!Loader((*c.get()), item_temp_value)) {
+                    return false;
+                }
+
+                temp_value.push(item_temp_value);
             }
             field.swap(temp_value);
         }
@@ -54,11 +56,13 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_queue<T>::val
             size_t counter = 0;
             for(const auto& c : ck.getRange()) {
                 // рекурсивно вызываем traits(признаки) для каждого из элементов
-                Type item_value;
-                if(!ConfigTypeTraits<Type>::loadWithoutKey((*c.get()), item_value))
-                    return false;
+                Type item_temp_value;
 
-                temp_value.push(item_value);
+                if(!Loader((*c.get()), item_temp_value)) {
+                    return false;
+                }
+
+                temp_value.push(item_temp_value);
             }
 
             if(ExecuteValidator(temp_value, lambda, std::forward<Args>(args)...))
@@ -86,8 +90,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_queue<T>::val
         while(!temp_value.empty()) {
             Type item = temp_value.front();
             // ключ дальше нельзя передать - создаст новую вложенность
-            Config temp;
-            ConfigTypeTraits<Type>::saveWithoutKey(temp, item);
+            Config temp = Saver(item, prefix_comment, suffix_comment);
             config[key].push_back(temp);
             temp_value.pop();
         }

@@ -1,8 +1,8 @@
 #pragma once
 
 // NOTE: "IWYU pragma: keep" спрячет лишнее предупреждение от clangd
-#include "base.h"              // IWYU pragma: keep
-#include "type_checkers.h"
+#include "base.h"          // IWYU pragma: keep
+#include "type_checkers.h" // IWYU pragma: keep
 #include <string>
 #include <type_traits>
 #include "../config/Config.h"
@@ -29,8 +29,10 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_vector<T>::va
             for(auto& item : field) {
                 // рекурсивно вызываем traits(признаки) для каждого из элементов
                 Type item_temp_value;
-                if(!ConfigTypeTraits<Type>::loadWithoutKey(ck[counter++], item_temp_value))
+
+                if(!Loader(ck[counter++], item_temp_value)) {
                     return false;
+                }
 
                 item = item_temp_value;
             }
@@ -55,8 +57,10 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_vector<T>::va
             for(auto& item : temp_value) {
                 // рекурсивно вызываем traits(признаки) для каждого из элементов
                 Type item_temp_value;
-                if(!ConfigTypeTraits<Type>::loadWithoutKey(ck[counter++], item_temp_value))
+
+                if(!Loader(ck[counter++], item_temp_value)) {
                     return false;
+                }
 
                 item = item_temp_value;
             }
@@ -83,8 +87,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_vector<T>::va
 
         for(const auto& item : field) {
             // ключ дальше нельзя передать - создаст новую вложенность
-            Config temp;
-            ConfigTypeTraits<Type>::saveWithoutKey(temp, item);
+            Config temp = Saver(item, prefix_comment, suffix_comment);
             config[key].push_back(temp);
         }
         config[key].setComment(prefix_comment, suffix_comment);

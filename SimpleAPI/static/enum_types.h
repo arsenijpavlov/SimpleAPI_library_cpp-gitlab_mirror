@@ -1,8 +1,8 @@
 #pragma once
 
 // NOTE: "IWYU pragma: keep" спрячет лишнее предупреждение от clangd
-#include "base.h"              // IWYU pragma: keep
-#include "type_checkers.h"     // IWYU pragma: keep
+#include "base.h"          // IWYU pragma: keep
+#include "type_checkers.h" // IWYU pragma: keep
 #include <string>
 #include <type_traits>
 #include "../config/Config.h"
