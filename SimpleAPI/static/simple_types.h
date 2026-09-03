@@ -1,8 +1,8 @@
 #pragma once
 
 // NOTE: "IWYU pragma: keep" спрячет лишнее предупреждение от clangd
-#include "base.h"              // IWYU pragma: keep
-#include "type_checkers.h"
+#include "base.h"          // IWYU pragma: keep
+#include "type_checkers.h" // IWYU pragma: keep
 #include <type_traits>
 #include "../config/Config.h"
 
@@ -57,12 +57,6 @@ struct ConfigTypeTraits<T, typename std::enable_if<!is_config_struct<T>::value
         return true; // ключа не существует, игнорим проверки
     }
 
-    static bool loadWithoutKey(const Config& config, T& field)
-    {
-        field = config.get<T>();
-        return true;
-    }
-
     // комментарии учитываются только при записи
     static void save(Config& config, const std::string& key, const T& field,
                      const std::string& prefix_comment = "",
@@ -72,16 +66,6 @@ struct ConfigTypeTraits<T, typename std::enable_if<!is_config_struct<T>::value
 
         config[key] = field;
         config[key].setComment(prefix_comment, suffix_comment);
-    }
-
-    static void saveWithoutKey(Config& config, const T& field,
-                               const std::string& prefix_comment = "",
-                               const std::string& suffix_comment = "")
-    {
-        // std::cout << "[debug] save simple without key" << std::endl;
-
-        config = field;
-        config.setComment(prefix_comment, suffix_comment);
     }
 };
 

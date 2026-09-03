@@ -130,4 +130,21 @@ SAPI_REGISTER_CONFIG(MyStaticConfig, MY_STRUCT_FIELDS)
 #define MY_STRUCT2_FIELDS(X)                         \
     X(char,           ch,           'a')             \
     X(MyStaticConfig, inner_struct, MyStaticConfig{})
+
+SAPI_REGISTER_CONFIG(MyStaticConfig2, MY_STRUCT2_FIELDS)
 ```
+
+### Применение в коде
+Для примера берём структуру из предыдущего кода:
+```c++
+MyStaticConfig2 static_config;
+
+// loadConfig() вернёт исключение, если пользователь применил некорректный тип переменной при заполнении
+try {
+	if(!static_config.loadConfig())
+	{
+		std::cerr << "Error: incorrect config!" << std::endl;
+	}
+} catch (...) {}
+```
+
