@@ -350,6 +350,21 @@ public:
     static const bool value = (sizeof(test<CallableT>(0)) == sizeof(char));
 };
 // ---------------
+// ---------------
+// если указатель — разыменовываем его
+template <typename PtrT>
+static inline typename std::remove_pointer<PtrT>::type&
+unwrap_pointer(PtrT ptr, typename std::enable_if<std::is_pointer<PtrT>::value>::type* = 0) {
+    return *ptr;
+}
+// если объект — отдаем как есть
+template <typename ObjT>
+static inline ObjT&
+unwrap_pointer(ObjT& obj, typename std::enable_if<!std::is_pointer<ObjT>::value>::type* = 0) {
+    return obj;
+}
+// ---------------
+// ---------------
 // описания перегрузок для лямбд/std::function() для вызова как через объект, так и через указатель на него
 template <typename... Args>
 static bool ExecuteValidator(std::nullptr_t, Args&&...) noexcept
@@ -359,36 +374,37 @@ static bool ExecuteValidator(std::nullptr_t, Args&&...) noexcept
 // описание лямбд по уменьшению возможного количества параметров
 // 1. Запускается со всеми аргументами сразу
 template <typename ValidatorT, typename ... Args,
-          typename std::enable_if<std::is_pointer<ValidatorT>::value
-                                  && !std::is_same<ValidatorT, std::nullptr_t>::value, int>::type = 0,
+          typename std::enable_if<!std::is_same<ValidatorT, std::nullptr_t>::value, int>::type = 0,
           typename = decltype(std::declval<ValidatorT>()(std::declval<Args>()...))
          >
 static bool ExecuteValidator(ValidatorT validator, Args&&... args)
 {
     // если это указатель на функцию/лямбду (или nullptr)
-    auto&& not_ptr_validator = std::is_pointer<ValidatorT>::value ? *validator : validator;
+    auto&& not_ptr_validator = unwrap_pointer(validator);
     return not_ptr_validator(std::forward<Args>(args)...);
 }
 //----------------------------
-// 2. Принимает value и key
+// 2. Принимает T value и std::string key
 template <typename ValidatorT, typename T, typename ... Args,
-          typename std::enable_if<std::is_pointer<ValidatorT>::value
-                                  && !std::is_same<ValidatorT, std::nullptr_t>::value, int>::type = 0>
+          typename std::enable_if<!std::is_same<ValidatorT, std::nullptr_t>::value, int>::type = 0,
+          typename = decltype(std::declval<ValidatorT>()(std::declval<T>(), std::declval<std::string>()))
+         >
 static bool ExecuteValidator(ValidatorT validator, T&& t, std::string&& key, Args&&... args)
 {
     // если это указатель на функцию/лямбду (или nullptr)
-    auto&& not_ptr_validator = std::is_pointer<ValidatorT>::value ? *validator : validator;
+    auto&& not_ptr_validator = unwrap_pointer(validator);
     return not_ptr_validator(std::forward<T>(t), std::forward<std::string>(key));
 }
 //----------------------------
-// 3. Принимает только value
+// 3. Принимает только T value
 template <typename ValidatorT, typename T, typename ... Args,
-          typename std::enable_if<std::is_pointer<ValidatorT>::value
-                                  && !std::is_same<ValidatorT, std::nullptr_t>::value, int>::type = 0>
+          typename std::enable_if<!std::is_same<ValidatorT, std::nullptr_t>::value, int>::type = 0,
+          typename = decltype(std::declval<ValidatorT>()(std::declval<T>()))
+         >
 static bool ExecuteValidator(ValidatorT validator, T&& t, Args&&... args)
 {
     // если это указатель на функцию/лямбду (или nullptr)
-    auto&& not_ptr_validator = std::is_pointer<ValidatorT>::value ? *validator : validator;
+    auto&& not_ptr_validator = unwrap_pointer(validator);
     return not_ptr_validator(std::forward<T>(t));
 }
 // ----------------------------------------------------------------------------
