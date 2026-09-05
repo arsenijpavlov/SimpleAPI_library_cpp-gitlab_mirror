@@ -354,13 +354,13 @@ public:
 // если указатель — разыменовываем его
 template <typename PtrT>
 static inline typename std::remove_pointer<PtrT>::type&
-unwrap_pointer(PtrT ptr, typename std::enable_if<std::is_pointer<PtrT>::value>::type* = 0) {
+UnwrapPointer(PtrT ptr, typename std::enable_if<std::is_pointer<PtrT>::value>::type* = 0) {
     return *ptr;
 }
 // если объект — отдаем как есть
 template <typename ObjT>
 static inline ObjT&
-unwrap_pointer(ObjT& obj, typename std::enable_if<!std::is_pointer<ObjT>::value>::type* = 0) {
+UnwrapPointer(ObjT& obj, typename std::enable_if<!std::is_pointer<ObjT>::value>::type* = 0) {
     return obj;
 }
 // ---------------
@@ -380,7 +380,7 @@ template <typename ValidatorT, typename ... Args,
 static bool ExecuteValidator(ValidatorT validator, Args&&... args)
 {
     // если это указатель на функцию/лямбду (или nullptr)
-    auto&& not_ptr_validator = unwrap_pointer(validator);
+    auto&& not_ptr_validator = UnwrapPointer(validator);
     return not_ptr_validator(std::forward<Args>(args)...);
 }
 //----------------------------
@@ -392,7 +392,7 @@ template <typename ValidatorT, typename T, typename ... Args,
 static bool ExecuteValidator(ValidatorT validator, T&& t, std::string&& key, Args&&... args)
 {
     // если это указатель на функцию/лямбду (или nullptr)
-    auto&& not_ptr_validator = unwrap_pointer(validator);
+    auto&& not_ptr_validator = UnwrapPointer(validator);
     return not_ptr_validator(std::forward<T>(t), std::forward<std::string>(key));
 }
 //----------------------------
@@ -404,8 +404,37 @@ template <typename ValidatorT, typename T, typename ... Args,
 static bool ExecuteValidator(ValidatorT validator, T&& t, Args&&... args)
 {
     // если это указатель на функцию/лямбду (или nullptr)
-    auto&& not_ptr_validator = unwrap_pointer(validator);
+    auto&& not_ptr_validator = UnwrapPointer(validator);
     return not_ptr_validator(std::forward<T>(t));
+}
+// ----------------------------------------------------------------------------
+// функции уникального поведения operator== в зависимости от типа переменных
+template <typename T>
+static bool CompareValues(T t1, T t2)
+{
+    return t1 == t2;
+}
+// std::priority_queue
+// итераторов нет, поэтому берём копии объектов
+template <typename T, typename T_Container, typename T_Compare>
+static bool CompareValues(std::priority_queue<T, T_Container, T_Compare> t1,
+                          std::priority_queue<T, T_Container, T_Compare> t2)
+{
+    if(t1.size() != t2.size())
+    {
+        return false;
+    }
+    while(!t1.empty()) {
+        if(t1.top() != t2.top())
+        {
+            return false;
+        }
+        // переходим к следующей паре элементов
+        t1.pop();
+        t2.pop();
+    }
+
+    return true;
 }
 // ----------------------------------------------------------------------------
 
