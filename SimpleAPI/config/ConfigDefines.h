@@ -24,6 +24,8 @@
 
 #define __CHECK_TYPE_NOT_NULL_ACTION__(object)      if(!object.isNull())
 #define __CHECK_TYPE_NOT_BOOL_ACTION__(object)      if(!object.isBool())
+#define __CHECK_TYPE_NOT_CONVERTIBLE_TO_BOOL_ACTION__(object) \
+                                                    if(!(object.isBool() || object.isNumber() || object.isChar() || object.isString()))
 #define __CHECK_TYPE_NOT_NUMBER_ACTION__(object)    if(!object.isNumber())
 #define __CHECK_TYPE_NOT_CHAR_ACTION__(object)      if(!object.isChar())
 #define __CHECK_TYPE_NOT_STRING_ACTION__(object)    if(!object.isString())
@@ -34,6 +36,9 @@
 
 #define __CHECK_TYPE_IS_NULL__(object)      __CHECK_TYPE_NOT_NULL_ACTION__(object)      __INCORRECT_TYPE_EXCEPTION__("NULL")
 #define __CHECK_TYPE_IS_BOOL__(object)      __CHECK_TYPE_NOT_BOOL_ACTION__(object)      __INCORRECT_TYPE_EXCEPTION__("BOOL")
+#define __CHECK_TYPE_IS_CONVERIBLE_TO_BOOL__(object) \
+                                            __CHECK_TYPE_NOT_CONVERTIBLE_TO_BOOL_ACTION__(object) \
+                                                __INCORRECT_TYPE_EXCEPTION__("BOOL/NUMBER/CHAR/STRING")
 #define __CHECK_TYPE_IS_NUMBER__(object)    __CHECK_TYPE_NOT_NUMBER_ACTION__(object)    __INCORRECT_TYPE_EXCEPTION__("NUMBER")
 #define __CHECK_TYPE_IS_CHAR__(object)      __CHECK_TYPE_NOT_CHAR_ACTION__(object)      __INCORRECT_TYPE_EXCEPTION__("CHAR")
 #define __CHECK_TYPE_IS_STRING__(object)    __CHECK_TYPE_NOT_STRING_ACTION__(object)    __INCORRECT_TYPE_EXCEPTION__("STRING")

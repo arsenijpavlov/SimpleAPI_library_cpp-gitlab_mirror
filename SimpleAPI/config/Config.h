@@ -477,10 +477,11 @@ public:
 
     // преобразования к указанному типу-примитиву
     // bool
+    // @TEST(ELEMENT, get_const_bool)
     template<typename T, typename std::enable_if<std::is_same<T, bool>::value, int>::type = 0>
     bool get() const
     {
-        __CHECK_TYPE_IS_BOOL__((*this))
+        __CHECK_TYPE_IS_CONVERIBLE_TO_BOOL__((*this))
         return getBool();
     }
     __ONLY_NUMBER_TYPES__(T)

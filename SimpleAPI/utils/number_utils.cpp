@@ -25,6 +25,9 @@ bool CreateBoolFromString(const std::string &input)
         }
     }
 
+    // пустая строка считается за false
+    if(input.empty()) return false;
+
     throw std::invalid_argument("input param is not a bool as string");
     // return false;
 }

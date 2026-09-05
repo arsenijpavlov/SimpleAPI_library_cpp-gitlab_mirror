@@ -322,3 +322,53 @@ TEST(ELEMENT, equal_test_1) {
 
     EXPECT_TRUE(cfg1 == cfg2);
 }
+
+TEST(ELEMENT, get_const_bool) {
+    // bool можно получить из Config из строки, числа и, собственоо, bool
+    // NOTE: явное преобразование из другого типа возможно только для const формата
+    // WARNING: в таком синтаксисе выбирается не константный метод "const bool b_string_1 = cfg["string"].getBool();"
+
+    using namespace simpleapi;
+    Config cfg;
+
+    // "true" (в любом регистре), "+" -> true
+    // "false" (в любом регистре), "-" или пустая строка -> false
+    cfg["string"] = "true";
+    const bool b_string_1 = cfg["string"].get<bool>();
+    EXPECT_EQ(b_string_1, true);
+
+    cfg["string"] = "+";
+    const bool b_string_2 = cfg["string"].get<bool>();
+    EXPECT_EQ(b_string_2, true);
+
+    cfg["string"] = "false";
+    const bool b_string_3 = cfg["string"].get<bool>();
+    EXPECT_EQ(b_string_3, false);
+
+    cfg["string"] = "-";
+    const bool b_string_4 = cfg["string"].get<bool>();
+    EXPECT_EQ(b_string_4, false);
+
+    cfg["string"] = "";
+    const bool b_string_5 = cfg["string"].get<bool>();
+    EXPECT_EQ(b_string_5, false);
+    //--------------------
+
+    cfg["bool"] = false;
+    EXPECT_EQ(cfg["bool"].getBool(),   false);
+    EXPECT_EQ(cfg["bool"].get<bool>(), false);
+    //--------------------
+
+    // если N >= 0 -> true
+    cfg["number"] = 1456;
+    const bool b_number_1 = cfg["number"].get<bool>();
+    EXPECT_EQ(b_number_1, true);
+
+    cfg["number"] = 0;
+    const bool b_number_2 = cfg["number"].get<bool>();
+    EXPECT_EQ(b_number_2, false);
+
+    cfg["number"] = -10;
+    const bool b_number_3 = cfg["number"].get<bool>();
+    EXPECT_EQ(b_number_3, false);
+}

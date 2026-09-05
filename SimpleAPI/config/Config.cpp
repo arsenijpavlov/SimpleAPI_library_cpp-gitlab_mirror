@@ -523,8 +523,23 @@ bool &Config::getBool() {
     return dynamic_cast<tools::ElementBool*>(m_value)->getValue();
 }
 
+// @TEST(ELEMENT, get_const_bool)
 bool Config::getBool() const {
-    __CHECK_TYPE_IS_BOOL__((*this))
+    __CHECK_TYPE_IS_CONVERIBLE_TO_BOOL__((*this))
+
+    switch (getType()) {
+    case ValueType::eNumber: {
+        return dynamic_cast<const tools::ElementNumber*>(m_value)->getValue() > 0;
+    }
+    case ValueType::eChar:   {
+        return utils::CreateBoolFromString(std::string(1, dynamic_cast<const tools::ElementChar*>(m_value)->getValue()));
+    }
+    case ValueType::eString: {
+        return utils::CreateBoolFromString(dynamic_cast<const tools::ElementString*>(m_value)->getValue());
+    }
+    case ValueType::eBool:
+    default: break;
+    }
     return dynamic_cast<const tools::ElementBool*>(m_value)->getValue();
 }
 
