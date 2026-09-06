@@ -40,7 +40,7 @@ using MMapPlaceholder   = std::multimap<int, float>;
 using UMapPlaceholder   = std::unordered_map<int, float>;
 using UMMapPlaceholder  = std::unordered_multimap<int, float>;
 
-#define STRUCT_FIELDS(X)                                                                              \
+#define STRUCT_FIELDS(X)                                                                                 \
     X(bool,                           val_b,       1                                                   ) \
     X(int,                            val_i,       1                                                   ) \
     X(uint8_t,                        val_u8,      1                                                   ) \
@@ -92,13 +92,38 @@ using Map_WithKey_Number = std::map<int, int>;
 SAPI_REGISTER_CONFIG(MapConfig, MAP_FIELDS)
 //-------------------------------------------------------------------------
 
+// разные варианты использования лямбд и комментариев
+auto lambda_1 = [](const int& val) -> bool {
+    /* ... */
+    return val;
+};
+auto lambda_2 = [](const int& val, const std::string& key) -> bool {
+    /* ... */
+    return val;
+};
+
+#define WITH_LAMBDA_FIELDS(X)                                                          \
+    X(int, i_1, 0)                                                                     \
+    X(int, i_2, 0, [](const int& val) -> bool { return true; } )                       \
+    X(int, i_3, 0, [](const int& val) -> bool { return true; }, "prefix comment" )     \
+    X(int, i_4, 0, [](const int& val) -> bool { return true; }, "", "suffix comment" ) \
+    X(int, i_5, 0, nullptr, "comment", "comment" )                                     \
+    X(int, i_6, 0, lambda_1, "comment", "comment" )                                    \
+    X(int, i_7, 0, lambda_2, "comment", "comment" )
+
+SAPI_REGISTER_CONFIG(StructWithLambdas, WITH_LAMBDA_FIELDS)
+
+//-------------------------------------------------------------------------
+
 // вариант рекурсивных вложенностей зарегистрированных структур
-#define STRUCT2_FIELDS(X)               \
-    X(int,          i,  15)             \
-    X(CustomStruct, cs, CustomStruct()) \
-    X(MapConfig,    mc, MapConfig())
+#define STRUCT2_FIELDS(X)                          \
+    X(int,               i,  15)                   \
+    X(CustomStruct,      cs, CustomStruct())       \
+    X(MapConfig,         mc, MapConfig())          \
+    X(StructWithLambdas, swl, StructWithLambdas())
 
 SAPI_REGISTER_CONFIG(CustomStruct2, STRUCT2_FIELDS)
+//-------------------------------------------------------------------------
 
 TEST(STATIC, main) {
     using namespace simpleapi;
