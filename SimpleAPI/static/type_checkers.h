@@ -270,6 +270,26 @@ class is_container_as_unordered_map {
 public:
     static const bool value = (sizeof(test<CleanT>(0)) == sizeof(char));
 };
+//----------------
+template <typename T>
+class is_pair {
+    // очистка типа от const и ссылок
+    using CleanT = typename std::decay<T>::type;
+
+    // метод для SFINAE проверки
+    template <typename Dummy = CleanT,
+             typename = typename std::enable_if<
+                 std::is_same<Dummy, std::pair<typename Dummy::first_type,
+                                               typename Dummy::second_type>>::value
+                 >::type
+             >
+    static char test(int);
+    // метод для разрешения конфликта для поля value
+    template <typename U>
+    static long test(...);
+public:
+    static const bool value = (sizeof(test<CleanT>(0)) == sizeof(char));
+};
 // ----------------------------------------------------------------------------
 
 // разделение чтения переменной "value=get<T>()"/"value=T::loadConfig(cfg)"

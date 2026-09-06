@@ -39,6 +39,7 @@ using MapPlaceholder    = std::map<int, float>;
 using MMapPlaceholder   = std::multimap<int, float>;
 using UMapPlaceholder   = std::unordered_map<int, float>;
 using UMMapPlaceholder  = std::unordered_multimap<int, float>;
+using PairPlaceholder   = std::pair<std::string, int>;
 
 #define STRUCT_FIELDS(X)                                                                                 \
     X(bool,                           val_b,       1                                                   ) \
@@ -74,7 +75,7 @@ using UMMapPlaceholder  = std::unordered_multimap<int, float>;
     X(MMapPlaceholder,                mmap,        (MMapPlaceholder({{1, 2.3f}, {2, 2.4f}}))           ) \
     X(UMapPlaceholder,                umap,        (UMapPlaceholder({{1, 2.3f}, {2, 2.4f}}))           ) \
     X(UMMapPlaceholder,               ummap,       (UMMapPlaceholder({{1, 2.3f}, {2, 2.4f}}))          ) \
-    //TODO: X(PairPlaceholder,              val_pair,    (PairPlaceholder({1, 2.3f}))                        ) \
+    X(PairPlaceholder,                val_pair,    (PairPlaceholder("key", 2.3))                       ) \
 
 SAPI_REGISTER_CONFIG(CustomStruct, STRUCT_FIELDS)
 //-------------------------------------------------------------------------
