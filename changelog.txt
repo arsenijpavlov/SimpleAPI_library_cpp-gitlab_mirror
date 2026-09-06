@@ -1,4 +1,4 @@
-SimpleAPI v0.12.3 "Static Config patch 3" <>.<>.<>
+SimpleAPI v0.12.3 "Static Config patch 3" 06.09.2026
 
 1) Добавлено: для Static Config добавлен пример работы с внешней глобальной переменной внутри лямбды валидации
 2) Добавлено: для Static Config теперь можно указать лямбда-валидатор в четырёх вариациях (без лямбды/`nullptr`/c аргументом `const T&`/с аргументами `const T&` и `const std::string&`)
