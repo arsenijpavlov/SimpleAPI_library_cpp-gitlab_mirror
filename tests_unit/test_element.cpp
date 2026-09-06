@@ -372,3 +372,24 @@ TEST(ELEMENT, get_const_bool) {
     const bool b_number_3 = cfg["number"].get<bool>();
     EXPECT_EQ(b_number_3, false);
 }
+
+// eChar - частный случай eString - сравнение допустимо, если длина строки ==1
+TEST(ELEMENT, char_compare_string) {
+    using namespace simpleapi;
+
+    Config cfg;
+    cfg["char1"]   = 'a';
+    cfg["char2"]   = 'a';
+    cfg["char3"]   = 'b';
+
+    cfg["string"] = "a";
+
+    EXPECT_EQ(cfg["char1"], cfg["char2"]);
+    EXPECT_NE(cfg["char1"], cfg["char3"]);
+
+    EXPECT_EQ(cfg["char1"], cfg["string"]);
+    EXPECT_EQ(cfg["string"], cfg["char1"]);
+
+    EXPECT_NE(cfg["char3"], cfg["string"]);
+    EXPECT_NE(cfg["string"], cfg["char3"]);
+}

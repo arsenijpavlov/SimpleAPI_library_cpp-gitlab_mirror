@@ -1974,6 +1974,7 @@ Config Config::get_and_pop_back() {
     return config;
 }
 
+// @TEST(ELEMENT, char_compare_string)
 bool Config::isEqual(const tools::IElement &other, const bool compare_comments,
                      const bool map_sort_important) const noexcept
 {
