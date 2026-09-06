@@ -23,6 +23,7 @@
 #include "container_types_as_queue.h"  // IWYU pragma: keep
 #include "container_types_as_stack.h"  // IWYU pragma: keep
 #include "container_types_as_map.h"    // IWYU pragma: keep
+#include "pair_types.h"                // IWYU pragma: keep
 #include "enum_types.h"                // IWYU pragma: keep
 #include <functional>                  // IWYU pragma: keep
 
@@ -87,6 +88,22 @@
 #define SAPI_SAVE_FIELD(...) \
     SAPI_GETTER_MACRO_6(__VA_ARGS__, SAPI_SAVE_FIELD_6, SAPI_SAVE_FIELD_5, SAPI_SAVE_FIELD_4, SAPI_SAVE_FIELD_3)(__VA_ARGS__)
 
+// сравнители
+#define SAPI_COMMON_OPERATOR_EQUAL(name)                 \
+    simpleapi::tools::CompareValues(name, other.name) &&
+//---
+#define SAPI_OPERATOR_EQUAL_MACRO_3(type, name, default_value)                                         \
+    SAPI_COMMON_OPERATOR_EQUAL(name)
+#define SAPI_OPERATOR_EQUAL_MACRO_4(type, name, default_value, lambda)                                 \
+    SAPI_COMMON_OPERATOR_EQUAL(name)
+#define SAPI_OPERATOR_EQUAL_MACRO_5(type, name, default_value, lambda, prefix_comment)                 \
+    SAPI_COMMON_OPERATOR_EQUAL(name)
+#define SAPI_OPERATOR_EQUAL_MACRO_6(type, name, default_value, lambda, prefix_comment, suffix_comment) \
+    SAPI_COMMON_OPERATOR_EQUAL(name)
+// обёртка
+#define SAPI_OPERATOR_EQUAL_MACRO(...) \
+    SAPI_GETTER_MACRO_6(__VA_ARGS__, SAPI_OPERATOR_EQUAL_MACRO_6, SAPI_OPERATOR_EQUAL_MACRO_5, SAPI_OPERATOR_EQUAL_MACRO_4, SAPI_OPERATOR_EQUAL_MACRO_3)(__VA_ARGS__)
+
 // enum
 #define SAPI_ENUM_ELEMENT_1(element)                                             \
     element,
@@ -120,6 +137,7 @@
 // ====================================================================================================================
 // ==================================================== USER SPACE ====================================================
 // вариант описания enum без указания базового класса
+// @TEST(STATIC, main)
 #define SAPI_REGISTER_ENUM_2(EnumName, LIST)                                  \
     enum class EnumName {                                                     \
         LIST(SAPI_ENUM_ELEMENT)                                               \
@@ -151,6 +169,7 @@
     }
 
 // вариант описания enum через указание базового класса
+// @TEST(STATIC, main)
 #define SAPI_REGISTER_ENUM_3(EnumName, LIST, UnderlyingType)                  \
     enum class EnumName : UnderlyingType {                                    \
         LIST(SAPI_ENUM_ELEMENT)                                               \
@@ -214,24 +233,35 @@
  * - запрещённые типы контейнеров:
  *      - std::basic_string - библиотека строго UTF-8, запрещаем пользователю выстрелить себе в ногу
 */
-#define SAPI_REGISTER_CONFIG(StructName, SAPI_FIELDS_MACRO)     \
-    struct StructName {                                         \
-        SAPI_FIELDS_MACRO(SAPI_DECLARE_FIELD)                   \
-                                                                \
-        StructName() {                                          \
-            SAPI_FIELDS_MACRO(SAPI_INIT_FIELD)                  \
-        }                                                       \
-                                                                \
-        bool loadConfig(const simpleapi::Config& load_conf) {   \
-            SAPI_FIELDS_MACRO(SAPI_LOAD_FIELD)                  \
-            return true;                                        \
-        }                                                       \
-                                                                \
-        simpleapi::Config saveConfig() const {                  \
-            simpleapi::Config save_conf;                        \
-            SAPI_FIELDS_MACRO(SAPI_SAVE_FIELD)                  \
-            return save_conf;                                   \
-        }                                                       \
+// @TEST(STATIC, main)
+#define SAPI_REGISTER_CONFIG(StructName, SAPI_FIELDS_MACRO)           \
+    struct StructName {                                               \
+        SAPI_FIELDS_MACRO(SAPI_DECLARE_FIELD)                         \
+                                                                      \
+        StructName() {                                                \
+            SAPI_FIELDS_MACRO(SAPI_INIT_FIELD)                        \
+        }                                                             \
+                                                                      \
+        bool loadConfig(const simpleapi::Config& load_conf) {         \
+            SAPI_FIELDS_MACRO(SAPI_LOAD_FIELD)                        \
+            return true;                                              \
+        }                                                             \
+                                                                      \
+        simpleapi::Config saveConfig() const {                        \
+            simpleapi::Config save_conf;                              \
+            SAPI_FIELDS_MACRO(SAPI_SAVE_FIELD)                        \
+            return save_conf;                                         \
+        }                                                             \
+                                                                      \
+        bool operator==(const StructName& other) const {              \
+            if(this == &other) return true;                           \
+            return SAPI_FIELDS_MACRO(SAPI_OPERATOR_EQUAL_MACRO) true; \
+        }                                                             \
+                                                                      \
+        bool operator!=(const StructName& other) const {              \
+            if(this == &other) return false;                          \
+            return (*this) != other;                                  \
+        }                                                             \
     };
 
 // EXAMPLE OF USAGE -------------------------------------------

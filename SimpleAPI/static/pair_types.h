@@ -15,14 +15,13 @@ namespace tools {
 // правило для определения типов-контейнеров (vector, queue и т.д.)
 // std::string не считается за контейнер и обрабатывается как цельный элемент
 template<typename T>
-struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_map<T>::value
-                                                   || is_container_as_unordered_map<T>::value>::type>
+struct ConfigTypeTraits<T, typename std::enable_if<is_pair<T>::value>::type>
 {
-    using KeyType   = typename T::key_type;
-    using ValueType = typename T::value_type;
+    using KeyType   = typename T::first_type;
+    using ValueType = typename T::second_type;
 
     // явно запрещаем любые неподдерживаемые форматы ключа
-    static_assert(std::is_arithmetic<typename T::key_type>::value
+    static_assert(std::is_arithmetic<typename T::first_type>::value
                       || std::is_convertible<KeyType, std::string>::value,
                   "SimpleAPI error: in map containers, the key must be in numeric, bool or string format");
 
@@ -105,12 +104,11 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_map<T>::value
 
     static bool load(const Config& config, const std::string& key, T& field)
     {
-        // std::cout << "[debug] load container(as map) key=\"" << key << "\"" << std::endl;
+        // std::cout << "[debug] load pair key=\"" << key << "\"" << std::endl;
 
-        using Type = typename T::mapped_type;
+        using Type = typename T::second_type;
 
         if(config.isMapContainer() && config.containsKey(key)) {
-            field.clear();
             const Config& ck = config[key];
             size_t counter = 0;
             for(auto& c : ck.getNamedRange()) {
@@ -121,7 +119,8 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_map<T>::value
                     return false;
                 }
 
-                field.insert(std::make_pair(parse_key<KeyType>(c.first), item_temp_value));
+                field = std::make_pair(parse_key<KeyType>(c.first), item_temp_value);
+                break; // забираем первое же значение
             }
         }
 
@@ -132,9 +131,9 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_map<T>::value
              typename std::enable_if<is_variadic_lambda_callable<Lambda, T&&, std::string&&>::value, int>::type = 0>
     static bool load(const Config& config, const std::string& key, T& field, Lambda lambda, Args&&... args)
     {
-        // std::cout << "[debug] load container(as map) key=\"" << key << "\"" << std::endl;
+        // std::cout << "[debug] load pair key=\"" << key << "\"" << std::endl;
 
-        using Type = typename T::mapped_type;
+        using Type = typename T::second_type;
 
         if(config.isMapContainer() && config.containsKey(key)) {
             const Config& ck = config[key];
@@ -148,7 +147,8 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_map<T>::value
                     return false;
                 }
 
-                temp_value.insert(std::make_pair(parse_key<KeyType>(c.first), item_temp_value));
+                temp_value = std::make_pair(parse_key<KeyType>(c.first), item_temp_value);
+                break; // забираем первое же значение
             }
 
             if(ExecuteValidator(lambda, temp_value, key))
@@ -167,15 +167,13 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_map<T>::value
                      const std::string& prefix_comment = "",
                      const std::string& suffix_comment = "")
     {
-        // std::cout << "[debug] save container(as map) key=\"" << key << "\"" << std::endl;
+        // std::cout << "[debug] save pair key=\"" << key << "\"" << std::endl;
 
-        using Type = typename T::mapped_type;
+        using Type = typename T::second_type;
 
-        for(const auto& item : field) {
-            // ключ дальше нельзя передать - создаст новую вложенность
-            Config temp = Saver(item.second, prefix_comment, suffix_comment);
-            config[key].push_back(extract_key(item.first), temp);
-        }
+        // ключ дальше нельзя передать - создаст новую вложенность
+        Config temp = Saver(field.second, prefix_comment, suffix_comment);
+        config[key][extract_key(field.first)] = temp;
         config[key].setComment(prefix_comment, suffix_comment);
     }
 };

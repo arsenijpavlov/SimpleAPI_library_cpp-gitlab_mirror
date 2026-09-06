@@ -17,11 +17,24 @@ void ElementString::clear() noexcept {
     m_value.clear();
 }
 
+// @TEST(ELEMENT, char_compare_string)
 bool ElementString::isEqual(const IElement &other, const bool compare_comments,
                             const bool map_sort_important) const noexcept
 {
     bool b1 = !compare_comments || isCommentsEqual(other);
-    bool b2 = m_value == reinterpret_cast<const ElementString&>(other).getValue();
+    bool b2;
+
+    // тип other может быть либо строкой, либо самостоятельным символом
+    switch(other.getType()){
+    case ValueType::eChar:
+        b2 = m_value == reinterpret_cast<const ElementChar&>(other).toString();
+        break;
+    case ValueType::eString:
+        b2 = (other.size() == size()) && m_value == reinterpret_cast<const ElementString&>(other).getValue();
+        break;
+    default:
+        return false;
+    }
 
     return b1 && b2;
 }

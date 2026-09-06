@@ -42,7 +42,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_vector<T>::va
     }
 
     template<typename Lambda, typename... Args,
-             typename std::enable_if<is_variadic_lambda_callable<Lambda, const T&, Args...>::value, int>::type = 0>
+             typename std::enable_if<is_variadic_lambda_callable<Lambda, T&&, std::string&&>::value, int>::type = 0>
     static bool load(const Config& config, const std::string& key, T& field, Lambda lambda, Args&&... args)
     {
         // std::cout << "[debug] load container(as vector) key=\"" << key << "\"" << std::endl;
@@ -65,7 +65,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_vector<T>::va
                 item = item_temp_value;
             }
 
-            if(ExecuteValidator(temp_value, lambda, std::forward<Args>(args)...))
+            if(ExecuteValidator(lambda, temp_value, key))
             {
                 field = temp_value;
                 return true;

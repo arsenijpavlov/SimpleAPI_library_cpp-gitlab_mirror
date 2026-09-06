@@ -270,6 +270,26 @@ class is_container_as_unordered_map {
 public:
     static const bool value = (sizeof(test<CleanT>(0)) == sizeof(char));
 };
+//----------------
+template <typename T>
+class is_pair {
+    // очистка типа от const и ссылок
+    using CleanT = typename std::decay<T>::type;
+
+    // метод для SFINAE проверки
+    template <typename Dummy = CleanT,
+             typename = typename std::enable_if<
+                 std::is_same<Dummy, std::pair<typename Dummy::first_type,
+                                               typename Dummy::second_type>>::value
+                 >::type
+             >
+    static char test(int);
+    // метод для разрешения конфликта для поля value
+    template <typename U>
+    static long test(...);
+public:
+    static const bool value = (sizeof(test<CleanT>(0)) == sizeof(char));
+};
 // ----------------------------------------------------------------------------
 
 // разделение чтения переменной "value=get<T>()"/"value=T::loadConfig(cfg)"
@@ -326,43 +346,114 @@ class is_variadic_lambda_callable {
 
     // метод для SFINAE проверки наличия лямбы как nullptr
     template <typename U>
-    static char test(typename std::enable_if<std::is_same<U, std::nullptr_t>::value>::type*);
+    static typename std::enable_if<std::is_same<U, std::nullptr_t>::value, char>::type
+        test(int);
+
     // метод для SFINAE проверки наличия валидной лямбы у класса U
     template <typename U>
-    static char test(typename std::enable_if<
-                     std::is_convertible<decltype(std::declval<U>()(std::declval<Args>()...)), bool>::value
-                     >::type*);
+    static auto test(int) -> decltype(
+        std::declval<U>()(std::declval<Args>()...),
+        char()
+    );
+
+    // Если аргументов предложено много, но Перегрузка 2 не подошла,
+    // мы проверяем, умеет ли лямбда принимать ТОЛЬКО ПЕРВЫЙ аргумент
+    template <typename U, typename Dummy = void>
+    static auto test(long) -> decltype(
+        std::declval<U>()(std::declval<typename std::tuple_element<0, std::tuple<Args...>>::type>()),
+        char()
+        );
+
     // метод для разрешения конфликта для поля value
     template <typename U> static long test(...);
 public:
     static const bool value = (sizeof(test<CallableT>(0)) == sizeof(char));
 };
 // ---------------
+// ---------------
+// если указатель — разыменовываем его
+template <typename PtrT>
+static inline typename std::remove_pointer<PtrT>::type&
+UnwrapPointer(PtrT ptr, typename std::enable_if<std::is_pointer<PtrT>::value>::type* = 0) {
+    return *ptr;
+}
+// если объект — отдаем как есть
+template <typename ObjT>
+static inline ObjT&
+UnwrapPointer(ObjT& obj, typename std::enable_if<!std::is_pointer<ObjT>::value>::type* = 0) {
+    return obj;
+}
+// ---------------
+// ---------------
 // описания перегрузок для лямбд/std::function() для вызова как через объект, так и через указатель на него
-template <typename T, typename... Args>
-static bool ExecuteValidator(const T&, std::nullptr_t, Args&&...) noexcept {
+template <typename... Args>
+static bool ExecuteValidator(std::nullptr_t, Args&&...) noexcept
+{
     return true;
 }
-template <typename T, typename ValidatorT, typename ... Args>
-static bool ExecuteValidator(const T& value, ValidatorT validator, Args&&... args,
-                             typename std::enable_if<std::is_pointer<ValidatorT>::value>::type* = 0)
+// описание лямбд по уменьшению возможного количества параметров
+// 1. Запускается со всеми аргументами сразу
+template <typename ValidatorT, typename ... Args,
+          typename std::enable_if<!std::is_same<ValidatorT, std::nullptr_t>::value, int>::type = 0,
+          typename = decltype(std::declval<ValidatorT>()(std::declval<Args>()...))
+         >
+static bool ExecuteValidator(ValidatorT validator, Args&&... args)
 {
     // если это указатель на функцию/лямбду (или nullptr)
-    if (validator != nullptr) {
-        if (!(*validator)(value, std::forward<Args>(args)...)) { // разыменовываем указатель перед вызовом
-            return false;
-        }
-    }
-    return true;
+    auto&& not_ptr_validator = UnwrapPointer(validator);
+    return not_ptr_validator(std::forward<Args>(args)...);
 }
-template <typename T, typename ValidatorT, typename ... Args>
-static bool ExecuteValidator(const T& value, const ValidatorT& validator, Args&&... args,
-                             typename std::enable_if<!std::is_pointer<ValidatorT>::value>::type* = 0)
+//----------------------------
+// 2. Принимает T value и std::string key
+template <typename ValidatorT, typename T, typename ... Args,
+          typename std::enable_if<!std::is_same<ValidatorT, std::nullptr_t>::value, int>::type = 0,
+          typename = decltype(std::declval<ValidatorT>()(std::declval<T>(), std::declval<std::string>()))
+         >
+static bool ExecuteValidator(ValidatorT validator, T&& t, std::string&& key, Args&&... args)
 {
-    // если это прямая лямбда или функтор
-    if (!validator(value, std::forward<Args>(args)...)) {
+    // если это указатель на функцию/лямбду (или nullptr)
+    auto&& not_ptr_validator = UnwrapPointer(validator);
+    return not_ptr_validator(std::forward<T>(t), std::forward<std::string>(key));
+}
+//----------------------------
+// 3. Принимает только T value
+template <typename ValidatorT, typename T, typename ... Args,
+          typename std::enable_if<!std::is_same<ValidatorT, std::nullptr_t>::value, int>::type = 0,
+          typename = decltype(std::declval<ValidatorT>()(std::declval<T>()))
+         >
+static bool ExecuteValidator(ValidatorT validator, T&& t, Args&&... args)
+{
+    // если это указатель на функцию/лямбду (или nullptr)
+    auto&& not_ptr_validator = UnwrapPointer(validator);
+    return not_ptr_validator(std::forward<T>(t));
+}
+// ----------------------------------------------------------------------------
+// функции уникального поведения operator== в зависимости от типа переменных
+template <typename T>
+static bool CompareValues(T t1, T t2)
+{
+    return t1 == t2;
+}
+// std::priority_queue
+// итераторов нет, поэтому берём копии объектов
+template <typename T, typename T_Container, typename T_Compare>
+static bool CompareValues(std::priority_queue<T, T_Container, T_Compare> t1,
+                          std::priority_queue<T, T_Container, T_Compare> t2)
+{
+    if(t1.size() != t2.size())
+    {
         return false;
     }
+    while(!t1.empty()) {
+        if(t1.top() != t2.top())
+        {
+            return false;
+        }
+        // переходим к следующей паре элементов
+        t1.pop();
+        t2.pop();
+    }
+
     return true;
 }
 // ----------------------------------------------------------------------------
