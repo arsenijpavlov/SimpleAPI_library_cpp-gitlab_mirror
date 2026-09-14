@@ -65,14 +65,14 @@ struct max_align_of_type<Head, Tail...> {
 template <size_t Index, typename... Types>
 struct type_at_index;
 // дошли до конца списка
-template <typename Head, typename... Types>
-struct type_at_index<0, Head, Types...> {
+template <typename Head, typename... Tail>
+struct type_at_index<0, Head, Tail...> {
     using type = Head; // возвращаем тип
 };
 // рекурсивное извлечение типа по итерации индекса
 template <size_t Index, typename Head, typename... Tail>
 struct type_at_index<Index, Head, Tail...> {
-    using type = typename type_at_index<Index - 1, Head, Tail...>::type;
+    using type = typename type_at_index<Index - 1, Tail...>::type;
 };
 // ---------------------------------------------------------------------
 
@@ -80,11 +80,11 @@ struct type_at_index<Index, Head, Tail...> {
 // описатель получения индекса по типу
 // ---------------------------------------------------------------------
 // базовое описание структуры для корректности выхода из SFINAE
-template <typename... Types>
+template <typename FindType, typename... Types>
 struct index_of_type;
 // тип совпал
 template <typename FindType, typename... Tail>
-struct index_of_type<FindType, Tail...> {
+struct index_of_type<FindType, FindType, Tail...> {
     static constexpr size_t value = 0;
 };
 // рекурсивное извлечение индекса по совпадению типа
@@ -151,16 +151,15 @@ class Variant {
     template <ssize_t Index, bool is_in_bounds = (Index < sizeof...(Types))>
     struct Creator {
         template <typename T>
-        static void create(ssize_t& out_index, void* ptr, T&& value) {
-            if(Index == out_index) {
+        static void create(const ssize_t& find_index, void* ptr, T&& value) {
+            if(Index == find_index) {
                 using Type = typename tools::type_at_index<Index, Types...>::type;
 
                 // создание объекта на указанном буфере с указанным типом
                 new (ptr) Type(std::forward<T>(value)); // ручной вызов placement new
-                out_index = Index;
             } else {
                 // продолжение поиска
-                Creator<Index + 1>::create(out_index, ptr);
+                Creator<Index + 1>::create(find_index, ptr, std::forward<T>(value));
             }
         }
     };
@@ -169,7 +168,7 @@ class Variant {
     template <ssize_t Index>
     struct Creator<Index, false> {
         template <typename T>
-        static void create(ssize_t& out_index, void* ptr, T&& value) {}
+        static void create(const ssize_t& find_index, void* ptr, T&& value) {}
     };
 
     // шаблон рекурсивного поиска деструктора
@@ -202,79 +201,99 @@ public:
         new (m_data) typename tools::type_at_index<0, Types...>::type(0);
     }
 
-    template <typename T, typename std::enable_if<tools::is_contains_type<T, Types...>::value, int>::type = 0>
+    template <typename T, typename std::enable_if<tools::is_contains_type<typename std::decay<T>::type, Types...>::value, int>::type = 0>
     Variant(const T& value) {
-        // m_current_type_index будет обновлён внутри
-        Creator<tools::index_of_type<T, Types...>::value>::create(m_current_type_index, m_data, value);
+        using CleanT = typename std::decay<T>::type;
+        using Index  = typename tools::index_of_type<CleanT, Types...>;
+        m_current_type_index = Index::value;
+        Creator<0>::create(m_current_type_index, m_data, value);
     }
 
-    template <typename T, typename std::enable_if<tools::is_contains_type<T, Types...>::value, int>::type = 0>
+    template <typename T, typename std::enable_if<tools::is_contains_type<typename std::decay<T>::type, Types...>::value, int>::type = 0>
     Variant(T&& value) {
-        // m_current_type_index будет обновлён внутри
-        Creator<tools::index_of_type<T, Types...>::value>::create(m_current_type_index, m_data, std::move(value));
+        using CleanT = typename std::decay<T>::type;
+        using Index  = typename tools::index_of_type<CleanT, Types...>;
+        m_current_type_index = Index::value;
+        Creator<0>::create(m_current_type_index, m_data, std::forward<CleanT>(value));
     }
 
-    Variant(const Variant& value) {
-        // m_current_type_index будет обновлён внутри
-        //Creator<tools::index_of_type<T, Types...>::value>::create(m_current_type_index, m_data, value);
-    }
+//    Variant(const Variant& value) {
+//        // m_current_type_index будет обновлён внутри
+//        //Creator<tools::index_of_type<T, Types...>::value>::create(m_current_type_index, m_data, value);
+//    }
 
-    Variant(Variant&& value) {
-        // m_current_type_index будет обновлён внутри
-        //Creator<tools::index_of_type<T, Types...>::value>::create(m_current_type_index, m_data, std::move(value));
-    }
+//    Variant(Variant&& value) {
+//        // m_current_type_index будет обновлён внутри
+//        //Creator<tools::index_of_type<T, Types...>::value>::create(m_current_type_index, m_data, std::move(value));
+//    }
 
     ~Variant() {
         // начинаем поиск деструктора (compile-time) с нулевого индекса
         Destroyer<0>::destroy(m_current_type_index, m_data);
     }
 
-    template <typename T, typename std::enable_if<tools::is_contains_type<T, Types...>::value, int>::type = 0>
-    Variant& operator=(const T& other) {
-        /* FIXME */
-        return {};
+    template <typename T, typename std::enable_if<tools::is_contains_type<typename std::decay<T>::type, Types...>::value, int>::type = 0>
+    Variant& operator=(const T& value) {
+        // уничтожение старого объекта
+        // начинаем поиск деструктора (compile-time) с нулевого индекса
+        Destroyer<0>::destroy(m_current_type_index, m_data);
+
+        using CleanT = typename std::decay<T>::type;
+//        using Index  = typename tools::index_of_type<CleanT, Types...>;
+        using Index  = typename tools::index_of_type<T, Types...>;
+        m_current_type_index = Index::value;
+        Creator<0>::create(m_current_type_index, m_data, value);
+        return *this;
     }
 
-    template <typename T, typename std::enable_if<tools::is_contains_type<T, Types...>::value, int>::type = 0>
-    Variant& operator=(T&& other) {
-        /* FIXME */
-        return {};
+    template <typename T, typename std::enable_if<tools::is_contains_type<typename std::decay<T>::type, Types...>::value, int>::type = 0>
+    Variant& operator=(T&& value) {
+        // уничтожение старого объекта
+        // начинаем поиск деструктора (compile-time) с нулевого индекса
+        Destroyer<0>::destroy(m_current_type_index, m_data);
+
+        using CleanT = typename std::decay<T>::type;
+//        using Index  = typename tools::index_of_type<CleanT, Types...>;
+        using Index  = typename tools::index_of_type<T, Types...>;
+        m_current_type_index = Index::value;
+        Creator<0>::create(m_current_type_index, m_data, std::move(value));
+        return *this;
     }
 
-    Variant& operator=(const Variant& other) {
-        /* FIXME */
-        return {};
-    }
+//    Variant& operator=(const Variant& other) {
+//        /* FIXME */
+//        return {};
+//    }
 
-    Variant& operator=(Variant&& other) {
-        /* FIXME */
-        return {};
-    }
+//    Variant& operator=(Variant&& other) {
+//        /* FIXME */
+//        return {};
+//    }
 
-    template <typename T, typename std::enable_if<tools::is_contains_type<T, Types...>::value, int>::type = 0>
-    void set(const T& other) {
-        /* FIXME */
-    }
+//    template <typename T, typename std::enable_if<tools::is_contains_type<T, Types...>::value, int>::type = 0>
+//    void set(const T& other) {
+//        /* FIXME */
+//    }
 
-    template <typename T, typename std::enable_if<tools::is_contains_type<T, Types...>::value, int>::type = 0>
-    void set(T&& other) {
-        /* FIXME */
-    }
+//    template <typename T, typename std::enable_if<tools::is_contains_type<T, Types...>::value, int>::type = 0>
+//    void set(T&& other) {
+//        /* FIXME */
+//    }
 
-    void set(const Variant& other) {
-        /* FIXME */
-    }
+//    void set(const Variant& other) {
+//        /* FIXME */
+//    }
 
-    void set(Variant&& other) {
-        /* FIXME */
-    }
+//    void set(Variant&& other) {
+//        /* FIXME */
+//    }
 
-    template <typename T, typename std::enable_if<tools::is_contains_type<T, Types...>::value, int>::type = 0>
+    template <typename T, typename std::enable_if<tools::is_contains_type<typename std::decay<T>::type, Types...>::value, int>::type = 0>
     T& get() {
         return *(reinterpret_cast<T*>(m_data));
     }
 
-    template <typename T, typename std::enable_if<tools::is_contains_type<T, Types...>::value, int>::type = 0>
+    template <typename T, typename std::enable_if<tools::is_contains_type<typename std::decay<T>::type, Types...>::value, int>::type = 0>
     T get() const {
         return *(reinterpret_cast<T*>(m_data));
     }
