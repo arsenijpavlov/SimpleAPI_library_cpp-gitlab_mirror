@@ -1,5 +1,6 @@
 #include "number_utils.h"
 #include <iostream>
+#include <stdexcept>
 
 
 namespace simpleapi {
