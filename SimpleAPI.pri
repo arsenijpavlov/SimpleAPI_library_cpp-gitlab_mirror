@@ -7,6 +7,7 @@
 
     SIMPLEAPI_PWD = $${PWD}
     INCLUDEPATH += $${SIMPLEAPI_PWD}
+    INCLUDEPATH *= $${SIMPLEAPI_PWD}/SimpleAPI
 
     CONFIG += c++11 # начиная с Qt5.7
     QMAKE_CXXFLAGS += -std=c++11
