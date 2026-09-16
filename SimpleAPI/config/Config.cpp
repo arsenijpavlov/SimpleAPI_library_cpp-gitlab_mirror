@@ -4114,7 +4114,12 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
     if(state == ParseStateJsonArray::eARRAY_FINISH)
     {
         AppendMainSuffixComment();
+
+        // пустой массив должен определяться как массив
+        if(isEmpty())
+            try_convert_null_to_json_array();
     }
+
 
     if(state != ParseStateJsonArray::eARRAY_FINISH && state != ParseStateJsonArray::eARRAY_VALUE) {
         if(!error())

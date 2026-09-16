@@ -177,3 +177,16 @@ TEST(ARRAY, parse_correct) {
     Config cfg = ParseJson("[[\"a\naaa\", b],{c=[d,{e=f}]},g]", cd);
     EXPECT_FALSE(cfg.error());
 }
+
+TEST(ARRAY, parse_empty_array) {
+    Config cfg;
+
+    cfg.parseJson("[]");
+    EXPECT_TRUE(cfg.isArray());
+
+    cfg.parseJson("[   ]");
+    EXPECT_TRUE(cfg.isArray());
+
+    cfg.parseJson("[ \n ]");
+    EXPECT_TRUE(cfg.isArray());
+}
