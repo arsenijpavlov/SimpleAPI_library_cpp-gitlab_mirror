@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <string>
 #include <sys/types.h>
 #include <type_traits>
 #include <utility>
@@ -77,20 +78,40 @@ struct type_at_index<Index, Head, Tail...> {
 // ---------------------------------------------------------------------
 
 // ---------------------------------------------------------------------
+// helper: база
+template <bool IsMatch, typename FindType, typename... Types>
+struct index_of_type_dispatcher;
+// helper: если тип найден - возвращаем индекс
+template <typename FindType, typename... Types>
+struct index_of_type_dispatcher<true, FindType, Types...> {
+    static constexpr size_t value = 0;
+};
+// helper: если тип НЕ найден - возвращаем ошибку
+template <typename FindType, typename... Types>
+struct index_of_type_dispatcher<false, FindType, Types...> {
+    static constexpr size_t value = 111;
+};
+// ---------------------------------------------------------------------
 // описатель получения индекса по типу
 // ---------------------------------------------------------------------
 // базовое описание структуры для корректности выхода из SFINAE
 template <typename FindType, typename... Types>
 struct index_of_type;
-// тип совпал
-template <typename FindType, typename... Tail>
-struct index_of_type<FindType, FindType, Tail...> {
-    static constexpr size_t value = 0;
+// искомый тип НЕ найден, возвращаем ошибку
+template <typename FindType>
+struct index_of_type<FindType> {
+    static constexpr size_t value = static_cast<size_t>(-1);
 };
-// рекурсивное извлечение индекса по совпадению типа
-template <typename FindType, typename Head, typename... Tail>
-struct index_of_type<FindType, Head, Tail...> {
-    static constexpr size_t value = 1 + index_of_type<FindType, Tail...>::value;
+// рекурсивный поиск
+template <typename FindType, typename Head, typename... Types>
+struct index_of_type<FindType, Head, Types...> {
+    // базовое сравнение
+    static constexpr bool is_match = std::is_same<FindType, Head>::value
+                                     || std::is_constructible<FindType, Head>::value
+                                     || std::is_convertible<FindType, Head>::value;
+
+    // на основе диспетчера (аналог тернарного оператора) выбираем дальнейшее действие
+    static constexpr size_t value = index_of_type_dispatcher<is_match, FindType, Head, Types...>::value;
 };
 // ---------------------------------------------------------------------
 
@@ -108,12 +129,16 @@ struct is_contains_type<> {
 // список состоит из одного элемента
 template <typename TemplateType, typename T>
 struct is_contains_type<TemplateType, T> {
-    static constexpr bool value = std::is_same<TemplateType, T>::value;
+    static constexpr bool value = std::is_same<TemplateType, T>::value
+                                  || std::is_constructible<TemplateType, T>::value
+                                  || std::is_convertible<TemplateType, T>::value;
 };
 // рекурсивное сравнение типов из списка с искомым
 template <typename TemplateType, typename Head, typename... Tail>
 struct is_contains_type<TemplateType, Head, Tail...> {
     static constexpr bool value = std::is_same<TemplateType, Head>::value
+                                  || std::is_constructible<TemplateType, Head>::value
+                                  || std::is_convertible<TemplateType, Head>::value
                                   || is_contains_type<TemplateType, Tail...>::value;
 };
 // ---------------------------------------------------------------------
@@ -150,13 +175,32 @@ class Variant {
     // шаблон рекурсивного поиска конструктора
     template <ssize_t Index, bool is_in_bounds = (Index < sizeof...(Types))>
     struct Creator {
-        template <typename T>
+        // вариант, когда тип совпадает с искомым
+        template <typename T,
+                 typename Type = typename tools::type_at_index<Index, Types...>::type,
+                 typename std::enable_if<std::is_constructible<Type, T&&>::value
+                                         || std::is_convertible<T&&, std::string>::value
+                                         , int>::type = 0
+                 >
         static void create(const ssize_t& find_index, void* ptr, T&& value) {
             if(Index == find_index) {
-                using Type = typename tools::type_at_index<Index, Types...>::type;
-
                 // создание объекта на указанном буфере с указанным типом
                 new (ptr) Type(std::forward<T>(value)); // ручной вызов placement new
+            } else {
+                // продолжение поиска
+                Creator<Index + 1>::create(find_index, ptr, std::forward<T>(value));
+            }
+        }
+        // вариант, когда тип НЕ совпадает с искомым
+        template <typename T,
+                 typename Type = typename tools::type_at_index<Index, Types...>::type,
+                 typename std::enable_if<!std::is_constructible<Type, T&&>::value
+                                         || std::is_convertible<T&&, std::string>::value
+                                         , int>::type = 0
+                 >
+        static void create(const ssize_t& find_index, void* ptr, T&& value) {
+            if(Index == find_index) {
+                // тип не совпал, нельзя присваивать (не скомпилируется) -> заглушка
             } else {
                 // продолжение поиска
                 Creator<Index + 1>::create(find_index, ptr, std::forward<T>(value));
@@ -239,8 +283,7 @@ public:
         Destroyer<0>::destroy(m_current_type_index, m_data);
 
         using CleanT = typename std::decay<T>::type;
-//        using Index  = typename tools::index_of_type<CleanT, Types...>;
-        using Index  = typename tools::index_of_type<T, Types...>;
+        using Index  = typename tools::index_of_type<CleanT, Types...>;
         m_current_type_index = Index::value;
         Creator<0>::create(m_current_type_index, m_data, value);
         return *this;
@@ -253,10 +296,9 @@ public:
         Destroyer<0>::destroy(m_current_type_index, m_data);
 
         using CleanT = typename std::decay<T>::type;
-//        using Index  = typename tools::index_of_type<CleanT, Types...>;
-        using Index  = typename tools::index_of_type<T, Types...>;
+        using Index  = typename tools::index_of_type<CleanT, Types...>;
         m_current_type_index = Index::value;
-        Creator<0>::create(m_current_type_index, m_data, std::move(value));
+        Creator<0>::create(m_current_type_index, m_data, std::forward<T>(value));
         return *this;
     }
 
