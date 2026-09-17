@@ -18,6 +18,7 @@ namespace tools {
  *  - type_at_index         - получить тип на основе индекса
  *  - index_of_type         - получить индекс на основе типа
  *  - is_contains_type      - есть ли указанный тип среди списка
+ *  - is_contains_conv_type - есть ли указанный тип среди списка (с учётом конвертации типов)
  *  - is_contains_duplicate - запрет создания Variant с дубликатами типов
  */
 
@@ -78,40 +79,111 @@ struct type_at_index<Index, Head, Tail...> {
 // ---------------------------------------------------------------------
 
 // ---------------------------------------------------------------------
-// helper: база
-template <bool IsMatch, typename FindType, typename... Types>
-struct index_of_type_dispatcher;
-// helper: если тип найден - возвращаем индекс
+// описатель получения индекса по типу (std::is_same)
+// ---------------------------------------------------------------------
+// базовое описание структуры для корректности выхода из SFINAE
 template <typename FindType, typename... Types>
-struct index_of_type_dispatcher<true, FindType, Types...> {
-    static constexpr size_t value = 0;
+struct index_of_type_same;
+// искомый тип НЕ найден, возвращаем ошибку
+template <typename FindType>
+struct index_of_type_same<FindType> {
+    static constexpr size_t value = static_cast<size_t>(-1);
 };
-// helper: если тип НЕ найден - возвращаем ошибку
-template <typename FindType, typename... Types>
-struct index_of_type_dispatcher<false, FindType, Types...> {
-    static constexpr size_t value = 111;
+// рекурсивный поиск
+template <typename FindType, typename Head, typename... Types>
+struct index_of_type_same<FindType, Head, Types...> {
+    // базовое сравнение
+    static constexpr bool is_match = std::is_same<FindType, Head>::value;
+
+    struct OnTrue  { static constexpr size_t value = 0; };
+    struct OnFalse {
+        static constexpr size_t next_value = index_of_type_same<FindType, Types...>::value;
+        // если есть ошибка, то прокидываем её наверх
+        // иначе продолжаем поиск
+        static constexpr size_t value = (next_value == static_cast<size_t>(-1)) ? static_cast<size_t>(-1)
+                                                                                : 1 + next_value;
+    };
+
+    // на основе диспетчера (аналог тернарного оператора) выбираем дальнейшее действие
+    static constexpr size_t value = std::conditional<is_match, OnTrue, OnFalse>::type::value;
 };
 // ---------------------------------------------------------------------
-// описатель получения индекса по типу
+// описатель получения индекса по типу (std::is_convertible)
+// ---------------------------------------------------------------------
+// базовое описание структуры для корректности выхода из SFINAE
+template <typename FindType, typename... Types>
+struct index_of_type_convertible;
+// искомый тип НЕ найден, возвращаем ошибку
+template <typename FindType>
+struct index_of_type_convertible<FindType> {
+    static constexpr size_t value = static_cast<size_t>(-1);
+};
+// рекурсивный поиск
+template <typename FindType, typename Head, typename... Types>
+struct index_of_type_convertible<FindType, Head, Types...> {
+    // базовое сравнение
+    static constexpr bool is_match = std::is_convertible<FindType, Head>::value;
+
+    struct OnTrue  { static constexpr size_t value = 0; };
+    struct OnFalse {
+        static constexpr size_t next_value = index_of_type_convertible<FindType, Types...>::value;
+        // если есть ошибка, то прокидываем её наверх
+        // иначе продолжаем поиск
+        static constexpr size_t value = (next_value == static_cast<size_t>(-1)) ? static_cast<size_t>(-1)
+                                                                                : 1 + next_value;
+    };
+
+    // на основе диспетчера (аналог тернарного оператора) выбираем дальнейшее действие
+    static constexpr size_t value = std::conditional<is_match, OnTrue, OnFalse>::type::value;
+};
+// ---------------------------------------------------------------------
+// описатель получения индекса по типу (std::is_constructible)
+// ---------------------------------------------------------------------
+// базовое описание структуры для корректности выхода из SFINAE
+template <typename FindType, typename... Types>
+struct index_of_type_constructible;
+// искомый тип НЕ найден, возвращаем ошибку
+template <typename FindType>
+struct index_of_type_constructible<FindType> {
+    static constexpr size_t value = static_cast<size_t>(-1);
+};
+// рекурсивный поиск
+template <typename FindType, typename Head, typename... Types>
+struct index_of_type_constructible<FindType, Head, Types...> {
+    // базовое сравнение
+    static constexpr bool is_match = std::is_constructible<FindType, Head>::value;
+
+    struct OnTrue  { static constexpr size_t value = 0; };
+    struct OnFalse {
+        static constexpr size_t next_value = index_of_type_constructible<FindType, Types...>::value;
+        // если есть ошибка, то прокидываем её наверх
+        // иначе продолжаем поиск
+        static constexpr size_t value = (next_value == static_cast<size_t>(-1)) ? static_cast<size_t>(-1)
+                                                                                : 1 + next_value;
+    };
+
+    // на основе диспетчера (аналог тернарного оператора) выбираем дальнейшее действие
+    static constexpr size_t value = std::conditional<is_match, OnTrue, OnFalse>::type::value;
+};
+// ---------------------------------------------------------------------
+// описатель получения индекса по типу (ОБЩИЙ)
 // ---------------------------------------------------------------------
 // базовое описание структуры для корректности выхода из SFINAE
 template <typename FindType, typename... Types>
 struct index_of_type;
 // искомый тип НЕ найден, возвращаем ошибку
-template <typename FindType>
-struct index_of_type<FindType> {
-    static constexpr size_t value = static_cast<size_t>(-1);
-};
+//template <typename FindType>
+//struct index_of_type<FindType> {
+//    static constexpr size_t value = static_cast<size_t>(-1);
+//};
 // рекурсивный поиск
 template <typename FindType, typename Head, typename... Types>
 struct index_of_type<FindType, Head, Types...> {
-    // базовое сравнение
-    static constexpr bool is_match = std::is_same<FindType, Head>::value
-                                     || std::is_constructible<FindType, Head>::value
-                                     || std::is_convertible<FindType, Head>::value;
-
-    // на основе диспетчера (аналог тернарного оператора) выбираем дальнейшее действие
-    static constexpr size_t value = index_of_type_dispatcher<is_match, FindType, Head, Types...>::value;
+    static constexpr size_t same_index = index_of_type_same<FindType, Types...>::value;
+    static constexpr size_t conv_index = (same_index == static_cast<size_t>(-1)) ? index_of_type_convertible<FindType, Head, Types...>::value
+                                                                                 : same_index; // прокидываем ошибку дальше
+    static constexpr size_t value      = (conv_index == static_cast<size_t>(-1)) ? index_of_type_constructible<FindType, Head, Types...>::value
+                                                                                 : conv_index; // прокидываем ошибку дальше
 };
 // ---------------------------------------------------------------------
 
@@ -129,17 +201,39 @@ struct is_contains_type<> {
 // список состоит из одного элемента
 template <typename TemplateType, typename T>
 struct is_contains_type<TemplateType, T> {
+    static constexpr bool value = std::is_same<TemplateType, T>::value;
+};
+// рекурсивное сравнение типов из списка с искомым
+template <typename TemplateType, typename Head, typename... Tail>
+struct is_contains_type<TemplateType, Head, Tail...> {
+    static constexpr bool value = std::is_same<TemplateType, Head>::value
+                                  || is_contains_type<TemplateType, Tail...>::value;
+};
+// ---------------------------------------------------------------------
+// описатель проверки наличия типа в списке (с учётом конвертации)
+// ---------------------------------------------------------------------
+// базовое описание структуры для корректности выхода из SFINAE
+template <typename... Types>
+struct is_contains_conv_type;
+// дошли до конца списка
+template <>
+struct is_contains_conv_type<> {
+    static constexpr bool value = false;
+};
+// список состоит из одного элемента
+template <typename TemplateType, typename T>
+struct is_contains_conv_type<TemplateType, T> {
     static constexpr bool value = std::is_same<TemplateType, T>::value
                                   || std::is_constructible<TemplateType, T>::value
                                   || std::is_convertible<TemplateType, T>::value;
 };
 // рекурсивное сравнение типов из списка с искомым
 template <typename TemplateType, typename Head, typename... Tail>
-struct is_contains_type<TemplateType, Head, Tail...> {
+struct is_contains_conv_type<TemplateType, Head, Tail...> {
     static constexpr bool value = std::is_same<TemplateType, Head>::value
                                   || std::is_constructible<TemplateType, Head>::value
                                   || std::is_convertible<TemplateType, Head>::value
-                                  || is_contains_type<TemplateType, Tail...>::value;
+                                  || is_contains_conv_type<TemplateType, Tail...>::value;
 };
 // ---------------------------------------------------------------------
 
@@ -195,7 +289,7 @@ class Variant {
         template <typename T,
                  typename Type = typename tools::type_at_index<Index, Types...>::type,
                  typename std::enable_if<!std::is_constructible<Type, T&&>::value
-                                         || std::is_convertible<T&&, std::string>::value
+                                         && !std::is_convertible<T&&, std::string>::value
                                          , int>::type = 0
                  >
         static void create(const ssize_t& find_index, void* ptr, T&& value) {
@@ -245,7 +339,7 @@ public:
         new (m_data) typename tools::type_at_index<0, Types...>::type(0);
     }
 
-    template <typename T, typename std::enable_if<tools::is_contains_type<typename std::decay<T>::type, Types...>::value, int>::type = 0>
+    template <typename T, typename std::enable_if<tools::is_contains_conv_type<typename std::decay<T>::type, Types...>::value, int>::type = 0>
     Variant(const T& value) {
         using CleanT = typename std::decay<T>::type;
         using Index  = typename tools::index_of_type<CleanT, Types...>;
@@ -253,7 +347,7 @@ public:
         Creator<0>::create(m_current_type_index, m_data, value);
     }
 
-    template <typename T, typename std::enable_if<tools::is_contains_type<typename std::decay<T>::type, Types...>::value, int>::type = 0>
+    template <typename T, typename std::enable_if<tools::is_contains_conv_type<typename std::decay<T>::type, Types...>::value, int>::type = 0>
     Variant(T&& value) {
         using CleanT = typename std::decay<T>::type;
         using Index  = typename tools::index_of_type<CleanT, Types...>;
@@ -276,7 +370,7 @@ public:
         Destroyer<0>::destroy(m_current_type_index, m_data);
     }
 
-    template <typename T, typename std::enable_if<tools::is_contains_type<typename std::decay<T>::type, Types...>::value, int>::type = 0>
+    template <typename T, typename std::enable_if<tools::is_contains_conv_type<typename std::decay<T>::type, Types...>::value, int>::type = 0>
     Variant& operator=(const T& value) {
         // уничтожение старого объекта
         // начинаем поиск деструктора (compile-time) с нулевого индекса
@@ -289,7 +383,7 @@ public:
         return *this;
     }
 
-    template <typename T, typename std::enable_if<tools::is_contains_type<typename std::decay<T>::type, Types...>::value, int>::type = 0>
+    template <typename T, typename std::enable_if<tools::is_contains_conv_type<typename std::decay<T>::type, Types...>::value, int>::type = 0>
     Variant& operator=(T&& value) {
         // уничтожение старого объекта
         // начинаем поиск деструктора (compile-time) с нулевого индекса
@@ -312,12 +406,12 @@ public:
 //        return {};
 //    }
 
-//    template <typename T, typename std::enable_if<tools::is_contains_type<T, Types...>::value, int>::type = 0>
+//    template <typename T, typename std::enable_if<tools::is_contains_conv_type<T, Types...>::value, int>::type = 0>
 //    void set(const T& other) {
 //        /* FIXME */
 //    }
 
-//    template <typename T, typename std::enable_if<tools::is_contains_type<T, Types...>::value, int>::type = 0>
+//    template <typename T, typename std::enable_if<tools::is_contains_conv_type<T, Types...>::value, int>::type = 0>
 //    void set(T&& other) {
 //        /* FIXME */
 //    }
@@ -330,12 +424,12 @@ public:
 //        /* FIXME */
 //    }
 
-    template <typename T, typename std::enable_if<tools::is_contains_type<typename std::decay<T>::type, Types...>::value, int>::type = 0>
+    template <typename T, typename std::enable_if<tools::is_contains_conv_type<typename std::decay<T>::type, Types...>::value, int>::type = 0>
     T& get() {
         return *(reinterpret_cast<T*>(m_data));
     }
 
-    template <typename T, typename std::enable_if<tools::is_contains_type<typename std::decay<T>::type, Types...>::value, int>::type = 0>
+    template <typename T, typename std::enable_if<tools::is_contains_conv_type<typename std::decay<T>::type, Types...>::value, int>::type = 0>
     T get() const {
         return *(reinterpret_cast<T*>(m_data));
     }
