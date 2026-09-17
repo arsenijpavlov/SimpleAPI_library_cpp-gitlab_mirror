@@ -54,7 +54,7 @@ Config позволяет многое, но упускает иногда гл�
 - `EnumName`
     - итоговое имя класса перечисления (enum class)
 - `X_MACRO_FOR_CURRENT_ENUM_FIELDS`
-    - макрос X-Macro, объявленный пользователем ранее, описывающий список значений
+    - макрос X-Macro, объявленный пользователем ранее, описывающий список значений (формат `(X)`)
 - `UnderlyingType`
     - (опциональный) базовый класс, от которого будет наследован enum class
 
@@ -77,7 +77,7 @@ Config позволяет многое, но упускает иногда гл�
 - `StructName`
     - итоговое имя структуры
 - `X_MACRO_FOR_CURRENT_STRUCT_FIELDS`
-    - макрос X-Macro, объявленный пользователем ранее, описывающий список параметров
+    - макрос X-Macro, объявленный пользователем ранее, описывающий список параметров (формат `(X, Y)`)
 
 **Параметры X-Macro:**
 - `type`
@@ -121,21 +121,22 @@ SAPI_REGISTER_ENUM(MyEnum2, MY_ENUM_FIELDS, uint8_t)
 
 ### Объявление struct
 ```c++
-// объявление X-Macro
+// объявление X-Macro (X - поля с поддержкой работы с SimpleAPI, Y - поля без работы с SimpleAPI)
 // поле int_value описывает только обязательные параметры
 // поле str_value имеет функцию валидации, которая проверяет минимальную длину прочитанной строки
 // поле int_vec не имеет валидации, но имеет комментарий перед значением
-#define MY_STRUCT_FIELDS(X)                                              \
+#define MY_STRUCT_FIELDS(X, Y)                                           \
     X(int,              int_value, 0)                                    \
     X(std::string,      str_value, "bla-bla-bla",                        \
         [](const std::string& s) -> bool { return s.size() > 10; }       \
     X(std::vector<int>, int_vec,   {}, nullptr, "is vector of integers") \
+    Y(char,             ch,        'a')
 
 // создаст struct MyStaticConfig с полями, описанными выше
 SAPI_REGISTER_CONFIG(MyStaticConfig, MY_STRUCT_FIELDS)
 
 // описание структуры, которая внутри содержит внутреннюю структуру, объявленную ранее
-#define MY_STRUCT2_FIELDS(X)                         \
+#define MY_STRUCT2_FIELDS(X, Y)                      \
     X(char,           ch,           'a')             \
     X(MyStaticConfig, inner_struct, MyStaticConfig{})
 
@@ -149,10 +150,10 @@ MyStaticConfig2 static_config;
 
 // loadConfig() вернёт исключение, если пользователь применил некорректный тип переменной при заполнении
 try {
-	if(!static_config.loadConfig())
-	{
-		std::cerr << "Error: incorrect config!" << std::endl;
-	}
+    if(!static_config.loadConfig())
+    {
+        std::cerr << "Error: incorrect config!" << std::endl;
+    }
 } catch (...) {}
 ```
 
@@ -167,7 +168,7 @@ try {
 std::string my_global_string;
 
 // объявляем Static Config структуру
-#define FIELDS(X)                                                       \
+#define FIELDS(X, Y)                                                       \
     X(std::vector<int>, vec, std::vector<int>,                          \
         [](const std::vector<int>& v) -> bool {                         \
             bool b = v.size() >= 10;                                    \

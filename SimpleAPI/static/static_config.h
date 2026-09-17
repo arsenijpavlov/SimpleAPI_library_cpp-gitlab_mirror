@@ -37,6 +37,8 @@
 #define SAPI_GETTER_MACRO_3(_1, _2, _3, NAME, ...)             NAME
 #define SAPI_GETTER_MACRO_6(_1, _2, _3, _4, _5, _6, NAME, ...) NAME
 
+// обнулённый макрос для Y-логики
+#define SAPI_EMPTY(...)
 
 // объявления
 #define SAPI_DECLARE_FIELD_3(type, name, default_value)                                         \
@@ -134,7 +136,6 @@
     ret += std::string(#element) + ", ";
 #define SAPI_ENUM_POSSIBLE_VARIANTS(...)                                               \
     SAPI_GETTER_MACRO_2(__VA_ARGS__, SAPI_ENUM_POSSIBLE_VARIANTS_2, SAPI_ENUM_POSSIBLE_VARIANTS_1)(__VA_ARGS__)
-
 
 // ====================================================================================================================
 // ==================================================== USER SPACE ====================================================
@@ -238,27 +239,29 @@
 // @TEST(STATIC, main)
 #define SAPI_REGISTER_CONFIG(StructName, SAPI_FIELDS_MACRO)           \
     struct StructName {                                               \
-        SAPI_FIELDS_MACRO(SAPI_DECLARE_FIELD)                         \
+        SAPI_FIELDS_MACRO(SAPI_DECLARE_FIELD, SAPI_DECLARE_FIELD)     \
                                                                       \
         StructName() {                                                \
-            SAPI_FIELDS_MACRO(SAPI_INIT_FIELD)                        \
+            SAPI_FIELDS_MACRO(SAPI_INIT_FIELD, SAPI_INIT_FIELD)       \
         }                                                             \
                                                                       \
         bool loadConfig(const simpleapi::Config& load_conf) {         \
             simpleapi::static_config_error_str.clear();               \
-            SAPI_FIELDS_MACRO(SAPI_LOAD_FIELD)                        \
+            SAPI_FIELDS_MACRO(SAPI_LOAD_FIELD, SAPI_EMPTY)            \
             return true;                                              \
         }                                                             \
                                                                       \
         simpleapi::Config saveConfig() const {                        \
             simpleapi::Config save_conf;                              \
-            SAPI_FIELDS_MACRO(SAPI_SAVE_FIELD)                        \
+            SAPI_FIELDS_MACRO(SAPI_SAVE_FIELD, SAPI_EMPTY)            \
             return save_conf;                                         \
         }                                                             \
                                                                       \
         bool operator==(const StructName& other) const {              \
             if(this == &other) return true;                           \
-            return SAPI_FIELDS_MACRO(SAPI_OPERATOR_EQUAL_MACRO) true; \
+            return                                                    \
+                SAPI_FIELDS_MACRO(SAPI_OPERATOR_EQUAL_MACRO, SAPI_OPERATOR_EQUAL_MACRO) \
+                true;                                                 \
         }                                                             \
                                                                       \
         bool operator!=(const StructName& other) const {              \
@@ -268,11 +271,14 @@
     };
 
 // EXAMPLE OF USAGE -------------------------------------------
-//    #define STRUCT_FIELDS(X)       \
+//    #define STRUCT_FIELDS(X, Y)       \
 //        X(int, integer, 2)         \
 //        X(uint8_t, u_integer, 3, []{ return (u_integer != 5); }) \
 //        X(std::string, str, "asd")
 //    SAPI_REGISTER_CONFIG(TestConfig, STRUCT_FIELDS)
+// ------------------------------------------------------------
+// , где X - параметр, работающий с simpleapi::Config,
+// Y - параметр, который не будет взаимодействовать с SimpleAPI
 // ------------------------------------------------------------
 // enum:
 //  #define MY_ENUM_FIELDS(X) \
