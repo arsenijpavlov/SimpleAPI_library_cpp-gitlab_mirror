@@ -40,7 +40,7 @@ SAPI_REGISTER_ENUM(CustomEnum_2, ENUM2_VARIANTS, uint8_t)
 
 SAPI_REGISTER_ENUM(CustomEnum_Inf, ENUM_INF_VARIANTS, uint8_t)
 
-#define INF_FIELDS(X) \
+#define INF_FIELDS(X, Y) \
     X(CustomEnum_Inf, var, CustomEnum_Inf::infinity)
 SAPI_REGISTER_CONFIG(InfConf, INF_FIELDS)
 //-------------------------------------------------------------------------
@@ -54,7 +54,7 @@ using UMapPlaceholder   = std::unordered_map<int, float>;
 using UMMapPlaceholder  = std::unordered_multimap<int, float>;
 using PairPlaceholder   = std::pair<std::string, int>;
 
-#define STRUCT_FIELDS(X)                                                                                         \
+#define STRUCT_FIELDS(X, Y)                                                                                      \
     X(bool,                           val_b,       true                                                        ) \
     X(int,                            val_i,       1                                                           ) \
     X(uint8_t,                        val_u8,      1                                                           ) \
@@ -100,7 +100,7 @@ using Map_WithKey_String = std::map<std::string, int>;
 using Map_WithKey_Bool   = std::map<bool, int>;
 using Map_WithKey_Number = std::map<int, int>;
 
-#define MAP_FIELDS(X)                                              \
+#define MAP_FIELDS(X, Y)                                           \
     X(Map_WithKey_String, m1, (Map_WithKey_String({{"asd", 15}}))) \
     X(Map_WithKey_Bool,   m2, (Map_WithKey_Bool({{false, 15}})))   \
     X(Map_WithKey_Number, m3, (Map_WithKey_Number({{1, 15}})))
@@ -118,7 +118,7 @@ auto lambda_2 = [](const int& val, const std::string& key) -> bool {
     return true;
 };
 
-#define WITH_LAMBDA_FIELDS(X)                                                          \
+#define WITH_LAMBDA_FIELDS(X, Y)                                                       \
     X(int, i_1, 0)                                                                     \
     X(int, i_2, 0, [](const int& val) -> bool { return true; } )                       \
     X(int, i_3, 0, [](const int& val) -> bool { return true; }, "prefix comment" )     \
@@ -131,14 +131,14 @@ SAPI_REGISTER_CONFIG(StructWithLambdas, WITH_LAMBDA_FIELDS)
 //-------------------------------------------------------------------------
 
 // Опциональные и вариативные значения
-#define OPT_VAR_FIELDS(X) \
+#define OPT_VAR_FIELDS(X, Y) \
     X(simpleapi::Optional<int>, opt_i, simpleapi::Optional<int>(15, false))
 
 SAPI_REGISTER_CONFIG(OptVarConfig, OPT_VAR_FIELDS)
 //-------------------------------------------------------------------------
 
 // вариант рекурсивных вложенностей зарегистрированных структур
-#define STRUCT2_FIELDS(X)                          \
+#define STRUCT2_FIELDS(X, Y)                       \
     X(int,               i,  15)                   \
     X(CustomStruct,      cs, CustomStruct())       \
     X(MapConfig,         mc, MapConfig())          \
@@ -211,7 +211,7 @@ TEST(STATIC, correct_reader_bool) {
     EXPECT_EQ(cs2.cs.val_b, new_cfg_bool);
 }
 
-#define TEST_FIELDS(X) \
+#define TEST_FIELDS(X, Y) \
     X(float, fl, 2.4f)
 SAPI_REGISTER_CONFIG(FloatConf, TEST_FIELDS)
 
