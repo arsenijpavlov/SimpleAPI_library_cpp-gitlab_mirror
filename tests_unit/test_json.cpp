@@ -1000,3 +1000,25 @@ TEST(JSON, parser_with_comment) {
 
     EXPECT_EQ(cfg2.getError(), "");
 }
+
+TEST(JSON, parser_all_number_non_integral_formats) {
+    using namespace simpleapi;
+
+    const std::string input = "{\n"
+                              "  a = 0.1,\n"
+                              "  b = -0.1,\n"
+                              "  c = 0.400000000000000022204,\n"
+                              "  d = -0.400000000000000022204\n"
+                              "}";
+    Config cfg = ParseJson(input);
+
+    EXPECT_TRUE(cfg["a"].isNumber());
+    EXPECT_TRUE(cfg["b"].isNumber());
+    EXPECT_TRUE(cfg["c"].isNumber());
+    EXPECT_TRUE(cfg["d"].isNumber());
+
+    EXPECT_DOUBLE_EQ(cfg["a"].getNumber(), 0.1);
+    EXPECT_DOUBLE_EQ(cfg["b"].getNumber(), -0.1);
+    EXPECT_DOUBLE_EQ(cfg["c"].getNumber(), 0.400000000000000022204);
+    EXPECT_DOUBLE_EQ(cfg["d"].getNumber(), -0.400000000000000022204);
+}
