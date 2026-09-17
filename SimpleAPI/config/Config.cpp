@@ -4244,11 +4244,24 @@ Config CreateElementFromString(std::string &&value_string, const ConfigFormat fo
         char first = value_string.front();
         char last = value_string.back();
         /*NUMBER*/ {
-            try {
-                static std::regex reg("^[+-]?[0-9]*[.]?[0-9]*[eE]?[+-]?[0-9]*[fF]?$");
-                if(std::regex_match(value_string, reg))
-                    return Config(std::stold(value_string));
-            } catch (...) {}
+            static std::regex reg("^[+-]?[0-9]*[.]?[0-9]*[eE]?[+-]?[0-9]*[fF]?$");
+            if(std::regex_match(value_string, reg))
+            {
+                const char* start_ptr = value_string.c_str();
+                char* end_ptr; // в эту переменную заполнится значение первого необработанного символа
+                long double ld = std::strtold(start_ptr, &end_ptr);
+                // одиночная буква E/e на конце не должна считаться за грубую ошибку
+                if(start_ptr != end_ptr
+                    && (*end_ptr == '\0'
+                        || utils::CharInString(*end_ptr, "fF")
+                        || (utils::CharInString(*end_ptr, "eE")
+                            && (*(end_ptr + 1) == '\0'
+                                || utils::CharInString(*(end_ptr + 1), "fF"))
+                            )
+                        )
+                    )
+                    return Config(ld);
+            }
 
             //FIXME: переместить в парсер number_utils.h
             // // обработка бесконестей (inf/infinity/∞, -inf/-infinity/-∞)
