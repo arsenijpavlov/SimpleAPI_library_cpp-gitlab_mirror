@@ -171,11 +171,6 @@ struct index_of_type_constructible<FindType, Head, Types...> {
 // базовое описание структуры для корректности выхода из SFINAE
 template <typename FindType, typename... Types>
 struct index_of_type;
-// искомый тип НЕ найден, возвращаем ошибку
-//template <typename FindType>
-//struct index_of_type<FindType> {
-//    static constexpr size_t value = static_cast<size_t>(-1);
-//};
 // рекурсивный поиск
 template <typename FindType, typename Head, typename... Types>
 struct index_of_type<FindType, Head, Types...> {
