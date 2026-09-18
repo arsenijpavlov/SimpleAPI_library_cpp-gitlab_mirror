@@ -179,6 +179,7 @@ struct index_of_type<FindType, Head, Types...> {
                                                                                  : same_index; // прокидываем ошибку дальше
     static constexpr size_t value      = (conv_index == static_cast<size_t>(-1)) ? index_of_type_constructible<FindType, Head, Types...>::value
                                                                                  : conv_index; // прокидываем ошибку дальше
+    static constexpr bool is_found     = value != static_cast<size_t>(-1);
 };
 // ---------------------------------------------------------------------
 
@@ -267,9 +268,7 @@ class Variant {
         // вариант, когда тип совпадает с искомым
         template <typename T,
                  typename Type = typename tools::type_at_index<Index, Types...>::type,
-                 typename std::enable_if<std::is_constructible<Type, T&&>::value
-                                         || std::is_convertible<T&&, std::string>::value
-                                         , int>::type = 0
+                 typename std::enable_if<tools::index_of_type<T, Types...>::is_found, int>::type = 0
                  >
         static void create(const ssize_t& find_index, void* ptr, T&& value) {
             if(Index == find_index) {
@@ -283,9 +282,7 @@ class Variant {
         // вариант, когда тип НЕ совпадает с искомым
         template <typename T,
                  typename Type = typename tools::type_at_index<Index, Types...>::type,
-                 typename std::enable_if<!std::is_constructible<Type, T&&>::value
-                                         && !std::is_convertible<T&&, std::string>::value
-                                         , int>::type = 0
+                 typename std::enable_if<!tools::index_of_type<T, Types...>::is_found, int>::type = 0
                  >
         static void create(const ssize_t& find_index, void* ptr, T&& value) {
             if(Index == find_index) {
@@ -334,7 +331,7 @@ public:
         new (m_data) typename tools::type_at_index<0, Types...>::type(0);
     }
 
-    template <typename T, typename std::enable_if<tools::is_contains_conv_type<typename std::decay<T>::type, Types...>::value, int>::type = 0>
+    template <typename T, typename std::enable_if<tools::index_of_type<typename std::decay<T>::type, Types...>::is_found, int>::type = 0>
     Variant(const T& value) {
         using CleanT = typename std::decay<T>::type;
         using Index  = typename tools::index_of_type<CleanT, Types...>;
@@ -342,7 +339,7 @@ public:
         Creator<0>::create(m_current_type_index, m_data, value);
     }
 
-    template <typename T, typename std::enable_if<tools::is_contains_conv_type<typename std::decay<T>::type, Types...>::value, int>::type = 0>
+    template <typename T, typename std::enable_if<tools::index_of_type<typename std::decay<T>::type, Types...>::is_found, int>::type = 0>
     Variant(T&& value) {
         using CleanT = typename std::decay<T>::type;
         using Index  = typename tools::index_of_type<CleanT, Types...>;
@@ -365,7 +362,7 @@ public:
         Destroyer<0>::destroy(m_current_type_index, m_data);
     }
 
-    template <typename T, typename std::enable_if<tools::is_contains_conv_type<typename std::decay<T>::type, Types...>::value, int>::type = 0>
+    template <typename T, typename std::enable_if<tools::index_of_type<typename std::decay<T>::type, Types...>::is_found, int>::type = 0>
     Variant& operator=(const T& value) {
         // уничтожение старого объекта
         // начинаем поиск деструктора (compile-time) с нулевого индекса
@@ -378,7 +375,7 @@ public:
         return *this;
     }
 
-    template <typename T, typename std::enable_if<tools::is_contains_conv_type<typename std::decay<T>::type, Types...>::value, int>::type = 0>
+    template <typename T, typename std::enable_if<tools::index_of_type<typename std::decay<T>::type, Types...>::is_found, int>::type = 0>
     Variant& operator=(T&& value) {
         // уничтожение старого объекта
         // начинаем поиск деструктора (compile-time) с нулевого индекса
@@ -419,12 +416,12 @@ public:
 //        /* FIXME */
 //    }
 
-    template <typename T, typename std::enable_if<tools::is_contains_conv_type<typename std::decay<T>::type, Types...>::value, int>::type = 0>
+    template <typename T, typename std::enable_if<tools::index_of_type<typename std::decay<T>::type, Types...>::is_found, int>::type = 0>
     T& get() {
         return *(reinterpret_cast<T*>(m_data));
     }
 
-    template <typename T, typename std::enable_if<tools::is_contains_conv_type<typename std::decay<T>::type, Types...>::value, int>::type = 0>
+    template <typename T, typename std::enable_if<tools::index_of_type<typename std::decay<T>::type, Types...>::is_found, int>::type = 0>
     T get() const {
         return *(reinterpret_cast<T*>(m_data));
     }
