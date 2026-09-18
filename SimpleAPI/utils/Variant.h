@@ -174,7 +174,7 @@ struct index_of_type;
 // рекурсивный поиск
 template <typename FindType, typename Head, typename... Types>
 struct index_of_type<FindType, Head, Types...> {
-    static constexpr size_t same_index = index_of_type_same<FindType, Types...>::value;
+    static constexpr size_t same_index = index_of_type_same<FindType, Head, Types...>::value;
     static constexpr size_t conv_index = (same_index == static_cast<size_t>(-1)) ? index_of_type_convertible<FindType, Head, Types...>::value
                                                                                  : same_index; // прокидываем ошибку дальше
     static constexpr size_t value      = (conv_index == static_cast<size_t>(-1)) ? index_of_type_constructible<FindType, Head, Types...>::value
@@ -268,7 +268,7 @@ class Variant {
         // вариант, когда тип совпадает с искомым
         template <typename T,
                  typename Type = typename tools::type_at_index<Index, Types...>::type,
-                 typename std::enable_if<tools::index_of_type<T, Types...>::is_found, int>::type = 0
+                 typename std::enable_if<std::is_constructible<T, Type>::value, int>::type = 0
                  >
         static void create(const ssize_t& find_index, void* ptr, T&& value) {
             if(Index == find_index) {
@@ -282,7 +282,7 @@ class Variant {
         // вариант, когда тип НЕ совпадает с искомым
         template <typename T,
                  typename Type = typename tools::type_at_index<Index, Types...>::type,
-                 typename std::enable_if<!tools::index_of_type<T, Types...>::is_found, int>::type = 0
+                 typename std::enable_if<!std::is_constructible<T, Type>::value, int>::type = 0
                  >
         static void create(const ssize_t& find_index, void* ptr, T&& value) {
             if(Index == find_index) {
@@ -328,7 +328,7 @@ public:
 
     // по умолчанию проинициализируется первым типом (его значение по умолчанию)
     Variant() noexcept : m_current_type_index(0) {
-        new (m_data) typename tools::type_at_index<0, Types...>::type(0);
+        new (m_data) typename tools::type_at_index<0, Types...>::type({});
     }
 
     template <typename T, typename std::enable_if<tools::index_of_type<typename std::decay<T>::type, Types...>::is_found, int>::type = 0>
