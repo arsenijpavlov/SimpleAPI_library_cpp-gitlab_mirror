@@ -263,7 +263,6 @@ struct is_contains_duplicate<Head, Tail...> {
 } // namespace tools
 
 
-// TODO: сделать уникальные правила для nullptr
 template <typename... Types>
 class Variant {
     static_assert(!tools::is_contains_duplicate<Types...>::value, "SimpleAPI: incorrect types list, found duplicates");
