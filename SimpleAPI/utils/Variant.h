@@ -451,18 +451,23 @@ public:
         return *this;
     }
 
-    Variant& operator=(const Variant& other) {
+    template <typename... OtherTypes>
+    Variant& operator=(const Variant<OtherTypes...>& other) {
         if(this != &other) {
             m_current_type_index = other.m_current_type_index;
-
+            // TODO: закончить реализацию
         }
         return *this;
     }
 
-//    Variant& operator=(Variant&& other) {
-//        /* FIXME */
-//        return {};
-//    }
+    template <typename... OtherTypes>
+    Variant& operator=(Variant<OtherTypes...>&& other) {
+        if(this != &other) {
+            m_current_type_index = other.m_current_type_index;
+            // TODO: закончить реализацию
+        }
+        return *this;
+    }
 
 //    template <typename T, typename std::enable_if<tools::is_contains_conv_type<T, Types...>::value, int>::type = 0>
 //    void set(const T& other) {
