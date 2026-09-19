@@ -288,7 +288,7 @@ class Variant {
         // вариант, когда тип совпадает с искомым
         template <typename T,
                  typename Type = typename tools::type_at_index<Index, Types...>::type,
-                 typename std::enable_if<std::is_constructible<T, Type>::value, int>::type = 0
+                 typename std::enable_if<std::is_constructible<Type, T>::value, int>::type = 0
                  >
         static void create(const ssize_t& find_index, void* ptr, T&& value) {
             if(Index == find_index) {
@@ -303,7 +303,7 @@ class Variant {
         // вариант, когда тип НЕ совпадает с искомым
         template <typename T,
                  typename Type = typename tools::type_at_index<Index, Types...>::type,
-                 typename std::enable_if<!std::is_constructible<T, Type>::value, int>::type = 0
+                 typename std::enable_if<!std::is_constructible<Type, T>::value, int>::type = 0
                  >
         static void create(const ssize_t& find_index, void* ptr, T&& value) {
             if(Index == find_index) {
@@ -383,10 +383,15 @@ public:
 
     template <typename T, typename std::enable_if<tools::index_of_type<typename std::decay<T>::type, Types...>::is_found, int>::type = 0>
     Variant(T&& value) {
+
         using CleanT = typename std::decay<T>::type;
         using Index  = typename tools::index_of_type<CleanT, Types...>;
+
+        static_assert(std::is_constructible<typename tools::type_at_index<Index::value, Types...>::type, T>::value,
+                      "SimpleAPI: incorrect type for creating");
+
         m_current_type_index = Index::value;
-        Creator<0>::create(m_current_type_index, m_data, std::forward<CleanT>(value));
+        Creator<0>::create(m_current_type_index, m_data, std::forward<T>(value));
     }
 
 //    Variant(const Variant& value) {
@@ -437,15 +442,22 @@ public:
 
         using CleanT = typename std::decay<T>::type;
         using Index  = typename tools::index_of_type<CleanT, Types...>;
+
+        static_assert(std::is_constructible<typename tools::type_at_index<Index::value, Types...>::type, T>::value,
+                      "SimpleAPI: incorrect type for creating");
+
         m_current_type_index = Index::value;
         Creator<0>::create(m_current_type_index, m_data, std::forward<T>(value));
         return *this;
     }
 
-//    Variant& operator=(const Variant& other) {
-//        /* FIXME */
-//        return {};
-//    }
+    Variant& operator=(const Variant& other) {
+        if(this != &other) {
+            m_current_type_index = other.m_current_type_index;
+
+        }
+        return *this;
+    }
 
 //    Variant& operator=(Variant&& other) {
 //        /* FIXME */
