@@ -181,6 +181,12 @@ struct index_of_type<FindType, Head, Types...> {
                                                                                  : conv_index; // прокидываем ошибку дальше
     static constexpr bool is_found     = value != static_cast<size_t>(-1);
 };
+// строгая проверка для std::nullptr_t
+template <typename Head, typename... Types>
+struct index_of_type<std::nullptr_t, Head, Types...> {
+    static constexpr size_t value      = index_of_type_same<std::nullptr_t, Head, Types...>::value;
+    static constexpr bool is_found     = value != static_cast<size_t>(-1);
+};
 // ---------------------------------------------------------------------
 
 // ---------------------------------------------------------------------
@@ -265,6 +271,21 @@ class Variant {
     // шаблон рекурсивного поиска конструктора
     template <ssize_t Index, bool is_in_bounds = (Index < sizeof...(Types))>
     struct Creator {
+        struct ConstructorHelper
+        {
+            // helper: вариант для специализированного шаблона для std::nullptr_t
+            template <typename T, typename Type, typename std::enable_if<std::is_same<Type, std::nullptr_t>::value, int>::type = 0>
+            static void helper_create(const size_t& type_index, void* ptr, T&& value) {
+                // объект std::nullptr_t не требует выделения памяти
+            }
+
+            // helper: общий вариант
+            template <typename T, typename Type, typename std::enable_if<!std::is_same<Type, std::nullptr_t>::value, int>::type = 0>
+            static void helper_create(const size_t& type_index, void* ptr, T&& value) {
+                new (ptr) Type(std::forward<T>(value)); // ручной вызов placement new
+            }
+        };
+
         // вариант, когда тип совпадает с искомым
         template <typename T,
                  typename Type = typename tools::type_at_index<Index, Types...>::type,
@@ -273,12 +294,13 @@ class Variant {
         static void create(const ssize_t& find_index, void* ptr, T&& value) {
             if(Index == find_index) {
                 // создание объекта на указанном буфере с указанным типом
-                new (ptr) Type(std::forward<T>(value)); // ручной вызов placement new
+                ConstructorHelper::template helper_create<T, Type>(find_index, ptr, std::forward<T>(value));
             } else {
                 // продолжение поиска
                 Creator<Index + 1>::create(find_index, ptr, std::forward<T>(value));
             }
         }
+
         // вариант, когда тип НЕ совпадает с искомым
         template <typename T,
                  typename Type = typename tools::type_at_index<Index, Types...>::type,
@@ -304,10 +326,24 @@ class Variant {
     // шаблон рекурсивного поиска деструктора
     template <ssize_t Index, bool is_in_bounds = (Index < sizeof...(Types))>
     struct Destroyer {
+        struct DestructorHelper {
+            // helper: вариант для специализированного шаблона для std::nullptr_t
+            template <typename Type, typename std::enable_if<std::is_same<Type, std::nullptr_t>::value, int>::type = 0>
+            static void helper_destroy(void* ptr) {
+                // объект std::nullptr_t не требует освобождения памяти
+            }
+
+            // helper: общий вариант
+            template <typename Type, typename std::enable_if<!std::is_same<Type, std::nullptr_t>::value, int>::type = 0>
+            static void helper_destroy(void* ptr) {
+                (reinterpret_cast<Type*>(ptr))->~Type(); // ручной вызов деструктора
+            }
+        };
+
         static void destroy(const ssize_t& find_index, void* ptr) {
             if(Index == find_index) {
                 using Type = typename tools::type_at_index<Index, Types...>::type;
-                (reinterpret_cast<Type*>(ptr))->~Type(); // ручной вызов деструктора
+                DestructorHelper::template helper_destroy<Type>(ptr);
             } else {
                 // продолжение поиска
                 Destroyer<Index + 1>::destroy(find_index, ptr);
@@ -329,6 +365,13 @@ public:
     // по умолчанию проинициализируется первым типом (его значение по умолчанию)
     Variant() noexcept : m_current_type_index(0) {
         new (m_data) typename tools::type_at_index<0, Types...>::type({});
+    }
+
+    template <typename std::enable_if<tools::index_of_type<std::nullptr_t, Types...>::is_found, int>::type = 0>
+    Variant(std::nullptr_t) {
+        using Index  = typename tools::index_of_type<std::nullptr_t, Types...>;
+        m_current_type_index = Index::value;
+        Creator<0>::create(m_current_type_index, m_data, nullptr);
     }
 
     template <typename T, typename std::enable_if<tools::index_of_type<typename std::decay<T>::type, Types...>::is_found, int>::type = 0>
@@ -360,6 +403,18 @@ public:
     ~Variant() {
         // начинаем поиск деструктора (compile-time) с нулевого индекса
         Destroyer<0>::destroy(m_current_type_index, m_data);
+    }
+
+    template <typename std::enable_if<tools::index_of_type<std::nullptr_t, Types...>::is_found, int>::type = 0>
+    Variant& operator=(std::nullptr_t) {
+        // уничтожение старого объекта
+        // начинаем поиск деструктора (compile-time) с нулевого индекса
+        Destroyer<0>::destroy(m_current_type_index, m_data);
+
+        using Index  = typename tools::index_of_type<std::nullptr_t, Types...>;
+        m_current_type_index = Index::value;
+        Creator<0>::create(m_current_type_index, m_data, nullptr);
+        return *this;
     }
 
     template <typename T, typename std::enable_if<tools::index_of_type<typename std::decay<T>::type, Types...>::is_found, int>::type = 0>
@@ -415,6 +470,11 @@ public:
 //    void set(Variant&& other) {
 //        /* FIXME */
 //    }
+
+    template <typename std::enable_if<tools::index_of_type<std::nullptr_t, Types...>::is_found, int>::type = 0>
+    std::nullptr_t get() {
+        return nullptr;
+    }
 
     template <typename T, typename std::enable_if<tools::index_of_type<typename std::decay<T>::type, Types...>::is_found, int>::type = 0>
     T& get() {
