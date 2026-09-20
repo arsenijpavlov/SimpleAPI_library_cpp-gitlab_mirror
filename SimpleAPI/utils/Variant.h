@@ -388,7 +388,7 @@ public:
         using Index  = typename tools::index_of_type<CleanT, Types...>;
 
         static_assert(std::is_constructible<typename tools::type_at_index<Index::value, Types...>::type, T>::value,
-                      "SimpleAPI: incorrect type for creating");
+                      "SimpleAPI: incorrect type for creating Variant value");
 
         m_current_type_index = Index::value;
         Creator<0>::create(m_current_type_index, m_data, std::forward<T>(value));
@@ -444,27 +444,37 @@ public:
         using Index  = typename tools::index_of_type<CleanT, Types...>;
 
         static_assert(std::is_constructible<typename tools::type_at_index<Index::value, Types...>::type, T>::value,
-                      "SimpleAPI: incorrect type for creating");
+                      "SimpleAPI: incorrect type for creating Variant value");
 
         m_current_type_index = Index::value;
         Creator<0>::create(m_current_type_index, m_data, std::forward<T>(value));
         return *this;
     }
 
+    // TODO: закончить реализацию
     template <typename... OtherTypes>
     Variant& operator=(const Variant<OtherTypes...>& other) {
         if(this != &other) {
-            m_current_type_index = other.m_current_type_index;
-            // TODO: закончить реализацию
+            // достать тип элемента внутри other
+            using Type = typename tools::type_at_index<other.getIndex(), OtherTypes...>::type;
+            // создать аналог для this
+            using Index = typename tools::index_of_type<Type, Types...>;
+            m_current_type_index = Index::value;
+            Creator<0>::create(m_current_type_index, m_data, other.template get<Type>());
         }
         return *this;
     }
 
+    // TODO: закончить реализацию
     template <typename... OtherTypes>
     Variant& operator=(Variant<OtherTypes...>&& other) {
         if(this != &other) {
-            m_current_type_index = other.m_current_type_index;
-            // TODO: закончить реализацию
+            // достать тип элемента внутри other
+            using Type = typename tools::type_at_index<other.getIndex(), OtherTypes...>::type;
+            // создать аналог для this
+            using Index = typename tools::index_of_type<Type, Types...>;
+            m_current_type_index = Index::value;
+            Creator<0>::create(m_current_type_index, m_data, std::forward<Type>(other.template get<Type>()));
         }
         return *this;
     }
