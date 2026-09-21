@@ -314,12 +314,13 @@ class Variant {
             }
         }
     };
-
     // шаблон для остановки рекурсии (вышли за границы списка типов)
     template <ssize_t Index>
     struct Creator<Index, false> {
         template <typename T>
-        static void create(const ssize_t& find_index, void* ptr, T&& value) {}
+        static void create(const ssize_t& find_index, void* ptr, T&& value) {
+            //TODO: static_assert()
+        }
     };
 
     // шаблон рекурсивного поиска деструктора
@@ -349,11 +350,92 @@ class Variant {
             }
         }
     };
-
     // шаблон для остановки рекурсии (вышли за границы списка типов)
     template <ssize_t Index>
     struct Destroyer<Index, false> {
-        static void destroy(const ssize_t& find_index, void* ptr) {}
+        static void destroy(const ssize_t& find_index, void* ptr) {
+            //TODO: static_assert()
+        }
+    };
+
+    // шаблон рекурсивного поиска конструктора копирования
+    template <ssize_t Index, bool is_in_bounds = (Index < sizeof...(Types))>
+    struct Copier {
+        // вариант, когда тип совпадает с искомым
+        template <typename T,
+                 typename Type = typename tools::type_at_index<Index, Types...>::type,
+                 typename std::enable_if<std::is_constructible<Type, T>::value, int>::type = 0
+                 >
+        static void copy(const ssize_t& find_index, void* ptr, const T& value) {
+            if(Index == find_index) {
+                // создание объекта на указанном буфере с указанным типом
+                new (ptr) Type(value); // ручной вызов placement new
+            } else {
+                // продолжение поиска
+                Copier<Index + 1>::copy(find_index, ptr, value);
+            }
+        }
+
+        // вариант, когда тип НЕ совпадает с искомым
+        template <typename T,
+                 typename Type = typename tools::type_at_index<Index, Types...>::type,
+                 typename std::enable_if<!std::is_constructible<Type, T>::value, int>::type = 0
+                 >
+        static void create(const ssize_t& find_index, void* ptr, const T& value) {
+            if(Index == find_index) {
+                // тип не совпал, нельзя присваивать (не скомпилируется) -> заглушка
+            } else {
+                // продолжение поиска
+                Copier<Index + 1>::copy(find_index, ptr, value);
+            }
+        }
+    };
+    // шаблон для остановки рекурсии (вышли за границы списка типов)
+    template <ssize_t Index>
+    struct Copier<Index, false> {
+        static void copy(const ssize_t& find_index, void* ptr) {
+            //TODO: static_assert()
+        }
+    };
+
+    // шаблон рекурсивного поиска конструктора копирования
+    template <ssize_t Index, bool is_in_bounds = (Index < sizeof...(Types))>
+    struct Mover {
+        // вариант, когда тип совпадает с искомым
+        template <typename T,
+                 typename Type = typename tools::type_at_index<Index, Types...>::type,
+                 typename std::enable_if<std::is_constructible<Type, T>::value, int>::type = 0
+                 >
+        static void copy(const ssize_t& find_index, void* ptr, T&& value) {
+            if(Index == find_index) {
+                // создание объекта на указанном буфере с указанным типом
+                new (ptr) Type(value); // ручной вызов placement new
+            } else {
+                // продолжение поиска
+                Mover<Index + 1>::move(find_index, ptr, std::forward<T>(value));
+            }
+        }
+
+        // вариант, когда тип НЕ совпадает с искомым
+        template <typename T,
+                 typename Type = typename tools::type_at_index<Index, Types...>::type,
+                 typename std::enable_if<!std::is_constructible<Type, T>::value, int>::type = 0
+                 >
+        static void create(const ssize_t& find_index, void* ptr, T&& value) {
+            if(Index == find_index) {
+                // тип не совпал, нельзя присваивать (не скомпилируется) -> заглушка
+            } else {
+                // продолжение поиска
+                Mover<Index + 1>::move(find_index, ptr, std::forward<T>(value));
+            }
+        }
+    };
+    // шаблон для остановки рекурсии (вышли за границы списка типов)
+    template <ssize_t Index>
+    struct Mover<Index, false> {
+        static void move(const ssize_t& find_index, void* ptr) {
+            //TODO: static_assert()
+        }
     };
 
 public:
@@ -397,15 +479,31 @@ public:
         Creator<0>::create(m_current_type_index, m_data, std::forward<T>(value));
     }
 
-//    Variant(const Variant& value) {
-//        // m_current_type_index будет обновлён внутри
-//        //Creator<tools::index_of_type<T, Types...>::value>::create(m_current_type_index, m_data, value);
-//    }
+    template <typename... OtherTypes>
+    Variant(const Variant<OtherTypes...>& other) {
+        if(this != &other) {
+            // достать тип элемента внутри other
+            using Type = typename tools::type_at_index<other.getIndex(), OtherTypes...>::type;
+            // создать аналог для this
+            using Index = typename tools::index_of_type<Type, Types...>;
+            m_current_type_index = Index::value;
+            Copier<0>::copy(m_current_type_index, m_data, other.template get<Type>());
+        }
+    }
 
-//    Variant(Variant&& value) {
-//        // m_current_type_index будет обновлён внутри
-//        //Creator<tools::index_of_type<T, Types...>::value>::create(m_current_type_index, m_data, std::move(value));
-//    }
+    template <typename... OtherTypes>
+    Variant(Variant<OtherTypes...>&& other) {
+        if(this != &other) {
+            // достать тип элемента внутри other
+            using Type = typename tools::type_at_index<other.getIndex(), OtherTypes...>::type;
+            // создать аналог для this
+            using Index = typename tools::index_of_type<Type, Types...>;
+            m_current_type_index = Index::value;
+
+            // TODO: выбрать способ присвоения - копирование или перемещение
+//            Copier<0>::copy(m_current_type_index, m_data, other.template get<Type>());
+        }
+    }
 
     ~Variant() {
         // начинаем поиск деструктора (compile-time) с нулевого индекса
@@ -455,32 +553,32 @@ public:
     }
 
     // TODO: закончить реализацию
-    template <typename... OtherTypes>
-    Variant& operator=(const Variant<OtherTypes...>& other) {
-        if(this != &other) {
-            // достать тип элемента внутри other
-            using Type = typename tools::type_at_index<other.getIndex(), OtherTypes...>::type;
-            // создать аналог для this
-            using Index = typename tools::index_of_type<Type, Types...>;
-            m_current_type_index = Index::value;
-            Creator<0>::create(m_current_type_index, m_data, other.template get<Type>());
-        }
-        return *this;
-    }
+//    template <typename... OtherTypes>
+//    Variant& operator=(const Variant<OtherTypes...>& other) {
+//        if(this != &other) {
+//            // достать тип элемента внутри other
+//            using Type = typename tools::type_at_index<other.getIndex(), OtherTypes...>::type;
+//            // создать аналог для this
+//            using Index = typename tools::index_of_type<Type, Types...>;
+//            m_current_type_index = Index::value;
+//            Creator<0>::create(m_current_type_index, m_data, other.template get<Type>());
+//        }
+//        return *this;
+//    }
 
     // TODO: закончить реализацию
-    template <typename... OtherTypes>
-    Variant& operator=(Variant<OtherTypes...>&& other) {
-        if(this != &other) {
-            // достать тип элемента внутри other
-            using Type = typename tools::type_at_index<other.getIndex(), OtherTypes...>::type;
-            // создать аналог для this
-            using Index = typename tools::index_of_type<Type, Types...>;
-            m_current_type_index = Index::value;
-            Creator<0>::create(m_current_type_index, m_data, std::forward<Type>(other.template get<Type>()));
-        }
-        return *this;
-    }
+//    template <typename... OtherTypes>
+//    Variant& operator=(Variant<OtherTypes...>&& other) {
+//        if(this != &other) {
+//            // достать тип элемента внутри other
+//            using Type = typename tools::type_at_index<other.getIndex(), OtherTypes...>::type;
+//            // создать аналог для this
+//            using Index = typename tools::index_of_type<Type, Types...>;
+//            m_current_type_index = Index::value;
+//            Creator<0>::create(m_current_type_index, m_data, std::forward<Type>(other.template get<Type>()));
+//        }
+//        return *this;
+//    }
 
 //    template <typename T, typename std::enable_if<tools::is_contains_conv_type<T, Types...>::value, int>::type = 0>
 //    void set(const T& other) {
