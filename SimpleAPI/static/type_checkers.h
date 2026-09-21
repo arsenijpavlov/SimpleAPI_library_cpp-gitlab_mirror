@@ -422,7 +422,7 @@ template <typename ValidatorT, typename T, typename ... Args,
           typename std::enable_if<!std::is_same<ValidatorT, std::nullptr_t>::value, int>::type = 0,
           typename = decltype(std::declval<ValidatorT>()(std::declval<T>(), std::declval<std::string>()))
          >
-static bool ExecuteValidator(ValidatorT validator, T&& t, std::string&& key, Args&&... args)
+static bool ExecuteValidator(ValidatorT validator, T&& t, std::string&& key, Args&&... /*args*/ /*hide unused*/)
 {
     // если это указатель на функцию/лямбду (или nullptr)
     auto&& not_ptr_validator = UnwrapPointer(validator);
@@ -434,7 +434,7 @@ template <typename ValidatorT, typename T, typename ... Args,
           typename std::enable_if<!std::is_same<ValidatorT, std::nullptr_t>::value, int>::type = 0,
           typename = decltype(std::declval<ValidatorT>()(std::declval<T>()))
          >
-static bool ExecuteValidator(ValidatorT validator, T&& t, Args&&... args)
+static bool ExecuteValidator(ValidatorT validator, T&& t, Args&&... /*args*/ /*hide unused*/)
 {
     // если это указатель на функцию/лямбду (или nullptr)
     auto&& not_ptr_validator = UnwrapPointer(validator);
