@@ -481,29 +481,29 @@ public:
 
     template <typename... OtherTypes>
     Variant(const Variant<OtherTypes...>& other) {
-        if(this != &other) {
-            // достать тип элемента внутри other
-            using Type = typename tools::type_at_index<other.getIndex(), OtherTypes...>::type;
-            // создать аналог для this
-            using Index = typename tools::index_of_type<Type, Types...>;
-            m_current_type_index = Index::value;
-            Copier<0>::copy(m_current_type_index, m_data, other.template get<Type>());
-        }
+        // NOTE: проверка if(this != &other) не нужна, т.к. типы заведомо разные по variadic
+
+        // FIXME: переделать вычисление индекса внутри other из времени выполнения на время компиляции
+        // достать тип элемента внутри other
+        using Type = typename tools::type_at_index<other.m_current_type_index, OtherTypes...>::type;
+        // создать аналог для this
+        using Index = typename tools::index_of_type<Type, Types...>;
+        m_current_type_index = Index::value;
+        Copier<0>::copy(m_current_type_index, m_data, other.template get<Type>());
     }
 
-    template <typename... OtherTypes>
-    Variant(Variant<OtherTypes...>&& other) {
-        if(this != &other) {
-            // достать тип элемента внутри other
-            using Type = typename tools::type_at_index<other.getIndex(), OtherTypes...>::type;
-            // создать аналог для this
-            using Index = typename tools::index_of_type<Type, Types...>;
-            m_current_type_index = Index::value;
+//    template <typename... OtherTypes>
+//    Variant(Variant<OtherTypes...>&& other) {
+//        // NOTE: проверка if(this != &other) не нужна, т.к. типы заведомо разные по variadic
+//        // достать тип элемента внутри other
+//        using Type = typename tools::type_at_index<other.getIndex(), OtherTypes...>::type;
+//        // создать аналог для this
+//        using Index = typename tools::index_of_type<Type, Types...>;
+//        m_current_type_index = Index::value;
 
-            // TODO: выбрать способ присвоения - копирование или перемещение
-//            Copier<0>::copy(m_current_type_index, m_data, other.template get<Type>());
-        }
-    }
+//        // TODO: выбрать способ присвоения - копирование или перемещение
+//        // Copier<0>::copy(m_current_type_index, m_data, other.template get<Type>());
+//    }
 
     ~Variant() {
         // начинаем поиск деструктора (compile-time) с нулевого индекса
