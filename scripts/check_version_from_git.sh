@@ -7,7 +7,7 @@
 # ====================================================
 
 CURRENT_DIR=$(dirname $(realpath "${0}"))
-LOCK_FILE="./git_locker.lock" # файл для синхронизации доступа
+LOCK_FILE="${CURRENT_DIR}/git_locker.lock" # файл для синхронизации доступа
 
 # применение как define в коде C/C++
 function UpdParameter { # $1 - переменная, $2 - новое значение
