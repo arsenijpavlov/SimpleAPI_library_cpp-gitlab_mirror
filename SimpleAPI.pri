@@ -22,10 +22,9 @@
     }
 
     # Определить версию библиотеки =========================================
-    system($${SIMPLEAPI_PWD}/scripts/check_version_from_git.sh) # FIXME: решение временное
     # вшиваем запуск генерации информации о версии в каждый вызов компилятора
-    #QMAKE_CC = $${SIMPLEAPI_PWD}/scripts/check_version_from_git.sh && $${QMAKE_CC}
-    #QMAKE_CXX = $${SIMPLEAPI_PWD}/scripts/check_version_from_git.sh && $${QMAKE_CXX}
+    QMAKE_CC  = $${SIMPLEAPI_PWD}/scripts/check_version_from_git.sh && $${QMAKE_CC}
+    QMAKE_CXX = $${SIMPLEAPI_PWD}/scripts/check_version_from_git.sh && $${QMAKE_CXX}
     # ========================================= Определить версию библиотеки
 }
 
