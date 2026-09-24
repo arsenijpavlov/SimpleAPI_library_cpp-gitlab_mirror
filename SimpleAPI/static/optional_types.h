@@ -31,8 +31,14 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_optional<T>::value>::type>
             if(config[key + opt_str].get<bool>()) {
                 // считываем опциональный параметр
                 if(config.containsKey(key)) {
-                    field = config[key].get<Type>();
+                    Type temp_value;
+                    if(!Loader(config[key], temp_value)) {
+                        static_config_error_str += "inner loader for [" + key + "] failed\n";
+                        return false;
+                    }
+                    field = temp_value;
                 }
+
             } else {
                 // параметр отключён
                 field.unset();
@@ -55,7 +61,11 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_optional<T>::value>::type>
             if(config[key + opt_str].get<bool>()) {
                 // считываем опциональный параметр
                 if(config.containsKey(key)) {
-                    Optional<Type> temp_value = config[key].get<Type>();
+                    Type temp_value;
+                    if(!Loader(config[key], temp_value)) {
+                        static_config_error_str += "inner loader for [" + key + "] failed\n";
+                        return false;
+                    }
 
                     if(!ExecuteValidator(lambda, temp_value, key)) {
                         static_config_error_str = "validate for optional [" + key + "] failed\n";
@@ -84,9 +94,11 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_optional<T>::value>::type>
 
         // сохраняем параметр опциональности
         config[key + opt_str] = field.isValid();
+        config[key + opt_str].setSuffixComment("[true/false]");
+
         // сохраняем опциональные данные
         // даже значение отключенного типа даёт достаточно информации пользователю конфига для примера заполнения
-        config[key] = field.value();
+        config[key] = Saver(field.value(), prefix_comment, suffix_comment);
 
         config[key].setComment(prefix_comment, suffix_comment);
     }
