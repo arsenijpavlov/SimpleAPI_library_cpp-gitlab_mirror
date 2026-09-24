@@ -358,82 +358,51 @@ class Variant {
         }
     };
 
-    // шаблон рекурсивного поиска конструктора копирования
-    template <ssize_t Index, bool is_in_bounds = (Index < sizeof...(Types))>
-    struct Copier {
+    // шаблон рекурсивного поиска для вычисления типа объекта other
+    template <bool is_in_bounds, ssize_t OtherIndex>
+    struct UniversalAssigner {
         // вариант, когда тип совпадает с искомым
-        template <typename T,
-                 typename Type = typename tools::type_at_index<Index, Types...>::type,
-                 typename std::enable_if<std::is_constructible<Type, T>::value, int>::type = 0
-                 >
-        static void copy(const ssize_t& find_index, void* ptr, const T& value) {
-            if(Index == find_index) {
-                // создание объекта на указанном буфере с указанным типом
-                new (ptr) Type(value); // ручной вызов placement new
-            } else {
-                // продолжение поиска
-                Copier<Index + 1>::copy(find_index, ptr, value);
-            }
-        }
+        template <typename... OtherTypes>
+        static void assign(const ssize_t& other_index, Variant<OtherTypes...>&& other, Variant<Types...>& dest_value)
+        {
+            using OtherVariant = Variant<OtherTypes...>;
+            if(OtherIndex == other_index) {
+                using OtherType   = typename tools::type_at_index<OtherIndex, OtherTypes...>::type;
+                using TargetIndex = typename tools::index_of_type<OtherType, Types...>::value;
 
-        // вариант, когда тип НЕ совпадает с искомым
-        template <typename T,
-                 typename Type = typename tools::type_at_index<Index, Types...>::type,
-                 typename std::enable_if<!std::is_constructible<Type, T>::value, int>::type = 0
-                 >
-        static void create(const ssize_t& find_index, void* ptr, const T& value) {
-            if(Index == find_index) {
-                // тип не совпал, нельзя присваивать (не скомпилируется) -> заглушка
+                static_assert(TargetIndex::is_found, "SimpleAPI: Variant target object does not support this type");
+
+                // FIXME: пока не очень понимаю смысл этого условия
+                // вычислить тип переменной (l-value/r-value)
+                using ValueFormat = typename std::conditional<
+                    std::is_const<typename std::remove_reference<OtherVariant>::type>::value,
+                    const OtherType,
+                    OtherType
+                    >::type;
+
+                // достать указатель на value
+                ValueFormat* other_data = reinterpret_cast<ValueFormat*>(other.m_data);
+
+                // вызвать перегрузку operator= на основе формата переменной
+                dest_value = std::forward<std::conditional<std::is_lvalue_reference<OtherVariant>::value,
+                                                           const OtherType&,
+                                                           OtherType&&
+                                                           >::type
+                                          >(*other_data);
+
             } else {
                 // продолжение поиска
-                Copier<Index + 1>::copy(find_index, ptr, value);
+                static constexpr bool next_in_bounds = (OtherIndex + 1) < sizeof...(OtherTypes);
+                UniversalAssigner<next_in_bounds, OtherIndex + 1>::assign(other_index,
+                                                                          std::forward<OtherVariant>(other),
+                                                                          dest_value);
             }
         }
     };
     // шаблон для остановки рекурсии (вышли за границы списка типов)
-    template <ssize_t Index>
-    struct Copier<Index, false> {
-        static void copy(const ssize_t& find_index, void* ptr) {
-            //TODO: static_assert()
-        }
-    };
-
-    // шаблон рекурсивного поиска конструктора копирования
-    template <ssize_t Index, bool is_in_bounds = (Index < sizeof...(Types))>
-    struct Mover {
-        // вариант, когда тип совпадает с искомым
-        template <typename T,
-                 typename Type = typename tools::type_at_index<Index, Types...>::type,
-                 typename std::enable_if<std::is_constructible<Type, T>::value, int>::type = 0
-                 >
-        static void copy(const ssize_t& find_index, void* ptr, T&& value) {
-            if(Index == find_index) {
-                // создание объекта на указанном буфере с указанным типом
-                new (ptr) Type(value); // ручной вызов placement new
-            } else {
-                // продолжение поиска
-                Mover<Index + 1>::move(find_index, ptr, std::forward<T>(value));
-            }
-        }
-
-        // вариант, когда тип НЕ совпадает с искомым
-        template <typename T,
-                 typename Type = typename tools::type_at_index<Index, Types...>::type,
-                 typename std::enable_if<!std::is_constructible<Type, T>::value, int>::type = 0
-                 >
-        static void create(const ssize_t& find_index, void* ptr, T&& value) {
-            if(Index == find_index) {
-                // тип не совпал, нельзя присваивать (не скомпилируется) -> заглушка
-            } else {
-                // продолжение поиска
-                Mover<Index + 1>::move(find_index, ptr, std::forward<T>(value));
-            }
-        }
-    };
-    // шаблон для остановки рекурсии (вышли за границы списка типов)
-    template <ssize_t Index>
-    struct Mover<Index, false> {
-        static void move(const ssize_t& find_index, void* ptr) {
+    template <ssize_t OtherIndex>
+    struct UniversalAssigner<false, OtherIndex> {
+        static void assign(const ssize_t& find_index, void* ptr) {
             //TODO: static_assert()
         }
     };
@@ -482,28 +451,14 @@ public:
     template <typename... OtherTypes>
     Variant(const Variant<OtherTypes...>& other) {
         // NOTE: проверка if(this != &other) не нужна, т.к. типы заведомо разные по variadic
-
-        // FIXME: переделать вычисление индекса внутри other из времени выполнения на время компиляции
-        // достать тип элемента внутри other
-        using Type = typename tools::type_at_index<other.m_current_type_index, OtherTypes...>::type;
-        // создать аналог для this
-        using Index = typename tools::index_of_type<Type, Types...>;
-        m_current_type_index = Index::value;
-        Copier<0>::copy(m_current_type_index, m_data, other.template get<Type>());
+        UniversalAssigner<true, 0>::assign(m_current_type_index, other, *this);
     }
 
-//    template <typename... OtherTypes>
-//    Variant(Variant<OtherTypes...>&& other) {
-//        // NOTE: проверка if(this != &other) не нужна, т.к. типы заведомо разные по variadic
-//        // достать тип элемента внутри other
-//        using Type = typename tools::type_at_index<other.getIndex(), OtherTypes...>::type;
-//        // создать аналог для this
-//        using Index = typename tools::index_of_type<Type, Types...>;
-//        m_current_type_index = Index::value;
-
-//        // TODO: выбрать способ присвоения - копирование или перемещение
-//        // Copier<0>::copy(m_current_type_index, m_data, other.template get<Type>());
-//    }
+    template <typename... OtherTypes>
+    Variant(Variant<OtherTypes...>&& other) {
+        // NOTE: проверка if(this != &other) не нужна, т.к. типы заведомо разные по variadic
+        UniversalAssigner<true, 0>::assign(m_current_type_index, other, *this);
+    }
 
     ~Variant() {
         // начинаем поиск деструктора (compile-time) с нулевого индекса
