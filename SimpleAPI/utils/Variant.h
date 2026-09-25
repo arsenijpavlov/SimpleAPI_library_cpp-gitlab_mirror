@@ -374,7 +374,7 @@ class Variant {
                 using OtherType   = typename tools::type_at_index<OtherIndex, OtherTypes...>::type;
                 using TargetIndex = typename tools::index_of_type<OtherType, Types...>;
 
-                static_assert(TargetIndex::is_found, "SimpleAPI: Variant target object does not support this type");
+                static_assert(TargetIndex::is_found, "SimpleAPI: Variant(const&) target object does not support this type");
                 dest_value = other.template get<OtherType>();
             } else {
                 // продолжение поиска
@@ -392,7 +392,7 @@ class Variant {
                 using OtherType   = typename tools::type_at_index<OtherIndex, OtherTypes...>::type;
                 using TargetIndex = typename tools::index_of_type<OtherType, Types...>;
 
-                static_assert(TargetIndex::is_found, "SimpleAPI: Variant target object does not support this type");
+                static_assert(TargetIndex::is_found, "SimpleAPI: Variant(&&) target object does not support this type");
 
                 dest_value = std::move(other.template get<OtherType>());
             } else {
@@ -598,6 +598,10 @@ public:
 
         using CleanT = typename std::decay<T>::type;
         using Index  = typename tools::index_of_type<CleanT, Types...>;
+
+        static_assert(std::is_constructible<typename tools::type_at_index<Index::value, Types...>::type, T>::value,
+                      "SimpleAPI: incorrect type(const&) for creating Variant value");
+
         m_current_type_index = Index::value;
         Creator<0>::create(m_current_type_index, m_data, value);
         return *this;
@@ -617,7 +621,7 @@ public:
         using Index  = typename tools::index_of_type<CleanT, Types...>;
 
         static_assert(std::is_constructible<typename tools::type_at_index<Index::value, Types...>::type, T>::value,
-                      "SimpleAPI: incorrect type for creating Variant value");
+                      "SimpleAPI: incorrect type(&&) for creating Variant value");
 
         m_current_type_index = Index::value;
         Creator<0>::create(m_current_type_index, m_data, std::forward<T>(value));
