@@ -420,9 +420,14 @@ public:
         new (m_data) typename tools::type_at_index<0, Types...>::type({});
     }
 
-    template <typename std::enable_if<tools::index_of_type<std::nullptr_t, Types...>::is_found, int>::type = 0>
+    // NOTE: трюк с Dummy= и std::is_same<Dummy,> нужен для переноса проверки с момента создания объекта на момент вызова конкретного метода
+    template <typename Dummy = std::nullptr_t,
+             typename std::enable_if<
+                 std::is_same<Dummy, std::nullptr_t>::value
+                     && tools::index_of_type<std::nullptr_t, Types...>::is_found
+                 , int>::type = 0>
     Variant(std::nullptr_t) {
-        using Index  = typename tools::index_of_type<std::nullptr_t, Types...>;
+        using Index          = typename tools::index_of_type<std::nullptr_t, Types...>;
         m_current_type_index = Index::value;
         Creator<0>::create(m_current_type_index, m_data, nullptr);
     }
@@ -465,7 +470,12 @@ public:
         Destroyer<0>::destroy(m_current_type_index, m_data);
     }
 
-    template <typename std::enable_if<tools::index_of_type<std::nullptr_t, Types...>::is_found, int>::type = 0>
+    // NOTE: трюк с Dummy= и std::is_same<Dummy,> нужен для переноса проверки с момента создания объекта на момент вызова конкретного метода
+    template <typename Dummy = std::nullptr_t,
+             typename std::enable_if<
+                 std::is_same<Dummy, std::nullptr_t>::value
+                     && tools::index_of_type<std::nullptr_t, Types...>::is_found
+                 , int>::type = 0>
     Variant& operator=(std::nullptr_t) {
         // уничтожение старого объекта
         // начинаем поиск деструктора (compile-time) с нулевого индекса
@@ -553,7 +563,12 @@ public:
 //        /* FIXME */
 //    }
 
-    template <typename std::enable_if<tools::index_of_type<std::nullptr_t, Types...>::is_found, int>::type = 0>
+    // NOTE: трюк с Dummy= и std::is_same<Dummy,> нужен для переноса проверки с момента создания объекта на момент вызова конкретного метода
+    template <typename Dummy = std::nullptr_t,
+             typename std::enable_if<
+                 std::is_same<Dummy, std::nullptr_t>::value
+                     && tools::index_of_type<std::nullptr_t, Types...>::is_found
+                 , int>::type = 0>
     std::nullptr_t get() {
         return nullptr;
     }
