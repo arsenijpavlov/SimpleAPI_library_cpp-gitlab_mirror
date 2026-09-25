@@ -398,9 +398,7 @@ class Variant {
             } else {
                 // продолжение поиска
                 static constexpr bool next_in_bounds = (OtherIndex + 1) < sizeof...(OtherTypes);
-                UniversalAssigner<next_in_bounds, OtherIndex + 1>::assign(other_index,
-                                                                          std::forward<OtherVariant>(other),
-                                                                          dest_value);
+                UniversalAssigner<next_in_bounds, OtherIndex + 1>::assign(other_index, std::move(other), dest_value);
             }
         }
     };
@@ -515,57 +513,59 @@ public:
         Destroyer<0>::destroy(m_current_type_index, m_data);
     }
 
-    // TODO: закончить реализацию
     Variant& operator=(const Variant& other) {
-        if(this != &other) {
-            //            // достать тип элемента внутри other
-            //            using Type = typename tools::type_at_index<other.getIndex(), OtherTypes...>::type;
-            //            // создать аналог для this
-            //            using Index = typename tools::index_of_type<Type, Types...>;
-            //            m_current_type_index = Index::value;
-            //            Creator<0>::create(m_current_type_index, m_data, other.template get<Type>());
+        if(this != &other)
+        {
+            // уничтожение старого объекта
+            // начинаем поиск деструктора (compile-time) с нулевого индекса
+            Destroyer<0>::destroy(m_current_type_index, m_data);
+
+            m_current_type_index = other.m_current_type_index;
+            UniversalAssigner<true, 0>::assign(m_current_type_index, other, *this);
         }
+
         return *this;
     }
 
-    // TODO: закончить реализацию
-    Variant& operator=(Variant&& other) {
-        if(this != &other) {
-            //            // достать тип элемента внутри other
-            //            using Type = typename tools::type_at_index<other.getIndex(), OtherTypes...>::type;
-            //            // создать аналог для this
-            //            using Index = typename tools::index_of_type<Type, Types...>;
-            //            m_current_type_index = Index::value;
-            //            Creator<0>::create(m_current_type_index, m_data, std::forward<Type>(other.template get<Type>()));
+    Variant& operator=(Variant&& other) {       
+        if(this != &other)
+        {
+            // уничтожение старого объекта
+            // начинаем поиск деструктора (compile-time) с нулевого индекса
+            Destroyer<0>::destroy(m_current_type_index, m_data);
+
+            m_current_type_index = other.m_current_type_index;
+            UniversalAssigner<true, 0>::assign(m_current_type_index, std::move(other), *this);
+            // уничтожаем индекс, чтобы Destroyer не делал лишние действия
+            other.m_current_type_index = -1;
         }
+
         return *this;
     }
 
-    // TODO: закончить реализацию
     template <typename... OtherTypes>
     Variant& operator=(const Variant<OtherTypes...>& other) {
-        //        if(this != &other) {
-        //            // достать тип элемента внутри other
-        //            using Type = typename tools::type_at_index<other.getIndex(), OtherTypes...>::type;
-        //            // создать аналог для this
-        //            using Index = typename tools::index_of_type<Type, Types...>;
-        //            m_current_type_index = Index::value;
-        //            Creator<0>::create(m_current_type_index, m_data, other.template get<Type>());
-        //        }
+        // уничтожение старого объекта
+        // начинаем поиск деструктора (compile-time) с нулевого индекса
+        Destroyer<0>::destroy(m_current_type_index, m_data);
+
+        // NOTE: проверка if(this != &other) не нужна, т.к. типы заведомо разные по variadic
+        UniversalAssigner<true, 0>::assign(m_current_type_index, other, *this);
+
         return *this;
     }
 
-    // TODO: закончить реализацию
     template <typename... OtherTypes>
     Variant& operator=(Variant<OtherTypes...>&& other) {
-        //        if(this != &other) {
-        //            // достать тип элемента внутри other
-        //            using Type = typename tools::type_at_index<other.getIndex(), OtherTypes...>::type;
-        //            // создать аналог для this
-        //            using Index = typename tools::index_of_type<Type, Types...>;
-        //            m_current_type_index = Index::value;
-        //            Creator<0>::create(m_current_type_index, m_data, std::forward<Type>(other.template get<Type>()));
-        //        }
+        // уничтожение старого объекта
+        // начинаем поиск деструктора (compile-time) с нулевого индекса
+        Destroyer<0>::destroy(m_current_type_index, m_data);
+
+        // NOTE: проверка if(this != &other) не нужна, т.к. типы заведомо разные по variadic
+        UniversalAssigner<true, 0>::assign(m_current_type_index, std::move(other), *this);
+        // уничтожаем индекс, чтобы Destroyer не делал лишние действия
+        other.m_current_type_index = -1;
+
         return *this;
     }
 
@@ -583,6 +583,7 @@ public:
         using Index  = typename tools::index_of_type<std::nullptr_t, Types...>;
         m_current_type_index = Index::value;
         Creator<0>::create(m_current_type_index, m_data, nullptr);
+
         return *this;
     }
 
@@ -604,6 +605,7 @@ public:
 
         m_current_type_index = Index::value;
         Creator<0>::create(m_current_type_index, m_data, value);
+
         return *this;
     }
 
@@ -625,6 +627,7 @@ public:
 
         m_current_type_index = Index::value;
         Creator<0>::create(m_current_type_index, m_data, std::forward<T>(value));
+
         return *this;
     }
 
