@@ -372,8 +372,7 @@ class Variant {
 
                 static_assert(TargetIndex::is_found, "SimpleAPI: Variant target object does not support this type");
 
-                // FIXME: пока не очень понимаю смысл этого условия
-                // вычислить тип переменной (l-value/r-value)
+                // вычислить тип переменной (l-value/r-value) для корректного получения перемещаемого(копируемого) значения
                 using ValueFormat = typename std::conditional<
                     std::is_const<typename std::remove_reference<OtherVariant>::type>::value,
                     const OtherType,
@@ -462,7 +461,8 @@ public:
     template <typename... OtherTypes>
     Variant(Variant<OtherTypes...>&& other) {
         // NOTE: проверка if(this != &other) не нужна, т.к. типы заведомо разные по variadic
-        UniversalAssigner<true, 0>::assign(m_current_type_index, other, *this);
+        UniversalAssigner<true, 0>::assign(m_current_type_index,
+                                           std::forward<Variant<OtherTypes...>>(other), *this);
     }
 
     ~Variant() {
