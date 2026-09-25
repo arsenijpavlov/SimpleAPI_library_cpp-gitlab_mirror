@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <string>
 #include <sys/types.h>
 #include <type_traits>
@@ -342,6 +343,8 @@ class Variant {
         };
 
         static void destroy(const ssize_t& find_index, void* ptr) {
+            if(find_index == -1)
+                return; // память не задействована, деструктор не нужен
             if(Index == find_index) {
                 using Type = typename tools::type_at_index<Index, Types...>::type;
                 DestructorHelper::template helper_destroy<Type>(ptr);
@@ -362,34 +365,36 @@ class Variant {
     // шаблон рекурсивного поиска для вычисления типа объекта other
     template <bool is_in_bounds, ssize_t OtherIndex>
     struct UniversalAssigner {
-        // вариант, когда тип совпадает с искомым
+        // вариант, когда тип совпадает с искомым (const &)
+        template <typename... OtherTypes>
+        static void assign(const ssize_t& other_index, const Variant<OtherTypes...>& other, Variant<Types...>& dest_value)
+        {
+            using OtherVariant = Variant<OtherTypes...>;
+            if(OtherIndex == other_index) {
+                using OtherType   = typename tools::type_at_index<OtherIndex, OtherTypes...>::type;
+                using TargetIndex = typename tools::index_of_type<OtherType, Types...>;
+
+                static_assert(TargetIndex::is_found, "SimpleAPI: Variant target object does not support this type");
+                dest_value = other.template get<OtherType>();
+            } else {
+                // продолжение поиска
+                static constexpr bool next_in_bounds = (OtherIndex + 1) < sizeof...(OtherTypes);
+                UniversalAssigner<next_in_bounds, OtherIndex + 1>::assign(other_index, other, dest_value);
+            }
+        }
+
+        // вариант, когда тип совпадает с искомым (&&)
         template <typename... OtherTypes>
         static void assign(const ssize_t& other_index, Variant<OtherTypes...>&& other, Variant<Types...>& dest_value)
         {
             using OtherVariant = Variant<OtherTypes...>;
             if(OtherIndex == other_index) {
                 using OtherType   = typename tools::type_at_index<OtherIndex, OtherTypes...>::type;
-                using TargetIndex = typename tools::index_of_type<OtherType, Types...>::value;
+                using TargetIndex = typename tools::index_of_type<OtherType, Types...>;
 
                 static_assert(TargetIndex::is_found, "SimpleAPI: Variant target object does not support this type");
 
-                // вычислить тип переменной (l-value/r-value) для корректного получения перемещаемого(копируемого) значения
-                using ValueFormat = typename std::conditional<
-                    std::is_const<typename std::remove_reference<OtherVariant>::type>::value,
-                    const OtherType,
-                    OtherType
-                    >::type;
-
-                // достать указатель на value
-                ValueFormat* other_data = reinterpret_cast<ValueFormat*>(other.m_data);
-
-                // вызвать перегрузку operator= на основе формата переменной
-                dest_value = std::forward<std::conditional<std::is_lvalue_reference<OtherVariant>::value,
-                                                           const OtherType&,
-                                                           OtherType&&
-                                                           >::type
-                                          >(*other_data);
-
+                dest_value = std::move(other.template get<OtherType>());
             } else {
                 // продолжение поиска
                 static constexpr bool next_in_bounds = (OtherIndex + 1) < sizeof...(OtherTypes);
@@ -402,7 +407,19 @@ class Variant {
     // шаблон для остановки рекурсии (вышли за границы списка типов)
     template <ssize_t OtherIndex>
     struct UniversalAssigner<false, OtherIndex> {
-        static void assign(const ssize_t& find_index, void* ptr) {
+        template <typename... OtherTypes>
+        static void assign(const ssize_t& other_index,
+                           const Variant<OtherTypes...>& other,
+                           Variant<Types...>& dest_value)
+        {
+            //TODO: static_assert()
+        }
+
+        template <typename... OtherTypes>
+        static void assign(const ssize_t& other_index,
+                           Variant<OtherTypes...>&& other,
+                           Variant<Types...>& dest_value)
+        {
             //TODO: static_assert()
         }
     };
@@ -420,17 +437,22 @@ public:
         new (m_data) typename tools::type_at_index<0, Types...>::type({});
     }
 
-    // FIXME:
-    Variant(const Variant<Types...>& other) {
-        // NOTE: проверка if(this != &other) не нужна, т.к. типы заведомо разные по variadic
-        // UniversalAssigner<true, 0>::assign(m_current_type_index, other, *this);
+    Variant(const Variant& other) {
+        if(this != &other)
+        {
+            m_current_type_index = other.m_current_type_index;
+            UniversalAssigner<true, 0>::assign(m_current_type_index, other, *this);
+        }
     }
 
-    // FIXME:
-    Variant(Variant<Types...>&& other) {
-        // NOTE: проверка if(this != &other) не нужна, т.к. типы заведомо разные по variadic
-        // UniversalAssigner<true, 0>::assign(m_current_type_index,
-                                           // std::forward<Variant<OtherTypes...>>(other), *this);
+    Variant(Variant&& other) {
+        if(this != &other)
+        {
+            m_current_type_index = other.m_current_type_index;
+            UniversalAssigner<true, 0>::assign(m_current_type_index, std::move(other), *this);
+            // уничтожаем индекс, чтобы Destroyer не делал лишние действия
+            other.m_current_type_index = -1;
+        }
     }
 
     template <typename... OtherTypes>
@@ -442,8 +464,9 @@ public:
     template <typename... OtherTypes>
     Variant(Variant<OtherTypes...>&& other) {
         // NOTE: проверка if(this != &other) не нужна, т.к. типы заведомо разные по variadic
-        UniversalAssigner<true, 0>::assign(m_current_type_index,
-                                           std::forward<Variant<OtherTypes...>>(other), *this);
+        UniversalAssigner<true, 0>::assign(m_current_type_index, std::move(other), *this);
+        // уничтожаем индекс, чтобы Destroyer не делал лишние действия
+        other.m_current_type_index = -1;
     }
 
     // NOTE: трюк с Dummy= и std::is_same<Dummy,> нужен для переноса проверки с момента создания объекта на момент вызова конкретного метода
@@ -493,7 +516,7 @@ public:
     }
 
     // TODO: закончить реализацию
-    Variant& operator=(const Variant<Types...>& other) {
+    Variant& operator=(const Variant& other) {
         if(this != &other) {
             //            // достать тип элемента внутри other
             //            using Type = typename tools::type_at_index<other.getIndex(), OtherTypes...>::type;
@@ -506,7 +529,7 @@ public:
     }
 
     // TODO: закончить реализацию
-    Variant& operator=(Variant<Types...>&& other) {
+    Variant& operator=(Variant&& other) {
         if(this != &other) {
             //            // достать тип элемента внутри other
             //            using Type = typename tools::type_at_index<other.getIndex(), OtherTypes...>::type;
@@ -636,7 +659,7 @@ public:
 
     template <typename T, typename std::enable_if<tools::index_of_type<typename std::decay<T>::type, Types...>::is_found, int>::type = 0>
     T get() const {
-        return *(reinterpret_cast<T*>(m_data));
+        return *(reinterpret_cast<const T*>(m_data));
     }
 
     /**
