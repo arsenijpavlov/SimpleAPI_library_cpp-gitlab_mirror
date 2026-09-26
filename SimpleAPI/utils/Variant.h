@@ -6,6 +6,7 @@
 #include <string>
 #include <sys/types.h>
 #include <type_traits>
+#include <typeinfo>
 #include <utility>
 
 
@@ -366,6 +367,41 @@ class Variant {
     // NOTE: внешний код всегда вызывает начальную связку <true, 0>
     template <bool is_in_bounds, ssize_t OtherIndex>
     struct UniversalAssigner {
+        struct UniversalAssignerHelper
+        {
+            // helper: вариант если dest поддерживает копирующее присвоение
+            template <typename T,
+                     typename std::enable_if<tools::index_of_type<typename std::decay<T>::type, Types...>::is_found
+                                             , int>::type = 0>
+            static void helper_assign(Variant<Types...>& dest_value, const T& value) {
+                // если тип некорректный, то сработает защита в operator=
+                dest_value = value;
+            }
+            // helper: вариант если dest поддерживает перемещающее присвоение
+            template <typename T,
+                     typename std::enable_if<tools::index_of_type<typename std::decay<T>::type, Types...>::is_found
+                                             , int>::type = 0>
+            static void helper_assign(Variant<Types...>& dest_value, T&& value) {
+                // если тип некорректный, то сработает защита в operator=
+                dest_value = std::move(value);
+            }
+
+            // helper: общий вариант (const T&)
+            template <typename T,
+                     typename std::enable_if<!tools::index_of_type<typename std::decay<T>::type, Types...>::is_found
+                                             , int>::type = 0>
+            static void helper_assign(Variant<Types...>& dest_value, const T& value) {
+                // FIXME: throw exception bad_cast
+            }
+            // helper: общий вариант (const T&)
+            template <typename T,
+                     typename std::enable_if<!tools::index_of_type<typename std::decay<T>::type, Types...>::is_found
+                                             , int>::type = 0>
+            static void helper_assign(Variant<Types...>& dest_value, T&& value) {
+                // FIXME: throw exception bad_cast
+            }
+        };
+
         // вариант, когда тип совпадает с искомым (const &)
         template <typename... OtherTypes>
         static void assign(const ssize_t& other_index, const Variant<OtherTypes...>& other, Variant<Types...>& dest_value)
@@ -375,8 +411,7 @@ class Variant {
                 using OtherType   = typename tools::type_at_index<OtherIndex, OtherTypes...>::type;
                 using TargetIndex = typename tools::index_of_type<OtherType, Types...>;
 
-                // если тип некорректный, то сработает защита в operator=
-                dest_value = other.template get<OtherType>();
+                UniversalAssignerHelper::helper_assign(dest_value, other.template get<OtherType>());
             } else {
                 // продолжение поиска
                 static constexpr bool next_in_bounds = (OtherIndex + 1) < sizeof...(OtherTypes);
@@ -393,8 +428,7 @@ class Variant {
                 using OtherType   = typename tools::type_at_index<OtherIndex, OtherTypes...>::type;
                 using TargetIndex = typename tools::index_of_type<OtherType, Types...>;
 
-                // если тип некорректный, то сработает защита в operator=
-                dest_value = std::move(other.template get<OtherType>());
+                UniversalAssignerHelper::helper_assign(dest_value, std::move(other.template get<OtherType>()));
             } else {
                 // продолжение поиска
                 static constexpr bool next_in_bounds = (OtherIndex + 1) < sizeof...(OtherTypes);
