@@ -270,6 +270,7 @@ class Variant {
     static_assert(!tools::is_contains_duplicate<Types...>::value, "SimpleAPI: incorrect types list, found duplicates");
 
     // шаблон рекурсивного поиска конструктора
+    // NOTE: внешний код всегда вызывает начальный индекс <0>
     template <ssize_t Index, bool is_in_bounds = (Index < sizeof...(Types))>
     struct Creator {
         struct ConstructorHelper
@@ -320,12 +321,12 @@ class Variant {
     template <ssize_t Index>
     struct Creator<Index, false> {
         template <typename T>
-        static void create(const ssize_t& find_index, void* ptr, T&& value) {
-            //TODO: static_assert()
-        }
+        static void create(const ssize_t& find_index, void* ptr, T&& value)
+        { /*метод-заглушка*/ }
     };
 
     // шаблон рекурсивного поиска деструктора
+    // NOTE: внешний код всегда вызывает начальный индекс <0>
     template <ssize_t Index, bool is_in_bounds = (Index < sizeof...(Types))>
     struct Destroyer {
         struct DestructorHelper {
@@ -357,12 +358,12 @@ class Variant {
     // шаблон для остановки рекурсии (вышли за границы списка типов)
     template <ssize_t Index>
     struct Destroyer<Index, false> {
-        static void destroy(const ssize_t& find_index, void* ptr) {
-            //TODO: static_assert()
-        }
+        static void destroy(const ssize_t& find_index, void* ptr)
+        { /*метод-заглушка*/ }
     };
 
     // шаблон рекурсивного поиска для вычисления типа объекта other
+    // NOTE: внешний код всегда вызывает начальную связку <true, 0>
     template <bool is_in_bounds, ssize_t OtherIndex>
     struct UniversalAssigner {
         // вариант, когда тип совпадает с искомым (const &)
@@ -374,8 +375,7 @@ class Variant {
                 using OtherType   = typename tools::type_at_index<OtherIndex, OtherTypes...>::type;
                 using TargetIndex = typename tools::index_of_type<OtherType, Types...>;
 
-                // FIXME: вынести в std::enable_if<>
-//                static_assert(TargetIndex::is_found, "SimpleAPI: Variant(const&) target object does not support this type");
+                // если тип некорректный, то сработает защита в operator=
                 dest_value = other.template get<OtherType>();
             } else {
                 // продолжение поиска
@@ -393,8 +393,7 @@ class Variant {
                 using OtherType   = typename tools::type_at_index<OtherIndex, OtherTypes...>::type;
                 using TargetIndex = typename tools::index_of_type<OtherType, Types...>;
 
-                // FIXME: вынести в std::enable_if<>
-//                static_assert(TargetIndex::is_found, "SimpleAPI: Variant(&&) target object does not support this type");
+                // если тип некорректный, то сработает защита в operator=
                 dest_value = std::move(other.template get<OtherType>());
             } else {
                 // продолжение поиска
@@ -410,17 +409,13 @@ class Variant {
         static void assign(const ssize_t& other_index,
                            const Variant<OtherTypes...>& other,
                            Variant<Types...>& dest_value)
-        {
-            //TODO: static_assert()
-        }
+        { /*метод-заглушка*/ }
 
         template <typename... OtherTypes>
         static void assign(const ssize_t& other_index,
                            Variant<OtherTypes...>&& other,
                            Variant<Types...>& dest_value)
-        {
-            //TODO: static_assert()
-        }
+        { /*метод-заглушка*/ }
     };
 
 public:
@@ -432,11 +427,13 @@ public:
     //-----------------------------------------------------------------------------------------
 
     // по умолчанию проинициализируется первым типом (его значение по умолчанию)
-    Variant() noexcept : m_current_type_index(0) {
+    Variant() noexcept : m_current_type_index(0)
+    {
         new (m_data) typename tools::type_at_index<0, Types...>::type({});
     }
 
-    Variant(const Variant& other) {
+    Variant(const Variant& other)
+    {
         if(this != &other)
         {
             m_current_type_index = other.m_current_type_index;
@@ -444,24 +441,28 @@ public:
         }
     }
 
-    Variant(Variant&& other) {
+    Variant(Variant&& other)
+    {
         if(this != &other)
         {
             m_current_type_index = other.m_current_type_index;
             UniversalAssigner<true, 0>::assign(m_current_type_index, std::move(other), *this);
-            // уничтожаем индекс, чтобы Destroyer не делал лишние действия
+
+            // уничтожаем индекс, чтобы Destroyer не делал лишних действий
             other.m_current_type_index = -1;
         }
     }
 
     template <typename... OtherTypes>
-    Variant(const Variant<OtherTypes...>& other) {
+    Variant(const Variant<OtherTypes...>& other)
+    {
         // NOTE: проверка if(this != &other) не нужна, т.к. типы заведомо разные по variadic
         UniversalAssigner<true, 0>::assign(m_current_type_index, other, *this);
     }
 
     template <typename... OtherTypes>
-    Variant(Variant<OtherTypes...>&& other) {
+    Variant(Variant<OtherTypes...>&& other)
+    {
         // NOTE: проверка if(this != &other) не нужна, т.к. типы заведомо разные по variadic
         UniversalAssigner<true, 0>::assign(m_current_type_index, std::move(other), *this);
         // уничтожаем индекс, чтобы Destroyer не делал лишние действия
@@ -470,56 +471,53 @@ public:
 
     // NOTE: трюк с Dummy= и std::is_same<Dummy,> нужен для переноса проверки с момента создания объекта на момент вызова конкретного метода
     template <typename Dummy = std::nullptr_t,
-             typename std::enable_if<
-                 std::is_same<Dummy, std::nullptr_t>::value
-                     && tools::index_of_type<std::nullptr_t, Types...>::is_found
-                 , int>::type = 0>
-    Variant(std::nullptr_t) {
-        using Index          = typename tools::index_of_type<std::nullptr_t, Types...>;
+             typename std::enable_if<std::is_same<Dummy, std::nullptr_t>::value
+                                         && tools::index_of_type<std::nullptr_t, Types...>::is_found
+                                     , int>::type = 0>
+    Variant(std::nullptr_t)
+    {
+        using Index = typename tools::index_of_type<std::nullptr_t, Types...>;
+
         m_current_type_index = Index::value;
         Creator<0>::create(m_current_type_index, m_data, nullptr);
     }
 
     template <typename T,
-             typename std::enable_if<
-                 !std::is_same<typename std::decay<T>::type, Variant>::value
-                     && tools::index_of_type<typename std::decay<T>::type, Types...>::is_found
-                 , int>::type = 0>
-    Variant(const T& value) {
+             typename std::enable_if<!std::is_same<typename std::decay<T>::type, Variant>::value
+                                         && tools::index_of_type<typename std::decay<T>::type, Types...>::is_found
+                                     , int>::type = 0>
+    Variant(const T& value)
+    {
         using CleanT = typename std::decay<T>::type;
         using Index  = typename tools::index_of_type<CleanT, Types...>;
+
         m_current_type_index = Index::value;
         Creator<0>::create(m_current_type_index, m_data, value);
     }
 
     template <typename T,
-             typename std::enable_if<
-                 !std::is_same<typename std::decay<T>::type, Variant>::value
-                     && tools::index_of_type<typename std::decay<T>::type, Types...>::is_found
-                 , int>::type = 0>
-    Variant(T&& value) {
-
+             typename std::enable_if<!std::is_same<typename std::decay<T>::type, Variant>::value
+                                         && tools::index_of_type<typename std::decay<T>::type, Types...>::is_found
+                                     , int>::type = 0>
+    Variant(T&& value)
+    {
         using CleanT = typename std::decay<T>::type;
         using Index  = typename tools::index_of_type<CleanT, Types...>;
-
-        // FIXME: вынести в std::enable_if<>
-//        static_assert(std::is_constructible<typename tools::type_at_index<Index::value, Types...>::type, T>::value,
-//                      "SimpleAPI: incorrect type for creating Variant value");
 
         m_current_type_index = Index::value;
         Creator<0>::create(m_current_type_index, m_data, std::forward<T>(value));
     }
 
-    ~Variant() {
-        // начинаем поиск деструктора (compile-time) с нулевого индекса
+    ~Variant()
+    {
         Destroyer<0>::destroy(m_current_type_index, m_data);
     }
 
-    Variant& operator=(const Variant& other) {
+    Variant& operator=(const Variant& other)
+    {
         if(this != &other)
         {
             // уничтожение старого объекта
-            // начинаем поиск деструктора (compile-time) с нулевого индекса
             Destroyer<0>::destroy(m_current_type_index, m_data);
 
             m_current_type_index = other.m_current_type_index;
@@ -529,16 +527,17 @@ public:
         return *this;
     }
 
-    Variant& operator=(Variant&& other) {       
+    Variant& operator=(Variant&& other)
+    {
         if(this != &other)
         {
             // уничтожение старого объекта
-            // начинаем поиск деструктора (compile-time) с нулевого индекса
             Destroyer<0>::destroy(m_current_type_index, m_data);
 
             m_current_type_index = other.m_current_type_index;
             UniversalAssigner<true, 0>::assign(m_current_type_index, std::move(other), *this);
-            // уничтожаем индекс, чтобы Destroyer не делал лишние действия
+
+            // уничтожаем индекс, чтобы Destroyer не делал лишних действий
             other.m_current_type_index = -1;
         }
 
@@ -546,9 +545,9 @@ public:
     }
 
     template <typename... OtherTypes>
-    Variant& operator=(const Variant<OtherTypes...>& other) {
+    Variant& operator=(const Variant<OtherTypes...>& other)
+    {
         // уничтожение старого объекта
-        // начинаем поиск деструктора (compile-time) с нулевого индекса
         Destroyer<0>::destroy(m_current_type_index, m_data);
 
         // NOTE: проверка if(this != &other) не нужна, т.к. типы заведомо разные по variadic
@@ -558,9 +557,9 @@ public:
     }
 
     template <typename... OtherTypes>
-    Variant& operator=(Variant<OtherTypes...>&& other) {
+    Variant& operator=(Variant<OtherTypes...>&& other)
+    {
         // уничтожение старого объекта
-        // начинаем поиск деструктора (compile-time) с нулевого индекса
         Destroyer<0>::destroy(m_current_type_index, m_data);
 
         // NOTE: проверка if(this != &other) не нужна, т.к. типы заведомо разные по variadic
@@ -573,16 +572,15 @@ public:
 
     // NOTE: трюк с Dummy= и std::is_same<Dummy,> нужен для переноса проверки с момента создания объекта на момент вызова конкретного метода
     template <typename Dummy = std::nullptr_t,
-             typename std::enable_if<
-                 std::is_same<Dummy, std::nullptr_t>::value
-                     && tools::index_of_type<std::nullptr_t, Types...>::is_found
-                 , int>::type = 0>
-    Variant& operator=(std::nullptr_t) {
+             typename std::enable_if<std::is_same<Dummy, std::nullptr_t>::value
+                                         && tools::index_of_type<std::nullptr_t, Types...>::is_found
+                                     , int>::type = 0>
+    Variant& operator=(std::nullptr_t)
+    {
         // уничтожение старого объекта
-        // начинаем поиск деструктора (compile-time) с нулевого индекса
         Destroyer<0>::destroy(m_current_type_index, m_data);
 
-        using Index  = typename tools::index_of_type<std::nullptr_t, Types...>;
+        using Index          = typename tools::index_of_type<std::nullptr_t, Types...>;
         m_current_type_index = Index::value;
         Creator<0>::create(m_current_type_index, m_data, nullptr);
 
@@ -590,21 +588,16 @@ public:
     }
 
     template <typename T,
-             typename std::enable_if<
-                 !std::is_same<typename std::decay<T>::type, Variant>::value
-                     && tools::index_of_type<typename std::decay<T>::type, Types...>::is_found
-                 , int>::type = 0>
-    Variant& operator=(const T& value) {
+             typename std::enable_if<!std::is_same<typename std::decay<T>::type, Variant>::value
+                                         && tools::index_of_type<typename std::decay<T>::type, Types...>::is_found
+                                     , int>::type = 0>
+    Variant& operator=(const T& value)
+    {
         // уничтожение старого объекта
-        // начинаем поиск деструктора (compile-time) с нулевого индекса
         Destroyer<0>::destroy(m_current_type_index, m_data);
 
         using CleanT = typename std::decay<T>::type;
         using Index  = typename tools::index_of_type<CleanT, Types...>;
-
-        // FIXME: вынести в std::enable_if<>
-//        static_assert(std::is_constructible<typename tools::type_at_index<Index::value, Types...>::type, T>::value,
-//                      "SimpleAPI: incorrect type(const&) for creating Variant value");
 
         m_current_type_index = Index::value;
         Creator<0>::create(m_current_type_index, m_data, value);
@@ -613,21 +606,15 @@ public:
     }
 
     template <typename T,
-             typename std::enable_if<
-                 !std::is_same<typename std::decay<T>::type, Variant>::value
-                     && tools::index_of_type<typename std::decay<T>::type, Types...>::is_found
-                 , int>::type = 0>
+             typename std::enable_if<!std::is_same<typename std::decay<T>::type, Variant>::value
+                                         && tools::index_of_type<typename std::decay<T>::type, Types...>::is_found
+                                     , int>::type = 0>
     Variant& operator=(T&& value) {
         // уничтожение старого объекта
-        // начинаем поиск деструктора (compile-time) с нулевого индекса
         Destroyer<0>::destroy(m_current_type_index, m_data);
 
         using CleanT = typename std::decay<T>::type;
         using Index  = typename tools::index_of_type<CleanT, Types...>;
-
-        // FIXME: вынести в std::enable_if<>
-//        static_assert(std::is_constructible<typename tools::type_at_index<Index::value, Types...>::type, T>::value,
-//                      "SimpleAPI: incorrect type(&&) for creating Variant value");
 
         m_current_type_index = Index::value;
         Creator<0>::create(m_current_type_index, m_data, std::forward<T>(value));
@@ -655,21 +642,27 @@ public:
 
     // NOTE: трюк с Dummy= и std::is_same<Dummy,> нужен для переноса проверки с момента создания объекта на момент вызова конкретного метода
     template <typename Dummy = std::nullptr_t,
-             typename std::enable_if<
-                 std::is_same<Dummy, std::nullptr_t>::value
-                     && tools::index_of_type<std::nullptr_t, Types...>::is_found
-                 , int>::type = 0>
-    std::nullptr_t get() {
+             typename std::enable_if<std::is_same<Dummy, std::nullptr_t>::value
+                                         && tools::index_of_type<std::nullptr_t, Types...>::is_found
+                                     , int>::type = 0>
+    std::nullptr_t get()
+    {
         return nullptr;
     }
 
-    template <typename T, typename std::enable_if<tools::index_of_type<typename std::decay<T>::type, Types...>::is_found, int>::type = 0>
-    T& get() {
+    template <typename T,
+             typename std::enable_if<tools::index_of_type<typename std::decay<T>::type, Types...>::is_found
+                                     , int>::type = 0>
+    T& get()
+    {
         return *(reinterpret_cast<T*>(m_data));
     }
 
-    template <typename T, typename std::enable_if<tools::index_of_type<typename std::decay<T>::type, Types...>::is_found, int>::type = 0>
-    T get() const {
+    template <typename T,
+             typename std::enable_if<tools::index_of_type<typename std::decay<T>::type, Types...>::is_found
+                                     , int>::type = 0>
+    T get() const
+    {
         return *(reinterpret_cast<const T*>(m_data));
     }
 
@@ -677,7 +670,10 @@ public:
      * @brief index
      * @return Возвращает текущий индекс типа. Может быть -1 для не инициализированного значения.
      */
-    ssize_t index() const noexcept { return m_current_type_index; }
+    ssize_t index() const noexcept
+    {
+        return m_current_type_index;
+    }
 
 private:
     ssize_t m_current_type_index;
