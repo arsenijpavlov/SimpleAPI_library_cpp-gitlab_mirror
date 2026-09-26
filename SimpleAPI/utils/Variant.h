@@ -9,6 +9,7 @@
 #include <typeinfo>
 #include <utility>
 
+// FIXME: все индексы перевести на тип ssize_t
 
 namespace simpleapi {
 
@@ -167,6 +168,46 @@ struct index_of_type_constructible<FindType, Head, Types...> {
     // на основе диспетчера (аналог тернарного оператора) выбираем дальнейшее действие
     static constexpr size_t value = std::conditional<is_match, OnTrue, OnFalse>::type::value;
 };
+
+// ---------------------------------------------------------------------
+// разворачиваем список типов -> компилятор выберет наиболее подходящую перегрузку
+// проверка вернёт тип void, если нет подходящего кандидата
+// ---------------------------------------------------------------------
+// базовое описание структуры для корректности выхода из SFINAE
+template <size_t Index, typename... Types>
+struct compiler_type_resolver;
+// рекурсивный поиск
+template <size_t Index, typename Head, typename... Types>
+struct compiler_type_resolver<Index, Head, Types...> : compiler_type_resolver<Index + 1, Types...>
+{
+    // делаем метод предка явно видимым
+    using compiler_type_resolver<Index + 1, Types...>::match;
+
+    // трейт на работу с сырыми массивами - const char* должен быть валидным
+//    using HeadTypeUnref   = typename std::remove_reference<Head>::type;
+//    using BaseElementType = typename std::remove_all_extents<HeadTypeUnref>::type;
+//    using CleanBaseType   = typename std::decay<BaseElementType>::type;
+    // является ли массив (если массив) допустимым
+//    static constexpr bool is_illegal_array = std::is_array<HeadTypeUnref>::value
+//                                             && !std::is_same<CleanBaseType, char>::value
+//                                             && !std::is_same<CleanBaseType, wchar_t>::value;
+
+
+    // на основе диспетчера (аналог тернарного оператора) выбираем дальнейшее действие
+    // std::integral_constant<> - создаёт тип-связку
+//     явно запрещаем приводить указатель на массив символов в bool
+//    template <typename T,
+//             typename std::enable_if<
+//                 !(std::is_same<Head, bool>::value
+//                   && !is_illegal_array)
+//                 , int>::type = 0>
+    static std::integral_constant<size_t, Index> match(const Head&);
+};
+// остановка рекурсии (пустой список)
+template <size_t Index>
+struct compiler_type_resolver<Index> {
+    static void match(...); // заглушка
+};
 // ---------------------------------------------------------------------
 // описатель получения индекса по типу (ОБЩИЙ)
 // ---------------------------------------------------------------------
@@ -176,13 +217,15 @@ struct index_of_type;
 // рекурсивный поиск
 template <typename FindType, typename Head, typename... Types>
 struct index_of_type<FindType, Head, Types...> {
-    static constexpr size_t same_index = index_of_type_same<FindType, Head, Types...>::value;
-    static constexpr size_t conv_index = (same_index == static_cast<size_t>(-1)) ? index_of_type_convertible<FindType, Head, Types...>::value
-                                                                                 : same_index; // прокидываем ошибку дальше
-    // NOTE: проверяется конструктор Head на основе FindType
-    static constexpr size_t value      = (conv_index == static_cast<size_t>(-1)) ? index_of_type_constructible<Head, FindType, Types...>::value
-                                                                                 : conv_index; // прокидываем ошибку дальше
-    static constexpr bool is_found     = value != static_cast<size_t>(-1);
+    // делегируем выбор типа компилятору
+    using Selector = decltype(compiler_type_resolver<0, Head, Types...>::match(std::declval<FindType>()));
+    using FinalRes = typename std::conditional<
+        std::is_same<Selector, void>::value,
+        std::integral_constant<size_t, static_cast<size_t>(-1)>,
+        Selector>::type;
+
+    static constexpr size_t value  = FinalRes::value;
+    static constexpr bool is_found = value != static_cast<size_t>(-1);
 };
 // строгая проверка для std::nullptr_t
 template <typename Head, typename... Types>
@@ -371,7 +414,7 @@ class Variant {
         {
             // helper: вариант если dest поддерживает копирующее присвоение
             template <typename T,
-                     typename std::enable_if<tools::index_of_type<typename std::decay<T>::type, Types...>::is_found
+                     typename std::enable_if<tools::index_of_type<T, Types...>::is_found
                                              , int>::type = 0>
             static void helper_assign(Variant<Types...>& dest_value, const T& value) {
                 // если тип некорректный, то сработает защита в operator=
@@ -379,7 +422,7 @@ class Variant {
             }
             // helper: вариант если dest поддерживает перемещающее присвоение
             template <typename T,
-                     typename std::enable_if<tools::index_of_type<typename std::decay<T>::type, Types...>::is_found
+                     typename std::enable_if<tools::index_of_type<T, Types...>::is_found
                                              , int>::type = 0>
             static void helper_assign(Variant<Types...>& dest_value, T&& value) {
                 // если тип некорректный, то сработает защита в operator=
@@ -388,14 +431,14 @@ class Variant {
 
             // helper: общий вариант (const T&)
             template <typename T,
-                     typename std::enable_if<!tools::index_of_type<typename std::decay<T>::type, Types...>::is_found
+                     typename std::enable_if<!tools::index_of_type<T, Types...>::is_found
                                              , int>::type = 0>
             static void helper_assign(Variant<Types...>& dest_value, const T& value) {
                 // FIXME: throw exception bad_cast
             }
             // helper: общий вариант (const T&)
             template <typename T,
-                     typename std::enable_if<!tools::index_of_type<typename std::decay<T>::type, Types...>::is_found
+                     typename std::enable_if<!tools::index_of_type<T, Types...>::is_found
                                              , int>::type = 0>
             static void helper_assign(Variant<Types...>& dest_value, T&& value) {
                 // FIXME: throw exception bad_cast
@@ -518,7 +561,7 @@ public:
 
     template <typename T,
              typename std::enable_if<!std::is_same<typename std::decay<T>::type, Variant>::value
-                                         && tools::index_of_type<typename std::decay<T>::type, Types...>::is_found
+                                         && tools::index_of_type<T, Types...>::is_found
                                      , int>::type = 0>
     Variant(const T& value)
     {
@@ -531,7 +574,7 @@ public:
 
     template <typename T,
              typename std::enable_if<!std::is_same<typename std::decay<T>::type, Variant>::value
-                                         && tools::index_of_type<typename std::decay<T>::type, Types...>::is_found
+                                         && tools::index_of_type<T, Types...>::is_found
                                      , int>::type = 0>
     Variant(T&& value)
     {
@@ -623,7 +666,7 @@ public:
 
     template <typename T,
              typename std::enable_if<!std::is_same<typename std::decay<T>::type, Variant>::value
-                                         && tools::index_of_type<typename std::decay<T>::type, Types...>::is_found
+                                         && tools::index_of_type<T, Types...>::is_found
                                      , int>::type = 0>
     Variant& operator=(const T& value)
     {
@@ -641,7 +684,7 @@ public:
 
     template <typename T,
              typename std::enable_if<!std::is_same<typename std::decay<T>::type, Variant>::value
-                                         && tools::index_of_type<typename std::decay<T>::type, Types...>::is_found
+                                         && tools::index_of_type<T, Types...>::is_found
                                      , int>::type = 0>
     Variant& operator=(T&& value) {
         // уничтожение старого объекта
@@ -685,7 +728,7 @@ public:
     }
 
     template <typename T,
-             typename std::enable_if<tools::index_of_type<typename std::decay<T>::type, Types...>::is_found
+             typename std::enable_if<tools::index_of_type<T, Types...>::is_found
                                      , int>::type = 0>
     T& get()
     {
@@ -693,7 +736,7 @@ public:
     }
 
     template <typename T,
-             typename std::enable_if<tools::index_of_type<typename std::decay<T>::type, Types...>::is_found
+             typename std::enable_if<tools::index_of_type<T, Types...>::is_found
                                      , int>::type = 0>
     T get() const
     {
