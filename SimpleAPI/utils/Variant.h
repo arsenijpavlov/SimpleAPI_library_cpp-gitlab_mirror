@@ -716,6 +716,34 @@ public:
         return *(reinterpret_cast<const T*>(m_data));
     }
 
+    // версия через получение указателя на значение (если тип существует)
+    template <typename T,
+             typename std::enable_if<tools::index_of_type<T, Types...>::is_found
+                                     , int>::type = 0>
+    T* get_if()
+    {
+        static constexpr size_t type_index = tools::index_of_type<T, Types...>::value;
+
+        if(type_index == m_current_type_index) {
+            return reinterpret_cast<T*>(m_data);
+        }
+        return nullptr;
+    }
+
+    // версия через получение (const) указателя на значение (если тип существует)
+    template <typename T,
+             typename std::enable_if<tools::index_of_type<T, Types...>::is_found
+                                     , int>::type = 0>
+    const T* get_if() const
+    {
+        static constexpr size_t type_index = tools::index_of_type<T, Types...>::value;
+
+        if(type_index == m_current_type_index) {
+            return reinterpret_cast<const T*>(m_data);
+        }
+        return nullptr;
+    }
+
     /**
      * @brief index
      * @return Возвращает текущий индекс типа. Может быть -1 для не инициализированного значения.
