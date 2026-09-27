@@ -33,9 +33,7 @@ template <typename... Types>
 struct max_size_of_type;
 // базовый случай, конец списка
 template <>
-struct max_size_of_type<> {
-    static constexpr size_t size = 0;
-};
+struct max_size_of_type<> { static constexpr size_t size = 0; };
 // рекурсивное извлечение максимального размера
 template <typename Head, typename... Tail>
 struct max_size_of_type<Head, Tail...> {
@@ -52,9 +50,7 @@ template <typename... Types>
 struct max_align_of_type;
 // базовый случай, конец списка
 template <>
-struct max_align_of_type<> {
-    static constexpr size_t align_size = 0;
-};
+struct max_align_of_type<> { static constexpr size_t align_size = 0; };
 // рекурсивное извлечение максимального размера выравнивания
 template <typename Head, typename... Tail>
 struct max_align_of_type<Head, Tail...> {
@@ -89,9 +85,7 @@ template <typename FindType, typename... Types>
 struct index_of_type_same;
 // искомый тип НЕ найден, возвращаем ошибку
 template <typename FindType>
-struct index_of_type_same<FindType> {
-    static constexpr size_t value = static_cast<size_t>(-1);
-};
+struct index_of_type_same<FindType> { static constexpr size_t value = static_cast<size_t>(-1); };
 // рекурсивный поиск
 template <typename FindType, typename Head, typename... Types>
 struct index_of_type_same<FindType, Head, Types...> {
@@ -118,9 +112,7 @@ template <typename FindType, typename... Types>
 struct index_of_type_convertible;
 // искомый тип НЕ найден, возвращаем ошибку
 template <typename FindType>
-struct index_of_type_convertible<FindType> {
-    static constexpr size_t value = static_cast<size_t>(-1);
-};
+struct index_of_type_convertible<FindType> { static constexpr size_t value = static_cast<size_t>(-1); };
 // рекурсивный поиск
 template <typename FindType, typename Head, typename... Types>
 struct index_of_type_convertible<FindType, Head, Types...> {
@@ -147,9 +139,7 @@ template <typename FindType, typename... Types>
 struct index_of_type_constructible;
 // искомый тип НЕ найден, возвращаем ошибку
 template <typename FindType>
-struct index_of_type_constructible<FindType> {
-    static constexpr size_t value = static_cast<size_t>(-1);
-};
+struct index_of_type_constructible<FindType> { static constexpr size_t value = static_cast<size_t>(-1); };
 // рекурсивный поиск
 template <typename FindType, typename Head, typename... Types>
 struct index_of_type_constructible<FindType, Head, Types...> {
@@ -236,9 +226,7 @@ template <typename... Types>
 struct is_contains_type;
 // дошли до конца списка
 template <>
-struct is_contains_type<> {
-    static constexpr bool value = false;
-};
+struct is_contains_type<> { static constexpr bool value = false; };
 // список состоит из одного элемента
 template <typename TemplateType, typename T>
 struct is_contains_type<TemplateType, T> {
@@ -258,9 +246,7 @@ template <typename... Types>
 struct is_contains_conv_type;
 // дошли до конца списка
 template <>
-struct is_contains_conv_type<> {
-    static constexpr bool value = false;
-};
+struct is_contains_conv_type<> { static constexpr bool value = false; };
 // список состоит из одного элемента
 template <typename TemplateType, typename T>
 struct is_contains_conv_type<TemplateType, T> {
@@ -279,19 +265,15 @@ struct is_contains_conv_type<TemplateType, Head, Tail...> {
 // ---------------------------------------------------------------------
 
 // ---------------------------------------------------------------------
-// описатель проверки наличия дубликатов в списке типов
+// описатель проверки наличия дубликатов в списке типов (квалификатор const не создаёт состояние дубликата)
 // ---------------------------------------------------------------------
 // базовое описание структуры для корректности выхода из SFINAE
 template <typename... Types>
 struct is_contains_duplicate;
 template <>
-struct is_contains_duplicate<> {
-    static constexpr bool value = false;
-};
+struct is_contains_duplicate<>      { static constexpr bool value = false; };
 template <typename Head>
-struct is_contains_duplicate<Head> {
-    static constexpr bool value = false;
-};
+struct is_contains_duplicate<Head>  { static constexpr bool value = false; };
 // рекурсивный поиск повторений наличия в списке
 template <typename Head, typename... Tail>
 struct is_contains_duplicate<Head, Tail...> {
@@ -617,9 +599,6 @@ public:
     template <typename... OtherTypes>
     Variant& operator=(const Variant<OtherTypes...>& other)
     {
-        // уничтожение старого объекта
-        Destroyer<0>::destroy(m_current_type_index, m_data);
-
         // NOTE: проверка if(this != &other) не нужна, т.к. типы заведомо разные по variadic
         UniversalAssigner<true, 0>::assign(m_current_type_index, other, *this);
 
@@ -629,9 +608,6 @@ public:
     template <typename... OtherTypes>
     Variant& operator=(Variant<OtherTypes...>&& other)
     {
-        // уничтожение старого объекта
-        Destroyer<0>::destroy(m_current_type_index, m_data);
-
         // NOTE: проверка if(this != &other) не нужна, т.к. типы заведомо разные по variadic
         UniversalAssigner<true, 0>::assign(m_current_type_index, std::move(other), *this);
         // уничтожаем индекс, чтобы Destroyer не делал лишние действия
@@ -657,6 +633,8 @@ public:
         return *this;
     }
 
+    // TODO: значение того же типа не должно перевыделять память
+    // TODO: если переменная const T, то выдать исключение
     template <typename T,
              typename std::enable_if<!std::is_same<typename std::decay<T>::type, Variant>::value
                                          && tools::index_of_type<T, Types...>::is_found
@@ -675,6 +653,8 @@ public:
         return *this;
     }
 
+    // TODO: значение того же типа не должно перевыделять память
+    // TODO: если переменная const T, то выдать исключение
     template <typename T,
              typename std::enable_if<!std::is_same<typename std::decay<T>::type, Variant>::value
                                          && tools::index_of_type<T, Types...>::is_found
