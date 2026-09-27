@@ -724,6 +724,8 @@ public:
     {
         static constexpr size_t type_index = tools::index_of_type<T, Types...>::value;
 
+        // FIXME: если тип nullptr, то вернуть его сразу
+
         if(type_index == m_current_type_index) {
             return reinterpret_cast<T*>(m_data);
         }
@@ -737,6 +739,8 @@ public:
     const T* get_if() const
     {
         static constexpr size_t type_index = tools::index_of_type<T, Types...>::value;
+
+        // FIXME: если тип nullptr, то вернуть его сразу
 
         if(type_index == m_current_type_index) {
             return reinterpret_cast<const T*>(m_data);
