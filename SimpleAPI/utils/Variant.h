@@ -183,30 +183,27 @@ struct compiler_type_resolver<Index, Head, Types...> : compiler_type_resolver<In
     // делаем метод предка явно видимым
     using compiler_type_resolver<Index + 1, Types...>::match;
 
-    // трейт на работу с сырыми массивами - const char* должен быть валидным
-//    using HeadTypeUnref   = typename std::remove_reference<Head>::type;
-//    using BaseElementType = typename std::remove_all_extents<HeadTypeUnref>::type;
-//    using CleanBaseType   = typename std::decay<BaseElementType>::type;
-    // является ли массив (если массив) допустимым
-//    static constexpr bool is_illegal_array = std::is_array<HeadTypeUnref>::value
-//                                             && !std::is_same<CleanBaseType, char>::value
-//                                             && !std::is_same<CleanBaseType, wchar_t>::value;
-
-
-    // на основе диспетчера (аналог тернарного оператора) выбираем дальнейшее действие
+    template <typename T>
+    using CleanT      = typename std::remove_reference<T>::type;
+    template <typename T>
+    using BaseElement = typename std::remove_all_extents<CleanT<T>>::type;
     // std::integral_constant<> - создаёт тип-связку
-//     явно запрещаем приводить указатель на массив символов в bool
-//    template <typename T,
-//             typename std::enable_if<
-//                 !(std::is_same<Head, bool>::value
-//                   && !is_illegal_array)
-//                 , int>::type = 0>
-    static std::integral_constant<size_t, Index> match(const Head&);
+    template <typename T,
+             typename std::enable_if<std::is_constructible<Head, T>::value
+                                         && !(std::is_array<CleanT<T>>::value
+                                             && !std::is_same<typename std::decay<BaseElement<T>>::type, char>::value
+                                             && !std::is_same<typename std::decay<BaseElement<T>>::type, wchar_t>::value)
+                                         && !(std::is_same<Head, bool>::value
+                                              && (std::is_array<CleanT<T>>::value
+                                                  || std::is_pointer<typename std::decay<T>::type>::value))
+                                     , int>::type = 0>
+    static std::integral_constant<size_t, Index> match(Head);
 };
 // остановка рекурсии (пустой список)
 template <size_t Index>
 struct compiler_type_resolver<Index> {
-    static void match(...); // заглушка
+    template <typename T>
+    static std::integral_constant<size_t, static_cast<size_t>(-1)> match(...); // заглушка
 };
 // ---------------------------------------------------------------------
 // описатель получения индекса по типу (ОБЩИЙ)
@@ -218,13 +215,9 @@ struct index_of_type;
 template <typename FindType, typename Head, typename... Types>
 struct index_of_type<FindType, Head, Types...> {
     // делегируем выбор типа компилятору
-    using Selector = decltype(compiler_type_resolver<0, Head, Types...>::match(std::declval<FindType>()));
-    using FinalRes = typename std::conditional<
-        std::is_same<Selector, void>::value,
-        std::integral_constant<size_t, static_cast<size_t>(-1)>,
-        Selector>::type;
+    using Selector = decltype(compiler_type_resolver<0, Head, Types...>::template match<FindType>(std::declval<FindType>()));
 
-    static constexpr size_t value  = FinalRes::value;
+    static constexpr size_t value  = Selector::value;
     static constexpr bool is_found = value != static_cast<size_t>(-1);
 };
 // строгая проверка для std::nullptr_t
