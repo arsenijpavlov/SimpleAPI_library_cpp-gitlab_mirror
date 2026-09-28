@@ -340,8 +340,7 @@ class Variant {
     template <ssize_t Index>
     struct Creator<Index, false> {
         template <typename T>
-        static void create(const ssize_t& find_index, void* ptr, T&& value)
-        { /*метод-заглушка*/ }
+        static void create(const ssize_t& find_index, void* ptr, T&& value) { /*метод-заглушка*/ }
     };
 
     // шаблон рекурсивного поиска деструктора
@@ -377,8 +376,7 @@ class Variant {
     // шаблон для остановки рекурсии (вышли за границы списка типов)
     template <ssize_t Index>
     struct Destroyer<Index, false> {
-        static void destroy(const ssize_t& find_index, void* ptr)
-        { /*метод-заглушка*/ }
+        static void destroy(const ssize_t& find_index, void* ptr) { /*метод-заглушка*/ }
     };
 
     // шаблон рекурсивного поиска для вычисления типа объекта other
@@ -526,7 +524,7 @@ public:
              typename std::enable_if<std::is_same<Dummy, std::nullptr_t>::value
                                          && tools::index_of_type<std::nullptr_t, Types...>::is_found
                                      , int>::type = 0>
-    Variant(std::nullptr_t)
+    Variant(std::nullptr_t) noexcept
     {
         using Index = typename tools::index_of_type<std::nullptr_t, Types...>;
 
@@ -579,7 +577,7 @@ public:
         return *this;
     }
 
-    Variant& operator=(Variant&& other)
+    Variant& operator=(Variant&& other) noexcept
     {
         if(this != &other)
         {
@@ -606,7 +604,7 @@ public:
     }
 
     template <typename... OtherTypes>
-    Variant& operator=(Variant<OtherTypes...>&& other)
+    Variant& operator=(Variant<OtherTypes...>&& other) noexcept
     {
         // NOTE: проверка if(this != &other) не нужна, т.к. типы заведомо разные по variadic
         UniversalAssigner<true, 0>::assign(m_current_type_index, std::move(other), *this);
@@ -720,13 +718,12 @@ public:
     template <typename T,
              typename std::enable_if<tools::index_of_type<T, Types...>::is_found
                                      , int>::type = 0>
-    T* get_if()
+    T* get_if() noexcept
     {
         static constexpr size_t type_index = tools::index_of_type<T, Types...>::value;
+        static constexpr bool   is_nullptr = std::is_same<T, std::nullptr_t>::value;
 
-        // FIXME: если тип nullptr, то вернуть его сразу
-
-        if(type_index == m_current_type_index) {
+        if(type_index == m_current_type_index && !is_nullptr) {
             return reinterpret_cast<T*>(m_data);
         }
         return nullptr;
@@ -736,13 +733,12 @@ public:
     template <typename T,
              typename std::enable_if<tools::index_of_type<T, Types...>::is_found
                                      , int>::type = 0>
-    const T* get_if() const
+    const T* get_if() const noexcept
     {
         static constexpr size_t type_index = tools::index_of_type<T, Types...>::value;
+        static constexpr bool   is_nullptr = std::is_same<T, std::nullptr_t>::value;
 
-        // FIXME: если тип nullptr, то вернуть его сразу
-
-        if(type_index == m_current_type_index) {
+        if(type_index == m_current_type_index && !is_nullptr) {
             return reinterpret_cast<const T*>(m_data);
         }
         return nullptr;
