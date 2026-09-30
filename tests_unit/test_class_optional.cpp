@@ -60,7 +60,7 @@ TEST(OPTIONAL, if_then) {
     EXPECT_EQ(res, 200);
 
     Optional<int> oi_2(100);
-    if(oi_2)
+    if(!oi_2)
         res = 200;
     else
         res = 300;
