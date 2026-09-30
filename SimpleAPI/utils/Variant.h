@@ -379,6 +379,7 @@ class Variant {
         static void destroy(const ssize_t& find_index, void* ptr) { /*метод-заглушка*/ }
     };
 
+    // FIXME: подумать над использованием UniversalAssigner для operator=
     // шаблон рекурсивного поиска для вычисления типа объекта other
     // NOTE: внешний код всегда вызывает начальную связку <true, 0>
     template <bool is_in_bounds, ssize_t OtherIndex>
@@ -631,41 +632,61 @@ public:
         return *this;
     }
 
-    // TODO: значение того же типа не должно перевыделять память
-    // TODO: если переменная const T, то выдать исключение
     template <typename T,
              typename std::enable_if<!std::is_same<typename std::decay<T>::type, Variant>::value
                                          && tools::index_of_type<T, Types...>::is_found
                                      , int>::type = 0>
     Variant& operator=(const T& value)
     {
-        // уничтожение старого объекта
-        Destroyer<0>::destroy(m_current_type_index, m_data);
+        using CleanT                              = typename std::decay<T>::type;
+        static constexpr ssize_t input_type_index = tools::index_of_type<CleanT, Types...>::value;
 
-        using CleanT = typename std::decay<T>::type;
-        using Index  = typename tools::index_of_type<CleanT, Types...>;
+        if(input_type_index == m_current_type_index) {
+            // если новый тип совпал с текущим - применить сразу
 
-        m_current_type_index = Index::value;
-        Creator<0>::create(m_current_type_index, m_data, value);
+            // запрещаем перезапись константного типа
+            using CurrentType = typename tools::type_at_index<input_type_index, Types...>::type;
+            static_assert(!std::is_const<CurrentType>::value,
+                          "SimpleAPI: сannot assign a new value(const&) to a const alternative in class Variant<>");
+
+            *(reinterpret_cast<T*>(m_data)) = value;
+        } else {
+            // иначе - работа с памятью
+            // уничтожение старого объекта
+            Destroyer<0>::destroy(m_current_type_index, m_data);
+
+            m_current_type_index = input_type_index;
+            Creator<0>::create(m_current_type_index, m_data, value);
+        }
 
         return *this;
     }
 
-    // TODO: значение того же типа не должно перевыделять память
-    // TODO: если переменная const T, то выдать исключение
     template <typename T,
              typename std::enable_if<!std::is_same<typename std::decay<T>::type, Variant>::value
                                          && tools::index_of_type<T, Types...>::is_found
                                      , int>::type = 0>
     Variant& operator=(T&& value) {
-        // уничтожение старого объекта
-        Destroyer<0>::destroy(m_current_type_index, m_data);
+        using CleanT                              = typename std::decay<T>::type;
+        static constexpr ssize_t input_type_index = tools::index_of_type<CleanT, Types...>::value;
 
-        using CleanT = typename std::decay<T>::type;
-        using Index  = typename tools::index_of_type<CleanT, Types...>;
+        if(input_type_index == m_current_type_index) {
+            // если новый тип совпал с текущим - применить сразу
 
-        m_current_type_index = Index::value;
-        Creator<0>::create(m_current_type_index, m_data, std::forward<T>(value));
+            // запрещаем перезапись константного типа
+            using CurrentType = typename tools::type_at_index<input_type_index, Types...>::type;
+            static_assert(!(std::is_const<CurrentType>::value && !std::is_pointer<CurrentType>::value),
+                          "SimpleAPI: сannot assign a new value(&&) to a const alternative in class Variant<>");
+
+            *(reinterpret_cast<T*>(m_data)) = std::move(value);
+        } else {
+            // иначе - работа с памятью
+            // уничтожение старого объекта
+            Destroyer<0>::destroy(m_current_type_index, m_data);
+
+            m_current_type_index = input_type_index;
+            Creator<0>::create(m_current_type_index, m_data, std::forward<T>(value));
+        }
 
         return *this;
     }

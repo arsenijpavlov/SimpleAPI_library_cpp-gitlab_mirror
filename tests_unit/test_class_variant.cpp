@@ -163,3 +163,17 @@ TEST(VARIANT, null_pointers) {
     EXPECT_EQ(var_const_ptr_val_.get_if<std::nullptr_t>(), nullptr);
 }
 
+// проверка присвоения значения без выделения памяти (тип совпал)
+TEST(VARIANT, apply_new_value_without_recreate_memory) {
+    using namespace simpleapi;
+
+    Variant<int, std::string> var(10);
+    var = 15;
+    EXPECT_EQ(var.get<int>(), 15);
+
+    const int i = 16;
+    var = i;
+    EXPECT_EQ(var.get<int>(), 16);
+
+    // защита от перезаписи const типов уже внутри Variant::operator=()
+}
