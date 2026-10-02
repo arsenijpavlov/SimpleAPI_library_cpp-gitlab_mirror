@@ -386,37 +386,58 @@ class Variant {
     struct UniversalAssigner {
         struct UniversalAssignerHelper
         {
-            // helper: вариант если dest поддерживает копирующее присвоение
+            // helper: вариант если dest поддерживает копирующее присваивание
             template <typename T,
                      typename std::enable_if<tools::index_of_type<T, Types...>::is_found
+                                                 && std::is_assignable<
+                                                     typename tools::type_at_index<tools::index_of_type<T, Types...>::value, Types...>::type&
+                                                     , T&>::value
                                              , int>::type = 0>
             static void helper_assign(Variant<Types...>& dest_value, const T& value) {
-                // если тип некорректный, то сработает защита в operator=
-                dest_value = value;
+//                *(reinterpret_cast<T*>(dest_value.m_data)) = value;
             }
-            // helper: вариант если dest поддерживает перемещающее присвоение
+            // helper: вариант если dest НЕ поддерживает копирующее присваивание
             template <typename T,
                      typename std::enable_if<tools::index_of_type<T, Types...>::is_found
+                                                 && !std::is_assignable<
+                                                     typename tools::type_at_index<tools::index_of_type<T, Types...>::value, Types...>::type&
+                                                     , T&>::value
+                                             , int>::type = 0>
+            static void helper_assign(Variant<Types...>& dest_value, const T& value) {
+//                *(reinterpret_cast<T*>(dest_value.m_data)) = value;
+            }
+
+            // helper: вариант если dest поддерживает перемещающее присваивание
+            template <typename T,
+                     typename std::enable_if<tools::index_of_type<T, Types...>::is_found
+                                                 && std::is_assignable<
+                                                     typename tools::type_at_index<tools::index_of_type<T, Types...>::value, Types...>::type&
+                                                     , T&&>::value
                                              , int>::type = 0>
             static void helper_assign(Variant<Types...>& dest_value, T&& value) {
-                // если тип некорректный, то сработает защита в operator=
-                dest_value = std::move(value);
+//                *(reinterpret_cast<T*>(dest_value.m_data)) = std::move(value);
+            }
+            // helper: вариант если dest поддерживает перемещающее присваивание
+            template <typename T,
+                     typename std::enable_if<tools::index_of_type<T, Types...>::is_found
+                                                 && !std::is_assignable<
+                                                     typename tools::type_at_index<tools::index_of_type<T, Types...>::value, Types...>::type&
+                                                     , T&&>::value
+                                             , int>::type = 0>
+            static void helper_assign(Variant<Types...>& dest_value, T&& value) {
+//                *(reinterpret_cast<T*>(dest_value.m_data)) = std::move(value);
             }
 
             // helper: общий вариант (const T&)
             template <typename T,
                      typename std::enable_if<!tools::index_of_type<T, Types...>::is_found
                                              , int>::type = 0>
-            static void helper_assign(Variant<Types...>& dest_value, const T& value) {
-                // FIXME: throw exception bad_cast
-            }
+            static void helper_assign(Variant<Types...>& dest_value, const T& value) { /* заглушка */ }
             // helper: общий вариант (const T&)
             template <typename T,
                      typename std::enable_if<!tools::index_of_type<T, Types...>::is_found
                                              , int>::type = 0>
-            static void helper_assign(Variant<Types...>& dest_value, T&& value) {
-                // FIXME: throw exception bad_cast
-            }
+            static void helper_assign(Variant<Types...>& dest_value, T&& value) { /* заглушка */ }
         };
 
         // вариант, когда тип совпадает с искомым (const &)
@@ -646,10 +667,10 @@ public:
 
             // запрещаем перезапись константного типа
             using CurrentType = typename tools::type_at_index<input_type_index, Types...>::type;
-            static_assert(!std::is_const<CurrentType>::value,
-                          "SimpleAPI: сannot assign a new value(const&) to a const alternative in class Variant<>");
+//            static_assert(!std::is_const<CurrentType>::value,
+//                          "SimpleAPI: сannot assign a new value(const&) to a const alternative in class Variant<>");
 
-            *(reinterpret_cast<T*>(m_data)) = value;
+//            *(reinterpret_cast<T*>(m_data)) = value;
         } else {
             // иначе - работа с памятью
             // уничтожение старого объекта
@@ -675,10 +696,10 @@ public:
 
             // запрещаем перезапись константного типа
             using CurrentType = typename tools::type_at_index<input_type_index, Types...>::type;
-            static_assert(!(std::is_const<CurrentType>::value && !std::is_pointer<CurrentType>::value),
-                          "SimpleAPI: сannot assign a new value(&&) to a const alternative in class Variant<>");
+//            static_assert(!(std::is_const<CurrentType>::value && !std::is_pointer<CurrentType>::value),
+//                          "SimpleAPI: сannot assign a new value(&&) to a const alternative in class Variant<>");
 
-            *(reinterpret_cast<T*>(m_data)) = std::move(value);
+//            *(reinterpret_cast<T*>(m_data)) = std::move(value);
         } else {
             // иначе - работа с памятью
             // уничтожение старого объекта
