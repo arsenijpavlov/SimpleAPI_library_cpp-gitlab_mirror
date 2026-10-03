@@ -386,58 +386,20 @@ class Variant {
     struct UniversalAssigner {
         struct UniversalAssignerHelper
         {
-            // helper: вариант если dest поддерживает копирующее присваивание
-            template <typename T,
-                     typename std::enable_if<tools::index_of_type<T, Types...>::is_found
-                                                 && std::is_assignable<
-                                                     typename tools::type_at_index<tools::index_of_type<T, Types...>::value, Types...>::type&
-                                                     , T&>::value
-                                             , int>::type = 0>
-            static void helper_assign(Variant<Types...>& dest_value, const T& value) {
-//                *(reinterpret_cast<T*>(dest_value.m_data)) = value;
-            }
-            // helper: вариант если dest НЕ поддерживает копирующее присваивание
-            template <typename T,
-                     typename std::enable_if<tools::index_of_type<T, Types...>::is_found
-                                                 && !std::is_assignable<
-                                                     typename tools::type_at_index<tools::index_of_type<T, Types...>::value, Types...>::type&
-                                                     , T&>::value
-                                             , int>::type = 0>
-            static void helper_assign(Variant<Types...>& dest_value, const T& value) {
-//                *(reinterpret_cast<T*>(dest_value.m_data)) = value;
-            }
+            // helper: тип найден
+            template <bool enable = true, typename SrcType, typename TargetType,
+                     typename std::enable_if<std::is_assignable<TargetType, SrcType>::value, int>::type = 0>
+            static void helper_assign(uint8_t* target_ptr, SrcType&& value)
+            { }
 
-            // helper: вариант если dest поддерживает перемещающее присваивание
-            template <typename T,
-                     typename std::enable_if<tools::index_of_type<T, Types...>::is_found
-                                                 && std::is_assignable<
-                                                     typename tools::type_at_index<tools::index_of_type<T, Types...>::value, Types...>::type&
-                                                     , T&&>::value
-                                             , int>::type = 0>
-            static void helper_assign(Variant<Types...>& dest_value, T&& value) {
-//                *(reinterpret_cast<T*>(dest_value.m_data)) = std::move(value);
-            }
-            // helper: вариант если dest поддерживает перемещающее присваивание
-            template <typename T,
-                     typename std::enable_if<tools::index_of_type<T, Types...>::is_found
-                                                 && !std::is_assignable<
-                                                     typename tools::type_at_index<tools::index_of_type<T, Types...>::value, Types...>::type&
-                                                     , T&&>::value
-                                             , int>::type = 0>
-            static void helper_assign(Variant<Types...>& dest_value, T&& value) {
-//                *(reinterpret_cast<T*>(dest_value.m_data)) = std::move(value);
-            }
-
-            // helper: общий вариант (const T&)
-            template <typename T,
-                     typename std::enable_if<!tools::index_of_type<T, Types...>::is_found
-                                             , int>::type = 0>
-            static void helper_assign(Variant<Types...>& dest_value, const T& value) { /* заглушка */ }
-            // helper: общий вариант (const T&)
-            template <typename T,
-                     typename std::enable_if<!tools::index_of_type<T, Types...>::is_found
-                                             , int>::type = 0>
-            static void helper_assign(Variant<Types...>& dest_value, T&& value) { /* заглушка */ }
+            //------------------------------------------
+            // helper: тип НЕ найден
+            template <bool enable = false, typename SrcType, typename TargetType,
+                     typename std::enable_if<
+                         !std::is_assignable<TargetType, SrcType>::value
+                         , int>::type = 0>
+            static void helper_assign(uint8_t* target_ptr, SrcType&& value)
+            { }
         };
 
         // вариант, когда тип совпадает с искомым (const &)
@@ -449,7 +411,14 @@ class Variant {
                 using OtherType   = typename tools::type_at_index<OtherIndex, OtherTypes...>::type;
                 using TargetIndex = typename tools::index_of_type<OtherType, Types...>;
 
-                UniversalAssignerHelper::helper_assign(dest_value, other.template get<OtherType>());
+                using TargetType = std::conditional<
+                    TargetIndex::is_found,
+                    typename tools::type_at_index<TargetIndex::value, Types...>::type,
+                    std::nullptr_t // заглушка
+                    >;
+
+                UniversalAssignerHelper::template helper_assign<TargetIndex::is_found, OtherType, TargetType>
+                    (dest_value.m_data, other.template get<OtherType>());
             } else {
                 // продолжение поиска
                 static constexpr bool next_in_bounds = (OtherIndex + 1) < sizeof...(OtherTypes);
@@ -466,7 +435,14 @@ class Variant {
                 using OtherType   = typename tools::type_at_index<OtherIndex, OtherTypes...>::type;
                 using TargetIndex = typename tools::index_of_type<OtherType, Types...>;
 
-                UniversalAssignerHelper::helper_assign(dest_value, std::move(other.template get<OtherType>()));
+                using TargetType  = std::conditional<
+                    TargetIndex::is_found,
+                    typename tools::type_at_index<TargetIndex::value, Types...>::type,
+                    std::nullptr_t // заглушка
+                    >;
+
+                UniversalAssignerHelper::template helper_assign<TargetIndex::is_found, OtherType, TargetType>
+                    (dest_value.m_data, std::move(other.template get<OtherType>()));
             } else {
                 // продолжение поиска
                 static constexpr bool next_in_bounds = (OtherIndex + 1) < sizeof...(OtherTypes);
