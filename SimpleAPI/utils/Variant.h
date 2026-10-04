@@ -379,29 +379,82 @@ class Variant {
         static void destroy(const ssize_t& find_index, void* ptr) { /*метод-заглушка*/ }
     };
 
-    // FIXME: подумать над использованием UniversalAssigner для operator=
+    //---------------------------------------------------------------------------------
+    // helper: тип найден - присваивание (const T&)
+    template <bool enable = true, typename SrcType, typename TargetType,
+             typename std::enable_if<
+                 std::is_assignable<TargetType, SrcType>::value
+             , int>::type = 0>
+    static void HelperAssign(uint8_t* target_ptr, const SrcType& value)
+    {
+        *reinterpret_cast<TargetType*>(target_ptr) = std::forward<SrcType>(value);
+    }
+    // helper: тип найден - присваивание (T&&, указатель)
+    template <bool enable = true, typename SrcType, typename TargetType,
+             typename std::enable_if<
+                 std::is_assignable<TargetType, SrcType>::value
+                 && std::is_trivially_copyable<SrcType>::value
+             , int>::type = 0>
+    static void HelperAssign(uint8_t* target_ptr, SrcType&& value)
+    {
+        // placement new
+        new (static_cast<void*>(target_ptr)) TargetType(value);
+    }
+    // helper: тип найден - присваивание (T&&)
+    template <bool enable = true, typename SrcType, typename TargetType,
+             typename std::enable_if<
+                 std::is_assignable<TargetType, SrcType>::value
+                 && !std::is_trivially_copyable<SrcType>::value
+             , int>::type = 0>
+    static void HelperAssign(uint8_t* target_ptr, SrcType&& value)
+    {
+        *reinterpret_cast<TargetType*>(target_ptr) = std::forward<SrcType>(value);
+    }
+    // helper: тип найден - конструирование (const T&)
+    template <bool enable = true, typename SrcType, typename TargetType,
+             typename std::enable_if<
+                 !std::is_assignable<TargetType, SrcType>::value
+                     && std::is_constructible<TargetType, SrcType>::value
+                 , int>::type = 0>
+    static void HelperAssign(uint8_t* target_ptr, const SrcType& value)
+    {
+        // placement new
+        new (static_cast<void*>(target_ptr)) TargetType(value);
+    }
+    // helper: тип найден - конструирование (T&&)
+    template <bool enable = true, typename SrcType, typename TargetType,
+             typename std::enable_if<
+                 !std::is_assignable<TargetType, SrcType>::value
+                     && std::is_constructible<TargetType, SrcType>::value
+                 , int>::type = 0>
+    static void HelperAssign(uint8_t* target_ptr, SrcType&& value)
+    {
+        // placement new
+        new (static_cast<void*>(target_ptr)) TargetType(std::forward<SrcType>(value));
+    }
+    //------------------------------------------
+    // helper: тип НЕ найден (const T&)
+    template <bool enable = false, typename SrcType, typename TargetType,
+             typename std::enable_if<
+                 !std::is_assignable<TargetType, SrcType>::value
+                    && !std::is_constructible<TargetType, SrcType>::value
+                 , int>::type = 0>
+    static void HelperAssign(uint8_t* target_ptr, const SrcType&& value)
+    { /* заглушка */ }
+    // helper: тип НЕ найден (T&&)
+    template <bool enable = false, typename SrcType, typename TargetType,
+             typename std::enable_if<
+                 !std::is_assignable<TargetType, SrcType>::value
+                    && !std::is_constructible<TargetType, SrcType>::value
+                 , int>::type = 0>
+    static void HelperAssign(uint8_t* target_ptr, SrcType&& value)
+    { /* заглушка */ }
+    //---------------------------------------------------------------------------------
+
     // шаблон рекурсивного поиска для вычисления типа объекта other
     // NOTE: внешний код всегда вызывает начальную связку <true, 0>
     template <bool is_in_bounds, ssize_t OtherIndex>
     struct UniversalAssigner {
-        struct UniversalAssignerHelper
-        {
-            // helper: тип найден
-            template <bool enable = true, typename SrcType, typename TargetType,
-                     typename std::enable_if<std::is_assignable<TargetType, SrcType>::value, int>::type = 0>
-            static void helper_assign(uint8_t* target_ptr, SrcType&& value)
-            { }
-
-            //------------------------------------------
-            // helper: тип НЕ найден
-            template <bool enable = false, typename SrcType, typename TargetType,
-                     typename std::enable_if<
-                         !std::is_assignable<TargetType, SrcType>::value
-                         , int>::type = 0>
-            static void helper_assign(uint8_t* target_ptr, SrcType&& value)
-            { }
-        };
-
         // вариант, когда тип совпадает с искомым (const &)
         template <typename... OtherTypes>
         static void assign(const ssize_t& other_index, const Variant<OtherTypes...>& other, Variant<Types...>& dest_value)
@@ -413,11 +466,11 @@ class Variant {
 
                 using TargetType = std::conditional<
                     TargetIndex::is_found,
-                    typename tools::type_at_index<TargetIndex::value, Types...>::type,
+                    typename tools::type_at_index<(TargetIndex::is_found ? TargetIndex::value : 0), Types...>::type,
                     std::nullptr_t // заглушка
                     >;
 
-                UniversalAssignerHelper::template helper_assign<TargetIndex::is_found, OtherType, TargetType>
+                HelperAssign<TargetIndex::is_found, OtherType, TargetType>
                     (dest_value.m_data, other.template get<OtherType>());
             } else {
                 // продолжение поиска
@@ -437,11 +490,11 @@ class Variant {
 
                 using TargetType  = std::conditional<
                     TargetIndex::is_found,
-                    typename tools::type_at_index<TargetIndex::value, Types...>::type,
+                    typename tools::type_at_index<(TargetIndex::is_found ? TargetIndex::value : 0), Types...>::type,
                     std::nullptr_t // заглушка
                     >;
 
-                UniversalAssignerHelper::template helper_assign<TargetIndex::is_found, OtherType, TargetType>
+                HelperAssign<TargetIndex::is_found, OtherType, TargetType>
                     (dest_value.m_data, std::move(other.template get<OtherType>()));
             } else {
                 // продолжение поиска
@@ -638,15 +691,15 @@ public:
         using CleanT                              = typename std::decay<T>::type;
         static constexpr ssize_t input_type_index = tools::index_of_type<CleanT, Types...>::value;
 
-        if(input_type_index == m_current_type_index) {
+        if(input_type_index == m_current_type_index) { // FIXME: применить эту проверку для конструктора OtherTypes...
             // если новый тип совпал с текущим - применить сразу
 
             // запрещаем перезапись константного типа
             using CurrentType = typename tools::type_at_index<input_type_index, Types...>::type;
-//            static_assert(!std::is_const<CurrentType>::value,
-//                          "SimpleAPI: сannot assign a new value(const&) to a const alternative in class Variant<>");
+            static_assert(!std::is_const<CurrentType>::value,
+                          "SimpleAPI: сannot assign a new value(const&) to a const alternative in class Variant<>");
 
-//            *(reinterpret_cast<T*>(m_data)) = value;
+            HelperAssign<true, T, CurrentType>(m_data, value);
         } else {
             // иначе - работа с памятью
             // уничтожение старого объекта
@@ -672,10 +725,10 @@ public:
 
             // запрещаем перезапись константного типа
             using CurrentType = typename tools::type_at_index<input_type_index, Types...>::type;
-//            static_assert(!(std::is_const<CurrentType>::value && !std::is_pointer<CurrentType>::value),
-//                          "SimpleAPI: сannot assign a new value(&&) to a const alternative in class Variant<>");
+            static_assert(!(std::is_const<CurrentType>::value && !std::is_pointer<CurrentType>::value),
+                          "SimpleAPI: сannot assign a new value(&&) to a const alternative in class Variant<>");
 
-//            *(reinterpret_cast<T*>(m_data)) = std::move(value);
+            HelperAssign<true, T, CurrentType>(m_data, std::forward<T>(value));
         } else {
             // иначе - работа с памятью
             // уничтожение старого объекта
@@ -688,23 +741,7 @@ public:
         return *this;
     }
 
-//    template <typename T, typename std::enable_if<tools::is_contains_conv_type<T, Types...>::value, int>::type = 0>
-//    void set(const T& other) {
-//        /* FIXME */
-//    }
-
-//    template <typename T, typename std::enable_if<tools::is_contains_conv_type<T, Types...>::value, int>::type = 0>
-//    void set(T&& other) {
-//        /* FIXME */
-//    }
-
-//    void set(const Variant& other) {
-//        /* FIXME */
-//    }
-
-//    void set(Variant&& other) {
-//        /* FIXME */
-//    }
+    // TODO: методы set() как аналог operator=
 
     // NOTE: трюк с Dummy= и std::is_same<Dummy,> нужен для переноса проверки с момента создания объекта на момент вызова конкретного метода
     template <typename Dummy = std::nullptr_t,

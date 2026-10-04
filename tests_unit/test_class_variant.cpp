@@ -127,8 +127,9 @@ TEST(VARIANT, cv_modificators) {
     Variant<const int, std::string, uint8_t> var_cv_6(ui);
     EXPECT_EQ(var_cv_6.index(), 2);
 
-    var_cv_6 = static_cast<int>(165);
-    EXPECT_EQ(var_cv_6.index(), 0);
+    var_cv_6 = static_cast<uint8_t>(165);
+    EXPECT_EQ(var_cv_6.index(), 2);
+    //NOTE: смена значения через "= int" для типа "const int" запрещена на уровне компиляции
 }
 
 // const char[4] - сырые строки, переданные напрямую
