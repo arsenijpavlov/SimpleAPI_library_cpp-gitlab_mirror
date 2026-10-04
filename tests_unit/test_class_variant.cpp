@@ -178,3 +178,19 @@ TEST(VARIANT, apply_new_value_without_recreate_memory) {
 
     // защита от перезаписи const типов уже внутри Variant::operator=()
 }
+
+TEST(VARIANT, setter_as_operator_eq) {
+    using namespace simpleapi;
+
+    Variant<int, std::string> var(1);
+    var.set(2);
+    EXPECT_EQ(var.get<int>(), 2);
+
+    const int i = 3;
+    var.set(i);
+    EXPECT_EQ(var.get<int>(), 3);
+
+    int i2 = 4;
+    var.set(std::move(i2));
+    EXPECT_EQ(var.get<int>(), 4);
+}

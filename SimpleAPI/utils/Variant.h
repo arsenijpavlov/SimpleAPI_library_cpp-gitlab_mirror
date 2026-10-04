@@ -741,7 +741,25 @@ public:
         return *this;
     }
 
-    // TODO: методы set() как аналог operator=
+    template <typename T,
+             typename std::enable_if<!std::is_same<typename std::decay<T>::type, Variant>::value
+                                         && tools::index_of_type<T, Types...>::is_found
+                                     , int>::type = 0>
+    Variant& set(const T& value)
+    {
+        *this = value;
+        return *this;
+    }
+
+    template <typename T,
+             typename std::enable_if<!std::is_same<typename std::decay<T>::type, Variant>::value
+                                         && tools::index_of_type<T, Types...>::is_found
+                                     , int>::type = 0>
+    Variant& set(T&& value)
+    {
+        *this = std::forward<T>(value);
+        return *this;
+    }
 
     // NOTE: трюк с Dummy= и std::is_same<Dummy,> нужен для переноса проверки с момента создания объекта на момент вызова конкретного метода
     template <typename Dummy = std::nullptr_t,
