@@ -17,11 +17,11 @@ namespace tools {
 /* Макросы времени компиляции:
  *  - max_size_of_type      - расчёт максмального размера типа среди указанных
  *  - max_align_of_type     - расчёт максмального размера выравнивания типа
+ *  - type_at_index         - получить тип на основе индекса
  *  - index_of_type_same
  *  - index_of_type_convertible
  *  - index_of_type_constructible
  *  - compiler_type_resolver
-// *  - type_at_index         - получить тип на основе индекса
  *  - index_of_type         - получить индекс на основе типа
  *  - is_contains_type      - есть ли указанный тип среди списка
  *  - is_contains_conv_type - есть ли указанный тип среди списка (с учётом конвертации типов)
@@ -692,7 +692,7 @@ public:
         using CleanT                              = typename std::decay<T>::type;
         static constexpr ssize_t input_type_index = tools::index_of_type<CleanT, Types...>::value;
 
-        if(input_type_index == m_current_type_index) { // FIXME: применить эту проверку для конструктора OtherTypes...
+        if(input_type_index == m_current_type_index) {
             // если новый тип совпал с текущим - применить сразу
 
             // запрещаем перезапись константного типа
