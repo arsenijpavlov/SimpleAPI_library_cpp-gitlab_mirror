@@ -9,7 +9,6 @@
 #include <typeinfo>
 #include <utility>
 
-// FIXME: все индексы перевести на тип ssize_t
 
 namespace simpleapi {
 
@@ -18,7 +17,11 @@ namespace tools {
 /* Макросы времени компиляции:
  *  - max_size_of_type      - расчёт максмального размера типа среди указанных
  *  - max_align_of_type     - расчёт максмального размера выравнивания типа
- *  - type_at_index         - получить тип на основе индекса
+ *  - index_of_type_same
+ *  - index_of_type_convertible
+ *  - index_of_type_constructible
+ *  - compiler_type_resolver
+// *  - type_at_index         - получить тип на основе индекса
  *  - index_of_type         - получить индекс на основе типа
  *  - is_contains_type      - есть ли указанный тип среди списка
  *  - is_contains_conv_type - есть ли указанный тип среди списка (с учётом конвертации типов)
@@ -85,7 +88,7 @@ template <typename FindType, typename... Types>
 struct index_of_type_same;
 // искомый тип НЕ найден, возвращаем ошибку
 template <typename FindType>
-struct index_of_type_same<FindType> { static constexpr size_t value = static_cast<size_t>(-1); };
+struct index_of_type_same<FindType> { static constexpr ssize_t value = -1; };
 // рекурсивный поиск
 template <typename FindType, typename Head, typename... Types>
 struct index_of_type_same<FindType, Head, Types...> {
@@ -94,11 +97,11 @@ struct index_of_type_same<FindType, Head, Types...> {
 
     struct OnTrue  { static constexpr size_t value = 0; };
     struct OnFalse {
-        static constexpr size_t next_value = index_of_type_same<FindType, Types...>::value;
+        static constexpr ssize_t next_value = index_of_type_same<FindType, Types...>::value;
         // если есть ошибка, то прокидываем её наверх
         // иначе продолжаем поиск
-        static constexpr size_t value = (next_value == static_cast<size_t>(-1)) ? static_cast<size_t>(-1)
-                                                                                : 1 + next_value;
+        static constexpr ssize_t value = (next_value == -1) ? -1
+                                                            : 1 + next_value;
     };
 
     // на основе диспетчера (аналог тернарного оператора) выбираем дальнейшее действие
@@ -112,24 +115,24 @@ template <typename FindType, typename... Types>
 struct index_of_type_convertible;
 // искомый тип НЕ найден, возвращаем ошибку
 template <typename FindType>
-struct index_of_type_convertible<FindType> { static constexpr size_t value = static_cast<size_t>(-1); };
+struct index_of_type_convertible<FindType> { static constexpr ssize_t value = -1; };
 // рекурсивный поиск
 template <typename FindType, typename Head, typename... Types>
 struct index_of_type_convertible<FindType, Head, Types...> {
     // базовое сравнение
     static constexpr bool is_match = std::is_convertible<FindType, Head>::value;
 
-    struct OnTrue  { static constexpr size_t value = 0; };
+    struct OnTrue  { static constexpr ssize_t value = 0; };
     struct OnFalse {
-        static constexpr size_t next_value = index_of_type_convertible<FindType, Types...>::value;
+        static constexpr ssize_t next_value = index_of_type_convertible<FindType, Types...>::value;
         // если есть ошибка, то прокидываем её наверх
         // иначе продолжаем поиск
-        static constexpr size_t value = (next_value == static_cast<size_t>(-1)) ? static_cast<size_t>(-1)
-                                                                                : 1 + next_value;
+        static constexpr ssize_t value = (next_value == -1) ? -1
+                                                            : 1 + next_value;
     };
 
     // на основе диспетчера (аналог тернарного оператора) выбираем дальнейшее действие
-    static constexpr size_t value = std::conditional<is_match, OnTrue, OnFalse>::type::value;
+    static constexpr ssize_t value = std::conditional<is_match, OnTrue, OnFalse>::type::value;
 };
 // ---------------------------------------------------------------------
 // описатель получения индекса по типу (std::is_constructible)
@@ -139,24 +142,24 @@ template <typename FindType, typename... Types>
 struct index_of_type_constructible;
 // искомый тип НЕ найден, возвращаем ошибку
 template <typename FindType>
-struct index_of_type_constructible<FindType> { static constexpr size_t value = static_cast<size_t>(-1); };
+struct index_of_type_constructible<FindType> { static constexpr ssize_t value = -1; };
 // рекурсивный поиск
 template <typename FindType, typename Head, typename... Types>
 struct index_of_type_constructible<FindType, Head, Types...> {
     // базовое сравнение
     static constexpr bool is_match = std::is_constructible<FindType, Head>::value;
 
-    struct OnTrue  { static constexpr size_t value = 0; };
+    struct OnTrue  { static constexpr ssize_t value = 0; };
     struct OnFalse {
-        static constexpr size_t next_value = index_of_type_constructible<FindType, Types...>::value;
+        static constexpr ssize_t next_value = index_of_type_constructible<FindType, Types...>::value;
         // если есть ошибка, то прокидываем её наверх
         // иначе продолжаем поиск
-        static constexpr size_t value = (next_value == static_cast<size_t>(-1)) ? static_cast<size_t>(-1)
-                                                                                : 1 + next_value;
+        static constexpr ssize_t value = (next_value == -1) ? -1
+                                                            : 1 + next_value;
     };
 
     // на основе диспетчера (аналог тернарного оператора) выбираем дальнейшее действие
-    static constexpr size_t value = std::conditional<is_match, OnTrue, OnFalse>::type::value;
+    static constexpr ssize_t value = std::conditional<is_match, OnTrue, OnFalse>::type::value;
 };
 
 // ---------------------------------------------------------------------
@@ -164,10 +167,10 @@ struct index_of_type_constructible<FindType, Head, Types...> {
 // проверка вернёт тип void, если нет подходящего кандидата
 // ---------------------------------------------------------------------
 // базовое описание структуры для корректности выхода из SFINAE
-template <size_t Index, typename... Types>
+template <ssize_t Index, typename... Types>
 struct compiler_type_resolver;
 // рекурсивный поиск
-template <size_t Index, typename Head, typename... Types>
+template <ssize_t Index, typename Head, typename... Types>
 struct compiler_type_resolver<Index, Head, Types...> : compiler_type_resolver<Index + 1, Types...>
 {
     // делаем метод предка явно видимым
@@ -187,13 +190,13 @@ struct compiler_type_resolver<Index, Head, Types...> : compiler_type_resolver<In
                                               && (std::is_array<CleanT<T>>::value
                                                   || std::is_pointer<typename std::decay<T>::type>::value))
                                      , int>::type = 0>
-    static std::integral_constant<size_t, Index> match(Head);
+    static std::integral_constant<ssize_t, Index> match(Head);
 };
 // остановка рекурсии (пустой список)
-template <size_t Index>
+template <ssize_t Index>
 struct compiler_type_resolver<Index> {
     template <typename T>
-    static std::integral_constant<size_t, static_cast<size_t>(-1)> match(...); // заглушка
+    static std::integral_constant<ssize_t, -1> match(...); // заглушка
 };
 // ---------------------------------------------------------------------
 // описатель получения индекса по типу (ОБЩИЙ)
@@ -207,14 +210,14 @@ struct index_of_type<FindType, Head, Types...> {
     // делегируем выбор типа компилятору
     using Selector = decltype(compiler_type_resolver<0, Head, Types...>::template match<FindType>(std::declval<FindType>()));
 
-    static constexpr size_t value  = Selector::value;
-    static constexpr bool is_found = value != static_cast<size_t>(-1);
+    static constexpr ssize_t value = Selector::value;
+    static constexpr bool is_found = value != -1;
 };
 // строгая проверка для std::nullptr_t
 template <typename Head, typename... Types>
 struct index_of_type<std::nullptr_t, Head, Types...> {
-    static constexpr size_t value      = index_of_type_same<std::nullptr_t, Head, Types...>::value;
-    static constexpr bool is_found     = value != static_cast<size_t>(-1);
+    static constexpr ssize_t value = index_of_type_same<std::nullptr_t, Head, Types...>::value;
+    static constexpr bool is_found = value != -1;
 };
 // ---------------------------------------------------------------------
 
@@ -296,13 +299,13 @@ class Variant {
         {
             // helper: вариант для специализированного шаблона для std::nullptr_t
             template <typename T, typename Type, typename std::enable_if<std::is_same<Type, std::nullptr_t>::value, int>::type = 0>
-            static void helper_create(const size_t& type_index, void* ptr, T&& value) {
+            static void helper_create(const ssize_t& type_index, void* ptr, T&& value) {
                 // объект std::nullptr_t не требует выделения памяти
             }
 
             // helper: общий вариант
             template <typename T, typename Type, typename std::enable_if<!std::is_same<Type, std::nullptr_t>::value, int>::type = 0>
-            static void helper_create(const size_t& type_index, void* ptr, T&& value) {
+            static void helper_create(const ssize_t& type_index, void* ptr, T&& value) {
                 new (ptr) Type(std::forward<T>(value)); // ручной вызов placement new
             }
         };
@@ -385,7 +388,7 @@ class Variant {
              typename std::enable_if<
                  std::is_assignable<TargetType, SrcType>::value
              , int>::type = 0>
-    static void HelperAssign(uint8_t* target_ptr, const SrcType& value)
+    static void HelperAssign(void* target_ptr, const SrcType& value)
     {
         *reinterpret_cast<TargetType*>(target_ptr) = std::forward<SrcType>(value);
     }
@@ -395,7 +398,7 @@ class Variant {
                  std::is_assignable<TargetType, SrcType>::value
                  && std::is_trivially_copyable<SrcType>::value
              , int>::type = 0>
-    static void HelperAssign(uint8_t* target_ptr, SrcType&& value)
+    static void HelperAssign(void* target_ptr, SrcType&& value)
     {
         // placement new
         new (static_cast<void*>(target_ptr)) TargetType(value);
@@ -406,7 +409,7 @@ class Variant {
                  std::is_assignable<TargetType, SrcType>::value
                  && !std::is_trivially_copyable<SrcType>::value
              , int>::type = 0>
-    static void HelperAssign(uint8_t* target_ptr, SrcType&& value)
+    static void HelperAssign(void* target_ptr, SrcType&& value)
     {
         *reinterpret_cast<TargetType*>(target_ptr) = std::forward<SrcType>(value);
     }
@@ -416,7 +419,7 @@ class Variant {
                  !std::is_assignable<TargetType, SrcType>::value
                      && std::is_constructible<TargetType, SrcType>::value
                  , int>::type = 0>
-    static void HelperAssign(uint8_t* target_ptr, const SrcType& value)
+    static void HelperAssign(void* target_ptr, const SrcType& value)
     {
         // placement new
         new (static_cast<void*>(target_ptr)) TargetType(value);
@@ -427,7 +430,7 @@ class Variant {
                  !std::is_assignable<TargetType, SrcType>::value
                      && std::is_constructible<TargetType, SrcType>::value
                  , int>::type = 0>
-    static void HelperAssign(uint8_t* target_ptr, SrcType&& value)
+    static void HelperAssign(void* target_ptr, SrcType&& value)
     {
         // placement new
         new (static_cast<void*>(target_ptr)) TargetType(std::forward<SrcType>(value));
@@ -439,16 +442,14 @@ class Variant {
                  !std::is_assignable<TargetType, SrcType>::value
                     && !std::is_constructible<TargetType, SrcType>::value
                  , int>::type = 0>
-    static void HelperAssign(uint8_t* target_ptr, const SrcType&& value)
-    { /* заглушка */ }
+    static void HelperAssign(void* target_ptr, const SrcType&& value) { /* заглушка */ }
     // helper: тип НЕ найден (T&&)
     template <bool enable = false, typename SrcType, typename TargetType,
              typename std::enable_if<
                  !std::is_assignable<TargetType, SrcType>::value
                     && !std::is_constructible<TargetType, SrcType>::value
                  , int>::type = 0>
-    static void HelperAssign(uint8_t* target_ptr, SrcType&& value)
-    { /* заглушка */ }
+    static void HelperAssign(void* target_ptr, SrcType&& value) { /* заглушка */ }
     //---------------------------------------------------------------------------------
 
     // шаблон рекурсивного поиска для вычисления типа объекта other
@@ -793,8 +794,8 @@ public:
                                      , int>::type = 0>
     T* get_if() noexcept
     {
-        static constexpr size_t type_index = tools::index_of_type<T, Types...>::value;
-        static constexpr bool   is_nullptr = std::is_same<T, std::nullptr_t>::value;
+        static constexpr ssize_t type_index = tools::index_of_type<T, Types...>::value;
+        static constexpr bool    is_nullptr = std::is_same<T, std::nullptr_t>::value;
 
         if(type_index == m_current_type_index && !is_nullptr) {
             return reinterpret_cast<T*>(m_data);
@@ -808,8 +809,8 @@ public:
                                      , int>::type = 0>
     const T* get_if() const noexcept
     {
-        static constexpr size_t type_index = tools::index_of_type<T, Types...>::value;
-        static constexpr bool   is_nullptr = std::is_same<T, std::nullptr_t>::value;
+        static constexpr ssize_t type_index = tools::index_of_type<T, Types...>::value;
+        static constexpr bool    is_nullptr = std::is_same<T, std::nullptr_t>::value;
 
         if(type_index == m_current_type_index && !is_nullptr) {
             return reinterpret_cast<const T*>(m_data);
