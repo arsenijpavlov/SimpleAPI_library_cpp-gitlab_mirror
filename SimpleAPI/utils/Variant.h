@@ -482,6 +482,24 @@ public:
         return *this;
     }
 
+    template <typename T, typename... Args,
+             typename std::enable_if<!std::is_same<typename std::decay<T>::type, Variant>::value
+                                         && tools::index_of_type<T, Types...>::is_found
+                                     , int>::type = 0>
+    Variant& emplace(Args&&... args) {
+        // уничтожение старого объекта
+        Destroyer<0>::destroy(m_current_type_index, m_data);
+
+        using CleanT = typename std::decay<T>::type;
+        using Index  = typename tools::index_of_type<CleanT, Types...>;
+        using Type   = typename tools::type_at_index<Index::value, Types...>::type;
+
+        m_current_type_index = Index::value;
+        new (m_data) Type(std::forward<Args>(args)...); // ручной вызов placement new
+
+        return *this;
+    }
+
     // NOTE: трюк с Dummy= и std::is_same<Dummy,> нужен для переноса проверки с момента создания объекта на момент вызова конкретного метода
     template <typename Dummy = std::nullptr_t,
              typename std::enable_if<std::is_same<Dummy, std::nullptr_t>::value

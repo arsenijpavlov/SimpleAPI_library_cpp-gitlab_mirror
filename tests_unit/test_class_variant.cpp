@@ -194,3 +194,15 @@ TEST(VARIANT, setter_as_operator_eq) {
     var.set(std::move(i2));
     EXPECT_EQ(var.get<int>(), 4);
 }
+
+// NOTE: в случае Variant::emplace() всегда отрабатывает конструктор
+TEST(VARIANT, emplacer) {
+    using namespace simpleapi;
+
+    Variant<const int, std::string> var(10);
+    var.emplace<int>(20);
+    EXPECT_EQ(var.get<int>(), 20);
+
+    var.emplace<std::string>("asd");
+    EXPECT_EQ(var.get<std::string>(), "asd");
+}
