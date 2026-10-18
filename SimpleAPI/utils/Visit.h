@@ -53,9 +53,10 @@ template <typename InputVariantType, typename ArgType, typename = void>
 struct is_callable_simple_lambda : std::false_type {};
 //
 template <typename InputVariantType, typename ArgType>
-struct is_callable_simple_lambda<InputVariantType, ArgType,
-                                 typename std::enable_if<true, decltype(std::declval<InputVariantType>()(std::declval<ArgType>()), void())>
-                                 > : std::true_type {};
+struct is_callable_simple_lambda<
+    InputVariantType, ArgType,
+    typename std::enable_if<true, decltype(std::declval<InputVariantType>()(std::declval<ArgType>()), void())>::type
+    > : std::true_type {};
 //-----------------------------------------------------------------
 // база для выхода из SFINAE
 template <typename... Types>
