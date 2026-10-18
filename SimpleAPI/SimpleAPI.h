@@ -18,6 +18,7 @@
 #include "utils/file_utils.h"           // IWYU pragma: keep
 
 #include "utils/Variant.h"              // IWYU pragma: keep
+#include "utils/Visit.h"                // IWYU pragma: keep
 
 
 namespace simpleapi {
