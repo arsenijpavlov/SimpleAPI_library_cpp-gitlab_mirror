@@ -114,9 +114,7 @@ struct check_all_variant_types_callable_in_lambda<Variant<VariantType>, Lambdas.
     // механика std::conditional не позволяет вписать условие напрямую
     struct OnFalse {
         static constexpr bool value = is_callable_simple_lambda<
-            VariantType,
-            typename type_at_index<static_cast<size_t>(index_of_lambda), Lambdas...>::type
-            >::value;
+            VariantType, typename type_at_index<static_cast<size_t>(index_of_lambda), Lambdas...>::type>::value;
     };
 
     static constexpr bool value = std::conditional<index_of_lambda == -1, std::false_type, OnFalse>::type::value;
@@ -128,6 +126,11 @@ struct check_all_variant_types_callable_in_lambda<Variant<VariantType, VariantTy
                                   || check_all_variant_types_callable_in_lambda<Variant<VariantTypes...>, Lambdas...>::value;
 };
 //-----------------------------------------------------------------
+
+//-----------------------------------------------------------------
+//-----------------------------------------------------------------
+// TODO: выборщик на основе compiler_type_resolver (аналог для вызываемых функций/лямбд)
+//-----------------------------------------------------------------
 } // namespace tools
 
 // основной пользовательский интерфейс для механики Variant->Visitor
@@ -138,14 +141,13 @@ auto Visit(const Variant<VariantTypes...>& variant, Lambdas... lambdas)
         >::ret_type
 {
     // проверка, что описаны лямбды для всех типов внутри Variant<...>
-    static_assert(tools::check_all_variant_types_in_list<Variant<VariantTypes...>,
-                                                         typename tools::lambda_settings<Lambdas>::arg_type...
-                                                         >::value,
+    static_assert(tools::check_all_variant_types_in_list<
+                      Variant<VariantTypes...>,typename tools::lambda_settings<Lambdas>::arg_type...>::value,
                   "SimpleAPI: not all cases of Variant<>'s types are described in lambdas");
 
     // FIXME: проверка, что описанные лямбды могут быть вызваны для типов внутри Variant
-//    static_assert(tools::check_all_variant_types_callable_in_lambda<Variant<VariantTypes...>, Lambdas...>::value,
-//                  "SimpleAPI: not all lambdas are callable");
+    static_assert(tools::check_all_variant_types_callable_in_lambda<Variant<VariantTypes...>, Lambdas...>::value,
+                  "SimpleAPI: not all lambdas are callable");
 
     // проверка, что лямбды имеют одинаковый возвращаемый тип
     using TemplateRetType = typename tools::lambda_settings<typename tools::first_of_pack<Lambdas...>::type>::ret_type;
