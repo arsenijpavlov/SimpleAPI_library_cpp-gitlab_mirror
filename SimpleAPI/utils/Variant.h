@@ -3,6 +3,7 @@
 #include "type_finders_from_typelist.h"
 #include <cstdint>
 #include <utility>
+#include "../patches/patch_old_compilers.h" // IWYU pragma: keep
 
 
 namespace simpleapi {
