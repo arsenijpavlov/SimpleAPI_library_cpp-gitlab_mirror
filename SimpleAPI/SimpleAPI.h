@@ -1,6 +1,8 @@
 #pragma once
 
 // NOTE: "IWYU pragma: keep" спрячет лишнее предупреждение от clangd
+#include "patch_old_compilers.h"	// IWYU pragma: keep
+
 #include "VersionInfo.h"                // IWYU pragma: keep
 #include "utils/utils.h"                // IWYU pragma: keep
 #include "utils/string_utils.h"         // IWYU pragma: keep
