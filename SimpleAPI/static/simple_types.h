@@ -78,5 +78,5 @@ struct ConfigTypeTraits<T, typename std::enable_if<!is_config_struct<T>::value
     }
 };
 
-} // namespace simpleapi
 } // namespace tools
+} // namespace simpleapi

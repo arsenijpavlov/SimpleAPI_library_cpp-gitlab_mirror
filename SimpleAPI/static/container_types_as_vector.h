@@ -101,5 +101,5 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_vector<T>::va
     }
 };
 
-} // namespace simpleapi
 } // namespace tools
+} // namespace simpleapi

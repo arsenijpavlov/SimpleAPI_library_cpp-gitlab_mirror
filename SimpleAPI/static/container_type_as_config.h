@@ -63,5 +63,5 @@ struct ConfigTypeTraits<T, typename std::enable_if<std::is_same<T, Config>::valu
     }
 };
 
-} // namespace simpleapi
 } // namespace tools
+} // namespace simpleapi

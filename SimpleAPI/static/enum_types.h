@@ -76,5 +76,5 @@ struct ConfigTypeTraits<T, typename std::enable_if<std::is_enum<T>::value>::type
     }
 };
 
-} // namespace simpleapi
 } // namespace tools
+} // namespace simpleapi

@@ -14,5 +14,5 @@ namespace tools {
 template<typename T, typename Enable = void>
 struct ConfigTypeTraits;
 
-} // namespace simpleapi
 } // namespace tools
+} // namespace simpleapi

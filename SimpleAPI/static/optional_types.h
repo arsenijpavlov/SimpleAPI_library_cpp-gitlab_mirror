@@ -109,5 +109,5 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_optional<T>::value>::type>
     }
 };
 
-} // namespace simpleapi
 } // namespace tools
+} // namespace simpleapi

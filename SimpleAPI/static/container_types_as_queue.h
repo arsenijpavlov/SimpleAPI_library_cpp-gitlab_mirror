@@ -105,5 +105,5 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_queue<T>::val
     }
 };
 
-} // namespace simpleapi
 } // namespace tools
+} // namespace simpleapi

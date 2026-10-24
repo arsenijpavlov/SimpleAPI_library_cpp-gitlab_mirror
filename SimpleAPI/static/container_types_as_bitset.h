@@ -86,5 +86,5 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_bitset<T>::va
     }
 };
 
-} // namespace simpleapi
 } // namespace tools
+} // namespace simpleapi
