@@ -27,6 +27,7 @@
 #include "pair_types.h"                // IWYU pragma: keep
 #include "enum_types.h"                // IWYU pragma: keep
 #include "optional_types.h"            // IWYU pragma: keep
+#include "wstring_type.h"              // IWYU pragma: keep
 #include <functional>                  // IWYU pragma: keep
 
 
@@ -235,6 +236,7 @@
  *          - std::unordered_multimap<K, T> - сейчас нет реализации (Config не может содержать дублей ключей)
  * - запрещённые типы контейнеров:
  *      - std::basic_string - библиотека строго UTF-8, запрещаем пользователю выстрелить себе в ногу
+ * - std::wstring использовать разрешено, но строго для формата UTF-8 (требование SimpleAPI Config)
 */
 // @TEST(STATIC, main)
 #define SAPI_REGISTER_CONFIG(StructName, SAPI_FIELDS_MACRO)           \

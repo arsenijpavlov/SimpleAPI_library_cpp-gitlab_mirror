@@ -30,5 +30,9 @@ std::string VStringToString(const VString& input_vec, const bool need_quotes = f
 SplittedLines SplitString(const std::string input_string, char split_char,
                           bool with_empty_strings = true)                               noexcept;
 
+// NOTE: поддержка std::wstring носит ограниченный характер, корректно будет обработана только кодировка UTF-8
+std::wstring Utf8ToWstring(const std::string& str);
+std::string WstringToUtf8(const std::wstring& wstr);
+
 } // namespace utils
 } // namespace simpleapi

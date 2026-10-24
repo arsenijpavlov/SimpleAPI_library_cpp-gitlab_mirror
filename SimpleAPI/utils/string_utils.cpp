@@ -1,6 +1,8 @@
 #include "string_utils.h"
 #include "utils.h"
 #include "../config/ConfigDefines.h"
+#include <codecvt>
+#include <locale>
 
 namespace simpleapi {
 namespace utils {
@@ -281,6 +283,16 @@ SplittedLines SplitString(const std::string input_string, char split_char,
     } while (next_pos != std::string::npos);
 
     return sl;
+}
+
+std::wstring Utf8ToWstring(const std::string &str) {
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+    return converter.from_bytes(str);
+}
+
+std::string WstringToUtf8(const std::wstring &wstr) {
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+    return converter.to_bytes(wstr);
 }
 
 } // namespace utils

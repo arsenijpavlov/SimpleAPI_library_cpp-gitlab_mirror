@@ -26,6 +26,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_config_struct<T>::value
                                                    && !is_pair<T>::value
                                                    && !std::is_same<T, Config>::value
                                                    && !is_optional<T>::value
+                                                   && !std::is_same<T, std::wstring>::value
                                                    >::type>
 {
     static bool load(const Config& config, const std::string& key, T& field)
