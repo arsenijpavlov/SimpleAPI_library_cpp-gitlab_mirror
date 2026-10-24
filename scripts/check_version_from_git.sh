@@ -30,45 +30,48 @@ if flock -n ${LOCK_FD} ; then
 
 	# предварительное заполнение переменных
 	DEFAULT_VALUE="UNKNOWN(git/.git not found)"
-	SIMPLE_VERSION="${DEFAULT_VALUE}"
-	SIMPLE_VERSION_NAME="${DEFAULT_VALUE}"
-	SIMPLE_VERSION_COMMIT="${DEFAULT_VALUE}"
-
-	# проверка наличия Git в системе
-	result=$(git --version) # прячем консольный вывод
-	if [[ $? == 0 ]]; then
-		# поиск последнего тега по маске и подсчёт количества коммитов от тега до текущего
-		GIT_OUTPUT=$(git -C "${CURRENT_DIR}" describe --tags --match="v[0-9a-zA-Z\(\).,-]*" --long)
-		GIT_BRANCH=""
-		GIT_CURRENT_BRANCH=$(GetCurrentBranch)
-		if [[ "${GIT_CURRENT_BRANCH}" != "main" ]]; then
-			GIT_BRANCH="${GIT_CURRENT_BRANCH}-"
-		fi
+	SIMPLEAPI_VERSION="${DEFAULT_VALUE}"
+	SIMPLEAPI_VERSION_NAME="${DEFAULT_VALUE}"
+	SIMPLEAPI_VERSION_COMMIT="${DEFAULT_VALUE}"
 	
-		# разделение прошлого вывода на составляющие
-		read -r SIMPLEAPI_VERSION SIMPLEAPI_VERSION_NAME SIMPLEAPI_VERSION_COMMIT < <( echo ${GIT_OUTPUT} \
-			| sed -E "s/^(v[0-9.-]*)[_]*([_0-9a-zA-Z.,-]+)-([0-9]+)-g([0-9a-fA-F]+)/\1-${GIT_BRANCH}b\3 \2 \4/" \
-			| sed "s/-b0//" )
-		SIMPLEAPI_VERSION_NAME=${SIMPLEAPI_VERSION_NAME//_/ }
+	# проверяем, что есть настройки репозитория git (файл или директория)
+	if [[ -f "${CURRENT_DIR}/../.git" || -d "${CURRENT_DIR}/../.git" ]]; then
+		# проверка наличия Git в системе
+		result=$(git --version) # прячем консольный вывод
+		if [[ $? == 0 ]]; then
+			# поиск последнего тега по маске и подсчёт количества коммитов от тега до текущего
+			GIT_OUTPUT=$(git -C "${CURRENT_DIR}" describe --tags --match="v[0-9a-zA-Z\(\).,-]*" --long)
+			GIT_BRANCH=""
+			GIT_CURRENT_BRANCH=$(GetCurrentBranch)
+			if [[ "${GIT_CURRENT_BRANCH}" != "main" ]]; then
+				GIT_BRANCH="${GIT_CURRENT_BRANCH}-"
+			fi
+	
+			# разделение прошлого вывода на составляющие
+			read -r SIMPLEAPI_VERSION SIMPLEAPI_VERSION_NAME SIMPLEAPI_VERSION_COMMIT < <( echo ${GIT_OUTPUT} \
+				| sed -E "s/^(v[0-9.-]*)[_]*([_0-9a-zA-Z.,-]+)-([0-9]+)-g([0-9a-fA-F]+)/\1-${GIT_BRANCH}b\3 \2 \4/" \
+				| sed "s/-b0//" )
+			SIMPLEAPI_VERSION_NAME=${SIMPLEAPI_VERSION_NAME//_/ }
 
-		# проверка наличия изменений без фиксации
-		GIT_DIFF_OUTPUT=$(git -C "${CURRENT_DIR}" diff --name-only)
-		if [[ ${GIT_DIFF_OUTPUT} ]]; then
-			# есть изменения, надо сделать заполнитель
-			GIT_DIFF_OUTPUT=" (with uncommited changes)"
-			SIMPLEAPI_VERSION="${SIMPLEAPI_VERSION}${GIT_DIFF_OUTPUT}"
-		fi
-
-		if [[ "$1" == "need_print_echo" ]]; then
-			echo "SIMPLEAPI_VERSION:        \"${SIMPLEAPI_VERSION}\""
-			echo "SIMPLEAPI_VERSION_NAME:   \"${SIMPLEAPI_VERSION_NAME}\""
-			echo "SIMPLEAPI_VERSION_COMMIT: \"${SIMPLEAPI_VERSION_COMMIT}\""
+			# проверка наличия изменений без фиксации
+			GIT_DIFF_OUTPUT=$(git -C "${CURRENT_DIR}" diff --name-only)
+			if [[ ${GIT_DIFF_OUTPUT} ]]; then
+				# есть изменения, надо сделать заполнитель
+				GIT_DIFF_OUTPUT=" (with uncommited changes)"
+				SIMPLEAPI_VERSION="${SIMPLEAPI_VERSION}${GIT_DIFF_OUTPUT}"
+			fi
 		fi
 	fi
+	
+	if [[ "$1" == "need_print_echo" ]]; then
+		echo "SIMPLEAPI_VERSION:        \"${SIMPLEAPI_VERSION}\""
+		echo "SIMPLEAPI_VERSION_NAME:   \"${SIMPLEAPI_VERSION_NAME}\""
+		echo "SIMPLEAPI_VERSION_COMMIT: \"${SIMPLEAPI_VERSION_COMMIT}\""
+	fi
 
-	UpdParameter "SIMPLEAPI_VERSION"        "${SIMPLEAPI_VERSION}"
-	UpdParameter "SIMPLEAPI_VERSION_NAME"   "${SIMPLEAPI_VERSION_NAME}"
-	UpdParameter "SIMPLEAPI_VERSION_COMMIT" "${SIMPLEAPI_VERSION_COMMIT}"
+	UpdParameter "SIMPLEAPI_VERSION"        "${SIMPLEAPI_VERSION//\//\\/}"
+	UpdParameter "SIMPLEAPI_VERSION_NAME"   "${SIMPLEAPI_VERSION_NAME//\//\\/}"
+	UpdParameter "SIMPLEAPI_VERSION_COMMIT" "${SIMPLEAPI_VERSION_COMMIT//\//\\/}"
 
 	exec {LOCK_FD}>&- # освобождаем блокировку
 else
