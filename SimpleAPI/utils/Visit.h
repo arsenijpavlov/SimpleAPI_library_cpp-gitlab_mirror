@@ -36,6 +36,40 @@ struct lambda_settings<RetType(UniqLambdaType::*)() const> {
     using arg_type = std::nullptr_t;
     using ret_type = RetType;
 };
+//------
+// получение типа первого(единственного) аргумента функции
+template <typename RetType, typename ArgType>
+struct lambda_settings<RetType(*)(ArgType)> {
+    using arg_type = ArgType;
+    using ret_type = RetType;
+};
+template <typename RetType, typename ArgType>
+struct lambda_settings<RetType(ArgType)> {
+    using arg_type = ArgType;
+    using ret_type = RetType;
+};
+template <typename RetType, typename ArgType>
+struct lambda_settings<RetType(ArgType) const> {
+    using arg_type = ArgType;
+    using ret_type = RetType;
+};
+//------
+// частный случай для std::nullptr_t аргумента лямбды
+template <typename RetType>
+struct lambda_settings<RetType(*)()> {
+    using arg_type = std::nullptr_t;
+    using ret_type = RetType;
+};
+template <typename RetType>
+struct lambda_settings<RetType()> {
+    using arg_type = std::nullptr_t;
+    using ret_type = RetType;
+};
+template <typename RetType>
+struct lambda_settings<RetType() const> {
+    using arg_type = std::nullptr_t;
+    using ret_type = RetType;
+};
 
 //-----------------------------------------------------------------
 // получение первого типа из списка
