@@ -13,6 +13,11 @@ LOCK_FILE="${CURRENT_DIR}/git_locker.lock" # файл для синхрониз�
 function UpdParameter { # $1 - переменная, $2 - новое значение
 	sed -i "s/^\(#define ${1} [[:space:]]*\).*/\1\"${2}\"/" "${CURRENT_DIR}/../SimpleAPI/${FILE_NAME}"
 }
+# функция для определения текущей выбранной ветки git
+function GetCurrentBranch {
+	git -C "${CURRENT_DIR}" rev-parse --abbrev-ref HEAD
+}
+
 
 FILE_NAME="VersionInfo.h"
 
@@ -34,13 +39,18 @@ if flock -n ${LOCK_FD} ; then
 	if [[ $? == 0 ]]; then
 		# поиск последнего тега по маске и подсчёт количества коммитов от тега до текущего
 		GIT_OUTPUT=$(git -C "${CURRENT_DIR}" describe --tags --match="v[0-9a-zA-Z\(\).,-]*" --long)
+		GIT_BRANCH=""
+		GIT_CURRENT_BRANCH=$(GetCurrentBranch)
+		if [[ "${GIT_CURRENT_BRANCH}" != "main" ]]; then
+			GIT_BRANCH="${GIT_CURRENT_BRANCH}-"
+		fi
 	
 		# разделение прошлого вывода на составляющие
 		read -r SIMPLEAPI_VERSION SIMPLEAPI_VERSION_NAME SIMPLEAPI_VERSION_COMMIT < <( echo ${GIT_OUTPUT} \
-			| sed -E "s/^(v[0-9.-]*)[_]*([_0-9a-zA-Z.,-]+)-([0-9]+)-g([0-9a-fA-F]+)/\1-b\3 \2 \4/" \
+			| sed -E "s/^(v[0-9.-]*)[_]*([_0-9a-zA-Z.,-]+)-([0-9]+)-g([0-9a-fA-F]+)/\1-${GIT_BRANCH}b\3 \2 \4/" \
 			| sed "s/-b0//" )
 		SIMPLEAPI_VERSION_NAME=${SIMPLEAPI_VERSION_NAME//_/ }
-	
+
 		# проверка наличия изменений без фиксации
 		GIT_DIFF_OUTPUT=$(git -C "${CURRENT_DIR}" diff --name-only)
 		if [[ ${GIT_DIFF_OUTPUT} ]]; then
