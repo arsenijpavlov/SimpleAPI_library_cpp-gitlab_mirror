@@ -90,16 +90,30 @@ struct check_all_variant_types_in_list<Variant<VariantType, VariantTypes...>, La
 //-----------------------------------------------------------------
 
 //-----------------------------------------------------------------
+// проверки на вызываемость CallableObject(InputVariantType), где CallableObject - лямбда/структура или функция
+//-----------------------------------------------------------------
 // база для выхода из SFINAE
-template <typename InputVariantType, typename CallableObject, typename = void>
+template <typename InputVariantType, typename... CallableObjects>
 struct is_callable_object : std::false_type {};
-//
+// проверка с одиночной функцией
 template <typename InputVariantType, typename CallableObject>
-struct is_callable_object<
-    InputVariantType, CallableObject,
-    typename std::enable_if<true,
-                            decltype(std::declval<CallableObject>()(std::declval<InputVariantType>()), void())>::type
-    > : std::true_type {};
+struct is_callable_object<InputVariantType, CallableObject>
+{
+    template <typename A, typename B>
+    static char test(decltype(std::declval<A>()(std::declval<B>()))*);
+
+    template <typename A, typename B>
+    static long test(...);
+
+    static constexpr bool value = sizeof(test<CallableObject, InputVariantType>(0) == sizeof(char));
+};
+// проверка со списком функций
+template <typename InputVariantType, typename CallableObject, typename... CallableObjects>
+struct is_callable_object<InputVariantType, CallableObject, CallableObjects...>
+{
+    static constexpr bool value = is_callable_object<InputVariantType, CallableObject>::value
+                                  || is_callable_object<InputVariantType, CallableObjects...>::value;
+};
 //-----------------------------------------------------------------
 // база для выхода из SFINAE
 template <typename... Types>
@@ -108,17 +122,7 @@ struct check_all_variant_types_callable_in_lambda;
 // если Variant<> содержит только один тип, проверяем лямбду для него
 template <typename VariantType, typename... Lambdas>
 struct check_all_variant_types_callable_in_lambda<Variant<VariantType>, Lambdas...> {
-    // делегируем выбор типа компилятору
-    using Selector = decltype(compiler_type_resolver<0, Lambdas...>::template match<VariantType>(std::declval<VariantType>()));
-    static constexpr ssize_t index_of_lambda = Selector::value;
-
-    // механика std::conditional не позволяет вписать условие напрямую
-    struct OnFalse {
-        static constexpr bool value = is_callable_object<
-            VariantType, typename type_at_index<static_cast<size_t>(index_of_lambda), Lambdas...>::type>::value;
-    };
-
-    static constexpr bool value = std::conditional<index_of_lambda == -1, std::false_type, OnFalse>::type::value;
+    static constexpr bool value = is_callable_object<VariantType, Lambdas...>::value;
 };
 // проверяем вызываемость лямбд для каждого из внутренних типов Variant<>
 template <typename VariantType, typename... VariantTypes, typename... Lambdas>
@@ -183,8 +187,8 @@ auto Visit(const Variant<VariantTypes...>& variant, Lambdas... lambdas)
                   "SimpleAPI: not all cases of Variant<>'s types are described in lambdas");
 
     // FIXME: проверка, что описанные лямбды могут быть вызваны для типов внутри Variant
-//    static_assert(tools::check_all_variant_types_callable_in_lambda<Variant<VariantTypes...>, Lambdas...>::value,
-//                  "SimpleAPI: not all lambdas are callable");
+    static_assert(tools::check_all_variant_types_callable_in_lambda<Variant<VariantTypes...>, Lambdas...>::value,
+                  "SimpleAPI: not all lambdas are callable");
 
     // проверка, что лямбды имеют одинаковый возвращаемый тип
     using TemplateRetType = typename tools::lambda_settings<typename tools::first_of_pack<Lambdas...>::type>::ret_type;
