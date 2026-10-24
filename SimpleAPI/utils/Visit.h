@@ -206,8 +206,6 @@ struct compiler_lambda_resolver<Index> {
 } // namespace tools
 
 
-// TODO: работа с функциями, указателями на функции
-
 // основной пользовательский интерфейс для механики Variant->Visitor
 template <typename... VariantTypes, typename... Lambdas>
 auto Visit(const Variant<VariantTypes...>& variant, Lambdas... lambdas)
@@ -220,7 +218,7 @@ auto Visit(const Variant<VariantTypes...>& variant, Lambdas... lambdas)
                       Variant<VariantTypes...>,typename tools::lambda_settings<Lambdas>::arg_type...>::value,
                   "SimpleAPI: not all cases of Variant<>'s types are described in lambdas");
 
-    // FIXME: проверка, что описанные лямбды могут быть вызваны для типов внутри Variant
+    // проверка, что описанные лямбды могут быть вызваны для типов внутри Variant
     static_assert(tools::check_all_variant_types_callable_in_lambda<Variant<VariantTypes...>, Lambdas...>::value,
                   "SimpleAPI: not all lambdas are callable");
 
@@ -229,8 +227,7 @@ auto Visit(const Variant<VariantTypes...>& variant, Lambdas... lambdas)
     static_assert(tools::are_types_equal<TemplateRetType, typename tools::lambda_settings<Lambdas>::ret_type...>::value,
                   "SimpleAPI: return types of lambdas does not equal");
 
-    // TODO: определить вызываемую лямбду на основе типа
-    // TODO: вызывать лямбду
+    // TODO: определить и вызвать лямбду/функцию на основе текущего типа Variant<>
 }
 
 } // namespace simpleapi
