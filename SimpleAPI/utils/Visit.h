@@ -167,40 +167,32 @@ struct check_all_variant_types_callable_in_lambda<Variant<VariantType, VariantTy
 //-----------------------------------------------------------------
 
 //-----------------------------------------------------------------
-// разворачиваем список типов -> компилятор выберет наиболее подходящую перегрузку
-// проверка вернёт тип void, если нет подходящего кандидата
+// трейт для описания runtime-вызова
 //-----------------------------------------------------------------
-// базовое описание структуры для корректности выхода из SFINAE
-template <ssize_t Index, typename... Lambdas>
-struct compiler_lambda_resolver;
-// рекурсивный поиск
-template <ssize_t Index, typename Head, typename... Types>
-struct compiler_lambda_resolver<Index, Head, Types...> : compiler_type_resolver<Index + 1, Types...>
-{
-    // делаем метод предка явно видимым
-    using compiler_type_resolver<Index + 1, Types...>::match;
+// база для SFINAE
+template <typename... Args>
+struct VisitContext;
+//------------
+template <typename... VariantTypes, typename... Lambdas>
+struct VisitContext<Variant<VariantTypes...>, Lambdas...> {
+    using RetType = typename lambda_settings<typename first_of_pack<Lambdas...>::type>::type;
 
-    template <typename T>
-    using CleanT      = typename std::remove_reference<T>::type;
-    template <typename T>
-    using BaseElement = typename std::remove_all_extents<CleanT<T>>::type;
-    // std::integral_constant<> - создаёт тип-связку
-    template <typename T,
-             typename std::enable_if<std::is_constructible<Head, T>::value
-                                         && !(std::is_array<CleanT<T>>::value
-                                              && !std::is_same<typename std::decay<BaseElement<T>>::type, char>::value
-                                              && !std::is_same<typename std::decay<BaseElement<T>>::type, wchar_t>::value)
-                                         && !(std::is_same<Head, bool>::value
-                                              && (std::is_array<CleanT<T>>::value
-                                                  || std::is_pointer<typename std::decay<T>::type>::value))
-                                     , int>::type = 0>
-    static std::integral_constant<ssize_t, Index> match(Head);
-};
-// остановка рекурсии (пустой список)
-template <ssize_t Index>
-struct compiler_lambda_resolver<Index> {
-    template <typename T>
-    static std::integral_constant<ssize_t, -1> match(...); // заглушка
+    // шаблон рекурсивного поиска
+    // NOTE: внешний код всегда вызывает начальный индекс <0>
+    template <ssize_t Index, bool is_in_bounds = (Index < sizeof...(VariantTypes))>
+    struct IndexContext
+    {
+        // TODO: RetType call() {}
+    };
+    // шаблон для остановки рекурсии (вышли за границы списка типов)
+    template <ssize_t Index>
+    struct IndexContext<Index, false>
+    {
+        RetType call() {
+            throw std::runtime_error("SimpleAPI: critical error, Variant index out of bounds");
+            return RetType(); // FIXME: заменить на вызов Lambdas[0]
+        }
+    };
 };
 //-----------------------------------------------------------------
 } // namespace tools
@@ -228,6 +220,16 @@ auto Visit(const Variant<VariantTypes...>& variant, Lambdas... lambdas)
                   "SimpleAPI: return types of lambdas does not equal");
 
     // TODO: определить и вызвать лямбду/функцию на основе текущего типа Variant<>
+//    tools::VisitContext<Variant<VariantTypes...>, Lambdas...>
+//        ::template CallLambda<0>(variant);
+
+//    using InnerVariantType = typename tools::type_at_index<variant.index(), VariantTypes...>::type;
+//    using LambdaIndex      = typename tools::index_of_type
+//        <InnerVariantType, typename tools::lambda_settings<Lambdas>::arg_type...>;
+
+//    using SelectedLambda = typename tools::type_at_index<LambdaIndex::value, Lambdas...>;
+
+//    SelectedLambda(variant.template get<InnerVariantType>());
 }
 
 } // namespace simpleapi
