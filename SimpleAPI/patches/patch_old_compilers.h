@@ -40,7 +40,8 @@ std::string to_string(T value)
 }
 
 // std::is_trivially_copyable появился только в GCC 5.1
-#if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER) && (__GNUC__ < 5)
+#if (defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 5) \
+	|| (defined(__clang__) && !defined(__cpp_lib_is_trivially_copyable) && __CUDACC_VER_MAJOR__ == 0)
 template <typename T>
 struct is_trivially_copyable: public std::integral_constant<bool, __has_trivial_copy(T)>
 {};
