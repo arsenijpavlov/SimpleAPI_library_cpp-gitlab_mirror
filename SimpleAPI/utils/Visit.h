@@ -167,6 +167,16 @@ struct check_all_variant_types_callable_in_lambda<Variant<VariantType, VariantTy
 //-----------------------------------------------------------------
 
 //-----------------------------------------------------------------
+// TODO: трейт для получения runtime-объекта по индексу
+//-----------------------------------------------------------------
+// TODO: template <ssize_t Index>
+// TODO: struct get_object_at_index;
+//------------
+// TODO: template <ssize_t Index>
+// TODO: struct get_object_at_index;
+//-----------------------------------------------------------------
+
+//-----------------------------------------------------------------
 // трейт для описания runtime-вызова
 //-----------------------------------------------------------------
 // база для SFINAE
@@ -175,22 +185,36 @@ struct VisitContext;
 //------------
 template <typename... VariantTypes, typename... Lambdas>
 struct VisitContext<Variant<VariantTypes...>, Lambdas...> {
-    using RetType = typename lambda_settings<typename first_of_pack<Lambdas...>::type>::type;
+    using RetType = typename lambda_settings<typename first_of_pack<Lambdas...>::type>::ret_type;
 
-    // шаблон рекурсивного поиска
+    // шаблон рекурсивного поиска, где Index - текущий индекс типа Variant<>
     // NOTE: внешний код всегда вызывает начальный индекс <0>
-    template <ssize_t Index, bool is_in_bounds = (Index < sizeof...(VariantTypes))>
+    template <ssize_t Index, bool is_in_bounds = (Index >= 0 && Index < sizeof...(VariantTypes))>
     struct IndexContext
     {
-        // TODO: RetType call() {}
+        static RetType Call(Variant<VariantTypes...>&& variant, Lambdas... lambdas) {
+            if(Index == variant.index()) {
+                using InnerVariantType = typename tools::type_at_index<Index, VariantTypes...>::type;
+                using LambdaIndex      = typename tools::index_of_type
+                    <InnerVariantType, typename tools::lambda_settings<Lambdas>::arg_type...>::value;
+
+                using SelectedLambda = typename tools::type_at_index<LambdaIndex::value, Lambdas...>::type;
+
+                return SelectedLambda(variant.template get<InnerVariantType>());
+            } else {
+                return IndexContext<Index+1>::Call(std::forward<Variant<VariantTypes...>>(variant, lambdas...));
+            }
+        }
     };
     // шаблон для остановки рекурсии (вышли за границы списка типов)
     template <ssize_t Index>
     struct IndexContext<Index, false>
     {
-        RetType call() {
+        static RetType Call(Variant<VariantTypes...>&& variant, Lambdas... lambdas) {
+            (void)variant; // hide warning
             throw std::runtime_error("SimpleAPI: critical error, Variant index out of bounds");
-            return RetType(); // FIXME: заменить на вызов Lambdas[0]
+            // следующая инструкция никогда не будет выполнена, к тому же UB
+            return *static_cast<typename std::remove_reference<RetType>::type*>(nullptr);
         }
     };
 };
@@ -200,7 +224,7 @@ struct VisitContext<Variant<VariantTypes...>, Lambdas...> {
 
 // основной пользовательский интерфейс для механики Variant->Visitor
 template <typename... VariantTypes, typename... Lambdas>
-auto Visit(const Variant<VariantTypes...>& variant, Lambdas... lambdas)
+auto Visit(Variant<VariantTypes...>&& variant, Lambdas... lambdas)
     -> typename tools::lambda_settings<
         typename tools::first_of_pack<Lambdas...>::type
         >::ret_type
@@ -219,17 +243,11 @@ auto Visit(const Variant<VariantTypes...>& variant, Lambdas... lambdas)
     static_assert(tools::are_types_equal<TemplateRetType, typename tools::lambda_settings<Lambdas>::ret_type...>::value,
                   "SimpleAPI: return types of lambdas does not equal");
 
+    //-----------------------
     // TODO: определить и вызвать лямбду/функцию на основе текущего типа Variant<>
-//    tools::VisitContext<Variant<VariantTypes...>, Lambdas...>
-//        ::template CallLambda<0>(variant);
-
-//    using InnerVariantType = typename tools::type_at_index<variant.index(), VariantTypes...>::type;
-//    using LambdaIndex      = typename tools::index_of_type
-//        <InnerVariantType, typename tools::lambda_settings<Lambdas>::arg_type...>;
-
-//    using SelectedLambda = typename tools::type_at_index<LambdaIndex::value, Lambdas...>;
-
-//    SelectedLambda(variant.template get<InnerVariantType>());
+    return tools::VisitContext<Variant<VariantTypes...>, Lambdas...>
+        ::template IndexContext<0>
+        ::Call(std::forward<Variant<VariantTypes...>>(variant, lambdas...));
 }
 
 } // namespace simpleapi
