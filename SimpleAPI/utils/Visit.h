@@ -169,11 +169,21 @@ struct check_all_variant_types_callable_in_lambda<Variant<VariantType, VariantTy
 //-----------------------------------------------------------------
 // TODO: трейт для получения runtime-объекта по индексу
 //-----------------------------------------------------------------
-// TODO: template <ssize_t Index>
-// TODO: struct get_object_at_index;
-//------------
-// TODO: template <ssize_t Index>
-// TODO: struct get_object_at_index;
+//template <ssize_t Index>
+//struct get_object_at_index {
+//    template <typename Head, typename... Types>
+//    static Head&& Get(Head&& head, Types&&... types) {
+//        return std::forward<Head>(head);
+//    }
+//};
+////------------
+//template <>
+//struct get_object_at_index<0> {
+//    template <typename Head, typename... Types>
+//    static Head&& Get(Head&& head, Types&&... types) {
+//        return std::forward<Head>(head);
+//    }
+//};
 //-----------------------------------------------------------------
 
 //-----------------------------------------------------------------
@@ -195,14 +205,15 @@ struct VisitContext<Variant<VariantTypes...>, Lambdas...> {
         static RetType Call(Variant<VariantTypes...>&& variant, Lambdas... lambdas) {
             if(Index == variant.index()) {
                 using InnerVariantType = typename tools::type_at_index<Index, VariantTypes...>::type;
-                using LambdaIndex      = typename tools::index_of_type
-                    <InnerVariantType, typename tools::lambda_settings<Lambdas>::arg_type...>::value;
 
-                using SelectedLambda = typename tools::type_at_index<LambdaIndex::value, Lambdas...>::type;
+                static constexpr ssize_t lambda_index =
+                    tools::index_of_type<InnerVariantType, typename tools::lambda_settings<Lambdas>::arg_type...>::value;
+
+                using SelectedLambda = typename tools::type_at_index<lambda_index, Lambdas...>::type;
 
                 return SelectedLambda(variant.template get<InnerVariantType>());
             } else {
-                return IndexContext<Index+1>::Call(std::forward<Variant<VariantTypes...>>(variant, lambdas...));
+                return IndexContext<Index+1>::Call(std::forward<Variant<VariantTypes...>>(variant), lambdas...);
             }
         }
     };
@@ -247,7 +258,7 @@ auto Visit(Variant<VariantTypes...>&& variant, Lambdas... lambdas)
     // TODO: определить и вызвать лямбду/функцию на основе текущего типа Variant<>
     return tools::VisitContext<Variant<VariantTypes...>, Lambdas...>
         ::template IndexContext<0>
-        ::Call(std::forward<Variant<VariantTypes...>>(variant, lambdas...));
+        ::Call(std::forward<Variant<VariantTypes...>>(variant), lambdas...);
 }
 
 } // namespace simpleapi
