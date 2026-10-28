@@ -87,14 +87,17 @@ TEST(VARIANT, raw_c_text) {
     EXPECT_EQ(var_with_strings.index(), 1);
 }
 
-// FIXME: TEST(VARIANT, raw_c_text_to_std_string)
-// TEST(VARIANT, raw_c_text_to_std_string) {
-//     using namespace simpleapi;
+TEST(VARIANT, raw_c_text_to_std_string) {
+    using namespace simpleapi;
 
-//     Variant<int, std::string> var_with_strings_2 = 15;
-//     var_with_strings_2 = "asd";
-//     EXPECT_EQ(var_with_strings_2.index(), 1);
-// }
+    Variant<int, std::string> var_with_strings_2 = 15;
+    var_with_strings_2 = "asd";
+    EXPECT_EQ(var_with_strings_2.index(), 1);
+
+    const char* str = "asd";
+    var_with_strings_2 = str;
+    EXPECT_EQ(var_with_strings_2.index(), 1);
+}
 
 // запрещено указать два и более одинаковых типов
 // разные типы одного формата, например числа, должны распределяться согласно наилучшему варианту
@@ -141,7 +144,7 @@ TEST(VARIANT, cv_modificators) {
     //NOTE: смена значения через "= int" для типа "const int" запрещена на уровне компиляции
 }
 
-// const char[4] - сырые строки, переданные напрямую
+// const char[4] - сырые строки, переданные напрямую в конструктор
 TEST(VARIANT, constructors_with_raw_string) {
     using namespace simpleapi;
 

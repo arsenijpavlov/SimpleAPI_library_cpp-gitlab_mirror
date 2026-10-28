@@ -111,7 +111,7 @@ class Variant {
              , int>::type = 0>
     static void HelperAssign(void* target_ptr, const SrcType& value)
     {
-        *reinterpret_cast<TargetType*>(target_ptr) = std::forward<SrcType>(value);
+        *reinterpret_cast<TargetType*>(target_ptr) = value;
     }
     // helper: тип найден - присваивание (T&&, указатель)
     template <bool enable = true, typename SrcType, typename TargetType,
