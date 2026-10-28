@@ -167,23 +167,26 @@ struct check_all_variant_types_callable_in_lambda<Variant<VariantType, VariantTy
 //-----------------------------------------------------------------
 
 //-----------------------------------------------------------------
-// TODO: трейт для получения runtime-объекта по индексу
+// трейт для получения runtime-объекта из пака по индексу, CurrentIndex = 0
 //-----------------------------------------------------------------
-//template <ssize_t Index>
-//struct get_object_at_index {
-//    template <typename Head, typename... Types>
-//    static Head&& Get(Head&& head, Types&&... types) {
-//        return std::forward<Head>(head);
-//    }
-//};
-////------------
-//template <>
-//struct get_object_at_index<0> {
-//    template <typename Head, typename... Types>
-//    static Head&& Get(Head&& head, Types&&... types) {
-//        return std::forward<Head>(head);
-//    }
-//};
+template <ssize_t FindIndex, ssize_t CurrentIndex>
+struct object_at_index {
+    template <typename Head, typename... Types>
+    static auto Get(Head&& head, Types&&... types)
+        -> typename type_at_index<FindIndex - 1, Types...>::type // <-- мы ведь здесь не можем указывать Head
+    {
+       return object_at_index<FindIndex, CurrentIndex + 1>
+            ::Get(std::forward<Types>(types)...);
+    }
+};
+//------------
+template <ssize_t FindIndex>
+struct object_at_index<FindIndex, FindIndex> {
+    template <typename Head, typename... Types>
+    static Head&& Get(Head&& head, Types&&... types) {
+        return std::forward<Head>(head);
+    }
+};
 //-----------------------------------------------------------------
 
 //-----------------------------------------------------------------
@@ -202,6 +205,20 @@ struct VisitContext<Variant<VariantTypes...>, Lambdas...> {
     template <ssize_t Index, bool is_in_bounds = (Index >= 0 && Index < sizeof...(VariantTypes))>
     struct IndexContext
     {
+        static RetType Call(const Variant<VariantTypes...>& variant, Lambdas... lambdas) {
+            if(Index == variant.index()) {
+                using InnerVariantType = typename tools::type_at_index<Index, VariantTypes...>::type;
+
+                static constexpr ssize_t lambda_index =
+                    tools::index_of_type<InnerVariantType, typename tools::lambda_settings<Lambdas>::arg_type...>::value;
+
+                auto selected_lambda = tools::object_at_index<lambda_index, 0>::Get(lambdas...);
+                return selected_lambda(variant.template get<InnerVariantType>());
+            } else {
+                return IndexContext<Index+1>::Call(variant, lambdas...);
+            }
+        }
+
         static RetType Call(Variant<VariantTypes...>&& variant, Lambdas... lambdas) {
             if(Index == variant.index()) {
                 using InnerVariantType = typename tools::type_at_index<Index, VariantTypes...>::type;
@@ -209,9 +226,8 @@ struct VisitContext<Variant<VariantTypes...>, Lambdas...> {
                 static constexpr ssize_t lambda_index =
                     tools::index_of_type<InnerVariantType, typename tools::lambda_settings<Lambdas>::arg_type...>::value;
 
-                using SelectedLambda = typename tools::type_at_index<lambda_index, Lambdas...>::type;
-
-                return SelectedLambda(variant.template get<InnerVariantType>());
+                auto selected_lambda = tools::object_at_index<lambda_index, 0>::Get(lambdas...);
+                return selected_lambda(variant.template get<InnerVariantType>());
             } else {
                 return IndexContext<Index+1>::Call(std::forward<Variant<VariantTypes...>>(variant), lambdas...);
             }
@@ -221,19 +237,55 @@ struct VisitContext<Variant<VariantTypes...>, Lambdas...> {
     template <ssize_t Index>
     struct IndexContext<Index, false>
     {
+        static RetType Call(const Variant<VariantTypes...> variant, Lambdas... lambdas) {
+            (void)variant; // hide warning
+            throw std::runtime_error("SimpleAPI: critical error, Variant index out of bounds");
+            // следующая инструкция никогда не будет выполнена, к тому же UB
+            return *static_cast<RetType*>(nullptr);
+        }
         static RetType Call(Variant<VariantTypes...>&& variant, Lambdas... lambdas) {
             (void)variant; // hide warning
             throw std::runtime_error("SimpleAPI: critical error, Variant index out of bounds");
             // следующая инструкция никогда не будет выполнена, к тому же UB
             return *static_cast<typename std::remove_reference<RetType>::type*>(nullptr);
         }
+
+        // FIXME: нужна отдельная реализация для типа void
     };
 };
 //-----------------------------------------------------------------
 } // namespace tools
 
 
-// основной пользовательский интерфейс для механики Variant->Visitor
+// основной пользовательский интерфейс для механики Variant->Visitor (const&)
+template <typename... VariantTypes, typename... Lambdas>
+auto Visit(const Variant<VariantTypes...>& variant, Lambdas... lambdas)
+    -> typename tools::lambda_settings<
+        typename tools::first_of_pack<Lambdas...>::type
+        >::ret_type
+{
+    // проверка, что описаны лямбды для всех типов внутри Variant<...>
+    static_assert(tools::check_all_variant_types_in_list<
+                      Variant<VariantTypes...>,typename tools::lambda_settings<Lambdas>::arg_type...>::value,
+                  "SimpleAPI: not all cases of Variant<>'s types are described in lambdas");
+
+    // проверка, что описанные лямбды могут быть вызваны для типов внутри Variant
+    static_assert(tools::check_all_variant_types_callable_in_lambda<Variant<VariantTypes...>, Lambdas...>::value,
+                  "SimpleAPI: not all lambdas are callable");
+
+    // проверка, что лямбды имеют одинаковый возвращаемый тип
+    using TemplateRetType = typename tools::lambda_settings<typename tools::first_of_pack<Lambdas...>::type>::ret_type;
+    static_assert(tools::are_types_equal<TemplateRetType, typename tools::lambda_settings<Lambdas>::ret_type...>::value,
+                  "SimpleAPI: return types of lambdas does not equal");
+
+    //-----------------------
+    // TODO: определить и вызвать лямбду/функцию на основе текущего типа Variant<>
+    return tools::VisitContext<Variant<VariantTypes...>, Lambdas...>
+        ::template IndexContext<0>
+        ::Call(variant, lambdas...);
+}
+
+// основной пользовательский интерфейс для механики Variant->Visitor (&&)
 template <typename... VariantTypes, typename... Lambdas>
 auto Visit(Variant<VariantTypes...>&& variant, Lambdas... lambdas)
     -> typename tools::lambda_settings<
