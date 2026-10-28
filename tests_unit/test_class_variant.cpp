@@ -87,6 +87,15 @@ TEST(VARIANT, raw_c_text) {
     EXPECT_EQ(var_with_strings.index(), 1);
 }
 
+// FIXME: TEST(VARIANT, raw_c_text_to_std_string)
+// TEST(VARIANT, raw_c_text_to_std_string) {
+//     using namespace simpleapi;
+
+//     Variant<int, std::string> var_with_strings_2 = 15;
+//     var_with_strings_2 = "asd";
+//     EXPECT_EQ(var_with_strings_2.index(), 1);
+// }
+
 // запрещено указать два и более одинаковых типов
 // разные типы одного формата, например числа, должны распределяться согласно наилучшему варианту
 TEST(VARIANT, duplications) {
