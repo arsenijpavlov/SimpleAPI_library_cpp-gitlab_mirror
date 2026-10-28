@@ -173,7 +173,7 @@ template <ssize_t FindIndex, ssize_t CurrentIndex>
 struct object_at_index {
     template <typename Head, typename... Types>
     static auto Get(Head&& head, Types&&... types)
-        -> typename type_at_index<FindIndex - 1, Types...>::type // <-- мы ведь здесь не можем указывать Head
+        -> typename type_at_index<FindIndex - 1, Types...>::type
     {
        return object_at_index<FindIndex, CurrentIndex + 1>
             ::Get(std::forward<Types>(types)...);
@@ -237,20 +237,37 @@ struct VisitContext<Variant<VariantTypes...>, Lambdas...> {
     template <ssize_t Index>
     struct IndexContext<Index, false>
     {
+        template <typename Dummy = RetType,
+                 typename std::enable_if<!std::is_same<Dummy, void>::value, int>::type = 0>
         static RetType Call(const Variant<VariantTypes...> variant, Lambdas... lambdas) {
             (void)variant; // hide warning
-            throw std::runtime_error("SimpleAPI: critical error, Variant index out of bounds");
-            // следующая инструкция никогда не будет выполнена, к тому же UB
+            throw std::runtime_error("SimpleAPI: critical error, Variant(const&) index out of bounds");
+            // следующая инструкция никогда не будет выполнена, к тому же UB, но возвращаемое значение явно обозначаем
             return *static_cast<RetType*>(nullptr);
         }
+        template <typename Dummy = RetType,
+                 typename std::enable_if<!std::is_same<Dummy, void>::value, int>::type = 0>
         static RetType Call(Variant<VariantTypes...>&& variant, Lambdas... lambdas) {
             (void)variant; // hide warning
-            throw std::runtime_error("SimpleAPI: critical error, Variant index out of bounds");
-            // следующая инструкция никогда не будет выполнена, к тому же UB
+            throw std::runtime_error("SimpleAPI: critical error, Variant(&&) index out of bounds");
+            // следующая инструкция никогда не будет выполнена, к тому же UB, но возвращаемое значение явно обозначаем
             return *static_cast<typename std::remove_reference<RetType>::type*>(nullptr);
         }
 
-        // FIXME: нужна отдельная реализация для типа void
+        template <typename Dummy = RetType,
+                 typename std::enable_if<std::is_same<Dummy, void>::value, int>::type = 0>
+        static RetType Call(const Variant<VariantTypes...> variant, Lambdas... lambdas) {
+            (void)variant; // hide warning
+            throw std::runtime_error("SimpleAPI: critical error, Variant(const&) index out of bounds");
+            return;
+        }
+        template <typename Dummy = RetType,
+                 typename std::enable_if<std::is_same<Dummy, void>::value, int>::type = 0>
+        static RetType Call(Variant<VariantTypes...>&& variant, Lambdas... lambdas) {
+            (void)variant; // hide warning
+            throw std::runtime_error("SimpleAPI: critical error, Variant(&&) index out of bounds");
+            return;
+        }
     };
 };
 //-----------------------------------------------------------------
@@ -279,7 +296,7 @@ auto Visit(const Variant<VariantTypes...>& variant, Lambdas... lambdas)
                   "SimpleAPI: return types of lambdas does not equal");
 
     //-----------------------
-    // TODO: определить и вызвать лямбду/функцию на основе текущего типа Variant<>
+    // определить и вызвать лямбду/функцию на основе текущего типа Variant<>
     return tools::VisitContext<Variant<VariantTypes...>, Lambdas...>
         ::template IndexContext<0>
         ::Call(variant, lambdas...);
@@ -307,7 +324,7 @@ auto Visit(Variant<VariantTypes...>&& variant, Lambdas... lambdas)
                   "SimpleAPI: return types of lambdas does not equal");
 
     //-----------------------
-    // TODO: определить и вызвать лямбду/функцию на основе текущего типа Variant<>
+    // определить и вызвать лямбду/функцию на основе текущего типа Variant<>
     return tools::VisitContext<Variant<VariantTypes...>, Lambdas...>
         ::template IndexContext<0>
         ::Call(std::forward<Variant<VariantTypes...>>(variant), lambdas...);
