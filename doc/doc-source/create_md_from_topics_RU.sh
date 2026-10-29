@@ -9,7 +9,7 @@ MAIN_DIR="$(dirname "$(realpath "$0")")"
 cd "${MAIN_DIR}"
 
 SUFFIX="ru"
-RESULT_FILE="SIMPLEAPI_DOCS_${SUFFIX^^}.md"
+RESULT_FILE="SimpleAPI_docs_${SUFFIX^^}.md"
 SOURCE_DIR="Writerside/topics_${SUFFIX^^}"
 
 # создаём файл с нуля
