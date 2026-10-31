@@ -133,7 +133,7 @@ TEST(VISIT, primitive_lambdas) {
     EXPECT_EQ(global_output, func_const_string_to_string_output);
 }
 
-TEST(VISIT, primitive_ptr_lambdas) {
+TEST(VISIT, primitive_lambdas_as_ptr_to_func) {
     auto lambda_null   = [](std::nullptr_t)         { global_output = func_null_to_void_output; };
     auto lambda_string = [](const std::string& str) { global_output = func_const_string_to_void_output; };
 
@@ -198,4 +198,61 @@ TEST(VISIT, primitive_ptr_funcs) {
          , func_null_to_string
          );
     EXPECT_EQ(global_output, func_const_string_to_string_output);
+}
+
+std::string func_char_to_void_output = "char";
+TEST(VISIT, complex_args) {
+    auto lambda_int  = [](const int& i) { global_output = func_const_int_to_void_output; };
+    auto lambda_char = [](char c)       { global_output = func_char_to_void_output; };
+
+    Variant<std::nullptr_t, std::string, int, char> var(nullptr);
+    Visit(var
+          , func_null_to_void
+          , [](const std::string& str) { global_output = func_const_string_to_void_output; }
+          , lambda_int
+          , *lambda_char
+          );
+    EXPECT_EQ(global_output, func_null_to_void_output);
+
+    var = "my string";
+    Visit(var
+          , func_null_to_void
+          , [](const std::string& str) { global_output = func_const_string_to_void_output; }
+          , lambda_int
+          , *lambda_char
+          );
+    EXPECT_EQ(global_output, func_const_string_to_void_output);
+
+    var = 149;
+    Visit(var
+          , func_null_to_void
+          , [](const std::string& str) { global_output = func_const_string_to_void_output; }
+          , lambda_int
+          , *lambda_char
+          );
+    EXPECT_EQ(global_output, func_const_int_to_void_output);
+
+    var = 'b';
+    Visit(var
+          , func_null_to_void
+          , [](const std::string& str) { global_output = func_const_string_to_void_output; }
+          , lambda_int
+          , *lambda_char
+          );
+    EXPECT_EQ(global_output, func_char_to_void_output);
+}
+
+// аргументы перемешаны относительно подтипов Variant
+TEST(VISIT, complex_args_complicate) {
+    auto lambda_int  = [](const int& i) { global_output = func_const_int_to_void_output; };
+    auto lambda_char = [](char c)       { global_output = func_char_to_void_output; };
+
+    Variant<std::nullptr_t, std::string, int, char> var(nullptr);
+    Visit(var
+        , [](const std::string& str) { global_output = func_const_string_to_void_output; }
+        , lambda_int
+        , func_null_to_void
+        , *lambda_char
+        );
+    EXPECT_EQ(global_output, func_null_to_void_output);
 }

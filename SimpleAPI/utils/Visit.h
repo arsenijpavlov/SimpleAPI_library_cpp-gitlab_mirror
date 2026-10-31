@@ -169,21 +169,23 @@ struct check_all_variant_types_callable_in_lambda<Variant<VariantType, VariantTy
 //-----------------------------------------------------------------
 // трейт для получения runtime-объекта из пака по индексу, CurrentIndex = 0
 //-----------------------------------------------------------------
-template <ssize_t FindIndex, ssize_t CurrentIndex>
+template <ssize_t FindIndex>
 struct object_at_index {
     template <typename Head, typename... Types>
     static auto Get(Head&& head, Types&&... types)
-        -> typename type_at_index<FindIndex - 1, Types...>::type
+        // decltype нужен для сохранения категории ссылки lvalue/rvalue
+        -> decltype(object_at_index<FindIndex - 1>::Get(std::forward<Types>(types)...))
     {
-       return object_at_index<FindIndex, CurrentIndex + 1>
-            ::Get(std::forward<Types>(types)...);
+       return object_at_index<FindIndex - 1>::Get(std::forward<Types>(types)...);
     }
 };
 //------------
-template <ssize_t FindIndex>
-struct object_at_index<FindIndex, FindIndex> {
+template <>
+struct object_at_index<0> {
     template <typename Head, typename... Types>
-    static Head&& Get(Head&& head, Types&&... types) {
+    static auto Get(Head&& head, Types&&... types)
+        -> decltype(std::forward<Head>(head))
+    {
         return std::forward<Head>(head);
     }
 };
@@ -212,7 +214,7 @@ struct VisitContext<Variant<VariantTypes...>, Lambdas...> {
                 static constexpr ssize_t lambda_index =
                     tools::index_of_type<InnerVariantType, typename tools::lambda_settings<Lambdas>::arg_type...>::value;
 
-                auto selected_lambda = tools::object_at_index<lambda_index, 0>::Get(lambdas...);
+                auto selected_lambda = tools::object_at_index<lambda_index>::Get(lambdas...);
                 return selected_lambda(variant.template get<InnerVariantType>());
             } else {
                 return IndexContext<Index+1>::Call(variant, lambdas...);
@@ -226,7 +228,7 @@ struct VisitContext<Variant<VariantTypes...>, Lambdas...> {
                 static constexpr ssize_t lambda_index =
                     tools::index_of_type<InnerVariantType, typename tools::lambda_settings<Lambdas>::arg_type...>::value;
 
-                auto selected_lambda = tools::object_at_index<lambda_index, 0>::Get(lambdas...);
+                auto selected_lambda = tools::object_at_index<lambda_index>::Get(lambdas...);
                 return selected_lambda(variant.template get<InnerVariantType>());
             } else {
                 return IndexContext<Index+1>::Call(std::forward<Variant<VariantTypes...>>(variant), lambdas...);
