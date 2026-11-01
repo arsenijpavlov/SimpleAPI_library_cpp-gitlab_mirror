@@ -192,7 +192,9 @@ class Variant {
                     std::nullptr_t // заглушка
                     >;
 
-                HelperAssign<TargetIndex::is_found, OtherType, TargetType>
+                using TempOtherType = decltype(other.template get<OtherType>());
+
+                HelperAssign<TargetIndex::is_found, TempOtherType, TargetType>
                     (dest_value.m_data, other.template get<OtherType>());
             } else {
                 // продолжение поиска
@@ -216,7 +218,9 @@ class Variant {
                     std::nullptr_t // заглушка
                     >;
 
-                HelperAssign<TargetIndex::is_found, OtherType, TargetType>
+                using TempOtherType = decltype(std::move(other).template get<OtherType>());
+
+                HelperAssign<TargetIndex::is_found, TempOtherType, TargetType>
                     (dest_value.m_data, std::move(other.template get<OtherType>()));
             } else {
                 // продолжение поиска
@@ -506,25 +510,36 @@ public:
              typename std::enable_if<std::is_same<Dummy, std::nullptr_t>::value
                                          && tools::index_of_type<std::nullptr_t, Types...>::is_found
                                      , int>::type = 0>
-    std::nullptr_t get()
+    std::nullptr_t get() const
     {
         return nullptr;
     }
 
     template <typename T,
              typename std::enable_if<tools::index_of_type<T, Types...>::is_found
+                                         && !std::is_same<T, std::nullptr_t>::value
                                      , int>::type = 0>
-    T& get()
+    T& get() &
     {
         return *(reinterpret_cast<T*>(m_data));
     }
 
     template <typename T,
              typename std::enable_if<tools::index_of_type<T, Types...>::is_found
+                                         && !std::is_same<T, std::nullptr_t>::value
                                      , int>::type = 0>
-    T get() const
+    const T& get() const &
     {
         return *(reinterpret_cast<const T*>(m_data));
+    }
+
+    template <typename T,
+             typename std::enable_if<tools::index_of_type<T, Types...>::is_found
+                                         && !std::is_same<T, std::nullptr_t>::value
+                                     , int>::type = 0>
+    T&& get() &&
+    {
+        return std::move(*(reinterpret_cast<T*>(m_data)));
     }
 
     // версия через получение указателя на значение (если тип существует)
