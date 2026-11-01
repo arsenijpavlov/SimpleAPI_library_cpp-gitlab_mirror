@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include "../config/Config.h"
+#include "../utils/Variant.h"
 
 
 namespace simpleapi {
@@ -25,13 +26,22 @@ class is_config_struct {
 
     // метод для SFINAE проверки наличия метода loadConfig у класса U
     template <typename U>
-    static char test(
-        decltype(
-            std::declval<U>().loadConfig(
-                std::declval<const Config&>()
-            )
-        )*
-    );
+    static char test(decltype(std::declval<U>().loadConfig(std::declval<const Config&>()))*);
+    // метод для разрешения конфликта для поля value
+    template <typename U> static long test(...);
+public:
+    static const bool value = sizeof(test<CleanT>(0)) == sizeof(char);
+};
+// ----------------------------------------------------------------------------
+// проверка, что тип содержит метод operator==()
+template <typename T>
+class is_contain_operator_equal {
+    // очистка типа от const и ссылок
+    using CleanT = typename std::decay<T>::type;
+
+    // метод для SFINAE проверки наличия метода operator==() у класса U
+    template <typename U>
+    static char test(decltype(std::declval<U>() == std::declval<U>())*);
     // метод для разрешения конфликта для поля value
     template <typename U> static long test(...);
 public:
@@ -265,6 +275,23 @@ class is_container_as_unordered_map {
     static long test(...);
 public:
     static const bool value = (sizeof(test<CleanT>(0)) == sizeof(char));
+};
+//----------------
+template <typename T>
+class is_container_as_variant {
+    // очистка типа от const и ссылок
+    using CleanT = typename std::decay<T>::type;
+
+    // метод для разрешения конфликта для поля value
+    template <typename U>
+    struct test : public std::false_type {};
+
+    // метод для SFINAE проверки
+    template <typename... VariantTypes>
+    struct test<Variant<VariantTypes...>> : public std::true_type {};
+
+public:
+    static const bool value = test<CleanT>::value;
 };
 //----------------
 template <typename T>

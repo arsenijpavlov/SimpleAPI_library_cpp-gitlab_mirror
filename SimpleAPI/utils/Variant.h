@@ -572,6 +572,35 @@ public:
         return nullptr;
     }
 
+    // сравнивает фактическое хранимое значение, а НЕ общий список подтипов и совпадение значения
+    template <typename... OtherTypes>
+    bool operator==(const Variant<OtherTypes...>& other) const noexcept
+    {
+        // TODO:
+
+        return false;
+    }
+
+    template <typename... OtherTypes>
+    bool operator!=(const Variant<OtherTypes...>& other) const noexcept
+    {
+        return !(*this == other);
+    }
+
+    template <typename T>
+    bool operator==(const T& other) const noexcept
+    {
+        // TODO:
+
+        return false;
+    }
+
+    template <typename T>
+    bool operator!=(const T& other) const noexcept
+    {
+        return !(*this == other);
+    }
+
     /**
      * @brief index
      * @return Возвращает текущий индекс типа. Может быть -1 для не инициализированного значения.

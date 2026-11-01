@@ -24,6 +24,7 @@
 #include "container_types_as_stack.h"  // IWYU pragma: keep
 #include "container_types_as_map.h"    // IWYU pragma: keep
 #include "container_type_as_config.h"  // IWYU pragma: keep
+#include "container_type_as_variant.h" // IWYU pragma: keep
 #include "pair_types.h"                // IWYU pragma: keep
 #include "enum_types.h"                // IWYU pragma: keep
 #include "optional_types.h"            // IWYU pragma: keep
@@ -232,11 +233,12 @@
  *      - ассоциативные контейнеры:
  *          - std::map<K, T>
  *          - std::unordered_map<K, T>
- *          - std::multimap<K, T>           - сейчас нет реализации (Config не может содержать дублей ключей)
- *          - std::unordered_multimap<K, T> - сейчас нет реализации (Config не может содержать дублей ключей)
+ *          - std::multimap<K, T>
+ *          - std::unordered_multimap<K, T>
  * - запрещённые типы контейнеров:
  *      - std::basic_string - библиотека строго UTF-8, запрещаем пользователю выстрелить себе в ногу
  * - std::wstring использовать разрешено, но строго для формата UTF-8 (требование SimpleAPI Config)
+ * - simpleapi::Variant<T...> -
 */
 // @TEST(STATIC, main)
 #define SAPI_REGISTER_CONFIG(StructName, SAPI_FIELDS_MACRO)           \

@@ -22,6 +22,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_config_struct<T>::value
                                                    && !is_container_as_bitset<T>::value
                                                    && !is_container_as_map<T>::value
                                                    && !is_container_as_unordered_map<T>::value
+                                                   && !is_container_as_variant<T>::value
                                                    && !std::is_enum<T>::value
                                                    && !is_pair<T>::value
                                                    && !std::is_same<T, Config>::value
