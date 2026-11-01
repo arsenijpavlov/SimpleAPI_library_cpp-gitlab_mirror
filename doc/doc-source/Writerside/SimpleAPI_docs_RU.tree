@@ -28,5 +28,6 @@
 	</toc-element> <!-- end of "006-Network.md" -->
 	<toc-element topic="007-Side-utils.md"/>
 	<toc-element topic="008-Static-Config.md"/>
+	<toc-element topic="009-Variant-Visit.md"/>
 	<!-- SCRIPT END -->
 </instance-profile>
