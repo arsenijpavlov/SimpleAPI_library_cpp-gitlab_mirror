@@ -229,9 +229,9 @@ struct VisitContext<Variant<VariantTypes...>, Lambdas...> {
                     tools::index_of_type<InnerVariantType, typename tools::lambda_settings<Lambdas>::arg_type...>::value;
 
                 auto selected_lambda = tools::object_at_index<lambda_index>::Get(lambdas...);
-                return selected_lambda(variant.template get<InnerVariantType>());
+                return selected_lambda(std::move(variant.template get<InnerVariantType>()));
             } else {
-                return IndexContext<Index+1>::Call(std::forward<Variant<VariantTypes...>>(variant), lambdas...);
+                return IndexContext<Index+1>::Call(std::move(variant), lambdas...);
             }
         }
     };
@@ -239,6 +239,8 @@ struct VisitContext<Variant<VariantTypes...>, Lambdas...> {
     template <ssize_t Index>
     struct IndexContext<Index, false>
     {
+        // NOTE: описываются только const Variant<> для избегания ошибки ambigous Call()
+
         template <typename Dummy = RetType,
                  typename std::enable_if<!std::is_same<Dummy, void>::value, int>::type = 0>
         static RetType Call(const Variant<VariantTypes...> variant, Lambdas... lambdas) {
@@ -247,27 +249,12 @@ struct VisitContext<Variant<VariantTypes...>, Lambdas...> {
             // следующая инструкция никогда не будет выполнена, к тому же UB, но возвращаемое значение явно обозначаем
             return *static_cast<RetType*>(nullptr);
         }
-        template <typename Dummy = RetType,
-                 typename std::enable_if<!std::is_same<Dummy, void>::value, int>::type = 0>
-        static RetType Call(Variant<VariantTypes...>&& variant, Lambdas... lambdas) {
-            (void)variant; // hide warning
-            throw std::runtime_error("SimpleAPI: critical error, Variant(&&) index out of bounds");
-            // следующая инструкция никогда не будет выполнена, к тому же UB, но возвращаемое значение явно обозначаем
-            return *static_cast<typename std::remove_reference<RetType>::type*>(nullptr);
-        }
 
         template <typename Dummy = RetType,
                  typename std::enable_if<std::is_same<Dummy, void>::value, int>::type = 0>
         static RetType Call(const Variant<VariantTypes...> variant, Lambdas... lambdas) {
             (void)variant; // hide warning
             throw std::runtime_error("SimpleAPI: critical error, Variant(const&) index out of bounds");
-            return;
-        }
-        template <typename Dummy = RetType,
-                 typename std::enable_if<std::is_same<Dummy, void>::value, int>::type = 0>
-        static RetType Call(Variant<VariantTypes...>&& variant, Lambdas... lambdas) {
-            (void)variant; // hide warning
-            throw std::runtime_error("SimpleAPI: critical error, Variant(&&) index out of bounds");
             return;
         }
     };

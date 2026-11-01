@@ -256,3 +256,57 @@ TEST(VISIT, complex_args_complicate) {
         );
     EXPECT_EQ(global_output, func_null_to_void_output);
 }
+
+size_t global_const_ref_counter = 0;
+size_t global_move_counter      = 0;
+struct SomeHeavyObject {
+    std::string string; // пример тяжёлого внутреннего поля
+    // конструкторы
+    SomeHeavyObject(std::string s) : string(s) {}
+    SomeHeavyObject(const SomeHeavyObject& other) {
+        global_const_ref_counter++;
+        string = other.string;
+    }
+    SomeHeavyObject(SomeHeavyObject&& other) {
+        global_move_counter++;
+        string = other.string;
+    }
+};
+
+// проверка константности внутреннго объекта Variant
+// проверяем, что до констекста лямбд правильно передаётся аргумент, не делая лишних перемещений/копирований
+TEST(VISIT, heavy_const_object) {
+    std::string template_str("asd");
+
+    // проверяем, что для константного типа нет лишних копирований
+    global_const_ref_counter = 0;
+    global_move_counter      = 0;
+    const Variant<std::nullptr_t, SomeHeavyObject> const_var(template_str);
+    Visit(const_var
+          , [](std::nullptr_t){}
+          , [&](const SomeHeavyObject& sho) {
+                SomeHeavyObject temp(sho);
+                EXPECT_EQ(sho.string, template_str);
+            }
+          );
+    EXPECT_EQ(global_const_ref_counter, 1);
+    EXPECT_NE(global_const_ref_counter, 0);
+    EXPECT_EQ(global_move_counter, 0);
+    EXPECT_NE(global_move_counter, 1);
+
+    // проверяем, что используется перемещение
+    global_const_ref_counter = 0;
+    global_move_counter      = 0;
+    Variant<std::nullptr_t, SomeHeavyObject> var(template_str);
+    Visit(std::move(var)
+          , [](std::nullptr_t){}
+          , [&](SomeHeavyObject&& sho) {
+                SomeHeavyObject temp(std::move(sho));
+                EXPECT_EQ(sho.string, template_str);
+            }
+          );
+    EXPECT_EQ(global_const_ref_counter, 0);
+    EXPECT_NE(global_const_ref_counter, 1);
+    EXPECT_EQ(global_move_counter, 1);
+    EXPECT_NE(global_move_counter, 0);
+}
