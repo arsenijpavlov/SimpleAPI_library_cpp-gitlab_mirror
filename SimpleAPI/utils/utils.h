@@ -1,7 +1,6 @@
 #pragma once
 
 #include <string>
-#include <sstream>
 #include <vector>
 
 #ifdef __DEBUG__
@@ -13,6 +12,24 @@
 
 
 namespace simpleapi {
+
+namespace tools {
+// проверка, что тип содержит метод operator==()
+template <typename T>
+class is_contain_operator_equal {
+    // очистка типа от const и ссылок
+    using CleanT = typename std::decay<T>::type;
+
+    // метод для SFINAE проверки наличия метода operator==() у класса U
+    template <typename U>
+    static char test(decltype(std::declval<U>() == std::declval<U>())*);
+    // метод для разрешения конфликта для поля value
+    template <typename U> static long test(...);
+public:
+    static const bool value = sizeof(test<CleanT>(0)) == sizeof(char);
+};
+} // namespace tools
+
 namespace utils {
 
 bool        IsNumber(const std::string& str, bool use_point = true)                     noexcept;
@@ -65,6 +82,23 @@ std::vector<uint8_t> FromHexStringToHex(const std::string& str)                 
 
 std::string GetNormalizeString(const std::string& input)                                noexcept;
 bool        IsNormalizeEqual(const std::string& str_1, const std::string& str_2)        noexcept;
+
+// если объект содержит operator==(), то будет произведено сравнение, иначе false
+            template <typename T>
+bool        CompareIfPossible(const T& first, const T& second) noexcept
+            {
+                struct OnTrue {
+                    static bool Compare(const T& a, const T& b) { return a == b; }
+                };
+                struct OnFalse {
+                    static bool Compare(const T&, const T&) { return false; }
+                };
+
+                using Selector = typename std::conditional<tools::is_contain_operator_equal<T>::value,
+                                                           OnTrue,
+                                                           OnFalse>::type;
+                return Selector::Compare(first, second);
+            }
 
 } // namespace utils
 } // namespace simpleapi
