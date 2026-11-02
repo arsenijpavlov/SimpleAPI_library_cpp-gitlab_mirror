@@ -229,4 +229,18 @@ TEST(VARIANT, equal_T) {
     // тип не поддерживается, надо вернуть false
     EXPECT_NE(var, "asd");
     EXPECT_NE(var, nullptr);
+
+    Variant<int, std::nullptr_t> var_null(nullptr);
+    EXPECT_EQ(var_null, nullptr);
+}
+
+TEST(VARIANT, equal_another_variant) {
+    using namespace simpleapi;
+
+    Variant<std::nullptr_t, int>    var_1(100);
+    Variant<int, char, std::string> var_2(100);
+    Variant<int, std::string>       var_3("asd");
+
+    EXPECT_EQ(var_1, var_2);
+    EXPECT_NE(var_1, var_3);
 }

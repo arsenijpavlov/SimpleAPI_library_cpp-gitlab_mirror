@@ -228,6 +228,24 @@ class Variant {
                 UniversalAssigner<next_in_bounds, OtherIndex + 1>::assign(other_index, std::move(other), dest_value);
             }
         }
+
+        template <typename... OtherTypes>
+        static bool compare(const ssize_t& other_index, const Variant<Types...>& current,
+                            const Variant<OtherTypes...>& other)
+        {
+            using OtherVariant = Variant<OtherTypes...>;
+            if(OtherIndex == other_index) {
+                using OtherType     = typename tools::type_at_index<OtherIndex, OtherTypes...>::type;
+                using TargetIndex   = typename tools::index_of_type<OtherType, Types...>;
+                using TempOtherType = decltype(std::move(other).template get<OtherType>());
+
+                return current == other.template get<const OtherType>();
+            } else {
+                // продолжение поиска
+                static constexpr bool next_in_bounds = (OtherIndex + 1) < sizeof...(OtherTypes);
+                return UniversalAssigner<next_in_bounds, OtherIndex + 1>::compare(other_index, current, other);
+            }
+        }
     };
     // шаблон для остановки рекурсии (вышли за границы списка типов)
     template <ssize_t OtherIndex>
@@ -243,6 +261,11 @@ class Variant {
                            Variant<OtherTypes...>&& other,
                            Variant<Types...>& dest_value)
         { /*метод-заглушка*/ }
+
+        template <typename... OtherTypes>
+        static bool compare(const ssize_t& other_index, const Variant<Types...>& current,
+                            const Variant<OtherTypes...>& other)
+        { /*метод-заглушка*/ return false; }
     };
 
 public:
@@ -576,9 +599,7 @@ public:
     template <typename... OtherTypes>
     bool operator==(const Variant<OtherTypes...>& other) const noexcept
     {
-        // TODO:
-
-        return false;
+        return UniversalAssigner<true, 0>::compare(other.index(), *this, other);
     }
 
     template <typename... OtherTypes>
