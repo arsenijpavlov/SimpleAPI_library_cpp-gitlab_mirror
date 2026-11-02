@@ -4,6 +4,7 @@
 #include "../utils/string_utils.h"
 #include "../utils/Logger.h" //для cout (debug)
 #include <algorithm>
+#include <sstream>
 
 
 namespace simpleapi {
