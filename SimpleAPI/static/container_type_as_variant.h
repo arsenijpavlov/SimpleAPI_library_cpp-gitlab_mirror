@@ -16,6 +16,36 @@ namespace tools {
 template<typename T>
 struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_variant<T>::value>::type>
 {
+    template <typename... VariantTypes>
+    struct HelperVariant {
+        template <ssize_t Index, bool is_in_bounds = (Index >= 0 && Index < sizeof...(VariantTypes))>
+        struct Loader {
+            // TODO: static bool Load(const Config& config, Variant<VariantTypes...>& field) {}
+        };
+
+        template <ssize_t Index>
+        struct Loader<Index, false> {
+            static bool Load(const Config& config, Variant<VariantTypes...>& field) {
+                return false; // заглушка, ни один тип не подошёл
+            }
+        };
+
+        //----------
+
+        template <ssize_t Index, bool is_in_bounds = (Index >= 0 && Index < sizeof...(VariantTypes))>
+        struct Saver {
+            // TODO: static bool Save(Config& config, const Variant<VariantTypes...>& field) {}
+        };
+
+        template <ssize_t Index>
+        struct Saver<Index, false> {
+            static bool Save(Config& config, const Variant<VariantTypes...>& field) {
+                return false; // заглушка, ни один тип не подошёл
+            }
+        };
+    };
+    //-----------------------------------------
+
     static bool load(const Config& config, const std::string& key, T& field)
     {
         // std::cout << "[debug] load container(as variant) key=\"" << key << "\"" << std::endl;
@@ -95,7 +125,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_variant<T>::v
 //            Config temp = Saver(item, prefix_comment, suffix_comment);
 //            config[key].push_back(temp);
 //        }
-//        config[key].setComment(prefix_comment, suffix_comment);
+       config[key].setComment(prefix_comment, suffix_comment);
     }
 
     static bool compare(const T& field, const T& other)
