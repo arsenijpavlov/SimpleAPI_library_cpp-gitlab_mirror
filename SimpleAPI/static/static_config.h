@@ -235,10 +235,10 @@
  *          - std::unordered_map<K, T>
  *          - std::multimap<K, T>
  *          - std::unordered_multimap<K, T>
+ * - std::wstring использовать разрешено, но строго для формата UTF-8 (требование SimpleAPI Config)
+ * - simpleapi::Variant<T...>
  * - запрещённые типы контейнеров:
  *      - std::basic_string - библиотека строго UTF-8, запрещаем пользователю выстрелить себе в ногу
- * - std::wstring использовать разрешено, но строго для формата UTF-8 (требование SimpleAPI Config)
- * - simpleapi::Variant<T...> -
 */
 // @TEST(STATIC, main)
 #define SAPI_REGISTER_CONFIG(StructName, SAPI_FIELDS_MACRO)           \

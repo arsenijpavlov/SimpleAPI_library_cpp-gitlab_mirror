@@ -183,7 +183,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_map<T>::value
 
     static bool compare(const T& field, const T& other)
     {
-        return field == other;
+        return utils::CompareIfPossible(field, other);
     }
 };
 

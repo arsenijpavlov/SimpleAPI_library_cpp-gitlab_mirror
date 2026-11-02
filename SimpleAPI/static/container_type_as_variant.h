@@ -98,22 +98,9 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_variant<T>::v
 //        config[key].setComment(prefix_comment, suffix_comment);
     }
 
-    // FIXME: имеет смысл переместить этот метод в общий код Static Config и не копировать в каждый трейт
     static bool compare(const T& field, const T& other)
     {
-        struct OnTrue {
-            static bool Compare(const T& a, const T& b) { return a == b; }
-        };
-        struct OnFalse {
-            static bool Compare(const T&, const T&) { return false; }
-        };
-
-        using Selector =
-            typename std::conditional<
-                tools::is_contain_operator_equal<T>::value,
-                OnTrue,
-                std::false_type>::type;
-        return Selector::Compare(field, other);
+        return utils::CompareIfPossible(field, other);
     }
 };
 

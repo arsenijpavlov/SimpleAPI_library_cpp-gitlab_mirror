@@ -181,7 +181,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_pair<T>::value>::type>
 
     static bool compare(const T& field, const T& other)
     {
-        return field == other;
+        return utils::CompareIfPossible(field, other);
     }
 };
 

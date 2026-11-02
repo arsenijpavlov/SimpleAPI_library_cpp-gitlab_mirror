@@ -59,7 +59,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<std::is_same<T, Config>::valu
 
     static bool compare(const T& field, const T& other)
     {
-        return field == other;
+        return utils::CompareIfPossible(field, other);
     }
 };
 

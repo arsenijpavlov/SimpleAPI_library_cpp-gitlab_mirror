@@ -84,7 +84,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_config_struct<T>::value
 
     static bool compare(const T& field, const T& other)
     {
-        return field == other;
+        return utils::CompareIfPossible(field, other);
     }
 };
 
