@@ -240,7 +240,9 @@ TEST(VARIANT, equal_another_variant) {
     Variant<std::nullptr_t, int>    var_1(100);
     Variant<int, char, std::string> var_2(100);
     Variant<int, std::string>       var_3("asd");
+    Variant<std::nullptr_t, int>    var_4(100);
 
     EXPECT_EQ(var_1, var_2);
     EXPECT_NE(var_1, var_3);
+    EXPECT_EQ(var_1, var_4);
 }
