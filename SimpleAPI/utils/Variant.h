@@ -543,30 +543,30 @@ public:
     }
 
     // версия через получение указателя на значение (если тип существует)
-    template <typename T,
-             typename std::enable_if<tools::index_of_type<T, Types...>::is_found
-                                     , int>::type = 0>
+    template <typename T>
     T* get_if() noexcept
     {
-        static constexpr ssize_t type_index = tools::index_of_type<T, Types...>::value;
+        using Index = tools::index_of_type<T, Types...>;
+
+        static constexpr ssize_t type_index = Index::value;
         static constexpr bool    is_nullptr = std::is_same<T, std::nullptr_t>::value;
 
-        if(type_index == m_current_type_index && !is_nullptr) {
+        if(Index::is_found && type_index == m_current_type_index && !is_nullptr) {
             return reinterpret_cast<T*>(m_data);
         }
         return nullptr;
     }
 
     // версия через получение (const) указателя на значение (если тип существует)
-    template <typename T,
-             typename std::enable_if<tools::index_of_type<T, Types...>::is_found
-                                     , int>::type = 0>
+    template <typename T>
     const T* get_if() const noexcept
     {
-        static constexpr ssize_t type_index = tools::index_of_type<T, Types...>::value;
+        using Index = tools::index_of_type<T, Types...>;
+
+        static constexpr ssize_t type_index = Index::value;
         static constexpr bool    is_nullptr = std::is_same<T, std::nullptr_t>::value;
 
-        if(type_index == m_current_type_index && !is_nullptr) {
+        if(Index::is_found && type_index == m_current_type_index && !is_nullptr) {
             return reinterpret_cast<const T*>(m_data);
         }
         return nullptr;
@@ -587,10 +587,33 @@ public:
         return !(*this == other);
     }
 
+    template <typename Dummy = std::nullptr_t,
+             typename std::enable_if<std::is_same<Dummy, std::nullptr_t>::value
+                                     , int>::type = 0>
+    bool operator==(std::nullptr_t) const noexcept
+    {
+        using Index = typename tools::index_of_type<std::nullptr_t, Types...>;
+        if (Index::is_found) {
+            return m_current_type_index == Index::value;
+        }
+        return false;
+    }
+
+    template <typename Dummy = std::nullptr_t,
+             typename std::enable_if<std::is_same<Dummy, std::nullptr_t>::value
+                                     , int>::type = 0>
+    bool operator!=(std::nullptr_t) const noexcept
+    {
+        return !(*this == nullptr);
+    }
+
     template <typename T>
     bool operator==(const T& other) const noexcept
     {
-        // TODO:
+        const T* ptr = this->template get_if<T>();
+        if(ptr) {
+            return *ptr == other;
+        }
 
         return false;
     }

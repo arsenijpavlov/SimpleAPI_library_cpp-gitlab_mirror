@@ -218,3 +218,15 @@ TEST(VARIANT, emplacer) {
     var.emplace<std::string>("asd");
     EXPECT_EQ(var.get<std::string>(), "asd");
 }
+
+TEST(VARIANT, equal_T) {
+    using namespace simpleapi;
+
+    Variant<int> var(15);
+    EXPECT_EQ(var, 15);
+    EXPECT_NE(var, 16);
+
+    // тип не поддерживается, надо вернуть false
+    EXPECT_NE(var, "asd");
+    EXPECT_NE(var, nullptr);
+}
