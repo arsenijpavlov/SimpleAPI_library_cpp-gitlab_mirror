@@ -375,7 +375,7 @@ public:
             ::template get<0>::index(other.index());
 
         if(temp_index != -1)
-            UniversalAssigner<true, 0>::create(m_current_type_index, std::move(other), *this);
+            UniversalAssigner<true, 0>::create(other.index(), std::move(other), *this);
 
         // NOTE: UniversalAssigner::create() не заполняет индекс
         m_current_type_index = temp_index;
