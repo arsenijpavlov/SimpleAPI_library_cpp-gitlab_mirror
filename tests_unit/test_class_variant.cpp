@@ -213,7 +213,7 @@ TEST(VARIANT, assign_value_from_another_variant_object) {
     Variant<int, char>              var_3(int(16));
 
     var_1 = var_2;
-    EXPECT_EQ(var_1.index(), 1);
+    EXPECT_EQ(var_1.index(), 2);
 
     var_1 = var_3;
     EXPECT_EQ(var_1.index(), 0);
@@ -268,7 +268,7 @@ TEST(VARIANT, equal_another_variant) {
     Variant<std::nullptr_t, int>    var_1(100);
     Variant<int, char, std::string> var_2(100);
     Variant<int, std::string>       var_3("asd");
-    Variant<std::nullptr_t, int>    var_4(100);
+    Variant<std::nullptr_t, int>    var_4(100); // проверка с тем же набором типов
 
     EXPECT_EQ(var_1, var_2);
     EXPECT_NE(var_1, var_3);

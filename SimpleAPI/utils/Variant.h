@@ -428,11 +428,12 @@ public:
         Destroyer<0>::destroy(m_current_type_index, m_data);
     }
 
+    // @TEST(VARIANT, assign_value_from_other_variant_object)
     Variant& operator=(const Variant& other)
     {
         if(this != &other)
         {
-            // NOTE: уничтожение внутреннего объекта обязательно, т.к. происходит высокоуровневое присвоение
+            // NOTE: уничтожение внутреннего объекта обязательно, т.к. происходит высокоуровневое присваивание
             // уничтожение старого объекта
             Destroyer<0>::destroy(m_current_type_index, m_data);
 
@@ -448,7 +449,7 @@ public:
     {
         if(this != &other)
         {
-            // NOTE: уничтожение внутреннего объекта обязательно, т.к. происходит высокоуровневое присвоение
+            // NOTE: уничтожение внутреннего объекта обязательно, т.к. происходит высокоуровневое присваивание
             // уничтожение старого объекта
             Destroyer<0>::destroy(m_current_type_index, m_data);
 
@@ -463,22 +464,48 @@ public:
         return *this;
     }
 
-    // FIXME: нужно исправить по примеру operator=(const T& value)
+    // @TEST(VARIANT, assign_value_from_another_variant_object)
     template <typename... OtherTypes>
     Variant& operator=(const Variant<OtherTypes...>& other)
     {
         // NOTE: проверка if(this != &other) не нужна, т.к. типы заведомо разные по variadic
-        UniversalAssigner<true, 0>::assign(m_current_type_index, other, *this);
+
+        // уничтожение старого объекта
+        Destroyer<0>::destroy(m_current_type_index, m_data);
+
+        ssize_t temp_index = tools::for_list<Types...>
+            ::template from_list<OtherTypes...>
+            ::template get<0>::index(other.index());
+
+        if(temp_index != -1)
+            // NOTE: UniversalAssigner используется для умного вычислителя типа other.m_data
+            UniversalAssigner<true, 0>::create(other.index(), other, *this);
+
+        // NOTE: UniversalAssigner::create() не заполняет индекс
+        m_current_type_index = temp_index;
 
         return *this;
     }
 
-    // FIXME: нужно исправить по примеру operator=(T&& value)
     template <typename... OtherTypes>
     Variant& operator=(Variant<OtherTypes...>&& other) noexcept
     {
         // NOTE: проверка if(this != &other) не нужна, т.к. типы заведомо разные по variadic
-        UniversalAssigner<true, 0>::assign(m_current_type_index, std::move(other), *this);
+
+        // уничтожение старого объекта
+        Destroyer<0>::destroy(m_current_type_index, m_data);
+
+        ssize_t temp_index = tools::for_list<Types...>
+            ::template from_list<OtherTypes...>
+            ::template get<0>::index(other.index());
+
+        if(temp_index != -1)
+            // NOTE: UniversalAssigner используется для умного вычислителя типа other.m_data
+            UniversalAssigner<true, 0>::create(other.index(), std::move(other), *this);
+
+        // NOTE: UniversalAssigner::create() не заполняет индекс
+        m_current_type_index = temp_index;
+
         // уничтожаем индекс, чтобы Destroyer не делал лишние действия
         other.m_current_type_index = -1;
 
@@ -584,6 +611,7 @@ public:
     }
 
     // версия заполнителя при прямой передаче аргументов в конструктор
+    // @TEST(VARIANT, emplacer)
     template <typename T, typename... Args,
              typename std::enable_if<!std::is_same<typename std::decay<T>::type, Variant>::value
                                          && tools::index_of_type<T, Types...>::is_found
@@ -674,6 +702,7 @@ public:
     }
 
     // сравнивает фактическое хранимое значение, а НЕ общий список подтипов и совпадение значения
+    // @TEST(VARIANT, equal_another_variant)
     template <typename... OtherTypes>
     bool operator==(const Variant<OtherTypes...>& other) const noexcept
     {
@@ -684,6 +713,7 @@ public:
     bool operator!=(const Variant<OtherTypes...>& other) const noexcept
     { return !(*this == other); }
 
+    // @TEST(VARIANT, equal_T)
     template <typename Dummy = std::nullptr_t,
              typename std::enable_if<std::is_same<Dummy, std::nullptr_t>::value
                                      , int>::type = 0>
@@ -702,6 +732,7 @@ public:
     bool operator!=(std::nullptr_t) const noexcept
     { return !(*this == nullptr); }
 
+    // @TEST(VARIANT, equal_T)
     template <typename T>
     bool operator==(const T& other) const noexcept
     {
