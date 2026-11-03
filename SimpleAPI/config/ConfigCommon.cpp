@@ -8,15 +8,15 @@ namespace simpleapi {
 
 std::string ToString(const ValueType type) noexcept {
     switch(type) {
-    case ValueType::eNumber:    return "Number";    break;
-    case ValueType::eBool:      return "Bool";      break;
-    case ValueType::eChar:      return "Char";      break;
-    case ValueType::eString:    return "String";    break;
-    case ValueType::eJson:      return "Json";      break;
-    case ValueType::eArray:     return "Array";     break;
-    case ValueType::eYaml:      return "Yaml";      break;
-    case ValueType::eXml:       return "Xml";       break;
-    default:                    return "null";      break;
+    case ValueType::eNumber:    return "Number";
+    case ValueType::eBool:      return "Bool";
+    case ValueType::eChar:      return "Char";
+    case ValueType::eString:    return "String";
+    case ValueType::eJson:      return "Json";
+    case ValueType::eArray:     return "Array";
+    case ValueType::eYaml:      return "Yaml";
+    case ValueType::eXml:       return "Xml";
+    default:                    return "null";
     }
 }
 
