@@ -363,6 +363,7 @@ public:
         Destroyer<0>::destroy(m_current_type_index, m_data);
     }
 
+    // FIXME: нужно исправить по примеру operator=(const T& value)
     Variant& operator=(const Variant& other)
     {
         if(this != &other)
@@ -377,6 +378,7 @@ public:
         return *this;
     }
 
+    // FIXME: нужно исправить по примеру operator=(T&& value)
     Variant& operator=(Variant&& other) noexcept
     {
         if(this != &other)
@@ -394,6 +396,7 @@ public:
         return *this;
     }
 
+    // FIXME: нужно исправить по примеру operator=(const T& value)
     template <typename... OtherTypes>
     Variant& operator=(const Variant<OtherTypes...>& other)
     {
@@ -403,6 +406,7 @@ public:
         return *this;
     }
 
+    // FIXME: нужно исправить по примеру operator=(T&& value)
     template <typename... OtherTypes>
     Variant& operator=(Variant<OtherTypes...>&& other) noexcept
     {
