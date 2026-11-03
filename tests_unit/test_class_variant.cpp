@@ -191,6 +191,34 @@ TEST(VARIANT, apply_new_value_without_recreate_memory) {
     // защита от перезаписи const типов уже внутри Variant::operator=()
 }
 
+TEST(VARIANT, assign_value_from_other_variant_object) {
+    using namespace simpleapi;
+
+    Variant<int, char, std::string> var_1('a');
+    Variant<int, char, std::string> var_2("string");
+    Variant<int, char, std::string> var_3(int(16));
+
+    var_1 = var_2;
+    EXPECT_EQ(var_1.index(), 2);
+
+    var_1 = var_3;
+    EXPECT_EQ(var_1.index(), 0);
+}
+
+TEST(VARIANT, assign_value_from_another_variant_object) {
+    using namespace simpleapi;
+
+    Variant<int, char, std::string> var_1('a');
+    Variant<int, std::string>       var_2("string");
+    Variant<int, char>              var_3(int(16));
+
+    var_1 = var_2;
+    EXPECT_EQ(var_1.index(), 1);
+
+    var_1 = var_3;
+    EXPECT_EQ(var_1.index(), 0);
+}
+
 TEST(VARIANT, setter_as_operator_eq) {
     using namespace simpleapi;
 

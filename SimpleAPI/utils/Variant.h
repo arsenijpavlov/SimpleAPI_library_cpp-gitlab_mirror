@@ -428,31 +428,33 @@ public:
         Destroyer<0>::destroy(m_current_type_index, m_data);
     }
 
-    // FIXME: нужно исправить по примеру operator=(const T& value)
     Variant& operator=(const Variant& other)
     {
         if(this != &other)
         {
+            // NOTE: уничтожение внутреннего объекта обязательно, т.к. происходит высокоуровневое присвоение
             // уничтожение старого объекта
             Destroyer<0>::destroy(m_current_type_index, m_data);
 
             m_current_type_index = other.m_current_type_index;
-            UniversalAssigner<true, 0>::assign(m_current_type_index, other, *this);
+            // NOTE: UniversalAssigner используется для умного вычислителя типа other.m_data
+            UniversalAssigner<true, 0>::create(other.index(), other, *this);
         }
 
         return *this;
     }
 
-    // FIXME: нужно исправить по примеру operator=(T&& value)
     Variant& operator=(Variant&& other) noexcept
     {
         if(this != &other)
         {
+            // NOTE: уничтожение внутреннего объекта обязательно, т.к. происходит высокоуровневое присвоение
             // уничтожение старого объекта
             Destroyer<0>::destroy(m_current_type_index, m_data);
 
             m_current_type_index = other.m_current_type_index;
-            UniversalAssigner<true, 0>::assign(m_current_type_index, std::move(other), *this);
+            // NOTE: UniversalAssigner используется для умного вычислителя типа other.m_data
+            UniversalAssigner<true, 0>::create(other.index(), std::move(other), *this);
 
             // уничтожаем индекс, чтобы Destroyer не делал лишних действий
             other.m_current_type_index = -1;
