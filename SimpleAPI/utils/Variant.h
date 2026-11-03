@@ -177,7 +177,41 @@ class Variant {
     // NOTE: внешний код всегда вызывает начальную связку <true, 0>
     template <bool is_in_bounds, ssize_t OtherIndex>
     struct UniversalAssigner {
-        // вариант, когда тип совпадает с искомым (const &)
+        // конструктор - вариант, когда тип совпадает с искомым (const &)
+        template <typename... OtherTypes>
+        static void create(const ssize_t& other_index, const Variant<OtherTypes...>& other, Variant<Types...>& dest_value)
+        {
+            using OtherVariant = Variant<OtherTypes...>;
+            if(OtherIndex == other_index) {
+                using OtherType                = typename tools::type_at_index<OtherIndex, OtherTypes...>::type;
+                constexpr ssize_t target_index = tools::index_of_type<OtherType, Types...>::value;
+
+                Creator<0, true>::create(target_index, dest_value.m_data, other.template get<OtherType>());
+            } else {
+                // продолжение поиска
+                static constexpr bool next_in_bounds = (OtherIndex + 1) < sizeof...(OtherTypes);
+                UniversalAssigner<next_in_bounds, OtherIndex + 1>::create(other_index, other, dest_value);
+            }
+        }
+
+        // конструктор - вариант, когда тип совпадает с искомым (&&)
+        template <typename... OtherTypes>
+        static void create(const ssize_t& other_index, Variant<OtherTypes...>&& other, Variant<Types...>& dest_value)
+        {
+            using OtherVariant = Variant<OtherTypes...>;
+            if(OtherIndex == other_index) {
+                using OtherType                = typename tools::type_at_index<OtherIndex, OtherTypes...>::type;
+                constexpr ssize_t target_index = tools::index_of_type<OtherType, Types...>::value;
+
+                Creator<0, true>::create(target_index, dest_value.m_data, std::move(other.template get<OtherType>()));
+            } else {
+                // продолжение поиска
+                static constexpr bool next_in_bounds = (OtherIndex + 1) < sizeof...(OtherTypes);
+                UniversalAssigner<next_in_bounds, OtherIndex + 1>::create(other_index, std::move(other), dest_value);
+            }
+        }
+
+        // присваиватель - вариант, когда тип совпадает с искомым (const &)
         template <typename... OtherTypes>
         static void assign(const ssize_t& other_index, const Variant<OtherTypes...>& other, Variant<Types...>& dest_value)
         {
@@ -203,7 +237,7 @@ class Variant {
             }
         }
 
-        // вариант, когда тип совпадает с искомым (&&)
+        // присваиватель - вариант, когда тип совпадает с искомым (&&)
         template <typename... OtherTypes>
         static void assign(const ssize_t& other_index, Variant<OtherTypes...>&& other, Variant<Types...>& dest_value)
         {
@@ -250,6 +284,18 @@ class Variant {
     // шаблон для остановки рекурсии (вышли за границы списка типов)
     template <ssize_t OtherIndex>
     struct UniversalAssigner<false, OtherIndex> {
+        template <typename... OtherTypes>
+        static void create(const ssize_t& other_index,
+                           const Variant<OtherTypes...>& other,
+                           Variant<Types...>& dest_value)
+        { /*метод-заглушка*/ }
+
+        template <typename... OtherTypes>
+        static void create(const ssize_t& other_index,
+                           Variant<OtherTypes...>&& other,
+                           Variant<Types...>& dest_value)
+        { /*метод-заглушка*/ }
+
         template <typename... OtherTypes>
         static void assign(const ssize_t& other_index,
                            const Variant<OtherTypes...>& other,
@@ -307,14 +353,33 @@ public:
     Variant(const Variant<OtherTypes...>& other)
     {
         // NOTE: проверка if(this != &other) не нужна, т.к. типы заведомо разные по variadic
-        UniversalAssigner<true, 0>::assign(m_current_type_index, other, *this);
+
+        ssize_t temp_index = tools::for_list<Types...>
+            ::template from_list<OtherTypes...>
+            ::template get<0>::index(other.index());
+
+        if(temp_index != -1)
+            UniversalAssigner<true, 0>::create(other.index(), other, *this);
+
+        // NOTE: UniversalAssigner::create() не заполняет индекс
+        m_current_type_index = temp_index;
     }
 
     template <typename... OtherTypes>
     Variant(Variant<OtherTypes...>&& other)
     {
         // NOTE: проверка if(this != &other) не нужна, т.к. типы заведомо разные по variadic
-        UniversalAssigner<true, 0>::assign(m_current_type_index, std::move(other), *this);
+
+        ssize_t temp_index = tools::for_list<Types...>
+            ::template from_list<OtherTypes...>
+            ::template get<0>::index(other.index());
+
+        if(temp_index != -1)
+            UniversalAssigner<true, 0>::create(m_current_type_index, std::move(other), *this);
+
+        // NOTE: UniversalAssigner::create() не заполняет индекс
+        m_current_type_index = temp_index;
+
         // уничтожаем индекс, чтобы Destroyer не делал лишние действия
         other.m_current_type_index = -1;
     }
@@ -425,7 +490,7 @@ public:
                                      , int>::type = 0>
     Variant& operator=(std::nullptr_t)
     {
-        // уничтожение старого объекта
+        // уничтожение старого объекта (проверка на -1 и std::nullptr_t произойдёт внутри вызова)
         Destroyer<0>::destroy(m_current_type_index, m_data);
 
         using Index          = typename tools::index_of_type<std::nullptr_t, Types...>;
@@ -494,6 +559,7 @@ public:
         return *this;
     }
 
+    // функциональный аналог operator=(const T&)
     template <typename T,
              typename std::enable_if<!std::is_same<typename std::decay<T>::type, Variant>::value
                                          && tools::index_of_type<T, Types...>::is_found
@@ -504,6 +570,7 @@ public:
         return *this;
     }
 
+    // функциональный аналог operator=(T&&)
     template <typename T,
              typename std::enable_if<!std::is_same<typename std::decay<T>::type, Variant>::value
                                          && tools::index_of_type<T, Types...>::is_found
@@ -514,6 +581,7 @@ public:
         return *this;
     }
 
+    // версия заполнителя при прямой передаче аргументов в конструктор
     template <typename T, typename... Args,
              typename std::enable_if<!std::is_same<typename std::decay<T>::type, Variant>::value
                                          && tools::index_of_type<T, Types...>::is_found
@@ -533,6 +601,7 @@ public:
     }
 
     // NOTE: трюк с Dummy= и std::is_same<Dummy,> нужен для переноса проверки с момента создания объекта на момент вызова конкретного метода
+    // UB - если пользователь не угадал текущий тип
     template <typename Dummy = std::nullptr_t,
              typename std::enable_if<std::is_same<Dummy, std::nullptr_t>::value
                                          && tools::index_of_type<std::nullptr_t, Types...>::is_found
@@ -542,6 +611,7 @@ public:
         return nullptr;
     }
 
+    // UB - если пользователь не угадал текущий тип
     template <typename T,
              typename std::enable_if<tools::index_of_type<T, Types...>::is_found
                                          && !std::is_same<T, std::nullptr_t>::value
@@ -551,6 +621,7 @@ public:
         return *(reinterpret_cast<T*>(m_data));
     }
 
+    // UB - если пользователь не угадал текущий тип
     template <typename T,
              typename std::enable_if<tools::index_of_type<T, Types...>::is_found
                                          && !std::is_same<T, std::nullptr_t>::value
@@ -560,6 +631,7 @@ public:
         return *(reinterpret_cast<const T*>(m_data));
     }
 
+    // UB - если пользователь не угадал текущий тип
     template <typename T,
              typename std::enable_if<tools::index_of_type<T, Types...>::is_found
                                          && !std::is_same<T, std::nullptr_t>::value
@@ -608,9 +680,7 @@ public:
 
     template <typename... OtherTypes>
     bool operator!=(const Variant<OtherTypes...>& other) const noexcept
-    {
-        return !(*this == other);
-    }
+    { return !(*this == other); }
 
     template <typename Dummy = std::nullptr_t,
              typename std::enable_if<std::is_same<Dummy, std::nullptr_t>::value
@@ -628,9 +698,7 @@ public:
              typename std::enable_if<std::is_same<Dummy, std::nullptr_t>::value
                                      , int>::type = 0>
     bool operator!=(std::nullptr_t) const noexcept
-    {
-        return !(*this == nullptr);
-    }
+    { return !(*this == nullptr); }
 
     template <typename T>
     bool operator==(const T& other) const noexcept
@@ -645,18 +713,14 @@ public:
 
     template <typename T>
     bool operator!=(const T& other) const noexcept
-    {
-        return !(*this == other);
-    }
+    { return !(*this == other); }
 
     /**
      * @brief index
      * @return Возвращает текущий индекс типа. Может быть -1 для не инициализированного значения.
      */
     ssize_t index() const noexcept
-    {
-        return m_current_type_index;
-    }
+    { return m_current_type_index; }
 
 private:
     ssize_t m_current_type_index;

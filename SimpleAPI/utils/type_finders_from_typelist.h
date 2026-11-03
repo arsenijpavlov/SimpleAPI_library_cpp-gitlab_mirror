@@ -278,5 +278,36 @@ struct is_contains_duplicate<Head, Tail...> {
 };
 // ---------------------------------------------------------------------
 
+// ---------------------------------------------------------------------
+// трейт для лёгкого получения индексного соответствия между двумя списками типов
+// (ищем индекс I(A) списка A, соотвествующий индексу I(B) из списка B )
+// ---------------------------------------------------------------------
+template <typename... Types>
+struct for_list {
+    template <typename... OtherTypes>
+    struct from_list {
+        template <ssize_t Index, bool is_in_bounds = (Index >= 0 && Index < sizeof...(OtherTypes))>
+        struct get {
+            static ssize_t index(const ssize_t& other_index) {
+                if(Index == other_index) {
+                    using OtherType  = typename type_at_index<Index, OtherTypes...>::type;
+                    return index_of_type<typename std::decay<OtherType>::type, Types...>::value;
+                } else {
+                    return get<Index + 1>::index(other_index);
+                }
+            }
+        };
+
+        // вышли за границы списка B
+        template <ssize_t Index>
+        struct get<Index, false> {
+            static ssize_t index(const ssize_t& other_index) {
+                return -1;
+            }
+        };
+    };
+};
+// ---------------------------------------------------------------------
+
 } // namespace tools
 } // namespace simpleapi
