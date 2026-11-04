@@ -22,11 +22,22 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_variant<T>::v
     // основной класс хелпера
     template <typename... VariantTypes>
     struct Helper<Variant<VariantTypes...>> {
-        //-------------------------------------------------------------------------------
-        // Записыватель
-        //-------------------------------------------------------------------------------
         template <ssize_t Index, bool is_in_bounds = (Index >= 0 && Index < sizeof...(VariantTypes))>
         struct Runtime {
+            //-------------------------------------------------------------------------------
+            // Читатель
+            //-------------------------------------------------------------------------------
+            static bool Load(const Config& config, const std::string& key, Variant<VariantTypes...>& field) {
+                using Type  = typename type_at_index<Index, VariantTypes...>::type;
+                bool result = ConfigTypeTraits<Type>::load(config, key, field.template get<Type>());
+
+                // если успешно прочитали значение, то выходим из рекурсии
+                return result || Runtime<Index + 1>::Load(config, key, field);
+            }
+
+            //-------------------------------------------------------------------------------
+            // Записыватель
+            //-------------------------------------------------------------------------------
             static void Save(Config& config, const std::string& key, const Variant<VariantTypes...>& field) {
                 if(Index == field.index()) {
                     using Type = typename type_at_index<Index, VariantTypes...>::type;
@@ -35,42 +46,26 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_variant<T>::v
                     Runtime<Index + 1>::Save(config, key, field);
                 }
             }
+            //-------------------------------------------------------------------------------
         };
-        //-------------------------------------------------------------------------------
+
+        //-----------------------------------------
         template <ssize_t Index>
         struct Runtime<Index, false> {
+            static bool Load(const Config& config, const std::string& key, Variant<VariantTypes...>& field)
+            { /*заглушка*/ return true; }
             static void Save(Config& config, const std::string& key, const Variant<VariantTypes...>& field)
             { /*заглушка*/ }
         };
-        //-------------------------------------------------------------------------------
     };
-    //-----------------------------------------
+    //-------------------------------------------------------------------------------
 
     static bool load(const Config& config, const std::string& key, T& field)
     {
         // std::cout << "[debug] load container(as variant) key=\"" << key << "\"" << std::endl;
 
-        // FIXME:
-//        using Type = typename T::value_type;
-
-//        if(config.isMapContainer() && config.containsKey(key)) {
-//            const Config& ck = config[key];
-//            field.clear();
-//            size_t counter = 0;
-//            for(const auto& c : ck.getRange()) {
-//                // рекурсивно вызываем traits(признаки) для каждого из элементов
-//                Type item_temp_value;
-
-//                if(!Loader((*c.get()), item_temp_value)) {
-//                    static_config_error_str += "inner loader for [" + key + "] failed\n";
-//                    return false;
-//                }
-
-//                field.insert(item_temp_value);
-//            }
-//        }
-
-        return true;
+        // сам вызовет загрузчик для чтения любого из типов Variant<>
+        return Helper<T>::template Runtime<0>::Load(config, key, field);
     }
 
     template<typename Lambda, typename... Args,
@@ -79,25 +74,8 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_variant<T>::v
     {
         // std::cout << "[debug] load container(as variant) key=\"" << key << "\"" << std::endl;
 
-        // FIXME:
-//        using Type = typename T::value_type;
-//        T temp_value;
-
 //        if(config.isMapContainer() && config.containsKey(key)) {
-//            const Config& ck = config[key];
-//            field.clear();
-//            size_t counter = 0;
-//            for(const auto& c : ck.getRange()) {
-//                // рекурсивно вызываем traits(признаки) для каждого из элементов
-//                Type item_temp_value;
-
-//                if(!Loader((*c.get()), item_temp_value)) {
-//                    static_config_error_str += "inner loader for [" + key + "] failed\n";
-//                    return false;
-//                }
-
-//                temp_value.insert(item_temp_value);
-//            }
+//            T temp_value = config[key].get<T>();
 
 //            if(!ExecuteValidator(lambda, temp_value, key)) {
 //                static_config_error_str = "validate for [" + key + "] failed\n";

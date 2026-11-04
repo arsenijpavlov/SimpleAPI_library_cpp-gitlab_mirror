@@ -475,7 +475,10 @@ public:
     char&           getChar();                                                                                              API_STRING API_CHAR
     char            getChar()                                                                   const;                      API_STRING API_CHAR
 
-    // преобразования к указанному типу-примитиву
+    //------------------------------------------------------------------------------------------------
+    // преобразования к указанному типу-примитиву (только const-варианты)
+    // совместимые типы будут преобразованы к запрашиваемым
+    //------------------------------------------------------------------------------------------------
     // bool
     // @TEST(ELEMENT, get_const_bool)
     template<typename T, typename std::enable_if<std::is_same<T, bool>::value, int>::type = 0>
@@ -504,14 +507,28 @@ public:
         __CHECK_TYPE_IS_CHAR_OR_STRING__((*this))
         return static_cast<T>(getString());
     }
+    // null (метод-заглушка для логики Static Config Variant<>)
+    template <typename T, typename std::enable_if<std::is_same<T, std::nullptr_t>::value, int>::type = 0>
+    std::nullptr_t get() const
+    {
+        __CHECK_TYPE_IS_NULL__((*this))
+
+        return nullptr;
+    }
 
     // преобразования к указанному типу (из контейнеров)
     __ONLY_ALLOWED_TYPES__(T)
     T get(const std::string& key) const
     {
+        constexpr bool is_requested_T_is_null = std::is_same<T, std::nullptr_t>::value;
+
         __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
 
         const Config& inner = get_at(key);
+        if(inner.isNull() && is_requested_T_is_null) {
+            return nullptr;
+        }
+
         __CHECK_TYPE_IS_NOT_NULL__((inner))
         __CHECK_TYPE_IS_CONTAINER__((inner))
 
@@ -520,14 +537,21 @@ public:
     __ONLY_ALLOWED_TYPES__(T)
     T get(const size_t& index) const
     {
+        constexpr bool is_requested_T_is_null = std::is_same<T, std::nullptr_t>::value;
+
         __CHECK_TYPE_IS_CONTAINER__((*this))
 
         const Config& inner = get_at(index);
+        if(inner.isNull() && is_requested_T_is_null) {
+            return nullptr;
+        }
+
         __CHECK_TYPE_IS_NOT_NULL__((inner))
         __CHECK_TYPE_IS_CONTAINER__((inner))
 
         return inner.get<T>();
     }
+    //------------------------------------------------------------------------------------------------
 
     bool            error()                                                                     const noexcept;             API_CONTAINER
     std::string     getError()                                                                  const noexcept;             API_CONTAINER
@@ -543,7 +567,7 @@ public:
     Config          get_front()                                                                 const;                      API_CONTAINER
 
     Config&         get_at(const size_t& index);                                                                            API_CONTAINER
-    Config          get_at(const size_t& index)                                                  const;                     API_CONTAINER
+    Config          get_at(const size_t& index)                                                 const;                      API_CONTAINER
     //NOTE: есть преобразование eNull в eJson и eArray при необходимости (запрос ещё не созданных пекременных) (только для &)
     Config&         get_at(const std::string& key);                                                                         API_MAP_CONTAINER
     Config          get_at(const std::string& key)                                              const;                      API_MAP_CONTAINER
@@ -579,7 +603,7 @@ public:
     std::string     get_front_string()                                                          const;                      API_CONTAINER
 
     bool&           get_bool_at(const size_t& index);                                                                       API_CONTAINER
-    bool            get_bool_at(const size_t& index)                                             const;                     API_CONTAINER
+    bool            get_bool_at(const size_t& index)                                            const;                      API_CONTAINER
     bool&           get_bool_at(const std::string& key);                                                                    API_MAP_CONTAINER
     bool            get_bool_at(const std::string& key)                                         const;                      API_MAP_CONTAINER
     bool&           get_bool_at(const std::vector<OnlySizetOrString>& complex_key);                                         API_CONTAINER
@@ -875,6 +899,77 @@ public:
     bool            containsValue(const T& other)
                     { return containsValue(Config(other)); }                                                                    API_CONTAINER
     bool            containsKey(const std::string& key)     const noexcept;                                                     API_MAP_CONTAINER
+
+    //------------------------------------------------------------------------------------------------
+    // проверка доступности преобразования к указанному типу
+    //------------------------------------------------------------------------------------------------
+    // bool
+    template<typename T, typename std::enable_if<std::is_same<T, bool>::value, int>::type = 0>
+    bool isCanGet() const
+    {
+        __CHECK_TYPE_NOT_CONVERTIBLE_TO_BOOL_ACTION__((*this))
+            return false;
+        return true;
+    }
+    __ONLY_NUMBER_TYPES__(T)
+    bool isCanGet() const
+    {
+        __CHECK_TYPE_NOT_NUMBER_ACTION__((*this))
+            return false;
+        return true;
+    }
+    // char
+    template<typename T, typename std::enable_if<std::is_same<T, char>::value, int>::type = 0>
+    bool isCanGet() const
+    {
+        __CHECK_TYPE_NOT_CHAR_OR_STRING_ACTION__((*this))
+            return false;
+        return true;
+    }
+    __ONLY_STRING_TYPES__(T)
+    bool isCanGet() const
+    {
+        // строка из одного символа - тоже строка
+        __CHECK_TYPE_NOT_CHAR_OR_STRING_ACTION__((*this))
+            return false;
+        return true;
+    }
+    // null (метод-заглушка для логики Static Config Variant<>)
+    template <typename T, typename std::enable_if<std::is_same<T, std::nullptr_t>::value, int>::type = 0>
+    bool isCanGet() const
+    {
+        return isNull();
+    }
+
+    // преобразования к указанному типу (из контейнеров)
+    __ONLY_ALLOWED_TYPES__(T)
+    bool is_can_get(const std::string& key) const
+    {
+        constexpr bool is_requested_T_is_null = std::is_same<T, std::nullptr_t>::value;
+
+        if(!isMapContainer())
+            return false;
+
+        const Config& inner = get_at(key);
+        if(inner.isNull())
+            return is_requested_T_is_null;
+
+        return inner.isCanGet<T>();
+    }
+    __ONLY_ALLOWED_TYPES__(T)
+    bool is_can_get(const size_t& index) const
+    {
+        constexpr bool is_requested_T_is_null = std::is_same<T, std::nullptr_t>::value;
+
+        if(!isContainer())
+            return false;
+
+        const Config& inner = get_at(index);
+        if(inner.isNull())
+            return is_requested_T_is_null;
+
+        return inner.isCanGet<T>();
+    }
     // ============================================================================================================ Info
 
     // Operators =======================================================================================================

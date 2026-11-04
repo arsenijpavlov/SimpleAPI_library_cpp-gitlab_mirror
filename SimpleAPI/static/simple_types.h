@@ -35,8 +35,13 @@ struct ConfigTypeTraits<T, typename std::enable_if<!is_config_struct<T>::value
     {
         // std::cout << "[debug] load simple key=\"" << key << "\"" << std::endl;
 
+        // TODO: нужно распространить на остальные случаи
         if(config.isMapContainer() && config.containsKey(key)) {
-            field = config[key].get<T>();
+//            if(!config.is_can_get<T>(key))
+            if(config[key].isCanGet<T>())
+                field = config[key].get<T>();
+
+            return false;
         }
 
         return true;
