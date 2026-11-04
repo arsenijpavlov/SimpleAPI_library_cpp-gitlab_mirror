@@ -11,38 +11,35 @@
 namespace simpleapi {
 namespace tools {
 
-// правило для определения типов-контейнеров (vector, queue и т.д.)
-// std::string не считается за контейнер и обрабатывается как цельный элемент
+// правило для определения мульти-типа - Variant<Types...>
 template<typename T>
 struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_variant<T>::value>::type>
 {
     template <typename... VariantTypes>
-    struct HelperVariant {
-        template <ssize_t Index, bool is_in_bounds = (Index >= 0 && Index < sizeof...(VariantTypes))>
-        struct Loader {
-            // TODO: static bool Load(const Config& config, Variant<VariantTypes...>& field) {}
-        };
+    struct Helper {
 
-        template <ssize_t Index>
-        struct Loader<Index, false> {
-            static bool Load(const Config& config, Variant<VariantTypes...>& field) {
-                return false; // заглушка, ни один тип не подошёл
+        //-------------------------------------------------------------------------------
+        // Записыватель
+        //-------------------------------------------------------------------------------
+        template <ssize_t Index, bool is_in_bounds = (Index >= 0 && Index < sizeof...(VariantTypes))>
+        struct ForVariant {
+            static void Save(Config& config, const std::string& key, const Variant<VariantTypes...>& field) {
+                if(Index == field.index()) {
+                    using Type = typename type_at_index<Index, VariantTypes...>::type;
+//                    int i = field.template get<Type>(); // <-- почему-то не срабатывает для Variant<int, std::string>, выбирается весь Variant
+                    ConfigTypeTraits<Type>::save(config, key, field.template get<Type>());
+                } else {
+                    ForVariant<Index + 1>::Save(config, key, field);
+                }
             }
         };
-
-        //----------
-
-        template <ssize_t Index, bool is_in_bounds = (Index >= 0 && Index < sizeof...(VariantTypes))>
-        struct Saver {
-            // TODO: static bool Save(Config& config, const Variant<VariantTypes...>& field) {}
-        };
-
+        //-------------------
         template <ssize_t Index>
-        struct Saver<Index, false> {
-            static bool Save(Config& config, const Variant<VariantTypes...>& field) {
-                return false; // заглушка, ни один тип не подошёл
-            }
+        struct ForVariant<Index, false> {
+            static void Save(Config& config, const std::string& key, const Variant<VariantTypes...>& field)
+            { /*заглушка*/ }
         };
+        //-------------------------------------------------------------------------------
     };
     //-----------------------------------------
 
@@ -117,15 +114,9 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_variant<T>::v
     {
         // std::cout << "[debug] save container(as variant) key=\"" << key << "\"" << std::endl;
 
-        // FIXME:
-//        using Type = typename T::value_type;
-
-//        for(const auto& item : field) {
-//            // ключ дальше нельзя передать - создаст новую вложенность
-//            Config temp = Saver(item, prefix_comment, suffix_comment);
-//            config[key].push_back(temp);
-//        }
-       config[key].setComment(prefix_comment, suffix_comment);
+        // сам вызовет сохранения по текущему типу Variant<>
+        Helper<T>::template ForVariant<0>::Save(config, key, field);
+        config[key].setComment(prefix_comment, suffix_comment);
     }
 
     static bool compare(const T& field, const T& other)
