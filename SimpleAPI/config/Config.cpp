@@ -343,12 +343,12 @@ Config &Config::setValue(const Config &other) noexcept {
             if(other.error()) setError(other.getError());
             break;
         }
-        case ValueType::eBool:      { setValue(dynamic_cast<const ElementBool*>(other.m_value)->getValue());    break;  }
-        case ValueType::eNumber:    { setValue(dynamic_cast<const ElementNumber*>(other.m_value)->getValue());  break;  }
-        case ValueType::eChar:      { setValue(dynamic_cast<const ElementChar*>(other.m_value)->getValue());    break;  }
-        case ValueType::eString:    { setValue(dynamic_cast<const ElementString*>(other.m_value)->getValue());  break;  }
-        case ValueType::eArray:     { setValue(dynamic_cast<const ElementArray&>(*other.m_value));              break;  }
-        case ValueType::eJson:      { setValue(dynamic_cast<const ElementJson&>(*other.m_value));               break;  }
+        case ValueType::eBool:      { setValue(static_cast<const ElementBool*>(other.m_value)->getValue());    break;  }
+        case ValueType::eNumber:    { setValue(static_cast<const ElementNumber*>(other.m_value)->getValue());  break;  }
+        case ValueType::eChar:      { setValue(static_cast<const ElementChar*>(other.m_value)->getValue());    break;  }
+        case ValueType::eString:    { setValue(static_cast<const ElementString*>(other.m_value)->getValue());  break;  }
+        case ValueType::eArray:     { setValue(static_cast<const ElementArray&>(*other.m_value));              break;  }
+        case ValueType::eJson:      { setValue(static_cast<const ElementJson&>(*other.m_value));               break;  }
         default: break;
         }
 
@@ -383,13 +383,13 @@ Config &Config::setValue(const tools::IElement &other) noexcept {
 
     release();
     switch(other.getType()) {
-    case ValueType::eNull:      { setValue();                                                       break;  }
-    case ValueType::eBool:      { setValue(dynamic_cast<const ElementBool*>(&other)->getValue());   break;  }
-    case ValueType::eNumber:    { setValue(dynamic_cast<const ElementNumber*>(&other)->getValue()); break;  }
-    case ValueType::eChar:      { setValue(dynamic_cast<const ElementChar*>(&other)->getValue());   break;  }
-    case ValueType::eString:    { setValue(dynamic_cast<const ElementString*>(&other)->getValue()); break;  }
-    case ValueType::eArray:     { setValue(dynamic_cast<const ElementArray&>(other));               break;  }
-    case ValueType::eJson:      { setValue(dynamic_cast<const ElementJson&>(other));                break;  }
+    case ValueType::eNull:      { setValue();                                                      break;  }
+    case ValueType::eBool:      { setValue(static_cast<const ElementBool*>(&other)->getValue());   break;  }
+    case ValueType::eNumber:    { setValue(static_cast<const ElementNumber*>(&other)->getValue()); break;  }
+    case ValueType::eChar:      { setValue(static_cast<const ElementChar*>(&other)->getValue());   break;  }
+    case ValueType::eString:    { setValue(static_cast<const ElementString*>(&other)->getValue()); break;  }
+    case ValueType::eArray:     { setValue(static_cast<const ElementArray&>(other));               break;  }
+    case ValueType::eJson:      { setValue(static_cast<const ElementJson&>(other));                break;  }
     default:                    break;
     }
 
@@ -406,13 +406,13 @@ Config &Config::setValue(tools::IElement &&other) noexcept {
 
     release();
     switch(other.getType()) {
-    case ValueType::eNull:      { setValue();                                                                   break;  }
-    case ValueType::eBool:      { setValue(dynamic_cast<const ElementBool*>(&other)->getValue());               break;  }
-    case ValueType::eNumber:    { setValue(std::move(dynamic_cast<const ElementNumber*>(&other)->getValue()));  break;  }
-    case ValueType::eChar:      { setValue(std::move(dynamic_cast<const ElementChar*>(&other)->getValue()));    break;  }
-    case ValueType::eString:    { setValue(std::move(dynamic_cast<const ElementString*>(&other)->getValue()));  break;  }
-    case ValueType::eArray:     { setValue(std::move(dynamic_cast<ElementArray&&>(other)));                     break;  }
-    case ValueType::eJson:      { setValue(std::move(dynamic_cast<ElementJson&&>(other)));                      break;  }
+    case ValueType::eNull:      { setValue();                                                                  break;  }
+    case ValueType::eBool:      { setValue(static_cast<const ElementBool*>(&other)->getValue());               break;  }
+    case ValueType::eNumber:    { setValue(std::move(static_cast<const ElementNumber*>(&other)->getValue()));  break;  }
+    case ValueType::eChar:      { setValue(std::move(static_cast<const ElementChar*>(&other)->getValue()));    break;  }
+    case ValueType::eString:    { setValue(std::move(static_cast<const ElementString*>(&other)->getValue()));  break;  }
+    case ValueType::eArray:     { setValue(std::move(static_cast<ElementArray&&>(other)));                     break;  }
+    case ValueType::eJson:      { setValue(std::move(static_cast<ElementJson&&>(other)));                      break;  }
     default:                    break;
     }
 
@@ -520,7 +520,7 @@ Config &Config::set(const size_t& index, const std::string &key, Config &&value)
 
 bool &Config::getBool() {
     __CHECK_TYPE_IS_BOOL__((*this))
-    return dynamic_cast<tools::ElementBool*>(m_value)->getValue();
+    return static_cast<tools::ElementBool*>(m_value)->getValue();
 }
 
 // @TEST(ELEMENT, get_const_bool)
@@ -529,78 +529,78 @@ bool Config::getBool() const {
 
     switch (getType()) {
     case ValueType::eNumber: {
-        return dynamic_cast<const tools::ElementNumber*>(m_value)->getValue() > 0;
+        return static_cast<const tools::ElementNumber*>(m_value)->getValue() > 0;
     }
     case ValueType::eChar:   {
-        return utils::CreateBoolFromString(std::string(1, dynamic_cast<const tools::ElementChar*>(m_value)->getValue()));
+        return utils::CreateBoolFromString(std::string(1, static_cast<const tools::ElementChar*>(m_value)->getValue()));
     }
     case ValueType::eString: {
-        return utils::CreateBoolFromString(dynamic_cast<const tools::ElementString*>(m_value)->getValue());
+        return utils::CreateBoolFromString(static_cast<const tools::ElementString*>(m_value)->getValue());
     }
     case ValueType::eBool:
     default: break;
     }
-    return dynamic_cast<const tools::ElementBool*>(m_value)->getValue();
+    return static_cast<const tools::ElementBool*>(m_value)->getValue();
 }
 
 long double& Config::getNumber() {
     __CHECK_TYPE_IS_NUMBER__((*this))
-    return dynamic_cast<tools::ElementNumber*>(m_value)->getValue();
+    return static_cast<tools::ElementNumber*>(m_value)->getValue();
 }
 
 long double Config::getNumber() const {
     __CHECK_TYPE_IS_NUMBER__((*this))
-    return dynamic_cast<const tools::ElementNumber*>(m_value)->getValue();
+    return static_cast<const tools::ElementNumber*>(m_value)->getValue();
 }
 
 uint8_t Config::getUInt8() const {
     __CHECK_TYPE_IS_NUMBER__((*this))
-    return static_cast<uint8_t>(dynamic_cast<const tools::ElementNumber*>(m_value)->getValue());
+    return static_cast<uint8_t>(static_cast<const tools::ElementNumber*>(m_value)->getValue());
 }
 
 uint16_t Config::getUInt16() const {
     __CHECK_TYPE_IS_NUMBER__((*this))
-    return static_cast<uint16_t>(dynamic_cast<const tools::ElementNumber*>(m_value)->getValue());
+    return static_cast<uint16_t>(static_cast<const tools::ElementNumber*>(m_value)->getValue());
 }
 
 uint32_t Config::getUInt32() const {
     __CHECK_TYPE_IS_NUMBER__((*this))
-    return static_cast<int32_t>(dynamic_cast<const tools::ElementNumber*>(m_value)->getValue());
+    return static_cast<int32_t>(static_cast<const tools::ElementNumber*>(m_value)->getValue());
 }
 
 uint64_t Config::getUInt64() const {
     __CHECK_TYPE_IS_NUMBER__((*this))
-    return static_cast<uint64_t>(dynamic_cast<const tools::ElementNumber*>(m_value)->getValue());
+    return static_cast<uint64_t>(static_cast<const tools::ElementNumber*>(m_value)->getValue());
 }
 
 int8_t Config::getInt8() const {
     __CHECK_TYPE_IS_NUMBER__((*this))
-    return static_cast<int8_t>(dynamic_cast<const tools::ElementNumber*>(m_value)->getValue());
+    return static_cast<int8_t>(static_cast<const tools::ElementNumber*>(m_value)->getValue());
 }
 
 int16_t Config::getInt16() const {
     __CHECK_TYPE_IS_NUMBER__((*this))
-    return static_cast<int16_t>(dynamic_cast<const tools::ElementNumber*>(m_value)->getValue());
+    return static_cast<int16_t>(static_cast<const tools::ElementNumber*>(m_value)->getValue());
 }
 
 int32_t Config::getInt32() const {
     __CHECK_TYPE_IS_NUMBER__((*this))
-    return static_cast<int32_t>(dynamic_cast<const tools::ElementNumber*>(m_value)->getValue());
+    return static_cast<int32_t>(static_cast<const tools::ElementNumber*>(m_value)->getValue());
 }
 
 int64_t Config::getInt64() const {
     __CHECK_TYPE_IS_NUMBER__((*this))
-    return static_cast<int64_t>(dynamic_cast<const tools::ElementNumber*>(m_value)->getValue());
+    return static_cast<int64_t>(static_cast<const tools::ElementNumber*>(m_value)->getValue());
 }
 
 float Config::getFloat() const {
     __CHECK_TYPE_IS_NUMBER__((*this))
-    return static_cast<float>(dynamic_cast<const tools::ElementNumber*>(m_value)->getValue());
+    return static_cast<float>(static_cast<const tools::ElementNumber*>(m_value)->getValue());
 }
 
 double Config::getDouble() const {
     __CHECK_TYPE_IS_NUMBER__((*this))
-    return static_cast<double>(dynamic_cast<const tools::ElementNumber*>(m_value)->getValue());
+    return static_cast<double>(static_cast<const tools::ElementNumber*>(m_value)->getValue());
 }
 
 long double Config::getLDouble() const {
@@ -609,12 +609,12 @@ long double Config::getLDouble() const {
 
 std::string &Config::getString() {
     __CHECK_TYPE_IS_STRING__((*this))
-    return dynamic_cast<tools::ElementString*>(m_value)->getValue();
+    return static_cast<tools::ElementString*>(m_value)->getValue();
 }
 
 std::string Config::getString() const {
     __CHECK_TYPE_IS_STRING__((*this))
-    return dynamic_cast<const tools::ElementString*>(m_value)->getValue();
+    return static_cast<const tools::ElementString*>(m_value)->getValue();
 }
 
 char &Config::getChar()
@@ -623,10 +623,10 @@ char &Config::getChar()
 
     switch(getType()) {
         case ValueType::eChar: {
-            return dynamic_cast<tools::ElementChar*>(m_value)->getValue();
+            return static_cast<tools::ElementChar*>(m_value)->getValue();
         }
         case ValueType::eString: {
-            std::string& str = dynamic_cast<tools::ElementString*>(m_value)->getValue();
+            std::string& str = static_cast<tools::ElementString*>(m_value)->getValue();
             if(str.empty()) str.append(0);
             return str.at(0);
         }
@@ -634,7 +634,7 @@ char &Config::getChar()
     }
 
     // до этой строки никогда не доходим (расчёт на __CHECK... проверки)
-    return dynamic_cast<tools::ElementChar*>(m_value)->getValue();
+    return static_cast<tools::ElementChar*>(m_value)->getValue();
 }
 
 char Config::getChar() const
@@ -643,10 +643,10 @@ char Config::getChar() const
 
     switch(getType()) {
     case ValueType::eChar: {
-            return dynamic_cast<const tools::ElementChar*>(m_value)->getValue();
+            return static_cast<const tools::ElementChar*>(m_value)->getValue();
     }
     case ValueType::eString: {
-            std::string str = dynamic_cast<const tools::ElementString*>(m_value)->getValue();
+            std::string str = static_cast<const tools::ElementString*>(m_value)->getValue();
             if(str.empty()) return 0;
             return str.at(0);
     }
@@ -654,13 +654,13 @@ char Config::getChar() const
     }
 
     // до этой строки никогда не доходим (расчёт на __CHECK... проверки)
-    return dynamic_cast<const tools::ElementChar*>(m_value)->getValue();
+    return static_cast<const tools::ElementChar*>(m_value)->getValue();
 }
 
 bool Config::error() const noexcept {
     using namespace tools;
 
-    IErrorField* ptr = dynamic_cast<IErrorField*>(m_value);
+    IErrorField* ptr = static_cast<IErrorField*>(m_value);
     if(ptr == nullptr)
         return false;
     return ptr->error();
@@ -669,7 +669,7 @@ bool Config::error() const noexcept {
 std::string Config::getError() const noexcept {
     using namespace tools;
 
-    IErrorField* ptr = dynamic_cast<IErrorField*>(m_value);
+    IErrorField* ptr = static_cast<IErrorField*>(m_value);
     if(ptr == nullptr)
         return "";
     return ptr->getError();
@@ -707,8 +707,8 @@ Config &Config::get_front() {
 
     __CHECK_TYPE_IS_CONTAINER__((*this))
     switch(getType()) {
-    case ValueType::eArray: return dynamic_cast<ElementArray*>(m_value)->get_front();
-    case ValueType::eJson:  return dynamic_cast<ElementJson*>(m_value)->get_front();
+    case ValueType::eArray: return static_cast<ElementArray*>(m_value)->get_front();
+    case ValueType::eJson:  return static_cast<ElementJson*>(m_value)->get_front();
     default:                break;
     }
 
@@ -720,8 +720,8 @@ Config Config::get_front() const {
 
     __CHECK_TYPE_IS_CONTAINER__((*this))
     switch(getType()) {
-    case ValueType::eArray: return dynamic_cast<const ElementArray*>(m_value)->get_front();
-    case ValueType::eJson:  return dynamic_cast<const ElementJson*>(m_value)->get_front();
+    case ValueType::eArray: return static_cast<const ElementArray*>(m_value)->get_front();
+    case ValueType::eJson:  return static_cast<const ElementJson*>(m_value)->get_front();
     default:                break;
     }
 
@@ -733,8 +733,8 @@ Config &Config::get_at(const size_t& index) {
 
     __CHECK_TYPE_IS_CONTAINER__((*this))
     switch(getType()) {
-    case ValueType::eArray: return dynamic_cast<ElementArray*>(m_value)->get_at(index);
-    case ValueType::eJson:  return dynamic_cast<ElementJson*>(m_value)->get_at(index);
+    case ValueType::eArray: return static_cast<ElementArray*>(m_value)->get_at(index);
+    case ValueType::eJson:  return static_cast<ElementJson*>(m_value)->get_at(index);
     default:                break;
     }
 
@@ -746,8 +746,8 @@ Config Config::get_at(const size_t& index) const {
 
     __CHECK_TYPE_IS_CONTAINER__((*this))
     switch(getType()) {
-    case ValueType::eArray: return dynamic_cast<const ElementArray*>(m_value)->get_at(index);
-    case ValueType::eJson:  return dynamic_cast<const ElementJson*>(m_value)->get_at(index);
+    case ValueType::eArray: return static_cast<const ElementArray*>(m_value)->get_at(index);
+    case ValueType::eJson:  return static_cast<const ElementJson*>(m_value)->get_at(index);
     default:                break;
     }
 
@@ -758,12 +758,12 @@ Config &Config::get_at(const std::string& key) {
     try_convert_null_to_json();
 
     __CHECK_TYPE_IS_JSON__((*this))
-    return dynamic_cast<tools::ElementJson*>(m_value)->get_at(key);
+    return static_cast<tools::ElementJson*>(m_value)->get_at(key);
 }
 
 Config Config::get_at(const std::string& key) const {
     __CHECK_TYPE_IS_JSON__((*this))
-    return dynamic_cast<const tools::ElementJson*>(m_value)->get_at(key);
+    return static_cast<const tools::ElementJson*>(m_value)->get_at(key);
 }
 
 Config &Config::get_at(const std::vector<OnlySizetOrString> &complex_key)
@@ -829,8 +829,8 @@ Config &Config::get_back() {
 
     __CHECK_TYPE_IS_CONTAINER__((*this))
     switch(getType()) {
-    case ValueType::eArray: return dynamic_cast<ElementArray*>(m_value)->get_back();
-    case ValueType::eJson:  return dynamic_cast<ElementJson*>(m_value)->get_back();
+    case ValueType::eArray: return static_cast<ElementArray*>(m_value)->get_back();
+    case ValueType::eJson:  return static_cast<ElementJson*>(m_value)->get_back();
     default:                break;
     }
 
@@ -842,8 +842,8 @@ Config Config::get_back() const {
 
     __CHECK_TYPE_IS_CONTAINER__((*this))
     switch(getType()) {
-    case ValueType::eArray: return dynamic_cast<const ElementArray*>(m_value)->get_back();
-    case ValueType::eJson:  return dynamic_cast<const ElementJson*>(m_value)->get_back();
+    case ValueType::eArray: return static_cast<const ElementArray*>(m_value)->get_back();
+    case ValueType::eJson:  return static_cast<const ElementJson*>(m_value)->get_back();
     default:                break;
     }
 
@@ -854,28 +854,28 @@ bool &Config::get_front_bool() {
     Config& config = get_front();
     __CHECK_TYPE_IS_BOOL__(config)
 
-    return dynamic_cast<tools::ElementBool*>(config.m_value)->getValue();
+    return static_cast<tools::ElementBool*>(config.m_value)->getValue();
 }
 
 bool Config::get_front_bool() const {
     const Config& config = get_front();
     __CHECK_TYPE_IS_BOOL__(config)
 
-    return dynamic_cast<const tools::ElementBool*>(config.m_value)->getValue();
+    return static_cast<const tools::ElementBool*>(config.m_value)->getValue();
 }
 
 long double &Config::get_front_number() {
     Config& config = get_front();
     __CHECK_TYPE_IS_NUMBER__(config)
 
-    return dynamic_cast<tools::ElementNumber*>(config.m_value)->getValue();
+    return static_cast<tools::ElementNumber*>(config.m_value)->getValue();
 }
 
 long double Config::get_front_number() const {
     const Config& config = get_front();
     __CHECK_TYPE_IS_NUMBER__(config)
 
-    return dynamic_cast<const tools::ElementNumber*>(config.m_value)->getValue();
+    return static_cast<const tools::ElementNumber*>(config.m_value)->getValue();
 }
 
 uint8_t Config::get_front_UInt8() const {
@@ -927,7 +927,7 @@ char &Config::get_front_char()
     Config& config = get_front();
     __CHECK_TYPE_IS_CHAR__(config)
 
-    return dynamic_cast<tools::ElementChar*>(config.m_value)->getValue();
+    return static_cast<tools::ElementChar*>(config.m_value)->getValue();
 }
 
 char Config::get_front_char() const
@@ -935,49 +935,49 @@ char Config::get_front_char() const
     const Config& config = get_front();
     __CHECK_TYPE_IS_CHAR__(config)
 
-    return dynamic_cast<const tools::ElementChar*>(config.m_value)->getValue();
+    return static_cast<const tools::ElementChar*>(config.m_value)->getValue();
 }
 
 std::string &Config::get_front_string() {
     Config& config = get_front();
     __CHECK_TYPE_IS_STRING__(config)
 
-    return dynamic_cast<tools::ElementString*>(config.m_value)->getValue();
+    return static_cast<tools::ElementString*>(config.m_value)->getValue();
 }
 
 std::string Config::get_front_string() const {
     const Config& config = get_front();
     __CHECK_TYPE_IS_STRING__(config)
 
-    return dynamic_cast<const tools::ElementString*>(config.m_value)->getValue();
+    return static_cast<const tools::ElementString*>(config.m_value)->getValue();
 }
 
 bool &Config::get_bool_at(const size_t& index) {
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_BOOL__(config)
 
-    return dynamic_cast<tools::ElementBool*>(config.m_value)->getValue();
+    return static_cast<tools::ElementBool*>(config.m_value)->getValue();
 }
 
 bool Config::get_bool_at(const size_t& index) const {
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_BOOL__(config)
 
-    return dynamic_cast<const tools::ElementBool*>(config.m_value)->getValue();
+    return static_cast<const tools::ElementBool*>(config.m_value)->getValue();
 }
 
 bool &Config::get_bool_at(const std::string& key) {
     const Config& config = get_at(key);
     __CHECK_TYPE_IS_BOOL__(config)
 
-    return dynamic_cast<tools::ElementBool*>(config.m_value)->getValue();
+    return static_cast<tools::ElementBool*>(config.m_value)->getValue();
 }
 
 bool Config::get_bool_at(const std::string& key) const {
     const Config& config = get_at(key);
     __CHECK_TYPE_IS_BOOL__(config)
 
-    return dynamic_cast<const tools::ElementBool*>(config.m_value)->getValue();
+    return static_cast<const tools::ElementBool*>(config.m_value)->getValue();
 }
 
 bool &Config::get_bool_at(const std::vector<OnlySizetOrString> &complex_key)
@@ -1034,14 +1034,14 @@ long double &Config::get_number_at(const size_t& index) {
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_NUMBER__(config)
 
-    return dynamic_cast<tools::ElementNumber*>(config.m_value)->getValue();
+    return static_cast<tools::ElementNumber*>(config.m_value)->getValue();
 }
 
 long double Config::get_number_at(const size_t& index) const {
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_NUMBER__(config)
 
-    return dynamic_cast<const tools::ElementNumber*>(config.m_value)->getValue();
+    return static_cast<const tools::ElementNumber*>(config.m_value)->getValue();
 }
 
 uint8_t Config::get_UInt8_at(const size_t& index) const {
@@ -1092,14 +1092,14 @@ long double &Config::get_number_at(const std::string& key) {
     const Config& config = get_at(key);
     __CHECK_TYPE_IS_NUMBER__(config)
 
-    return dynamic_cast<tools::ElementNumber*>(config.m_value)->getValue();
+    return static_cast<tools::ElementNumber*>(config.m_value)->getValue();
 }
 
 long double Config::get_number_at(const std::string& key) const {
     const Config& config = get_at(key);
     __CHECK_TYPE_IS_NUMBER__(config)
 
-    return dynamic_cast<const tools::ElementNumber*>(config.m_value)->getValue();
+    return static_cast<const tools::ElementNumber*>(config.m_value)->getValue();
 }
 
 uint8_t Config::get_UInt8_at(const std::string& key) const {
@@ -1297,7 +1297,7 @@ char &Config::get_char_at(const size_t &index)
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_CHAR__(config)
 
-    return dynamic_cast<tools::ElementChar*>(config.m_value)->getValue();
+    return static_cast<tools::ElementChar*>(config.m_value)->getValue();
 }
 
 char Config::get_char_at(const size_t &index) const
@@ -1305,7 +1305,7 @@ char Config::get_char_at(const size_t &index) const
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_CHAR__(config)
 
-    return dynamic_cast<const tools::ElementChar*>(config.m_value)->getValue();
+    return static_cast<const tools::ElementChar*>(config.m_value)->getValue();
 }
 
 char &Config::get_char_at(const std::string &key)
@@ -1313,7 +1313,7 @@ char &Config::get_char_at(const std::string &key)
     const Config& config = get_at(key);
     __CHECK_TYPE_IS_CHAR__(config)
 
-    return dynamic_cast<tools::ElementChar*>(config.m_value)->getValue();
+    return static_cast<tools::ElementChar*>(config.m_value)->getValue();
 }
 
 char Config::get_char_at(const std::string &key) const
@@ -1321,7 +1321,7 @@ char Config::get_char_at(const std::string &key) const
     const Config& config = get_at(key);
     __CHECK_TYPE_IS_CHAR__(config)
 
-    return dynamic_cast<const tools::ElementChar*>(config.m_value)->getValue();
+    return static_cast<const tools::ElementChar*>(config.m_value)->getValue();
 }
 
 char &Config::get_char_at(const std::vector<OnlySizetOrString> &complex_key)
@@ -1388,28 +1388,28 @@ std::string &Config::get_string_at(const size_t& index) {
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_STRING__(config)
 
-    return dynamic_cast<tools::ElementString*>(config.m_value)->getValue();
+    return static_cast<tools::ElementString*>(config.m_value)->getValue();
 }
 
 std::string Config::get_string_at(const size_t& index) const {
     const Config& config = get_at(index);
     __CHECK_TYPE_IS_STRING__(config)
 
-    return dynamic_cast<const tools::ElementString*>(config.m_value)->getValue();
+    return static_cast<const tools::ElementString*>(config.m_value)->getValue();
 }
 
 std::string &Config::get_string_at(const std::string& key) {
     const Config& config = get_at(key);
     __CHECK_TYPE_IS_STRING__(config)
 
-    return dynamic_cast<tools::ElementString*>(config.m_value)->getValue();
+    return static_cast<tools::ElementString*>(config.m_value)->getValue();
 }
 
 std::string Config::get_string_at(const std::string& key) const {
     const Config& config = get_at(key);
     __CHECK_TYPE_IS_STRING__(config)
 
-    return dynamic_cast<const tools::ElementString*>(config.m_value)->getValue();
+    return static_cast<const tools::ElementString*>(config.m_value)->getValue();
 }
 
 std::string &Config::get_string_at(const std::vector<OnlySizetOrString> &complex_key)
@@ -1474,28 +1474,28 @@ bool &Config::get_bool_back() {
     const Config& config = get_back();
     __CHECK_TYPE_IS_BOOL__(config)
 
-    return dynamic_cast<tools::ElementBool*>(config.m_value)->getValue();
+    return static_cast<tools::ElementBool*>(config.m_value)->getValue();
 }
 
 bool Config::get_bool_back() const {
     const Config& config = get_back();
     __CHECK_TYPE_IS_BOOL__(config)
 
-    return dynamic_cast<const tools::ElementBool*>(config.m_value)->getValue();
+    return static_cast<const tools::ElementBool*>(config.m_value)->getValue();
 }
 
 long double &Config::get_number_back() {
     const Config& config = get_back();
     __CHECK_TYPE_IS_NUMBER__(config)
 
-    return dynamic_cast<tools::ElementNumber*>(config.m_value)->getValue();
+    return static_cast<tools::ElementNumber*>(config.m_value)->getValue();
 }
 
 long double Config::get_number_back() const {
     const Config& config = get_back();
     __CHECK_TYPE_IS_NUMBER__(config)
 
-    return dynamic_cast<const tools::ElementNumber*>(config.m_value)->getValue();
+    return static_cast<const tools::ElementNumber*>(config.m_value)->getValue();
 }
 
 uint8_t Config::get_UInt8_back() const {
@@ -1547,7 +1547,7 @@ char &Config::get_char_back()
     const Config& config = get_back();
     __CHECK_TYPE_IS_CHAR__(config)
 
-    return dynamic_cast<tools::ElementChar*>(config.m_value)->getValue();
+    return static_cast<tools::ElementChar*>(config.m_value)->getValue();
 }
 
 char Config::get_char_back() const
@@ -1555,28 +1555,28 @@ char Config::get_char_back() const
     const Config& config = get_back();
     __CHECK_TYPE_IS_CHAR__(config)
 
-    return dynamic_cast<const tools::ElementChar*>(config.m_value)->getValue();
+    return static_cast<const tools::ElementChar*>(config.m_value)->getValue();
 }
 
 std::string &Config::get_string_back() {
     const Config& config = get_back();
     __CHECK_TYPE_IS_STRING__(config)
 
-    return dynamic_cast<tools::ElementString*>(config.m_value)->getValue();
+    return static_cast<tools::ElementString*>(config.m_value)->getValue();
 }
 
 std::string Config::get_string_back() const {
     const Config& config = get_back();
     __CHECK_TYPE_IS_STRING__(config)
 
-    return dynamic_cast<const tools::ElementString*>(config.m_value)->getValue();
+    return static_cast<const tools::ElementString*>(config.m_value)->getValue();
 }
 
 Config &Config::clearContainer()
 {
     __CHECK_TYPE_IS_CONTAINER__((*this))
 
-    dynamic_cast<tools::IElementContainer*>(m_value)->clearContainer();
+    static_cast<tools::IElementContainer*>(m_value)->clearContainer();
     return *this;
 }
 
@@ -1613,7 +1613,7 @@ Config& Config::insert_front(Config&& other) {
     try_convert_null_to_json_array();
 
     __CHECK_TYPE_IS_INDEX_CONTAINER__((*this))
-    dynamic_cast<tools::ElementArray*>(m_value)->insert_front(std::move(other));
+    static_cast<tools::ElementArray*>(m_value)->insert_front(std::move(other));
 
     return *this;
 }
@@ -1627,7 +1627,7 @@ Config& Config::insert_front(const std::string& key, Config&& other) {
     try_convert_null_to_json();
 
     __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
-    dynamic_cast<tools::ElementJson*>(m_value)->insert_front(key, std::move(other));
+    static_cast<tools::ElementJson*>(m_value)->insert_front(key, std::move(other));
 
     return *this;
 }
@@ -1641,7 +1641,7 @@ Config& Config::insert_at(const size_t& index, Config&& other) {
     try_convert_null_to_json_array();
 
     __CHECK_TYPE_IS_INDEX_CONTAINER__((*this))
-    dynamic_cast<tools::ElementArray*>(m_value)->insert_at(index, std::move(other));
+    static_cast<tools::ElementArray*>(m_value)->insert_at(index, std::move(other));
 
     return *this;
 }
@@ -1655,7 +1655,7 @@ Config& Config::insert_at(const std::string& key, Config&& other) {
     try_convert_null_to_json();
 
     __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
-    dynamic_cast<tools::ElementJson*>(m_value)->insert_at(key, std::move(other));
+    static_cast<tools::ElementJson*>(m_value)->insert_at(key, std::move(other));
 
     return *this;
 }
@@ -1671,7 +1671,7 @@ Config &Config::insert_at(const size_t& index, const std::string &key, Config &&
     try_convert_null_to_json();
 
     __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
-    dynamic_cast<tools::ElementJson*>(m_value)->insert_at(index, key, std::move(other));
+    static_cast<tools::ElementJson*>(m_value)->insert_at(index, key, std::move(other));
 
     return *this;
 }
@@ -1687,7 +1687,7 @@ Config &Config::insert_at(const shared_VElement::iterator iterator, Config &&oth
     try_convert_null_to_json_array();
 
     __CHECK_TYPE_IS_INDEX_CONTAINER__((*this))
-    dynamic_cast<tools::ElementArray*>(m_value)->insert_at(iterator, std::move(other));
+    static_cast<tools::ElementArray*>(m_value)->insert_at(iterator, std::move(other));
 
     return *this;
 }
@@ -1705,7 +1705,7 @@ Config &Config::insert_at(const shared_VPairElement::iterator iterator, const st
     try_convert_null_to_json();
 
     __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
-    dynamic_cast<tools::ElementJson*>(m_value)->insert_at(iterator, key, std::move(other));
+    static_cast<tools::ElementJson*>(m_value)->insert_at(iterator, key, std::move(other));
 
     return *this;
 }
@@ -1719,7 +1719,7 @@ Config& Config::insert_back(Config&& other) {
     try_convert_null_to_json_array();
 
     __CHECK_TYPE_IS_INDEX_CONTAINER__((*this))
-    dynamic_cast<tools::ElementArray*>(m_value)->insert_back(std::move(other));
+    static_cast<tools::ElementArray*>(m_value)->insert_back(std::move(other));
 
     return *this;
 }
@@ -1733,7 +1733,7 @@ Config& Config::insert_back(const std::string& key, Config&& other) {
     try_convert_null_to_json();
 
     __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
-    dynamic_cast<tools::ElementJson*>(m_value)->insert_back(key, std::move(other));
+    static_cast<tools::ElementJson*>(m_value)->insert_back(key, std::move(other));
 
     return *this;
 }
@@ -1852,7 +1852,7 @@ Config &Config::insert_before(const std::string &before_key, const std::string &
     try_convert_null_to_json();
 
     __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
-    dynamic_cast<tools::ElementJson*>(m_value)->insert_before(before_key, key, std::move(other));
+    static_cast<tools::ElementJson*>(m_value)->insert_before(before_key, key, std::move(other));
 
     return *this;
 }
@@ -1866,7 +1866,7 @@ Config& Config::insert_after(const std::string& after_key, const std::string& ke
     try_convert_null_to_json();
 
     __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
-    dynamic_cast<tools::ElementJson*>(m_value)->insert_after(after_key, key, std::move(other));
+    static_cast<tools::ElementJson*>(m_value)->insert_after(after_key, key, std::move(other));
 
     return *this;
 }
@@ -1887,11 +1887,11 @@ Config &Config::append(Config &&config) {
 
         switch(getType()) {
         case ValueType::eArray: {
-            dynamic_cast<tools::ElementArray*>(m_value)->append(dynamic_cast<tools::ElementArray&&>(*config.m_value));
+            static_cast<tools::ElementArray*>(m_value)->append(static_cast<tools::ElementArray&&>(*config.m_value));
             break;
         }
         case ValueType::eJson: {
-            dynamic_cast<tools::ElementJson*>(m_value)->append(dynamic_cast<tools::ElementJson&&>(*config.m_value));
+            static_cast<tools::ElementJson*>(m_value)->append(static_cast<tools::ElementJson&&>(*config.m_value));
             break;
         }
         default: throw std::invalid_argument("Config::append(): unexpected type of config: " + simpleapi::ToString(config.getType()));
@@ -1911,21 +1911,21 @@ Config& Config::erase_front() {
 //если элемента не существует - проигнорировать
 Config& Config::erase_at(const size_t& index) {
     __CHECK_TYPE_IS_CONTAINER__((*this))
-    dynamic_cast<tools::IElementContainer*>(m_value)->erase_at(index);
+    static_cast<tools::IElementContainer*>(m_value)->erase_at(index);
 
     return *this;
 }
 
 Config& Config::erase_at(const std::string& key) {
     __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
-    dynamic_cast<tools::ElementJson*>(m_value)->erase_at(key);
+    static_cast<tools::ElementJson*>(m_value)->erase_at(key);
 
     return *this;
 }
 
 Config& Config::erase_back() {
     __CHECK_TYPE_IS_CONTAINER__((*this))
-    dynamic_cast<tools::IElementContainer*>(m_value)->erase_back();
+    static_cast<tools::IElementContainer*>(m_value)->erase_back();
 
     return *this;
 }
@@ -1933,7 +1933,7 @@ Config& Config::erase_back() {
 Config &Config::erase_at(const shared_VElement::iterator iterator)
 {
     __CHECK_TYPE_IS_ARRAY__((*this))
-    dynamic_cast<tools::ElementArray*>(m_value)->erase_at(iterator);
+    static_cast<tools::ElementArray*>(m_value)->erase_at(iterator);
 
     return *this;
 }
@@ -1941,7 +1941,7 @@ Config &Config::erase_at(const shared_VElement::iterator iterator)
 Config &Config::erase_at(const shared_VPairElement::iterator iterator)
 {
     __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
-    dynamic_cast<tools::ElementJson*>(m_value)->erase_at(iterator);
+    static_cast<tools::ElementJson*>(m_value)->erase_at(iterator);
 
     return *this;
 }
@@ -1988,7 +1988,7 @@ bool Config::isEqual(bool other) const noexcept {
     __CHECK_TYPE_NOT_BOOL_ACTION__((*this))
         return false;
 
-    return dynamic_cast<const tools::ElementBool*>(m_value)->getValue() == other;
+    return static_cast<const tools::ElementBool*>(m_value)->getValue() == other;
 }
 
 bool Config::isEqual(char other) const noexcept
@@ -1996,21 +1996,21 @@ bool Config::isEqual(char other) const noexcept
     __CHECK_TYPE_NOT_CHAR_ACTION__((*this))
     return false;
 
-    return dynamic_cast<const tools::ElementBool*>(m_value)->getValue() == other;
+    return static_cast<const tools::ElementBool*>(m_value)->getValue() == other;
 }
 
 bool Config::isEqual(const long double &other) const noexcept {
     __CHECK_TYPE_NOT_NUMBER_ACTION__((*this))
         return false;
 
-    return dynamic_cast<const tools::ElementNumber*>(m_value)->getValue() == other;
+    return static_cast<const tools::ElementNumber*>(m_value)->getValue() == other;
 }
 
 bool Config::isEqual(const std::string &other) const noexcept {
     __CHECK_TYPE_NOT_STRING_ACTION__((*this))
         return false;
 
-    return dynamic_cast<const tools::ElementString*>(m_value)->getValue() == other;
+    return static_cast<const tools::ElementString*>(m_value)->getValue() == other;
 }
 
 bool Config::containsValue(const Config &config) const noexcept {
@@ -2045,42 +2045,42 @@ bool Config::containsKey(const std::string &key) const noexcept {
 
 shared_VElement::iterator Config::array_begin() {
     __CHECK_TYPE_IS_ARRAY__((*this))
-    return dynamic_cast<tools::ElementArray*>(m_value)->begin();
+    return static_cast<tools::ElementArray*>(m_value)->begin();
 }
 
 shared_VElement::const_iterator Config::array_cbegin() const {
     __CHECK_TYPE_IS_ARRAY__((*this))
-    return dynamic_cast<const tools::ElementArray*>(m_value)->cbegin();
+    return static_cast<const tools::ElementArray*>(m_value)->cbegin();
 }
 
 shared_VElement::iterator Config::array_end() {
     __CHECK_TYPE_IS_ARRAY__((*this))
-    return dynamic_cast<tools::ElementArray*>(m_value)->end();
+    return static_cast<tools::ElementArray*>(m_value)->end();
 }
 
 shared_VElement::const_iterator Config::array_cend() const {
     __CHECK_TYPE_IS_ARRAY__((*this))
-    return dynamic_cast<const tools::ElementArray*>(m_value)->cend();
+    return static_cast<const tools::ElementArray*>(m_value)->cend();
 }
 
 shared_VPairElement::iterator Config::map_begin() {
     __CHECK_TYPE_IS_JSON__((*this))
-    return dynamic_cast<tools::ElementJson*>(m_value)->begin();
+    return static_cast<tools::ElementJson*>(m_value)->begin();
 }
 
 shared_VPairElement::const_iterator Config::map_cbegin() const {
     __CHECK_TYPE_IS_JSON__((*this))
-    return dynamic_cast<const tools::ElementJson*>(m_value)->cbegin();
+    return static_cast<const tools::ElementJson*>(m_value)->cbegin();
 }
 
 shared_VPairElement::iterator Config::map_end() {
     __CHECK_TYPE_IS_JSON__((*this))
-    return dynamic_cast<tools::ElementJson*>(m_value)->end();
+    return static_cast<tools::ElementJson*>(m_value)->end();
 }
 
 shared_VPairElement::const_iterator Config::map_cend() const {
     __CHECK_TYPE_IS_JSON__((*this))
-    return dynamic_cast<const tools::ElementJson*>(m_value)->cend();
+    return static_cast<const tools::ElementJson*>(m_value)->cend();
 }
 
 
@@ -2094,9 +2094,9 @@ std::string Config::toString(const ConfigFormat format, const CommentDesign &des
 
     switch(getType()){
     case ValueType::eArray:
-        return dynamic_cast<const tools::ElementArray*>(m_value)->toString(format, n_design, tabulation_level);
+        return static_cast<const tools::ElementArray*>(m_value)->toString(format, n_design, tabulation_level);
     case ValueType::eJson:
-        return dynamic_cast<const tools::ElementJson*>(m_value)->toString(format, n_design, tabulation_level);
+        return static_cast<const tools::ElementJson*>(m_value)->toString(format, n_design, tabulation_level);
     default:
         return m_value->toString();
     }
