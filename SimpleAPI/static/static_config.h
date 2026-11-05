@@ -29,6 +29,7 @@
 #include "enum_types.h"                // IWYU pragma: keep
 #include "optional_types.h"            // IWYU pragma: keep
 #include "wstring_type.h"              // IWYU pragma: keep
+#include "null_type.h"                 // IWYU pragma: keep
 #include <functional>                  // IWYU pragma: keep
 
 
