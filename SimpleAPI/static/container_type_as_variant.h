@@ -29,10 +29,16 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_variant<T>::v
             //-------------------------------------------------------------------------------
             static bool Load(const Config& config, const std::string& key, Variant<VariantTypes...>& field) {
                 using Type  = typename type_at_index<Index, VariantTypes...>::type;
-                bool result = ConfigTypeTraits<Type>::load(config, key, field.template get<Type>());
+                Type temp;
+                bool result = ConfigTypeTraits<Type>::load(config, key, temp);
+                if(result) {
+                    // если успешно прочитали значение, то выходим из рекурсии
+                    field = temp;
+                    return true;
+                }
 
-                // если успешно прочитали значение, то выходим из рекурсии
-                return result || Runtime<Index + 1>::Load(config, key, field);
+                // TODO: если все false, то нужно накапливать лог ошибки - вернуть первое вхождение
+                return Runtime<Index + 1>::Load(config, key, field);
             }
 
             //-------------------------------------------------------------------------------
