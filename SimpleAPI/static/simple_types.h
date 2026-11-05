@@ -36,7 +36,6 @@ struct ConfigTypeTraits<T, typename std::enable_if<!is_config_struct<T>::value
     {
         // std::cout << "[debug] load simple key=\"" << key << "\"" << std::endl;
 
-        // TODO: нужно распространить на остальные случаи
         if(config.isMapContainer() && config.containsKey(key)) {
             if(!config.is_can_get<T>(key))
                 return false;
@@ -55,7 +54,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<!is_config_struct<T>::value
         // std::cout << "[debug] load simple key=\"" << key << "\"" << std::endl;
 
         if(config.isMapContainer() && config.containsKey(key)) {
-            T temp_value = config[key].get<T>();
+            T temp_value = config.get<T>(key);
 
             if(!ExecuteValidator(lambda, temp_value, key)) {
                 static_config_error_str = "validate for [" + key + "] failed\n";

@@ -80,22 +80,24 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_variant<T>::v
     {
         // std::cout << "[debug] load container(as variant) key=\"" << key << "\"" << std::endl;
 
-//        if(config.isMapContainer() && config.containsKey(key)) {
-//            T temp_value = config[key].get<T>();
+        if(config.isMapContainer() && config.containsKey(key)) {
+            T temp_value;
+            // сам вызовет загрузчик для чтения любого из типов Variant<>
+            if(!Helper<T>::template Runtime<0>::Load(config, key, temp_value))
+                return false;
 
-//            if(!ExecuteValidator(lambda, temp_value, key)) {
-//                static_config_error_str = "validate for [" + key + "] failed\n";
-//                return false;
-//            }
+            if(!ExecuteValidator(lambda, temp_value, key)) {
+                static_config_error_str = "validate for [" + key + "] failed\n";
+                return false;
+            }
 
-//            field = temp_value;
-//        }
+            field = temp_value;
+        }
 
         return true;
     }
 
     // комментарии учитываются только при записи
-    // TODO: нужно будет указать в документации, что комментарий для всех подтипов <VariantTypes...> может быть только один
     static void save(Config& config, const std::string& key, const T& field,
                      const std::string& prefix_comment = "",
                      const std::string& suffix_comment = "")
