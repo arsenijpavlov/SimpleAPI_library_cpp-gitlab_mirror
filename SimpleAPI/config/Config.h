@@ -517,7 +517,7 @@ public:
     }
 
     // преобразования к указанному типу (из контейнеров)
-    __ONLY_ALLOWED_TYPES__(T)
+    __ONLY_ALLOWED_TYPES_WITHOUT_NULL__(T)
     T get(const std::string& key) const
     {
         __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
@@ -535,7 +535,7 @@ public:
             return nullptr;
     }
     //---
-    __ONLY_ALLOWED_TYPES__(T)
+    __ONLY_ALLOWED_TYPES_WITHOUT_NULL__(T)
     T get(const size_t& index) const
     {
         __CHECK_TYPE_IS_CONTAINER__((*this))
