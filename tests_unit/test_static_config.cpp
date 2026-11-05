@@ -229,3 +229,167 @@ TEST(STATIC, float_writer) {
 
     EXPECT_EQ(fc.fl, 2.4f);
 }
+
+using MyVariant = simpleapi::Variant<int, std::nullptr_t, std::string>;
+std::string my_variant_test_string;
+
+//-------------------------
+#define VARIANT_FIELDS_SIMPLE(X, Y) \
+    X(MyVariant, variant, MyVariant(0))
+SAPI_REGISTER_CONFIG(VariantSimple, VARIANT_FIELDS_SIMPLE)
+//-------------------------
+TEST(STATIC, variant_simple) {
+    using namespace simpleapi;
+
+    Config cfg;
+    VariantSimple vs;
+
+    int i           = 100;
+    std::string str = "asd";
+
+    std::string result_str_int     = "int: " + std::to_string(i);
+    std::string result_str_string  = "string: " + str;
+    std::string result_str_nullptr = "std::nullptr_t";
+
+    bool result = false;
+    auto run = [&](std::string&& input) {
+        cfg.parseJson(input);
+        result = vs.loadConfig(cfg);
+        Visit(vs.variant
+            , [&](const int& i)           { my_variant_test_string = result_str_int;     }
+            , [&](const std::string& str) { my_variant_test_string = result_str_string;  }
+            , [&](std::nullptr_t)         { my_variant_test_string = result_str_nullptr; }
+            );
+    };
+
+    my_variant_test_string.clear();
+    run(std::string("{variant:\"") + str + "\"}");
+    EXPECT_EQ(my_variant_test_string, result_str_string);
+    EXPECT_TRUE(result);
+
+    my_variant_test_string.clear();
+    run(std::string("{variant:") + std::to_string(i) + "}");
+    EXPECT_EQ(my_variant_test_string, result_str_int);
+    EXPECT_TRUE(result);
+
+    my_variant_test_string.clear();
+    run("{variant: null}");
+    EXPECT_EQ(my_variant_test_string, result_str_nullptr);
+    EXPECT_TRUE(result);
+}
+
+//-------------------------
+#define VARIANT_FIELDS_LAMBDA_OBJ(X, Y) \
+    X(MyVariant, variant, MyVariant(0), [](const MyVariant& var) -> bool {                           \
+        return Visit(var                                                                             \
+            , [](const int& i)           -> bool { return i == 0; }                                  \
+            , [](const std::string& str) -> bool { return !str.empty(); }                            \
+            , [](std::nullptr_t)         -> bool { return true; /* здесь нет смысла в валидации */ } \
+        );                                                                                           \
+    })
+SAPI_REGISTER_CONFIG(VariantLambdaObj, VARIANT_FIELDS_LAMBDA_OBJ)
+//-------------------------
+TEST(STATIC, variant_lambda_obj) {
+    using namespace simpleapi;
+
+    Config cfg;
+    VariantLambdaObj vlo;
+
+    int i           = 0;
+    std::string str = "asd";
+
+    std::string result_str_int     = "int: " + std::to_string(i);
+    std::string result_str_string  = "string: " + str;
+    std::string result_str_nullptr = "std::nullptr_t";
+
+    bool result = false;
+    auto run = [&](std::string&& input) {
+        cfg.parseJson(input);
+        result = vlo.loadConfig(cfg);
+        Visit(vlo.variant
+            , [&](const int& i)           { my_variant_test_string = result_str_int;     }
+            , [&](const std::string& str) { my_variant_test_string = result_str_string;  }
+            , [&](std::nullptr_t)         { my_variant_test_string = result_str_nullptr; }
+            );
+    };
+
+    my_variant_test_string.clear();
+    run(std::string("{variant:\"") + str + "\"}");
+    EXPECT_EQ(my_variant_test_string, result_str_string);
+    EXPECT_TRUE(result);
+
+    my_variant_test_string.clear();
+    run(std::string("{variant:") + std::to_string(i) + "}");
+    EXPECT_EQ(my_variant_test_string, result_str_int);
+    EXPECT_TRUE(result);
+
+    my_variant_test_string.clear();
+    run("{variant: null}");
+    EXPECT_EQ(my_variant_test_string, result_str_nullptr);
+    EXPECT_TRUE(result);
+
+    // ошибки валидации
+    run("{variant:\"\"}");
+    EXPECT_FALSE(result);
+
+    run(std::string("{variant:") + std::to_string(100) + "}");
+    EXPECT_FALSE(result);
+}
+
+//-------------------------
+std::string temp_key_string;
+#define VARIANT_FIELDS_LAMBDA_OBJ_KEY(X, Y) \
+    X(MyVariant, variant, MyVariant(0), [](const MyVariant& var, const std::string& key_name) -> bool { \
+        return Visit(var                                                                                \
+        , [&key_name](const int& i)           -> bool { temp_key_string = key_name; return true; }      \
+        , [&key_name](const std::string& str) -> bool { temp_key_string = key_name; return true; }      \
+        , [&key_name](std::nullptr_t)         -> bool { temp_key_string = key_name; return true; }      \
+        );                                                                                              \
+    })
+SAPI_REGISTER_CONFIG(VariantLambdaObjKey, VARIANT_FIELDS_LAMBDA_OBJ_KEY)
+//-------------------------
+TEST(STATIC, variant_lambda_obj_key) {
+    using namespace simpleapi;
+
+    Config cfg;
+    VariantLambdaObjKey vlok;
+
+    int i           = 100;
+    std::string str = "asd";
+
+    std::string result_str_int     = "int: " + std::to_string(i);
+    std::string result_str_string  = "string: " + str;
+    std::string result_str_nullptr = "std::nullptr_t";
+
+    bool result = false;
+    auto run = [&](std::string&& input) {
+        cfg.parseJson(input);
+        result = vlok.loadConfig(cfg);
+        Visit(vlok.variant
+            , [&](const int& i)           { my_variant_test_string = result_str_int;     }
+            , [&](const std::string& str) { my_variant_test_string = result_str_string;  }
+            , [&](std::nullptr_t)         { my_variant_test_string = result_str_nullptr; }
+            );
+    };
+
+    my_variant_test_string.clear();
+    temp_key_string.clear();
+    run(std::string("{variant:\"") + str + "\"}");
+    EXPECT_EQ(temp_key_string, "variant");
+    EXPECT_EQ(my_variant_test_string, result_str_string);
+    EXPECT_TRUE(result);
+
+    my_variant_test_string.clear();
+    temp_key_string.clear();
+    run(std::string("{variant:") + std::to_string(i) + "}");
+    EXPECT_EQ(temp_key_string, "variant");
+    EXPECT_EQ(my_variant_test_string, result_str_int);
+    EXPECT_TRUE(result);
+
+    my_variant_test_string.clear();
+    temp_key_string.clear();
+    run("{variant: null}");
+    EXPECT_EQ(temp_key_string, "variant");
+    EXPECT_EQ(my_variant_test_string, result_str_nullptr);
+    EXPECT_TRUE(result);
+}
