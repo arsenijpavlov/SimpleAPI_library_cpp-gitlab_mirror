@@ -520,36 +520,37 @@ public:
     __ONLY_ALLOWED_TYPES__(T)
     T get(const std::string& key) const
     {
-        constexpr bool is_requested_T_is_null = std::is_same<T, std::nullptr_t>::value;
-
         __CHECK_TYPE_IS_MAP_CONTAINER__((*this))
 
         const Config& inner = get_at(key);
-        if(inner.isNull() && is_requested_T_is_null) {
-            return nullptr;
-        }
 
         __CHECK_TYPE_IS_NOT_NULL__((inner))
-        __CHECK_TYPE_IS_CONTAINER__((inner))
 
         return inner.get<T>();
     }
+    // метод-заглушка, так как смысла не имеет
+    template <typename T, typename std::enable_if<std::is_same<T, std::nullptr_t>::value, int>::type = 0>
+    std::nullptr_t get(const std::string& key) const noexcept
+    {
+            return nullptr;
+    }
+    //---
     __ONLY_ALLOWED_TYPES__(T)
     T get(const size_t& index) const
     {
-        constexpr bool is_requested_T_is_null = std::is_same<T, std::nullptr_t>::value;
-
         __CHECK_TYPE_IS_CONTAINER__((*this))
 
         const Config& inner = get_at(index);
-        if(inner.isNull() && is_requested_T_is_null) {
-            return nullptr;
-        }
 
         __CHECK_TYPE_IS_NOT_NULL__((inner))
-        __CHECK_TYPE_IS_CONTAINER__((inner))
 
         return inner.get<T>();
+    }
+    // метод-заглушка, так как смысла не имеет
+    template <typename T, typename std::enable_if<std::is_same<T, std::nullptr_t>::value, int>::type = 0>
+    std::nullptr_t get(const size_t& index) const noexcept
+    {
+        return nullptr;
     }
     //------------------------------------------------------------------------------------------------
 
