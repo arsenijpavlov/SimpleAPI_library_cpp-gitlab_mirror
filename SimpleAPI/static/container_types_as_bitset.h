@@ -25,7 +25,9 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_bitset<T>::va
             for(size_t i = 0; i < field.size(); i++) {
                 if(ck.size() > i)
                 {
-                    field[i] = ck[i].get<bool>();
+                    if(!ck.is_can_get<bool>(i))
+                        return false; // любая ошибка чтения выводит из функции
+                    field[i] = ck.get<bool>(i);
                 } else {
                     // массив меньше, заполняем дефолтом для этого типа
                     field[i] = false;
@@ -48,7 +50,9 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_bitset<T>::va
             for(size_t i = 0; i < field.size(); i++) {
                 if(ck.size() > i)
                 {
-                    temp_value[i] = ck[i].get<bool>();
+                    if(!ck.is_can_get<bool>(i))
+                        return false; // любая ошибка чтения выводит из функции
+                    temp_value[i] = ck.get<bool>(i);
                 } else {
                     // массив меньше, заполняем дефолтом для этого типа
                     temp_value[i] = false;

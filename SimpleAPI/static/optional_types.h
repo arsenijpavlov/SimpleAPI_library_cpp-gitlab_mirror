@@ -25,10 +25,13 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_optional<T>::value>::type>
         // std::cout << "[debug] load optional key=\"" << key << "\"" << std::endl;
 
         using Type = typename T::type; // извлекаем внутренний тип, хранящийся в Optional<>
+        std::string temp_key = key + opt_str;
 
         // считываем параметр опциональности
-        if(config.isMapContainer() && config.containsKey(key + opt_str)) {
-            if(config[key + opt_str].get<bool>()) {
+        if(config.isMapContainer() && config.containsKey(temp_key)) {
+            if(!config.is_can_get<bool>(temp_key))
+                return false;
+            if(config.get<bool>(temp_key)) {
                 // считываем опциональный параметр
                 if(config.containsKey(key)) {
                     Type temp_value;
@@ -55,10 +58,13 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_optional<T>::value>::type>
         // std::cout << "[debug] load optional key=\"" << key << "\"" << std::endl;
 
         using Type = typename T::type; // извлекаем внутренний тип, хранящийся в Optional<>
+        std::string temp_key = key + opt_str;
 
         // считываем параметр опциональности
-        if(config.isMapContainer() && config.containsKey(key + opt_str)) {
-            if(config[key + opt_str].get<bool>()) {
+        if(config.isMapContainer() && config.containsKey(temp_key)) {
+            if(!config.is_can_get<bool>(temp_key))
+                return false;
+            if(config.get<bool>(temp_key)) {
                 // считываем опциональный параметр
                 if(config.containsKey(key)) {
                     Type temp_value;

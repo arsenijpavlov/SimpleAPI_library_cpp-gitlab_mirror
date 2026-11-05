@@ -21,8 +21,10 @@ struct ConfigTypeTraits<T, typename std::enable_if<std::is_enum<T>::value>::type
         // std::cout << "[debug] load enum key=\"" << key << "\"" << std::endl;
 
         if(config.isMapContainer() && config.containsKey(key)) {
-            T temp_value;
-            EnumFromString(config[key].getString(), temp_value);
+            T temp_value = T::_UNDEFINED_STATE_;
+            if(!config.isString())
+                EnumFromString(config[key].getString(), temp_value);
+
             if(temp_value == T::_UNDEFINED_STATE_) {
                 static_config_error_str = "loader for [" + key + "] failed\n";
                 return false;
@@ -41,8 +43,10 @@ struct ConfigTypeTraits<T, typename std::enable_if<std::is_enum<T>::value>::type
         // std::cout << "[debug] load enum key=\"" << key << "\"" << std::endl;
 
         if(config.isMapContainer() && config.containsKey(key)) {
-            T temp_value;
-            EnumFromString(config[key].getString(), temp_value);
+            T temp_value = T::_UNDEFINED_STATE_;
+            if(config.isString())
+                EnumFromString(config[key].getString(), temp_value);
+
             if(temp_value == T::_UNDEFINED_STATE_) {
                 static_config_error_str = "loader for [" + key + "] failed\n";
                 return false;
