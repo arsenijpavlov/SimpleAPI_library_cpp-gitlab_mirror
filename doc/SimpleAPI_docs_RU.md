@@ -790,6 +790,8 @@ Config позволяет многое, но упускает иногда гл�
 - опциональное значение `simpleapi::Optional<T>`
     - запишет в файл конфига две переменные: `<key>` и `<key>_optional`
 - "широкие" строки std::wstring использовать разрешено, но строго для формата UTF-8 (требование SimpleAPI Config)
+- вариативный тип `simpleapi::Variant<T...>` (аналог `std::variant<T...>` из C++17)
+    - комментарии и валидаторы данного типа применятся ко всем типам одианаково <T...> (нельзя задать уникальные правила)
 
 ## Макросы описания
 ### X-Macro
@@ -931,7 +933,7 @@ std::string my_global_string;
 SAPI_REGISTER_CONFIG(MyStruct, FIELDS)
 
 int main() {
-    using simpleapi;
+    using namespace simpleapi;
     // считываем конфигурацию
     Config cfg = ReadIniFile("path/to/my/conf.ini");
     
@@ -949,6 +951,79 @@ int main() {
         }
     } catch(...) {}
     
+    return 0;
+}
+```
+
+### Пример использования `simpleapi::Variant`
+```c++
+#include <...> // включение необходимых библиотек на усмотрение разработчика
+
+// объявляем Static Config структуру
+using MyVariant = simpleapi::Variant<int, std::string, std::nullptr_t>;
+MyVariant var;
+//-----------------------------------------------------------------
+// обычная лямбда
+#define FIELDS(X, Y)                                                        \
+    X(MyVariant, variant, MyVariant(15), [](const MyVariant& var) -> bool { \
+        return Visit(var                                                    \
+                     , [](const int& i)           -> bool { return true; }  \
+                     , [](const std::string& str) -> bool { return true; }  \
+                     , [](std::nullptr_t)         -> bool { return true; }  \
+        );                                                                  \
+    })
+SAPI_REGISTER_CONFIG(MyConfig, FIELDS1)
+    
+// лямбда с именем поля
+#define FIELDS_2(X, Y) \
+X(MyVariant, variant, MyVariant(15), [](const MyVariant& var, const std::string& key_name) -> bool { \
+        return Visit(var \
+        , [&key_name](const int& i)           -> bool { std::cout << "key: " << key_name << std::endl; return true; } \
+        , [&key_name](const std::string& str) -> bool { std::cout << "key: " << key_name << std::endl; return true; } \
+        , [&key_name](std::nullptr_t)         -> bool { std::cout << "key: " << key_name << std::endl; return true; } \
+        ); \
+    })
+
+SAPI_REGISTER_CONFIG(MyConfig_2, FIELDS_2)
+//-----------------------------------------------------------------
+
+int main() {
+    using namespace simpleapi;
+    
+    MyConfig mcfg;
+    Config cfg;
+
+    auto run = [&](std::string&& input) {
+        cfg.parseJson(input);
+        mcfg.loadConfig(cfg);
+        Visit(mcfg.variant
+            , [](const int& i)           { std::cout << "int: " << std::to_string(i) << std::endl; }
+            , [](const std::string& str) { std::cout << "string: " << str << std::endl;            }
+            , [](std::nullptr_t)         { std::cout << "std::nullptr_t" << std::endl;             }
+            );
+    };
+
+    run("{variant:\"asd\"}");
+    run("{variant:100}");
+    run("{variant:null}");
+    
+    //------------------------
+    MyConfig_2 mcfg_2;
+    
+    auto run = [&](std::string&& input) {
+        cfg.parseJson(input);
+        mcfg_2.loadConfig(cfg);
+        Visit(mcfg_2.variant
+            , [](const int& i)           { std::cout << "int: " << std::to_string(i) << std::endl; }
+            , [](const std::string& str) { std::cout << "string: " << str << std::endl;            }
+            , [](std::nullptr_t)         { std::cout << "std::nullptr_t" << std::endl;             }
+            );
+    };
+
+    run("{variant:\"asd\"}");
+    run("{variant:100}");
+    run("{variant:null}");    
+
     return 0;
 }
 ```
