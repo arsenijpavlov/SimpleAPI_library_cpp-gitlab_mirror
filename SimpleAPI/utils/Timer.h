@@ -7,6 +7,7 @@ namespace simpleapi {
 namespace utils {
 
 class Timer {
+    // TODO: если на платформе доступен steady_clock, то нужно использовать его!
     std::chrono::system_clock::time_point m_time_of_start;
     // храним в минимально возможном виде для возможности "на ходу" изменять периодичность таймера
     std::chrono::nanoseconds m_timer;
