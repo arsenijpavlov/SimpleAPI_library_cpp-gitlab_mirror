@@ -15,8 +15,8 @@ class Timer {
 public:
     template <typename Rep, typename Period>
     explicit Timer(std::chrono::duration<Rep, Period> value)    noexcept : m_timer(value), m_is_active(false) {}
-    explicit Timer(const Timer& other)                          noexcept : m_timer(other.m_timer), m_is_active(false) {}
-    explicit Timer(Timer&& other)                               noexcept : m_timer(other.m_timer), m_is_active(false) {}
+    explicit Timer(const Timer& other)                          noexcept : m_timer(other.m_timer), m_is_active(other.m_is_active) {}
+    explicit Timer(Timer&& other)                               noexcept : m_timer(other.m_timer), m_is_active(other.m_is_active) {}
     ~Timer() noexcept {}
 
     Timer& operator=(const Timer& other)                        noexcept;
