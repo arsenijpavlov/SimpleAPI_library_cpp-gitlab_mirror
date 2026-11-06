@@ -58,7 +58,7 @@ bool Stacker::addSimpleRule(char ch) noexcept
 // вернёт true, если правило было найдено и удалено
 bool simpleapi::tools::Stacker::deleteSimpleRule(char ch) noexcept
 {
-    for(auto it = m_rules.begin(); it != m_rules.begin(); it++) {
+    for(auto it = m_rules.begin(); it != m_rules.end(); it++) {
         if(it->first == ch) {
             m_rules.erase(it);
             return true;
@@ -82,7 +82,7 @@ bool Stacker::addDoubleRule(char ch1, char ch2) noexcept
 // вернёт true, если правило было найдено и удалено
 bool simpleapi::tools::Stacker::deleteDoubleRule(char ch1, char ch2) noexcept
 {
-    for(auto it = m_rules.begin(); it != m_rules.begin(); it++) {
+    for(auto it = m_rules.begin(); it != m_rules.end(); it++) {
         if(it->first == ch1 && it->second == ch2) {
             m_rules.erase(it);
             return true;
