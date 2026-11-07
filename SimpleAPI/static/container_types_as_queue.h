@@ -2,7 +2,10 @@
 
 // NOTE: "IWYU pragma: keep" спрячет лишнее предупреждение от clangd
 #include "base.h"          // IWYU pragma: keep
-#include "type_checkers.h" // IWYU pragma: keep
+#include "../meta/meta_same_types_validators.h"
+#include "../meta/meta_lambda_validators.h"
+#include "../meta/meta_static_config_IO_selector.h"
+#include "../meta/lambda_executers.h"
 #include <string>
 #include <type_traits>
 #include "../config/Config.h"
@@ -14,7 +17,7 @@ namespace tools {
 // правило для определения типов-контейнеров (vector, queue и т.д.)
 // std::string не считается за контейнер и обрабатывается как цельный элемент
 template<typename T>
-struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_queue<T>::value>::type>
+struct ConfigTypeTraits<T, typename std::enable_if<meta::is_container_as_queue<T>::value>::type>
 {
     static bool load(const Config& config, const std::string& key, T& field)
     {
@@ -44,7 +47,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_queue<T>::val
     }
 
     template<typename Lambda, typename... Args,
-             typename std::enable_if<is_variadic_lambda_callable<Lambda, T&&, std::string&&>::value, int>::type = 0>
+             typename std::enable_if<meta::is_variadic_lambda_callable<Lambda, T&&, std::string&&>::value, int>::type = 0>
     static bool load(const Config& config, const std::string& key, T& field, Lambda lambda, Args&&... args)
     {
         // std::cout << "[debug] load container(as queue) key=\"" << key << "\"" << std::endl;

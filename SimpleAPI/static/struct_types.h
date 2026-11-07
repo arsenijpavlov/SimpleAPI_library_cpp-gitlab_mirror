@@ -1,8 +1,10 @@
 #pragma once
 
 // NOTE: "IWYU pragma: keep" спрячет лишнее предупреждение от clangd
-#include "base.h"          // IWYU pragma: keep
-#include "type_checkers.h" // IWYU pragma: keep
+#include "base.h"                               // IWYU pragma: keep
+#include "../meta/meta_same_types_validators.h"
+#include "../meta/meta_lambda_validators.h"
+#include "../meta/lambda_executers.h"
 #include <type_traits>
 
 
@@ -11,22 +13,22 @@ namespace tools {
 
 // правило для определения структур
 template<typename T>
-struct ConfigTypeTraits<T, typename std::enable_if<is_config_struct<T>::value
-                                                   && !is_container_as_vector<T>::value
-                                                   && !is_container_as_set<T>::value
-                                                   && !is_container_as_unordered_set<T>::value
-                                                   && !is_container_as_array<T>::value
-                                                   && !is_container_as_queue<T>::value
-                                                   && !is_container_as_priority_queue<T>::value
-                                                   && !is_container_as_stack<T>::value
-                                                   && !is_container_as_bitset<T>::value
-                                                   && !is_container_as_map<T>::value
-                                                   && !is_container_as_unordered_map<T>::value
-                                                   && !is_container_as_variant<T>::value
+struct ConfigTypeTraits<T, typename std::enable_if<meta::is_config_struct<T>::value
+                                                   && !meta::is_container_as_vector<T>::value
+                                                   && !meta::is_container_as_set<T>::value
+                                                   && !meta::is_container_as_unordered_set<T>::value
+                                                   && !meta::is_container_as_array<T>::value
+                                                   && !meta::is_container_as_queue<T>::value
+                                                   && !meta::is_container_as_priority_queue<T>::value
+                                                   && !meta::is_container_as_stack<T>::value
+                                                   && !meta::is_container_as_bitset<T>::value
+                                                   && !meta::is_container_as_map<T>::value
+                                                   && !meta::is_container_as_unordered_map<T>::value
+                                                   && !meta::is_container_as_variant<T>::value
                                                    && !std::is_enum<T>::value
-                                                   && !is_pair<T>::value
+                                                   && !meta::is_pair<T>::value
                                                    && !std::is_same<T, Config>::value
-                                                   && !is_optional<T>::value
+                                                   && !meta::is_optional<T>::value
                                                    && !std::is_same<T, std::wstring>::value
                                                    && !std::is_same<T, std::nullptr_t>::value
                                                    >::type>
@@ -49,7 +51,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_config_struct<T>::value
     }
 
     template<typename Lambda, typename... Args,
-             typename std::enable_if<is_variadic_lambda_callable<Lambda, T&&, std::string&&>::value, int>::type = 0>
+             typename std::enable_if<meta::is_variadic_lambda_callable<Lambda, T&&, std::string&&>::value, int>::type = 0>
     static bool load(const Config& config, const std::string& key, T& field, Lambda lambda, Args&&... args)
     {
         // std::cout << "[debug] load structure key=\"" << key << "\"" << std::endl;

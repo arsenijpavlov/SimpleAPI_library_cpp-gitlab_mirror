@@ -6,7 +6,7 @@
 
 
 namespace simpleapi {
-namespace tools {
+namespace meta {
 
 /* Макросы времени компиляции:
  *  - max_size_of_type            - расчёт максмального размера типа среди указанных
@@ -19,7 +19,9 @@ namespace tools {
  *  - index_of_type               - получить индекс на основе типа (выбирает компилятор)
  *  - is_contains_type            - есть ли указанный тип среди списка
  *  - is_contains_conv_type       - есть ли указанный тип среди списка (с учётом конвертации типов)
- *  - is_contains_duplicate       - запрет создания Variant с дубликатами типов
+ *  - is_contains_duplicate       - есть ли дубликаты в списке типов
+ *  - first_of_pack               - дать первый тип из списка
+ *  - are_types_equal             - одинаковы ли все переданные типы
  */
 
 // ---------------------------------------------------------------------
@@ -178,8 +180,8 @@ struct compiler_type_resolver<Index, Head, Types...> : compiler_type_resolver<In
     template <typename T,
              typename std::enable_if<std::is_constructible<Head, T>::value
                                          && !(std::is_array<CleanT<T>>::value
-                                             && !std::is_same<typename std::decay<BaseElement<T>>::type, char>::value
-                                             && !std::is_same<typename std::decay<BaseElement<T>>::type, wchar_t>::value)
+                                              && !std::is_same<typename std::decay<BaseElement<T>>::type, char>::value
+                                              && !std::is_same<typename std::decay<BaseElement<T>>::type, wchar_t>::value)
                                          && !(std::is_same<Head, bool>::value
                                               && (std::is_array<CleanT<T>>::value
                                                   || std::is_pointer<typename std::decay<T>::type>::value))
@@ -309,5 +311,37 @@ struct for_list {
 };
 // ---------------------------------------------------------------------
 
-} // namespace tools
+//-----------------------------------------------------------------
+// получение первого типа из списка
+//-----------------------------------------------------------------
+// база для выхода из SFINAE
+template <typename... PackTypes>
+struct first_of_pack;
+// основа выбора
+template <typename FirstOfPack, typename... PackTypes>
+struct first_of_pack<FirstOfPack, PackTypes...> {
+    using type = FirstOfPack;
+};
+//-----------------------------------------------------------------
+
+//-----------------------------------------------------------------
+// проверка, что все переданные типы совпадают
+//-----------------------------------------------------------------
+// база для выхода из SFINAE
+template <typename... PackTypes>
+struct are_types_equal;
+// список пуст
+template <typename TemplateType>
+struct are_types_equal<TemplateType> {
+    static constexpr bool value = true;
+};
+// основа проверки
+template <typename TemplateType, typename FirstOfPack, typename... PackTypes>
+struct are_types_equal<TemplateType, FirstOfPack, PackTypes...> {
+    static constexpr bool value = std::is_same<TemplateType, FirstOfPack>::value
+                                  && are_types_equal<TemplateType, PackTypes...>::value;
+};
+//-----------------------------------------------------------------
+
+} // namespace meta
 } // namespace simpleapi

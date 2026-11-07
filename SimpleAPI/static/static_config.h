@@ -12,25 +12,25 @@
 */
 
 // NOTE: "IWYU pragma: keep" спрячет лишнее предупреждение от clangd
-#include "../config/Config.h"          // IWYU pragma: keep
-#include "type_checkers.h"             // IWYU pragma: keep
-#include "simple_types.h"              // IWYU pragma: keep
-#include "struct_types.h"              // IWYU pragma: keep
-#include "container_types_as_vector.h" // IWYU pragma: keep
-#include "container_types_as_set.h"    // IWYU pragma: keep
-#include "container_types_as_array.h"  // IWYU pragma: keep
-#include "container_types_as_bitset.h" // IWYU pragma: keep
-#include "container_types_as_queue.h"  // IWYU pragma: keep
-#include "container_types_as_stack.h"  // IWYU pragma: keep
-#include "container_types_as_map.h"    // IWYU pragma: keep
-#include "container_type_as_config.h"  // IWYU pragma: keep
-#include "container_type_as_variant.h" // IWYU pragma: keep
-#include "pair_types.h"                // IWYU pragma: keep
-#include "enum_types.h"                // IWYU pragma: keep
-#include "optional_types.h"            // IWYU pragma: keep
-#include "wstring_type.h"              // IWYU pragma: keep
-#include "null_type.h"                 // IWYU pragma: keep
-#include <functional>                  // IWYU pragma: keep
+#include "../meta/meta_same_types_validators.h" // IWYU pragma: keep
+#include "../config/Config.h"                   // IWYU pragma: keep
+#include "simple_types.h"                       // IWYU pragma: keep
+#include "struct_types.h"                       // IWYU pragma: keep
+#include "container_types_as_vector.h"          // IWYU pragma: keep
+#include "container_types_as_set.h"             // IWYU pragma: keep
+#include "container_types_as_array.h"           // IWYU pragma: keep
+#include "container_types_as_bitset.h"          // IWYU pragma: keep
+#include "container_types_as_queue.h"           // IWYU pragma: keep
+#include "container_types_as_stack.h"           // IWYU pragma: keep
+#include "container_types_as_map.h"             // IWYU pragma: keep
+#include "container_type_as_config.h"           // IWYU pragma: keep
+#include "container_type_as_variant.h"          // IWYU pragma: keep
+#include "pair_types.h"                         // IWYU pragma: keep
+#include "enum_types.h"                         // IWYU pragma: keep
+#include "optional_types.h"                     // IWYU pragma: keep
+#include "wstring_type.h"                       // IWYU pragma: keep
+#include "null_type.h"                          // IWYU pragma: keep
+#include <functional>                           // IWYU pragma: keep
 
 
 // NOTE: приставка SAPI_ - сокращение от SimpleAPI_ для избежания совпадений с пользовательским пространством

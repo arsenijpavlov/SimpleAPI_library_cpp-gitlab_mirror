@@ -2,7 +2,8 @@
 
 // NOTE: "IWYU pragma: keep" спрячет лишнее предупреждение от clangd
 #include "base.h"          // IWYU pragma: keep
-#include "type_checkers.h" // IWYU pragma: keep
+#include "../meta/meta_lambda_validators.h"
+#include "../meta/lambda_executers.h"
 #include <string>
 #include <type_traits>
 #include "../config/Config.h"
@@ -37,7 +38,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<std::is_enum<T>::value>::type
     }
 
     template<typename Lambda, typename... Args,
-             typename std::enable_if<is_variadic_lambda_callable<Lambda, T&&, std::string&&>::value, int>::type = 0>
+             typename std::enable_if<meta::is_variadic_lambda_callable<Lambda, T&&, std::string&&>::value, int>::type = 0>
     static bool load(const Config& config, const std::string& key, T& field, Lambda lambda, Args&&... args)
     {
         // std::cout << "[debug] load enum key=\"" << key << "\"" << std::endl;

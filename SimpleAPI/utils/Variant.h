@@ -1,16 +1,16 @@
 #pragma once
 
-#include "type_finders_from_typelist.h"
 #include <cstdint>
 #include <utility>
 #include "../patches/patch_old_compilers.h" // IWYU pragma: keep
+#include "../meta/meta_pack_traits.h"
 
 
 namespace simpleapi {
 
 template <typename... Types>
 class Variant {
-    static_assert(!tools::is_contains_duplicate<Types...>::value, "SimpleAPI: incorrect types list, found duplicates");
+    static_assert(!meta::is_contains_duplicate<Types...>::value, "SimpleAPI: incorrect types list, found duplicates");
 
     // шаблон рекурсивного поиска конструктора
     // NOTE: внешний код всегда вызывает начальный индекс <0>
@@ -33,7 +33,7 @@ class Variant {
 
         // вариант, когда тип совпадает с искомым
         template <typename T,
-                 typename Type = typename tools::type_at_index<Index, Types...>::type,
+                 typename Type = typename meta::type_at_index<Index, Types...>::type,
                  typename std::enable_if<std::is_constructible<Type, T>::value, int>::type = 0
                  >
         static void create(const ssize_t& find_index, void* ptr, T&& value) {
@@ -48,7 +48,7 @@ class Variant {
 
         // вариант, когда тип НЕ совпадает с искомым
         template <typename T,
-                 typename Type = typename tools::type_at_index<Index, Types...>::type,
+                 typename Type = typename meta::type_at_index<Index, Types...>::type,
                  typename std::enable_if<!std::is_constructible<Type, T>::value, int>::type = 0
                  >
         static void create(const ssize_t& find_index, void* ptr, T&& value) {
@@ -89,7 +89,7 @@ class Variant {
             if(find_index == -1)
                 return; // память не задействована, деструктор не нужен
             if(Index == find_index) {
-                using Type = typename tools::type_at_index<Index, Types...>::type;
+                using Type = typename meta::type_at_index<Index, Types...>::type;
                 DestructorHelper::template helper_destroy<Type>(ptr);
             } else {
                 // продолжение поиска
@@ -183,8 +183,8 @@ class Variant {
         {
             using OtherVariant = Variant<OtherTypes...>;
             if(OtherIndex == other_index) {
-                using OtherType                = typename tools::type_at_index<OtherIndex, OtherTypes...>::type;
-                constexpr ssize_t target_index = tools::index_of_type<OtherType, Types...>::value;
+                using OtherType                = typename meta::type_at_index<OtherIndex, OtherTypes...>::type;
+                constexpr ssize_t target_index = meta::index_of_type<OtherType, Types...>::value;
 
                 Creator<0, true>::create(target_index, dest_value.m_data, other.template get<OtherType>());
             } else {
@@ -200,8 +200,8 @@ class Variant {
         {
             using OtherVariant = Variant<OtherTypes...>;
             if(OtherIndex == other_index) {
-                using OtherType                = typename tools::type_at_index<OtherIndex, OtherTypes...>::type;
-                constexpr ssize_t target_index = tools::index_of_type<OtherType, Types...>::value;
+                using OtherType                = typename meta::type_at_index<OtherIndex, OtherTypes...>::type;
+                constexpr ssize_t target_index = meta::index_of_type<OtherType, Types...>::value;
 
                 Creator<0, true>::create(target_index, dest_value.m_data, std::move(other.template get<OtherType>()));
             } else {
@@ -217,12 +217,12 @@ class Variant {
         {
             using OtherVariant = Variant<OtherTypes...>;
             if(OtherIndex == other_index) {
-                using OtherType   = typename tools::type_at_index<OtherIndex, OtherTypes...>::type;
-                using TargetIndex = typename tools::index_of_type<OtherType, Types...>;
+                using OtherType   = typename meta::type_at_index<OtherIndex, OtherTypes...>::type;
+                using TargetIndex = typename meta::index_of_type<OtherType, Types...>;
 
                 using TargetType = std::conditional<
                     TargetIndex::is_found,
-                    typename tools::type_at_index<(TargetIndex::is_found ? TargetIndex::value : 0), Types...>::type,
+                    typename meta::type_at_index<(TargetIndex::is_found ? TargetIndex::value : 0), Types...>::type,
                     std::nullptr_t // заглушка
                     >;
 
@@ -243,12 +243,12 @@ class Variant {
         {
             using OtherVariant = Variant<OtherTypes...>;
             if(OtherIndex == other_index) {
-                using OtherType   = typename tools::type_at_index<OtherIndex, OtherTypes...>::type;
-                using TargetIndex = typename tools::index_of_type<OtherType, Types...>;
+                using OtherType   = typename meta::type_at_index<OtherIndex, OtherTypes...>::type;
+                using TargetIndex = typename meta::index_of_type<OtherType, Types...>;
 
                 using TargetType  = std::conditional<
                     TargetIndex::is_found,
-                    typename tools::type_at_index<(TargetIndex::is_found ? TargetIndex::value : 0), Types...>::type,
+                    typename meta::type_at_index<(TargetIndex::is_found ? TargetIndex::value : 0), Types...>::type,
                     std::nullptr_t // заглушка
                     >;
 
@@ -269,8 +269,8 @@ class Variant {
         {
             using OtherVariant = Variant<OtherTypes...>;
             if(OtherIndex == other_index) {
-                using OtherType     = typename tools::type_at_index<OtherIndex, OtherTypes...>::type;
-                using TargetIndex   = typename tools::index_of_type<OtherType, Types...>;
+                using OtherType     = typename meta::type_at_index<OtherIndex, OtherTypes...>::type;
+                using TargetIndex   = typename meta::index_of_type<OtherType, Types...>;
                 using TempOtherType = decltype(std::move(other).template get<OtherType>());
 
                 return current == other.template get<const OtherType>();
@@ -318,14 +318,14 @@ public:
     //-----------------------------------------------------------------------------------------
     // константы класса времени компиляции
     //-----------------------------------------------------------------------------------------
-    static constexpr size_t size       = tools::max_size_of_type<Types...>::size;
-    static constexpr size_t align_size = tools::max_align_of_type<Types...>::align_size;
+    static constexpr size_t size       = meta::max_size_of_type<Types...>::size;
+    static constexpr size_t align_size = meta::max_align_of_type<Types...>::align_size;
     //-----------------------------------------------------------------------------------------
 
     // по умолчанию проинициализируется первым типом (его значение по умолчанию)
     Variant() noexcept : m_current_type_index(0)
     {
-        new (m_data) typename tools::type_at_index<0, Types...>::type({});
+        new (m_data) typename meta::type_at_index<0, Types...>::type({});
     }
 
     Variant(const Variant& other)
@@ -354,7 +354,7 @@ public:
     {
         // NOTE: проверка if(this != &other) не нужна, т.к. типы заведомо разные по variadic
 
-        ssize_t temp_index = tools::for_list<Types...>
+        ssize_t temp_index = meta::for_list<Types...>
             ::template from_list<OtherTypes...>
             ::template get<0>::index(other.index());
 
@@ -370,7 +370,7 @@ public:
     {
         // NOTE: проверка if(this != &other) не нужна, т.к. типы заведомо разные по variadic
 
-        ssize_t temp_index = tools::for_list<Types...>
+        ssize_t temp_index = meta::for_list<Types...>
             ::template from_list<OtherTypes...>
             ::template get<0>::index(other.index());
 
@@ -387,11 +387,11 @@ public:
     // NOTE: трюк с Dummy= и std::is_same<Dummy,> нужен для переноса проверки с момента создания объекта на момент вызова конкретного метода
     template <typename Dummy = std::nullptr_t,
              typename std::enable_if<std::is_same<Dummy, std::nullptr_t>::value
-                                         && tools::index_of_type<std::nullptr_t, Types...>::is_found
+                                         && meta::index_of_type<std::nullptr_t, Types...>::is_found
                                      , int>::type = 0>
     Variant(std::nullptr_t) noexcept
     {
-        using Index = typename tools::index_of_type<std::nullptr_t, Types...>;
+        using Index = typename meta::index_of_type<std::nullptr_t, Types...>;
 
         m_current_type_index = Index::value;
         Creator<0>::create(m_current_type_index, m_data, nullptr);
@@ -399,12 +399,12 @@ public:
 
     template <typename T,
              typename std::enable_if<!std::is_same<typename std::decay<T>::type, Variant>::value
-                                         && tools::index_of_type<T, Types...>::is_found
+                                         && meta::index_of_type<T, Types...>::is_found
                                      , int>::type = 0>
     Variant(const T& value)
     {
         using CleanT = typename std::decay<T>::type;
-        using Index  = typename tools::index_of_type<CleanT, Types...>;
+        using Index  = typename meta::index_of_type<CleanT, Types...>;
 
         m_current_type_index = Index::value;
         Creator<0>::create(m_current_type_index, m_data, value);
@@ -412,12 +412,12 @@ public:
 
     template <typename T,
              typename std::enable_if<!std::is_same<typename std::decay<T>::type, Variant>::value
-                                         && tools::index_of_type<T, Types...>::is_found
+                                         && meta::index_of_type<T, Types...>::is_found
                                      , int>::type = 0>
     Variant(T&& value)
     {
         using CleanT = typename std::decay<T>::type;
-        using Index  = typename tools::index_of_type<CleanT, Types...>;
+        using Index  = typename meta::index_of_type<CleanT, Types...>;
 
         m_current_type_index = Index::value;
         Creator<0>::create(m_current_type_index, m_data, std::forward<T>(value));
@@ -473,7 +473,7 @@ public:
         // уничтожение старого объекта
         Destroyer<0>::destroy(m_current_type_index, m_data);
 
-        ssize_t temp_index = tools::for_list<Types...>
+        ssize_t temp_index = meta::for_list<Types...>
             ::template from_list<OtherTypes...>
             ::template get<0>::index(other.index());
 
@@ -495,7 +495,7 @@ public:
         // уничтожение старого объекта
         Destroyer<0>::destroy(m_current_type_index, m_data);
 
-        ssize_t temp_index = tools::for_list<Types...>
+        ssize_t temp_index = meta::for_list<Types...>
             ::template from_list<OtherTypes...>
             ::template get<0>::index(other.index());
 
@@ -515,14 +515,14 @@ public:
     // NOTE: трюк с Dummy= и std::is_same<Dummy,> нужен для переноса проверки с момента создания объекта на момент вызова конкретного метода
     template <typename Dummy = std::nullptr_t,
              typename std::enable_if<std::is_same<Dummy, std::nullptr_t>::value
-                                         && tools::index_of_type<std::nullptr_t, Types...>::is_found
+                                         && meta::index_of_type<std::nullptr_t, Types...>::is_found
                                      , int>::type = 0>
     Variant& operator=(std::nullptr_t)
     {
         // уничтожение старого объекта (проверка на -1 и std::nullptr_t произойдёт внутри вызова)
         Destroyer<0>::destroy(m_current_type_index, m_data);
 
-        using Index          = typename tools::index_of_type<std::nullptr_t, Types...>;
+        using Index          = typename meta::index_of_type<std::nullptr_t, Types...>;
         m_current_type_index = Index::value;
         Creator<0>::create(m_current_type_index, m_data, nullptr);
 
@@ -531,18 +531,18 @@ public:
 
     template <typename T,
              typename std::enable_if<!std::is_same<typename std::decay<T>::type, Variant>::value
-                                         && tools::index_of_type<T, Types...>::is_found
+                                         && meta::index_of_type<T, Types...>::is_found
                                      , int>::type = 0>
     Variant& operator=(const T& value)
     {
         using CleanT                              = typename std::decay<T>::type;
-        static constexpr ssize_t input_type_index = tools::index_of_type<CleanT, Types...>::value;
+        static constexpr ssize_t input_type_index = meta::index_of_type<CleanT, Types...>::value;
 
         if(input_type_index == m_current_type_index) {
             // если новый тип совпал с текущим - применить сразу
 
             // запрещаем перезапись константного типа
-            using CurrentType = typename tools::type_at_index<input_type_index, Types...>::type;
+            using CurrentType = typename meta::type_at_index<input_type_index, Types...>::type;
             static_assert(!std::is_const<CurrentType>::value,
                           "SimpleAPI: сannot assign a new value(const&) to a const alternative in class Variant<>");
 
@@ -561,17 +561,17 @@ public:
 
     template <typename T,
              typename std::enable_if<!std::is_same<typename std::decay<T>::type, Variant>::value
-                                         && tools::index_of_type<T, Types...>::is_found
+                                         && meta::index_of_type<T, Types...>::is_found
                                      , int>::type = 0>
     Variant& operator=(T&& value) {
         using CleanT                              = typename std::decay<T>::type;
-        static constexpr ssize_t input_type_index = tools::index_of_type<CleanT, Types...>::value;
+        static constexpr ssize_t input_type_index = meta::index_of_type<CleanT, Types...>::value;
 
         if(input_type_index == m_current_type_index) {
             // если новый тип совпал с текущим - применить сразу
 
             // запрещаем перезапись константного типа
-            using CurrentType = typename tools::type_at_index<input_type_index, Types...>::type;
+            using CurrentType = typename meta::type_at_index<input_type_index, Types...>::type;
             static_assert(!(std::is_const<CurrentType>::value && !std::is_pointer<CurrentType>::value),
                           "SimpleAPI: сannot assign a new value(&&) to a const alternative in class Variant<>");
 
@@ -591,7 +591,7 @@ public:
     // функциональный аналог operator=(const T&)
     template <typename T,
              typename std::enable_if<!std::is_same<typename std::decay<T>::type, Variant>::value
-                                         && tools::index_of_type<T, Types...>::is_found
+                                         && meta::index_of_type<T, Types...>::is_found
                                      , int>::type = 0>
     Variant& set(const T& value)
     {
@@ -602,7 +602,7 @@ public:
     // функциональный аналог operator=(T&&)
     template <typename T,
              typename std::enable_if<!std::is_same<typename std::decay<T>::type, Variant>::value
-                                         && tools::index_of_type<T, Types...>::is_found
+                                         && meta::index_of_type<T, Types...>::is_found
                                      , int>::type = 0>
     Variant& set(T&& value)
     {
@@ -614,15 +614,15 @@ public:
     // @TEST(VARIANT, emplacer)
     template <typename T, typename... Args,
              typename std::enable_if<!std::is_same<typename std::decay<T>::type, Variant>::value
-                                         && tools::index_of_type<T, Types...>::is_found
+                                         && meta::index_of_type<T, Types...>::is_found
                                      , int>::type = 0>
     Variant& emplace(Args&&... args) {
         // уничтожение старого объекта
         Destroyer<0>::destroy(m_current_type_index, m_data);
 
         using CleanT = typename std::decay<T>::type;
-        using Index  = typename tools::index_of_type<CleanT, Types...>;
-        using Type   = typename tools::type_at_index<Index::value, Types...>::type;
+        using Index  = typename meta::index_of_type<CleanT, Types...>;
+        using Type   = typename meta::type_at_index<Index::value, Types...>::type;
 
         m_current_type_index = Index::value;
         new (m_data) Type(std::forward<Args>(args)...); // ручной вызов placement new
@@ -634,7 +634,7 @@ public:
     // UB - если пользователь не угадал текущий тип
     template <typename Dummy = std::nullptr_t,
              typename std::enable_if<std::is_same<Dummy, std::nullptr_t>::value
-                                         && tools::index_of_type<std::nullptr_t, Types...>::is_found
+                                         && meta::index_of_type<std::nullptr_t, Types...>::is_found
                                      , int>::type = 0>
     std::nullptr_t get() const
     {
@@ -643,7 +643,7 @@ public:
 
     // UB - если пользователь не угадал текущий тип
     template <typename T,
-             typename std::enable_if<tools::index_of_type<T, Types...>::is_found
+             typename std::enable_if<meta::index_of_type<T, Types...>::is_found
                                          && !std::is_same<T, std::nullptr_t>::value
                                      , int>::type = 0>
     T& get() &
@@ -653,7 +653,7 @@ public:
 
     // UB - если пользователь не угадал текущий тип
     template <typename T,
-             typename std::enable_if<tools::index_of_type<T, Types...>::is_found
+             typename std::enable_if<meta::index_of_type<T, Types...>::is_found
                                          && !std::is_same<T, std::nullptr_t>::value
                                      , int>::type = 0>
     const T& get() const &
@@ -663,7 +663,7 @@ public:
 
     // UB - если пользователь не угадал текущий тип
     template <typename T,
-             typename std::enable_if<tools::index_of_type<T, Types...>::is_found
+             typename std::enable_if<meta::index_of_type<T, Types...>::is_found
                                          && !std::is_same<T, std::nullptr_t>::value
                                      , int>::type = 0>
     T&& get() &&
@@ -675,7 +675,7 @@ public:
     template <typename T>
     T* get_if() noexcept
     {
-        using Index = tools::index_of_type<T, Types...>;
+        using Index = meta::index_of_type<T, Types...>;
 
         static constexpr ssize_t type_index = Index::value;
         static constexpr bool    is_nullptr = std::is_same<T, std::nullptr_t>::value;
@@ -690,7 +690,7 @@ public:
     template <typename T>
     const T* get_if() const noexcept
     {
-        using Index = tools::index_of_type<T, Types...>;
+        using Index = meta::index_of_type<T, Types...>;
 
         static constexpr ssize_t type_index = Index::value;
         static constexpr bool    is_nullptr = std::is_same<T, std::nullptr_t>::value;
@@ -719,7 +719,7 @@ public:
                                      , int>::type = 0>
     bool operator==(std::nullptr_t) const noexcept
     {
-        using Index = typename tools::index_of_type<std::nullptr_t, Types...>;
+        using Index = typename meta::index_of_type<std::nullptr_t, Types...>;
         if (Index::is_found) {
             return m_current_type_index == Index::value;
         }

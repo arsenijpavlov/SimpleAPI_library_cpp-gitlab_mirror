@@ -154,7 +154,7 @@ TEST(VARIANT, constructors_with_raw_string) {
     using FindType = decltype("asd");
     EXPECT_TRUE((std::is_constructible<std::string, FindType>::value));
 
-    EXPECT_TRUE((decltype(tools::compiler_type_resolver<0, FindType, std::string>::
+    EXPECT_TRUE((decltype(meta::compiler_type_resolver<0, FindType, std::string>::
                           template match<FindType>(std::declval<FindType>()))::value != static_cast<size_t>(-1)));
 }
 

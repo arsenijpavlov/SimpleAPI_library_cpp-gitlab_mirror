@@ -24,10 +24,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<std::is_same<T, std::nullptr_
         return true;
     }
 
-    // в этом вызове лямбда будет проигнорирована
     template<typename Lambda, typename... Args>
-             // typename std::enable_if<
-                 // is_variadic_lambda_callable<Lambda, const T&, const std::string&>::value, int>::type = 0>
     static bool load(const Config& config, const std::string& key, std::nullptr_t&, Lambda lambda, Args&&... args)
     {
         // std::cout << "[debug] load std::nullptr_t key=\"" << key << "\"" << std::endl;

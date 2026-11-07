@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include "../meta/meta_check_method_exists.h"
 
 #ifdef __DEBUG__
     #include <iostream>
@@ -12,24 +13,6 @@
 
 
 namespace simpleapi {
-
-namespace tools {
-// проверка, что тип содержит метод operator==()
-template <typename T>
-class is_contain_operator_equal {
-    // очистка типа от const и ссылок
-    using CleanT = typename std::decay<T>::type;
-
-    // метод для SFINAE проверки наличия метода operator==() у класса U
-    template <typename U>
-    static char test(decltype(std::declval<U>() == std::declval<U>())*);
-    // метод для разрешения конфликта для поля value
-    template <typename U> static long test(...);
-public:
-    static const bool value = sizeof(test<CleanT>(0)) == sizeof(char);
-};
-} // namespace tools
-
 namespace utils {
 
 bool        IsNumber(const std::string& str, bool use_point = true)                     noexcept;
@@ -94,7 +77,7 @@ bool        CompareIfPossible(const T& first, const T& second) noexcept
                     static bool Compare(const T&, const T&) { return false; }
                 };
 
-                using Selector = typename std::conditional<tools::is_contain_operator_equal<T>::value,
+                using Selector = typename std::conditional<meta::is_contain_operator_equal<T>::value,
                                                            OnTrue,
                                                            OnFalse>::type;
                 return Selector::Compare(first, second);

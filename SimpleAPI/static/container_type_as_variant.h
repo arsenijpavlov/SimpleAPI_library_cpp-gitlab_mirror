@@ -2,7 +2,9 @@
 
 // NOTE: "IWYU pragma: keep" спрячет лишнее предупреждение от clangd
 #include "base.h"          // IWYU pragma: keep
-#include "type_checkers.h" // IWYU pragma: keep
+#include "../meta/meta_same_types_validators.h"
+#include "../meta/meta_lambda_validators.h"
+#include "../meta/lambda_executers.h"
 #include <string>
 #include <type_traits>
 #include "../config/Config.h"
@@ -14,7 +16,7 @@ namespace tools {
 
 // правило для определения мульти-типа - Variant<Types...>
 template<typename T>
-struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_variant<T>::value>::type>
+struct ConfigTypeTraits<T, typename std::enable_if<meta::is_container_as_variant<T>::value>::type>
 {
     // предобъявление для SFINAE
     template <typename... VariantTypes>
@@ -28,7 +30,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_variant<T>::v
             // Читатель
             //-------------------------------------------------------------------------------
             static bool Load(const Config& config, const std::string& key, Variant<VariantTypes...>& field) {
-                using Type  = typename type_at_index<Index, VariantTypes...>::type;
+                using Type  = typename meta::type_at_index<Index, VariantTypes...>::type;
                 Type temp;
                 bool result = ConfigTypeTraits<Type>::load(config, key, temp);
                 if(result) {
@@ -46,7 +48,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_variant<T>::v
             //-------------------------------------------------------------------------------
             static void Save(Config& config, const std::string& key, const Variant<VariantTypes...>& field) {
                 if(Index == field.index()) {
-                    using Type = typename type_at_index<Index, VariantTypes...>::type;
+                    using Type = typename meta::type_at_index<Index, VariantTypes...>::type;
                     ConfigTypeTraits<Type>::save(config, key, field.template get<Type>());
                 } else {
                     Runtime<Index + 1>::Save(config, key, field);
@@ -75,7 +77,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<is_container_as_variant<T>::v
     }
 
     template<typename Lambda, typename... Args,
-             typename std::enable_if<is_variadic_lambda_callable<Lambda, T&&, std::string&&>::value, int>::type = 0>
+             typename std::enable_if<meta::is_variadic_lambda_callable<Lambda, T&&, std::string&&>::value, int>::type = 0>
     static bool load(const Config& config, const std::string& key, T& field, Lambda lambda, Args&&... args)
     {
         // std::cout << "[debug] load container(as variant) key=\"" << key << "\"" << std::endl;

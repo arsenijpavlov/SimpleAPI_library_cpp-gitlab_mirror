@@ -7,15 +7,17 @@
 #include <queue>
 #include <set>
 #include <stack>
-#include <type_traits>
 #include <unordered_map>
-#include <unordered_set>
+#include <utility>
+#include <vector>
 #include "../config/Config.h"
+#include <type_traits>
+#include <unordered_set>
 #include "../utils/Variant.h"
 
 
 namespace simpleapi {
-namespace tools {
+namespace meta {
 
 // проверка: тип одиночный или список значений
 //   получим ::value == false для SFINAE, если указанных методов не существует (нельзя вызвать)
@@ -317,142 +319,5 @@ public:
 };
 // ----------------------------------------------------------------------------
 
-// разделение чтения переменной "value=get<T>()"/"value=T::loadConfig(cfg)"
-// если T имеет метод loadConfig()
-template <typename T>
-static bool Loader(const Config& config, T& output_value,
-                   typename std::enable_if<is_config_struct<T>::value>::type* = 0)
-{
-    if(!output_value.loadConfig(config))
-        return false;
-    return true;
-}
-// если T не имеет метода loadConfig()
-template <typename T>
-static bool Loader(const Config& config, T& output_value,
-                   typename std::enable_if<!is_config_struct<T>::value>::type* = 0)
-{
-    output_value = config.get<T>();
-    return true;
-}
-// ----------------------------------------------------------------------------
-
-// разделение чтения переменной "value=get<T>()"/"value=T::loadConfig(cfg)"
-// если T имеет метод saveConfig()
-template <typename T>
-static Config Saver(const T& input_value, const std::string prefix_comment, const std::string suffix_comment,
-                    typename std::enable_if<is_config_struct<T>::value>::type* = 0)
-{
-    return input_value.saveConfig();
-}
-// если T не имеет метода saveConfig()
-template <typename T>
-static Config Saver(const T& input_value, const std::string prefix_comment, const std::string suffix_comment,
-                   typename std::enable_if<!is_config_struct<T>::value>::type* = 0)
-{
-    return Config(input_value);
-}
-// ----------------------------------------------------------------------------
-
-// проверка: является ли лямбда валидной
-//   получим ::value == false для SFINAE, если указанных методов не существует (нельзя вызвать)
-template <typename T, typename... Args>
-class is_variadic_lambda_callable {
-    // очистка типа от const и ссылок
-    using CleanT = typename std::decay<T>::type;
-
-    // если это указатель, снимаем указатель
-    // иначе оставляем как есть
-    using CallableT = typename std::conditional<
-        std::is_pointer<CleanT>::value,
-        typename std::remove_pointer<CleanT>::type,
-        CleanT
-        >::type;
-
-    // метод для SFINAE проверки наличия лямбы как nullptr
-    template <typename U>
-    static typename std::enable_if<std::is_same<U, std::nullptr_t>::value, char>::type
-        test(int);
-
-    // метод для SFINAE проверки наличия валидной лямбы у класса U
-    template <typename U>
-    static auto test(int) -> decltype(
-        std::declval<U>()(std::declval<Args>()...),
-        char()
-    );
-
-    // Если аргументов предложено много, но Перегрузка 2 не подошла,
-    // мы проверяем, умеет ли лямбда принимать ТОЛЬКО ПЕРВЫЙ аргумент
-    template <typename U, typename Dummy = void>
-    static auto test(long) -> decltype(
-        std::declval<U>()(std::declval<typename std::tuple_element<0, std::tuple<Args...>>::type>()),
-        char()
-        );
-
-    // метод для разрешения конфликта для поля value
-    template <typename U> static long test(...);
-public:
-    static const bool value = (sizeof(test<CallableT>(0)) == sizeof(char));
-};
-// ---------------
-// ---------------
-// если указатель — разыменовываем его
-template <typename PtrT>
-static inline typename std::remove_pointer<PtrT>::type&
-UnwrapPointer(PtrT ptr, typename std::enable_if<std::is_pointer<PtrT>::value>::type* = 0) {
-    return *ptr;
-}
-// если объект — отдаем как есть
-template <typename ObjT>
-static inline ObjT&
-UnwrapPointer(ObjT& obj, typename std::enable_if<!std::is_pointer<ObjT>::value>::type* = 0) {
-    return obj;
-}
-// ---------------
-// ---------------
-// описания перегрузок для лямбд/std::function() для вызова как через объект, так и через указатель на него
-template <typename... Args>
-static bool ExecuteValidator(std::nullptr_t, Args&&...) noexcept
-{
-    return true;
-}
-// описание лямбд по уменьшению возможного количества параметров
-// 1. Запускается со всеми аргументами сразу
-template <typename ValidatorT, typename ... Args,
-          typename std::enable_if<!std::is_same<ValidatorT, std::nullptr_t>::value, int>::type = 0,
-          typename = decltype(std::declval<ValidatorT>()(std::declval<Args>()...))
-         >
-static bool ExecuteValidator(ValidatorT validator, Args&&... args)
-{
-    // если это указатель на функцию/лямбду (или nullptr)
-    auto&& not_ptr_validator = UnwrapPointer(validator);
-    return not_ptr_validator(std::forward<Args>(args)...);
-}
-//----------------------------
-// 2. Принимает T value и std::string key
-template <typename ValidatorT, typename T, typename ... Args,
-          typename std::enable_if<!std::is_same<ValidatorT, std::nullptr_t>::value, int>::type = 0,
-          typename = decltype(std::declval<ValidatorT>()(std::declval<T>(), std::declval<std::string>()))
-         >
-static bool ExecuteValidator(ValidatorT validator, T&& t, std::string&& key, Args&&... /*args*/ /*hide unused*/)
-{
-    // если это указатель на функцию/лямбду (или nullptr)
-    auto&& not_ptr_validator = UnwrapPointer(validator);
-    return not_ptr_validator(std::forward<T>(t), std::forward<std::string>(key));
-}
-//----------------------------
-// 3. Принимает только T value
-template <typename ValidatorT, typename T, typename ... Args,
-          typename std::enable_if<!std::is_same<ValidatorT, std::nullptr_t>::value, int>::type = 0,
-          typename = decltype(std::declval<ValidatorT>()(std::declval<T>()))
-         >
-static bool ExecuteValidator(ValidatorT validator, T&& t, Args&&... /*args*/ /*hide unused*/)
-{
-    // если это указатель на функцию/лямбду (или nullptr)
-    auto&& not_ptr_validator = UnwrapPointer(validator);
-    return not_ptr_validator(std::forward<T>(t));
-}
-// ----------------------------------------------------------------------------
-
-} // namespace tools
+} // namespace meta
 } // namespace simpleapi
