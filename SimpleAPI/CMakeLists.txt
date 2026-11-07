@@ -76,11 +76,6 @@ if(NOT TARGET ${PROJECT_NAME})
     # добавляем зависимость сборки от файла, генерируемого внешним скриптом
     target_sources(${PROJECT_NAME} PRIVATE "${VERSION_INFO_FILE}")
 
-    #----------------------------
-    #TODO: ВРЕМЕННОЕ ХРАНЕНИЕ
-    target_sources(${PROJECT_NAME} PRIVATE pre_WIKI.md)
-    #----------------------------
-
     install(TARGETS ${PROJECT_NAME}
         DESTINATION /opt/SimpleAPI
     )
