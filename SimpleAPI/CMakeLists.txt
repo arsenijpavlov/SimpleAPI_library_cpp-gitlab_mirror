@@ -90,7 +90,7 @@ if(NOT TARGET ${PROJECT_NAME})
     if(VERSION_INFO_STRING)
         string(REGEX MATCH "v[0-9]+.[0-9]+.[0-9]+" VERSION_NUMBER "${VERSION_INFO_STRING}")
         string(SUBSTRING "${VERSION_NUMBER}" 1 -1 VERSION_NUMBER) # удаляем букву 'v'
-        message("VERSION_NUMBER: ${VERSION_NUMBER}")
+        # message("VERSION_NUMBER: ${VERSION_NUMBER}") # лог дебага
     endif()
 
     string(TOLOWER ${PROJECT_NAME} PACKAGE_NAME)
