@@ -63,7 +63,11 @@ if(NOT TARGET ${PROJECT_NAME})
     )
 
     # на момент работы с кодом файл должен существовать (в коммит не попадает)
-    execute_process(COMMAND bash "${SIMPLE_API_MAIN_DIR}/scripts/check_version_from_git.sh" "need_print_echo")
+    execute_process(
+        COMMAND bash "${SIMPLE_API_MAIN_DIR}/scripts/check_version_from_git.sh" "need_print_echo"
+        OUTPUT_VARIABLE VERSION_INFO_STRING
+    )
+    message("${VERSION_INFO_STRING}") # пишем в консоль, но переменная будет использована позже
 
     # проверка версии по истории коммитов (скрипт надо запустить ДО компиляции файлов)
     set(VERSION_INFO_FILE "${CMAKE_CURRENT_LIST_DIR}/VersionInfo.h")
@@ -83,12 +87,18 @@ if(NOT TARGET ${PROJECT_NAME})
         DESTINATION /opt/SimpleAPI
     )
 
+    if(VERSION_INFO_STRING)
+        string(REGEX MATCH "v[0-9]+.[0-9]+.[0-9]+" VERSION_NUMBER "${VERSION_INFO_STRING}")
+        string(SUBSTRING "${VERSION_NUMBER}" 1 -1 VERSION_NUMBER) # удаляем букву 'v'
+        message("VERSION_NUMBER: ${VERSION_NUMBER}")
+    endif()
+
     string(TOLOWER ${PROJECT_NAME} PACKAGE_NAME)
     set(CPACK_GENERATOR                 "DEB")
     set(CPACK_DEBIAN_FILE_NAME          DEB-DEFAULT)
     set(CPACK_DEBIAN_PACKAGE_DEPENDS    "")
     set(CPACK_DEBIAN_PACKAGE_NAME       ${PACKAGE_NAME})
-    set(CPACK_DEBIAN_PACKAGE_VERSION    "0.0.2")
+    set(CPACK_DEBIAN_PACKAGE_VERSION    "${VERSION_NUMBER}")
     set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Riddick")
     set(CPACK_PACKAGE_VENDOR            "Riddick")
     include(CPack)
