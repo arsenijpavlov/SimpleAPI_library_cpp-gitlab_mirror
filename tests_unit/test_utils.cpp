@@ -81,3 +81,35 @@ TEST(UTILS, EndToEndCounter_sub_overflowing) {
     ee.sub(256);
     EXPECT_EQ(ee.get(), 255);
 }
+
+TEST(UTILS, string_utf8_to_wstring) {
+    using namespace simpleapi;
+
+    // 1-byte
+    EXPECT_EQ(L"asd", utils::StrUtf8ToWStr("asd"));
+
+    // 2-byte
+    EXPECT_EQ(L"ну строка", utils::StrUtf8ToWStr("ну строка"));
+
+    // 3-byte
+    EXPECT_EQ(L"한", utils::StrUtf8ToWStr("한"));
+
+    // 4-byte
+    EXPECT_EQ(L"🔥", utils::StrUtf8ToWStr("🔥"));
+}
+
+TEST(UTILS, wstring_to_string_utf8) {
+    using namespace simpleapi;
+
+    // 1-byte
+    EXPECT_EQ("asd", utils::WStrToStrUtf8(L"asd"));
+
+    // 2-byte
+    EXPECT_EQ("ну строка", utils::WStrToStrUtf8(L"ну строка"));
+
+    // 3-byte
+    EXPECT_EQ("한", utils::WStrToStrUtf8(L"한"));
+
+    // 4-byte
+    EXPECT_EQ("🔥", utils::WStrToStrUtf8(L"🔥"));
+}

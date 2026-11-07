@@ -1,12 +1,10 @@
 #include "string_utils.h"
 #include "utils.h"
 #include "../config/ConfigDefines.h"
-#include <codecvt>
-#include <locale>
+
 
 namespace simpleapi {
 namespace utils {
-
 
 void RemoveFrontTabsIllegalSpaces(std::string &string, const int8_t tabulation_level) noexcept
 {
@@ -285,15 +283,123 @@ SplittedLines SplitString(const std::string input_string, char split_char,
     return sl;
 }
 
-std::wstring Utf8ToWstring(const std::string &str) {
-    std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-    return converter.from_bytes(str);
+// @TEST(UTILS, string_utf8_to_wstring)
+std::wstring StrUtf8ToWStr(const std::string &str) {
+    // Linux:   wchar_t = 1 символ UTF-32
+    // TODO(cross): Windows: wchar_t = 1 символ UTF-16
+
+    // Логика формата UTF-8 (маска наложения от старших байтов к младшим)
+    // 1 байт  на символ => 0xxx xxxx
+    // 2 байта на символ => 110x xxxx 10xx xxxx
+    // 3 байта на символ => 1110 xxxx 10xx xxxx 10xx xxxx
+    // 4 байта на символ => 1111 0xxx 10xx xxxx 10xx xxxx 10xx xxxx
+
+    // обрабатываем не по байтам, а по диапазонам с учётом масок UTF-8
+    // 1b -> {7}          -> 7  бит на символ
+    // 2b -> {5}{6}       -> 11 бит на символ
+    // 3b -> {4}{6}{6}    -> 16 бит на символ
+    // 4b -> {3}{6}{6}{6} -> 21 бит на символ
+
+    std::wstring ret;
+    ret.reserve(simpleapi::utils::GetStringCharCount(str));
+
+    for(size_t i = 0; i < str.size(); ) {
+        if((uint8_t)str[i] < 0b10000000) {
+            ret += str[i]; // {7}
+            i++;
+        } else if((uint8_t)str[i] < 0b11000000) {
+            throw std::invalid_argument("SimpleAPI: incorrect UTF-8 symbol header");
+        } else if((uint8_t)str[i] < 0b11100000) {
+            // {5}{6} -> {3}{8}
+            wchar_t wc = ((static_cast<uint8_t>(str[i]) >> 2) & 0x07) << 8; // 3 бита первого байта (с учётом маски)
+            wc        |= (static_cast<uint8_t>(str[i]) & 0x03) << 6;        // 2 левых бита второго байта (с учётом маски)
+            wc        |= static_cast<uint8_t>(str[i + 1]) & 0x3F;           // 6 правых битов второго байта (с учётом маски)
+            ret       += wc;
+            i         += 2;
+        } else if((uint8_t)str[i] < 0b11110000) {
+            // {4}{6}{6} -> {8}{8}
+            wchar_t wc = (static_cast<uint8_t>(str[i]) & 0x0F) << 12;           // 4 правых бита первого байта
+            wc        |= ((static_cast<uint8_t>(str[i + 1]) >> 2) & 0x0F) << 8; // 4 левых бита второго байта (с учётом маски)
+            wc        |= (static_cast<uint8_t>(str[i + 1]) & 0x03) << 6;        // 2 правых бита второго байта (с учётом маски)
+            wc        |= static_cast<uint8_t>(str[i + 2]) & 0x3F;               // 6 правых битов второго байта (с учётом маски)
+            ret       += wc;
+            i += 3;
+        } else {
+            // {3}{6}{6}{6} -> {5}{8}{8}
+            wchar_t wc = (static_cast<uint8_t>(str[i]) & 0x07) << 20;            // 3 правых бита первого байта
+            wc        |= ((static_cast<uint8_t>(str[i + 1]) >> 4) & 0x03) << 16; // 2 левых бита второго байта (с учётом маски)
+            wc        |= (static_cast<uint8_t>(str[i + 1]) & 0x0F) << 12;        // 4 правых бита второго байта (с учётом маски)
+            wc        |= ((static_cast<uint8_t>(str[i + 2]) >> 2) & 0x0F) << 8;  // 4 левых бита третьего байта (с учётом маски)
+            wc        |= (static_cast<uint8_t>(str[i + 2]) & 0x03) << 6;         // 2 правых бита третьего байта (с учётом маски)
+            wc        |= static_cast<uint8_t>(str[i + 3]) & 0x3F;                // 6 правых битов четвёртого байта (с учётом маски)
+            ret       += wc;
+            i += 4;
+        }
+    }
+
+    return ret;
 }
 
-std::string WstringToUtf8(const std::wstring &wstr) {
-    std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-    return converter.to_bytes(wstr);
+// @TEST(UTILS, wstring_to_string_utf8)
+std::string WStrToStrUtf8(const std::wstring &wstr) noexcept {
+    // Linux:   wchar_t = 1 символ UTF-32
+    // TODO(cross): Windows: wchar_t = 1 символ UTF-16
+
+    // Логика формата UTF-8 (маска наложения от старших байтов к младшим)
+    // 1 байт  на символ => 0xxx xxxx
+    // 2 байта на символ => 110x xxxx 10xx xxxx
+    // 3 байта на символ => 1110 xxxx 10xx xxxx 10xx xxxx
+    // 4 байта на символ => 1111 0xxx 10xx xxxx 10xx xxxx 10xx xxxx
+
+    std::string ret;
+    ret.reserve(wstr.size()); // предполагаем, что wstr содержит только однобайтовые символы (частый вариант)
+
+    for(wchar_t sym : wstr) {
+        // срезаем не по байтам, а по диапазонам с учётом масок UTF-8
+        // 1b -> {7}          -> 7  бит на символ
+        // 2b -> {5}{6}       -> 11 бит на символ
+        // 3b -> {4}{6}{6}    -> 16 бит на символ
+        // 4b -> {3}{6}{6}{6} -> 21 бит на символ
+
+        uint8_t symbol_size = 4;
+        if((sym >> 7) == 0)  --symbol_size;
+        if((sym >> 11) == 0) --symbol_size;
+        if((sym >> 16) == 0) --symbol_size;
+
+        switch(symbol_size) {
+        case 1: {
+            // std::cout << "1b" << std::endl; // лог для дебага
+            ret += sym & 0x7F;
+            break;
+        }
+        case 2: {
+            // std::cout << "2b" << std::endl; // лог для дебага
+            ret.push_back(static_cast<char>(0xC0 | ((sym >> 6) & 0x1F)));
+            ret.push_back(static_cast<char>(0x80 | (sym & 0x3F)));
+            break;
+        }
+        case 3: {
+            // std::cout << "3b" << std::endl; // лог для дебага
+            ret.push_back(static_cast<char>(0xE0 | ((sym >> 12) & 0x0F)));
+            ret.push_back(static_cast<char>(0x80 | ((sym >> 6) & 0x3F)));
+            ret.push_back(static_cast<char>(0x80 | (sym & 0x3F)));
+            break;
+        }
+        case 4: {
+            // std::cout << "4b" << std::endl; // лог для дебага
+            ret.push_back(static_cast<char>(0xF0 | ((sym >> 18) & 0x07)));
+            ret.push_back(static_cast<char>(0x80 | ((sym >> 12) & 0x3F)));
+            ret.push_back(static_cast<char>(0x80 | ((sym >> 6) & 0x3F)));
+            ret.push_back(static_cast<char>(0x80 | (sym & 0x3F)));
+            break;
+        }
+        default: break;
+        }
+    }
+
+    return ret;
 }
+
 
 } // namespace utils
 } // namespace simpleapi

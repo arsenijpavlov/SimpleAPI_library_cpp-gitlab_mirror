@@ -31,8 +31,8 @@ SplittedLines SplitString(const std::string input_string, char split_char,
                           bool with_empty_strings = true)                               noexcept;
 
 // NOTE: поддержка std::wstring носит ограниченный характер, корректно будет обработана только кодировка UTF-8
-std::wstring Utf8ToWstring(const std::string& str);
-std::string WstringToUtf8(const std::wstring& wstr);
+std::wstring StrUtf8ToWStr(const std::string &str);
+std::string WStrToStrUtf8(const std::wstring& wstr) noexcept;
 
 } // namespace utils
 } // namespace simpleapi

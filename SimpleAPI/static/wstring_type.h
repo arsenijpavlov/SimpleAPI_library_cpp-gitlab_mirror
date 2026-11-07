@@ -22,7 +22,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<std::is_same<T, std::wstring>
         if(config.isMapContainer() && config.containsKey(key)) {
             if(!config.is_can_get<std::string>(key))
                 return false;
-            field = utils::Utf8ToWstring(config.get<std::string>(key));
+            field = utils::StrUtf8ToWStr(config.get<std::string>(key));
         }
 
         return true;
@@ -38,7 +38,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<std::is_same<T, std::wstring>
         if(config.isMapContainer() && config.containsKey(key)) {
             if(!config.is_can_get<std::string>(key))
                 return false;
-            T temp_value = utils::Utf8ToWstring(config.get<std::string>(key));
+            T temp_value = utils::StrUtf8ToWStr(config.get<std::string>(key));
 
             if(!ExecuteValidator(lambda, temp_value, key)) {
                 static_config_error_str = "validate for [" + key + "] failed\n";
@@ -58,7 +58,7 @@ struct ConfigTypeTraits<T, typename std::enable_if<std::is_same<T, std::wstring>
     {
         // std::cout << "[debug] save wstring(utf-8) key=\"" << key << "\"" << std::endl;
 
-        config[key] = utils::WstringToUtf8(field);
+        config[key] = utils::WStrToStrUtf8(field);
         config[key].setComment(prefix_comment, suffix_comment);
     }
 

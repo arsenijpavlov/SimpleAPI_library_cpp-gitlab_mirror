@@ -348,7 +348,7 @@ size_t GetStringCharCount(const std::string &str, bool only_visible) {
                 size++;
                 i++;
         } else if((uint8_t)str[i] < 0b11000000) {
-                throw std::invalid_argument("incorrect symbol header");
+                throw std::invalid_argument("incorrect UTF-8 symbol header");
         } else if((uint8_t)str[i] < 0b11100000) {
                 size++;
                 i += 2;
