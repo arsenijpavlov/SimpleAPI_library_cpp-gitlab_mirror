@@ -6,9 +6,20 @@
 namespace simpleapi {
 namespace utils {
 
+// NOTE: если на платформе доступен steady_clock, то нужно использовать его!
+// тройной выбор по приоритету: steady, high_resolution, system
+using ClockType = std::conditional<
+    std::chrono::steady_clock::is_steady,
+    std::chrono::steady_clock,
+    std::conditional<
+        std::chrono::high_resolution_clock::is_steady,
+        std::chrono::high_resolution_clock,
+        std::chrono::system_clock
+        >
+    >::type;
+
 class Timer {
-    // TODO: если на платформе доступен steady_clock, то нужно использовать его!
-    std::chrono::system_clock::time_point m_time_of_start;
+    ClockType::time_point m_time_of_start;
     // храним в минимально возможном виде для возможности "на ходу" изменять периодичность таймера
     std::chrono::nanoseconds m_timer;
     bool m_is_active;

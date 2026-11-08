@@ -12,13 +12,13 @@ utils::Timer &utils::Timer::operator=(const Timer &other) noexcept
 
 void utils::Timer::start() noexcept
 {
-    m_time_of_start = std::chrono::system_clock::now();
+    m_time_of_start = ClockType::now();
     m_is_active     = true;
 }
 
 bool utils::Timer::hasExpired() noexcept
 {
-    bool expired = std::chrono::system_clock::now() - m_time_of_start > m_timer;
+    bool expired = ClockType::now() - m_time_of_start > m_timer;
     if(expired)
         m_is_active = false;
     return expired;
