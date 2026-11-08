@@ -494,3 +494,47 @@ TEST(INI, writer_different_len_of_keys_alignment) {
         "aaa = 3\n";
     EXPECT_EQ(cfg.toString(simpleapi::ConfigFormat::eINI), expected_result);
 }
+
+// проверяем, что комментарий ПОСЛЕ значения, но до запятой не склеился со следующим комментарием ДО значения
+TEST(INI, parer_of_comments_1) {
+    using namespace simpleapi;
+
+    const std::string input = "a = b/*suffix*/\n"
+                              "/*prefix*/\n"
+                              "c=d";
+    CommentDesign cd;
+    cd.with_comments = true;
+    Config cfg = ParseIni(input, cd);
+
+    EXPECT_EQ(cfg.get_prefix_comment("a"), "");
+    EXPECT_EQ(cfg.get_suffix_comment("a"), "suffix");
+    EXPECT_EQ(cfg.get_prefix_comment("c"), "prefix");
+}
+
+// если пользователь дополняет комментарий до окончания описания значения - это всё префикс с переносом строки
+// в случае INI конец строки УЖЕ означает завершение описания
+TEST(INI, parer_of_comments_2) {
+    using namespace simpleapi;
+
+    // перенос строки только между двумя ключами
+    const std::string input = "/*prefix1*/a1"
+                              "/*prefix2*/a2"
+                              "/*prefix3*/:"
+                              "/*prefix4*/b1"
+                              "/*prefix5*/b2"
+                              "/*suffix1*/"
+                              "/*suffix2*/\n"
+                              "c=d";
+    CommentDesign cd;
+    cd.with_comments = true;
+    Config cfg = ParseIni(input, cd);
+
+    EXPECT_EQ(cfg.get_prefix_comment("a1a2"), "prefix1\n"
+                                              "prefix2\n"
+                                              "prefix3\n"
+                                              "prefix4\n"
+                                              "prefix5");
+    EXPECT_EQ(cfg.get_suffix_comment("a1a2"), "suffix1\n"
+                                              "suffix2");
+    EXPECT_EQ(cfg.get_prefix_comment("c"), "");
+}

@@ -2550,6 +2550,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
     Config* main_target = this; //точка привязки группы значений
     Config* target      = this; //точка привязки нового значения
     std::vector<std::string> prefix_comments;
+    size_t                   comments_split_index = 0;
     std::vector<std::string> suffix_comments;
     std::string current_comment;
     std::string temp_string_value;
@@ -2650,6 +2651,14 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
         utils::RemoveIllegalSpaces(temp_string_value);
         if(!temp_string_value.empty())
         {
+            // часть комментариев остаётся в префиксе, остальные - суффикс
+            if(!prefix_comments.empty()) {
+                while(comments_split_index < prefix_comments.size()) {
+                    suffix_comments.push_back(prefix_comments[comments_split_index]);       // добавляем в суффикс
+                    prefix_comments.erase(prefix_comments.cbegin() + comments_split_index); // удаляем из префикса
+                }
+            }
+
             if(temp_string_value.front() == '[' && temp_string_value.back() == ']')
             {
                 temp_string_value.erase(0, 1);
@@ -2692,13 +2701,16 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
             temp_string_value.clear();
             prefix_comments.clear();
             suffix_comments.clear();
-            assignment_counter = 0;
+            comments_split_index = 0;
+            assignment_counter   = 0;
         }
     };
 
-    size_t k = 0; //вынес для видимости вне for()
+    size_t k                 = 0; //вынес для видимости вне for()
     size_t all_lines_counter = 0;
+    size_t last_value_size   = 0;
     for(; k < lines_vec.size(); k++) {
+        // каждый lines_vec[k] - самостоятельная переменная
         VString& fragments = lines_vec[k];
 
         bool need_to_iterate_k = false;
@@ -2751,10 +2763,11 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                     // std::cout << "comment (value_size:" << temp_string_value.size() << ")"
                     //           << (temp_string_value.empty() ? "(prefix)" : "(suffix)")
                     //           << ": \"" << FromComment(current_comment, design) << "\"" << std::endl;
-                    if(temp_string_value.empty())
-                        prefix_comments.push_back(FromComment(std::move(current_comment), getCommentDesign()));
-                    else
-                        suffix_comments.push_back(FromComment(std::move(current_comment), getCommentDesign()));
+
+                    // независимо собираем общий список
+                    // если будет считан символ значения - смещение индекса разделения комментариев префикс-суффикс
+                    prefix_comments.push_back(FromComment(std::move(current_comment), getCommentDesign()));
+
                     current_comment.clear();
                     getCommentDesign().temp_type = CommentType::eNotComment;
                     continue;
@@ -2779,7 +2792,11 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                 }
 
                 //здесь нет смысла проверять внешние условия - всё, что введёт пользователь - строка в том или ином виде
-                temp_string_value += ch_current;
+                temp_string_value   += ch_current;
+
+                // обход завершающего переноса строки
+                if(!utils::CharInString(ch_current, __SPACES__)) // пробелы и переносы не влияют на подсчёт
+                    comments_split_index = prefix_comments.size();
 
                 if(utils::CharInString(ch_current, "=:")) {
                     assignment_counter++;

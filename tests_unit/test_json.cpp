@@ -1022,3 +1022,33 @@ TEST(JSON, parser_all_number_non_integral_formats) {
     EXPECT_DOUBLE_EQ(cfg["c"].getNumber(), 0.400000000000000022204);
     EXPECT_DOUBLE_EQ(cfg["d"].getNumber(), -0.400000000000000022204);
 }
+
+// проверяем, что комментарий ПОСЛЕ значения, но до запятой не склеился со следующим комментарием ДО значения
+TEST(JSON, parer_of_comments_1) {
+    using namespace simpleapi;
+
+    const std::string input = "{a:b,/*suffix*//*prefix*/c=d}";
+    CommentDesign cd;
+    cd.with_comments = true;
+    Config cfg = ParseJson(input, cd);
+
+    EXPECT_EQ(cfg.get_prefix_comment("a"), "");
+    EXPECT_EQ(cfg.get_suffix_comment("a"), "suffix");
+    EXPECT_EQ(cfg.get_prefix_comment("c"), "prefix");
+}
+
+// если пользователь дополняет комментарий до окончания описания значения - это всё префикс с переносом строки
+TEST(JSON, parer_of_comments_2) {
+    using namespace simpleapi;
+
+    const std::string input = "{/*prefix*/a:b/*suffix*/,c=d}";
+    CommentDesign cd;
+    cd.with_comments = true;
+    Config cfg = ParseJson(input, cd);
+
+    EXPECT_EQ(cfg.get_prefix_comment("a"), "prefix\n"
+                                           "suffix");
+    EXPECT_EQ(cfg.get_suffix_comment("a"), "");
+    EXPECT_EQ(cfg.get_prefix_comment("c"), "");
+}
+
