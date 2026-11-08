@@ -1052,3 +1052,11 @@ TEST(JSON, parer_of_comments_2) {
     EXPECT_EQ(cfg.get_prefix_comment("c"), "");
 }
 
+TEST(JSON, null_key_is_correct) {
+    using namespace simpleapi;
+
+    Config cfg = ParseJson("{:}");
+    ASSERT_TRUE(cfg.containsKey(""));
+    EXPECT_EQ(cfg[""], Config(ValueType::eNull));
+}
+
