@@ -4047,6 +4047,13 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
             {
                 DEBUG_LOG("ElementArray: current value done: \"" << value << "\"");
 
+                // если элемент пустой, то сразу переходим дальше
+                // null-сущность не порождаем
+                if(value.empty()) {
+                    UpdateState(state, ParseStateJsonArray::eARRAY_SEPARATOR);
+                    break;
+                }
+
                 Config element = CreateElementFromString(std::move(value), ConfigFormat::eJSON, getCommentDesign(), start_value_counter);
                 if(element.error()) {
                     //если случилась ошибка при внутренней конвертации прочитанного значения,

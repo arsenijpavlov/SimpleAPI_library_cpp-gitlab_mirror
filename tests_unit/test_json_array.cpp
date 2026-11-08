@@ -167,8 +167,8 @@ TEST(ARRAY, parse_json_simple_array) {
 
 TEST(ARRAY, parse_json_array_with_empty_element) {
     Config cfg = ParseJson("[a,, b, c]");
-    ASSERT_EQ(cfg.size(), 4);
-    Config cfg2 = Config(ValueType::eArray, "a", nullptr, "b", "c");
+    ASSERT_EQ(cfg.size(), 3);
+    Config cfg2 = Config(ValueType::eArray, "a", "b", "c");
     EXPECT_EQ(cfg, cfg2);
 }
 
@@ -189,4 +189,21 @@ TEST(ARRAY, parse_empty_array) {
 
     cfg.parseJson("[ \n ]");
     EXPECT_TRUE(cfg.isArray());
+}
+
+TEST(ARRAY, null_between_value) {
+    using namespace simpleapi;
+
+    Config cfg = ParseJson("[a,,b]");
+    EXPECT_EQ(cfg.size(), 2);
+    EXPECT_TRUE(cfg.containsValue("a"));
+    EXPECT_TRUE(cfg.containsValue("b"));
+
+    // вариант с переносами строк
+    cfg = ParseJson("[a\n"
+                    "\n"
+                    "b\n]");
+    EXPECT_EQ(cfg.size(), 2);
+    EXPECT_TRUE(cfg.containsValue("a"));
+    EXPECT_TRUE(cfg.containsValue("b"));
 }
