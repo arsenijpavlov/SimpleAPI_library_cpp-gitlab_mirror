@@ -1,4 +1,4 @@
-SimpleAPI v<> "<>" <>.<>.2026
+SimpleAPI v0.12.4 "Static Config patch 4. simpleapi::Variant" 09.11.2026
 
 1) Добавлено: поддержка работы с классом Config для SimpleAPI Static Config (динамический конфиг внутри статической структуры)
 2) Исправлено: опечатка при описании перечислений в SimpleAPI Static Config
