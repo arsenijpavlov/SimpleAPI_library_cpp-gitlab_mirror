@@ -1060,3 +1060,13 @@ TEST(JSON, null_key_is_correct) {
     EXPECT_EQ(cfg[""], Config(ValueType::eNull));
 }
 
+TEST(JSON, parse_error_dont_remove_already_read_values) {
+    using namespace simpleapi;
+
+    Config cfg = ParseJson("{a=b,c"); // обрезанный JSON
+
+    EXPECT_EQ(cfg.size(), 1);
+    EXPECT_EQ(cfg["a"], "b");
+    EXPECT_TRUE(cfg.error());
+    EXPECT_FALSE(cfg.getError().empty());
+}
