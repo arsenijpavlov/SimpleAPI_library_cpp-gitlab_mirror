@@ -151,13 +151,10 @@ SAPI_REGISTER_CONFIG(MyStaticConfig2, MY_STRUCT2_FIELDS)
 ```c++
 MyStaticConfig2 static_config;
 
-// loadConfig() вернёт исключение, если пользователь применил некорректный тип переменной при заполнении
-try {
-    if(!static_config.loadConfig())
-    {
-        std::cerr << "Error: incorrect config!" << std::endl;
-    }
-} catch (...) {}
+if(!static_config.loadConfig())
+{
+    std::cerr << "Error: incorrect config!" << std::endl;
+}
 ```
 
 
@@ -192,17 +189,15 @@ int main() {
     
     // заполняем статическую структуру на основе динамической
     MyStruct ms;
-    try {
-        if(!ms.loadConfig(cfg))
-        {
-            // при загрузке произошла ошибка валидации, выводим наше сообщение
-            std::cout << "MyStruct loading error.";
-            if(!my_global_string.empty())
-                std::cout << " " << my_global_string;
-            std::cout << std::endl;
-            return 1;
-        }
-    } catch(...) {}
+    if(!ms.loadConfig(cfg))
+    {
+        // при загрузке произошла ошибка валидации, выводим наше сообщение
+        std::cout << "MyStruct loading error.";
+        if(!my_global_string.empty())
+            std::cout << " " << my_global_string;
+        std::cout << std::endl;
+        return 1;
+    }
     
     return 0;
 }
@@ -259,10 +254,10 @@ int main() {
     run("{variant:\"asd\"}");
     run("{variant:100}");
     run("{variant:null}");
-    
+
     //------------------------
     MyConfig_2 mcfg_2;
-    
+
     auto run = [&](std::string&& input) {
         cfg.parseJson(input);
         mcfg_2.loadConfig(cfg);
