@@ -981,7 +981,7 @@ public:
     Config&         operator=(std::nullptr_t)               noexcept                { return setValue(); }                      API_ALL
     Config&         operator=(bool other)                   noexcept                { return setValue(other); }                 API_ALL
                     __ONLY_NUMBER_TYPES__(T)
-    Config&         operator=(const T& other)               noexcept                { return setValue(static_cast<const long double&>(other)); }    API_ALL
+    Config&         operator=(const T& other)               noexcept                { return setValue(static_cast<long double>(other)); }   API_ALL
     Config&         operator=(long double&& other)          noexcept                { return setValue(std::move(other)); }      API_ALL
     Config&         operator=(char other)                   noexcept                { return setValue(other); }                 API_ALL
                     __ONLY_STRING_TYPES__(T)
@@ -997,7 +997,7 @@ public:
     bool            operator==(bool other)                  const                   { return isEqual(other); }                  API_ALL
     bool            operator==(std::nullptr_t)              const                   { return isNull(); }                        API_ALL
                     __ONLY_NUMBER_TYPES__(T)
-    bool            operator==(const T& other)              const                   { return isEqual(static_cast<const long double&>(other)); }     API_ALL
+    bool            operator==(const T& other)              const                   { return isEqual(static_cast<long double>(other)); }    API_ALL
     bool            operator==(char other)                  const                   { return isEqual(other); }                  API_ALL
                     __ONLY_STRING_TYPES__(T)
     bool            operator==(const T& other)              const                   { return isEqual(std::string(other)); }     API_ALL
@@ -1007,7 +1007,7 @@ public:
     bool            operator!=(bool other)                  const                   { return !isEqual(other); }                 API_ALL
     bool            operator!=(std::nullptr_t)              const                   { return !isNull(); }                       API_ALL
                     __ONLY_NUMBER_TYPES__(T)
-    bool            operator!=(const T& other)              const                   { return !isEqual(static_cast<const long double&>(other)); }    API_ALL
+    bool            operator!=(const T& other)              const                   { return !isEqual(static_cast<long double>(other)); }   API_ALL
     bool            operator!=(char other)                  const                   { return !isEqual(other); }                 API_ALL
     bool            operator!=(const std::string& other)    const                   { return !isEqual(other); }                 API_ALL
 
