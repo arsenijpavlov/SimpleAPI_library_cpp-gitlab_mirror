@@ -101,14 +101,11 @@ TEST(COMMENT, multiline_chopper) {
                                  "######################*/";
     EXPECT_EQ(res, correct_result);
 
-//#define NEED_PRINT_TO_FILE
-#ifdef NEED_PRINT_TO_FILE
     std::ofstream file("./test_chopper.txt");
     if (!file.is_open())
         FAIL();
     file << res
          << std::endl;
-#endif
 
     cd.opt_multiline_border = 0;
     res = ToComment("very large strings... String very long drive", cd, 0);
@@ -118,16 +115,12 @@ TEST(COMMENT, multiline_chopper) {
                      "very long drive\n"
                      "*/";
     EXPECT_EQ(res, correct_result);
-#ifdef NEED_PRINT_TO_FILE
+
     file << std::endl
          << res
          << std::endl;
-#endif
 
-#ifdef NEED_PRINT_TO_FILE
     file.close();
-#endif
-#undef NEED_PRINT_TO_FILE
 }
 
 TEST(COMMENT, SeparateToColumn_1) {
@@ -399,4 +392,37 @@ TEST(COMMENT, FromComment_incorrect_input) {
 
     result = FromComment("asd", cd); //нет обрамления
     EXPECT_TRUE(result.empty());
+}
+
+TEST(COMMENT, json_signs_in_comments_must_be_ignored) {
+    using namespace simpleapi;
+
+    std::string input = "{\n"
+                        "// i{n}n[e]r; .c,o<m>m//ent\n"
+                        "/* i{n}n[e]r; .c,o<m>m/*ent*/\n"
+                        "key : value\n"
+                        "}\n";
+
+    CommentDesign cd;
+    cd.with_comments = true;
+
+    Config cfg = ParseJson(input);
+    EXPECT_EQ(cfg.size(), 1);
+    EXPECT_EQ(cfg["key"], "value");
+}
+
+TEST(COMMENT, ini_signs_in_comments_must_be_ignored) {
+    using namespace simpleapi;
+
+    std::string input = "// i{n}n[e]r; .c,o<m>m//ent\n"
+                        "/* i{n}n[e]r; .c,o<m>m/*ent*/\n"
+                        "key : value\n"
+                        "\n";
+
+    CommentDesign cd;
+    cd.with_comments = true;
+
+    Config cfg = ParseIni(input);
+    EXPECT_EQ(cfg.size(), 1);
+    EXPECT_EQ(cfg["key"], "value");
 }
