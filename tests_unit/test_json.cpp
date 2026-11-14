@@ -994,11 +994,8 @@ TEST(JSON, parser_with_comment) {
     cfg["a"] = 15;
     cfg["a"].setComment("prefix comment]", "suffix comment]");
 
-    Config cfg2;
-    // cfg.parseJson(cfg.toString(simpleapi::ConfigFormat::eJSON, cd));
-    cfg.readFileJson("/home/riddick/Downloads/sib_config.json");
-
-    EXPECT_EQ(cfg2.getError(), "");
+    cfg.parseJson(cfg.toString(simpleapi::ConfigFormat::eJSON, cd));
+    EXPECT_EQ(cfg.getError(), "");
 }
 
 TEST(JSON, parser_all_number_non_integral_formats) {
