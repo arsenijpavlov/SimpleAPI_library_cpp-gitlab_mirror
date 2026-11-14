@@ -496,7 +496,7 @@ TEST(INI, writer_different_len_of_keys_alignment) {
 }
 
 // проверяем, что комментарий ПОСЛЕ значения, но до запятой не склеился со следующим комментарием ДО значения
-TEST(INI, parer_of_comments_1) {
+TEST(INI, parser_of_comments_1) {
     using namespace simpleapi;
 
     const std::string input = "a = b/*suffix*/\n"
