@@ -1024,7 +1024,7 @@ TEST(JSON, parser_all_number_non_integral_formats) {
 }
 
 // проверяем, что комментарий ПОСЛЕ значения, но до запятой не склеился со следующим комментарием ДО значения
-TEST(JSON, parer_of_comments_1) {
+TEST(JSON, parser_of_comments_1) {
     using namespace simpleapi;
 
     const std::string input = "{a:b,/*suffix*//*prefix*/c=d}";
@@ -1038,7 +1038,7 @@ TEST(JSON, parer_of_comments_1) {
 }
 
 // если пользователь дополняет комментарий до окончания описания значения - это всё префикс с переносом строки
-TEST(JSON, parer_of_comments_2) {
+TEST(JSON, parser_of_comments_2) {
     using namespace simpleapi;
 
     const std::string input = "{/*prefix*/a:b/*suffix*/,c=d}";
