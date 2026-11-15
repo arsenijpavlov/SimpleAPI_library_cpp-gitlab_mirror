@@ -3425,9 +3425,10 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
     ParserSymbolCounter counter;
     ParserSymbolCounter start_value_counter; //для счётчика внутри значения
 
-    std::string current_comment     = ""; // текущее значение при парсинге
-    VString comments;                     // обработанные комментарии
-    ssize_t value_read_at_line       = -1;
+    std::string current_comment           = ""; // текущее значение при парсинге
+    VString comments;                           // обработанные комментарии
+    ssize_t value_read_at_line            = -1;
+    Optional<size_t> comments_split_index = 0;  // счётчик, сколько из прочитанных комментариев должны стать префиксными
 
     const std::string error_template = "ElementJson JSON parser error";
     auto CreateError = [&](const ParserSymbolCounter& counter, std::string message) -> void {
@@ -3476,9 +3477,12 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
             && (getCommentDesign().temp_type == CommentType::eCommentEnd
                 || getCommentDesign().temp_type == CommentType::eNotComment))
         {
-            get_back().setPrefixComment(VStringToString(comments));
+            // нужно забрать только comments_split_index строк комментариев
+            get_back().setPrefixComment(VStringToString({comments.cbegin(), comments.cbegin() + comments_split_index.value()}));
             DEBUG_LOG("ElementJson: inner Element add PreviewComment: " << "\"" << get_back().getPrefixComment() << "\"");
-            comments.clear();
+            comments.erase(comments.cbegin(), comments.cbegin() + comments_split_index.value());
+
+            comments_split_index.unset(); // обнуляем после отсечения префикса
         }
     };
     auto AppendElementSuffixComment = [&](const bool for_penultimate = false){
@@ -3487,22 +3491,39 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
             && (getCommentDesign().temp_type == CommentType::eCommentEnd
                 || getCommentDesign().temp_type == CommentType::eNotComment))
         {
-            if(for_penultimate) {
+            if(for_penultimate) { // добавляем суффикс к предпоследнему элементу
                 if(get_at(size() - 2).getSuffixComment().empty())
                 {
-                    get_at(size() - 2).setSuffixComment(comments[0]);
+                    get_at(size() - 2).setSuffixComment(VStringToString(comments));
                     DEBUG_LOG("ElementJson: inner Element(penultimate) add SuffixComment: " << "\""
                               << get_at(size() - 2).getSuffixComment() << "\"");
                 }
                 comments.erase(comments.cbegin());
-            } else {
+            } else { // добавляем суффикс к последнему элементу
                 if(get_back().getSuffixComment().empty())
                 {
-                    get_back().setSuffixComment(comments.back());
-                    DEBUG_LOG("ElementJson: inner Element(back) add SuffixComment: " << "\""
-                              << get_back().getSuffixComment() << "\"");
+                    if(comments_split_index) {
+                        if(//value_read_at_line != counter.getLastLineCounter() &&
+                            comments_split_index.value() + 1 < comments.size())
+                        {
+                            // многострочное заполнение json позволяет сохранить комментарий после запятой на той же строке
+                            comments_split_index.value()++;
+                        }
+
+                        get_back().setSuffixComment(VStringToString({comments.cbegin(), comments.cbegin() + comments_split_index.value()}));
+                        DEBUG_LOG("ElementJson: inner Element(back) add SuffixComment: " << "\""
+                                  << get_back().getSuffixComment() << "\"");
+
+                        comments.erase(comments.cbegin(), comments.cbegin() + comments_split_index.value());
+                        comments_split_index.unset();
+                    } else if(value_read_at_line == counter.getLastLineCounter() || value_read_at_line == -1) {
+                        get_back().setSuffixComment(comments[0]);
+                        DEBUG_LOG("ElementJson: inner Element(back) add SuffixComment: " << "\""
+                                  << get_back().getSuffixComment() << "\"");
+
+                        comments.erase(comments.cbegin());
+                    }
                 }
-                comments.pop_back();
             }
 
         }
@@ -3568,26 +3589,27 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
             continue;
         //=================================================== поиск комментариев
 
-        // обработка комментария ПОСЛЕ значения
-        if(utils::CharInString(ch_current, __SEPARATORS__)) {
-            if(state == ParseStateJson::eJSON_KEY
-                && key.empty()
-                && !comments.empty()
-                && (last_separator_symbol == ','
-                    || (ch_current == '\n' && last_separator_symbol == ',' && comments[0].find('\n') == std::string::npos)))
-            {
-                //для отладки
-                // std::cout << "last_separator_symbol: '"
-                //           << (last_separator_symbol == '\n' ? "\\n" : std::string(&last_separator_symbol, 1))
-                //           << "'" << std::endl;
-                AppendElementSuffixComment();
-            }
-            /* таким образом запоминаются последние два разделителя:
-             * - last_separator_symbol  - предыдущий
-             * - ch_current             - текущий
-             */
-            last_separator_symbol = ch_current;
-        }
+        // FIXME: на удаление, лишний код
+//        // обработка комментария ПОСЛЕ значения
+//        if(utils::CharInString(ch_current, __SEPARATORS__)) {
+//            if(state == ParseStateJson::eJSON_KEY
+//                && key.empty()
+//                && !comments.empty()
+//                && (last_separator_symbol == ','
+//                    || (ch_current == '\n' && last_separator_symbol == ',' && comments[0].find('\n') == std::string::npos)))
+//            {
+//                //для отладки
+//                // std::cout << "last_separator_symbol: '"
+//                //           << (last_separator_symbol == '\n' ? "\\n" : std::string(&last_separator_symbol, 1))
+//                //           << "'" << std::endl;
+//                AppendElementSuffixComment();
+//            }
+//            /* таким образом запоминаются последние два разделителя:
+//             * - last_separator_symbol  - предыдущий
+//             * - ch_current             - текущий
+//             */
+//            last_separator_symbol = ch_current;
+//        }
 
         switch (state) {
         case ParseStateJson::eJSON_START: {
@@ -3616,8 +3638,7 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
             }
             if(stacker.empty() && ch_current == '}') {
                 // работа с комментарием после элемента
-                if(!isEmpty() && get_back().getSuffixComment().empty())
-                    AppendElementSuffixComment();
+                AppendElementSuffixComment();
 
                 UpdateState(state, ParseStateJson::eJSON_FINISH);
                 break;
@@ -3642,6 +3663,9 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
                                     || CharInString(ch_current, __SPACES__ ":=")) //т.к. пустой ключ - не ошибка
                 )
             {
+                // прочитан ключ -> можем пересмотреть суффиксный комментарий к предыдущему элементу
+                AppendElementSuffixComment(false); // false - потому что в мапе сейчас предыдущий элемент
+
                 RemoveIllegalSpaces(key); //игнорировать незначащие пробелы
                 RemoveQuotes(key);
                 DEBUG_LOG("ElementJson: current key done: \"" << key << "\"");
@@ -3701,9 +3725,10 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
             }
 
             if(!skip_append) {
-                if(!stacker.empty() || !CharInString(ch_current, __SEPARATORS__))
+                if(!stacker.empty() || !CharInString(ch_current, __SEPARATORS__)) {
                     value += ch_current;
-                else {
+                    comments_split_index = comments.size();
+                } else {
                     i--;
                 }
             }
@@ -3722,8 +3747,8 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
                     break; //если словили exception при обработке - выходим из цикла for()
 
                 // проверка замыкающего комментария (вторичная)
-                if(value_read_at_line == counter.getLastLineCounter())
-                    AppendElementSuffixComment(true);
+//                if(value_read_at_line == counter.getLastLineCounter()) // новое значение на строке старого
+//                    AppendElementSuffixComment(true);
 
                 // работа с комментариями перед элементом
                 AppendElementPrefixComment();
@@ -3746,6 +3771,12 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
             value_read_at_line = counter.getLastLineCounter(); //применится перед } и перед считыванием значения
 
             if(!is_one_value_format && CharInString(ch_current, __SEPARATORS__)) {
+                // запоминаем, что до запятой было столько-то комментариев
+                // если переноса строки не будет, то
+                //  1) при наличии комментариев до запятой - после запятой суффикса нет
+                //  2) при остустствии - максимум один комментарий после запятой станет суффиксом
+                comments_split_index = comments.size();
+
                 UpdateState(state, ParseStateJson::eJSON_KEY);
                 break;
             }
@@ -3777,11 +3808,11 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
 
         ConfirmValue();
 
-        // проверка замыкающего комментария (вторичная)
-        AppendElementSuffixComment();
-
         // работа с комментариями перед элементом
         AppendElementPrefixComment();
+
+        // проверка замыкающего комментария (вторичная)
+        AppendElementSuffixComment();
     }
 
     if(!is_one_value_format) {

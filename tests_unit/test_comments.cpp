@@ -426,3 +426,35 @@ TEST(COMMENT, ini_signs_in_comments_must_be_ignored) {
     EXPECT_EQ(cfg.size(), 1);
     EXPECT_EQ(cfg["key"], "value");
 }
+
+// добавление любого из синтаксисов комментариев ОТКЛЮЧАЕТ дефолтный стиль для указанного формата
+/* (стандарты JSON/INI/XAML не предполагают комментариев в таком стиле;
+ * может стать проблемой в YAML - там ключ в стиле многострочного комментария C/C++ корректно обработается)
+*/
+TEST(COMMENT, new_styles_disable_default) {
+    using namespace simpleapi;
+
+    CommentDesign cd_1;
+    cd_1.with_comments = true;
+    // добавление стиля однострочного формата не удаляет логику многострочного
+    cd_1.oneline_comment_variants.push_back(std::array<char, 2>{';', 0});
+
+    Config cfg = ParseJson("{\n"
+                           "/* correct multiline comment */\n"
+                           "// incorrect oneline comment\n"
+                           "key:value"
+                           "}\n", cd_1);
+    EXPECT_TRUE(cfg.error());
+
+    CommentDesign cd_2;
+    cd_2.with_comments = true;
+    // добавление стиля многострочного формата не удаляет логику однострочного
+    cd_2.multiline_comment_variants.push_back(std::array<char, 3>{';', 0, ';'});
+
+    cfg = ParseJson("{\n"
+                    "// correct oneline comment\n"
+                    "/* incorrect multiline comment */\n"
+                    "key:value"
+                    "}\n", cd_2);
+    EXPECT_TRUE(cfg.error());
+}
