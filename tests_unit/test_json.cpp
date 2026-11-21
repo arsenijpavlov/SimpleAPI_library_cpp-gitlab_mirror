@@ -360,7 +360,9 @@ TEST(JSON, write_and_read_file_comment) {
     EXPECT_EQ(json2.get_prefix_comment("bool"), FromTo(json.get_prefix_comment("bool")));
     EXPECT_EQ(json2.get_suffix_comment("bool"), FromTo_Suffix(json.get_suffix_comment("bool")));
 
-    EXPECT_EQ(json2.get_comment("string"), json.get_comment("string"));
+    Comment temp_cd_1 = json2.get_comment("string");
+    Comment temp_cd_2 = json.get_comment("string");
+    EXPECT_EQ(temp_cd_1, temp_cd_2);
     EXPECT_EQ(json2.get_prefix_comment("string"), FromTo(json.get_prefix_comment("string")));
     EXPECT_EQ(json2.get_suffix_comment("string"), FromTo_Suffix(json.get_suffix_comment("string")));
 
@@ -708,15 +710,15 @@ TEST(JSON, parse_element_with_many_prefix_comments) {
 
     std::string test_file_string = "/*b1*/\n"
                                    "/*b2*/\n"
-                                   "k=1"
-                                   "//a";
+                                   "k=1//a";
     Config json;
-
     json.parseJson(test_file_string, cd);
+
     EXPECT_EQ(json.size(), 1);
     EXPECT_TRUE(json.getComment().prefix().empty());
     EXPECT_FALSE(json[0].getComment().prefix().empty());
-    EXPECT_EQ(json[0].getComment().prefix(), "b1\nb2");
+    EXPECT_EQ(json[0].getComment().prefix(), "b1\n"
+                                             "b2");
     EXPECT_FALSE(json[0].getComment().suffix().empty());
     EXPECT_EQ(json[0].getComment().suffix(), "a");
 }
@@ -1152,19 +1154,20 @@ TEST(JSON, another_comments_test) {
 
     std::string input =
         "{\n"
-        "/*######################\n"
-        "# bool some            #\n"
-        "# words...             #\n"
-        "######################*/\n"
-        "\"bool\": true, /*###########\n"
-        "              # bool some #\n"
-        "              # words...  #\n"
-        "              ###########*/\n"
-        "\"null\": null\n"
-        "}";
+        "	/*######################\n"
+        "	# bool some            #\n"
+        "	# words...             #\n"
+        "	######################*/\n"
+        "	\"bool\": true, /*###########\n"
+
+        "	              # bool some #\n"
+        "	              # words...  #\n"
+        "	              ###########*/\n"
+        "	\"null\": null\n"
+        "}\n";
     CommentDesign cd;
     cd.with_comments = true;
-    Config cfg = ParseJson(input);
+    Config cfg = ParseJson(input, cd);
 
     EXPECT_EQ(cfg.get_prefix_comment("bool"), cfg.get_suffix_comment("bool"));
 }
