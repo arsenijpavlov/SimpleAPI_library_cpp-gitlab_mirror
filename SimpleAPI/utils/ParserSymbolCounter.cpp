@@ -35,6 +35,20 @@ size_t ParserSymbolCounter::getLastIterator() const noexcept
     return m_last_iterator;
 }
 
+void ParserSymbolCounter::checkLogicLine(const size_t current_iterator, const char current_ch) noexcept
+{
+    // проверяем, что последний перенос соответствует логической части, а не части комментария
+    if(current_ch == '\n' && current_iterator == m_last_iterator)
+    {
+        m_logic_line_counter++;
+    }
+}
+
+size_t ParserSymbolCounter::getLastLogicLineCounter() const noexcept
+{
+    return m_logic_line_counter;
+}
+
 void ParserSymbolCounter::printCoords() const noexcept
 {
     std::cout << "line counter: " << m_line_counter
