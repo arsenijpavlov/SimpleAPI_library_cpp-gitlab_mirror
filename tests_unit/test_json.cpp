@@ -704,13 +704,15 @@ TEST(JSON, parse_simple_element_with_comments) {
     EXPECT_EQ(json[0].getComment().suffix(), "a");
 }
 
-TEST(JSON, parse_element_with_many_prefix_comments) {
+// несколько префиксов
+// несколько суффиксов на одной строке для последнего элемента
+TEST(JSON, parse_element_with_many_comments_1) {
     CommentDesign cd;
     cd.with_comments = true;
 
     std::string test_file_string = "/*b1*/\n"
                                    "/*b2*/\n"
-                                   "k=1//a";
+                                   "k=1/*a1*///a2";
     Config json;
     json.parseJson(test_file_string, cd);
 
@@ -720,7 +722,32 @@ TEST(JSON, parse_element_with_many_prefix_comments) {
     EXPECT_EQ(json[0].getComment().prefix(), "b1\n"
                                              "b2");
     EXPECT_FALSE(json[0].getComment().suffix().empty());
-    EXPECT_EQ(json[0].getComment().suffix(), "a");
+    EXPECT_EQ(json[0].getComment().suffix(), "a1\n"
+                                             "a2");
+}
+
+// несколько префиксов
+// несколько суффиксов на одной строке для последнего элемента
+// (случай с лишним замыкающим комментарием на другой строке)
+TEST(JSON, parse_element_with_many_comments_2) {
+    CommentDesign cd;
+    cd.with_comments = true;
+
+    std::string test_file_string = "/*b1*/\n"
+                                   "/*b2*/\n"
+                                   "k=1/*a1*///a2\n"
+                                   "//ignore comment";
+    Config json;
+    json.parseJson(test_file_string, cd);
+
+    EXPECT_EQ(json.size(), 1);
+    EXPECT_TRUE(json.getComment().prefix().empty());
+    EXPECT_FALSE(json[0].getComment().prefix().empty());
+    EXPECT_EQ(json[0].getComment().prefix(), "b1\n"
+                                             "b2");
+    EXPECT_FALSE(json[0].getComment().suffix().empty());
+    EXPECT_EQ(json[0].getComment().suffix(), "a1\n"
+                                             "a2");
 }
 
 TEST(JSON, get_deep_inner_element_1) {

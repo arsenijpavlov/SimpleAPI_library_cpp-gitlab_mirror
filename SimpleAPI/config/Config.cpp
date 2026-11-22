@@ -3810,7 +3810,14 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
         AppendElementPrefixComment();
 
         // если остались комментарии в списке, то забрать первый для значения
-        comments_after_separator = comments.empty() ? 0 : 1;
+        comments_after_separator = comments.size();
+        // проверка замыкающего комментария (вторичная)
+        AppendElementSuffixComment();
+    }
+    else if(!isEmpty() && get_back().getSuffixComment().empty())
+    {
+        // если остались комментарии в списке, то забрать первый для значения
+        comments_after_separator = comments.size();
         // проверка замыкающего комментария (вторичная)
         AppendElementSuffixComment();
     }
