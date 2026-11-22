@@ -3809,6 +3809,8 @@ void Config::parseFullJsonDoc(std::string &&content) noexcept
         // работа с комментариями перед элементом
         AppendElementPrefixComment();
 
+        // если остались комментарии в списке, то забрать первый для значения
+        comments_after_separator = comments.empty() ? 0 : 1;
         // проверка замыкающего комментария (вторичная)
         AppendElementSuffixComment();
     }
