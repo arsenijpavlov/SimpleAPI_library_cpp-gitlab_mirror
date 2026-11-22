@@ -207,3 +207,176 @@ TEST(ARRAY, null_between_value) {
     EXPECT_TRUE(cfg.containsValue("a"));
     EXPECT_TRUE(cfg.containsValue("b"));
 }
+
+// префиксом считается всё до конца считывания значения
+//  - многострочное представление: в суффиксный комментарий попадёт всё, что было от конца значения до переноса строки
+TEST(ARRAY, parser_of_comments_multiline_view_1) {
+    using namespace simpleapi;
+
+    //-----------------------------------------------
+    // суффиксный комментарий умещается в одну строку
+    //-----------------------------------------------
+    std::string input = "[\n"
+                        "/*prefix_1*//*prefix_2*/\n"
+                        "/*prefix_3*//*prefix_4*/value/*suffix_1*//*suffix_2*/,/*suffix_3*/\n"
+                        "//prefix ignore from value \"value2\"\n"
+                        "value2"
+                        "]\n";
+    CommentDesign cd;
+    cd.with_comments = true;
+
+    Config cfg = ParseJson(input, cd);
+    EXPECT_EQ(cfg.get_prefix_comment(0), "prefix_1\n"
+                                         "prefix_2\n"
+                                         "prefix_3\n"
+                                         "prefix_4");
+    EXPECT_EQ(cfg.get_suffix_comment(0), "suffix_1\n"
+                                         "suffix_2\n"
+                                         "suffix_3");
+}
+
+// префиксом считается всё до конца считывания значения
+//  - многострочное представление: в суффиксный комментарий попадёт всё, что было от конца значения до переноса строки
+TEST(ARRAY, parser_of_comments_multiline_view_2) {
+    using namespace simpleapi;
+
+    //---------------------------------------------
+    // суффиксный комментарий многострочный внутри
+    //---------------------------------------------
+    std::string input = "[\n"
+                        "/*prefix_1*//*prefix_2*/\n"
+                        "/*prefix_3*//*prefix_4*/value/*suffix_1*//*suffix_2*/,/*suf\n"
+                        "fix_3*/\n"
+                        "//prefix ignore from value \"value2\"\n"
+                        "value2"
+                        "]\n";
+    CommentDesign cd;
+    cd.with_comments = true;
+
+    Config cfg = ParseJson(input, cd);
+    EXPECT_EQ(cfg.get_prefix_comment(0), "prefix_1\n"
+                                         "prefix_2\n"
+                                         "prefix_3\n"
+                                         "prefix_4");
+    EXPECT_EQ(cfg.get_suffix_comment(0), "suffix_1\n"
+                                         "suffix_2\n"
+                                         "suf\n"
+                                         "fix_3");
+}
+
+// префиксом считается всё до конца считывания значения
+//  - однострочное представление: так же, как в многострочном, но если был суффиксный комментарий до запятой, то
+//  следующий комментарий (после запятой) будет воспринят как префикс следующего поля
+TEST(ARRAY, parser_of_comments_oneline_view_1) {
+    using namespace simpleapi;
+
+    //-------------------------------------------------------------------------------------------------
+    // NOTE: переноса строки в исходном JSON-ARRAY нет (перенос только в коде для визуального разделения)!
+    //-------------------------------------------------------------------------------------------------
+
+    // случай с описанием "суффиксного" комментария до и после запятой
+    std::string input = "["
+                        "/*prefix_1*//*prefix_2*/value/*suffix_1*//*suffix_2*/,/*prefix_ignore*/value2"
+                        "]";
+    CommentDesign cd;
+    cd.with_comments = true;
+
+    Config cfg = ParseJson(input, cd);
+    EXPECT_EQ(cfg.get_prefix_comment(0), "prefix_1\n"
+                                         "prefix_2");
+    EXPECT_EQ(cfg.get_suffix_comment(0), "suffix_1\n"
+                                         "suffix_2");
+}
+
+// префиксом считается всё до конца считывания значения
+//  - однострочное представление: так же, как в многострочном, но если был суффиксный комментарий до запятой, то
+//  следующий комментарий (после запятой) будет воспринят как префикс следующего поля
+TEST(ARRAY, parser_of_comments_oneline_view_2) {
+    using namespace simpleapi;
+
+    //-------------------------------------------------------------------------------------------------
+    // NOTE: переноса строки в исходном JSON-ARRAY нет (перенос только в коде для визуального разделения)!
+    //-------------------------------------------------------------------------------------------------
+
+    // случай с описанием суффиксного комментария только после запятой
+    std::string input = "["
+                        "/*prefix_1*//*prefix_2*/value,/*suffix*//*prefix_ignore_1*//*prefix_ignore_2*/value2"
+                        "]";
+    CommentDesign cd;
+    cd.with_comments = true;
+
+    Config cfg = ParseJson(input, cd);
+    EXPECT_EQ(cfg.get_prefix_comment(0), "prefix_1\n"
+                                         "prefix_2");
+    EXPECT_EQ(cfg.get_suffix_comment(0), "suffix");
+}
+
+TEST(ARRAY, another_comments_test) {
+    using namespace simpleapi;
+
+    std::string input =
+        "[\n"
+        "	/*######################\n"
+        "	# bool some            #\n"
+        "	# words...             #\n"
+        "	######################*/\n"
+        "	true, /*###########\n"
+        "	              # bool some #\n"
+        "	              # words...  #\n"
+        "	              ###########*/\n"
+        "	null\n"
+        "]\n";
+    CommentDesign cd;
+    cd.with_comments = true;
+    Config cfg = ParseJson(input, cd);
+
+    EXPECT_EQ(cfg.get_prefix_comment(0), cfg.get_suffix_comment(0));
+}
+
+// несколько префиксов
+// несколько суффиксов на одной строке для последнего элемента
+TEST(ARRAY, parse_element_with_many_comments_1) {
+    CommentDesign cd;
+    cd.with_comments = true;
+
+    std::string test_file_string = "[/*b1*/\n"
+                                   "/*b2*/\n"
+                                   "k/*a1*///a2\n"
+                                   "]";
+    Config json;
+    json.parseJson(test_file_string, cd);
+
+    EXPECT_EQ(json.size(), 1);
+    EXPECT_TRUE(json.getComment().prefix().empty());
+    EXPECT_FALSE(json[0].getComment().prefix().empty());
+    EXPECT_EQ(json[0].getComment().prefix(), "b1\n"
+                                             "b2");
+    EXPECT_FALSE(json[0].getComment().suffix().empty());
+    EXPECT_EQ(json[0].getComment().suffix(), "a1\n"
+                                             "a2");
+}
+
+// несколько префиксов
+// несколько суффиксов на одной строке для последнего элемента
+// (случай с лишним замыкающим комментарием на другой строке)
+TEST(ARRAY, parse_element_with_many_comments_2) {
+    CommentDesign cd;
+    cd.with_comments = true;
+
+    std::string test_file_string = "[/*b1*/\n"
+                                   "/*b2*/\n"
+                                   "k/*a1*///a2\n"
+                                   "//ignore comment\n"
+                                   "]";
+    Config json;
+    json.parseJson(test_file_string, cd);
+
+    EXPECT_EQ(json.size(), 1);
+    EXPECT_TRUE(json.getComment().prefix().empty());
+    EXPECT_FALSE(json[0].getComment().prefix().empty());
+    EXPECT_EQ(json[0].getComment().prefix(), "b1\n"
+                                             "b2");
+    EXPECT_FALSE(json[0].getComment().suffix().empty());
+    EXPECT_EQ(json[0].getComment().suffix(), "a1\n"
+                                             "a2");
+}
