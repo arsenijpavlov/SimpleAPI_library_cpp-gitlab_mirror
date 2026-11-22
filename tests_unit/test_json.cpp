@@ -1186,7 +1186,6 @@ TEST(JSON, another_comments_test) {
         "	# words...             #\n"
         "	######################*/\n"
         "	\"bool\": true, /*###########\n"
-
         "	              # bool some #\n"
         "	              # words...  #\n"
         "	              ###########*/\n"
