@@ -3947,7 +3947,7 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
             && !isEmpty()
             && (getCommentDesign().temp_type == CommentType::eCommentEnd
                 || getCommentDesign().temp_type == CommentType::eNotComment))
-        {            
+        {
             // нужно забрать только comments_split_count строк комментариев
             get_back().setPrefixComment(VStringToString({comments.cbegin(), comments.cbegin() + comments_after_separator.value()}));
             DEBUG_LOG("ElementArray: inner Element add PreviewComment: " << "\"" << get_back().getPrefixComment() << "\"");
@@ -4206,30 +4206,21 @@ void Config::parseFullJsonArrayDoc(std::string&& content) noexcept {
     }
 
     /*если файл закончился раньше, чем было обработано последнее прочитанное значение*/
+    comments_after_separator.unset(); // часть комментариев должна быть проигнорирована
     if(!value.empty()
         && state == ParseStateJsonArray::eARRAY_VALUE)
     {
         if(getCommentDesign().temp_type == CommentType::eOneLineComment)
             getCommentDesign().temp_type = CommentType::eNotComment; //сбрасываем для корректной обработки oneline comment
 
-//        ConfirmValue();
-
         // работа с комментариями перед элементом
         AppendElementPrefixComment();
 
-        // если остались комментарии в списке, то забрать первый для значения
-        comments_after_separator = comments_before_separator;
-        comments_before_separator.unset();
-//        comments_after_separator = comments.size();
         // проверка замыкающего комментария (вторичная)
         AppendElementSuffixComment();
     }
     else if(!isEmpty() && get_back().getSuffixComment().empty())
     {
-        // если остались комментарии в списке, то забрать первый для значения
-        comments_after_separator = comments_before_separator;
-        comments_before_separator.unset();
-//        comments_after_separator = comments.size();
         // проверка замыкающего комментария (вторичная)
         AppendElementSuffixComment();
     }

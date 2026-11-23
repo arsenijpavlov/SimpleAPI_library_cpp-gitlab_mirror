@@ -341,7 +341,8 @@ TEST(ARRAY, parse_element_with_many_comments_1) {
 
     std::string test_file_string = "[/*b1*/\n"
                                    "/*b2*/\n"
-                                   "k/*a1*///a2\n"
+                                   "k/*a1*//*a2*//*a3\n"
+                                   "a3*//*a4*//*a5*///a6\n"
                                    "]";
     Config json;
     json.parseJson(test_file_string, cd);
@@ -353,7 +354,11 @@ TEST(ARRAY, parse_element_with_many_comments_1) {
                                              "b2");
     EXPECT_FALSE(json[0].getComment().suffix().empty());
     EXPECT_EQ(json[0].getComment().suffix(), "a1\n"
-                                             "a2");
+                                             "a2\n"
+                                             "a3a3\n"
+                                             "a4\n"
+                                             "a5\n"
+                                             "a6");
 }
 
 // несколько префиксов
@@ -365,7 +370,8 @@ TEST(ARRAY, parse_element_with_many_comments_2) {
 
     std::string test_file_string = "[/*b1*/\n"
                                    "/*b2*/\n"
-                                   "k/*a1*///a2\n"
+                                   "k/*a1*//*a2*//*a3\n"
+                                   "a3*//*a4*//*a5*///a6\n"
                                    "//ignore comment\n"
                                    "]";
     Config json;
@@ -378,5 +384,9 @@ TEST(ARRAY, parse_element_with_many_comments_2) {
                                              "b2");
     EXPECT_FALSE(json[0].getComment().suffix().empty());
     EXPECT_EQ(json[0].getComment().suffix(), "a1\n"
-                                             "a2");
+                                             "a2\n"
+                                             "a3a3\n"
+                                             "a4\n"
+                                             "a5\n"
+                                             "a6");
 }
