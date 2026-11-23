@@ -2247,6 +2247,8 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
      * если за "пробельными символами" есть новое "слово" - явно ошибка
      * иначе использовать парсер CreateElementFromString(), а комментарии сохранить здесь же
      */
+    using namespace utils;
+
     std::string current_comment;
     VString comments;
 
@@ -2463,6 +2465,7 @@ bool Config::parseJson(const std::string &content, const CommentDesign &design) 
 bool Config::parseIni(const std::string &content, const CommentDesign &input_design) noexcept
 {
     using namespace tools;
+    using namespace utils;
 
     setValue(Config(ValueType::eJson)); // clear() не нужен, т.к. объект только создан
     setCommentDesign(input_design);
@@ -4325,7 +4328,7 @@ void Config::UpdateState(ParseStateXml &state, const ParseStateXml new_state) no
 
 //функция должна быть вызвана исключительно для обработки строки значения, комменты не учитывает
 Config CreateElementFromString(std::string &&value_string, const ConfigFormat format,
-                               const CommentDesign &design, ParserSymbolCounter& start_iterator) noexcept
+                               const CommentDesign &design, utils::ParserSymbolCounter& start_iterator) noexcept
 {
     using namespace utils;
     using namespace tools;

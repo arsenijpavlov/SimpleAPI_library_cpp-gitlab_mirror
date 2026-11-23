@@ -4,6 +4,7 @@
 
 
 namespace simpleapi {
+namespace utils {
 
 class ParserSymbolCounter {
     size_t m_last_iterator;
@@ -44,4 +45,5 @@ public:
     void printCoords()                                                          const noexcept;
 };
 
+} // namespace utils
 } // namespace simpleapi

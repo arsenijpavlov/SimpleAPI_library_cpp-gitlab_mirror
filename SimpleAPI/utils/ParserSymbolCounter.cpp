@@ -3,6 +3,7 @@
 
 
 namespace simpleapi {
+namespace utils {
 
 void ParserSymbolCounter::check(const size_t current_iterator, const char current_ch) noexcept
 {
@@ -57,5 +58,6 @@ void ParserSymbolCounter::printCoords() const noexcept
               << std::endl;
 }
 
+} // namespace utils
 } // namespace simpleapi
 
