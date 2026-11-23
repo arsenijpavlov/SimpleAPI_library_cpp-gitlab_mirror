@@ -782,42 +782,50 @@ void CheckComments(const char ch_current, const char ch_next,
                 current_comment += format[1];
             }
         };
+        bool b2;
 
-        //поиск многострочных комментариев
-        for(const auto& format : design.multiline_comment_variants) {
-            //v1: {X,0} - #...
-            //v2: {X,Y} - #!...
-            bool b2 = format[1] == 0;
-            if(ch_current == format[0] && (b2 || ch_next == format[1])) {
-                SetMultiline(b2, format);
+        // поиск многострочных комментариев
+        // NOTE: наличие пользовательских правил отключает дефолтные
+        if(design.multiline_comment_variants.empty()) {
+            const auto temp_v_m = CommentDesign::GetDefaultMultilineCommentVariant();
+            b2 = temp_v_m[1] == 0;
+            if(temp_v_m[0] == ch_current && (b2 || temp_v_m[1] == ch_next)) {
+                SetMultiline(b2, temp_v_m);
                 return;
             }
+        } else {
+            for(const auto& format : design.multiline_comment_variants) {
+                //v1: {X,0} - #...
+                //v2: {X,Y} - #!...
+                b2 = format[1] == 0;
+                if(ch_current == format[0] && (b2 || ch_next == format[1])) {
+                    SetMultiline(b2, format);
+                    return;
+                }
+            }
         }
+
         //поиск однострочных комментариев
-        for(const auto& format : design.oneline_comment_variants) {
-            //v1: {X,0} - #...
-            //v2: {X,Y} - #!...
-            bool b2 = format[1] == 0;
-            if(ch_current == format[0] && (b2 || ch_next == format[1])) {
-                SetOneline(b2, format);
+        // NOTE: наличие пользовательских правил отключает дефолтные
+        if(design.oneline_comment_variants.empty()) {
+            const auto temp_v_o = CommentDesign::GetDefaultOnelineCommentVariant();
+            b2 = temp_v_o[1] == 0;
+            if(temp_v_o[0] == ch_current && (b2 || temp_v_o[1] == ch_next)) {
+                SetOneline(b2, temp_v_o);
                 return;
+            }
+        } else {
+            for(const auto& format : design.oneline_comment_variants) {
+                //v1: {X,0} - #...
+                //v2: {X,Y} - #!...
+                b2 = format[1] == 0;
+                if(ch_current == format[0] && (b2 || ch_next == format[1])) {
+                    SetOneline(b2, format);
+                    return;
+                }
             }
         }
 
-        // поиск многострочных комментариев, если не заполнены варианты
-        const auto temp_v_m = CommentDesign::GetDefaultMultilineCommentVariant();
-        bool b2 = temp_v_m[1] == 0;
-        if(temp_v_m[0] == ch_current && (b2 || temp_v_m[1] == ch_next)) {
-            SetMultiline(b2, temp_v_m);
-            return;
-        }
-        // поиск одноострочных комментариев, если не заполнены варианты
-        const auto temp_v_o = CommentDesign::GetDefaultOnelineCommentVariant();
-        b2 = temp_v_o[1] == 0;
-        if(temp_v_o[0] == ch_current && (b2 || temp_v_o[1] == ch_next)) {
-            SetOneline(b2, temp_v_o);
-            return;
-        }
         break;
     }
     default: break;
