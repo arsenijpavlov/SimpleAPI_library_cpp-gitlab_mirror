@@ -499,7 +499,8 @@ TEST(INI, writer_different_len_of_keys_alignment) {
 TEST(INI, parser_of_comments_1) {
     using namespace simpleapi;
 
-    const std::string input = "a = b/*suffix*/\n"
+    const std::string input = "a = b/*suffix1*//*suffix2\n"
+                              "                  suffix3*/\n"
                               "/*prefix*/\n"
                               "c=d";
     CommentDesign cd;
@@ -507,7 +508,9 @@ TEST(INI, parser_of_comments_1) {
     Config cfg = ParseIni(input, cd);
 
     EXPECT_EQ(cfg.get_prefix_comment("a"), "");
-    EXPECT_EQ(cfg.get_suffix_comment("a"), "suffix");
+    EXPECT_EQ(cfg.get_suffix_comment("a"), "suffix1\n"
+                                           "suffix2\n"
+                                           "suffix3");
     EXPECT_EQ(cfg.get_prefix_comment("c"), "prefix");
 }
 
@@ -521,9 +524,10 @@ TEST(INI, parser_of_comments_2) {
                               "/*prefix2*/a2"
                               "/*prefix3*/:"
                               "/*prefix4*/b1"
-                              "/*prefix5*/b2"
-                              "/*suffix1*/"
-                              "/*suffix2*/\n"
+                              "/*suffix1*/b2"
+                              "/*suffix2\n"
+                              "  suffix3*/"
+                              "/*suffix4*/\n"
                               "c=d";
     CommentDesign cd;
     cd.with_comments = true;
@@ -532,9 +536,10 @@ TEST(INI, parser_of_comments_2) {
     EXPECT_EQ(cfg.get_prefix_comment("a1a2"), "prefix1\n"
                                               "prefix2\n"
                                               "prefix3\n"
-                                              "prefix4\n"
-                                              "prefix5");
+                                              "prefix4");
     EXPECT_EQ(cfg.get_suffix_comment("a1a2"), "suffix1\n"
-                                              "suffix2");
+                                              "suffix2\n"
+                                              "suffix3\n"
+                                              "suffix4");
     EXPECT_EQ(cfg.get_prefix_comment("c"), "");
 }
