@@ -2654,6 +2654,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
         utils::RemoveIllegalSpaces(temp_string_value);
         if(!temp_string_value.empty())
         {
+            // FIXME: исправить на более эффективный алгоритм; возможно стоит работать с одним вектором и применять префикс точечно как в parseJson()
             // часть комментариев остаётся в префиксе, остальные - суффикс
             if(!prefix_comments.empty()) {
                 while(comments_split_index < prefix_comments.size()) {
@@ -2717,6 +2718,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
         VString& fragments = lines_vec[k];
 
         bool need_to_iterate_k = false;
+        bool is_prefix_saved   = false;
 
         counter = ParserSymbolCounter(all_lines_counter);
         for(size_t i = 0; i < fragments.size(); i++, all_lines_counter++) {
@@ -2783,7 +2785,7 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                     && stacker.empty()
                     && utils::CharInString(ch_current, __SPACES_WITHOUT_SEPARATORS__))
                 {
-                    continue;
+                        continue;
                 }
 
                 if(ch_previous != '\\') {
@@ -2797,12 +2799,16 @@ bool Config::parseIni(const std::string &content, const CommentDesign &input_des
                 //здесь нет смысла проверять внешние условия - всё, что введёт пользователь - строка в том или ином виде
                 temp_string_value   += ch_current;
 
-                // обход завершающего переноса строки
-                if(!utils::CharInString(ch_current, __SPACES__)) // пробелы и переносы не влияют на подсчёт
-                    comments_split_index = prefix_comments.size();
-
                 if(utils::CharInString(ch_current, "=:")) {
                     assignment_counter++;
+                }
+                else if(!is_prefix_saved
+                           && assignment_counter > 0
+                           && !utils::CharInString(ch_current, __SPACES__))
+                {
+                    // первый значащий символ после знака присвоения отсекает префиксы
+                    comments_split_index = prefix_comments.size();
+                    is_prefix_saved      = true;
                 }
 
                 if(assignment_counter == 0 && ch_previous == '[' && ch_current == ']') {
